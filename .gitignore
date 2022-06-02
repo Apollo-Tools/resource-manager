@@ -171,3 +171,6 @@ nbdist/
 
 # Build folder ###
 /build/
+
+# Config containing secret values
+/conf/config.json

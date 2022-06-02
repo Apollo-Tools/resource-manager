@@ -35,6 +35,7 @@ dependencies {
   implementation("io.vertx:vertx-web")
   implementation("io.vertx:vertx-pg-client")
   implementation("io.vertx:vertx-auth-oauth2")
+  implementation("io.vertx:vertx-config")
 
   // DB
   implementation("org.flywaydb:flyway-core:$flywayVersion")

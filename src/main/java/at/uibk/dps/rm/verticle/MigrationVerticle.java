@@ -7,11 +7,13 @@ import org.flywaydb.core.Flyway;
 public class MigrationVerticle extends AbstractVerticle {
 
     @Override public void start(Promise<Void> startPromise) {
+        String host = config().getString("db_host");
+        String port = config().getString("db_port");
         Flyway flyway = Flyway
             .configure()
-            .dataSource("jdbc:postgresql://localhost:5432/resource-manager",
-                "",
-                "")
+            .dataSource("jdbc:postgresql://" + host + ":" + port + "/resource-manager",
+                config().getString("db_user"),
+                config().getString("db_password"))
             .load();
         flyway.migrate();
         startPromise.complete();
