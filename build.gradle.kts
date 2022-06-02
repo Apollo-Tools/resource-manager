@@ -15,9 +15,11 @@ repositories {
 }
 
 val vertxVersion = "4.3.1"
+val flywayVersion = "8.5.12"
 val junitJupiterVersion = "5.7.0"
+val postgresVersion = "42.3.3"
 
-val mainVerticleName = "at.uibk.dps.rm.MainVerticle"
+val mainVerticleName = "at.uibk.dps.rm.verticle.MainVerticle"
 val launcherClassName = "io.vertx.core.Launcher"
 
 val watchForChange = "src/**/*"
@@ -28,10 +30,17 @@ application {
 }
 
 dependencies {
+  // vert.x
   implementation(platform("io.vertx:vertx-stack-depchain:$vertxVersion"))
   implementation("io.vertx:vertx-web")
   implementation("io.vertx:vertx-pg-client")
   implementation("io.vertx:vertx-auth-oauth2")
+
+  // DB
+  implementation("org.flywaydb:flyway-core:$flywayVersion")
+  implementation("org.postgresql:postgresql:$postgresVersion")
+
+  // testing
   testImplementation("io.vertx:vertx-junit5")
   testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
 }

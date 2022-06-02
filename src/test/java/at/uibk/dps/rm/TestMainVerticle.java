@@ -1,5 +1,6 @@
 package at.uibk.dps.rm;
 
+import at.uibk.dps.rm.verticle.MainVerticle;
 import io.vertx.core.Vertx;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
