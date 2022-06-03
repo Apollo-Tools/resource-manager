@@ -15,7 +15,7 @@ public class MetricValue {
     private Long count;
 
     @Column(precision = 20, scale = 10)
-    @Type(type = "decimal")
+    @Type(type = "big_decimal")
     private Double value;
 
     @ManyToOne(fetch = FetchType.LAZY)

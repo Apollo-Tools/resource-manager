@@ -15,6 +15,7 @@ repositories {
 }
 
 val vertxVersion = "4.3.1"
+val mutinyVersion = "2.22.0"
 val flywayVersion = "8.5.12"
 val junitJupiterVersion = "5.7.0"
 val postgresVersion = "42.3.3"
@@ -32,12 +33,11 @@ application {
 
 dependencies {
   // vert.x
-  implementation(platform("io.vertx:vertx-stack-depchain:$vertxVersion"))
-  implementation("io.vertx:vertx-web")
-  implementation("io.vertx:vertx-pg-client")
-  implementation("io.vertx:vertx-auth-oauth2")
-  implementation("io.vertx:vertx-config")
-  implementation("io.vertx:vertx-pg-client")
+  implementation("io.smallrye.reactive:smallrye-mutiny-vertx-core:$mutinyVersion")
+  implementation("io.smallrye.reactive:smallrye-mutiny-vertx-web:$mutinyVersion")
+  implementation("io.smallrye.reactive:smallrye-mutiny-vertx-pg-client:$mutinyVersion")
+  implementation("io.smallrye.reactive:smallrye-mutiny-vertx-auth-oauth2:$mutinyVersion")
+  implementation("io.smallrye.reactive:smallrye-mutiny-vertx-config:$mutinyVersion")
 
   // DB
   implementation("org.flywaydb:flyway-core:$flywayVersion")
@@ -45,7 +45,7 @@ dependencies {
   implementation("org.hibernate.reactive:hibernate-reactive-core:$hibernateVersion")
 
   // testing
-  testImplementation("io.vertx:vertx-junit5")
+  testImplementation("io.smallrye.reactive:smallrye-mutiny-vertx-junit5:$mutinyVersion")
   testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
 }
 
