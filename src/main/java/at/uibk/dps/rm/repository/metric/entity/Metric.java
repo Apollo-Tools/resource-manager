@@ -1,9 +1,6 @@
 package at.uibk.dps.rm.repository.metric.entity;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.sql.Timestamp;
 
 @Entity
@@ -16,6 +13,7 @@ public class Metric {
 
     private String description;
 
+    @Transient
     private Timestamp createdAt;
 
     public Integer getMetric_id() {

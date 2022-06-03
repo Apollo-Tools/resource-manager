@@ -7,9 +7,7 @@ import org.flywaydb.core.api.output.MigrateResult;
 
 public class MigrationVerticle extends AbstractVerticle {
 
-
     public Uni<Void> asyncStart() {
-        System.out.println("Hello world");
         String host = config().getString("db_host");
         String port = config().getString("db_port");
         Flyway flyway = Flyway

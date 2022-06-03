@@ -16,7 +16,7 @@ public class Resource {
     private Timestamp updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "type_id")
+    @JoinColumn(name = "resource_type")
     private ResourceType resourceType;
 
     public Integer getResourceId() {

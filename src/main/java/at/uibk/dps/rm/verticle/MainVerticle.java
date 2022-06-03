@@ -17,6 +17,8 @@ public class MainVerticle extends AbstractVerticle {
             .onItem()
             .call(verticle -> vertx.undeploy(verticle))
             .onItem()
+            .call(() -> vertx.deployVerticle(new DatabaseVerticle(), new DeploymentOptions().setConfig(json)))
+            .onItem()
             .call(() -> vertx.deployVerticle(new ApiVerticle(), new DeploymentOptions().setConfig(json))));
 
     return Uni.combine().all().unis(deployVerticles).discardItems();

@@ -11,22 +11,22 @@ public class ResourceType {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer type_id;
+    private Integer typeId;
 
-    private String resource_type;
+    private String resourceType;
 
     private Timestamp createdAt;
 
     public Integer getType_id() {
-        return type_id;
+        return typeId;
     }
 
     public String getResource_type() {
-        return resource_type;
+        return resourceType;
     }
 
-    public void setResource_type(String resource_type) {
-        this.resource_type = resource_type;
+    public void setResource_type(String resourceType) {
+        this.resourceType = resourceType;
     }
 
     public Timestamp getCreatedAt() {
@@ -41,10 +41,10 @@ public class ResourceType {
 
         ResourceType that = (ResourceType) o;
 
-        return type_id.equals(that.type_id);
+        return typeId.equals(that.typeId);
     }
 
     @Override public int hashCode() {
-        return type_id.hashCode();
+        return typeId.hashCode();
     }
 }
