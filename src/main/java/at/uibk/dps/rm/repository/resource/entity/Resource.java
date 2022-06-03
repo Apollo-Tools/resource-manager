@@ -11,8 +11,10 @@ public class Resource {
 
     private String url;
 
+    @Column(insertable = false, updatable = false)
     private Timestamp createdAt;
 
+    @Column(insertable = false, updatable = false)
     private Timestamp updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)

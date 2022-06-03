@@ -1,9 +1,6 @@
 package at.uibk.dps.rm.repository.resource.entity;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.sql.Timestamp;
 
 @Entity
@@ -15,6 +12,7 @@ public class ResourceType {
 
     private String resourceType;
 
+    @Column(insertable = false, updatable = false)
     private Timestamp createdAt;
 
     public Integer getType_id() {

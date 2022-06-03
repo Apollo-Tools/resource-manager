@@ -26,8 +26,10 @@ public class MetricValue {
     @JoinColumn(name = "metric_id")
     private Metric metric;
 
+    @Column(insertable = false, updatable = false)
     private Timestamp createdAt;
 
+    @Column(insertable = false, updatable = false)
     private Timestamp updatedAt;
 
     public Integer getMetricValueId() {

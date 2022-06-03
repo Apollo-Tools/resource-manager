@@ -13,7 +13,7 @@ public class Metric {
 
     private String description;
 
-    @Transient
+    @Column(insertable = false, updatable = false)
     private Timestamp createdAt;
 
     public Integer getMetric_id() {
