@@ -18,6 +18,7 @@ val vertxVersion = "4.3.1"
 val flywayVersion = "8.5.12"
 val junitJupiterVersion = "5.7.0"
 val postgresVersion = "42.3.3"
+val hibernateVersion = "1.1.6.Final"
 
 val mainVerticleName = "at.uibk.dps.rm.verticle.MainVerticle"
 val launcherClassName = "io.vertx.core.Launcher"
@@ -36,10 +37,12 @@ dependencies {
   implementation("io.vertx:vertx-pg-client")
   implementation("io.vertx:vertx-auth-oauth2")
   implementation("io.vertx:vertx-config")
+  implementation("io.vertx:vertx-pg-client")
 
   // DB
   implementation("org.flywaydb:flyway-core:$flywayVersion")
   implementation("org.postgresql:postgresql:$postgresVersion")
+  implementation("org.hibernate.reactive:hibernate-reactive-core:$hibernateVersion")
 
   // testing
   testImplementation("io.vertx:vertx-junit5")
