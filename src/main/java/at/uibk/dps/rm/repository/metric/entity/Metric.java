@@ -12,12 +12,22 @@ public class Metric {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer metric_id;
 
+    private String metric;
+
     private String description;
 
     private Timestamp createdAt;
 
     public Integer getMetric_id() {
         return metric_id;
+    }
+
+    public String getMetric() {
+        return metric;
+    }
+
+    public void setMetric(String metric) {
+        this.metric = metric;
     }
 
     public String getDescription() {

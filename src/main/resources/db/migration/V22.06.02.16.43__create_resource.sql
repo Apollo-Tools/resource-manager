@@ -25,6 +25,7 @@ CREATE TABLE resource (
 
 CREATE TABLE metric (
     metric_id SERIAL PRIMARY KEY,
+    metric VARCHAR(256) NOT NULL,
     description VARCHAR (512),
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
