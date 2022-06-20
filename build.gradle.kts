@@ -38,7 +38,11 @@ dependencies {
   implementation("io.vertx:vertx-pg-client:$vertxVersion")
   implementation("io.vertx:vertx-auth-oauth2:$vertxVersion")
   implementation("io.vertx:vertx-config:$vertxVersion")
+  implementation("io.vertx:vertx-service-proxy:$vertxVersion")
   implementation("io.vertx:vertx-rx-java3:$vertxVersion")
+  annotationProcessor("io.vertx:vertx-codegen:$vertxVersion:processor")
+  annotationProcessor("io.vertx:vertx-service-proxy:$vertxVersion")
+
   // DB
   implementation("com.ongres.scram:client:2.1")
   implementation("org.hibernate.reactive:hibernate-reactive-core:$hibernateVersion")
