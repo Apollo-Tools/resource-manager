@@ -4,7 +4,6 @@
              version="2.0">
     <persistence-unit name="postgres-unit">
         <provider>org.hibernate.reactive.provider.ReactivePersistenceProvider</provider>
-
         <class>at.uibk.dps.rm.repository.metric.entity.Metric</class>
         <class>at.uibk.dps.rm.repository.metric.entity.MetricValue</class>
         <class>at.uibk.dps.rm.repository.resource.entity.Resource</class>

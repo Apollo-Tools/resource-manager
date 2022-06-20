@@ -1,26 +1,35 @@
 package at.uibk.dps.rm.verticle;
 
-import io.smallrye.mutiny.Uni;
-import io.smallrye.mutiny.vertx.core.AbstractVerticle;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.DeploymentOptions;
-import io.vertx.core.json.JsonObject;
-import io.vertx.mutiny.config.ConfigRetriever;
+import io.vertx.rxjava3.config.ConfigRetriever;
+import io.vertx.rxjava3.core.AbstractVerticle;
+
+import javax.annotation.processing.Completion;
+import java.util.concurrent.CompletionStage;
 
 public class MainVerticle extends AbstractVerticle {
 
   @Override
-  public Uni<Void> asyncStart() {
+  public Completable rxStart() {
     ConfigRetriever retriever = ConfigRetriever.create(vertx);
-    Uni<JsonObject> deployVerticles = retriever.getConfig()
-        .onItem()
-        .call(json -> vertx.deployVerticle(new MigrationVerticle(), new DeploymentOptions().setConfig(json))
-            .onItem()
-            .call(verticle -> vertx.undeploy(verticle))
-            .onItem()
-            .call(() -> vertx.deployVerticle(new DatabaseVerticle(), new DeploymentOptions().setConfig(json)))
-            .onItem()
-            .call(() -> vertx.deployVerticle(new ApiVerticle(), new DeploymentOptions().setConfig(json))));
 
-    return Uni.combine().all().unis(deployVerticles).discardItems();
+    return retriever.rxGetConfig()
+            .flatMapCompletable(
+              config -> {
+                Single<String> deployMigrationVerticle = vertx.rxDeployVerticle(new MigrationVerticle(), new DeploymentOptions().setConfig(config))
+                        .map(verticle -> vertx.rxUndeploy(verticle).toString());
+                Single<String> deployDatabaseVerticle = vertx.rxDeployVerticle(new DatabaseVerticle(), new DeploymentOptions().setConfig(config));
+                Single<String> deployApiVerticle = vertx.rxDeployVerticle(new ApiVerticle(), new DeploymentOptions().setConfig(config));
+
+                return Completable
+                        .fromSingle(deployMigrationVerticle)
+                        .andThen(deployDatabaseVerticle).ignoreElement()
+                        .andThen(deployApiVerticle).ignoreElement();
+              }
+
+                  //vertx.rxDeployVerticle(new ApiVerticle(), new DeploymentOptions().setConfig(config)).ignoreElement()
+            );
   }
 }

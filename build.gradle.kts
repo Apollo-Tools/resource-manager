@@ -33,19 +33,20 @@ application {
 
 dependencies {
   // vert.x
-  implementation("io.smallrye.reactive:smallrye-mutiny-vertx-core:$mutinyVersion")
-  implementation("io.smallrye.reactive:smallrye-mutiny-vertx-web:$mutinyVersion")
-  implementation("io.smallrye.reactive:smallrye-mutiny-vertx-pg-client:$mutinyVersion")
-  implementation("io.smallrye.reactive:smallrye-mutiny-vertx-auth-oauth2:$mutinyVersion")
-  implementation("io.smallrye.reactive:smallrye-mutiny-vertx-config:$mutinyVersion")
-
+  implementation("io.vertx:vertx-core:$vertxVersion")
+  implementation("io.vertx:vertx-web:$vertxVersion")
+  implementation("io.vertx:vertx-pg-client:$vertxVersion")
+  implementation("io.vertx:vertx-auth-oauth2:$vertxVersion")
+  implementation("io.vertx:vertx-config:$vertxVersion")
+  implementation("io.vertx:vertx-rx-java3:$vertxVersion")
   // DB
+  implementation("com.ongres.scram:client:2.1")
+  implementation("org.hibernate.reactive:hibernate-reactive-core:$hibernateVersion")
   implementation("org.flywaydb:flyway-core:$flywayVersion")
   implementation("org.postgresql:postgresql:$postgresVersion")
-  implementation("org.hibernate.reactive:hibernate-reactive-core:$hibernateVersion")
 
   // testing
-  testImplementation("io.smallrye.reactive:smallrye-mutiny-vertx-junit5:$mutinyVersion")
+  testImplementation("io.vertx:vertx-junit5:$mutinyVersion")
   testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
 }
 

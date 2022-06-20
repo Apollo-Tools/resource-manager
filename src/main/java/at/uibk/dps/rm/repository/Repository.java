@@ -1,9 +1,11 @@
 package at.uibk.dps.rm.repository;
 
-import io.smallrye.mutiny.Uni;
-import org.hibernate.reactive.mutiny.Mutiny.SessionFactory;
+import at.uibk.dps.rm.repository.resource.entity.ResourceType;
+import io.reactivex.rxjava3.core.Observable;
+import org.hibernate.reactive.stage.Stage.SessionFactory;
 
 import java.util.List;
+import java.util.concurrent.CompletionStage;
 
 public class Repository<E> {
 
@@ -16,34 +18,33 @@ public class Repository<E> {
         this.entityClass = entityClass;
     }
 
-    public Uni<E> create(E entity) {
+    public CompletionStage<E> create(E entity) {
         return sessionFactory.withTransaction((session, tx) -> session
                 .persist(entity)
-                .replaceWith(entity));
+                .thenApply(result -> entity));
     }
 
-    public Uni<E> update(E entity) {
+    public CompletionStage<E> update(E entity) {
         return sessionFactory.withTransaction((session, tx) -> session
-                .merge(entity)
-                .replaceWith(entity));
+                .merge(entity));
     }
 
-    public Uni<Void> delete(int id) {
+    public CompletionStage<Void> delete(int id) {
         return sessionFactory.withTransaction((session, tx) -> session
                 .find(entityClass, id)
-                .call(session::remove))
-                .replaceWithVoid();
+                .thenAccept(session::remove));
     }
 
-    public Uni<E> findById(int id) {
+    public CompletionStage<E> findById(int id) {
         return sessionFactory.withSession(session ->
                 session.find(entityClass, id)
         );
     }
 
-    public Uni<List<E>> findAll() {
+    public CompletionStage<List<E>> findAll() {
         return sessionFactory.withSession(session ->
-                session.find(entityClass)
+                session.createQuery("from ResourceType order by typeId desc", entityClass)
+                        .getResultList()
         );
     }
 }
