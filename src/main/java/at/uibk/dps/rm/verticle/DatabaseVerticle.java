@@ -1,7 +1,5 @@
 package at.uibk.dps.rm.verticle;
 
-import at.uibk.dps.rm.repository.Repository;
-import at.uibk.dps.rm.repository.resource.entity.ResourceType;
 import at.uibk.dps.rm.service.database.DatabaseService;
 import at.uibk.dps.rm.service.database.DatabaseServiceImpl;
 import at.uibk.dps.rm.service.resource.ResourceTypeService;
@@ -10,19 +8,11 @@ import io.reactivex.rxjava3.core.*;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.rxjava3.core.AbstractVerticle;
-import io.vertx.rxjava3.core.eventbus.EventBus;
 import io.vertx.serviceproxy.ServiceBinder;
-import org.hibernate.reactive.stage.Stage.SessionFactory;
-
-import javax.persistence.Persistence;
-import java.util.Map;
 
 public class DatabaseVerticle extends AbstractVerticle {
 
     private static final Logger logger = LoggerFactory.getLogger(DatabaseVerticle.class);
-    private SessionFactory sessionFactory;
-
-    private Repository<ResourceType> resourceTypeRepository;
 
     private DatabaseService databaseService;
 
@@ -31,24 +21,11 @@ public class DatabaseVerticle extends AbstractVerticle {
     @Override
     public Completable rxStart() {
         return setupDatabase()
-                .andThen(initializeDBServices())
                 .andThen(setupEventBus());
     }
 
     private Completable setupDatabase() {
         Maybe<Void> startDB = vertx.rxExecuteBlocking(block -> {
-           /* int dbPort = config().getInteger("db_port");
-            String dbHost = config().getString("db_host");
-            String dbUser = config().getString("db_user");
-            String dbPassword = config().getString("db_password");
-            Map<String, String> props = Map.of(
-                    "javax.persistence.jdbc.url", "jdbc:postgresql://" + dbHost + ":" + dbPort + "/resource-manager",
-                    "javax.persistence.jdbc.user", dbUser,
-                    "javax.persistence.jdbc.password", dbPassword);
-
-            sessionFactory = Persistence
-                    .createEntityManagerFactory("postgres-unit", props)
-                    .unwrap(SessionFactory.class);*/
             databaseService = new DatabaseServiceImpl(config());
             new ServiceBinder(vertx.getDelegate())
                     .setAddress("database-service-address")
@@ -57,15 +34,6 @@ public class DatabaseVerticle extends AbstractVerticle {
             block.complete();
         });
         return Completable.fromMaybe(startDB);
-    }
-
-    private Completable initializeDBServices() {
-        Observable<Repository<ResourceType>> setupDBServices = Observable.create(emitter -> {
-                emitter.onNext(resourceTypeRepository = new Repository<>(sessionFactory, ResourceType.class));
-                emitter.onComplete();
-            }
-        );
-        return Completable.fromObservable(setupDBServices);
     }
 
     private Completable setupEventBus() {

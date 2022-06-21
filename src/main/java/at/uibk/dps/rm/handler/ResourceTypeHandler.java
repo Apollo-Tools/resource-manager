@@ -1,31 +1,33 @@
 package at.uibk.dps.rm.handler;
 
-import at.uibk.dps.rm.service.database.DatabaseService;
+import at.uibk.dps.rm.service.resource.ResourceTypeService;
 import io.reactivex.rxjava3.core.Completable;
-import io.vertx.core.Future;
-import io.vertx.core.json.JsonArray;
-import io.vertx.rxjava3.MaybeHelper;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.web.RoutingContext;
-import io.vertx.serviceproxy.ServiceProxyBuilder;
 
 public class ResourceTypeHandler {
 
-    private final DatabaseService resourceTypeService;
+    private final ResourceTypeService resourceTypeService;
 
     public ResourceTypeHandler(Vertx vertx) {
-        ServiceProxyBuilder builder = new ServiceProxyBuilder(vertx.getDelegate())
-                .setAddress("database-service-address");
-        resourceTypeService = builder.build(DatabaseService.class);
+        resourceTypeService = ResourceTypeService.createProxy(vertx.getDelegate(),
+                "resource-type-service-address");
     }
 
     public Completable post(RoutingContext rc) {
         return rc.response().end();
     }
 
-    public Completable all(RoutingContext rc) {
-        // TODO: Not working ???
-        return Completable.fromCompletionStage(resourceTypeService.findAll("ResourceType").toCompletionStage());
+    public void all(RoutingContext rc) {
+        resourceTypeService.findAll()
+            .onComplete(handler -> {
+                if (handler.succeeded()) {
+                    rc.response().end(handler.result().encodePrettily());
+                }
+                else {
+                    rc.fail(500);
+                }
+            });
     }
 
     public Completable get(RoutingContext rc) {

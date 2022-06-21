@@ -3,15 +3,12 @@ package at.uibk.dps.rm.router;
 import at.uibk.dps.rm.handler.ResourceTypeHandler;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.web.Router;
-import io.vertx.serviceproxy.ServiceProxyBuilder;
 
 public class ResourceTypeRouter {
     public static Router router(Vertx vertx) {
         Router router = Router.router(vertx);
 
         ResourceTypeHandler resourceTypeHandler = new ResourceTypeHandler(vertx);
-        ServiceProxyBuilder builder = new ServiceProxyBuilder(vertx.getDelegate())
-                .setAddress("resource-type-service-address");
 
         router.post("/")
                 .blockingHandler(resourceTypeHandler::post);

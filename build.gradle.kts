@@ -18,7 +18,7 @@ val vertxVersion = "4.3.1"
 val mutinyVersion = "2.22.0"
 val flywayVersion = "8.5.12"
 val junitJupiterVersion = "5.7.0"
-val postgresVersion = "42.3.3"
+val postgresVersion = "42.3.6"
 val hibernateVersion = "1.1.6.Final"
 
 val mainVerticleName = "at.uibk.dps.rm.verticle.MainVerticle"
@@ -40,8 +40,13 @@ dependencies {
   implementation("io.vertx:vertx-config:$vertxVersion")
   implementation("io.vertx:vertx-service-proxy:$vertxVersion")
   implementation("io.vertx:vertx-rx-java3:$vertxVersion")
+  implementation("io.vertx:vertx-rx-gen:$vertxVersion")
+  implementation("io.vertx:vertx-rx-java3-gen:$vertxVersion")
   annotationProcessor("io.vertx:vertx-codegen:$vertxVersion:processor")
   annotationProcessor("io.vertx:vertx-service-proxy:$vertxVersion")
+
+  // Json parsing
+  implementation("com.fasterxml.jackson.core:jackson-databind:2.13.3")
 
   // DB
   implementation("com.ongres.scram:client:2.1")
@@ -50,7 +55,7 @@ dependencies {
   implementation("org.postgresql:postgresql:$postgresVersion")
 
   // testing
-  testImplementation("io.vertx:vertx-junit5:$mutinyVersion")
+  testImplementation("io.vertx:vertx-junit5:$vertxVersion")
   testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
 }
 

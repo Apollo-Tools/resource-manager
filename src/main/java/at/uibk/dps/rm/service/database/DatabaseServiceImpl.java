@@ -1,14 +1,12 @@
 package at.uibk.dps.rm.service.database;
 
-import at.uibk.dps.rm.repository.resource.entity.ResourceType;
-import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.core.Future;
-import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage.SessionFactory;
 
 import javax.persistence.Persistence;
+import java.util.ArrayList;
 import java.util.Map;
 
 public class DatabaseServiceImpl implements DatabaseService{
@@ -41,11 +39,16 @@ public class DatabaseServiceImpl implements DatabaseService{
 
     @Override
     public Future<JsonArray> findAll(String table) {
-        return Future
-                .fromCompletionStage(sessionFactory.withSession(session ->
+        return Future.fromCompletionStage(sessionFactory.withSession(session ->
                     session.createQuery("from " + table)
                         .getResultList()))
-                .map(JsonArray::new);
+                .map(result -> {
+                    ArrayList<JsonObject> objects = new ArrayList<>();
+                    for (Object o: result) {
+                        objects.add(JsonObject.mapFrom(o));
+                    }
+                    return new JsonArray(objects);
+                });
     }
 
     @Override
