@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.resource;
 
+import at.uibk.dps.rm.repository.resource.ResourceTypeRepository;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
@@ -13,8 +14,8 @@ import io.vertx.core.json.JsonObject;
 @VertxGen
 public interface ResourceTypeService {
     @GenIgnore
-    static ResourceTypeService create(Vertx vertx) {
-        return new ResourceTypeServiceImpl(vertx);
+    static ResourceTypeService create(Vertx vertx, ResourceTypeRepository resourceTypeRepository) {
+        return new ResourceTypeServiceImpl(vertx, resourceTypeRepository);
     }
 
     @GenIgnore

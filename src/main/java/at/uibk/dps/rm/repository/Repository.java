@@ -1,13 +1,11 @@
 package at.uibk.dps.rm.repository;
 
-import at.uibk.dps.rm.repository.resource.entity.ResourceType;
-import io.reactivex.rxjava3.core.Observable;
 import org.hibernate.reactive.stage.Stage.SessionFactory;
 
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 
-public class Repository<E> {
+public abstract class Repository<E> {
 
     private final SessionFactory sessionFactory;
 
