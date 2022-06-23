@@ -16,13 +16,13 @@ public class ResourceTypeRouter {
         router.get("/")
                 .handler(resourceTypeHandler::all);
 
-        router.get("/:resourceType_id")
+        router.get("/:resourceTypeId")
                 .handler(resourceTypeHandler::get);
 
-        router.patch("/:resourceType_id")
-                .handler(resourceTypeHandler::patch);
+        router.put("/")
+                .handler(resourceTypeHandler::put);
 
-        router.delete("/:resourceType_id")
+        router.delete("/:resourceTypeId")
                 .handler(resourceTypeHandler::delete);
 
         return router;

@@ -23,9 +23,13 @@ public interface ResourceTypeService {
         return new ResourceTypeServiceVertxEBProxy(vertx, address);
     }
 
-    Future<Void> save(JsonObject resourceType);
+    Future<JsonObject> save(JsonObject data);
 
     Future<JsonObject> findOne(int id);
 
     Future<JsonArray> findAll();
+
+    Future<Void> update(JsonObject data);
+
+    Future<Void> delete(int id);
 }

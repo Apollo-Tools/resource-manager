@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.handler;
 
 import at.uibk.dps.rm.service.resource.ResourceTypeService;
-import io.reactivex.rxjava3.core.Completable;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
@@ -14,31 +13,66 @@ public class ResourceTypeHandler {
                 "resource-type-service-address");
     }
 
-    public Completable post(RoutingContext rc) {
-        return rc.response().end();
+    public void post(RoutingContext rc) {
+        resourceTypeService.save(rc.body().asJsonObject())
+            .onComplete(handler -> {
+                if (handler.succeeded()) {
+                    rc.response()
+                        .setStatusCode(201)
+                        .end(handler.result().encodePrettily());
+                } else {
+                    rc.fail(500, handler.cause());
+                }
+            });
+    }
+
+    public void get(RoutingContext rc) {
+        int id = Integer.parseInt(rc.pathParam("resourceTypeId"));
+        resourceTypeService.findOne(id)
+            .onComplete(handler -> {
+                if (handler.succeeded()) {
+                    rc.response()
+                        .setStatusCode(200)
+                        .end(handler.result().encodePrettily());
+                } else {
+                    rc.fail(500, handler.cause());
+                }
+            });
     }
 
     public void all(RoutingContext rc) {
         resourceTypeService.findAll()
             .onComplete(handler -> {
                 if (handler.succeeded()) {
-                    rc.response().end(handler.result().encodePrettily());
-                }
-                else {
-                    rc.fail(500);
+                    rc.response()
+                        .setStatusCode(200)
+                        .end(handler.result().encodePrettily());
+                } else {
+                    rc.fail(500, handler.cause());
                 }
             });
     }
 
-    public Completable get(RoutingContext rc) {
-        return rc.response().end();
+    public void put(RoutingContext rc) {
+        resourceTypeService.update(rc.body().asJsonObject())
+            .onComplete(handler -> {
+                if (handler.succeeded()) {
+                    rc.response().setStatusCode(204).end();
+                } else {
+                    rc.fail(500, handler.cause());
+                }
+            });
     }
 
-    public Completable patch(RoutingContext rc) {
-        return rc.response().end();
-    }
-
-    public Completable delete(RoutingContext rc) {
-        return rc.response().end();
+    public void delete(RoutingContext rc) {
+        int id = Integer.parseInt(rc.pathParam("resourceTypeId"));
+        resourceTypeService.delete(id)
+            .onComplete(handler -> {
+                if (handler.succeeded()) {
+                    rc.response().setStatusCode(204).end();
+                } else {
+                    rc.fail(500, handler.cause());
+                }
+            });
     }
 }

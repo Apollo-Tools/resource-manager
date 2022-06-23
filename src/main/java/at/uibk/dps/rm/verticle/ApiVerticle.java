@@ -6,7 +6,6 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.rxjava3.core.AbstractVerticle;
-import io.vertx.rxjava3.core.eventbus.EventBus;
 import io.vertx.rxjava3.ext.web.Router;
 import io.vertx.rxjava3.ext.web.handler.BodyHandler;
 import io.vertx.rxjava3.ext.web.handler.CorsHandler;
@@ -25,6 +24,14 @@ public class ApiVerticle extends AbstractVerticle {
 
         router.route("/api/resource-types*").subRouter(ResourceTypeRouter.router(vertx));
 
+        router.route().failureHandler(rt -> {
+            rt.failure().printStackTrace();
+            rt.response()
+                .putHeader("Content-type", "application/json; charset=utf-8")
+                .setStatusCode(500)
+                .end("internal server error");
+        });
+
         return vertx.createHttpServer()
                 .requestHandler(router)
                 .rxListen(config().getInteger("api_port"))
@@ -38,7 +45,7 @@ public class ApiVerticle extends AbstractVerticle {
                 .allowedMethod(HttpMethod.GET)
                 .allowedMethod(HttpMethod.POST)
                 .allowedMethod(HttpMethod.DELETE)
-                .allowedMethod(HttpMethod.PATCH)
+                .allowedMethod(HttpMethod.PUT)
                 .allowedHeader("Access-Control-Request-Method")
                 .allowedHeader("Access-Control-Allow-Credentials")
                 .allowedHeader("Access-Control-Allow-Origin")
@@ -46,5 +53,4 @@ public class ApiVerticle extends AbstractVerticle {
                 .allowedHeader("Authorization")
                 .allowedHeader("Content-Type");
     }
-
 }
