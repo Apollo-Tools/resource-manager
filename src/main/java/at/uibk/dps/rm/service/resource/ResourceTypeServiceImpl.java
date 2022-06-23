@@ -28,7 +28,7 @@ public class ResourceTypeServiceImpl implements ResourceTypeService {
     }
 
     @Override
-    public Future<JsonObject> findOne(int id) {
+    public Future<JsonObject> findOne(long id) {
         return Future
             .fromCompletionStage(resourceTypeRepository.findById(id))
             .map(JsonObject::mapFrom);
@@ -56,7 +56,7 @@ public class ResourceTypeServiceImpl implements ResourceTypeService {
     }
 
     @Override
-    public Future<Void> delete(int id) {
+    public Future<Void> delete(long id) {
         return Future
             .fromCompletionStage(resourceTypeRepository.delete(id))
             .mapEmpty();

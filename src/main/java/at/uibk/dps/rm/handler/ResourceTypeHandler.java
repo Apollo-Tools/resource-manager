@@ -27,7 +27,7 @@ public class ResourceTypeHandler {
     }
 
     public void get(RoutingContext rc) {
-        int id = Integer.parseInt(rc.pathParam("resourceTypeId"));
+        long id = Long.parseLong(rc.pathParam("resourceTypeId"));
         resourceTypeService.findOne(id)
             .onComplete(handler -> {
                 if (handler.succeeded()) {
@@ -65,7 +65,7 @@ public class ResourceTypeHandler {
     }
 
     public void delete(RoutingContext rc) {
-        int id = Integer.parseInt(rc.pathParam("resourceTypeId"));
+        long id = Long.parseLong(rc.pathParam("resourceTypeId"));
         resourceTypeService.delete(id)
             .onComplete(handler -> {
                 if (handler.succeeded()) {

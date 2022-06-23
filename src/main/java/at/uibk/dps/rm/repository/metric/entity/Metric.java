@@ -7,7 +7,7 @@ import java.sql.Timestamp;
 public class Metric {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer metric_id;
+    private Long metric_id;
 
     private String metric;
 
@@ -16,7 +16,7 @@ public class Metric {
     @Column(insertable = false, updatable = false)
     private Timestamp createdAt;
 
-    public Integer getMetric_id() {
+    public Long getMetric_id() {
         return metric_id;
     }
 

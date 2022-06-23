@@ -7,7 +7,7 @@ import java.sql.Timestamp;
 public class Resource {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer resourceId;
+    private Long resourceId;
 
     private String url;
 
@@ -21,7 +21,7 @@ public class Resource {
     @JoinColumn(name = "resource_type")
     private ResourceType resourceType;
 
-    public Integer getResourceId() {
+    public Long getResourceId() {
         return resourceId;
     }
 

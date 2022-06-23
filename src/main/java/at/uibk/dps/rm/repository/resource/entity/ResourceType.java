@@ -8,18 +8,18 @@ public class ResourceType {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer typeId;
+    private Long typeId;
 
     private String resourceType;
 
     @Column(insertable = false, updatable = false)
     private Timestamp createdAt;
 
-    public Integer getType_id() {
+    public Long getType_id() {
         return typeId;
     }
 
-    public void setTypeId(Integer typeId) {
+    public void setTypeId(Long typeId) {
         this.typeId = typeId;
     }
 

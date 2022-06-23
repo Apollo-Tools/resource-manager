@@ -25,11 +25,11 @@ public interface ResourceTypeService {
 
     Future<JsonObject> save(JsonObject data);
 
-    Future<JsonObject> findOne(int id);
+    Future<JsonObject> findOne(long id);
 
     Future<JsonArray> findAll();
 
     Future<Void> update(JsonObject data);
 
-    Future<Void> delete(int id);
+    Future<Void> delete(long id);
 }
