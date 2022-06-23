@@ -19,6 +19,10 @@ public class ResourceType {
         return typeId;
     }
 
+    public void setTypeId(Integer typeId) {
+        this.typeId = typeId;
+    }
+
     public String getResource_type() {
         return resourceType;
     }
