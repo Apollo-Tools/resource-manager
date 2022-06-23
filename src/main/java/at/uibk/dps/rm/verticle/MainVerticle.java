@@ -6,9 +6,6 @@ import io.vertx.core.DeploymentOptions;
 import io.vertx.rxjava3.config.ConfigRetriever;
 import io.vertx.rxjava3.core.AbstractVerticle;
 
-import javax.annotation.processing.Completion;
-import java.util.concurrent.CompletionStage;
-
 public class MainVerticle extends AbstractVerticle {
 
   @Override
