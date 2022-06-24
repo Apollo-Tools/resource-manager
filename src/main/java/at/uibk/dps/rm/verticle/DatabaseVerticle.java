@@ -1,8 +1,12 @@
 package at.uibk.dps.rm.verticle;
 
 import at.uibk.dps.rm.repository.Repository;
+import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resource.ResourceTypeRepository;
+import at.uibk.dps.rm.repository.resource.entity.Resource;
 import at.uibk.dps.rm.repository.resource.entity.ResourceType;
+import at.uibk.dps.rm.service.resource.ResourceService;
+import at.uibk.dps.rm.service.resource.ResourceServiceImpl;
 import at.uibk.dps.rm.service.resource.ResourceTypeService;
 import at.uibk.dps.rm.service.resource.ResourceTypeServiceImpl;
 import io.reactivex.rxjava3.core.*;
@@ -22,6 +26,7 @@ public class DatabaseVerticle extends AbstractVerticle {
     private SessionFactory sessionFactory;
 
     private ResourceTypeRepository resourceTypeRepository;
+    private ResourceRepository resourceRepository;
 
     @Override
     public Completable rxStart() {
@@ -50,12 +55,13 @@ public class DatabaseVerticle extends AbstractVerticle {
     }
 
     private Completable initializeRepositories() {
-        Observable<Repository<ResourceType>> setupServices = Observable.create(emitter -> {
-                emitter.onNext(resourceTypeRepository = new ResourceTypeRepository(sessionFactory, ResourceType.class));
+        Maybe<Void> setupServices = Maybe.create(emitter -> {
+                resourceTypeRepository = new ResourceTypeRepository(sessionFactory, ResourceType.class);
+                resourceRepository = new ResourceRepository(sessionFactory, Resource.class);
                 emitter.onComplete();
             }
         );
-        return Completable.fromObservable(setupServices);
+        return Completable.fromMaybe(setupServices);
     }
 
     private Completable setupEventBus() {
@@ -65,6 +71,12 @@ public class DatabaseVerticle extends AbstractVerticle {
             new ServiceBinder(vertx.getDelegate())
                 .setAddress("resource-type-service-address")
                 .register(ResourceTypeService.class, resourceTypeService);
+
+            ResourceService resourceService =
+                new ResourceServiceImpl(vertx.getDelegate(), resourceRepository);
+            new ServiceBinder(vertx.getDelegate())
+                .setAddress("resource-service-address")
+                .register(ResourceService.class, resourceService);
             emitter.onComplete();
         });
         return Completable.fromMaybe(setupEventBus);

@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.verticle;
 
+import at.uibk.dps.rm.router.ResourceRouter;
 import at.uibk.dps.rm.router.ResourceTypeRouter;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.http.HttpMethod;
@@ -14,6 +15,7 @@ import io.vertx.rxjava3.ext.web.handler.ResponseContentTypeHandler;
 public class ApiVerticle extends AbstractVerticle {
 
     private static final Logger logger = LoggerFactory.getLogger(DatabaseVerticle.class);
+    private static final String API_PREFIX = "/api/";
 
     @Override
     public Completable rxStart() {
@@ -24,7 +26,8 @@ public class ApiVerticle extends AbstractVerticle {
             .handler(BodyHandler.create())
             .handler(ResponseContentTypeHandler.create());
 
-        router.route("/api/resource-types*").subRouter(ResourceTypeRouter.router(vertx));
+        router.route(API_PREFIX + "resource-types*").subRouter(ResourceTypeRouter.router(vertx));
+        router.route(API_PREFIX + "resources*").subRouter(ResourceRouter.router(vertx));
 
         router.route().failureHandler(rc -> {
             String message = "";
