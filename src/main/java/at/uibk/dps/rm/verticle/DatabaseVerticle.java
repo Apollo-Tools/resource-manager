@@ -19,8 +19,6 @@ public class DatabaseVerticle extends AbstractVerticle {
 
     private static final Logger logger = LoggerFactory.getLogger(DatabaseVerticle.class);
 
-    private ResourceTypeService resourceTypeService;
-
     private SessionFactory sessionFactory;
 
     private ResourceTypeRepository resourceTypeRepository;
@@ -28,12 +26,12 @@ public class DatabaseVerticle extends AbstractVerticle {
     @Override
     public Completable rxStart() {
         return setupDatabase()
-                .andThen(initializeServices())
+                .andThen(initializeRepositories())
                 .andThen(setupEventBus());
     }
 
     private Completable setupDatabase() {
-        Maybe<Void> startDB = vertx.rxExecuteBlocking(block -> {
+        Maybe<Void> startDB = vertx.rxExecuteBlocking(emitter -> {
             int dbPort = config().getInteger("db_port");
             String dbHost = config().getString("db_host");
             String dbUser = config().getString("db_user");
@@ -46,12 +44,12 @@ public class DatabaseVerticle extends AbstractVerticle {
                     .createEntityManagerFactory("postgres-unit", props)
                     .unwrap(SessionFactory.class);
             logger.info("Connection to database established");
-            block.complete();
+            emitter.complete();
         });
         return Completable.fromMaybe(startDB);
     }
 
-    private Completable initializeServices() {
+    private Completable initializeRepositories() {
         Observable<Repository<ResourceType>> setupServices = Observable.create(emitter -> {
                 emitter.onNext(resourceTypeRepository = new ResourceTypeRepository(sessionFactory, ResourceType.class));
                 emitter.onComplete();
@@ -61,82 +59,14 @@ public class DatabaseVerticle extends AbstractVerticle {
     }
 
     private Completable setupEventBus() {
-        Observable<Object> setupEventBus = Observable.create(emitter -> {
-            resourceTypeService = new ResourceTypeServiceImpl(vertx.getDelegate(), resourceTypeRepository);
+        Maybe<Void> setupEventBus = Maybe.create(emitter -> {
+            ResourceTypeService resourceTypeService =
+                new ResourceTypeServiceImpl(vertx.getDelegate(), resourceTypeRepository);
             new ServiceBinder(vertx.getDelegate())
-                    .setAddress("resource-type-service-address")
-                    .register(ResourceTypeService.class, resourceTypeService);
-        /*
-            MessageConsumer<String> consumer = eb.consumer("insert-metric");
-            consumer.handler(message -> {
-                ResourceType resourceType = new ResourceType();
-                resourceType.setResource_type("test");
-
-                // create
-                this.resourceTypeRepository.create(resourceType)
-                    .whenComplete((result, throwable) -> {
-                        if (throwable != null) {
-                            logger.error("Persisting failed", throwable);
-                        } else {
-                            logger.info("Persisted: " + result);
-                        }
-                    });
-
-                // read
-                resourceTypeRepository.findById(1)
-                        .whenComplete((result, throwable) ->
-                        {
-                            if (throwable != null) {
-                                logger.error("Retrieval failed", throwable);
-                            } else {
-                                logger.info("Found: " + result);
-                            }
-                        });
-
-                resourceTypeRepository.findAll()
-                        .whenComplete((result, throwable) ->
-                        {
-                            if (throwable != null) {
-                                logger.error("Retrieval failed", throwable);
-                            } else {
-                                logger.info("Found: " + result.size());
-                            }
-                        });
-                /* update - only works by itself
-                resourceTypeRepository.findById(1)
-                        .whenComplete((result, throwable) -> {
-                            if(throwable != null) {
-                                logger.error("Retrieval failed", throwable);
-                            }
-                            if(result == null) {
-                                logger.error("Entity not found", new NoSuchElementException());
-                                return;
-                            }
-                            result.setResource_type("newtype");
-                            resourceTypeRepository.update(result)
-                                .whenComplete((updated, throwableUpdate) -> {
-                                    if(throwable != null) {
-                                        logger.error("Updating failed", throwable);
-                                    } else {
-                                        logger.info("Updated: " + updated);
-                                    }
-                                });
-                            });
-                 */
-                /* delete - only works by itself
-                resourceTypeRepository.delete(4)
-                        .whenComplete((result, throwable) -> {
-                            if (throwable != null) {
-                                logger.error("Deletion failed", throwable);
-                            } else {
-                                logger.info("Deleted entity with id: " + 4);
-                            }
-                        });
-
-            });
-            */
+                .setAddress("resource-type-service-address")
+                .register(ResourceTypeService.class, resourceTypeService);
             emitter.onComplete();
         });
-        return Completable.fromObservable(setupEventBus);
+        return Completable.fromMaybe(setupEventBus);
     }
 }

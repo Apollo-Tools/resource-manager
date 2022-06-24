@@ -4,7 +4,6 @@ import at.uibk.dps.rm.repository.Repository;
 import at.uibk.dps.rm.repository.resource.entity.ResourceType;
 import org.hibernate.reactive.stage.Stage;
 
-import java.util.List;
 import java.util.concurrent.CompletionStage;
 
 public class ResourceTypeRepository extends Repository<ResourceType> {
