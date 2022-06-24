@@ -9,6 +9,7 @@ import io.vertx.rxjava3.core.AbstractVerticle;
 import io.vertx.rxjava3.ext.web.Router;
 import io.vertx.rxjava3.ext.web.handler.BodyHandler;
 import io.vertx.rxjava3.ext.web.handler.CorsHandler;
+import io.vertx.rxjava3.ext.web.handler.ResponseContentTypeHandler;
 
 public class ApiVerticle extends AbstractVerticle {
 
@@ -20,16 +21,25 @@ public class ApiVerticle extends AbstractVerticle {
 
         router.route()
             .handler(cors())
-            .handler(BodyHandler.create());
+            .handler(BodyHandler.create())
+            .handler(ResponseContentTypeHandler.create());
 
         router.route("/api/resource-types*").subRouter(ResourceTypeRouter.router(vertx));
 
-        router.route().failureHandler(rt -> {
-            rt.failure().printStackTrace();
-            rt.response()
+        router.route().failureHandler(rc -> {
+            String message = "";
+            if (rc.statusCode() == 500) {
+                message = "internal server error";
+                logger.error(message, rc.failure());
+            } else if (rc.failure() != null){
+                message = rc.failure().getMessage();
+                logger.warn("Code " + rc.statusCode() + ": " + message);
+            }
+
+            rc.response()
                 .putHeader("Content-type", "application/json; charset=utf-8")
-                .setStatusCode(500)
-                .end("internal server error");
+                .setStatusCode(rc.statusCode())
+                .end(message);
         });
 
         return vertx.createHttpServer()
@@ -45,7 +55,7 @@ public class ApiVerticle extends AbstractVerticle {
                 .allowedMethod(HttpMethod.GET)
                 .allowedMethod(HttpMethod.POST)
                 .allowedMethod(HttpMethod.DELETE)
-                .allowedMethod(HttpMethod.PUT)
+                .allowedMethod(HttpMethod.PATCH)
                 .allowedHeader("Access-Control-Request-Method")
                 .allowedHeader("Access-Control-Allow-Credentials")
                 .allowedHeader("Access-Control-Allow-Origin")
