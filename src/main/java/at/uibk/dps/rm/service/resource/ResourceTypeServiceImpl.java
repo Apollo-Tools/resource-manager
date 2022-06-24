@@ -3,7 +3,6 @@ package at.uibk.dps.rm.service.resource;
 import at.uibk.dps.rm.repository.resource.ResourceTypeRepository;
 import at.uibk.dps.rm.repository.resource.entity.ResourceType;
 import io.vertx.core.Future;
-import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -12,7 +11,7 @@ import java.util.ArrayList;
 public class ResourceTypeServiceImpl implements ResourceTypeService {
     private final ResourceTypeRepository resourceTypeRepository;
 
-    public ResourceTypeServiceImpl(Vertx vertx, ResourceTypeRepository resourceTypeRepository) {
+    public ResourceTypeServiceImpl(ResourceTypeRepository resourceTypeRepository) {
         this.resourceTypeRepository = resourceTypeRepository;
     }
 

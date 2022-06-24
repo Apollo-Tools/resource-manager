@@ -1,6 +1,5 @@
 package at.uibk.dps.rm.verticle;
 
-import at.uibk.dps.rm.repository.Repository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resource.ResourceTypeRepository;
 import at.uibk.dps.rm.repository.resource.entity.Resource;
@@ -67,13 +66,13 @@ public class DatabaseVerticle extends AbstractVerticle {
     private Completable setupEventBus() {
         Maybe<Void> setupEventBus = Maybe.create(emitter -> {
             ResourceTypeService resourceTypeService =
-                new ResourceTypeServiceImpl(vertx.getDelegate(), resourceTypeRepository);
+                new ResourceTypeServiceImpl(resourceTypeRepository);
             new ServiceBinder(vertx.getDelegate())
                 .setAddress("resource-type-service-address")
                 .register(ResourceTypeService.class, resourceTypeService);
 
             ResourceService resourceService =
-                new ResourceServiceImpl(vertx.getDelegate(), resourceRepository);
+                new ResourceServiceImpl(resourceRepository);
             new ServiceBinder(vertx.getDelegate())
                 .setAddress("resource-service-address")
                 .register(ResourceService.class, resourceService);

@@ -14,8 +14,8 @@ import io.vertx.core.json.JsonObject;
 @VertxGen
 public interface ResourceTypeService {
     @GenIgnore
-    static ResourceTypeService create(Vertx vertx, ResourceTypeRepository resourceTypeRepository) {
-        return new ResourceTypeServiceImpl(vertx, resourceTypeRepository);
+    static ResourceTypeService create(ResourceTypeRepository resourceTypeRepository) {
+        return new ResourceTypeServiceImpl(resourceTypeRepository);
     }
 
     @GenIgnore

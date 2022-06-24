@@ -20,15 +20,15 @@ public class ResourceRouter {
             .produces("application/json")
             .handler(resourceTypeHandler::all);
 
-        router.get("/:resourceTypeId")
+        router.get("/:resourceId")
             .produces("application/json")
             .handler(resourceTypeHandler::get);
 
-        router.patch("/:resourceTypeId")
+        router.patch("/:resourceId")
             .handler(ResourceTypeErrorHandler::validatePostPatchRequest)
             .handler(resourceTypeHandler::patch);
 
-        router.delete("/:resourceTypeId")
+        router.delete("/:resourceId")
             .handler(resourceTypeHandler::delete);
 
         return router;

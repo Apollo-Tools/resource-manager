@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.handler.Resource;
 
+import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.service.resource.ResourceTypeService;
 import at.uibk.dps.rm.util.HttpHelper;
 import io.vertx.core.json.JsonObject;
@@ -30,20 +31,10 @@ public class ResourceTypeHandler {
 
     public void get(RoutingContext rc) {
         HttpHelper.getLongPathParam(rc, "resourceTypeId")
-            .subscribe(id ->  resourceTypeService.findOne(id)
-                    .onComplete(handler -> {
-                        if (handler.succeeded()) {
-                            if (handler.result() != null) {
-                                rc.response()
-                                    .setStatusCode(200)
-                                    .end(handler.result().encodePrettily());
-                            } else {
-                                rc.fail(404, new Throwable("not found"));
-                            }
-                        } else {
-                            rc.fail(500, handler.cause());
-                        }
-                    }),
+            .subscribe(
+                id ->  resourceTypeService.findOne(id)
+                    .onComplete(
+                        handler -> ResultHandler.handleGetOneRequest(rc, handler)),
                 throwable -> rc.fail(500, throwable))
             .dispose();
     }

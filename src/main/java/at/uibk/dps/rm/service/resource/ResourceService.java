@@ -13,8 +13,8 @@ import io.vertx.core.json.JsonObject;
 @VertxGen
 public interface ResourceService {
     @GenIgnore
-    static ResourceService create(Vertx vertx, ResourceRepository resourceRepository) {
-        return new ResourceServiceImpl(vertx, resourceRepository);
+    static ResourceService create(ResourceRepository resourceRepository) {
+        return new ResourceServiceImpl(resourceRepository);
     }
 
     @GenIgnore
