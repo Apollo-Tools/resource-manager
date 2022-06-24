@@ -27,6 +27,8 @@ public interface ResourceTypeService {
 
     Future<JsonObject> findOne(long id);
 
+    Future<JsonObject> findOneByResourceType(String resourceType);
+
     Future<JsonArray> findAll();
 
     Future<Void> update(JsonObject data);

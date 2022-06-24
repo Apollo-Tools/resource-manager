@@ -34,6 +34,13 @@ public class ResourceTypeServiceImpl implements ResourceTypeService {
     }
 
     @Override
+    public Future<JsonObject> findOneByResourceType(String resourceType) {
+        return Future
+            .fromCompletionStage(resourceTypeRepository.findByResourceType(resourceType))
+            .map(JsonObject::mapFrom);
+    }
+
+    @Override
     public Future<JsonArray> findAll() {
         return Future
             .fromCompletionStage(resourceTypeRepository.findAll())

@@ -16,14 +16,14 @@ public class ResourceTypeHandler {
     }
 
     public void post(RoutingContext rc) {
-        resourceTypeService.save(rc.body().asJsonObject())
-            .onComplete(handler -> {
-                if (handler.succeeded()) {
-                    rc.response()
-                        .setStatusCode(201)
-                        .end(handler.result().encodePrettily());
+        JsonObject requestBody = rc.body().asJsonObject();
+        resourceTypeService.findOneByResourceType(requestBody.getString("resource_type"))
+            .onComplete(findHandler -> {
+                JsonObject result = findHandler.result();
+                if (findHandler.succeeded()) {
+                    submitCreate(rc, requestBody, result);
                 } else {
-                    rc.fail(500, handler.cause());
+                    rc.fail(500, findHandler.cause());
                 }
             });
     }
@@ -90,6 +90,23 @@ public class ResourceTypeHandler {
                     }),
                 throwable -> rc.fail(500, throwable))
             .dispose();
+    }
+
+    private void submitCreate(RoutingContext rc, JsonObject requestBody, JsonObject existingEntity) {
+        if (existingEntity != null) {
+            rc.fail(409, new Throwable("already exists"));
+        } else {
+            resourceTypeService.save(requestBody)
+                .onComplete(handler -> {
+                    if (handler.succeeded()) {
+                        rc.response()
+                            .setStatusCode(201)
+                            .end(handler.result().encodePrettily());
+                    } else {
+                        rc.fail(500, handler.cause());
+                    }
+                });
+        }
     }
 
     private void submitUpdate(RoutingContext rc, JsonObject requestBody,

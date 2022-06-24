@@ -7,9 +7,9 @@ import java.util.concurrent.CompletionStage;
 
 public abstract class Repository<E> {
 
-    private final SessionFactory sessionFactory;
+    protected final SessionFactory sessionFactory;
 
-    private final Class<E> entityClass;
+    protected final Class<E> entityClass;
 
     public Repository(SessionFactory sessionFactory, Class<E> entityClass) {
         this.sessionFactory = sessionFactory;
