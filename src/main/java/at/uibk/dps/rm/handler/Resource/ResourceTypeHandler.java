@@ -21,10 +21,12 @@ public class ResourceTypeHandler {
         resourceTypeService.findOneByResourceType(requestBody.getString("resource_type"))
             .onComplete(findHandler -> {
                 JsonObject result = findHandler.result();
-                if (findHandler.succeeded()) {
-                    submitCreate(rc, requestBody, result);
-                } else {
+                if (findHandler.failed()) {
                     rc.fail(500, findHandler.cause());
+                } else if (result != null) {
+                    rc.fail(409, new Throwable("already exists"));
+                } else {
+                    submitCreate(rc, requestBody);
                 }
             });
     }
@@ -73,21 +75,9 @@ public class ResourceTypeHandler {
             .dispose();
     }
 
-    private void submitCreate(RoutingContext rc, JsonObject requestBody, JsonObject existingEntity) {
-        if (existingEntity != null) {
-            rc.fail(409, new Throwable("already exists"));
-        } else {
-            resourceTypeService.save(requestBody)
-                .onComplete(handler -> {
-                    if (handler.succeeded()) {
-                        rc.response()
-                            .setStatusCode(201)
-                            .end(handler.result().encodePrettily());
-                    } else {
-                        rc.fail(500, handler.cause());
-                    }
-                });
-        }
+    private void submitCreate(RoutingContext rc, JsonObject requestBody) {
+        resourceTypeService.save(requestBody)
+            .onComplete(handler -> ResultHandler.handleSaveRequest(rc, handler));
     }
 
     private void checkUpdateExists(RoutingContext rc, long id) {
@@ -97,10 +87,10 @@ public class ResourceTypeHandler {
                 if (updateHandler.failed()) {
                     rc.fail(500, new Throwable(updateHandler.cause()));
                 }
-                else if (updateHandler.result() != null) {
-                    checkUpdateNoDuplicate(rc, entity);
-                } else {
+                else if (updateHandler.result() == null) {
                     rc.fail(404, new Throwable("not found"));
+                } else {
+                    checkUpdateNoDuplicate(rc, entity);
                 }
             });
     }

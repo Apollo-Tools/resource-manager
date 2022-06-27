@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.router;
 
 import at.uibk.dps.rm.handler.Resource.ResourceHandler;
-import at.uibk.dps.rm.handler.Resource.ResourceTypeErrorHandler;
+import at.uibk.dps.rm.handler.Resource.ResourceErrorHandler;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.web.Router;
 
@@ -13,7 +13,7 @@ public class ResourceRouter {
 
         router.post("/")
             .produces("application/json")
-            .handler(ResourceTypeErrorHandler::validatePostPatchRequest)
+            .handler(ResourceErrorHandler::validatePostPatchRequest)
             .handler(resourceTypeHandler::post);
 
         router.get("/")
@@ -25,7 +25,7 @@ public class ResourceRouter {
             .handler(resourceTypeHandler::get);
 
         router.patch("/:resourceId")
-            .handler(ResourceTypeErrorHandler::validatePostPatchRequest)
+            .handler(ResourceErrorHandler::validatePostPatchRequest)
             .handler(resourceTypeHandler::patch);
 
         router.delete("/:resourceId")

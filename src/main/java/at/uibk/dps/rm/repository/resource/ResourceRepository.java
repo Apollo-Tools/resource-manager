@@ -14,7 +14,8 @@ public class ResourceRepository  extends Repository<Resource> {
         super(sessionFactory, entityClass);
     }
 
-    @Override public CompletionStage<Resource> findById(long id) {
+    @Override
+    public CompletionStage<Resource> findById(long id) {
         return sessionFactory.withSession(session -> session.createQuery(
             "from Resource r left join fetch r.resourceType where r.resourceId =:id", entityClass)
                 .setParameter("id", id)
@@ -22,7 +23,16 @@ public class ResourceRepository  extends Repository<Resource> {
             );
     }
 
-    @Override public CompletionStage<List<Resource>> findAll() {
+    public CompletionStage<Resource> findByUrl(String url) {
+        return this.sessionFactory.withSession(session ->
+            session.createQuery("from Resource r where r.url=:url", entityClass)
+                .setParameter("url", url)
+                .getSingleResultOrNull()
+        );
+    }
+
+    @Override
+    public CompletionStage<List<Resource>> findAll() {
         return sessionFactory.withSession(session ->
             session.createQuery("from Resource r left join fetch r.resourceType", entityClass)
                 .getResultList()

@@ -2,11 +2,13 @@ package at.uibk.dps.rm.service.resource;
 
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resource.entity.Resource;
+import at.uibk.dps.rm.repository.resource.entity.ResourceType;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class ResourceServiceImpl implements ResourceService{
 
@@ -17,7 +19,15 @@ public class ResourceServiceImpl implements ResourceService{
     }
     @Override
     public Future<JsonObject> save(JsonObject data) {
-        return null;
+        Resource resource = new Resource();
+        resource.setUrl(data.getString("url"));
+        ResourceType resourceType = new ResourceType();
+        resourceType.setTypeId(data.getLong("resource_type"));
+        resource.setResourceType(resourceType);
+
+        return Future
+            .fromCompletionStage(resourceRepository.create(resource))
+            .map(JsonObject::mapFrom);
     }
 
     @Override
@@ -25,6 +35,13 @@ public class ResourceServiceImpl implements ResourceService{
         return Future
             .fromCompletionStage(resourceRepository.findById(id))
             .map(JsonObject::mapFrom);
+    }
+
+    @Override
+    public Future<Boolean> existsOneByUrl(String url) {
+        return Future
+            .fromCompletionStage(resourceRepository.findByUrl(url))
+            .map(Objects::nonNull);
     }
 
     @Override

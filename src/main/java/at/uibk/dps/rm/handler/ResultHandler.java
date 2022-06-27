@@ -19,4 +19,15 @@ public class ResultHandler {
             rc.fail(500, result.cause());
         }
     }
+
+
+    public static void handleSaveRequest(RoutingContext rc, AsyncResult<JsonObject> result) {
+        if (result.succeeded()) {
+            rc.response()
+                .setStatusCode(201)
+                .end(result.result().encodePrettily());
+        } else {
+            rc.fail(500, result.cause());
+        }
+    }
 }
