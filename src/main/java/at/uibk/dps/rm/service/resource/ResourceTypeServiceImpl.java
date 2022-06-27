@@ -62,8 +62,10 @@ public class ResourceTypeServiceImpl implements ResourceTypeService {
 
     @Override
     public Future<Void> delete(long id) {
+        ResourceType resourceType = new ResourceType();
+        resourceType.setTypeId(id);
         return Future
-            .fromCompletionStage(resourceTypeRepository.delete(id))
+            .fromCompletionStage(resourceTypeRepository.delete(resourceType))
             .mapEmpty();
     }
 }

@@ -27,10 +27,9 @@ public abstract class Repository<E> {
                 .merge(entity));
     }
 
-    public CompletionStage<Void> delete(long id) {
-        return sessionFactory.withTransaction((session, tx) -> session
-                .find(entityClass, id)
-                .thenAccept(session::remove));
+    public CompletionStage<Void> delete(E entity) {
+        return sessionFactory.withStatelessTransaction((session, tx) -> session
+            .delete(entity));
     }
 
     public CompletionStage<E> findById(long id) {

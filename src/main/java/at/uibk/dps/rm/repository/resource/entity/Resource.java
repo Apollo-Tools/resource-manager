@@ -25,6 +25,10 @@ public class Resource {
         return resourceId;
     }
 
+    public void setResourceId(Long resourceId) {
+        this.resourceId = resourceId;
+    }
+
     public String getUrl() {
         return url;
     }

@@ -29,7 +29,7 @@ public class ResourceHandler {
                 } else if (existsHandler.result()) {
                     rc.fail(409, new Throwable("already exists"));
                 }else {
-                    checkResourceTypeExists(rc, requestBody);
+                    checkNewResourceTypeExists(rc, requestBody);
                 }
             });
     }
@@ -62,10 +62,14 @@ public class ResourceHandler {
     }
 
     public void delete(RoutingContext rc) {
-        rc.end();
+        HttpHelper.getLongPathParam(rc, "resourceId")
+            .subscribe(id ->
+                checkDeleteResourceExists(rc, id),
+                throwable -> rc.fail(500, throwable))
+            .dispose();
     }
 
-    private void checkResourceTypeExists(RoutingContext rc, JsonObject requestBody) {
+    private void checkNewResourceTypeExists(RoutingContext rc, JsonObject requestBody) {
         resourceTypeService.findOne(requestBody.getLong("resource_type"))
             .onComplete(findHandler -> {
                 JsonObject result = findHandler.result();
@@ -84,5 +88,27 @@ public class ResourceHandler {
             .onComplete(handler -> ResultHandler.handleSaveRequest(rc, handler));
     }
 
+    private void checkDeleteResourceExists(RoutingContext rc, long id) {
+        resourceService.existsOneById(id)
+            .onComplete(findHandler -> {
+                if (findHandler.failed()) {
+                    rc.fail(500, findHandler.cause());
+                } else if (!findHandler.result()) {
+                    rc.fail(404, new Throwable("not found"));
+                } else {
+                    submitDelete(rc, id);
+                }
+            });
+    }
 
+    private void submitDelete(RoutingContext rc, long id) {
+        resourceService.delete(id)
+            .onComplete(handler -> {
+                if (handler.succeeded()) {
+                    rc.response().setStatusCode(204).end();
+                } else {
+                    rc.fail(500, handler.cause());
+                }
+            });
+    }
 }

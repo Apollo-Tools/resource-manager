@@ -26,6 +26,8 @@ public interface ResourceService {
 
     Future<JsonObject> findOne(long id);
 
+    Future<Boolean> existsOneById(long id);
+
     Future<Boolean> existsOneByUrl(String url);
 
     Future<JsonArray> findAll();

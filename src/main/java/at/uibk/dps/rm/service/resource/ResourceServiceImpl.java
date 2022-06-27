@@ -33,8 +33,15 @@ public class ResourceServiceImpl implements ResourceService{
     @Override
     public Future<JsonObject> findOne(long id) {
         return Future
-            .fromCompletionStage(resourceRepository.findById(id))
+            .fromCompletionStage(resourceRepository.findByIdAndFetch(id))
             .map(JsonObject::mapFrom);
+    }
+
+    @Override
+    public Future<Boolean> existsOneById(long id) {
+        return Future
+            .fromCompletionStage(resourceRepository.findById(id))
+            .map(Objects::nonNull);
     }
 
     @Override
@@ -47,7 +54,7 @@ public class ResourceServiceImpl implements ResourceService{
     @Override
     public Future<JsonArray> findAll() {
         return Future
-            .fromCompletionStage(resourceRepository.findAll())
+            .fromCompletionStage(resourceRepository.findAllAndFetch())
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Resource resource: result) {
@@ -64,6 +71,10 @@ public class ResourceServiceImpl implements ResourceService{
 
     @Override
     public Future<Void> delete(long id) {
-        return null;
+        Resource resource = new Resource();
+        resource.setResourceId(id);
+        return Future
+            .fromCompletionStage(resourceRepository.delete(resource))
+            .mapEmpty();
     }
 }
