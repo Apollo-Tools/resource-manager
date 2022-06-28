@@ -30,6 +30,8 @@ public interface ResourceService {
 
     Future<Boolean> existsOneByUrl(String url);
 
+    Future<Boolean> existsOneByResourceType(long typeId);
+
     Future<JsonArray> findAll();
 
     Future<Void> update(JsonObject data);

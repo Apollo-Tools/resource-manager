@@ -7,6 +7,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class ResourceTypeServiceImpl implements ResourceTypeService {
     private final ResourceTypeRepository resourceTypeRepository;
@@ -30,6 +31,13 @@ public class ResourceTypeServiceImpl implements ResourceTypeService {
         return Future
             .fromCompletionStage(resourceTypeRepository.findById(id))
             .map(JsonObject::mapFrom);
+    }
+
+    @Override
+    public Future<Boolean> existsOneById(long id) {
+        return Future
+            .fromCompletionStage(resourceTypeRepository.findById(id))
+            .map(Objects::nonNull);
     }
 
     @Override

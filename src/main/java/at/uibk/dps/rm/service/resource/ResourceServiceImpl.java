@@ -52,6 +52,13 @@ public class ResourceServiceImpl implements ResourceService{
     }
 
     @Override
+    public Future<Boolean> existsOneByResourceType(long typeId) {
+        return Future
+            .fromCompletionStage(resourceRepository.findByResourceType(typeId))
+            .map(result -> !result.isEmpty());
+    }
+
+    @Override
     public Future<JsonArray> findAll() {
         return Future
             .fromCompletionStage(resourceRepository.findAllAndFetch())

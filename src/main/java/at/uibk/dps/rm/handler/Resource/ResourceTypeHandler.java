@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler.Resource;
 
 import at.uibk.dps.rm.handler.ResultHandler;
+import at.uibk.dps.rm.service.resource.ResourceService;
 import at.uibk.dps.rm.service.resource.ResourceTypeService;
 import at.uibk.dps.rm.util.HttpHelper;
 import io.vertx.core.json.JsonObject;
@@ -11,9 +12,13 @@ public class ResourceTypeHandler {
 
     private final ResourceTypeService resourceTypeService;
 
+    private final ResourceService resourceService;
+
     public ResourceTypeHandler(Vertx vertx) {
         resourceTypeService = ResourceTypeService.createProxy(vertx.getDelegate(),
-                "resource-type-service-address");
+            "resource-type-service-address");
+        resourceService = ResourceService.createProxy(vertx.getDelegate(),
+            "resource-service-address");
     }
 
     public void post(RoutingContext rc) {
@@ -63,14 +68,8 @@ public class ResourceTypeHandler {
 
     public void delete(RoutingContext rc) {
         HttpHelper.getLongPathParam(rc, "resourceTypeId")
-            .subscribe(id ->  resourceTypeService.delete(id)
-                    .onComplete(handler -> {
-                        if (handler.succeeded()) {
-                            rc.response().setStatusCode(204).end();
-                        } else {
-                            rc.fail(500, handler.cause());
-                        }
-                    }),
+            .subscribe(
+                id ->  checkDeleteResourceTypeExists(rc, id),
                 throwable -> rc.fail(500, throwable))
             .dispose();
     }
@@ -119,6 +118,43 @@ public class ResourceTypeHandler {
                     rc.response().setStatusCode(204).end();
                 } else {
                     rc.fail(500, updateHandler.cause());
+                }
+            });
+    }
+
+    private void checkDeleteResourceTypeExists(RoutingContext rc, long id) {
+        resourceTypeService.findOne(id)
+            .onComplete(findHandler -> {
+                if (findHandler.failed()) {
+                    rc.fail(500, findHandler.cause());
+                } else if (findHandler.result() == null) {
+                    rc.fail(404, new Throwable("not found"));
+                } else {
+                    checkDeleteResourceTypeIsUsed(rc, findHandler.result(), id);
+                }
+            });
+    }
+
+    private void checkDeleteResourceTypeIsUsed(RoutingContext rc, JsonObject entity, long id) {
+        resourceService.existsOneByResourceType(entity
+                .getLong("type_id"))
+            .onComplete(existsHandler -> {
+                if (existsHandler.failed()) {
+                    rc.fail(500, existsHandler.cause());
+                } else if (existsHandler.result()) {
+                    rc.fail(409, new Throwable("entity is used by other entities"));
+                } else {
+                    submitDelete(rc, id);
+                }
+            });
+    }
+    private void submitDelete(RoutingContext rc, long id) {
+        resourceTypeService.delete(id)
+            .onComplete(handler -> {
+                if (handler.succeeded()) {
+                    rc.response().setStatusCode(204).end();
+                } else {
+                    rc.fail(500, handler.cause());
                 }
             });
     }

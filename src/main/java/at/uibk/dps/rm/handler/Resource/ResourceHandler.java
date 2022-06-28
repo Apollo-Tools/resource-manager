@@ -63,8 +63,8 @@ public class ResourceHandler {
 
     public void delete(RoutingContext rc) {
         HttpHelper.getLongPathParam(rc, "resourceId")
-            .subscribe(id ->
-                checkDeleteResourceExists(rc, id),
+            .subscribe(
+                id -> checkDeleteResourceExists(rc, id),
                 throwable -> rc.fail(500, throwable))
             .dispose();
     }

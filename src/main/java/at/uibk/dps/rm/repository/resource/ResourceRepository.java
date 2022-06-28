@@ -36,4 +36,11 @@ public class ResourceRepository  extends Repository<Resource> {
                 .getResultList()
             );
     }
+
+    public CompletionStage<List<Resource>> findByResourceType(long typeId) {
+        return sessionFactory.withSession(session ->
+            session.createQuery("from Resource r where r.resourceType.typeId=:typeId", entityClass)
+                .setParameter("typeId", typeId)
+                .getResultList());
+    }
 }
