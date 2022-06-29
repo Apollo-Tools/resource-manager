@@ -1,9 +1,11 @@
 package at.uibk.dps.rm.handler.Resource;
 
+import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.service.resource.ResourceService;
 import at.uibk.dps.rm.service.resource.ResourceTypeService;
 import at.uibk.dps.rm.util.HttpHelper;
+import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.web.RoutingContext;
@@ -22,13 +24,9 @@ public class ResourceHandler {
 
     public void post(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
-        resourceService.existsOneByUrl(requestBody.getString("url"))
+        checkForDuplicateUrl(rc, requestBody.getString("url"))
             .onComplete(existsHandler -> {
-                if (existsHandler.failed()) {
-                    rc.fail(500, existsHandler.cause());
-                } else if (existsHandler.result()) {
-                    rc.fail(409, new Throwable("already exists"));
-                }else {
+                if (!rc.failed()) {
                     checkNewResourceTypeExists(rc, requestBody);
                 }
             });
@@ -46,15 +44,7 @@ public class ResourceHandler {
 
     public void all(RoutingContext rc) {
         resourceService.findAll()
-            .onComplete(handler -> {
-                if (handler.succeeded()) {
-                    rc.response()
-                        .setStatusCode(200)
-                        .end(handler.result().encodePrettily());
-                } else {
-                    rc.fail(500, handler.cause());
-                }
-            });
+            .onComplete(handler -> ResultHandler.handleGetAllRequest(rc, handler));
     }
 
     public void patch(RoutingContext rc) {
@@ -72,35 +62,47 @@ public class ResourceHandler {
             .dispose();
     }
 
-    private void checkNewResourceTypeExists(RoutingContext rc, JsonObject requestBody) {
-        resourceTypeService.findOne(requestBody.getLong("resource_type"))
-            .onComplete(findHandler -> {
-                JsonObject result = findHandler.result();
-                if (findHandler.failed()) {
-                    rc.fail(500, findHandler.cause());
-                } else if (result != null) {
-                    submitCreate(rc, requestBody);
-                } else {
-                    rc.fail(404, new Throwable("not found"));
-                }
-            });
-    }
-
     private void submitCreate(RoutingContext rc, JsonObject requestBody) {
         resourceService.save(requestBody)
             .onComplete(handler -> ResultHandler.handleSaveRequest(rc, handler));
     }
 
+    private void submitUpdate(RoutingContext rc, JsonObject requestBody,
+        JsonObject entity) {
+        for (String field : requestBody.fieldNames()) {
+            entity.put(field, requestBody.getValue(field));
+        }
+        resourceService.update(entity)
+            .onComplete(updateHandler -> ResultHandler.handleUpdateDeleteRequest(rc, updateHandler));
+    }
+
+    private void submitDelete(RoutingContext rc, long id) {
+        resourceService.delete(id)
+            .onComplete(deleteHandler -> ResultHandler.handleUpdateDeleteRequest(rc, deleteHandler));
+    }
+
+    private Future<Boolean> checkForDuplicateUrl(RoutingContext rc, String url) {
+        return resourceService.existsOneByUrl(url)
+            .onComplete(duplicateHandler -> ErrorHandler.handleDuplicates(rc, duplicateHandler));
+    }
+
+    private Future<Boolean> checkResourceTypeExists(RoutingContext rc, long id) {
+        return resourceTypeService.existsOneById(id)
+            .onComplete(updateHandler -> ErrorHandler.handleExistsOne(rc, updateHandler));
+    }
+
+    private void checkNewResourceTypeExists(RoutingContext rc, JsonObject requestBody) {
+        checkResourceTypeExists(rc, requestBody.getJsonObject("resource_type").getLong("type_id"))
+            .onComplete(findHandler -> {
+                if (!rc.failed()) {
+                    submitCreate(rc, requestBody);
+                }
+            });
+    }
+
     private void checkUpdateExists(RoutingContext rc, long id) {
         resourceService.findOne(id)
-            .onComplete(updateHandler -> {
-                if (updateHandler.failed()) {
-                    rc.fail(500, new Throwable(updateHandler.cause()));
-                }
-                else if (updateHandler.result() == null) {
-                    rc.fail(404, new Throwable("not found"));
-                }
-            })
+            .onComplete(updateHandler -> ErrorHandler.handleFindOne(rc, updateHandler))
             .onComplete(updateHandler -> {
                 if (!rc.failed()) {
                     checkUpdateNoDuplicate(rc, updateHandler.result());
@@ -111,35 +113,23 @@ public class ResourceHandler {
     private void checkUpdateNoDuplicate(RoutingContext rc, JsonObject entity) {
         JsonObject requestBody = rc.body().asJsonObject();
         if (requestBody.containsKey("url")) {
-            resourceService.existsOneByUrl(requestBody.getString("url"))
+            checkForDuplicateUrl(rc, requestBody.getString("url"))
                 .onComplete(duplicateHandler -> {
-                    if (duplicateHandler.failed()){
-                        rc.fail(500, duplicateHandler.cause());
-                    }
-                    else if (duplicateHandler.result()) {
-                        rc.fail(409, new Throwable("already exists"));
-                    } else {
-                        checkResourceTypeExists(rc, requestBody, entity);
+                    if (!rc.failed()) {
+                        checkUpdateResourceTypeExists(rc, requestBody, entity);
                     }
                 });
         } else {
-            checkResourceTypeExists(rc, requestBody, entity);
+            checkUpdateResourceTypeExists(rc, requestBody, entity);
         }
     }
 
 
-    private void checkResourceTypeExists(RoutingContext rc,JsonObject requestBody, JsonObject entity) {
+    private void checkUpdateResourceTypeExists(RoutingContext rc,JsonObject requestBody, JsonObject entity) {
         if (requestBody.containsKey("resource_type")) {
-            resourceTypeService.existsOneById(requestBody
-                .getJsonObject("resource_type")
-                .getLong("type_id"))
-                .onComplete(existsHandler -> {
-                    if (existsHandler.failed()){
-                        rc.fail(500, existsHandler.cause());
-                    }
-                    else if (!existsHandler.result()) {
-                        rc.fail(404, new Throwable("not found"));
-                    } else {
+            checkResourceTypeExists(rc, requestBody.getJsonObject("resource_type").getLong("type_id"))
+                .onComplete(findHandler -> {
+                    if (!rc.failed()) {
                         submitUpdate(rc, requestBody, entity);
                     }
                 });
@@ -148,41 +138,12 @@ public class ResourceHandler {
         }
     }
 
-    private void submitUpdate(RoutingContext rc, JsonObject requestBody,
-        JsonObject entity) {
-        for (String field : requestBody.fieldNames()) {
-            entity.put(field, requestBody.getValue(field));
-        }
-        resourceService.update(entity)
-            .onComplete(updateHandler -> {
-                if (updateHandler.succeeded()) {
-                    rc.response().setStatusCode(204).end();
-                } else {
-                    rc.fail(500, updateHandler.cause());
-                }
-            });
-    }
-
     private void checkDeleteResourceExists(RoutingContext rc, long id) {
         resourceService.existsOneById(id)
+            .onComplete(findHandler -> ErrorHandler.handleExistsOne(rc, findHandler))
             .onComplete(findHandler -> {
-                if (findHandler.failed()) {
-                    rc.fail(500, findHandler.cause());
-                } else if (!findHandler.result()) {
-                    rc.fail(404, new Throwable("not found"));
-                } else {
+                if (!rc.failed()) {
                     submitDelete(rc, id);
-                }
-            });
-    }
-
-    private void submitDelete(RoutingContext rc, long id) {
-        resourceService.delete(id)
-            .onComplete(handler -> {
-                if (handler.succeeded()) {
-                    rc.response().setStatusCode(204).end();
-                } else {
-                    rc.fail(500, handler.cause());
                 }
             });
     }

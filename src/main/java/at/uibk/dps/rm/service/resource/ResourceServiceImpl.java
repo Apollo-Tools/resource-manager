@@ -22,7 +22,7 @@ public class ResourceServiceImpl implements ResourceService{
         Resource resource = new Resource();
         resource.setUrl(data.getString("url"));
         ResourceType resourceType = new ResourceType();
-        resourceType.setTypeId(data.getLong("resource_type"));
+        resourceType.setTypeId(data.getJsonObject("resource_type").getLong("type_id"));
         resource.setResourceType(resourceType);
 
         return Future

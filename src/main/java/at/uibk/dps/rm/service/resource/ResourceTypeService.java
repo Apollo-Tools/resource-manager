@@ -29,7 +29,7 @@ public interface ResourceTypeService {
 
     Future<Boolean> existsOneById(long id);
 
-    Future<JsonObject> findOneByResourceType(String resourceType);
+    Future<Boolean> existsOneByResourceType(String resourceType);
 
     Future<JsonArray> findAll();
 
