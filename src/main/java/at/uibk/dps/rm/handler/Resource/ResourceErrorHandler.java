@@ -24,7 +24,7 @@ public class ResourceErrorHandler {
                             completables.add(checkUrl(entity.getString(field)));
                             return true;
                         case "resource_type":
-                            entity.getLong(field);
+                            completables.add(checkResourceType(entity.getJsonObject(field)));
                             return true;
                         default:
                             return false;
@@ -32,7 +32,7 @@ public class ResourceErrorHandler {
                 })
                 .count();
 
-            if (acceptedFields != 2 || acceptedFields != entity.fieldNames().size()) {
+            if (acceptedFields <= 0 || acceptedFields != entity.fieldNames().size()) {
                 rc.fail(400);
                 return;
             }
@@ -65,5 +65,16 @@ public class ResourceErrorHandler {
             + "([).!';/?:,][[:blank:]])?$";
         Pattern urlPattern = Pattern.compile(urlRegex);
         return urlPattern.matcher(url).matches();
+    }
+
+    private static Completable checkResourceType(JsonObject value) {
+        return Maybe.just(value.getLong("type_id") == null || value.fieldNames().size() != 1)
+            .mapOptional(result -> {
+                if (result) {
+                    throw new Throwable("bad input");
+                }
+                return Optional.empty();
+            })
+            .ignoreElement();
     }
 }

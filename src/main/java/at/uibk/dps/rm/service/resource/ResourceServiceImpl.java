@@ -73,7 +73,10 @@ public class ResourceServiceImpl implements ResourceService{
 
     @Override
     public Future<Void> update(JsonObject data) {
-        return null;
+        Resource resource = data.mapTo(Resource.class);
+        return Future
+            .fromCompletionStage(resourceRepository.update(resource))
+            .mapEmpty();
     }
 
     @Override
