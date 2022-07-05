@@ -26,6 +26,7 @@ public class ResourceTypeErrorHandler {
                 })
                 .count();
 
+            // TODO: change with more than one accepted fields
             if (acceptedFields <= 0 || acceptedFields != entity.fieldNames().size()) {
                 rc.fail(400);
                 return;

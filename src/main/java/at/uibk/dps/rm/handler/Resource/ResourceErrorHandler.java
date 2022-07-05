@@ -2,6 +2,7 @@ package at.uibk.dps.rm.handler.Resource;
 
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
@@ -12,7 +13,7 @@ import java.util.regex.Pattern;
 
 public class ResourceErrorHandler {
 
-    public static void validatePostPatchRequest(RoutingContext rc) {
+    public static void validatePostPatchRequest(RoutingContext rc, HttpMethod httpMethod) {
         List<Completable> completables = new ArrayList<>();
         try {
             JsonObject entity = rc.body().asJsonObject();
@@ -32,10 +33,15 @@ public class ResourceErrorHandler {
                 })
                 .count();
 
-            if (acceptedFields <= 0 || acceptedFields != entity.fieldNames().size()) {
+            if (httpMethod == HttpMethod.POST && (acceptedFields != 2 || acceptedFields != entity.fieldNames().size())) {
                 rc.fail(400);
                 return;
             }
+            if (httpMethod == HttpMethod.PATCH && (acceptedFields <= 0 || acceptedFields != entity.fieldNames().size())) {
+                rc.fail(400);
+                return;
+            }
+
 
         } catch (Exception e) {
             rc.fail(400);
