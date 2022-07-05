@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.verticle;
 
+import at.uibk.dps.rm.router.MetricRouter;
 import at.uibk.dps.rm.router.ResourceRouter;
 import at.uibk.dps.rm.router.ResourceTypeRouter;
 import io.reactivex.rxjava3.core.Completable;
@@ -28,6 +29,7 @@ public class ApiVerticle extends AbstractVerticle {
 
         router.route(API_PREFIX + "resource-types*").subRouter(ResourceTypeRouter.router(vertx));
         router.route(API_PREFIX + "resources*").subRouter(ResourceRouter.router(vertx));
+        router.route(API_PREFIX + "metrics*").subRouter(MetricRouter.router(vertx));
 
         router.route().failureHandler(rc -> {
             String message = "";

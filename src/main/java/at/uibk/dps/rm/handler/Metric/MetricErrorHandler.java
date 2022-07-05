@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.handler.Resource;
+package at.uibk.dps.rm.handler.Metric;
 
 import at.uibk.dps.rm.util.FieldCheckUtil;
 import io.reactivex.rxjava3.core.Completable;
@@ -10,10 +10,8 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Pattern;
 
-public class ResourceErrorHandler {
-
+public class MetricErrorHandler {
     public static void validatePostPatchRequest(RoutingContext rc, HttpMethod httpMethod) {
         List<Completable> completables = new ArrayList<>();
         try {
@@ -22,18 +20,17 @@ public class ResourceErrorHandler {
                 .stream()
                 .takeWhile(field -> {
                     switch (field) {
-                        case "url":
-                            completables.add(checkUrl(entity.getString(field)));
+                        case "metric":
+                            completables.add(checkMetric(entity.getString(field)));
                             return true;
-                        case "resource_type":
-                            completables.add(checkResourceType(entity.getJsonObject(field)));
+                        case "description":
+                            completables.add(checkDescription(entity.getString(field)));
                             return true;
                         default:
                             return false;
                     }
                 })
                 .count();
-
             FieldCheckUtil fieldCheckUtil = new FieldCheckUtil(2, 0);
             if (fieldCheckUtil.checkAcceptedFields(httpMethod, acceptedFields, entity.fieldNames().size())) {
                 rc.fail(400);
@@ -51,31 +48,22 @@ public class ResourceErrorHandler {
             .dispose();
     }
 
-    private static Completable checkUrl(String value) {
-        return Maybe.just(value.length() > 512 || value.length() <= 0 || !isValidURL(value))
+    private static Completable checkMetric(String value) {
+        return Maybe.just(value.length() > 256 || value.length() <= 0)
             .mapOptional(result -> {
                 if (result) {
-                    throw new Throwable("url invalid");
+                    throw new Throwable("metric invalid");
                 }
                 return Optional.empty();
             })
             .ignoreElement();
     }
 
-    private static boolean isValidURL(String url) {
-        //Source: https://www.techiedelight.com/validate-url-java/, OWASP Validation Regex
-        String urlRegex = "^((https?://)"
-            + "(%[0-9A-Fa-f]{2}|[-()_.!~*';/?:@&=+$,A-Za-z0-9])+)"
-            + "([).!';/?:,][[:blank:]])?$";
-        Pattern urlPattern = Pattern.compile(urlRegex);
-        return urlPattern.matcher(url).matches();
-    }
-
-    private static Completable checkResourceType(JsonObject value) {
-        return Maybe.just(value.getLong("type_id") == null || value.fieldNames().size() != 1)
+    private static Completable checkDescription(String value) {
+        return Maybe.just(value.length() > 512 || value.length() <= 0)
             .mapOptional(result -> {
                 if (result) {
-                    throw new Throwable("bad input");
+                    throw new Throwable("description invalid");
                 }
                 return Optional.empty();
             })

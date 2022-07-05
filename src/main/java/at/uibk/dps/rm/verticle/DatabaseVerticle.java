@@ -1,9 +1,13 @@
 package at.uibk.dps.rm.verticle;
 
+import at.uibk.dps.rm.repository.metric.MetricRepository;
+import at.uibk.dps.rm.repository.metric.entity.Metric;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resource.ResourceTypeRepository;
 import at.uibk.dps.rm.repository.resource.entity.Resource;
 import at.uibk.dps.rm.repository.resource.entity.ResourceType;
+import at.uibk.dps.rm.service.metric.MetricService;
+import at.uibk.dps.rm.service.metric.MetricServiceImpl;
 import at.uibk.dps.rm.service.resource.ResourceService;
 import at.uibk.dps.rm.service.resource.ResourceServiceImpl;
 import at.uibk.dps.rm.service.resource.ResourceTypeService;
@@ -26,6 +30,7 @@ public class DatabaseVerticle extends AbstractVerticle {
 
     private ResourceTypeRepository resourceTypeRepository;
     private ResourceRepository resourceRepository;
+    private MetricRepository metricRepository;
 
     @Override
     public Completable rxStart() {
@@ -57,6 +62,7 @@ public class DatabaseVerticle extends AbstractVerticle {
         Maybe<Void> setupServices = Maybe.create(emitter -> {
                 resourceTypeRepository = new ResourceTypeRepository(sessionFactory, ResourceType.class);
                 resourceRepository = new ResourceRepository(sessionFactory, Resource.class);
+                metricRepository = new MetricRepository(sessionFactory, Metric.class);
                 emitter.onComplete();
             }
         );
@@ -76,6 +82,12 @@ public class DatabaseVerticle extends AbstractVerticle {
             new ServiceBinder(vertx.getDelegate())
                 .setAddress("resource-service-address")
                 .register(ResourceService.class, resourceService);
+
+            MetricService metricService =
+                new MetricServiceImpl(metricRepository);
+            new ServiceBinder(vertx.getDelegate())
+                .setAddress("metric-service-address")
+                .register(MetricService.class, metricService);
             emitter.onComplete();
         });
         return Completable.fromMaybe(setupEventBus);

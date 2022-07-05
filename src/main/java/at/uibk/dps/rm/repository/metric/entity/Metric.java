@@ -7,7 +7,7 @@ import java.sql.Timestamp;
 public class Metric {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long metric_id;
+    private Long metricId;
 
     private String metric;
 
@@ -16,8 +16,12 @@ public class Metric {
     @Column(insertable = false, updatable = false)
     private Timestamp createdAt;
 
-    public Long getMetric_id() {
-        return metric_id;
+    public Long getMetricId() {
+        return metricId;
+    }
+
+    public void setMetricId(Long metricId) {
+        this.metricId = metricId;
     }
 
     public String getMetric() {
@@ -48,10 +52,10 @@ public class Metric {
 
         Metric metric = (Metric) o;
 
-        return metric_id.equals(metric.metric_id);
+        return metricId.equals(metric.metricId);
     }
 
     @Override public int hashCode() {
-        return metric_id.hashCode();
+        return metricId.hashCode();
     }
 }
