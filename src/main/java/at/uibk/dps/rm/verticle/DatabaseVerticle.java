@@ -1,13 +1,17 @@
 package at.uibk.dps.rm.verticle;
 
 import at.uibk.dps.rm.repository.metric.MetricRepository;
+import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.repository.metric.entity.Metric;
+import at.uibk.dps.rm.repository.metric.entity.MetricValue;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resource.ResourceTypeRepository;
 import at.uibk.dps.rm.repository.resource.entity.Resource;
 import at.uibk.dps.rm.repository.resource.entity.ResourceType;
 import at.uibk.dps.rm.service.metric.MetricService;
 import at.uibk.dps.rm.service.metric.MetricServiceImpl;
+import at.uibk.dps.rm.service.metric.MetricValueService;
+import at.uibk.dps.rm.service.metric.MetricValueServiceImpl;
 import at.uibk.dps.rm.service.resource.ResourceService;
 import at.uibk.dps.rm.service.resource.ResourceServiceImpl;
 import at.uibk.dps.rm.service.resource.ResourceTypeService;
@@ -31,6 +35,7 @@ public class DatabaseVerticle extends AbstractVerticle {
     private ResourceTypeRepository resourceTypeRepository;
     private ResourceRepository resourceRepository;
     private MetricRepository metricRepository;
+    private MetricValueRepository metricValueRepository;
 
     @Override
     public Completable rxStart() {
@@ -63,6 +68,7 @@ public class DatabaseVerticle extends AbstractVerticle {
                 resourceTypeRepository = new ResourceTypeRepository(sessionFactory, ResourceType.class);
                 resourceRepository = new ResourceRepository(sessionFactory, Resource.class);
                 metricRepository = new MetricRepository(sessionFactory, Metric.class);
+                metricValueRepository = new MetricValueRepository(sessionFactory, MetricValue.class);
                 emitter.onComplete();
             }
         );
@@ -88,6 +94,12 @@ public class DatabaseVerticle extends AbstractVerticle {
             new ServiceBinder(vertx.getDelegate())
                 .setAddress("metric-service-address")
                 .register(MetricService.class, metricService);
+
+            MetricValueService metricValueService =
+                    new MetricValueServiceImpl(metricValueRepository);
+            new ServiceBinder(vertx.getDelegate())
+                    .setAddress("metric-value-service-address")
+                    .register(MetricValueService.class, metricValueService);
             emitter.onComplete();
         });
         return Completable.fromMaybe(setupEventBus);

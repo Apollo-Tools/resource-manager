@@ -10,27 +10,31 @@ public class ResourceRouter {
     public static Router router(Vertx vertx) {
         Router router = Router.router(vertx);
 
-        ResourceHandler resourceTypeHandler = new ResourceHandler(vertx);
+        ResourceHandler resourceHandler = new ResourceHandler(vertx);
 
         router.post("/")
             .produces("application/json")
             .handler(rc -> ResourceErrorHandler.validatePostPatchRequest(rc, HttpMethod.POST))
-            .handler(resourceTypeHandler::post);
+            .handler(resourceHandler::post);
+
+        router.post("/:resourceId/metrics")
+            .handler(ResourceErrorHandler::validateAddMetricsRequest)
+            .handler(resourceHandler::postMetrics);
 
         router.get("/")
             .produces("application/json")
-            .handler(resourceTypeHandler::all);
+            .handler(resourceHandler::all);
 
         router.get("/:resourceId")
             .produces("application/json")
-            .handler(resourceTypeHandler::get);
+            .handler(resourceHandler::get);
 
         router.patch("/:resourceId")
             .handler(rc -> ResourceErrorHandler.validatePostPatchRequest(rc, HttpMethod.PATCH))
-            .handler(resourceTypeHandler::patch);
+            .handler(resourceHandler::patch);
 
         router.delete("/:resourceId")
-            .handler(resourceTypeHandler::delete);
+            .handler(resourceHandler::delete);
 
         return router;
     }

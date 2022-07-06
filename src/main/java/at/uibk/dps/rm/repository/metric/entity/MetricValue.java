@@ -4,6 +4,7 @@ import at.uibk.dps.rm.repository.resource.entity.Resource;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 @Entity
@@ -16,7 +17,7 @@ public class MetricValue {
 
     @Column(precision = 20, scale = 10)
     @Type(type = "big_decimal")
-    private Double value;
+    private BigDecimal value;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resource_id")
@@ -44,11 +45,11 @@ public class MetricValue {
         this.count = count;
     }
 
-    public Double getValue() {
+    public BigDecimal getValue() {
         return value;
     }
 
-    public void setValue(Double value) {
+    public void setValue(BigDecimal value) {
         this.value = value;
     }
 

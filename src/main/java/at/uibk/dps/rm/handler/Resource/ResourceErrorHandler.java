@@ -51,6 +51,10 @@ public class ResourceErrorHandler {
             .dispose();
     }
 
+    public static void validateAddMetricsRequest(RoutingContext rc) {
+        rc.next();
+    }
+
     private static Completable checkUrl(String value) {
         return Maybe.just(value.length() > 512 || value.length() <= 0 || !isValidURL(value))
             .mapOptional(result -> {
