@@ -45,6 +45,16 @@ public class ResultHandler {
         }
     }
 
+    public static void handleSaveAllRequest(RoutingContext rc, AsyncResult<Void> result) {
+        if (result.succeeded()) {
+            rc.response()
+                .setStatusCode(204)
+                .end();
+        } else {
+            rc.fail(500, result.cause());
+        }
+    }
+
     public static void handleUpdateDeleteRequest(RoutingContext rc, AsyncResult<Void> result) {
         if (result.succeeded()) {
             rc.response().setStatusCode(204).end();

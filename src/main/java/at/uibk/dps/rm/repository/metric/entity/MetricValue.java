@@ -13,11 +13,12 @@ public class MetricValue {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long metricValueId;
 
-    private Long count;
+    @Column(nullable = false)
+    private Long count = 0L;
 
-    @Column(precision = 20, scale = 10)
+    @Column(precision = 20, scale = 10, nullable = false)
     @Type(type = "big_decimal")
-    private BigDecimal value;
+    private BigDecimal value = new BigDecimal("0.0");
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resource_id")
@@ -49,8 +50,8 @@ public class MetricValue {
         return value;
     }
 
-    public void setValue(BigDecimal value) {
-        this.value = value;
+    public void setValue(double value) {
+        this.value = BigDecimal.valueOf(value);
     }
 
     public Resource getResource() {

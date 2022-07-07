@@ -1,12 +1,12 @@
 package at.uibk.dps.rm.service.metric;
 
-import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 @ProxyGen
@@ -24,6 +24,8 @@ public interface MetricValueService {
     }
 
     Future<JsonObject> save(JsonObject data);
+
+    Future<Void> saveAll(JsonArray data);
 
     Future<JsonObject> findOne(long id);
 

@@ -4,6 +4,7 @@ import at.uibk.dps.rm.util.FieldCheckUtil;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
@@ -52,6 +53,12 @@ public class ResourceErrorHandler {
     }
 
     public static void validateAddMetricsRequest(RoutingContext rc) {
+        try {
+            JsonArray body = rc.body().asJsonArray();
+        } catch (Exception e) {
+            rc.fail(400);
+            return;
+        }
         rc.next();
     }
 
