@@ -3,6 +3,7 @@ package at.uibk.dps.rm.handler.Resource;
 import at.uibk.dps.rm.util.FieldCheckUtil;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Observable;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -53,13 +54,23 @@ public class ResourceErrorHandler {
     }
 
     public static void validateAddMetricsRequest(RoutingContext rc) {
+        List<Completable> completables = new ArrayList<>();
         try {
-            JsonArray body = rc.body().asJsonArray();
+            JsonArray requestBody = rc.body().asJsonArray();
+            if (requestBody.size() <= 0) {
+                rc.fail(400);
+                return;
+            }
+            completables.add(checkMetricsArraySchema(requestBody));
+            completables.add(checkMetricsArrayDuplicates(requestBody));
         } catch (Exception e) {
             rc.fail(400);
             return;
         }
-        rc.next();
+
+        Completable.merge(completables)
+            .subscribe(rc::next, throwable -> rc.fail(400, throwable))
+            .dispose();
     }
 
     private static Completable checkUrl(String value) {
@@ -91,5 +102,37 @@ public class ResourceErrorHandler {
                 return Optional.empty();
             })
             .ignoreElement();
+    }
+
+    private static Completable checkMetricsArraySchema(JsonArray requestBody) {
+        return Observable.fromStream(requestBody.stream())
+            .mapOptional(jsonObject -> {
+                JsonObject jsonMetric = (JsonObject) jsonObject;
+                if (jsonMetric.fieldNames().size() != 1 || jsonMetric.getLong("metricId") == null) {
+                    throw new Throwable("bad input");
+                }
+                return Optional.empty();
+            })
+            .ignoreElements();
+    }
+
+    private static Completable checkMetricsArrayDuplicates(JsonArray requestBody) {
+        return Maybe.just(requestBody)
+            .mapOptional(items -> {
+                for (int i = 0; i < items.size(); i++) {
+                    for (int j = i + 1; j < items.size(); j++) {
+                        if (compareMetricObjects(items, i, j)) {
+                            throw new Throwable("duplicated input");
+                        }
+                    }
+                }
+                return Optional.empty();
+            })
+            .ignoreElement();
+    }
+
+    private static Boolean compareMetricObjects(JsonArray items, int i, int j) {
+        return items.getJsonObject(i).getLong("metricId")
+            .equals(items.getJsonObject(j).getLong("metricId"));
     }
 }
