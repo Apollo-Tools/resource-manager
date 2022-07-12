@@ -29,6 +29,10 @@ public class ResourceRouter {
             .produces("application/json")
             .handler(resourceHandler::get);
 
+        router.get("/:resourceId/metrics")
+            .produces("application/json")
+            .handler(resourceHandler::getMetrics);
+
         router.patch("/:resourceId")
             .handler(rc -> ResourceErrorHandler.validatePostPatchRequest(rc, HttpMethod.PATCH))
             .handler(resourceHandler::patch);

@@ -6,6 +6,7 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -44,7 +45,20 @@ public class MetricValueServiceImpl implements MetricValueService{
     }
 
     @Override
-    public Future<Boolean> existsOneByResourceAndMetricId(long resourceId, long metricId) {
+    public Future<JsonArray> findAllByResource(long resourceId) {
+        return Future
+            .fromCompletionStage(metricValueRepository.findByResourceAndFetch(resourceId))
+            .map(result -> {
+                ArrayList<JsonObject> objects = new ArrayList<>();
+                for (MetricValue metricValue: result) {
+                    objects.add(JsonObject.mapFrom(metricValue.getMetric()));
+                }
+                return new JsonArray(objects);
+            });
+    }
+
+    @Override
+    public Future<Boolean> existsOneByResourceAndMetric(long resourceId, long metricId) {
         return Future
             .fromCompletionStage(metricValueRepository.findByResourceAndMetric(resourceId, metricId))
             .map(Objects::nonNull);

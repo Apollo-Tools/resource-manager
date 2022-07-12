@@ -68,6 +68,14 @@ public class ResourceHandler {
             .dispose();
     }
 
+    public void getMetrics(RoutingContext rc) {
+        HttpHelper.getLongPathParam(rc, "resourceId")
+            .subscribe(
+                id -> submitFindMetrics(rc, id),
+                throwable -> rc.fail(500, throwable))
+            .dispose();
+    }
+
     public void all(RoutingContext rc) {
         resourceService.findAll()
             .onComplete(handler -> ResultHandler.handleGetAllRequest(rc, handler));
@@ -98,6 +106,18 @@ public class ResourceHandler {
             .onComplete(saveHandler -> ResultHandler.handleSaveAllRequest(rc, saveHandler));
     }
 
+    private void submitFindMetrics(RoutingContext rc, long id) {
+        checkResourceExists(rc, id)
+            .onComplete(
+                existsHandler -> {
+                    if (!rc.failed()) {
+                        metricValueService.findAllByResource(id)
+                            .onComplete(findHandler -> ResultHandler.handleGetAllRequest(rc, findHandler));
+                    }
+                }
+            );
+    }
+
     private void submitUpdate(RoutingContext rc, JsonObject requestBody,
         JsonObject entity) {
         for (String field : requestBody.fieldNames()) {
@@ -118,7 +138,7 @@ public class ResourceHandler {
     }
 
     private Future<Boolean> checkForDuplicateMetricValue(RoutingContext rc, long resourceId, long metricId) {
-        return metricValueService.existsOneByResourceAndMetricId(resourceId, metricId)
+        return metricValueService.existsOneByResourceAndMetric(resourceId, metricId)
             .onComplete(duplicateHandler -> ErrorHandler.handleDuplicates(rc, duplicateHandler));
     }
 

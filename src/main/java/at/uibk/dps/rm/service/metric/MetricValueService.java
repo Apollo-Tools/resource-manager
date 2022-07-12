@@ -29,7 +29,9 @@ public interface MetricValueService {
 
     Future<JsonObject> findOne(long id);
 
-    Future<Boolean> existsOneByResourceAndMetricId(long resourceId, long MetricId);
+    Future<JsonArray> findAllByResource(long resourceId);
+
+    Future<Boolean> existsOneByResourceAndMetric(long resourceId, long MetricId);
 
     Future<Void> delete(long id);
 }
