@@ -40,6 +40,9 @@ public class ResourceRouter {
         router.delete("/:resourceId")
             .handler(resourceHandler::delete);
 
+        router.delete("/:resourceId/metrics/:metricId")
+            .handler(resourceHandler::deleteMetric);
+
         return router;
     }
 }

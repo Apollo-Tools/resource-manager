@@ -96,6 +96,18 @@ public class ResourceHandler {
             .dispose();
     }
 
+    public void deleteMetric(RoutingContext rc) {
+        HttpHelper.getLongPathParam(rc, "resourceId")
+            .subscribe(
+                resourceId -> HttpHelper.getLongPathParam(rc, "metricId")
+                    .subscribe(
+                        metricId -> checkDeleteMetricValueExists(rc, resourceId, metricId),
+                        throwable -> rc.fail(500, throwable))
+                    .dispose(),
+                throwable -> rc.fail(500, throwable))
+            .dispose();
+    }
+
     private void submitCreate(RoutingContext rc, JsonObject requestBody) {
         resourceService.save(requestBody)
             .onComplete(handler -> ResultHandler.handleSaveRequest(rc, handler));
@@ -132,6 +144,11 @@ public class ResourceHandler {
             .onComplete(deleteHandler -> ResultHandler.handleUpdateDeleteRequest(rc, deleteHandler));
     }
 
+    private void submitDeleteMetricValue(RoutingContext rc, long resourceId, long metricId) {
+        metricValueService.deleteByResourceAndMetric(resourceId, metricId)
+            .onComplete(deleteHandler -> ResultHandler.handleUpdateDeleteRequest(rc, deleteHandler));
+    }
+
     private Future<Boolean> checkForDuplicateUrl(RoutingContext rc, String url) {
         return resourceService.existsOneByUrl(url)
             .onComplete(duplicateHandler -> ErrorHandler.handleDuplicates(rc, duplicateHandler));
@@ -164,6 +181,11 @@ public class ResourceHandler {
                     submitCreate(rc, requestBody);
                 }
             });
+    }
+
+    private Future<Boolean> checkMetricValueExists(RoutingContext rc, long resourceId, long metricId) {
+        return metricValueService.existsOneByResourceAndMetric(resourceId, metricId)
+            .onComplete(existsHandler -> ErrorHandler.handleExistsOne(rc, existsHandler));
     }
 
     private void checkAddMetricsResourceExists(RoutingContext rc, long resourceId) {
@@ -241,11 +263,20 @@ public class ResourceHandler {
     }
 
     private void checkDeleteResourceExists(RoutingContext rc, long id) {
-        resourceService.existsOneById(id)
-            .onComplete(findHandler -> ErrorHandler.handleExistsOne(rc, findHandler))
+        checkResourceExists(rc, id)
             .onComplete(findHandler -> {
                 if (!rc.failed()) {
                     submitDelete(rc, id);
+                }
+            });
+    }
+
+    private void checkDeleteMetricValueExists(RoutingContext rc, long resourceId, long metricId) {
+        CompositeFuture.all(checkResourceExists(rc, resourceId), checkMetricExists(rc, metricId),
+                checkMetricValueExists(rc, resourceId, metricId))
+            .onComplete(handler -> {
+                if (!rc.failed()) {
+                    submitDeleteMetricValue(rc, resourceId, metricId);
                 }
             });
     }

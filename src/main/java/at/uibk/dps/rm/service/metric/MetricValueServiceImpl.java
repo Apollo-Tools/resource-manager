@@ -40,11 +40,6 @@ public class MetricValueServiceImpl implements MetricValueService{
     }
 
     @Override
-    public Future<JsonObject> findOne(long id) {
-        return null;
-    }
-
-    @Override
     public Future<JsonArray> findAllByResource(long resourceId) {
         return Future
             .fromCompletionStage(metricValueRepository.findByResourceAndFetch(resourceId))
@@ -65,7 +60,9 @@ public class MetricValueServiceImpl implements MetricValueService{
     }
 
     @Override
-    public Future<Void> delete(long id) {
-        return null;
+    public Future<Void> deleteByResourceAndMetric(long resourceId, long metricId) {
+        return Future
+            .fromCompletionStage(metricValueRepository.deleteByResourceAndMetric(resourceId, metricId))
+            .mapEmpty();
     }
 }
