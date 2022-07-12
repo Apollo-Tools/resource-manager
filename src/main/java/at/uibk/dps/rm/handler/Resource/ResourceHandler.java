@@ -52,38 +52,10 @@ public class ResourceHandler {
     }
 
     public void postMetrics(RoutingContext rc) {
-        JsonArray requestBody = rc.body().asJsonArray();
         HttpHelper.getLongPathParam(rc, "resourceId")
-                .subscribe(
-                        resourceId -> checkResourceExists(rc, resourceId)
-                                .onComplete(existsHandler -> {
-                                    if (!rc.failed()) {
-                                        Resource resource = new Resource();
-                                        resource.setResourceId(resourceId);
-                                        List<MetricValue> metricValues = new ArrayList<>();
-                                        List<Future> futureList = new ArrayList<>();
-                                        requestBody.stream().forEach(jsonObject -> {
-                                            JsonObject jsonMetric = (JsonObject) jsonObject;
-                                            long metricId = jsonMetric.getLong("metricId");
-                                            Metric metric = new Metric();
-                                            metric.setMetricId(metricId);
-
-                                            MetricValue metricValue = new MetricValue();
-                                            metricValue.setResource(resource);
-                                            metricValue.setMetric(metric);
-                                            metricValues.add(metricValue);
-                                            futureList.add(checkMetricExists(rc, metricId));
-                                            futureList.add(checkForDuplicateMetricValue(rc, resourceId, metricId));
-                                        });
-                                        CompositeFuture.all(futureList)
-                                            .onComplete(handler -> {
-                                                if (!rc.failed()) {
-                                                    submitAddMetrics(rc, metricValues);
-                                                }
-                                            });
-                                    }
-                                }))
-                .dispose();
+            .subscribe(
+                resourceId -> checkAddMetricsResourceExists(rc, resourceId))
+            .dispose();
     }
 
     public void get(RoutingContext rc) {
@@ -172,6 +144,42 @@ public class ResourceHandler {
                     submitCreate(rc, requestBody);
                 }
             });
+    }
+
+    private void checkAddMetricsResourceExists(RoutingContext rc, long resourceId) {
+        JsonArray requestBody = rc.body().asJsonArray();
+        checkResourceExists(rc, resourceId)
+            .onComplete(existsHandler -> {
+                if (!rc.failed()) {
+                    List<MetricValue> metricValues = new ArrayList<>();
+                    List<Future> futureList = checkAddMetricList(rc, requestBody, resourceId, metricValues);
+                    CompositeFuture.all(futureList)
+                        .onComplete(handler -> {
+                            if (!rc.failed()) {
+                                submitAddMetrics(rc, metricValues);
+                            }
+                        });
+                }
+        });
+    }
+
+    private List<Future> checkAddMetricList(RoutingContext rc, JsonArray requestBody, long resourceId, List<MetricValue> metricValues) {
+        Resource resource = new Resource();
+        resource.setResourceId(resourceId);
+        List<Future> futureList = new ArrayList<>();
+        requestBody.stream().forEach(jsonObject -> {
+            JsonObject jsonMetric = (JsonObject) jsonObject;
+            long metricId = jsonMetric.getLong("metricId");
+            Metric metric = new Metric();
+            metric.setMetricId(metricId);
+            MetricValue metricValue = new MetricValue();
+            metricValue.setResource(resource);
+            metricValue.setMetric(metric);
+            metricValues.add(metricValue);
+            futureList.add(checkMetricExists(rc, metricId));
+            futureList.add(checkForDuplicateMetricValue(rc, resourceId, metricId));
+        });
+        return futureList;
     }
 
     private void checkUpdateExists(RoutingContext rc, long id) {
