@@ -52,27 +52,21 @@ public class ResourceHandler {
     }
 
     public void postMetrics(RoutingContext rc) {
-        HttpHelper.getLongPathParam(rc, "resourceId")
-            .subscribe(
-                resourceId -> checkAddMetricsResourceExists(rc, resourceId))
+        HttpHelper.getLongPathParam(rc, "id")
+            .subscribe(resourceId -> checkAddMetricsResourceExists(rc, resourceId))
             .dispose();
     }
 
     public void get(RoutingContext rc) {
-        HttpHelper.getLongPathParam(rc, "resourceId")
-            .subscribe(
-                id ->  resourceService.findOne(id)
-                    .onComplete(
-                        handler -> ResultHandler.handleGetOneRequest(rc, handler)),
-                throwable -> rc.fail(500, throwable))
+        HttpHelper.getLongPathParam(rc, "id")
+            .subscribe(id ->  resourceService.findOne(id)
+                .onComplete(handler -> ResultHandler.handleGetOneRequest(rc, handler)))
             .dispose();
     }
 
     public void getMetrics(RoutingContext rc) {
-        HttpHelper.getLongPathParam(rc, "resourceId")
-            .subscribe(
-                id -> submitFindMetrics(rc, id),
-                throwable -> rc.fail(500, throwable))
+        HttpHelper.getLongPathParam(rc, "id")
+            .subscribe(id -> submitFindMetrics(rc, id))
             .dispose();
     }
 
@@ -82,29 +76,22 @@ public class ResourceHandler {
     }
 
     public void patch(RoutingContext rc) {
-        HttpHelper.getLongPathParam(rc, "resourceId")
-            .subscribe(id -> checkUpdateExists(rc, id),
-                throwable -> rc.fail(500, throwable))
+        HttpHelper.getLongPathParam(rc, "id")
+            .subscribe(id -> checkUpdateExists(rc, id))
             .dispose();
     }
 
     public void delete(RoutingContext rc) {
-        HttpHelper.getLongPathParam(rc, "resourceId")
-            .subscribe(
-                id -> checkDeleteResourceExists(rc, id),
-                throwable -> rc.fail(500, throwable))
+        HttpHelper.getLongPathParam(rc, "id")
+            .subscribe(id -> checkDeleteResourceExists(rc, id))
             .dispose();
     }
 
     public void deleteMetric(RoutingContext rc) {
         HttpHelper.getLongPathParam(rc, "resourceId")
-            .subscribe(
-                resourceId -> HttpHelper.getLongPathParam(rc, "metricId")
-                    .subscribe(
-                        metricId -> checkDeleteMetricValueExists(rc, resourceId, metricId),
-                        throwable -> rc.fail(500, throwable))
-                    .dispose(),
-                throwable -> rc.fail(500, throwable))
+            .subscribe(resourceId -> HttpHelper.getLongPathParam(rc, "metricId")
+                .subscribe(metricId -> checkDeleteMetricValueExists(rc, resourceId, metricId))
+                .dispose())
             .dispose();
     }
 

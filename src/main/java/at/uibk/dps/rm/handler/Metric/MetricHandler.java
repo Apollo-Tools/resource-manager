@@ -29,7 +29,7 @@ public class MetricHandler {
     }
 
     public void get(RoutingContext rc) {
-        HttpHelper.getLongPathParam(rc, "metricId")
+        HttpHelper.getLongPathParam(rc, "id")
             .subscribe(
                 id ->  metricService.findOne(id)
                     .onComplete(
@@ -44,14 +44,14 @@ public class MetricHandler {
     }
 
     public void patch(RoutingContext rc) {
-        HttpHelper.getLongPathParam(rc, "metricId")
+        HttpHelper.getLongPathParam(rc, "id")
             .subscribe(id -> checkUpdateExists(rc, id),
                 throwable -> rc.fail(500, throwable))
             .dispose();
     }
 
     public void delete(RoutingContext rc) {
-        HttpHelper.getLongPathParam(rc, "metricId")
+        HttpHelper.getLongPathParam(rc, "id")
             .subscribe(
                 id -> checkDeleteResourceExists(rc, id),
                 throwable -> rc.fail(500, throwable))

@@ -34,7 +34,7 @@ public class ResourceTypeHandler {
     }
 
     public void get(RoutingContext rc) {
-        HttpHelper.getLongPathParam(rc, "resourceTypeId")
+        HttpHelper.getLongPathParam(rc, "id")
             .subscribe(
                 id ->  resourceTypeService.findOne(id)
                     .onComplete(
@@ -49,14 +49,14 @@ public class ResourceTypeHandler {
     }
 
     public void patch(RoutingContext rc) {
-        HttpHelper.getLongPathParam(rc, "resourceTypeId")
+        HttpHelper.getLongPathParam(rc, "id")
             .subscribe(id -> checkUpdateExists(rc, id),
                 throwable -> rc.fail(500, throwable))
             .dispose();
     }
 
     public void delete(RoutingContext rc) {
-        HttpHelper.getLongPathParam(rc, "resourceTypeId")
+        HttpHelper.getLongPathParam(rc, "id")
             .subscribe(
                 id ->  checkDeleteResourceTypeExists(rc, id),
                 throwable -> rc.fail(500, throwable))

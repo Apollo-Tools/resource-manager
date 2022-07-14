@@ -14,7 +14,7 @@ repositories {
   mavenCentral()
 }
 
-val vertxVersion = "4.3.1"
+val vertxVersion = "4.3.2"
 val mutinyVersion = "2.22.0"
 val flywayVersion = "8.5.12"
 val junitJupiterVersion = "5.7.0"
@@ -39,6 +39,7 @@ dependencies {
   implementation("io.vertx:vertx-auth-oauth2:$vertxVersion")
   implementation("io.vertx:vertx-config:$vertxVersion")
   implementation("io.vertx:vertx-service-proxy:$vertxVersion")
+  implementation("io.vertx:vertx-web-openapi:$vertxVersion")
   implementation("io.vertx:vertx-rx-java3:$vertxVersion")
   implementation("io.vertx:vertx-rx-gen:$vertxVersion")
   implementation("io.vertx:vertx-rx-java3-gen:$vertxVersion")
