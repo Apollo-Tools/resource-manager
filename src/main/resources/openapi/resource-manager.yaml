@@ -1,0 +1,607 @@
+openapi: 3.0.0
+info:
+  version: "1.0.0"
+  title: "Resource Manager"
+  description: "An API that allows users to manage resources"
+  license:
+    name: TODO
+servers:
+  - url: localhost:8888/api
+    description: Local Dev Server
+paths:
+  /resources/{id}:
+    get:
+      description: Return details about a resource managed by the resource manager
+      operationId: getResource
+      tags:
+        - resources
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of a resource
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Resource"
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+    patch:
+      description: Updates a resource
+      operationId: updateResource
+      tags:
+        - resources
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              minProperties: 1
+              additionalProperties: false
+              properties:
+                url:
+                  $ref: "#/components/schemas/Url"
+                resource_type:
+                  type: object
+                  required:
+                    - type_id
+                  additionalProperties: false
+                  properties:
+                    type_id:
+                      type: integer
+                      format: int64
+                      example: 1
+      responses:
+        204:
+          description: Successful update of a resource
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+    delete:
+      description: Deletes a resource
+      operationId: deleteResource
+      tags:
+        - resources
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        204:
+          description: Successful deletion of a resource
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /resources:
+    get:
+      description: Return details about all resources managed by the resource manager
+      operationId: listResources
+      tags:
+        - resources
+      responses:
+        200:
+          description: Successful pull of all resources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Resource"
+        500:
+          $ref: "#/components/responses/500"
+
+    post:
+      description: Registers a new resource
+      operationId: createResource
+      tags:
+        - resources
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - url
+                - resource_type
+              additionalProperties: false
+              properties:
+                url:
+                  $ref: "#/components/schemas/Url"
+                resource_type:
+                  type: object
+                  required:
+                    - type_id
+                  additionalProperties: false
+                  properties:
+                    type_id:
+                      type: integer
+                      format: int64
+                      example: 1
+      responses:
+        201:
+          description: Successful registration of a new resource
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Resource"
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+  /resources/{id}/metrics:
+    get:
+      description: Return all metrics that are linked with an existing resource
+      operationId: listResourceMetrics
+      tags:
+        - resources/metrics
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of all metrics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Metric"
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+    post:
+      description: Adds multiple metrics to an existing resource
+      operationId: addResourceMetrics
+      tags:
+        - resources/metrics
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              minItems: 1
+              items:
+                type: object
+                required:
+                  - metricId
+                additionalProperties: false
+                properties:
+                  metricId:
+                    type: integer
+                    format: int64
+                    example: 1
+      responses:
+        204:
+          description: Successfully added metrics to existing resource
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+  /resources/{resourceId}/metrics/{metricId}:
+    delete:
+      description: Deletes a resource metric
+      operationId: deleteResourceMetric
+      tags:
+        - resources/metrics
+      parameters:
+        - name: resourceId
+          in: path
+          description: ID of the metric entity
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+        - name: metricId
+          in: path
+          description: ID of the metric entity
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        204:
+          description: Successful deletion of a metric
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /resource-types/{id}:
+    get:
+      description: Return details about a resource type managed by the resource manager
+      operationId: getResourceType
+      tags:
+        - resourceTypes
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of a resource type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourceType"
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+    patch:
+      description: Updates a resource type
+      operationId: updateResourceType
+      tags:
+        - resourceTypes
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              minProperties: 1
+              additionalProperties: false
+              properties:
+                resource_type:
+                  type: string
+                  minLength: 1
+                  maxLength: 8
+                  example: faas
+      responses:
+        204:
+          description: Successful update of a resource type
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+    delete:
+      description: Deletes a resource type
+      operationId: deleteResourceType
+      tags:
+        - resourceTypes
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        204:
+          description: Successful deletion of a resource type
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /resource-types:
+    get:
+      description: Return details about all resource types managed by the resource manager
+      operationId: listResourceTypes
+      tags:
+        - resourceTypes
+      responses:
+        200:
+          description: Successful pull of all resource types
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ResourceType"
+        500:
+          $ref: "#/components/responses/500"
+
+    post:
+      description: Creates a new resource type
+      operationId: createResourceType
+      tags:
+        - resourceTypes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - resource_type
+              additionalProperties: false
+              properties:
+                resource_type:
+                  type: string
+                  minLength: 1
+                  maxLength: 8
+                  example: faas
+      responses:
+        201:
+          description: Successful creation of a new resource type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourceType"
+        400:
+          $ref: "#/components/responses/400"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+  /metrics/{id}:
+    get:
+      description: Return details about a metric managed by the resource manager
+      operationId: getMetric
+      tags:
+        - metrics
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of a metric
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Metric"
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+    patch:
+      description: Updates a metric
+      operationId: updateMetric
+      tags:
+        - metrics
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              minProperties: 1
+              additionalProperties: false
+              properties:
+                metric:
+                  type: string
+                  minLength: 1
+                  maxLength: 256
+                  example: availability
+                description:
+                  type: string
+                  minLength: 1
+                  maxLength: 512
+                  example: the availability of a resource
+      responses:
+        204:
+          description: Successful update of a metric
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+    delete:
+      description: Deletes a metric
+      operationId: deleteMetric
+      tags:
+        - metrics
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        204:
+          description: Successful deletion of a metric
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /metrics:
+    get:
+      description: Return details about all metrics managed by the resource manager
+      operationId: listMetrics
+      tags:
+        - metrics
+      responses:
+        200:
+          description: Successful pull of all metrics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Metric"
+        500:
+          $ref: "#/components/responses/500"
+
+    post:
+      description: Creates a new metric
+      operationId: createMetric
+      tags:
+        - metrics
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - metric
+                - description
+              additionalProperties: false
+              properties:
+                metric:
+                  type: string
+                  minLength: 1
+                  maxLength: 256
+                  example: availability
+                description:
+                  type: string
+                  minLength: 1
+                  maxLength: 512
+                  example: the availability of a resource
+      responses:
+        201:
+          description: Successful creation of a new metric
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Metric"
+        400:
+          $ref: "#/components/responses/400"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+components:
+  schemas:
+    Resource:
+      type: object
+      properties:
+        resource_id:
+          type: integer
+          format: int64
+          example: 1
+        url:
+          $ref: "#/components/schemas/Url"
+        resource_type:
+          $ref: "#/components/schemas/ResourceType"
+        created_at:
+          type: string
+          format: date-time
+          #example: 2017-07-21T17:32:28Z
+        updated_at:
+          type: string
+          format: date-time
+          #example: 2017-07-21T17:32:28Z
+    ResourceType:
+      type: object
+      properties:
+        type_id:
+          type: integer
+          format: int64
+          example: 1
+        resource_type:
+          type: string
+          maxLength: 8
+          example: faas
+        created_at:
+          type: string
+          format: date-time
+          #example: 2017-07-21T17:32:28Z
+    Metric:
+      type: object
+      properties:
+        metric_id:
+          type: integer
+          format: int64
+          example: 1
+        metric:
+          type: string
+          example: availability
+        description:
+          type: string
+          example: the availability of a resource
+        created_at:
+          type: string
+          format: date-time
+          #example: 2017-07-21T17:32:28Z
+    Url:
+      type: string
+      minLength: 1
+      maxLength: 512
+      pattern: "^((https?://)(%[0-9A-Fa-f]{2}|[-()_.!~*';/?:@&=+$,A-Za-z0-9])+)([).!';/?:,][[:blank:]])?$"
+      example: https://123456789.execute-api.eu-west-1.amazonaws.com/Shift
+    Error:
+      type: string
+      example: internal server error
+
+  parameters:
+    idParam:
+      name: id
+      in: path
+      description: ID of the entity
+      required: true
+      schema:
+        type: integer
+        format: int64
+        example: 1
+
+  responses:
+    400:
+      description: Bad input
+      content:
+        "*/*":
+          schema:
+            type: string
+            example: bad input
+    404:
+      description: Not found
+      content:
+        "*/*":
+          schema:
+            type: string
+            example: not found
+    409:
+      description: Already exists
+      content:
+        "*/*":
+          schema:
+            type: string
+            example: already exists
+    500:
+      description: Internal server error
+      content:
+        "*/*":
+          schema:
+            type: string
+            example: internal server error
