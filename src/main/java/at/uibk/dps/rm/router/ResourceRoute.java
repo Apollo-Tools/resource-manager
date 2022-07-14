@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.router;
 
 import at.uibk.dps.rm.handler.Resource.ResourceHandler;
+import at.uibk.dps.rm.handler.Resource.ResourceInputHandler;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
@@ -14,6 +15,7 @@ public class ResourceRoute {
 
         router
             .operation("addResourceMetrics")
+            .handler(ResourceInputHandler::validateAddMetricsRequest)
             .handler(resourceHandler::postMetrics);
 
         router
