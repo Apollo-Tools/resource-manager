@@ -27,9 +27,13 @@ public abstract class Repository<E> {
                 .merge(entity));
     }
 
-    public CompletionStage<Void> delete(E entity) {
-        return sessionFactory.withStatelessTransaction((session, tx) -> session
-            .delete(entity));
+    public CompletionStage<Integer> deleteById(long id) {
+        //noinspection JpaQlInspection
+        return this.sessionFactory.withTransaction(session ->
+            session.createQuery("delete from " + entityClass.getName() + " where id=:id")
+                .setParameter("id", id)
+                .executeUpdate()
+        );
     }
 
     public CompletionStage<E> findById(long id) {

@@ -2,7 +2,7 @@ package at.uibk.dps.rm.service.resource;
 
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resource.entity.Resource;
-import at.uibk.dps.rm.repository.resource.entity.ResourceType;
+import at.uibk.dps.rm.service.ServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -10,24 +10,13 @@ import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class ResourceServiceImpl implements ResourceService{
+public class ResourceServiceImpl extends ServiceProxy<Resource> implements ResourceService{
 
     private final ResourceRepository resourceRepository;
 
     public ResourceServiceImpl(ResourceRepository resourceRepository) {
+        super(resourceRepository, Resource.class);
         this.resourceRepository = resourceRepository;
-    }
-    @Override
-    public Future<JsonObject> save(JsonObject data) {
-        Resource resource = new Resource();
-        resource.setUrl(data.getString("url"));
-        ResourceType resourceType = new ResourceType();
-        resourceType.setTypeId(data.getJsonObject("resource_type").getLong("type_id"));
-        resource.setResourceType(resourceType);
-
-        return Future
-            .fromCompletionStage(resourceRepository.create(resource))
-            .map(JsonObject::mapFrom);
     }
 
     @Override
@@ -35,13 +24,6 @@ public class ResourceServiceImpl implements ResourceService{
         return Future
             .fromCompletionStage(resourceRepository.findByIdAndFetch(id))
             .map(JsonObject::mapFrom);
-    }
-
-    @Override
-    public Future<Boolean> existsOneById(long id) {
-        return Future
-            .fromCompletionStage(resourceRepository.findById(id))
-            .map(Objects::nonNull);
     }
 
     @Override
@@ -69,22 +51,5 @@ public class ResourceServiceImpl implements ResourceService{
                 }
                 return new JsonArray(objects);
             });
-    }
-
-    @Override
-    public Future<Void> update(JsonObject data) {
-        Resource resource = data.mapTo(Resource.class);
-        return Future
-            .fromCompletionStage(resourceRepository.update(resource))
-            .mapEmpty();
-    }
-
-    @Override
-    public Future<Void> delete(long id) {
-        Resource resource = new Resource();
-        resource.setResourceId(id);
-        return Future
-            .fromCompletionStage(resourceRepository.delete(resource))
-            .mapEmpty();
     }
 }

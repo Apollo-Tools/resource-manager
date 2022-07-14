@@ -38,6 +38,10 @@ public class MetricValue {
         return metricValueId;
     }
 
+    public void setMetricValueId(Long metricValueId) {
+        this.metricValueId = metricValueId;
+    }
+
     public Long getCount() {
         return count;
     }

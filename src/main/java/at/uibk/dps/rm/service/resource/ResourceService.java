@@ -1,17 +1,14 @@
 package at.uibk.dps.rm.service.resource;
 
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
+import at.uibk.dps.rm.service.ServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
-import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 
 @ProxyGen
-@VertxGen
-public interface ResourceService {
+public interface ResourceService extends ServiceInterface {
     @GenIgnore
     static ResourceService create(ResourceRepository resourceRepository) {
         return new ResourceServiceImpl(resourceRepository);
@@ -22,19 +19,7 @@ public interface ResourceService {
         return new ResourceServiceVertxEBProxy(vertx, address);
     }
 
-    Future<JsonObject> save(JsonObject data);
-
-    Future<JsonObject> findOne(long id);
-
-    Future<Boolean> existsOneById(long id);
-
     Future<Boolean> existsOneByUrl(String url);
 
     Future<Boolean> existsOneByResourceType(long typeId);
-
-    Future<JsonArray> findAll();
-
-    Future<Void> update(JsonObject data);
-
-    Future<Void> delete(long id);
 }

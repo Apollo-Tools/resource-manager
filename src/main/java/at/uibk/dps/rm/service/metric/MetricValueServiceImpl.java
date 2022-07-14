@@ -2,6 +2,7 @@ package at.uibk.dps.rm.service.metric;
 
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.repository.metric.entity.MetricValue;
+import at.uibk.dps.rm.service.ServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -11,21 +12,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class MetricValueServiceImpl implements MetricValueService{
+public class MetricValueServiceImpl extends ServiceProxy<MetricValue> implements MetricValueService{
 
     private final MetricValueRepository metricValueRepository;
 
     public MetricValueServiceImpl(MetricValueRepository metricValueRepository) {
+        super(metricValueRepository, MetricValue.class);
         this.metricValueRepository = metricValueRepository;
-    }
-
-    @Override
-    public Future<JsonObject> save(JsonObject data) {
-        MetricValue metricValue = data.mapTo(MetricValue.class);
-
-        return Future
-                .fromCompletionStage(metricValueRepository.create(metricValue))
-                .map(JsonObject::mapFrom);
     }
 
     @Override
