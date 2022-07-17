@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.handler.Resource;
 
 import at.uibk.dps.rm.handler.ErrorHandler;
-import at.uibk.dps.rm.handler.ResultHandler;
+import at.uibk.dps.rm.handler.RequestHandler;
 import at.uibk.dps.rm.service.resource.ResourceService;
 import at.uibk.dps.rm.service.resource.ResourceTypeService;
 import at.uibk.dps.rm.util.HttpHelper;
@@ -10,19 +10,20 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
-public class ResourceTypeHandler {
+public class ResourceTypeHandler extends RequestHandler {
 
     private final ResourceTypeService resourceTypeService;
 
     private final ResourceService resourceService;
 
     public ResourceTypeHandler(Vertx vertx) {
-        resourceTypeService = ResourceTypeService.createProxy(vertx.getDelegate(),
-            "resource-type-service-address");
+        super(ResourceTypeService.createProxy(vertx.getDelegate(),"resource-type-service-address"));
+        resourceTypeService = (ResourceTypeService) super.service;
         resourceService = ResourceService.createProxy(vertx.getDelegate(),
             "resource-service-address");
     }
 
+    @Override
     public void post(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
         checkForDuplicateResourceType(rc, requestBody)
@@ -33,21 +34,7 @@ public class ResourceTypeHandler {
             });
     }
 
-    public void get(RoutingContext rc) {
-        HttpHelper.getLongPathParam(rc, "id")
-            .subscribe(
-                id ->  resourceTypeService.findOne(id)
-                    .onComplete(
-                        handler -> ResultHandler.handleGetOneRequest(rc, handler)),
-                throwable -> rc.fail(500, throwable))
-            .dispose();
-    }
-
-    public void all(RoutingContext rc) {
-        resourceTypeService.findAll()
-            .onComplete(handler -> ResultHandler.handleGetAllRequest(rc, handler));
-    }
-
+    @Override
     public void patch(RoutingContext rc) {
         HttpHelper.getLongPathParam(rc, "id")
             .subscribe(id -> checkUpdateExists(rc, id),
@@ -55,6 +42,7 @@ public class ResourceTypeHandler {
             .dispose();
     }
 
+    @Override
     public void delete(RoutingContext rc) {
         HttpHelper.getLongPathParam(rc, "id")
             .subscribe(
@@ -63,31 +51,9 @@ public class ResourceTypeHandler {
             .dispose();
     }
 
-    private void submitCreate(RoutingContext rc, JsonObject requestBody) {
-        resourceTypeService.save(requestBody)
-            .onComplete(handler -> ResultHandler.handleSaveRequest(rc, handler));
-    }
-
-    private void submitUpdate(RoutingContext rc, JsonObject requestBody,
-        JsonObject entity) {
-        entity.put("resource_type", requestBody.getValue("resource_type"));
-        resourceTypeService.update(entity)
-            .onComplete(updateHandler -> ResultHandler.handleUpdateDeleteRequest(rc, updateHandler));
-    }
-
-    private void submitDelete(RoutingContext rc, long id) {
-        resourceTypeService.delete(id)
-            .onComplete(deleteHandler -> ResultHandler.handleUpdateDeleteRequest(rc, deleteHandler));
-    }
-
     private Future<Boolean> checkForDuplicateResourceType(RoutingContext rc, JsonObject requestBody) {
         return resourceTypeService.existsOneByResourceType(requestBody.getString("resource_type"))
             .onComplete(duplicateHandler -> ErrorHandler.handleDuplicates(rc, duplicateHandler));
-    }
-
-    private Future<JsonObject> checkFindOne(RoutingContext rc, long id) {
-        return resourceTypeService.findOne(id)
-            .onComplete(updateHandler -> ErrorHandler.handleFindOne(rc, updateHandler));
     }
 
     private void checkUpdateExists(RoutingContext rc, long id) {

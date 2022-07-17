@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler.Resource;
 
 import at.uibk.dps.rm.handler.ErrorHandler;
+import at.uibk.dps.rm.handler.RequestHandler;
 import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.repository.metric.entity.Metric;
 import at.uibk.dps.rm.repository.metric.entity.MetricValue;
@@ -21,7 +22,7 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ResourceHandler {
+public class ResourceHandler extends RequestHandler {
     private final ResourceService resourceService;
 
     private final ResourceTypeService resourceTypeService;
@@ -31,8 +32,8 @@ public class ResourceHandler {
     private final MetricValueService metricValueService;
 
     public ResourceHandler(Vertx vertx) {
-        resourceService = ResourceService.createProxy(vertx.getDelegate(),
-            "resource-service-address");
+        super(ResourceService.createProxy(vertx.getDelegate(),"resource-service-address"));
+        resourceService = (ResourceService) super.service;
         resourceTypeService = ResourceTypeService.createProxy(vertx.getDelegate(),
             "resource-type-service-address");
         metricService = MetricService.createProxy(vertx.getDelegate(),
@@ -41,6 +42,7 @@ public class ResourceHandler {
                 "metric-value-service-address");
     }
 
+    @Override
     public void post(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
         checkForDuplicateUrl(rc, requestBody.getString("url"))
@@ -57,30 +59,20 @@ public class ResourceHandler {
             .dispose();
     }
 
-    public void get(RoutingContext rc) {
-        HttpHelper.getLongPathParam(rc, "id")
-            .subscribe(id ->  resourceService.findOne(id)
-                .onComplete(handler -> ResultHandler.handleGetOneRequest(rc, handler)))
-            .dispose();
-    }
-
     public void getMetrics(RoutingContext rc) {
         HttpHelper.getLongPathParam(rc, "id")
             .subscribe(id -> submitFindMetrics(rc, id))
             .dispose();
     }
 
-    public void all(RoutingContext rc) {
-        resourceService.findAll()
-            .onComplete(handler -> ResultHandler.handleGetAllRequest(rc, handler));
-    }
-
+    @Override
     public void patch(RoutingContext rc) {
         HttpHelper.getLongPathParam(rc, "id")
             .subscribe(id -> checkUpdateExists(rc, id))
             .dispose();
     }
 
+    @Override
     public void delete(RoutingContext rc) {
         HttpHelper.getLongPathParam(rc, "id")
             .subscribe(id -> checkDeleteResourceExists(rc, id))
@@ -95,18 +87,13 @@ public class ResourceHandler {
             .dispose();
     }
 
-    private void submitCreate(RoutingContext rc, JsonObject requestBody) {
-        resourceService.save(requestBody)
-            .onComplete(handler -> ResultHandler.handleSaveRequest(rc, handler));
-    }
-
     private void submitAddMetrics(RoutingContext rc, List<MetricValue> metricValues) {
         metricValueService.saveAll(Json.encodeToBuffer(metricValues).toJsonArray())
-            .onComplete(saveHandler -> ResultHandler.handleSaveAllRequest(rc, saveHandler));
+            .onComplete(saveHandler -> ResultHandler.handleSaveAllUpdateDeleteRequest(rc, saveHandler));
     }
 
     private void submitFindMetrics(RoutingContext rc, long id) {
-        checkResourceExists(rc, id)
+        checkExistsOne(rc, id)
             .onComplete(
                 existsHandler -> {
                     if (!rc.failed()) {
@@ -117,23 +104,9 @@ public class ResourceHandler {
             );
     }
 
-    private void submitUpdate(RoutingContext rc, JsonObject requestBody,
-        JsonObject entity) {
-        for (String field : requestBody.fieldNames()) {
-            entity.put(field, requestBody.getValue(field));
-        }
-        resourceService.update(entity)
-            .onComplete(updateHandler -> ResultHandler.handleUpdateDeleteRequest(rc, updateHandler));
-    }
-
-    private void submitDelete(RoutingContext rc, long id) {
-        resourceService.delete(id)
-            .onComplete(deleteHandler -> ResultHandler.handleUpdateDeleteRequest(rc, deleteHandler));
-    }
-
     private void submitDeleteMetricValue(RoutingContext rc, long resourceId, long metricId) {
         metricValueService.deleteByResourceAndMetric(resourceId, metricId)
-            .onComplete(deleteHandler -> ResultHandler.handleUpdateDeleteRequest(rc, deleteHandler));
+            .onComplete(deleteHandler -> ResultHandler.handleSaveAllUpdateDeleteRequest(rc, deleteHandler));
     }
 
     private Future<Boolean> checkForDuplicateUrl(RoutingContext rc, String url) {
@@ -177,7 +150,7 @@ public class ResourceHandler {
 
     private void checkAddMetricsResourceExists(RoutingContext rc, long resourceId) {
         JsonArray requestBody = rc.body().asJsonArray();
-        checkResourceExists(rc, resourceId)
+        checkExistsOne(rc, resourceId)
             .onComplete(existsHandler -> {
                 if (!rc.failed()) {
                     List<MetricValue> metricValues = new ArrayList<>();
@@ -250,7 +223,7 @@ public class ResourceHandler {
     }
 
     private void checkDeleteResourceExists(RoutingContext rc, long id) {
-        checkResourceExists(rc, id)
+        checkExistsOne(rc, id)
             .onComplete(findHandler -> {
                 if (!rc.failed()) {
                     submitDelete(rc, id);
@@ -259,7 +232,7 @@ public class ResourceHandler {
     }
 
     private void checkDeleteMetricValueExists(RoutingContext rc, long resourceId, long metricId) {
-        CompositeFuture.all(checkResourceExists(rc, resourceId), checkMetricExists(rc, metricId),
+        CompositeFuture.all(checkExistsOne(rc, resourceId), checkMetricExists(rc, metricId),
                 checkMetricValueExists(rc, resourceId, metricId))
             .onComplete(handler -> {
                 if (!rc.failed()) {
