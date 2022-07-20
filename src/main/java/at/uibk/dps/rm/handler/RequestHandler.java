@@ -1,9 +1,10 @@
 package at.uibk.dps.rm.handler;
 
-import at.uibk.dps.rm.service.ServiceInterface;
+import at.uibk.dps.rm.service.rxjava3.ServiceInterface;
 import at.uibk.dps.rm.util.HttpHelper;
-import io.vertx.core.Future;
-import io.vertx.core.json.JsonArray;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.disposables.Disposable;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
@@ -15,70 +16,55 @@ public abstract class RequestHandler {
         this.service = service;
     }
 
-    public abstract void post(RoutingContext rc);
+    public abstract Disposable post(RoutingContext rc);
 
-    public abstract void patch(RoutingContext rc);
+    public abstract Disposable patch(RoutingContext rc);
 
-    public void get(RoutingContext rc) {
-        HttpHelper.getLongPathParam(rc, "id")
-            .subscribe(
-                id ->  service.findOne(id)
-                    .onComplete(
-                        handler -> ResultHandler.handleGetOneRequest(rc, handler)),
-                throwable -> rc.fail(500, throwable))
-            .dispose();
+    public Disposable get(RoutingContext rc) {
+        return HttpHelper.getLongPathParam(rc, "id")
+            .flatMap(this::checkFindOne)
+            .subscribe(result -> ResultHandler.handleGetOneRequest(rc, result),
+                throwable -> ErrorHandler.handleRequestError(rc, throwable));
     }
 
-    public void all(RoutingContext rc) {
-        service.findAll()
-            .onComplete(handler -> ResultHandler.handleGetAllRequest(rc, handler));
+    public Disposable all(RoutingContext rc) {
+        return service.findAll()
+            .subscribe(result -> ResultHandler.handleGetAllRequest(rc, result),
+                throwable -> ErrorHandler.handleRequestError(rc, throwable));
     }
 
-    public void delete(RoutingContext rc) {
-        HttpHelper.getLongPathParam(rc, "id")
-            .subscribe(
-                id -> checkDeleteEntityExists(rc, id),
-                throwable -> rc.fail(500, throwable))
-            .dispose();
+    public Disposable delete(RoutingContext rc) {
+        return HttpHelper.getLongPathParam(rc, "id")
+            .flatMap(id -> checkExistsOne(id)
+                .andThen(Single.just(id)))
+            .flatMapCompletable(this::submitDelete)
+            .subscribe(() -> ResultHandler.handleSaveAllUpdateDeleteRequest(rc),
+                throwable -> ErrorHandler.handleRequestError(rc, throwable));
     }
 
-    protected void submitCreate(RoutingContext rc, JsonObject requestBody) {
-        service.save(requestBody)
-            .onComplete(handler -> ResultHandler.handleSaveRequest(rc, handler));
+    protected Single<JsonObject> submitCreate(JsonObject requestBody) {
+        return service.save(requestBody);
     }
 
 
-    protected void submitUpdate(RoutingContext rc, JsonObject requestBody,
-        JsonObject entity) {
+    protected Completable submitUpdate(JsonObject requestBody, JsonObject entity) {
         for (String field : requestBody.fieldNames()) {
             entity.put(field, requestBody.getValue(field));
         }
-        service.update(entity)
-            .onComplete(updateHandler -> ResultHandler.handleSaveAllUpdateDeleteRequest(rc, updateHandler));
+        return service.update(entity);
     }
 
-    protected void submitDelete(RoutingContext rc, long id) {
-        service.delete(id)
-            .onComplete(deleteHandler -> ResultHandler.handleSaveAllUpdateDeleteRequest(rc, deleteHandler));
+    protected Completable submitDelete(long id) {
+        return service.delete(id);
     }
 
-    protected Future<JsonObject> checkFindOne(RoutingContext rc, long id) {
-        return service.findOne(id)
-            .onComplete(updateHandler -> ErrorHandler.handleFindOne(rc, updateHandler));
+    protected Single<JsonObject> checkFindOne(long id) {
+        Single<JsonObject> findOneById = service.findOne(id);
+        return ErrorHandler.handleFindOne(findOneById);
     }
 
-    protected Future<Boolean> checkExistsOne(RoutingContext rc, long id) {
-        return service.existsOneById(id)
-            .onComplete(existsHandler -> ErrorHandler.handleExistsOne(rc, existsHandler));
-    }
-
-    protected void checkDeleteEntityExists(RoutingContext rc, long id) {
-        service.existsOneById(id)
-            .onComplete(findHandler -> ErrorHandler.handleExistsOne(rc, findHandler))
-            .onComplete(findHandler -> {
-                if (!rc.failed()) {
-                    submitDelete(rc, id);
-                }
-            });
+    protected Completable checkExistsOne(long id) {
+        Single<Boolean> existsOneById = service.existsOneById(id);
+        return ErrorHandler.handleExistsOne(existsOneById).ignoreElement();
     }
 }

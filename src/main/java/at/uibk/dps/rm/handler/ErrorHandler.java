@@ -1,41 +1,62 @@
 package at.uibk.dps.rm.handler;
 
-import io.vertx.core.AsyncResult;
+import at.uibk.dps.rm.exception.AlreadyExistsException;
+import at.uibk.dps.rm.exception.NotFoundException;
+import at.uibk.dps.rm.exception.UsedByOtherEntityException;
+import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
 public class ErrorHandler {
 
-    public static void handleFindOne(RoutingContext rc, AsyncResult<JsonObject> result) {
-        if (!rc.failed()) {
-            if (result.failed()) {
-                rc.fail(500, new Throwable(result.cause()));
-            }
-            else if (result.result() == null) {
-                rc.fail(404, new Throwable("not found"));
-            }
-        }
+    public static Single<JsonObject> handleFindOne(Single<JsonObject> handler) {
+        return handler
+            .map(result -> {
+                if (result == null) {
+                    throw new NotFoundException();
+                }
+                return result;
+            });
     }
 
-    public static void handleExistsOne(RoutingContext rc, AsyncResult<Boolean> result) {
-        if (!rc.failed()) {
-            if (result.failed() && !rc.failed()) {
-                rc.fail(500, new Throwable(result.cause()));
-            }
-            else if (!result.result() && !rc.failed()) {
-                rc.fail(404, new Throwable("not found"));
-            }
-        }
+    public static Single<Boolean> handleExistsOne(Single<Boolean> handler) {
+        return handler
+            .map(result -> {
+                if (!result) {
+                    throw new NotFoundException();
+                }
+                return true;
+            });
     }
 
-    public static void handleDuplicates(RoutingContext rc, AsyncResult<Boolean> result) {
-        if (!rc.failed()) {
-            if (result.failed()){
-                rc.fail(500, result.cause());
-            }
-            else if (result.result()) {
-                rc.fail(409, new Throwable("already exists"));
-            }
+    public static Single<Boolean> handleDuplicates(Single<Boolean> handler) {
+        return handler
+            .map(result -> {
+                if (result) {
+                    throw new AlreadyExistsException();
+                }
+                return false;
+            });
+    }
+
+    public static Single<Boolean> handleUsedByOtherEntity(Single<Boolean> handler) {
+        return handler
+            .map(result -> {
+                if (result) {
+                    throw new UsedByOtherEntityException();
+                }
+                return false;
+            });
+    }
+
+    public static void handleRequestError(RoutingContext rc, Throwable throwable) {
+        int statusCode = 500;
+        if (throwable instanceof NotFoundException) {
+            statusCode = 404;
+        }  else if (throwable instanceof AlreadyExistsException ||
+            throwable instanceof UsedByOtherEntityException) {
+            statusCode = 409;
         }
+        rc.fail(statusCode, throwable);
     }
 }

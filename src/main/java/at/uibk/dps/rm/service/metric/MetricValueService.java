@@ -4,11 +4,13 @@ import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.service.ServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
+import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 
 @ProxyGen
+@VertxGen
 public interface MetricValueService extends ServiceInterface {
 
     @GenIgnore
@@ -16,7 +18,6 @@ public interface MetricValueService extends ServiceInterface {
         return new MetricValueServiceImpl(metricValueRepository);
     }
 
-    @GenIgnore
     static MetricValueService createProxy(Vertx vertx, String address) {
         return new MetricValueServiceVertxEBProxy(vertx, address);
     }

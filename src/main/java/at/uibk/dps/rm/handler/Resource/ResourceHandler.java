@@ -1,18 +1,17 @@
 package at.uibk.dps.rm.handler.Resource;
 
-import at.uibk.dps.rm.handler.ErrorHandler;
-import at.uibk.dps.rm.handler.RequestHandler;
-import at.uibk.dps.rm.handler.ResultHandler;
+import at.uibk.dps.rm.handler.*;
 import at.uibk.dps.rm.repository.metric.entity.Metric;
 import at.uibk.dps.rm.repository.metric.entity.MetricValue;
 import at.uibk.dps.rm.repository.resource.entity.Resource;
-import at.uibk.dps.rm.service.metric.MetricService;
-import at.uibk.dps.rm.service.metric.MetricValueService;
-import at.uibk.dps.rm.service.resource.ResourceService;
-import at.uibk.dps.rm.service.resource.ResourceTypeService;
+import at.uibk.dps.rm.service.rxjava3.metric.MetricService;
+import at.uibk.dps.rm.service.rxjava3.metric.MetricValueService;
+import at.uibk.dps.rm.service.rxjava3.resource.ResourceService;
+import at.uibk.dps.rm.service.rxjava3.resource.ResourceTypeService;
 import at.uibk.dps.rm.util.HttpHelper;
-import io.vertx.core.CompositeFuture;
-import io.vertx.core.Future;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.disposables.Disposable;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -21,6 +20,7 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class ResourceHandler extends RequestHandler {
     private final ResourceService resourceService;
@@ -32,143 +32,116 @@ public class ResourceHandler extends RequestHandler {
     private final MetricValueService metricValueService;
 
     public ResourceHandler(Vertx vertx) {
-        super(ResourceService.createProxy(vertx.getDelegate(),"resource-service-address"));
+        super(ResourceService.createProxy(vertx,"resource-service-address"));
         resourceService = (ResourceService) super.service;
-        resourceTypeService = ResourceTypeService.createProxy(vertx.getDelegate(),
-            "resource-type-service-address");
-        metricService = MetricService.createProxy(vertx.getDelegate(),
-            "metric-service-address");
-        metricValueService = MetricValueService.createProxy(vertx.getDelegate(),
-                "metric-value-service-address");
+        resourceTypeService = ResourceTypeService.createProxy(vertx, "resource-type-service-address");
+        metricService = MetricService.createProxy(vertx, "metric-service-address");
+        metricValueService = MetricValueService.createProxy(vertx, "metric-value-service-address");
     }
 
     @Override
-    public void post(RoutingContext rc) {
+    public Disposable post(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
-        checkForDuplicateUrl(rc, requestBody.getString("url"))
-            .onComplete(existsHandler -> {
-                if (!rc.failed()) {
-                    checkNewResourceTypeExists(rc, requestBody);
-                }
-            });
+        return checkForDuplicateResource(requestBody.getString("url"))
+            .andThen(checkResourceTypeExists(requestBody.getJsonObject("resource_type").getLong("type_id")))
+            .andThen(submitCreate(requestBody))
+            .subscribe(result -> ResultHandler.handleSaveRequest(rc, result),
+                throwable -> ErrorHandler.handleRequestError(rc, throwable));
     }
 
-    public void postMetrics(RoutingContext rc) {
-        HttpHelper.getLongPathParam(rc, "id")
-            .subscribe(resourceId -> checkAddMetricsResourceExists(rc, resourceId))
-            .dispose();
-    }
-
-    public void getMetrics(RoutingContext rc) {
-        HttpHelper.getLongPathParam(rc, "id")
-            .subscribe(id -> submitFindMetrics(rc, id))
-            .dispose();
-    }
-
-    @Override
-    public void patch(RoutingContext rc) {
-        HttpHelper.getLongPathParam(rc, "id")
-            .subscribe(id -> checkUpdateExists(rc, id))
-            .dispose();
-    }
-
-    @Override
-    public void delete(RoutingContext rc) {
-        HttpHelper.getLongPathParam(rc, "id")
-            .subscribe(id -> checkDeleteResourceExists(rc, id))
-            .dispose();
-    }
-
-    public void deleteMetric(RoutingContext rc) {
-        HttpHelper.getLongPathParam(rc, "resourceId")
-            .subscribe(resourceId -> HttpHelper.getLongPathParam(rc, "metricId")
-                .subscribe(metricId -> checkDeleteMetricValueExists(rc, resourceId, metricId))
-                .dispose())
-            .dispose();
-    }
-
-    private void submitAddMetrics(RoutingContext rc, List<MetricValue> metricValues) {
-        metricValueService.saveAll(Json.encodeToBuffer(metricValues).toJsonArray())
-            .onComplete(saveHandler -> ResultHandler.handleSaveAllUpdateDeleteRequest(rc, saveHandler));
-    }
-
-    private void submitFindMetrics(RoutingContext rc, long id) {
-        checkExistsOne(rc, id)
-            .onComplete(
-                existsHandler -> {
-                    if (!rc.failed()) {
-                        metricValueService.findAllByResource(id)
-                            .onComplete(findHandler -> ResultHandler.handleGetAllRequest(rc, findHandler));
-                    }
-                }
-            );
-    }
-
-    private void submitDeleteMetricValue(RoutingContext rc, long resourceId, long metricId) {
-        metricValueService.deleteByResourceAndMetric(resourceId, metricId)
-            .onComplete(deleteHandler -> ResultHandler.handleSaveAllUpdateDeleteRequest(rc, deleteHandler));
-    }
-
-    private Future<Boolean> checkForDuplicateUrl(RoutingContext rc, String url) {
-        return resourceService.existsOneByUrl(url)
-            .onComplete(duplicateHandler -> ErrorHandler.handleDuplicates(rc, duplicateHandler));
-    }
-
-    private Future<Boolean> checkForDuplicateMetricValue(RoutingContext rc, long resourceId, long metricId) {
-        return metricValueService.existsOneByResourceAndMetric(resourceId, metricId)
-            .onComplete(duplicateHandler -> ErrorHandler.handleDuplicates(rc, duplicateHandler));
-    }
-
-    private Future<Boolean> checkResourceExists(RoutingContext rc, long id) {
-        return resourceService.existsOneById(id)
-            .onComplete(existsHandler -> ErrorHandler.handleExistsOne(rc, existsHandler));
-    }
-
-    private Future<Boolean> checkResourceTypeExists(RoutingContext rc, long id) {
-        return resourceTypeService.existsOneById(id)
-            .onComplete(existsHandler -> ErrorHandler.handleExistsOne(rc, existsHandler));
-    }
-
-    private Future<Boolean> checkMetricExists(RoutingContext rc, long id) {
-        return metricService.existsOneById(id)
-            .onComplete(existsHandler -> ErrorHandler.handleExistsOne(rc, existsHandler));
-    }
-
-    private void checkNewResourceTypeExists(RoutingContext rc, JsonObject requestBody) {
-        checkResourceTypeExists(rc, requestBody.getJsonObject("resource_type").getLong("type_id"))
-            .onComplete(findHandler -> {
-                if (!rc.failed()) {
-                    submitCreate(rc, requestBody);
-                }
-            });
-    }
-
-    private Future<Boolean> checkMetricValueExists(RoutingContext rc, long resourceId, long metricId) {
-        return metricValueService.existsOneByResourceAndMetric(resourceId, metricId)
-            .onComplete(existsHandler -> ErrorHandler.handleExistsOne(rc, existsHandler));
-    }
-
-    private void checkAddMetricsResourceExists(RoutingContext rc, long resourceId) {
+    public Disposable postMetrics(RoutingContext rc) {
         JsonArray requestBody = rc.body().asJsonArray();
-        checkExistsOne(rc, resourceId)
-            .onComplete(existsHandler -> {
-                if (!rc.failed()) {
-                    List<MetricValue> metricValues = new ArrayList<>();
-                    List<Future> futureList = checkAddMetricList(rc, requestBody, resourceId, metricValues);
-                    CompositeFuture.all(futureList)
-                        .onComplete(handler -> {
-                            if (!rc.failed()) {
-                                submitAddMetrics(rc, metricValues);
-                            }
-                        });
-                }
-        });
+        return HttpHelper.getLongPathParam(rc, "id")
+            .flatMap(id -> checkExistsOne(id)
+                .andThen(Single.just(id)))
+            .flatMap(id -> checkAddMetricsResourceExists(requestBody, id))
+            .flatMapCompletable(this::submitAddMetrics)
+            .subscribe(() -> ResultHandler.handleSaveAllUpdateDeleteRequest(rc),
+                throwable -> ErrorHandler.handleRequestError(rc, throwable));
     }
 
-    private List<Future> checkAddMetricList(RoutingContext rc, JsonArray requestBody, long resourceId, List<MetricValue> metricValues) {
+    public Disposable getMetrics(RoutingContext rc) {
+        return HttpHelper.getLongPathParam(rc, "id")
+            .flatMap(id -> checkExistsOne(id)
+                .andThen(Single.just(id)))
+            .flatMap(this::submitFindMetrics)
+            .subscribe(result -> ResultHandler.handleGetAllRequest(rc, result),
+                throwable -> ErrorHandler.handleRequestError(rc, throwable));
+    }
+
+    @Override
+    public Disposable patch(RoutingContext rc) {
+        JsonObject requestBody = rc.body().asJsonObject();
+        return HttpHelper.getLongPathParam(rc, "id")
+            .flatMap(super::checkFindOne)
+            .flatMap(result -> checkUpdateNoDuplicate(requestBody, result))
+            .flatMap(result -> checkUpdateResourceTypeExists(requestBody, result))
+            .flatMapCompletable(result -> submitUpdate(requestBody, result))
+            .subscribe(() -> ResultHandler.handleSaveAllUpdateDeleteRequest(rc),
+                throwable -> ErrorHandler.handleRequestError(rc, throwable));
+    }
+
+    public Disposable deleteMetric(RoutingContext rc) {
+        return HttpHelper.getLongPathParam(rc, "resourceId")
+            .flatMap(resourceId -> HttpHelper.getLongPathParam(rc, "metricId")
+                .map(metricId -> Map.of("resourceId", resourceId, "metricId", metricId))
+                .flatMap(ids -> checkDeleteMetricValueExists(ids.get("resourceId"), ids.get("metricId"))
+                    .andThen(Single.just(ids))
+                ))
+            .flatMapCompletable(ids -> submitDeleteMetricValue(ids.get("resourceId"), ids.get("metricId")))
+            .subscribe(() -> ResultHandler.handleSaveAllUpdateDeleteRequest(rc),
+                throwable -> ErrorHandler.handleRequestError(rc, throwable));
+    }
+
+    private Completable submitAddMetrics(List<MetricValue> metricValues) {
+        return metricValueService.saveAll(Json.encodeToBuffer(metricValues).toJsonArray());
+    }
+
+    private Single<JsonArray> submitFindMetrics(long id) {
+        return metricValueService.findAllByResource(id);
+    }
+
+    private Completable submitDeleteMetricValue(long resourceId, long metricId) {
+        return metricValueService.deleteByResourceAndMetric(resourceId, metricId);
+    }
+
+    private Completable checkForDuplicateResource(String url) {
+        Single<Boolean> existsOneByUrl = resourceService.existsOneByUrl(url);
+        return ErrorHandler.handleDuplicates(existsOneByUrl).ignoreElement();
+    }
+
+    private Completable checkForDuplicateMetricValue(long resourceId, long metricId) {
+        Single<Boolean> existsOneByResourceAndMetric = metricValueService.existsOneByResourceAndMetric(resourceId, metricId);
+        return ErrorHandler.handleDuplicates(existsOneByResourceAndMetric).ignoreElement();
+    }
+
+    protected Completable checkResourceTypeExists(long id) {
+        Single<Boolean> existsResourceTypeById = resourceTypeService.existsOneById(id);
+        return ErrorHandler.handleExistsOne(existsResourceTypeById).ignoreElement();
+    }
+
+    private Completable checkMetricExists(long id) {
+        Single<Boolean> existsOneById = metricService.existsOneById(id);
+        return ErrorHandler.handleExistsOne(existsOneById).ignoreElement();
+    }
+
+    private Completable checkMetricValueExists(long resourceId, long metricId) {
+        Single<Boolean> existsOneByResourceAndMetric =
+            metricValueService.existsOneByResourceAndMetric(resourceId, metricId);
+        return ErrorHandler.handleExistsOne(existsOneByResourceAndMetric).ignoreElement();
+    }
+
+    private Single<List<MetricValue>> checkAddMetricsResourceExists(JsonArray requestBody, long resourceId) {
+        List<MetricValue> metricValues = new ArrayList<>();
+        List<Completable> completables = checkAddMetricList(requestBody, resourceId, metricValues);
+        return Completable.merge(completables)
+            .andThen(Single.just(metricValues));
+    }
+
+    private List<Completable> checkAddMetricList(JsonArray requestBody, long resourceId, List<MetricValue> metricValues) {
         Resource resource = new Resource();
         resource.setResourceId(resourceId);
-        List<Future> futureList = new ArrayList<>();
+        List<Completable> completables = new ArrayList<>();
         requestBody.stream().forEach(jsonObject -> {
             JsonObject jsonMetric = (JsonObject) jsonObject;
             long metricId = jsonMetric.getLong("metricId");
@@ -178,66 +151,33 @@ public class ResourceHandler extends RequestHandler {
             metricValue.setResource(resource);
             metricValue.setMetric(metric);
             metricValues.add(metricValue);
-            futureList.add(checkMetricExists(rc, metricId));
-            futureList.add(checkForDuplicateMetricValue(rc, resourceId, metricId));
+            completables.add(checkMetricExists(metricId));
+            completables.add(checkForDuplicateMetricValue(resourceId, metricId));
         });
-        return futureList;
+        return completables;
     }
 
-    private void checkUpdateExists(RoutingContext rc, long id) {
-        resourceService.findOne(id)
-            .onComplete(updateHandler -> ErrorHandler.handleFindOne(rc, updateHandler))
-            .onComplete(updateHandler -> {
-                if (!rc.failed()) {
-                    checkUpdateNoDuplicate(rc, updateHandler.result());
-                }
-            });
-    }
-
-    private void checkUpdateNoDuplicate(RoutingContext rc, JsonObject entity) {
-        JsonObject requestBody = rc.body().asJsonObject();
+    private Single<JsonObject> checkUpdateNoDuplicate(JsonObject requestBody, JsonObject entity) {
         if (requestBody.containsKey("url")) {
-            checkForDuplicateUrl(rc, requestBody.getString("url"))
-                .onComplete(duplicateHandler -> {
-                    if (!rc.failed()) {
-                        checkUpdateResourceTypeExists(rc, requestBody, entity);
-                    }
-                });
-        } else {
-            checkUpdateResourceTypeExists(rc, requestBody, entity);
+            return checkForDuplicateResource(requestBody.getString("url"))
+                .andThen(Single.just(entity));
         }
+        return Single.just(entity);
     }
 
 
-    private void checkUpdateResourceTypeExists(RoutingContext rc,JsonObject requestBody, JsonObject entity) {
+    private Single<JsonObject> checkUpdateResourceTypeExists(JsonObject requestBody, JsonObject entity) {
         if (requestBody.containsKey("resource_type")) {
-            checkResourceTypeExists(rc, requestBody.getJsonObject("resource_type").getLong("type_id"))
-                .onComplete(findHandler -> {
-                    if (!rc.failed()) {
-                        submitUpdate(rc, requestBody, entity);
-                    }
-                });
-        } else {
-            submitUpdate(rc, requestBody, entity);
+            return checkResourceTypeExists(requestBody.getJsonObject("resource_type").getLong("type_id"))
+                .andThen(Single.just(entity));
         }
+        return Single.just(entity);
     }
 
-    private void checkDeleteResourceExists(RoutingContext rc, long id) {
-        checkExistsOne(rc, id)
-            .onComplete(findHandler -> {
-                if (!rc.failed()) {
-                    submitDelete(rc, id);
-                }
-            });
-    }
-
-    private void checkDeleteMetricValueExists(RoutingContext rc, long resourceId, long metricId) {
-        CompositeFuture.all(checkExistsOne(rc, resourceId), checkMetricExists(rc, metricId),
-                checkMetricValueExists(rc, resourceId, metricId))
-            .onComplete(handler -> {
-                if (!rc.failed()) {
-                    submitDeleteMetricValue(rc, resourceId, metricId);
-                }
-            });
+    private Completable checkDeleteMetricValueExists(long resourceId, long metricId) {
+        return Completable.mergeArray(
+            checkExistsOne(resourceId),
+            checkMetricExists(metricId),
+            checkMetricValueExists(resourceId, metricId));
     }
 }

@@ -42,7 +42,7 @@ dependencies {
   implementation("io.vertx:vertx-web-openapi:$vertxVersion")
   implementation("io.vertx:vertx-rx-java3:$vertxVersion")
   implementation("io.vertx:vertx-rx-gen:$vertxVersion")
-  implementation("io.vertx:vertx-rx-java3-gen:$vertxVersion")
+  annotationProcessor("io.vertx:vertx-rx-java3-gen:$vertxVersion")
   annotationProcessor("io.vertx:vertx-codegen:$vertxVersion:processor")
   annotationProcessor("io.vertx:vertx-service-proxy:$vertxVersion")
 
