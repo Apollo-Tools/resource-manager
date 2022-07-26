@@ -22,6 +22,12 @@ public abstract class Repository<E> {
                 .thenApply(result -> entity));
     }
 
+    public CompletionStage<Void> createAll(List<E> entityList) {
+        return sessionFactory.withTransaction((session, tx) ->
+            session.persist(entityList.toArray())
+        );
+    }
+
     public CompletionStage<E> update(E entity) {
         return sessionFactory.withTransaction((session, tx) -> session
                 .merge(entity));

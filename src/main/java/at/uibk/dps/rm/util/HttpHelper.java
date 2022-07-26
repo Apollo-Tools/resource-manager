@@ -1,6 +1,5 @@
 package at.uibk.dps.rm.util;
 
-import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 

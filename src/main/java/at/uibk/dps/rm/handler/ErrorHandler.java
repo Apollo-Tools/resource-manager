@@ -5,7 +5,6 @@ import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UsedByOtherEntityException;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
-import io.vertx.rxjava3.ext.web.RoutingContext;
 
 public class ErrorHandler {
 
@@ -47,16 +46,5 @@ public class ErrorHandler {
                 }
                 return false;
             });
-    }
-
-    public static void handleRequestError(RoutingContext rc, Throwable throwable) {
-        int statusCode = 500;
-        if (throwable instanceof NotFoundException) {
-            statusCode = 404;
-        }  else if (throwable instanceof AlreadyExistsException ||
-            throwable instanceof UsedByOtherEntityException) {
-            statusCode = 409;
-        }
-        rc.fail(statusCode, throwable);
     }
 }

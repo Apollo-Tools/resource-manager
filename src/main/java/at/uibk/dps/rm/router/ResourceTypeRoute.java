@@ -1,31 +1,33 @@
 package at.uibk.dps.rm.router;
 
+import at.uibk.dps.rm.handler.RequestHandler;
 import at.uibk.dps.rm.handler.Resource.ResourceTypeHandler;
-import io.vertx.rxjava3.core.Vertx;
+import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 public class ResourceTypeRoute {
-    public static void init(Vertx vertx, RouterBuilder router) {
-        ResourceTypeHandler resourceTypeHandler = new ResourceTypeHandler(vertx);
+    public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
+        ResourceTypeHandler resourceTypeHandler = new ResourceTypeHandler(serviceProxyProvider.getResourceTypeService(), serviceProxyProvider.getResourceService());
+        RequestHandler requestHandler = new RequestHandler(resourceTypeHandler);
 
         router
             .operation("createResourceType")
-            .handler(resourceTypeHandler::post);
+            .handler(requestHandler::postRequest);
 
         router
             .operation("listResourceTypes")
-            .handler(resourceTypeHandler::all);
+            .handler(requestHandler::getAllRequest);
 
         router
             .operation("getResourceType")
-            .handler(resourceTypeHandler::get);
+            .handler(requestHandler::getRequest);
 
         router
             .operation("updateResourceType")
-            .handler(resourceTypeHandler::patch);
+            .handler(requestHandler::patchRequest);
 
         router
             .operation("deleteResourceType")
-            .handler(resourceTypeHandler::delete);
+            .handler(requestHandler::deleteRequest);
     }
 }

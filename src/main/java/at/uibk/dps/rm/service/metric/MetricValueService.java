@@ -22,8 +22,6 @@ public interface MetricValueService extends ServiceInterface {
         return new MetricValueServiceVertxEBProxy(vertx, address);
     }
 
-    Future<Void> saveAll(JsonArray data);
-
     Future<JsonArray> findAllByResource(long resourceId);
 
     Future<Boolean> existsOneByResourceAndMetric(long resourceId, long metricId);

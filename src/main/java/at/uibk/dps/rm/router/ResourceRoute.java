@@ -1,45 +1,33 @@
 package at.uibk.dps.rm.router;
 
+import at.uibk.dps.rm.handler.RequestHandler;
 import at.uibk.dps.rm.handler.Resource.ResourceHandler;
-import at.uibk.dps.rm.handler.Resource.ResourceInputHandler;
-import io.vertx.rxjava3.core.Vertx;
+import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 public class ResourceRoute {
-    public static void init(Vertx vertx, RouterBuilder router) {
-        ResourceHandler resourceHandler = new ResourceHandler(vertx);
+    public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
+        ResourceHandler resourceHandler = new ResourceHandler(serviceProxyProvider.getResourceService(), serviceProxyProvider.getResourceTypeService());
+        RequestHandler resourceRequestHandler = new RequestHandler(resourceHandler);
 
         router
             .operation("createResource")
-            .handler(resourceHandler::post);
-
-        router
-            .operation("addResourceMetrics")
-            .handler(ResourceInputHandler::validateAddMetricsRequest)
-            .handler(resourceHandler::postMetrics);
+            .handler(resourceRequestHandler::postRequest);
 
         router
             .operation("listResources")
-            .handler(resourceHandler::all);
+            .handler(resourceRequestHandler::getAllRequest);
 
         router
             .operation("getResource")
-            .handler(resourceHandler::get);
-
-        router
-            .operation("listResourceMetrics")
-            .handler(resourceHandler::getMetrics);
+            .handler(resourceRequestHandler::getRequest);
 
         router
             .operation("updateResource")
-            .handler(resourceHandler::patch);
+            .handler(resourceRequestHandler::patchRequest);
 
         router
             .operation("deleteResource")
-            .handler(resourceHandler::delete);
-
-        router
-            .operation("deleteResourceMetric")
-            .handler(resourceHandler::deleteMetric);
+            .handler(resourceRequestHandler::deleteRequest);
     }
 }

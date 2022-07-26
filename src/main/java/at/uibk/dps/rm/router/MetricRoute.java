@@ -1,31 +1,33 @@
 package at.uibk.dps.rm.router;
 
 import at.uibk.dps.rm.handler.Metric.MetricHandler;
-import io.vertx.rxjava3.core.Vertx;
+import at.uibk.dps.rm.handler.RequestHandler;
+import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 public class MetricRoute {
-    public static void init(Vertx vertx, RouterBuilder router) {
-        MetricHandler metricHandler = new MetricHandler(vertx);
+    public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
+        MetricHandler metricHandler = new MetricHandler(serviceProxyProvider.getMetricService());
+        RequestHandler requestHandler = new RequestHandler(metricHandler);
 
         router
             .operation("createMetric")
-            .handler(metricHandler::post);
+            .handler(requestHandler::postRequest);
 
         router
             .operation("listMetrics")
-            .handler(metricHandler::all);
+            .handler(requestHandler::getAllRequest);
 
         router
             .operation("getMetric")
-            .handler(metricHandler::get);
+            .handler(requestHandler::getRequest);
 
         router
             .operation("updateMetric")
-            .handler(metricHandler::patch);
+            .handler(requestHandler::patchRequest);
 
         router
             .operation("deleteMetric")
-            .handler(metricHandler::delete);
+            .handler(requestHandler::deleteRequest);
     }
 }

@@ -9,6 +9,8 @@ import io.vertx.core.json.JsonObject;
 public interface ServiceInterface {
     Future<JsonObject> save(JsonObject data);
 
+    Future<Void> saveAll(JsonArray data);
+
     Future<JsonObject> findOne(long id);
 
     Future<Boolean> existsOneById(long id);

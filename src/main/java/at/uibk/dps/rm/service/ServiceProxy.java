@@ -6,7 +6,9 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public abstract class ServiceProxy<T> implements ServiceInterface{
     private final Repository<T> repository;
@@ -23,6 +25,16 @@ public abstract class ServiceProxy<T> implements ServiceInterface{
         return Future
             .fromCompletionStage(repository.create(entity))
             .map(JsonObject::mapFrom);
+    }
+
+    public Future<Void> saveAll(JsonArray data) {
+        List<T> metricValues = data
+            .stream()
+            .map(object -> ((JsonObject) object).mapTo(entityClass))
+            .collect(Collectors.toList());
+
+        return Future
+            .fromCompletionStage(repository.createAll(metricValues));
     }
 
     public Future<JsonObject> findOne(long id) {

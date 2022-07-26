@@ -1,8 +1,10 @@
 package at.uibk.dps.rm.verticle;
 
 import at.uibk.dps.rm.router.MetricRoute;
+import at.uibk.dps.rm.router.ResourceMetricRoute;
 import at.uibk.dps.rm.router.ResourceRoute;
 import at.uibk.dps.rm.router.ResourceTypeRoute;
+import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.impl.logging.Logger;
@@ -47,9 +49,11 @@ public class ApiVerticle extends AbstractVerticle {
     }
 
     private void setupRoutes(RouterBuilder routerBuilder) {
-        ResourceRoute.init(vertx, routerBuilder);
-        ResourceTypeRoute.init(vertx, routerBuilder);
-        MetricRoute.init(vertx, routerBuilder);
+        ServiceProxyProvider serviceProxyProvider = new ServiceProxyProvider(vertx);
+        ResourceRoute.init(routerBuilder, serviceProxyProvider);
+        ResourceTypeRoute.init(routerBuilder, serviceProxyProvider);
+        ResourceMetricRoute.init(routerBuilder, serviceProxyProvider);
+        MetricRoute.init(routerBuilder, serviceProxyProvider);
     }
 
     private void setupFailureHandler(Router router) {
