@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.handler.Metric;
+package at.uibk.dps.rm.handler.metric;
 
 import at.uibk.dps.rm.handler.*;
 import at.uibk.dps.rm.service.rxjava3.metric.MetricService;

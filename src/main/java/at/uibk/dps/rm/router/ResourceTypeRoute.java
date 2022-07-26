@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.router;
 
 import at.uibk.dps.rm.handler.RequestHandler;
-import at.uibk.dps.rm.handler.Resource.ResourceTypeHandler;
+import at.uibk.dps.rm.handler.resource.ResourceTypeHandler;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 

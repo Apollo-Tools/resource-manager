@@ -1,6 +1,6 @@
-package at.uibk.dps.rm.handler.Metric;
+package at.uibk.dps.rm.handler.metric;
 
-import at.uibk.dps.rm.handler.Resource.ResourceChecker;
+import at.uibk.dps.rm.handler.resource.ResourceChecker;
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.repository.metric.entity.Metric;
 import at.uibk.dps.rm.repository.metric.entity.MetricValue;

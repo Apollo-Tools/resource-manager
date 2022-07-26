@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.handler.Resource;
+package at.uibk.dps.rm.handler.resource;
 
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;

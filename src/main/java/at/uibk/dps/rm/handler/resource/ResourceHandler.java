@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.handler.Resource;
+package at.uibk.dps.rm.handler.resource;
 
 import at.uibk.dps.rm.handler.*;
 import at.uibk.dps.rm.service.rxjava3.resource.ResourceService;

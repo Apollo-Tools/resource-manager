@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.router;
 
-import at.uibk.dps.rm.handler.Metric.MetricHandler;
+import at.uibk.dps.rm.handler.metric.MetricHandler;
 import at.uibk.dps.rm.handler.RequestHandler;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
