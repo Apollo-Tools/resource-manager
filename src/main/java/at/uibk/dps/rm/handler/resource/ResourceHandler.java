@@ -38,6 +38,10 @@ public class ResourceHandler extends ValidationHandler {
             .flatMapCompletable(result -> entityChecker.submitUpdate(requestBody, result));
     }
 
+    protected Single<JsonObject> getResourceBySLOs(RoutingContext rc) {
+        return Single.just(new JsonObject("{\"out\": \"Hello World\"}"));
+    }
+
 
     private Single<JsonObject> checkUpdateResourceTypeExists(JsonObject requestBody, JsonObject entity) {
         if (requestBody.containsKey("resource_type")) {
