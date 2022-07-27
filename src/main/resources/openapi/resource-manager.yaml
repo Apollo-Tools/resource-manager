@@ -243,6 +243,75 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
+  /resources/slo:
+    post:
+      description: Return all resources that conform to the given service level objectives
+      operationId: getResourcesBySLOs
+      tags:
+        - resourcesBySLOs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - slo
+              additionalProperties: false
+              properties:
+                slo:
+                  type: array
+                  minLength: 1
+                  items:
+                    type: object
+                    required:
+                      - metric
+                      - metricExpression
+                      - evaluationType
+                    additionalProperties: false
+                    properties:
+                      metric:
+                        type: string
+                        minLength: 1
+                        maxLength: 256
+                        example: "availability"
+                      metricExpression:
+                        type: string
+                        minLength: 1
+                        maxLength: 50
+                        example: "90"
+                      evaluationType:
+                        type: string
+                        minLength: 1
+                        maxLength: 2
+                        example: ">"
+                sort:
+                  type: array
+                  minLength: 1
+                  items:
+                    type: string
+                    minLength: 1
+                    maxLength: 256
+                    example: "availability"
+                limit:
+                  type: number
+                  minimum: 1
+      responses:
+        200:
+          description: Successful retrieval of resources conforming to the given service level objectives
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Resource"
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
   /resource-types/{id}:
     get:
       description: Return details about a resource type managed by the resource manager
