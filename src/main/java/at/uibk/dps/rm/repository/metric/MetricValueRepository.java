@@ -2,6 +2,7 @@ package at.uibk.dps.rm.repository.metric;
 
 import at.uibk.dps.rm.repository.Repository;
 import at.uibk.dps.rm.repository.metric.entity.MetricValue;
+import at.uibk.dps.rm.repository.resource.entity.Resource;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.List;
@@ -16,6 +17,22 @@ public class MetricValueRepository extends Repository<MetricValue> {
             session.createQuery("from MetricValue mv left join fetch mv.metric "
                     + "where mv.resource.resourceId=:resourceId", entityClass)
                 .setParameter("resourceId", resourceId)
+                .getResultList()
+        );
+    }
+
+    public CompletionStage<List<Resource>> findByMultipleMetricsAndFetch(List<String> metrics) {
+        return this.sessionFactory.withSession(session ->
+            session.createQuery("select distinct r from Resource r "
+                    + "left join fetch r.metricValues "
+                    + "left join fetch r.resourceType "
+                    + "where r.resourceId in ("
+                    + "select mv.resource.resourceId from MetricValue mv "
+                    + "where mv.metric.metric in :metrics "
+                    + "group by mv.resource.resourceId "
+                    + "having count(mv.metric.metric) = :metricAmount)", Resource.class)
+                .setParameter("metrics", metrics)
+                .setParameter("metricAmount", (long) metrics.size())
                 .getResultList()
         );
     }

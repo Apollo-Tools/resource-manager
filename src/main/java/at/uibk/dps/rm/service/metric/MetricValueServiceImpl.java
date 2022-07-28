@@ -2,6 +2,7 @@ package at.uibk.dps.rm.service.metric;
 
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.repository.metric.entity.MetricValue;
+import at.uibk.dps.rm.repository.resource.entity.Resource;
 import at.uibk.dps.rm.service.ServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
@@ -40,6 +41,23 @@ public class MetricValueServiceImpl extends ServiceProxy<MetricValue> implements
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (MetricValue metricValue: result) {
                     objects.add(JsonObject.mapFrom(metricValue.getMetric()));
+                }
+                return new JsonArray(objects);
+            });
+    }
+
+    @Override
+    public Future<JsonArray> findAllByMultipleMetrics(List<String> metrics) {
+        return Future
+            .fromCompletionStage(metricValueRepository.findByMultipleMetricsAndFetch(metrics))
+            .map(result -> {
+                ArrayList<JsonObject> objects = new ArrayList<>();
+                for (Resource resource: result) {
+                    for (MetricValue metricValue : resource.getMetricValues()) {
+                        metricValue.setMetric(null);
+                        metricValue.setResource(null);
+                    }
+                    objects.add(JsonObject.mapFrom(resource));
                 }
                 return new JsonArray(objects);
             });

@@ -9,7 +9,9 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 public class ResourceDeploymentRoute {
 
     public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
-        ResourceHandler resourceHandler = new ResourceHandler(serviceProxyProvider.getResourceService(), serviceProxyProvider.getResourceTypeService());
+        ResourceHandler resourceHandler = new ResourceHandler(serviceProxyProvider.getResourceService(),
+            serviceProxyProvider.getResourceTypeService(), serviceProxyProvider.getMetricService(),
+            serviceProxyProvider.getMetricValueService());
         ResourceDeploymentHandler resourceDeploymentHandler = new ResourceDeploymentHandler(resourceHandler);
 
         router

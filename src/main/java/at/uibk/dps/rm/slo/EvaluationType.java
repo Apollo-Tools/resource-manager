@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.servicelevelobjectives;
+package at.uibk.dps.rm.slo;
 
 public enum EvaluationType {
     GT(">"), LT("<"), EQ("==");

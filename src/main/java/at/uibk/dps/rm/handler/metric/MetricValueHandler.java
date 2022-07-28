@@ -41,7 +41,7 @@ public class MetricValueHandler extends ValidationHandler {
         return HttpHelper.getLongPathParam(rc, "id")
             .flatMap(id -> resourceChecker.checkExistsOne(id)
                 .andThen(Single.just(id)))
-            .flatMap(metricValueChecker::checkFindAll);
+            .flatMap(metricValueChecker::checkFindAllByResource);
     }
 
     @Override

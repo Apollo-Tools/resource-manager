@@ -7,6 +7,8 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 
+import java.util.List;
+
 public class MetricValueChecker extends EntityChecker {
 
     private final MetricValueService metricValueService;
@@ -17,9 +19,12 @@ public class MetricValueChecker extends EntityChecker {
         this.metricValueService = metricValueService;
     }
 
-
-    public Single<JsonArray> checkFindAll(long id) {
+    public Single<JsonArray> checkFindAllByResource(long id) {
         return metricValueService.findAllByResource(id);
+    }
+
+    public Single<JsonArray> checkFindAllByMultipleMetrics(List<String> metrics) {
+        return metricValueService.findAllByMultipleMetrics(metrics);
     }
 
     public Completable submitDeleteMetricValue(long resourceId, long metricId) {

@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.handler.resource;
 
-import at.uibk.dps.rm.servicelevelobjectives.EvaluationType;
+import at.uibk.dps.rm.slo.EvaluationType;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.core.json.JsonArray;

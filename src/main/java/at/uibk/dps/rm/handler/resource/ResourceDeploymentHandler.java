@@ -12,6 +12,6 @@ public class ResourceDeploymentHandler {
     }
 
     public Disposable getResourcesBySLOs(RoutingContext rc) {
-        return ResultHandler.handleGetOneRequest(rc, resourceHandler.getResourceBySLOs(rc));
+        return ResultHandler.handleGetAllRequest(rc, resourceHandler.getResourceBySLOs(rc));
     }
 }

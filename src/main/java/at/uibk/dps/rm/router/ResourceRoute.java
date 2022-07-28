@@ -7,7 +7,9 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 public class ResourceRoute {
     public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
-        ResourceHandler resourceHandler = new ResourceHandler(serviceProxyProvider.getResourceService(), serviceProxyProvider.getResourceTypeService());
+        ResourceHandler resourceHandler = new ResourceHandler(serviceProxyProvider.getResourceService(),
+            serviceProxyProvider.getResourceTypeService(), serviceProxyProvider.getMetricService(),
+            serviceProxyProvider.getMetricValueService());
         RequestHandler resourceRequestHandler = new RequestHandler(resourceHandler);
 
         router

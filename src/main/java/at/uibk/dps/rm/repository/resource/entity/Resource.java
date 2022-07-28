@@ -1,7 +1,10 @@
 package at.uibk.dps.rm.repository.resource.entity;
 
+import at.uibk.dps.rm.repository.metric.entity.MetricValue;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.Set;
 
 @Entity
 public class Resource {
@@ -20,6 +23,9 @@ public class Resource {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resource_type")
     private ResourceType resourceType;
+
+    @OneToMany(mappedBy="resource")
+    private Set<MetricValue> metricValues;
 
     public Long getResourceId() {
         return resourceId;
@@ -51,6 +57,14 @@ public class Resource {
 
     public void setResourceType(ResourceType resourceType) {
         this.resourceType = resourceType;
+    }
+
+    public Set<MetricValue> getMetricValues() {
+        return metricValues;
+    }
+
+    public void setMetricValues(Set<MetricValue> metricValues) {
+        this.metricValues = metricValues;
     }
 
     @Override public boolean equals(Object o) {

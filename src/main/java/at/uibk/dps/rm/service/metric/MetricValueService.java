@@ -9,6 +9,8 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 
+import java.util.List;
+
 @ProxyGen
 @VertxGen
 public interface MetricValueService extends ServiceInterface {
@@ -23,6 +25,8 @@ public interface MetricValueService extends ServiceInterface {
     }
 
     Future<JsonArray> findAllByResource(long resourceId);
+
+    Future<JsonArray> findAllByMultipleMetrics(List<String> metrics);
 
     Future<Boolean> existsOneByResourceAndMetric(long resourceId, long metricId);
 
