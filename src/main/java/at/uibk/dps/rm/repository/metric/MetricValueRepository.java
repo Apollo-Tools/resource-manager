@@ -12,6 +12,16 @@ public class MetricValueRepository extends Repository<MetricValue> {
     public MetricValueRepository(Stage.SessionFactory sessionFactory, Class<MetricValue> entityClass) {
         super(sessionFactory, entityClass);
     }
+
+    public CompletionStage<MetricValue> findByIdAndFetch(long metricValueId) {
+        return this.sessionFactory.withSession(session ->
+            session.createQuery("from MetricValue  mv left join fetch mv.metric "
+                    + "where mv.metricValueId = :metricValueId", entityClass)
+                .setParameter("metricValueId", metricValueId)
+                .getSingleResultOrNull()
+        );
+    }
+
     public CompletionStage<List<MetricValue>> findByResourceAndFetch(long resourceId) {
         return this.sessionFactory.withSession(session ->
             session.createQuery("from MetricValue mv left join fetch mv.metric "

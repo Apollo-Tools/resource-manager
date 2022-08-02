@@ -47,6 +47,8 @@ public class ResourceServiceImpl extends ServiceProxy<Resource> implements Resou
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Resource resource: result) {
+                    // TODO: fix
+                    resource.setMetricValues(null);
                     objects.add(JsonObject.mapFrom(resource));
                 }
                 return new JsonArray(objects);

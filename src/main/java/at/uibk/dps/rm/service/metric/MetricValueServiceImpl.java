@@ -34,6 +34,18 @@ public class MetricValueServiceImpl extends ServiceProxy<MetricValue> implements
     }
 
     @Override
+    public Future<JsonObject> findOne(long id) {
+        return Future
+                .fromCompletionStage(metricValueRepository.findByIdAndFetch(id))
+                .map(result -> {
+                    if (result != null) {
+                        result.setResource(null);
+                    }
+                    return JsonObject.mapFrom(result);
+                });
+    }
+
+    @Override
     public Future<JsonArray> findAllByResource(long resourceId) {
         return Future
             .fromCompletionStage(metricValueRepository.findByResourceAndFetch(resourceId))

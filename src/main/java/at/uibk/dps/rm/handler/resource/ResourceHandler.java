@@ -3,7 +3,6 @@ package at.uibk.dps.rm.handler.resource;
 import at.uibk.dps.rm.handler.*;
 import at.uibk.dps.rm.handler.metric.MetricChecker;
 import at.uibk.dps.rm.handler.metric.MetricValueChecker;
-import at.uibk.dps.rm.repository.metric.entity.MetricValue;
 import at.uibk.dps.rm.service.rxjava3.metric.MetricValueService;
 import at.uibk.dps.rm.service.rxjava3.metric.MetricService;
 import at.uibk.dps.rm.service.rxjava3.resource.ResourceService;
@@ -63,11 +62,17 @@ public class ResourceHandler extends ValidationHandler {
             JsonObject metric = (JsonObject) entity;
             completables.add(metricChecker.checkExistsOne(metric.getString("metric")));
         });
+        //noinspection unchecked
         return Completable.merge(completables)
-            .andThen(Observable.fromStream(serviceLevelObjectives.stream())
-                .map(item -> ((JsonObject) item).getString("metric"))
-                .toList())
-            .flatMap(metricValueChecker::checkFindAllByMultipleMetrics);
+                .andThen(Observable.fromStream(serviceLevelObjectives.stream())
+                        .map(item -> ((JsonObject) item).getString("metric"))
+                        .toList())
+                .flatMap(metricValueChecker::checkFindAllByMultipleMetrics)
+                .flatMap(resources -> Observable
+                        .fromIterable((List<JsonObject>) resources.getList())
+                        .flatMapSingle(this::findMetricValuesForResource)
+                        .toList())
+                .map(JsonArray::new);
     }
 
 
@@ -77,5 +82,19 @@ public class ResourceHandler extends ValidationHandler {
                 .andThen(Single.just(entity));
         }
         return Single.just(entity);
+    }
+
+    private Single<JsonObject> findMetricValuesForResource(JsonObject jsonResource) {
+        //noinspection unchecked
+        return Observable
+                .fromIterable((List<JsonObject>) jsonResource
+                        .getJsonArray("metric_values")
+                        .getList())
+                .flatMapSingle(metricValue -> metricValueChecker.checkFindOne(metricValue.getLong("metric_value_id")))
+                .toList()
+                .map(metrics -> {
+                    jsonResource.put("metric_values", metrics);
+                    return jsonResource;
+                });
     }
 }
