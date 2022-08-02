@@ -3,20 +3,28 @@ package at.uibk.dps.rm.handler.resource;
 import at.uibk.dps.rm.handler.*;
 import at.uibk.dps.rm.handler.metric.MetricChecker;
 import at.uibk.dps.rm.handler.metric.MetricValueChecker;
+import at.uibk.dps.rm.repository.metric.entity.Metric;
+import at.uibk.dps.rm.repository.metric.entity.MetricValue;
+import at.uibk.dps.rm.repository.resource.entity.Resource;
 import at.uibk.dps.rm.service.rxjava3.metric.MetricValueService;
 import at.uibk.dps.rm.service.rxjava3.metric.MetricService;
 import at.uibk.dps.rm.service.rxjava3.resource.ResourceService;
 import at.uibk.dps.rm.service.rxjava3.resource.ResourceTypeService;
+import at.uibk.dps.rm.slo.EvaluationType;
 import at.uibk.dps.rm.util.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class ResourceHandler extends ValidationHandler {
 
@@ -72,6 +80,45 @@ public class ResourceHandler extends ValidationHandler {
                         .fromIterable((List<JsonObject>) resources.getList())
                         .flatMapSingle(this::findMetricValuesForResource)
                         .toList())
+                .map(resources -> {
+                    List<Resource> resourceList = new ArrayList<>();
+                    for (JsonObject resource : resources) {
+                        resourceList.add(resource.mapTo(Resource.class));
+                    }
+                    return resourceList;
+                })
+                .map(resources -> {
+                    JsonArray sloArray = requestBody.getJsonArray("slo");
+                    Integer limit = requestBody.getInteger("limit");
+                    List<Resource> result = resources
+                            .stream()
+                            .sorted((r1, r2) -> {
+                                Metric metric1, metric2;
+                                for (int i = 0; i < sloArray.size(); i++) {
+                                    JsonObject slo = sloArray.getJsonObject(i);
+                                    for (MetricValue metricValue1 : r1.getMetricValues()) {
+                                        metric1 = metricValue1.getMetric();
+                                        if (metric1.getMetric().equals(slo.getString("metric"))) {
+                                            for (MetricValue metricValue2 : r2.getMetricValues()) {
+                                                metric2 = metricValue2.getMetric();
+                                                if (metric2.getMetric().equals(slo.getString("metric"))) {
+                                                    // TODO: change json to snake case
+                                                    int compareValue = EvaluationType.compareValues(slo.getString("evaluationType"),
+                                                            metricValue1.getValue().doubleValue(),
+                                                            metricValue2.getValue().doubleValue());
+                                                    if (compareValue != 0 || i == sloArray.size() - 1) {
+                                                        return compareValue;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                return 0;
+                            })
+                            .collect(Collectors.toList());
+                    return result.subList(0, Math.min(Objects.requireNonNullElse(limit, 10000), result.size()));
+                })
                 .map(JsonArray::new);
     }
 

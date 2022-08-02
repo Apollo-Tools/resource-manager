@@ -296,6 +296,7 @@ paths:
                 limit:
                   type: number
                   minimum: 1
+                  maxLength: 10000
       responses:
         200:
           description: Successful retrieval of resources conforming to the given service level objectives
