@@ -23,7 +23,11 @@ public class ResourceServiceImpl extends ServiceProxy<Resource> implements Resou
     public Future<JsonObject> findOne(long id) {
         return Future
             .fromCompletionStage(resourceRepository.findByIdAndFetch(id))
-            .map(JsonObject::mapFrom);
+            // TODO: fix
+            .map(result -> {
+                result.setMetricValues(null);
+                return JsonObject.mapFrom(result);
+            });
     }
 
     @Override

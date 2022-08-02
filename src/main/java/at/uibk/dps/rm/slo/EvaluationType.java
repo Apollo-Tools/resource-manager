@@ -40,8 +40,8 @@ public enum EvaluationType {
             case GT:
                 return - v1.compareTo(v2);
             case LT:
-                return v1.compareTo(v2);
             case EQ:
+                return v1.compareTo(v2);
             default:
                 return 0;
         }
