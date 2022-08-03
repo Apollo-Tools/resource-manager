@@ -5,7 +5,10 @@ import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+
+import java.util.List;
 
 public class ResourceChecker extends EntityChecker {
 
@@ -14,6 +17,11 @@ public class ResourceChecker extends EntityChecker {
     public ResourceChecker(ResourceService resourceService) {
         super(resourceService);
         this.resourceService = resourceService;
+    }
+
+
+    public Single<JsonArray> checkFindAllByMultipleMetrics(List<String> metrics) {
+        return resourceService.findAllByMultipleMetrics(metrics);
     }
 
     @Override

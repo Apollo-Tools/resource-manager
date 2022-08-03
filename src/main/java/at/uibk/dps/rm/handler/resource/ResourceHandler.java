@@ -70,6 +70,7 @@ public class ResourceHandler extends ValidationHandler {
     }
 
     protected Single<JsonArray> getResourceBySLOs(RoutingContext rc) {
+        ResourceChecker resourceChecker = (ResourceChecker) super.entityChecker;
         JsonObject requestBody = rc.body().asJsonObject();
         JsonArray serviceLevelObjectives = requestBody.getJsonArray("slo");
         List<Completable> completables = new ArrayList<>();
@@ -82,7 +83,7 @@ public class ResourceHandler extends ValidationHandler {
                 .andThen(Observable.fromStream(serviceLevelObjectives.stream())
                         .map(item -> ((JsonObject) item).getString("metric"))
                         .toList())
-                .flatMap(metricValueChecker::checkFindAllByMultipleMetrics)
+                .flatMap(resourceChecker::checkFindAllByMultipleMetrics)
                 .flatMap(resources -> Observable
                         .fromIterable((List<JsonObject>) resources.getList())
                         .flatMapSingle(this::findMetricValuesForResource)

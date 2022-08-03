@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.database.resource;
 
+import at.uibk.dps.rm.repository.metric.entity.MetricValue;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resource.entity.Resource;
 import at.uibk.dps.rm.service.database.ServiceProxy;
@@ -8,6 +9,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class ResourceServiceImpl extends ServiceProxy<Resource> implements ResourceService{
@@ -48,14 +50,27 @@ public class ResourceServiceImpl extends ServiceProxy<Resource> implements Resou
     public Future<JsonArray> findAll() {
         return Future
             .fromCompletionStage(resourceRepository.findAllAndFetch())
-            .map(result -> {
-                ArrayList<JsonObject> objects = new ArrayList<>();
-                for (Resource resource: result) {
-                    // TODO: fix
-                    resource.setMetricValues(null);
-                    objects.add(JsonObject.mapFrom(resource));
-                }
-                return new JsonArray(objects);
-            });
+            .map(this::encodeResourceList);
+    }
+
+
+    @Override
+    public Future<JsonArray> findAllByMultipleMetrics(List<String> metrics) {
+        return Future
+                .fromCompletionStage(resourceRepository.findByMultipleMetricsAndFetch(metrics))
+                .map(this::encodeResourceList);
+    }
+
+    private JsonArray encodeResourceList(List<Resource> resourceList) {
+        ArrayList<JsonObject> objects = new ArrayList<>();
+        for (Resource resource: resourceList) {
+            for (MetricValue metricValue : resource.getMetricValues()) {
+                // TODO: fix
+                metricValue.setMetric(null);
+                metricValue.setResource(null);
+            }
+            objects.add(JsonObject.mapFrom(resource));
+        }
+        return new JsonArray(objects);
     }
 }
