@@ -1,8 +1,8 @@
 package at.uibk.dps.rm.handler.resource;
 
 import at.uibk.dps.rm.handler.ValidationHandler;
-import at.uibk.dps.rm.service.rxjava3.resource.ResourceService;
-import at.uibk.dps.rm.service.rxjava3.resource.ResourceTypeService;
+import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
+import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceTypeService;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.json.JsonObject;
 

@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.service;
+package at.uibk.dps.rm.service.database;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;

@@ -2,7 +2,7 @@ package at.uibk.dps.rm.handler.resource;
 
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
-import at.uibk.dps.rm.service.rxjava3.resource.ResourceTypeService;
+import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceTypeService;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;

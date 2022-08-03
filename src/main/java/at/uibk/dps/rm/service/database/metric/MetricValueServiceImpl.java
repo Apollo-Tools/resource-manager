@@ -1,9 +1,9 @@
-package at.uibk.dps.rm.service.metric;
+package at.uibk.dps.rm.service.database.metric;
 
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.repository.metric.entity.MetricValue;
 import at.uibk.dps.rm.repository.resource.entity.Resource;
-import at.uibk.dps.rm.service.ServiceProxy;
+import at.uibk.dps.rm.service.database.ServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;

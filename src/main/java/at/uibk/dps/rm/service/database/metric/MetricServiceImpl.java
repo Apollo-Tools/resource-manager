@@ -1,8 +1,8 @@
-package at.uibk.dps.rm.service.metric;
+package at.uibk.dps.rm.service.database.metric;
 
 import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.metric.entity.Metric;
-import at.uibk.dps.rm.service.ServiceProxy;
+import at.uibk.dps.rm.service.database.ServiceProxy;
 import io.vertx.core.Future;
 
 import java.util.Objects;

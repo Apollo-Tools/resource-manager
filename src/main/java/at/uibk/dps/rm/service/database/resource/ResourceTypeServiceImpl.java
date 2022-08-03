@@ -1,8 +1,8 @@
-package at.uibk.dps.rm.service.resource;
+package at.uibk.dps.rm.service.database.resource;
 
 import at.uibk.dps.rm.repository.resource.ResourceTypeRepository;
 import at.uibk.dps.rm.repository.resource.entity.ResourceType;
-import at.uibk.dps.rm.service.ServiceProxy;
+import at.uibk.dps.rm.service.database.ServiceProxy;
 import io.vertx.core.Future;
 
 import java.util.Objects;

@@ -2,7 +2,7 @@ package at.uibk.dps.rm.handler.metric;
 
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
-import at.uibk.dps.rm.service.rxjava3.metric.MetricValueService;
+import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;

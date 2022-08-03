@@ -6,10 +6,11 @@ import at.uibk.dps.rm.handler.metric.MetricValueChecker;
 import at.uibk.dps.rm.repository.metric.entity.Metric;
 import at.uibk.dps.rm.repository.metric.entity.MetricValue;
 import at.uibk.dps.rm.repository.resource.entity.Resource;
-import at.uibk.dps.rm.service.rxjava3.metric.MetricValueService;
-import at.uibk.dps.rm.service.rxjava3.metric.MetricService;
-import at.uibk.dps.rm.service.rxjava3.resource.ResourceService;
-import at.uibk.dps.rm.service.rxjava3.resource.ResourceTypeService;
+import at.uibk.dps.rm.service.rxjava3.resourcemanager.ResourceManagerService;
+import at.uibk.dps.rm.service.rxjava3.database.metric.MetricService;
+import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
+import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
+import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceTypeService;
 import at.uibk.dps.rm.slo.EvaluationType;
 import at.uibk.dps.rm.util.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
@@ -32,12 +33,15 @@ public class ResourceHandler extends ValidationHandler {
 
     private final MetricValueChecker metricValueChecker;
 
+    private final ResourceManagerService resourceManagerService;
+
     public ResourceHandler(ResourceService resourceService, ResourceTypeService resourceTypeService,
-        MetricService metricService, MetricValueService metricValueService) {
+                           MetricService metricService, MetricValueService metricValueService, ResourceManagerService resourceManagerService) {
         super(new ResourceChecker(resourceService));
         resourceTypeChecker = new ResourceTypeChecker(resourceTypeService);
         metricChecker = new MetricChecker(metricService);
         metricValueChecker = new MetricValueChecker(metricValueService);
+        this.resourceManagerService = resourceManagerService;
     }
 
     @Override
@@ -58,6 +62,11 @@ public class ResourceHandler extends ValidationHandler {
             .flatMap(result -> entityChecker.checkUpdateNoDuplicate(requestBody, result))
             .flatMap(result -> checkUpdateResourceTypeExists(requestBody, result))
             .flatMapCompletable(result -> entityChecker.submitUpdate(requestBody, result));
+    }
+
+    @Override
+    protected Single<JsonArray> getAll(RoutingContext rc) {
+        return resourceManagerService.getAll();
     }
 
     protected Single<JsonArray> getResourceBySLOs(RoutingContext rc) {

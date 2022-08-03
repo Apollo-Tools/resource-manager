@@ -5,9 +5,9 @@ import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.repository.metric.entity.Metric;
 import at.uibk.dps.rm.repository.metric.entity.MetricValue;
 import at.uibk.dps.rm.repository.resource.entity.Resource;
-import at.uibk.dps.rm.service.rxjava3.metric.MetricService;
-import at.uibk.dps.rm.service.rxjava3.metric.MetricValueService;
-import at.uibk.dps.rm.service.rxjava3.resource.ResourceService;
+import at.uibk.dps.rm.service.rxjava3.database.metric.MetricService;
+import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
+import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
 import at.uibk.dps.rm.util.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -29,7 +29,7 @@ public class MetricValueHandler extends ValidationHandler {
     private final ResourceChecker resourceChecker;
 
     public MetricValueHandler(MetricValueService metricValueService,
-            MetricService metricService, ResourceService resourceService) {
+                              MetricService metricService, ResourceService resourceService) {
         super(new MetricValueChecker(metricValueService));
         metricValueChecker = (MetricValueChecker) super.entityChecker;
         metricChecker = new MetricChecker(metricService);

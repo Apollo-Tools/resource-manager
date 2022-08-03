@@ -1,8 +1,8 @@
-package at.uibk.dps.rm.service.resource;
+package at.uibk.dps.rm.service.database.resource;
 
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resource.entity.Resource;
-import at.uibk.dps.rm.service.ServiceProxy;
+import at.uibk.dps.rm.service.database.ServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;

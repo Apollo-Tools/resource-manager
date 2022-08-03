@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.service;
+package at.uibk.dps.rm.service.database;
 
 import at.uibk.dps.rm.repository.Repository;
 import io.vertx.core.Future;

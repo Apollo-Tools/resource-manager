@@ -9,7 +9,7 @@ public class ResourceRoute {
     public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         ResourceHandler resourceHandler = new ResourceHandler(serviceProxyProvider.getResourceService(),
             serviceProxyProvider.getResourceTypeService(), serviceProxyProvider.getMetricService(),
-            serviceProxyProvider.getMetricValueService());
+            serviceProxyProvider.getMetricValueService(), serviceProxyProvider.getResourceManagerService());
         RequestHandler resourceRequestHandler = new RequestHandler(resourceHandler);
 
         router
