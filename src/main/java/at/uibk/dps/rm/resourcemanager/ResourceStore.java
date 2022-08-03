@@ -3,9 +3,7 @@ package at.uibk.dps.rm.resourcemanager;
 import at.uibk.dps.rm.handler.metric.MetricValueChecker;
 import at.uibk.dps.rm.repository.resource.entity.Resource;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
-import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.core.*;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -55,6 +53,10 @@ public class ResourceStore {
                 .map(JsonObject::mapFrom)
                 .toList()
                 .map(JsonArray::new);
+    }
+
+    public JsonObject getOneResource(long id) {
+        return JsonObject.mapFrom(resources.get(id));
     }
 
     private Single<JsonObject> findMetricValuesForResource(JsonObject jsonResource) {

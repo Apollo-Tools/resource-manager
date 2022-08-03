@@ -7,6 +7,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 @ProxyGen
 @VertxGen
@@ -19,6 +20,8 @@ public interface ResourceManagerService {
     static ResourceManagerService createProxy(Vertx vertx, String address) {
         return new ResourceManagerServiceVertxEBProxy(vertx, address);
     }
+
+    Future<JsonObject> getOne(long id);
 
     Future<JsonArray> getAll();
 }

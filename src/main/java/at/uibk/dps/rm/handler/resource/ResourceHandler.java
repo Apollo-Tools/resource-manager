@@ -37,7 +37,7 @@ public class ResourceHandler extends ValidationHandler {
 
     public ResourceHandler(ResourceService resourceService, ResourceTypeService resourceTypeService,
                            MetricService metricService, MetricValueService metricValueService, ResourceManagerService resourceManagerService) {
-        super(new ResourceChecker(resourceService));
+        super(new ResourceChecker(resourceService, resourceManagerService));
         resourceTypeChecker = new ResourceTypeChecker(resourceTypeService);
         metricChecker = new MetricChecker(metricService);
         metricValueChecker = new MetricValueChecker(metricValueService);
@@ -63,6 +63,7 @@ public class ResourceHandler extends ValidationHandler {
             .flatMap(result -> checkUpdateResourceTypeExists(requestBody, result))
             .flatMapCompletable(result -> entityChecker.submitUpdate(requestBody, result));
     }
+
 
     @Override
     protected Single<JsonArray> getAll(RoutingContext rc) {
