@@ -12,8 +12,6 @@ public class Resource {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long resourceId;
 
-    private String url;
-
     @Column(insertable = false, updatable = false)
     private Timestamp createdAt;
 
@@ -33,14 +31,6 @@ public class Resource {
 
     public void setResourceId(Long resourceId) {
         this.resourceId = resourceId;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
     }
 
     public Timestamp getCreatedAt() {

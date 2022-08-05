@@ -47,8 +47,6 @@ paths:
               minProperties: 1
               additionalProperties: false
               properties:
-                url:
-                  $ref: "#/components/schemas/Url"
                 resource_type:
                   type: object
                   required:
@@ -118,12 +116,9 @@ paths:
             schema:
               type: object
               required:
-                - url
                 - resource_type
               additionalProperties: false
               properties:
-                url:
-                  $ref: "#/components/schemas/Url"
                 resource_type:
                   type: object
                   required:
@@ -581,8 +576,6 @@ components:
           type: integer
           format: int64
           example: 1
-        url:
-          $ref: "#/components/schemas/Url"
         resource_type:
           $ref: "#/components/schemas/ResourceType"
         created_at:
