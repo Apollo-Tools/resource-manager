@@ -20,5 +20,5 @@ public interface MetricService extends ServiceInterface {
         return new MetricServiceVertxEBProxy(vertx, address);
     }
 
-    Future<Boolean> existsOneByMetric(String url);
+    Future<Boolean> existsOneByMetric(String metric);
 }

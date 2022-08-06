@@ -11,7 +11,6 @@ public class MetricValueChecker extends EntityChecker {
 
     private final MetricValueService metricValueService;
 
-
     public MetricValueChecker(MetricValueService metricValueService) {
         super(metricValueService);
         this.metricValueService = metricValueService;

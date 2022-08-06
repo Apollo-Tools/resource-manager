@@ -567,6 +567,141 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
+  /properties/{id}:
+    get:
+      description: Return details about a property managed by the resource manager
+      operationId: getProperty
+      tags:
+        - properties
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of a property
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Property"
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+    patch:
+      description: Updates a property
+      operationId: updateProperty
+      tags:
+        - properties
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              minProperties: 1
+              additionalProperties: false
+              properties:
+                property:
+                  type: string
+                  minLength: 1
+                  maxLength: 256
+                  example: cpu
+                description:
+                  type: string
+                  minLength: 1
+                  maxLength: 512
+                  example: the amount of cpu cores
+      responses:
+        204:
+          description: Successful update of a property
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+    delete:
+      description: Deletes a property
+      operationId: deleteProperty
+      tags:
+        - properties
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        204:
+          description: Successful deletion of a property
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /properties:
+    get:
+      description: Return details about all properties managed by the resource manager
+      operationId: listProperties
+      tags:
+        - properties
+      responses:
+        200:
+          description: Successful pull of all properties
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Property"
+        500:
+          $ref: "#/components/responses/500"
+
+    post:
+      description: Creates a new property
+      operationId: createProperty
+      tags:
+        - properties
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - property
+                - description
+              additionalProperties: false
+              properties:
+                property:
+                  type: string
+                  minLength: 1
+                  maxLength: 256
+                  example: cpu
+                description:
+                  type: string
+                  minLength: 1
+                  maxLength: 512
+                  example: the amount of cpu cores
+      responses:
+        201:
+          description: Successful creation of a new property
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Property"
+        400:
+          $ref: "#/components/responses/400"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
 components:
   schemas:
     Resource:
@@ -614,6 +749,23 @@ components:
         description:
           type: string
           example: the availability of a resource
+        created_at:
+          type: string
+          format: date-time
+          #example: 2017-07-21T17:32:28Z
+    Property:
+      type: object
+      properties:
+        property_id:
+          type: integer
+          format: int64
+          example: 1
+        property:
+          type: string
+          example: cpu
+        description:
+          type: string
+          example: the amount of cpu cores
         created_at:
           type: string
           format: date-time

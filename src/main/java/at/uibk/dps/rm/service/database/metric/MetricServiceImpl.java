@@ -17,9 +17,9 @@ public class MetricServiceImpl extends ServiceProxy<Metric> implements MetricSer
     }
 
     @Override
-    public Future<Boolean> existsOneByMetric(String url) {
+    public Future<Boolean> existsOneByMetric(String metric) {
         return Future
-            .fromCompletionStage(metricRepository.findByMetric(url))
+            .fromCompletionStage(metricRepository.findByMetric(metric))
             .map(Objects::nonNull);
     }
 }

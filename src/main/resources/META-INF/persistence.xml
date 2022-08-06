@@ -6,6 +6,8 @@
         <provider>org.hibernate.reactive.provider.ReactivePersistenceProvider</provider>
         <class>at.uibk.dps.rm.repository.metric.entity.Metric</class>
         <class>at.uibk.dps.rm.repository.metric.entity.MetricValue</class>
+        <class>at.uibk.dps.rm.repository.property.entity.Property</class>
+        <class>at.uibk.dps.rm.repository.property.entity.PropertyValue</class>
         <class>at.uibk.dps.rm.repository.resource.entity.Resource</class>
         <class>at.uibk.dps.rm.repository.resource.entity.ResourceType</class>
 

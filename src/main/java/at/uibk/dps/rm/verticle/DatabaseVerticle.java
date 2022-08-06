@@ -4,6 +4,10 @@ import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.repository.metric.entity.Metric;
 import at.uibk.dps.rm.repository.metric.entity.MetricValue;
+import at.uibk.dps.rm.repository.property.PropertyRepository;
+import at.uibk.dps.rm.repository.property.PropertyValueRepository;
+import at.uibk.dps.rm.repository.property.entity.Property;
+import at.uibk.dps.rm.repository.property.entity.PropertyValue;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resource.ResourceTypeRepository;
 import at.uibk.dps.rm.repository.resource.entity.Resource;
@@ -12,6 +16,10 @@ import at.uibk.dps.rm.service.database.metric.MetricService;
 import at.uibk.dps.rm.service.database.metric.MetricServiceImpl;
 import at.uibk.dps.rm.service.database.metric.MetricValueService;
 import at.uibk.dps.rm.service.database.metric.MetricValueServiceImpl;
+import at.uibk.dps.rm.service.database.property.PropertyService;
+import at.uibk.dps.rm.service.database.property.PropertyServiceImpl;
+import at.uibk.dps.rm.service.database.property.PropertyValueService;
+import at.uibk.dps.rm.service.database.property.PropertyValueServiceImpl;
 import at.uibk.dps.rm.service.database.resource.ResourceService;
 import at.uibk.dps.rm.service.database.resource.ResourceServiceImpl;
 import at.uibk.dps.rm.service.database.resource.ResourceTypeService;
@@ -36,6 +44,8 @@ public class DatabaseVerticle extends AbstractVerticle {
     private ResourceRepository resourceRepository;
     private MetricRepository metricRepository;
     private MetricValueRepository metricValueRepository;
+    private PropertyRepository propertyRepository;
+    private PropertyValueRepository propertyValueRepository;
 
     @Override
     public Completable rxStart() {
@@ -69,6 +79,9 @@ public class DatabaseVerticle extends AbstractVerticle {
                 resourceRepository = new ResourceRepository(sessionFactory, Resource.class);
                 metricRepository = new MetricRepository(sessionFactory, Metric.class);
                 metricValueRepository = new MetricValueRepository(sessionFactory, MetricValue.class);
+                propertyRepository = new PropertyRepository(sessionFactory, Property.class);
+                propertyValueRepository =new PropertyValueRepository(sessionFactory, PropertyValue.class);
+
                 emitter.onComplete();
             }
         );
@@ -100,6 +113,18 @@ public class DatabaseVerticle extends AbstractVerticle {
             new ServiceBinder(vertx.getDelegate())
                     .setAddress("metric-value-service-address")
                     .register(MetricValueService.class, metricValueService);
+
+            PropertyService propertyService =
+                    new PropertyServiceImpl(propertyRepository);
+            new ServiceBinder(vertx.getDelegate())
+                    .setAddress("property-service-address")
+                    .register(PropertyService.class, propertyService);
+
+            PropertyValueService propertyValueService =
+                    new PropertyValueServiceImpl(propertyValueRepository);
+            new ServiceBinder(vertx.getDelegate())
+                    .setAddress("property-value-service-address")
+                    .register(PropertyValueService.class, propertyValueService);
             emitter.onComplete();
         });
         return Completable.fromMaybe(setupEventBus);
