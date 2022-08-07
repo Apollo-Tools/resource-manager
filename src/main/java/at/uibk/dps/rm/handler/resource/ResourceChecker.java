@@ -23,23 +23,8 @@ public class ResourceChecker extends EntityChecker {
         return resourceService.findAllByMultipleMetrics(metrics);
     }
 
-    @Override
-    public Completable checkForDuplicateEntity(JsonObject entity) {
-        Single<Boolean> existsOneByUrl = resourceService.existsOneByUrl(entity.getString("url"));
-        return ErrorHandler.handleDuplicates(existsOneByUrl).ignoreElement();
-    }
-
     public Completable checkExistsOneByResourceType(long resourceTypeId) {
         Single<Boolean> existsOneByResourceType = resourceService.existsOneByResourceType(resourceTypeId);
         return ErrorHandler.handleUsedByOtherEntity(existsOneByResourceType).ignoreElement();
-    }
-
-    @Override
-    public Single<JsonObject> checkUpdateNoDuplicate(JsonObject requestBody, JsonObject entity) {
-        if (requestBody.containsKey("url")) {
-            return this.checkForDuplicateEntity(requestBody)
-                .andThen(Single.just(entity));
-        }
-        return Single.just(entity);
     }
 }

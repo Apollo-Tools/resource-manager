@@ -57,6 +57,9 @@ paths:
                       type: integer
                       format: int64
                       example: 1
+                is_deployed:
+                  type: boolean
+                  example: false
       responses:
         204:
           description: Successful update of a resource
@@ -129,6 +132,9 @@ paths:
                       type: integer
                       format: int64
                       example: 1
+                is_deployed:
+                  type: boolean
+                  example: false
       responses:
         201:
           description: Successful registration of a new resource

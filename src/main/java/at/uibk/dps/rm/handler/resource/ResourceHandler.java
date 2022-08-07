@@ -43,10 +43,9 @@ public class ResourceHandler extends ValidationHandler {
     @Override
     public Single<JsonObject> postOne(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
-        return entityChecker.checkForDuplicateEntity(requestBody)
-            .andThen(resourceTypeChecker.checkExistsOne(requestBody
+        return resourceTypeChecker.checkExistsOne(requestBody
                                                             .getJsonObject("resource_type")
-                                                            .getLong("type_id")))
+                                                            .getLong("type_id"))
             .andThen(entityChecker.submitCreate(requestBody));
     }
 
@@ -55,7 +54,6 @@ public class ResourceHandler extends ValidationHandler {
         JsonObject requestBody = rc.body().asJsonObject();
         return HttpHelper.getLongPathParam(rc, "id")
             .flatMap(entityChecker::checkFindOne)
-            .flatMap(result -> entityChecker.checkUpdateNoDuplicate(requestBody, result))
             .flatMap(result -> checkUpdateResourceTypeExists(requestBody, result))
             .flatMapCompletable(result -> entityChecker.submitUpdate(requestBody, result));
     }

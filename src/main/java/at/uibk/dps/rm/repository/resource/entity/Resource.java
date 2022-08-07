@@ -1,6 +1,9 @@
 package at.uibk.dps.rm.repository.resource.entity;
 
 import at.uibk.dps.rm.repository.metric.entity.MetricValue;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonSetter;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -11,6 +14,12 @@ public class Resource {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long resourceId;
+
+    @JsonAlias("is_deployed")
+    private Boolean isDeployed = false;
+
+    @JsonAlias("is_reserved")
+    private Boolean isReserved = false;
 
     @Column(insertable = false, updatable = false)
     private Timestamp createdAt;
@@ -31,6 +40,26 @@ public class Resource {
 
     public void setResourceId(Long resourceId) {
         this.resourceId = resourceId;
+    }
+
+    @JsonGetter("is_deployed")
+    public Boolean getDeployed() {
+        return isDeployed;
+    }
+
+    @JsonSetter("is_deployed")
+    public void setDeployed(Boolean deployed) {
+        isDeployed = deployed;
+    }
+
+    @JsonGetter("is_reserved")
+    public Boolean getReserved() {
+        return isReserved;
+    }
+
+    @JsonSetter("is_reserved")
+    public void setReserved(Boolean reserved) {
+        isReserved = reserved;
     }
 
     public Timestamp getCreatedAt() {
