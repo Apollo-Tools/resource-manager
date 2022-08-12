@@ -262,38 +262,35 @@ paths:
               properties:
                 slo:
                   type: array
-                  minLength: 1
+                  minItems: 1
                   items:
                     type: object
                     required:
-                      - metric
-                      - metricExpression
-                      - evaluationType
+                      - name
+                      - expression
+                      - value
+                      - type
                     additionalProperties: false
                     properties:
-                      metric:
+                      name:
                         type: string
                         minLength: 1
                         maxLength: 256
                         example: "availability"
-                      metricExpression:
+                      expression:
                         type: string
                         minLength: 1
                         maxLength: 50
-                        example: "90"
-                      evaluationType:
+                        example: ">"
+                      value:
+                        oneOf:
+                          - $ref: '#/components/schemas/stringValues'
+                          - $ref: '#/components/schemas/numberValues'
+                          - $ref: '#/components/schemas/boolValues'
+                      type:
                         type: string
                         minLength: 1
-                        maxLength: 2
-                        example: ">"
-                sort:
-                  type: array
-                  minLength: 1
-                  items:
-                    type: string
-                    minLength: 1
-                    maxLength: 256
-                    example: "availability"
+                        example: "metric"
                 limit:
                   type: number
                   minimum: 1
@@ -785,6 +782,28 @@ components:
     Error:
       type: string
       example: internal server error
+
+    stringValues:
+      type: array
+      minItems: 1
+      items:
+        type: string
+        example: 'ubuntu'
+        minLength: 1
+
+    numberValues:
+      type: array
+      minItems: 1
+      items:
+        type: number
+        example: 2.5
+
+    boolValues:
+      type: array
+      minItems: 1
+      items:
+        type: boolean
+        example: false
 
   parameters:
     idParam:

@@ -1,13 +1,13 @@
-package at.uibk.dps.rm.slo;
+package at.uibk.dps.rm.dto.slo;
 
 import java.util.Arrays;
 
-public enum EvaluationType {
+public enum ExpressionType {
     GT(">"), LT("<"), EQ("==");
 
     private final String symbol;
 
-    EvaluationType(String symbol)
+    ExpressionType(String symbol)
     {
         this.symbol = symbol;
     }
@@ -18,9 +18,9 @@ public enum EvaluationType {
     }
 
     public static Boolean symbolExists(String symbol) {
-        EvaluationType[] evaluationTypes = EvaluationType.values();
-        for (EvaluationType evaluationType: evaluationTypes) {
-            if (evaluationType.getSymbol().equals(symbol)) {
+        ExpressionType[] expressionTypes = ExpressionType.values();
+        for (ExpressionType expressionType: expressionTypes) {
+            if (expressionType.getSymbol().equals(symbol)) {
                 return true;
             }
         }
@@ -28,15 +28,15 @@ public enum EvaluationType {
     }
 
     // ref: https://stackoverflow.com/a/45082346/13164629
-    public static EvaluationType fromString(String s) throws IllegalArgumentException {
-        return Arrays.stream(EvaluationType.values())
+    public static ExpressionType fromString(String s) throws IllegalArgumentException {
+        return Arrays.stream(ExpressionType.values())
                 .filter(v -> v.symbol.equals(s))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("unknown value: " + s));
     }
 
     public static int compareValues(String symbol, Double v1, Double v2) {
-        switch (EvaluationType.fromString(symbol)) {
+        switch (ExpressionType.fromString(symbol)) {
             case GT:
                 return - v1.compareTo(v2);
             case LT:
