@@ -1,12 +1,17 @@
 package at.uibk.dps.rm.handler.resource;
 
+import at.uibk.dps.rm.entity.dto.GetResourcesBySLOsRequest;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
+import at.uibk.dps.rm.entity.dto.slo.PropertyType;
+import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.handler.*;
 import at.uibk.dps.rm.handler.metric.MetricChecker;
 import at.uibk.dps.rm.handler.metric.MetricValueChecker;
+import at.uibk.dps.rm.handler.property.PropertyChecker;
+import at.uibk.dps.rm.service.rxjava3.database.property.PropertyService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
@@ -30,14 +35,17 @@ public class ResourceHandler extends ValidationHandler {
 
     private final MetricChecker metricChecker;
 
+    private final PropertyChecker propertyChecker;
+
     private final MetricValueChecker metricValueChecker;
 
     public ResourceHandler(ResourceService resourceService, ResourceTypeService resourceTypeService,
-                           MetricService metricService, MetricValueService metricValueService) {
+                           MetricService metricService, MetricValueService metricValueService, PropertyService propertyService) {
         super(new ResourceChecker(resourceService));
         resourceTypeChecker = new ResourceTypeChecker(resourceTypeService);
         metricChecker = new MetricChecker(metricService);
         metricValueChecker = new MetricValueChecker(metricValueService);
+        propertyChecker = new PropertyChecker(propertyService);
     }
 
     @Override
@@ -60,17 +68,22 @@ public class ResourceHandler extends ValidationHandler {
 
     protected Single<JsonArray> getResourceBySLOs(RoutingContext rc) {
         ResourceChecker resourceChecker = (ResourceChecker) super.entityChecker;
-        JsonObject requestBody = rc.body().asJsonObject();
-        JsonArray serviceLevelObjectives = requestBody.getJsonArray("slo");
+        GetResourcesBySLOsRequest requestDTO = rc.body()
+                .asJsonObject()
+                .mapTo(GetResourcesBySLOsRequest.class);
+        List<ServiceLevelObjective> serviceLevelObjectives = requestDTO.getServiceLevelObjectives();
         List<Completable> completables = new ArrayList<>();
-        serviceLevelObjectives.stream().forEach(entity -> {
-            JsonObject metric = (JsonObject) entity;
-            completables.add(metricChecker.checkExistsOne(metric.getString("metric")));
+        requestDTO.getServiceLevelObjectives().forEach(slo -> {
+            if (slo.getPropertyType() == PropertyType.METRIC) {
+                completables.add(metricChecker.checkExistsOne(slo.getName()));
+            } else {
+                completables.add(propertyChecker.checkExistsOne(slo.getName()));
+            }
         });
         //noinspection unchecked
         return Completable.merge(completables)
                 .andThen(Observable.fromStream(serviceLevelObjectives.stream())
-                        .map(item -> ((JsonObject) item).getString("metric"))
+                        .map(ServiceLevelObjective::getName)
                         .toList())
                 .flatMap(resourceChecker::checkFindAllByMultipleMetrics)
                 .flatMap(resources -> Observable
@@ -85,22 +98,21 @@ public class ResourceHandler extends ValidationHandler {
                     return resourceList;
                 })
                 .map(resources -> {
-                    JsonArray sloArray = requestBody.getJsonArray("slo");
-                    Integer limit = requestBody.getInteger("limit");
+                    int limit = requestDTO.getLimit();
                     List<Resource> result = resources
                             .stream()
                             .filter(resource -> {
-                                for (int i = 0; i < sloArray.size(); i++) {
-                                    JsonObject slo = sloArray.getJsonObject(i);
+                                for (ServiceLevelObjective slo : serviceLevelObjectives) {
+                                    // TODO: Merge metric and property tables
                                     for (MetricValue metricValue : resource.getMetricValues()) {
                                         Metric metric = metricValue.getMetric();
-                                        if (metric.getMetric().equals(slo.getString("metric"))) {
-                                            // TODO: change json to snake case
-                                            int compareValue = ExpressionType.compareValues(slo.getString("evaluationType"),
-                                                    Double.parseDouble(slo.getString("metricExpression")),
+                                        if (metric.getMetric().equals(slo.getName())) {
+                                            // TODO: add support for multiple values (instead of using the first one)
+                                            int compareValue = ExpressionType.compareValues(slo.getExpression(),
+                                                    slo.getValue().get(0).getNumberValue().doubleValue(),
                                                     metricValue.getValue().doubleValue());
-                                            boolean isEqualityCheck = slo.getString("evaluationType")
-                                                    .equals(ExpressionType.EQ.getSymbol());
+                                            boolean isEqualityCheck = slo.getExpression()
+                                                    .equals(ExpressionType.EQ);
                                             if (compareValue == 0 && !isEqualityCheck) {
                                                 return false;
                                             } else if (compareValue != 0 && isEqualityCheck) {
@@ -114,19 +126,19 @@ public class ResourceHandler extends ValidationHandler {
                                 return true;
                             })
                             .sorted((r1, r2) -> {
-                                for (int i = 0; i < sloArray.size(); i++) {
-                                    JsonObject slo = sloArray.getJsonObject(i);
+                                for (int i = 0; i < serviceLevelObjectives.size(); i++) {
+                                    ServiceLevelObjective slo = serviceLevelObjectives.get(i);
                                     for (MetricValue metricValue1 : r1.getMetricValues()) {
                                         Metric metric1 = metricValue1.getMetric();
-                                        if (metric1.getMetric().equals(slo.getString("metric"))) {
+                                        if (metric1.getMetric().equals(slo.getName())) {
                                             for (MetricValue metricValue2 : r2.getMetricValues()) {
                                                 Metric metric2 = metricValue2.getMetric();
-                                                if (metric2.getMetric().equals(slo.getString("metric"))) {
+                                                if (metric2.getMetric().equals(slo.getName())) {
                                                     // TODO: change json to snake case
-                                                    int compareValue = ExpressionType.compareValues(slo.getString("evaluationType"),
+                                                    int compareValue = ExpressionType.compareValues(slo.getExpression(),
                                                             metricValue1.getValue().doubleValue(),
                                                             metricValue2.getValue().doubleValue());
-                                                    if (compareValue != 0 || i == sloArray.size() - 1) {
+                                                    if (compareValue != 0 || i == serviceLevelObjectives.size() - 1) {
                                                         return compareValue;
                                                     }
                                                 }
@@ -137,7 +149,7 @@ public class ResourceHandler extends ValidationHandler {
                                 return 0;
                             })
                             .collect(Collectors.toList());
-                    return result.subList(0, Math.min(Objects.requireNonNullElse(limit, 10000), result.size()));
+                    return result.subList(0, Math.min(limit, result.size()));
                 })
                 .map(JsonArray::new);
     }

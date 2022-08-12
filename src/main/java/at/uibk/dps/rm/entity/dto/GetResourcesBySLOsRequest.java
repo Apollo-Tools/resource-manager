@@ -6,10 +6,12 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import java.util.List;
 
 public class GetResourcesBySLOsRequest {
+    private final int DEFAULT_LIMIT = 10000;
+
     @JsonAlias("slo")
     private List<ServiceLevelObjective> serviceLevelObjectives;
 
-    private long limit;
+    private int limit = DEFAULT_LIMIT;
 
     public GetResourcesBySLOsRequest() {
     }
@@ -22,11 +24,11 @@ public class GetResourcesBySLOsRequest {
         this.serviceLevelObjectives = serviceLevelObjectives;
     }
 
-    public long getLimit() {
+    public int getLimit() {
         return limit;
     }
 
-    public void setLimit(long limit) {
+    public void setLimit(int limit) {
         this.limit = limit;
     }
 }

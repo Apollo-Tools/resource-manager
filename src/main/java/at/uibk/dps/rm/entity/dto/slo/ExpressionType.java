@@ -35,8 +35,8 @@ public enum ExpressionType {
                 .orElseThrow(() -> new IllegalArgumentException("unknown value: " + s));
     }
 
-    public static int compareValues(String symbol, Double v1, Double v2) {
-        switch (ExpressionType.fromString(symbol)) {
+    public static int compareValues(ExpressionType expressionType, Double v1, Double v2) {
+        switch (expressionType) {
             case GT:
                 return - v1.compareTo(v2);
             case LT:

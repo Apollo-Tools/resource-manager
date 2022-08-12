@@ -11,7 +11,7 @@ public class ResourceDeploymentRoute {
     public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         ResourceHandler resourceHandler = new ResourceHandler(serviceProxyProvider.getResourceService(),
             serviceProxyProvider.getResourceTypeService(), serviceProxyProvider.getMetricService(),
-            serviceProxyProvider.getMetricValueService());
+            serviceProxyProvider.getMetricValueService(), serviceProxyProvider.getPropertyService());
         ResourceDeploymentHandler resourceDeploymentHandler = new ResourceDeploymentHandler(resourceHandler);
 
         router
