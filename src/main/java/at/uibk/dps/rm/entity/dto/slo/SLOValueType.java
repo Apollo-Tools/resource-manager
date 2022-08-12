@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.dto.slo;
+package at.uibk.dps.rm.entity.dto.slo;
 
 public enum SLOValueType {
     NUMBER, STRING, BOOLEAN

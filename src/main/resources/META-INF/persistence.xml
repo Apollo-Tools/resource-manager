@@ -4,12 +4,12 @@
              version="2.0">
     <persistence-unit name="postgres-unit">
         <provider>org.hibernate.reactive.provider.ReactivePersistenceProvider</provider>
-        <class>at.uibk.dps.rm.repository.metric.entity.Metric</class>
-        <class>at.uibk.dps.rm.repository.metric.entity.MetricValue</class>
-        <class>at.uibk.dps.rm.repository.property.entity.Property</class>
-        <class>at.uibk.dps.rm.repository.property.entity.PropertyValue</class>
-        <class>at.uibk.dps.rm.repository.resource.entity.Resource</class>
-        <class>at.uibk.dps.rm.repository.resource.entity.ResourceType</class>
+        <class>at.uibk.dps.rm.entity.model.Metric</class>
+        <class>at.uibk.dps.rm.entity.model.MetricValue</class>
+        <class>at.uibk.dps.rm.entity.model.Property</class>
+        <class>at.uibk.dps.rm.entity.model.PropertyValue</class>
+        <class>at.uibk.dps.rm.entity.model.Resource</class>
+        <class>at.uibk.dps.rm.entity.model.ResourceType</class>
 
         <properties>
             <!-- The Vert.x SQL Client connection pool size -->

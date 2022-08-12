@@ -1,16 +1,16 @@
 package at.uibk.dps.rm.handler.resource;
 
+import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
+import at.uibk.dps.rm.entity.model.Metric;
+import at.uibk.dps.rm.entity.model.MetricValue;
+import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.handler.*;
 import at.uibk.dps.rm.handler.metric.MetricChecker;
 import at.uibk.dps.rm.handler.metric.MetricValueChecker;
-import at.uibk.dps.rm.repository.metric.entity.Metric;
-import at.uibk.dps.rm.repository.metric.entity.MetricValue;
-import at.uibk.dps.rm.repository.resource.entity.Resource;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceTypeService;
-import at.uibk.dps.rm.slo.EvaluationType;
 import at.uibk.dps.rm.util.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
@@ -96,11 +96,11 @@ public class ResourceHandler extends ValidationHandler {
                                         Metric metric = metricValue.getMetric();
                                         if (metric.getMetric().equals(slo.getString("metric"))) {
                                             // TODO: change json to snake case
-                                            int compareValue = EvaluationType.compareValues(slo.getString("evaluationType"),
+                                            int compareValue = ExpressionType.compareValues(slo.getString("evaluationType"),
                                                     Double.parseDouble(slo.getString("metricExpression")),
                                                     metricValue.getValue().doubleValue());
                                             boolean isEqualityCheck = slo.getString("evaluationType")
-                                                    .equals(EvaluationType.EQ.getSymbol());
+                                                    .equals(ExpressionType.EQ.getSymbol());
                                             if (compareValue == 0 && !isEqualityCheck) {
                                                 return false;
                                             } else if (compareValue != 0 && isEqualityCheck) {
@@ -123,7 +123,7 @@ public class ResourceHandler extends ValidationHandler {
                                                 Metric metric2 = metricValue2.getMetric();
                                                 if (metric2.getMetric().equals(slo.getString("metric"))) {
                                                     // TODO: change json to snake case
-                                                    int compareValue = EvaluationType.compareValues(slo.getString("evaluationType"),
+                                                    int compareValue = ExpressionType.compareValues(slo.getString("evaluationType"),
                                                             metricValue1.getValue().doubleValue(),
                                                             metricValue2.getValue().doubleValue());
                                                     if (compareValue != 0 || i == sloArray.size() - 1) {

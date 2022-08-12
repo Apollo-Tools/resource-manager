@@ -2,9 +2,9 @@ package at.uibk.dps.rm.handler.metric;
 
 import at.uibk.dps.rm.handler.resource.ResourceChecker;
 import at.uibk.dps.rm.handler.ValidationHandler;
-import at.uibk.dps.rm.repository.metric.entity.Metric;
-import at.uibk.dps.rm.repository.metric.entity.MetricValue;
-import at.uibk.dps.rm.repository.resource.entity.Resource;
+import at.uibk.dps.rm.entity.model.Metric;
+import at.uibk.dps.rm.entity.model.MetricValue;
+import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;

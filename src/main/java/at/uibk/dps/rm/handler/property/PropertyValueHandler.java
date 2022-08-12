@@ -2,9 +2,9 @@ package at.uibk.dps.rm.handler.property;
 
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.handler.resource.ResourceChecker;
-import at.uibk.dps.rm.repository.property.entity.Property;
-import at.uibk.dps.rm.repository.property.entity.PropertyValue;
-import at.uibk.dps.rm.repository.resource.entity.Resource;
+import at.uibk.dps.rm.entity.model.Property;
+import at.uibk.dps.rm.entity.model.PropertyValue;
+import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.service.rxjava3.database.property.PropertyService;
 import at.uibk.dps.rm.service.rxjava3.database.property.PropertyValueService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;

@@ -1,6 +1,6 @@
-package at.uibk.dps.rm.dto;
+package at.uibk.dps.rm.entity.dto;
 
-import at.uibk.dps.rm.dto.slo.ServiceLevelObjective;
+import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import com.fasterxml.jackson.annotation.JsonAlias;
 
 import java.util.List;

@@ -1,7 +1,7 @@
-package at.uibk.dps.rm.repository.property;
+package at.uibk.dps.rm.repository;
 
 import at.uibk.dps.rm.repository.Repository;
-import at.uibk.dps.rm.repository.property.entity.PropertyValue;
+import at.uibk.dps.rm.entity.model.PropertyValue;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.List;

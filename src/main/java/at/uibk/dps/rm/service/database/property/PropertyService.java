@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.service.database.property;
 
-import at.uibk.dps.rm.repository.property.PropertyRepository;
+import at.uibk.dps.rm.repository.PropertyRepository;
 import at.uibk.dps.rm.service.database.ServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;

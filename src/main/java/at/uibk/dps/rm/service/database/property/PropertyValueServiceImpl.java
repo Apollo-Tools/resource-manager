@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.service.database.property;
 
-import at.uibk.dps.rm.repository.property.PropertyValueRepository;
-import at.uibk.dps.rm.repository.property.entity.PropertyValue;
+import at.uibk.dps.rm.repository.PropertyValueRepository;
+import at.uibk.dps.rm.entity.model.PropertyValue;
 import at.uibk.dps.rm.service.database.ServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;

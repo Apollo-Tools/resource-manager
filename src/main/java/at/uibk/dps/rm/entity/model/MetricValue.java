@@ -1,6 +1,5 @@
-package at.uibk.dps.rm.repository.metric.entity;
+package at.uibk.dps.rm.entity.model;
 
-import at.uibk.dps.rm.repository.resource.entity.Resource;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;

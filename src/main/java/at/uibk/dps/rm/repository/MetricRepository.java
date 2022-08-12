@@ -1,7 +1,7 @@
-package at.uibk.dps.rm.repository.metric;
+package at.uibk.dps.rm.repository;
 
 import at.uibk.dps.rm.repository.Repository;
-import at.uibk.dps.rm.repository.metric.entity.Metric;
+import at.uibk.dps.rm.entity.model.Metric;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.concurrent.CompletionStage;

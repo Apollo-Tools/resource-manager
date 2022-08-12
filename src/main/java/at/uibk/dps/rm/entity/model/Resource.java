@@ -1,6 +1,5 @@
-package at.uibk.dps.rm.repository.resource.entity;
+package at.uibk.dps.rm.entity.model;
 
-import at.uibk.dps.rm.repository.metric.entity.MetricValue;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonSetter;

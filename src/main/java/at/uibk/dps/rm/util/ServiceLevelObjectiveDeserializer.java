@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.util;
 
-import at.uibk.dps.rm.dto.slo.*;
-import com.fasterxml.jackson.core.JacksonException;
+import at.uibk.dps.rm.entity.dto.slo.*;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;

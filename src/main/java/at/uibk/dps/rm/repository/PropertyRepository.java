@@ -1,7 +1,7 @@
-package at.uibk.dps.rm.repository.property;
+package at.uibk.dps.rm.repository;
 
 import at.uibk.dps.rm.repository.Repository;
-import at.uibk.dps.rm.repository.property.entity.Property;
+import at.uibk.dps.rm.entity.model.Property;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.concurrent.CompletionStage;

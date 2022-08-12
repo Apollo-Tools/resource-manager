@@ -1,7 +1,7 @@
-package at.uibk.dps.rm.repository.resource;
+package at.uibk.dps.rm.repository;
 
 import at.uibk.dps.rm.repository.Repository;
-import at.uibk.dps.rm.repository.resource.entity.Resource;
+import at.uibk.dps.rm.entity.model.Resource;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.List;

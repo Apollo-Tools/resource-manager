@@ -1,7 +1,7 @@
-package at.uibk.dps.rm.repository.metric;
+package at.uibk.dps.rm.repository;
 
 import at.uibk.dps.rm.repository.Repository;
-import at.uibk.dps.rm.repository.metric.entity.MetricValue;
+import at.uibk.dps.rm.entity.model.MetricValue;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.List;

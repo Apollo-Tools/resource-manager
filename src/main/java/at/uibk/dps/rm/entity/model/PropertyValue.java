@@ -1,6 +1,4 @@
-package at.uibk.dps.rm.repository.property.entity;
-
-import at.uibk.dps.rm.repository.resource.entity.Resource;
+package at.uibk.dps.rm.entity.model;
 
 import javax.persistence.*;
 import java.math.BigDecimal;

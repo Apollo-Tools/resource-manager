@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.repository.property.entity;
+package at.uibk.dps.rm.entity.model;
 
 import javax.persistence.*;
 import java.sql.Timestamp;

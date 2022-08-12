@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.dto.slo;
+package at.uibk.dps.rm.entity.dto.slo;
 
 import java.util.Arrays;
 
