@@ -2,7 +2,6 @@ package at.uibk.dps.rm.handler.resource;
 
 import at.uibk.dps.rm.entity.dto.GetResourcesBySLOsRequest;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
-import at.uibk.dps.rm.entity.dto.slo.PropertyType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.entity.model.MetricValue;
@@ -10,8 +9,6 @@ import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.handler.*;
 import at.uibk.dps.rm.handler.metric.MetricChecker;
 import at.uibk.dps.rm.handler.metric.MetricValueChecker;
-import at.uibk.dps.rm.handler.property.PropertyChecker;
-import at.uibk.dps.rm.service.rxjava3.database.property.PropertyService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
@@ -26,7 +23,6 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class ResourceHandler extends ValidationHandler {
@@ -35,17 +31,14 @@ public class ResourceHandler extends ValidationHandler {
 
     private final MetricChecker metricChecker;
 
-    private final PropertyChecker propertyChecker;
-
     private final MetricValueChecker metricValueChecker;
 
     public ResourceHandler(ResourceService resourceService, ResourceTypeService resourceTypeService,
-                           MetricService metricService, MetricValueService metricValueService, PropertyService propertyService) {
+                           MetricService metricService, MetricValueService metricValueService) {
         super(new ResourceChecker(resourceService));
         resourceTypeChecker = new ResourceTypeChecker(resourceTypeService);
         metricChecker = new MetricChecker(metricService);
         metricValueChecker = new MetricValueChecker(metricValueService);
-        propertyChecker = new PropertyChecker(propertyService);
     }
 
     @Override
@@ -73,13 +66,8 @@ public class ResourceHandler extends ValidationHandler {
                 .mapTo(GetResourcesBySLOsRequest.class);
         List<ServiceLevelObjective> serviceLevelObjectives = requestDTO.getServiceLevelObjectives();
         List<Completable> completables = new ArrayList<>();
-        requestDTO.getServiceLevelObjectives().forEach(slo -> {
-            if (slo.getPropertyType() == PropertyType.METRIC) {
-                completables.add(metricChecker.checkExistsOne(slo.getName()));
-            } else {
-                completables.add(propertyChecker.checkExistsOne(slo.getName()));
-            }
-        });
+        requestDTO.getServiceLevelObjectives().forEach(slo ->
+                completables.add(metricChecker.checkExistsOne(slo.getName())));
         //noinspection unchecked
         return Completable.merge(completables)
                 .andThen(Observable.fromStream(serviceLevelObjectives.stream())
@@ -108,6 +96,7 @@ public class ResourceHandler extends ValidationHandler {
                                         Metric metric = metricValue.getMetric();
                                         if (metric.getMetric().equals(slo.getName())) {
                                             // TODO: add support for multiple values (instead of using the first one)
+                                            // TODO: add support for data types other than number
                                             int compareValue = ExpressionType.compareValues(slo.getExpression(),
                                                     slo.getValue().get(0).getNumberValue().doubleValue(),
                                                     metricValue.getValue().doubleValue());
@@ -126,6 +115,7 @@ public class ResourceHandler extends ValidationHandler {
                                 return true;
                             })
                             .sorted((r1, r2) -> {
+                                // TODO: transform outer loop into for each
                                 for (int i = 0; i < serviceLevelObjectives.size(); i++) {
                                     ServiceLevelObjective slo = serviceLevelObjectives.get(i);
                                     for (MetricValue metricValue1 : r1.getMetricValues()) {

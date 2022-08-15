@@ -1,5 +1,9 @@
 package at.uibk.dps.rm.entity.model;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonSetter;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 
@@ -10,6 +14,8 @@ public class Metric {
     private Long metricId;
 
     private String metric;
+
+    private Boolean isMonitored;
 
     private String description;
 
@@ -30,6 +36,16 @@ public class Metric {
 
     public void setMetric(String metric) {
         this.metric = metric;
+    }
+
+    @JsonGetter("is_monitored")
+    public Boolean getMonitored() {
+        return isMonitored;
+    }
+
+    @JsonSetter("is_monitored")
+    public void setMonitored(Boolean monitored) {
+        isMonitored = monitored;
     }
 
     public String getDescription() {

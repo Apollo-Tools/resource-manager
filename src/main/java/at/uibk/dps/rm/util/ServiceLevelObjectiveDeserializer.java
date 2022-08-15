@@ -30,13 +30,12 @@ public class ServiceLevelObjectiveDeserializer extends StdDeserializer<ServiceLe
         ExpressionType expressionType = ExpressionType.fromString(node.get("expression").asText());
         List<JsonNode> values = StreamSupport.stream(node.get("value").spliterator(), false)
                 .collect(Collectors.toList());
-        PropertyType propertyType = PropertyType.valueOf(node.get("type").asText().toUpperCase());
         List<SLOValue> sloValues = new ArrayList<>();
         for (JsonNode value : values) {
             sloValues.add(deserializeSLOValue(value));
         }
 
-        return new ServiceLevelObjective(name, expressionType, sloValues, propertyType);
+        return new ServiceLevelObjective(name, expressionType, sloValues);
     }
 
     private SLOValue deserializeSLOValue(JsonNode value) {

@@ -1,6 +1,5 @@
 package at.uibk.dps.rm.handler.resource;
 
-import at.uibk.dps.rm.entity.dto.slo.PropertyType;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -23,7 +22,6 @@ public class ResourceInputHandler {
         JsonArray serviceLevelObjectives = requestBody.getJsonArray("slo");
         checkJsonArrayDuplicates(serviceLevelObjectives, "name")
             .andThen(checkExpressionIsValid(serviceLevelObjectives))
-            .andThen(checkPropertyTypeIsValid(serviceLevelObjectives))
             .subscribe(rc::next, throwable -> rc.fail(400, throwable))
             .dispose();
     }
@@ -59,18 +57,5 @@ public class ResourceInputHandler {
                 return Optional.empty();
             })
             .ignoreElement();
-    }
-
-    private static Completable checkPropertyTypeIsValid(JsonArray slos) {
-        return Maybe.just(slos)
-                .mapOptional(items -> {
-                    for (int i = 0; i < items.size(); i++) {
-                        if (!PropertyType.propertyTypeExists(items.getJsonObject(i).getString("type"))) {
-                            throw new Throwable("property type is not supported");
-                        }
-                    }
-                    return Optional.empty();
-                })
-                .ignoreElement();
     }
 }

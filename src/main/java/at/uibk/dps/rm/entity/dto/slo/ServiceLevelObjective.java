@@ -13,13 +13,10 @@ public class ServiceLevelObjective {
 
     private List<SLOValue> value;
 
-    private PropertyType propertyType;
-
-    public ServiceLevelObjective(String name, ExpressionType expression, List<SLOValue> value, PropertyType propertyType) {
+    public ServiceLevelObjective(String name, ExpressionType expression, List<SLOValue> value) {
         this.name = name;
         this.expression = expression;
         this.value = value;
-        this.propertyType = propertyType;
     }
 
     public String getName() {
@@ -46,11 +43,4 @@ public class ServiceLevelObjective {
         this.value = value;
     }
 
-    public PropertyType getPropertyType() {
-        return propertyType;
-    }
-
-    public void setPropertyType(PropertyType propertyType) {
-        this.propertyType = propertyType;
-    }
 }
