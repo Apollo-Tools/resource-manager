@@ -15,9 +15,13 @@ public class MetricValue {
     @Column(nullable = false)
     private Long count = 0L;
 
-    @Column(precision = 20, scale = 10, nullable = false)
+    @Column(precision = 20, scale = 10)
     @Type(type = "big_decimal")
-    private BigDecimal value = new BigDecimal("0.0");
+    private BigDecimal valueNumber;
+
+    private String valueString;
+
+    private Boolean valueBool;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resource_id")
@@ -49,12 +53,32 @@ public class MetricValue {
         this.count = count;
     }
 
-    public BigDecimal getValue() {
-        return value;
+    public BigDecimal getValueNumber() {
+        return valueNumber;
     }
 
-    public void setValue(double value) {
-        this.value = BigDecimal.valueOf(value);
+    public void setValueNumber(double value) {
+        this.valueNumber = BigDecimal.valueOf(value);
+    }
+
+    public void setValueNumber(BigDecimal valueNumber) {
+        this.valueNumber = valueNumber;
+    }
+
+    public String getValueString() {
+        return valueString;
+    }
+
+    public void setValueString(String valueString) {
+        this.valueString = valueString;
+    }
+
+    public Boolean getValueBool() {
+        return valueBool;
+    }
+
+    public void setValueBool(Boolean valueBool) {
+        this.valueBool = valueBool;
     }
 
     public Resource getResource() {

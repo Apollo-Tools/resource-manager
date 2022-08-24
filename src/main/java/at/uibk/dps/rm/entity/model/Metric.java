@@ -19,6 +19,10 @@ public class Metric {
 
     private String description;
 
+    @ManyToOne
+    @JoinColumn(name="metric_type_id", nullable = false)
+    private MetricType metricType;
+
     @Column(insertable = false, updatable = false)
     private Timestamp createdAt;
 
@@ -54,6 +58,14 @@ public class Metric {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public MetricType getMetricType() {
+        return metricType;
+    }
+
+    public void setMetricType(MetricType metricType) {
+        this.metricType = metricType;
     }
 
     public Timestamp getCreatedAt() {

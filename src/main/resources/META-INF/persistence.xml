@@ -8,6 +8,7 @@
         <class>at.uibk.dps.rm.entity.model.MetricValue</class>
         <class>at.uibk.dps.rm.entity.model.Resource</class>
         <class>at.uibk.dps.rm.entity.model.ResourceType</class>
+        <class>at.uibk.dps.rm.entity.model.MetricType</class>
 
         <properties>
             <!-- The Vert.x SQL Client connection pool size -->
