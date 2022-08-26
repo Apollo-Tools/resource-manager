@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler;
 
 import at.uibk.dps.rm.exception.AlreadyExistsException;
+import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UsedByOtherEntityException;
 import io.reactivex.rxjava3.core.Completable;
@@ -59,6 +60,8 @@ public class ResultHandler {
         }  else if (throwable instanceof AlreadyExistsException ||
             throwable instanceof UsedByOtherEntityException) {
             statusCode = 409;
+        } else if (throwable instanceof BadInputException) {
+            statusCode = 400;
         }
         rc.fail(statusCode, throwable);
     }

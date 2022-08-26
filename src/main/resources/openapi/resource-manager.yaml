@@ -199,6 +199,14 @@ paths:
                     type: integer
                     format: int64
                     example: 1
+                  value:
+                    oneOf:
+                      - type: number
+                        example: 4
+                      - type: string
+                        example: "ubuntu"
+                      - type: boolean
+                        example: true
       responses:
         204:
           description: Successfully added metrics to existing resource
@@ -545,6 +553,7 @@ paths:
                 - metric
                 - description
                 - is_monitored
+                - metric_type
               additionalProperties: false
               properties:
                 metric:
@@ -560,6 +569,11 @@ paths:
                   minLength: 1
                   maxLength: 512
                   example: the availability of a resource
+                metric_type:
+                  type: integer
+                  format: int64
+                  example: 1
+
       responses:
         201:
           description: Successful creation of a new metric
@@ -621,6 +635,16 @@ components:
         is_monitored:
           type: boolean
           example: false
+        metricType:
+          type: object
+          properties:
+            metric_type_id:
+              type: integer
+              format: int64
+              example: 1
+            type:
+              type: string
+              example: number
         description:
           type: string
           example: the availability of a resource

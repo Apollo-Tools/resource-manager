@@ -99,7 +99,7 @@ public class ResourceHandler extends ValidationHandler {
                                             // TODO: add support for data types other than number
                                             int compareValue = ExpressionType.compareValues(slo.getExpression(),
                                                     slo.getValue().get(0).getNumberValue().doubleValue(),
-                                                    metricValue.getValue().doubleValue());
+                                                    metricValue.getValueNumber().doubleValue());
                                             boolean isEqualityCheck = slo.getExpression()
                                                     .equals(ExpressionType.EQ);
                                             if (compareValue == 0 && !isEqualityCheck) {
@@ -126,8 +126,8 @@ public class ResourceHandler extends ValidationHandler {
                                                 if (metric2.getMetric().equals(slo.getName())) {
                                                     // TODO: change json to snake case
                                                     int compareValue = ExpressionType.compareValues(slo.getExpression(),
-                                                            metricValue1.getValue().doubleValue(),
-                                                            metricValue2.getValue().doubleValue());
+                                                            metricValue1.getValueNumber().doubleValue(),
+                                                            metricValue2.getValueNumber().doubleValue());
                                                     if (compareValue != 0 || i == serviceLevelObjectives.size() - 1) {
                                                         return compareValue;
                                                     }

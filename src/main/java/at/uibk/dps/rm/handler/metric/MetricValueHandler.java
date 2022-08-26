@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.handler.metric;
 
+import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.handler.resource.ResourceChecker;
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.entity.model.Metric;
@@ -85,10 +86,48 @@ public class MetricValueHandler extends ValidationHandler {
             metricValue.setResource(resource);
             metricValue.setMetric(metric);
             metricValues.add(metricValue);
+            completables.add(checkAddMetricValueSetCorrectly(jsonMetric, metricId, metricValue));
             completables.add(metricChecker.checkExistsOne(metricId));
             completables.add(metricValueChecker.checkForDuplicateByResourceAndMetric(resourceId, metricId));
         });
         return completables;
+    }
+
+    private Completable checkAddMetricValueSetCorrectly(JsonObject jsonEntry, long metricId, MetricValue metricValue) {
+        return metricChecker.checkFindOne(metricId)
+                .map(result -> {
+                    Metric metric = result.mapTo(Metric.class);
+                    Object value = jsonEntry.getValue("value");
+                    if (hasNoMetricValue(metric, value)) {
+                        return result;
+                    } else if (stringMetricHasStringValue(metric, value)) {
+                        metricValue.setValueString((String) value);
+                    } else if (numberMetricHasStringValue(metric, value)) {
+                        metricValue.setValueNumber(jsonEntry.getNumber("value").doubleValue());
+                    } else if (boolMetricHasStringValue(metric, value)) {
+                        metricValue.setValueBool((Boolean) value);
+                    } else {
+                        throw new BadInputException();
+                    }
+                    return result;
+                })
+                .ignoreElement();
+    }
+
+    private boolean hasNoMetricValue(Metric metric, Object value) {
+        return metric.getMonitored() && value == null;
+    }
+
+    private boolean stringMetricHasStringValue(Metric metric, Object value) {
+        return value instanceof String && metric.getMetricType().getType().equals("string");
+    }
+
+    private boolean numberMetricHasStringValue(Metric metric, Object value) {
+        return value instanceof Number && metric.getMetricType().getType().equals("number");
+    }
+
+    private boolean boolMetricHasStringValue(Metric metric, Object value) {
+        return value instanceof Boolean && metric.getMetricType().getType().equals("bool");
     }
 
     private Completable checkDeleteMetricValueExists(long resourceId, long metricId) {

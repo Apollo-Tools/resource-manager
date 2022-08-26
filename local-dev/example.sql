@@ -4,7 +4,7 @@ VALUES ('number');
 INSERT INTO metric_type (type)
 VALUES ('string');
 INSERT INTO metric_type (type)
-VALUES ('bool');
+VALUES ('boolean');
 
 -- metric
 -- monitored metrics

@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.entity.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -15,6 +16,7 @@ public class MetricValue {
     @Column(nullable = false)
     private Long count = 0L;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @Column(precision = 20, scale = 10)
     @Type(type = "big_decimal")
     private BigDecimal valueNumber;
