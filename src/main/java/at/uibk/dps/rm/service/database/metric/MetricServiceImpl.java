@@ -7,7 +7,7 @@ import io.vertx.core.Future;
 
 import java.util.Objects;
 
-public class MetricServiceImpl extends ServiceProxy<Metric> implements MetricService{
+public class MetricServiceImpl extends ServiceProxy<Metric> implements MetricService {
 
     private final MetricRepository metricRepository;
 

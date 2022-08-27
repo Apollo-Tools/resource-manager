@@ -7,7 +7,8 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 public class MetricRoute {
     public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
-        MetricHandler metricHandler = new MetricHandler(serviceProxyProvider.getMetricService());
+        MetricHandler metricHandler = new MetricHandler(serviceProxyProvider.getMetricService(),
+                serviceProxyProvider.getMetricTypeService());
         RequestHandler requestHandler = new RequestHandler(metricHandler);
 
         router

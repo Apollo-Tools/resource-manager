@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service;
 
+import at.uibk.dps.rm.service.rxjava3.database.metric.MetricTypeService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
@@ -12,11 +13,14 @@ public class ServiceProxyProvider {
     private final MetricService metricService;
     private final MetricValueService metricValueService;
 
+    private final MetricTypeService metricTypeService;
+
     public ServiceProxyProvider(Vertx vertx) {
         resourceService = ResourceService.createProxy(vertx,"resource-service-address");
         resourceTypeService = ResourceTypeService.createProxy(vertx,"resource-type-service-address");
         metricService = MetricService.createProxy(vertx,"metric-service-address");
         metricValueService = MetricValueService.createProxy(vertx,"metric-value-service-address");
+        metricTypeService = MetricTypeService.createProxy(vertx, "metric-type-service-address");
     }
 
     public ResourceService getResourceService() {
@@ -33,5 +37,9 @@ public class ServiceProxyProvider {
 
     public MetricValueService getMetricValueService() {
         return metricValueService;
+    }
+
+    public MetricTypeService getMetricTypeService() {
+        return metricTypeService;
     }
 }

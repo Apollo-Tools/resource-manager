@@ -620,9 +620,15 @@ paths:
                   maxLength: 512
                   example: the availability of a resource
                 metric_type:
-                  type: integer
-                  format: int64
-                  example: 1
+                  type: object
+                  required:
+                    - metric_type_id
+                  additionalProperties: false
+                  properties:
+                    metric_type_id:
+                      type: integer
+                      format: int64
+                      example: 1
 
       responses:
         201:
