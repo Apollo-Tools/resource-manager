@@ -20,7 +20,8 @@ public class MetricHandler extends ValidationHandler {
     protected Single<JsonObject> postOne(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
         return entityChecker.checkForDuplicateEntity(requestBody)
-                .andThen(metricTypeChecker.checkExistsOne(requestBody.getJsonObject("metric_type").getLong("metric_type_id")))
-                .andThen(entityChecker.submitCreate(requestBody));
+            .andThen(metricTypeChecker.checkExistsOne(requestBody.getJsonObject("metric_type").getLong("metric_type_id")))
+            .andThen(Single.defer(() -> Single.just(1L)))
+            .flatMap(result -> entityChecker.submitCreate(requestBody));
     }
 }

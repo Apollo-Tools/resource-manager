@@ -45,9 +45,10 @@ public class ResourceHandler extends ValidationHandler {
     public Single<JsonObject> postOne(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
         return resourceTypeChecker.checkExistsOne(requestBody
-                                                            .getJsonObject("resource_type")
-                                                            .getLong("type_id"))
-            .andThen(entityChecker.submitCreate(requestBody));
+                .getJsonObject("resource_type")
+                .getLong("type_id"))
+            .andThen(Single.defer(() -> Single.just(1L)))
+            .flatMap(result -> entityChecker.submitCreate(requestBody));
     }
 
     @Override
