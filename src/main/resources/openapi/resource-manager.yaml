@@ -327,7 +327,6 @@ paths:
                       - name
                       - expression
                       - value
-                      - type
                     additionalProperties: false
                     properties:
                       name:
@@ -345,10 +344,6 @@ paths:
                           - $ref: '#/components/schemas/stringValues'
                           - $ref: '#/components/schemas/numberValues'
                           - $ref: '#/components/schemas/boolValues'
-                      type:
-                        type: string
-                        minLength: 1
-                        example: "metric"
                 limit:
                   type: number
                   minimum: 1

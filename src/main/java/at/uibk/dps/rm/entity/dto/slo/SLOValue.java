@@ -3,11 +3,11 @@ package at.uibk.dps.rm.entity.dto.slo;
 public class SLOValue {
     private SLOValueType sloValueType;
 
-    private Number numberValue;
+    private Number valueNumber;
 
-    private String stringValue;
+    private String valuerString;
 
-    private boolean booleanValue;
+    private boolean valueBool;
 
     public SLOValue() {
     }
@@ -20,27 +20,27 @@ public class SLOValue {
         this.sloValueType = sloValueType;
     }
 
-    public Number getNumberValue() {
-        return numberValue;
+    public Number getValueNumber() {
+        return valueNumber;
     }
 
-    public void setNumberValue(Number numberValue) {
-        this.numberValue = numberValue;
+    public void setValueNumber(Number valueNumber) {
+        this.valueNumber = valueNumber;
     }
 
-    public String getStringValue() {
-        return stringValue;
+    public String getValuerString() {
+        return valuerString;
     }
 
-    public void setStringValue(String stringValue) {
-        this.stringValue = stringValue;
+    public void setValuerString(String valuerString) {
+        this.valuerString = valuerString;
     }
 
-    public boolean isBooleanValue() {
-        return booleanValue;
+    public boolean getValueBool() {
+        return valueBool;
     }
 
-    public void setBooleanValue(boolean booleanValue) {
-        this.booleanValue = booleanValue;
+    public void setValueBool(boolean valueBool) {
+        this.valueBool = valueBool;
     }
 }

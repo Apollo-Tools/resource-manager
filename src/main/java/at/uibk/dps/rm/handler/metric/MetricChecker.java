@@ -31,8 +31,8 @@ public class MetricChecker extends EntityChecker {
         return Single.just(entity);
     }
 
-    public Completable checkExistsOne(String metric) {
-        Single<Boolean> existsOneByMetric = metricService.existsOneByMetric(metric);
-        return ErrorHandler.handleExistsOne(existsOneByMetric).ignoreElement();
+    public Single<JsonObject> checkFindOneByMetric(String metric) {
+        Single<JsonObject> findOneByMetric = metricService.findOneByMetric(metric);
+        return ErrorHandler.handleFindOne(findOneByMetric);
     }
 }

@@ -42,13 +42,13 @@ public class ServiceLevelObjectiveDeserializer extends StdDeserializer<ServiceLe
         SLOValue sloValue = new SLOValue();
         if (value.isNumber()) {
             sloValue.setSloValueType(SLOValueType.NUMBER);
-            sloValue.setNumberValue(value.numberValue());
+            sloValue.setValueNumber(value.numberValue());
         } else if (value.isTextual()) {
             sloValue.setSloValueType(SLOValueType.STRING);
-            sloValue.setStringValue(value.textValue());
+            sloValue.setValuerString(value.textValue());
         } else {
             sloValue.setSloValueType(SLOValueType.BOOLEAN);
-            sloValue.setBooleanValue(value.booleanValue());
+            sloValue.setValueBool(value.booleanValue());
         }
         return sloValue;
     }

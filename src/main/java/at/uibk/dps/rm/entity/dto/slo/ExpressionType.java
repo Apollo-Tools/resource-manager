@@ -46,4 +46,18 @@ public enum ExpressionType {
                 return 0;
         }
     }
+
+    public static int compareValues(ExpressionType expressionType, String v1, String v2) {
+        if (expressionType == ExpressionType.EQ) {
+            return v1.compareTo(v2);
+        }
+        return 0;
+    }
+
+    public static int compareValues(ExpressionType expressionType, Boolean v1, Boolean v2) {
+        if (expressionType == ExpressionType.EQ) {
+            return v1.compareTo(v2);
+        }
+        return 0;
+    }
 }
