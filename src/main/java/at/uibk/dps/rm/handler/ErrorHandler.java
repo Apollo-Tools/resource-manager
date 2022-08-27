@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler;
 
 import at.uibk.dps.rm.exception.AlreadyExistsException;
+import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UsedByOtherEntityException;
 import io.reactivex.rxjava3.core.Single;
@@ -46,5 +47,15 @@ public class ErrorHandler {
                 }
                 return false;
             });
+    }
+
+    public static Single<Boolean> handleBadInput(Single<Boolean> handler) {
+        return handler
+                .map(result -> {
+                    if (!result) {
+                        throw new BadInputException();
+                    }
+                    return true;
+                });
     }
 }

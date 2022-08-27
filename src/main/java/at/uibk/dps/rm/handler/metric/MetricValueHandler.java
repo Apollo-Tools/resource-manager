@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler.metric;
 
 import at.uibk.dps.rm.exception.BadInputException;
+import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.handler.resource.ResourceChecker;
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.entity.model.Metric;
@@ -56,13 +57,38 @@ public class MetricValueHandler extends ValidationHandler {
     }
 
     @Override
+    public Completable updateOne(RoutingContext rc) {
+        JsonObject requestBody = rc.body().asJsonObject();
+        return HttpHelper.getLongPathParam(rc, "resourceId")
+                .flatMap(resourceId -> HttpHelper.getLongPathParam(rc, "metricId")
+                .map(metricId -> Map.of("resourceId", resourceId, "metricId", metricId))
+                .flatMap(ids -> checkUpdateDeleteMetricValueExists(ids.get("resourceId"), ids.get("metricId"))
+                    .andThen(checkUpdateMetricValueSetCorrectly(requestBody,  ids.get("metricId")))
+                    .andThen(Single.just(ids))
+                ))
+                .flatMapCompletable(ids -> {
+                    Object value = requestBody.getValue("value");
+                    long resourceId = ids.get("resourceId");
+                    long metricId = ids.get("metricId");
+                    if (value instanceof String) {
+                        return metricValueChecker.submitUpdateMetricValue(resourceId, metricId, (String) value);
+                    } else if (value instanceof Number) {
+                        return metricValueChecker.submitUpdateMetricValue(resourceId, metricId, ((Number) value).doubleValue());
+                    } else if (value instanceof Boolean) {
+                        return metricValueChecker.submitUpdateMetricValue(resourceId, metricId, (Boolean) value);
+                    }
+                    return Completable.error(new BadInputException());
+                });
+    }
+
+    @Override
     public Completable deleteOne(RoutingContext rc) {
         return HttpHelper.getLongPathParam(rc, "resourceId")
             .flatMap(resourceId -> HttpHelper.getLongPathParam(rc, "metricId")
                 .map(metricId -> Map.of("resourceId", resourceId, "metricId", metricId))
-                .flatMap(ids -> checkDeleteMetricValueExists(ids.get("resourceId"), ids.get("metricId"))
-                    .andThen(Single.just(ids))
-                ))
+                .flatMap(ids -> checkUpdateDeleteMetricValueExists(ids.get("resourceId"), ids.get("metricId"))
+                .andThen(Single.just(ids))
+            ))
             .flatMapCompletable(ids -> metricValueChecker.submitDeleteMetricValue(ids.get("resourceId"), ids.get("metricId")));
     }
 
@@ -94,24 +120,34 @@ public class MetricValueHandler extends ValidationHandler {
     }
 
     private Completable checkAddMetricValueSetCorrectly(JsonObject jsonEntry, long metricId, MetricValue metricValue) {
-        return metricChecker.checkFindOne(metricId)
+        Single<Boolean> checkMetricValue = metricChecker.checkFindOne(metricId)
                 .map(result -> {
                     Metric metric = result.mapTo(Metric.class);
                     Object value = jsonEntry.getValue("value");
-                    if (hasNoMetricValue(metric, value)) {
-                        return result;
-                    } else if (stringMetricHasStringValue(metric, value)) {
+                    boolean valueHasCorrectType = true;
+                    if (stringMetricHasStringValue(metric, value)) {
                         metricValue.setValueString((String) value);
                     } else if (numberMetricHasStringValue(metric, value)) {
                         metricValue.setValueNumber(jsonEntry.getNumber("value").doubleValue());
                     } else if (boolMetricHasStringValue(metric, value)) {
                         metricValue.setValueBool((Boolean) value);
                     } else {
-                        throw new BadInputException();
+                        valueHasCorrectType = false;
                     }
-                    return result;
-                })
-                .ignoreElement();
+                    return valueHasCorrectType;
+                });
+        return ErrorHandler.handleBadInput(checkMetricValue).ignoreElement();
+    }
+
+    private Completable checkUpdateMetricValueSetCorrectly(JsonObject jsonEntry, long metricId) {
+        Single<Boolean> checkMetricValue = metricChecker.checkFindOne(metricId)
+                .map(result -> {
+                    Metric metric = result.mapTo(Metric.class);
+                    Object value = jsonEntry.getValue("value");
+                    return hasNoMetricValue(metric, value) || stringMetricHasStringValue(metric, value) ||
+                            numberMetricHasStringValue(metric, value) || boolMetricHasStringValue(metric, value);
+                });
+        return ErrorHandler.handleBadInput(checkMetricValue).ignoreElement();
     }
 
     private boolean hasNoMetricValue(Metric metric, Object value) {
@@ -130,7 +166,7 @@ public class MetricValueHandler extends ValidationHandler {
         return value instanceof Boolean && metric.getMetricType().getType().equals("bool");
     }
 
-    private Completable checkDeleteMetricValueExists(long resourceId, long metricId) {
+    private Completable checkUpdateDeleteMetricValueExists(long resourceId, long metricId) {
         return Completable.mergeArray(
             resourceChecker.checkExistsOne(resourceId),
             metricChecker.checkExistsOne(metricId),

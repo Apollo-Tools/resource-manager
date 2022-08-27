@@ -8,6 +8,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 @ProxyGen
 @VertxGen
@@ -24,7 +25,12 @@ public interface MetricValueService extends ServiceInterface {
 
     Future<JsonArray> findAllByResource(long resourceId);
 
+    Future<JsonObject> findOneByResourceAndMetric(long resourceId, long metricId);
+
     Future<Boolean> existsOneByResourceAndMetric(long resourceId, long metricId);
+
+    Future<Void> updateByResourceAndMetric(long resourceId, long metricId, String valueString, Double valueNumber,
+                                           Boolean valueBool);
 
     Future<Void> deleteByResourceAndMetric(long resourceId, long metricId);
 }

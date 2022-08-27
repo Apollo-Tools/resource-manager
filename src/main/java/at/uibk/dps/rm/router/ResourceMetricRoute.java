@@ -23,6 +23,10 @@ public class ResourceMetricRoute {
             .handler(metricValueRequestHandler::getAllRequest);
 
         router
+            .operation("updateMetricValue")
+            .handler(metricValueRequestHandler::patchRequest);
+
+        router
             .operation("deleteResourceMetric")
             .handler(metricValueRequestHandler::deleteRequest);
     }

@@ -58,10 +58,31 @@ public class MetricValueServiceImpl extends ServiceProxy<MetricValue> implements
     }
 
     @Override
+    public Future<JsonObject> findOneByResourceAndMetric(long resourceId, long metricId) {
+        return Future
+            .fromCompletionStage(metricValueRepository.findByResourceAndMetric(resourceId, metricId))
+            .map(result -> {
+                if (result != null) {
+                    result.setResource(null);
+                }
+                return JsonObject.mapFrom(result);
+            });
+    }
+
+    @Override
     public Future<Boolean> existsOneByResourceAndMetric(long resourceId, long metricId) {
         return Future
             .fromCompletionStage(metricValueRepository.findByResourceAndMetric(resourceId, metricId))
             .map(Objects::nonNull);
+    }
+
+    @Override
+    public Future<Void> updateByResourceAndMetric(long resourceId, long metricId, String valueString, Double valueNumber,
+                                                  Boolean valueBool) {
+        return Future
+                .fromCompletionStage(metricValueRepository.updateByResourceAndMetric(resourceId, metricId, valueString,
+                        valueNumber, valueBool))
+                .mapEmpty();
     }
 
     @Override

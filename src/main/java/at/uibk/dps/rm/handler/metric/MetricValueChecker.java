@@ -20,6 +20,18 @@ public class MetricValueChecker extends EntityChecker {
         return metricValueService.findAllByResource(id);
     }
 
+    public Completable submitUpdateMetricValue(long resourceId, long metricId, String value) {
+        return metricValueService.updateByResourceAndMetric(resourceId, metricId, value, null, null);
+    }
+
+    public Completable submitUpdateMetricValue(long resourceId, long metricId, Double value) {
+        return metricValueService.updateByResourceAndMetric(resourceId, metricId, null, value, null);
+    }
+
+    public Completable submitUpdateMetricValue(long resourceId, long metricId, Boolean value) {
+        return metricValueService.updateByResourceAndMetric(resourceId, metricId, null, null, value);
+    }
+
     public Completable submitDeleteMetricValue(long resourceId, long metricId) {
         return metricValueService.deleteByResourceAndMetric(resourceId, metricId);
     }
