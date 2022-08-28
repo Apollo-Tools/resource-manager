@@ -57,7 +57,7 @@ paths:
                       type: integer
                       format: int64
                       example: 1
-                is_deployed:
+                is_self_managed:
                   type: boolean
                   example: false
       responses:
@@ -132,7 +132,7 @@ paths:
                       type: integer
                       format: int64
                       example: 1
-                is_deployed:
+                is_self_managed:
                   type: boolean
                   example: false
       responses:
@@ -351,6 +351,49 @@ paths:
       responses:
         200:
           description: Successful retrieval of resources conforming to the given service level objectives
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Resource"
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /resources/reserve:
+    post:
+      description: Reserves resources and deploys undeployed ones if wanted
+      operationId: reserveResources
+      tags:
+        - reserveResources
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - resources
+                - deployResources
+              additionalProperties: false
+              properties:
+                resources:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: integer
+                    format: int64
+                    example: 1
+                deployResources:
+                  type: boolean
+                  example: true
+      responses:
+        200:
+          description: Successful reservation and deployment of resources
           content:
             application/json:
               schema:
@@ -650,6 +693,9 @@ components:
           example: 1
         resource_type:
           $ref: "#/components/schemas/ResourceType"
+        is_self_managed:
+          type: boolean
+          example: true
         created_at:
           type: string
           format: date-time

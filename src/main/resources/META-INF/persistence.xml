@@ -9,6 +9,8 @@
         <class>at.uibk.dps.rm.entity.model.Resource</class>
         <class>at.uibk.dps.rm.entity.model.ResourceType</class>
         <class>at.uibk.dps.rm.entity.model.MetricType</class>
+        <class>at.uibk.dps.rm.entity.model.Reservation</class>
+        <class>at.uibk.dps.rm.entity.model.ResourceReservation</class>
 
         <properties>
             <!-- The Vert.x SQL Client connection pool size -->

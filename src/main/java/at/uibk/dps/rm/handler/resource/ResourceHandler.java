@@ -62,6 +62,7 @@ public class ResourceHandler extends ValidationHandler {
             .flatMapCompletable(result -> entityChecker.submitUpdate(requestBody, result));
     }
 
+    // remove reserved resources
     protected Single<JsonArray> getResourceBySLOs(RoutingContext rc) {
         ResourceChecker resourceChecker = (ResourceChecker) super.entityChecker;
         GetResourcesBySLOsRequest requestDTO = rc.body()
@@ -105,8 +106,6 @@ public class ResourceHandler extends ValidationHandler {
                                     for (MetricValue metricValue : resource.getMetricValues()) {
                                         Metric metric = metricValue.getMetric();
                                         if (metric.getMetric().equals(slo.getName())) {
-                                            // TODO: add support for multiple values (instead of using the first one)
-                                            // TODO: add support for data types other than number
                                             if (!SLOCompareUtility.compareMetricValueWithSLO(metricValue, slo)) {
                                                 return false;
                                             }

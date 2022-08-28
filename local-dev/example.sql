@@ -34,14 +34,14 @@ VALUES ('iot');
 
 -- resource
 -- faas
-INSERT INTO resource (resource_type, is_deployed, is_reserved)
-VALUES (1, false, false);
+INSERT INTO resource (resource_type, is_self_managed)
+VALUES (1, false);
 -- edge
-INSERT INTO resource(resource_type, is_deployed, is_reserved)
-VALUES (2, true, false);
+INSERT INTO resource(resource_type, is_self_managed)
+VALUES (2, true);
 -- vm
-INSERT INTO resource(resource_type, is_deployed, is_reserved)
-VALUES (3, false, false);
+INSERT INTO resource(resource_type, is_self_managed)
+VALUES (3, false);
 
 
 -- metric_value

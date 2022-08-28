@@ -14,11 +14,8 @@ public class Resource {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long resourceId;
 
-    @JsonAlias("is_deployed")
-    private Boolean isDeployed = false;
-
-    @JsonAlias("is_reserved")
-    private Boolean isReserved = false;
+    @JsonAlias("is_self_managed")
+    private Boolean isSelfManaged = false;
 
     @Column(insertable = false, updatable = false)
     private Timestamp createdAt;
@@ -41,24 +38,14 @@ public class Resource {
         this.resourceId = resourceId;
     }
 
-    @JsonGetter("is_deployed")
-    public Boolean getDeployed() {
-        return isDeployed;
+    @JsonGetter("is_self_managed")
+    public Boolean getSelfManaged() {
+        return isSelfManaged;
     }
 
-    @JsonSetter("is_deployed")
-    public void setDeployed(Boolean deployed) {
-        isDeployed = deployed;
-    }
-
-    @JsonGetter("is_reserved")
-    public Boolean getReserved() {
-        return isReserved;
-    }
-
-    @JsonSetter("is_reserved")
-    public void setReserved(Boolean reserved) {
-        isReserved = reserved;
+    @JsonSetter("is_self_managed")
+    public void setSelfManaged(Boolean isSelfManaged) {
+        this.isSelfManaged = isSelfManaged;
     }
 
     public Timestamp getCreatedAt() {
