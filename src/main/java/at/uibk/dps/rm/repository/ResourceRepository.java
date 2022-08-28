@@ -1,13 +1,12 @@
 package at.uibk.dps.rm.repository;
 
-import at.uibk.dps.rm.repository.Repository;
 import at.uibk.dps.rm.entity.model.Resource;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 
-public class ResourceRepository  extends Repository<Resource> {
+public class ResourceRepository extends Repository<Resource> {
 
     public ResourceRepository(Stage.SessionFactory sessionFactory,
         Class<Resource> entityClass) {

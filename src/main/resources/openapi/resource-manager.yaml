@@ -364,7 +364,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /resources/reserve:
+  /reservation:
     post:
       description: Reserves resources and deploys undeployed ones if wanted
       operationId: reserveResources

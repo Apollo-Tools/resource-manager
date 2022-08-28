@@ -1,5 +1,7 @@
 package at.uibk.dps.rm.service;
 
+import at.uibk.dps.rm.service.rxjava3.database.reservation.ReservationService;
+import at.uibk.dps.rm.service.rxjava3.database.reservation.ResourceReservationService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricTypeService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
@@ -12,8 +14,9 @@ public class ServiceProxyProvider {
     private final ResourceTypeService resourceTypeService;
     private final MetricService metricService;
     private final MetricValueService metricValueService;
-
     private final MetricTypeService metricTypeService;
+    private final ReservationService reservationService;
+    private final ResourceReservationService resourceReservationService;
 
     public ServiceProxyProvider(Vertx vertx) {
         resourceService = ResourceService.createProxy(vertx,"resource-service-address");
@@ -21,6 +24,9 @@ public class ServiceProxyProvider {
         metricService = MetricService.createProxy(vertx,"metric-service-address");
         metricValueService = MetricValueService.createProxy(vertx,"metric-value-service-address");
         metricTypeService = MetricTypeService.createProxy(vertx, "metric-type-service-address");
+        reservationService = ReservationService.createProxy(vertx, "reservation-service-address");
+        resourceReservationService = ResourceReservationService
+                .createProxy(vertx, "resource-reservation-service-address");
     }
 
     public ResourceService getResourceService() {
@@ -41,5 +47,13 @@ public class ServiceProxyProvider {
 
     public MetricTypeService getMetricTypeService() {
         return metricTypeService;
+    }
+
+    public ReservationService getReservationService() {
+        return reservationService;
+    }
+
+    public ResourceReservationService getResourceReservationService() {
+        return resourceReservationService;
     }
 }

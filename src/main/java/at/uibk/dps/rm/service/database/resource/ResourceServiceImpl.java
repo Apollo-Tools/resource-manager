@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class ResourceServiceImpl extends ServiceProxy<Resource> implements ResourceService{
+public class ResourceServiceImpl extends ServiceProxy<Resource> implements ResourceService {
 
     private final ResourceRepository resourceRepository;
 

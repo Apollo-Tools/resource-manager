@@ -52,6 +52,7 @@ public class ApiVerticle extends AbstractVerticle {
         ResourceMetricRoute.init(routerBuilder, serviceProxyProvider);
         MetricRoute.init(routerBuilder, serviceProxyProvider);
         ResourceDeploymentRoute.init(routerBuilder, serviceProxyProvider);
+        ReservationRoute.init(routerBuilder, serviceProxyProvider);
     }
 
     private void setupFailureHandler(Router router) {

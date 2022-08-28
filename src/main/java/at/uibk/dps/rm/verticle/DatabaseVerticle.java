@@ -3,6 +3,10 @@ package at.uibk.dps.rm.verticle;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.repository.*;
 import at.uibk.dps.rm.service.database.metric.*;
+import at.uibk.dps.rm.service.database.reservation.ReservationService;
+import at.uibk.dps.rm.service.database.reservation.ReservationServiceImpl;
+import at.uibk.dps.rm.service.database.reservation.ResourceReservationService;
+import at.uibk.dps.rm.service.database.reservation.ResourceReservationServiceImpl;
 import at.uibk.dps.rm.service.database.resource.ResourceService;
 import at.uibk.dps.rm.service.database.resource.ResourceServiceImpl;
 import at.uibk.dps.rm.service.database.resource.ResourceTypeService;
@@ -27,8 +31,9 @@ public class DatabaseVerticle extends AbstractVerticle {
     private ResourceRepository resourceRepository;
     private MetricRepository metricRepository;
     private MetricValueRepository metricValueRepository;
-
     private MetricTypeRepository metricTypeRepository;
+    private ReservationRepository reservationRepository;
+    private ResourceReservationRepository resourceReservationRepository;
 
     @Override
     public Completable rxStart() {
@@ -63,6 +68,8 @@ public class DatabaseVerticle extends AbstractVerticle {
                 metricRepository = new MetricRepository(sessionFactory, Metric.class);
                 metricValueRepository = new MetricValueRepository(sessionFactory, MetricValue.class);
                 metricTypeRepository = new MetricTypeRepository(sessionFactory, MetricType.class);
+                reservationRepository = new ReservationRepository(sessionFactory, Reservation.class);
+                resourceReservationRepository = new ResourceReservationRepository(sessionFactory, ResourceReservation.class);
 
                 emitter.onComplete();
             }
@@ -101,6 +108,18 @@ public class DatabaseVerticle extends AbstractVerticle {
             new ServiceBinder(vertx.getDelegate())
                     .setAddress("metric-type-service-address")
                     .register(MetricTypeService.class, metricTypeService);
+
+            ReservationService reservationService =
+                    new ReservationServiceImpl(reservationRepository);
+            new ServiceBinder(vertx.getDelegate())
+                    .setAddress("reservation-service-address")
+                    .register(ReservationService.class, reservationService);
+
+            ResourceReservationService resourceReservationService =
+                    new ResourceReservationServiceImpl(resourceReservationRepository);
+            new ServiceBinder(vertx.getDelegate())
+                    .setAddress("resource-reservation-service-address")
+                    .register(ResourceReservationService.class, resourceReservationService);
             emitter.onComplete();
         });
         return Completable.fromMaybe(setupEventBus);
