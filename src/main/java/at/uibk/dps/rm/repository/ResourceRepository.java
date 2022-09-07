@@ -21,15 +21,6 @@ public class ResourceRepository extends Repository<Resource> {
             );
     }
 
-    @Deprecated
-    public CompletionStage<Resource> findByUrl(String url) {
-        // TODO: Remove
-        return this.sessionFactory.withSession(session ->
-            session.createQuery("from Resource r where r.id=1", entityClass)
-                .getSingleResultOrNull()
-        );
-    }
-
     public CompletionStage<List<Resource>> findAllAndFetch() {
         return sessionFactory.withSession(session ->
             session.createQuery("select distinct r from Resource r " +

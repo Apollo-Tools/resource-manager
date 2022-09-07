@@ -33,13 +33,6 @@ public class ResourceServiceImpl extends ServiceProxy<Resource> implements Resou
     }
 
     @Override
-    public Future<Boolean> existsOneByUrl(String url) {
-        return Future
-            .fromCompletionStage(resourceRepository.findByUrl(url))
-            .map(Objects::nonNull);
-    }
-
-    @Override
     public Future<Boolean> existsOneByResourceType(long typeId) {
         return Future
             .fromCompletionStage(resourceRepository.findByResourceType(typeId))
