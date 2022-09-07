@@ -47,6 +47,13 @@ public class ResourceServiceImpl extends ServiceProxy<Resource> implements Resou
     }
 
     @Override
+    public Future<Boolean> existsOneAndNotReserved(long id) {
+        return Future
+            .fromCompletionStage(resourceRepository.findByIdAndNotReserved(id))
+            .map(Objects::nonNull);
+    }
+
+    @Override
     public Future<JsonArray> findAll() {
         return Future
             .fromCompletionStage(resourceRepository.findAllAndFetch())

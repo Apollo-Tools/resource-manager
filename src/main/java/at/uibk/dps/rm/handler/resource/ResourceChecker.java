@@ -6,7 +6,6 @@ import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 
 import java.util.List;
 
@@ -26,5 +25,10 @@ public class ResourceChecker extends EntityChecker {
     public Completable checkExistsOneByResourceType(long resourceTypeId) {
         Single<Boolean> existsOneByResourceType = resourceService.existsOneByResourceType(resourceTypeId);
         return ErrorHandler.handleUsedByOtherEntity(existsOneByResourceType).ignoreElement();
+    }
+
+    public Completable checkExistsOneAndIsNotReserved(long resourceId) {
+        Single<Boolean> checkExistsOneAndIsNotReserved = resourceService.existsOneAndNotReserved(resourceId);
+        return ErrorHandler.handleExistsOne(checkExistsOneAndIsNotReserved).ignoreElement();
     }
 }

@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import javax.persistence.*;
 import java.sql.Timestamp;
 
+@Entity
 public class ResourceReservation {
 
     @Id
@@ -14,7 +15,7 @@ public class ResourceReservation {
     private Long resourceReservationId;
 
     @JsonAlias("is_deployed")
-    private Boolean isDeployed;
+    private Boolean isDeployed = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resource_id")

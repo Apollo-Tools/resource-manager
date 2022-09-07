@@ -15,6 +15,7 @@ public class Reservation {
     private Long reservationId;
 
     @JsonAlias("is_active")
+    @Column(name = "is_active")
     private Boolean isActive;
 
     @Column(insertable = false, updatable = false)

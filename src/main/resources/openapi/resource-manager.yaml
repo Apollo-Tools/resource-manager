@@ -378,7 +378,7 @@ paths:
               type: object
               required:
                 - resources
-                - deployResources
+                - deploy_resources
               additionalProperties: false
               properties:
                 resources:
@@ -388,7 +388,7 @@ paths:
                     type: integer
                     format: int64
                     example: 1
-                deployResources:
+                deploy_resources:
                   type: boolean
                   example: true
       responses:

@@ -28,4 +28,6 @@ public interface ResourceService extends ServiceInterface {
     Future<Boolean> existsOneByUrl(String url);
 
     Future<Boolean> existsOneByResourceType(long typeId);
+
+    Future<Boolean> existsOneAndNotReserved(long id);
 }

@@ -61,4 +61,16 @@ public class ResourceRepository extends Repository<Resource> {
                 .setParameter("typeId", typeId)
                 .getResultList());
     }
+
+    public CompletionStage<Long> findByIdAndNotReserved(long id) {
+        return sessionFactory.withSession(session -> session.createQuery(
+                "select distinct resource.resourceId from ResourceReservation rr " +
+                        "right join rr.resource resource " +
+                        "left join rr.reservation reservation " +
+                        "where resource.resourceId=:id and (reservation.isActive=false or rr.resource is null)",
+                        Long.class)
+                .setParameter("id", id)
+                .getSingleResultOrNull()
+        );
+    }
 }
