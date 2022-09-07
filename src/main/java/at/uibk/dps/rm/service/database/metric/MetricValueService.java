@@ -23,7 +23,7 @@ public interface MetricValueService extends ServiceInterface {
         return new MetricValueServiceVertxEBProxy(vertx, address);
     }
 
-    Future<JsonArray> findAllByResource(long resourceId);
+    Future<JsonArray> findAllByResource(long resourceId, boolean includeValue);
 
     Future<JsonObject> findOneByResourceAndMetric(long resourceId, long metricId);
 

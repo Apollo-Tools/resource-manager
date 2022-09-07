@@ -5,6 +5,7 @@ import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UsedByOtherEntityException;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 public class ErrorHandler {
@@ -17,6 +18,16 @@ public class ErrorHandler {
                 }
                 return result;
             });
+    }
+
+    public static Single<JsonArray> handleFindAll(Single<JsonArray> handler) {
+        return handler
+                .map(result -> {
+                    if (result == null) {
+                        throw new NotFoundException();
+                    }
+                    return result;
+                });
     }
 
     public static Single<Boolean> handleExistsOne(Single<Boolean> handler) {

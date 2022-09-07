@@ -16,8 +16,8 @@ public class MetricValueChecker extends EntityChecker {
         this.metricValueService = metricValueService;
     }
 
-    public Single<JsonArray> checkFindAllByResource(long id) {
-        return metricValueService.findAllByResource(id);
+    public Single<JsonArray> checkFindAllByResource(long id, boolean includeValue) {
+        return metricValueService.findAllByResource(id, includeValue);
     }
 
     public Completable submitUpdateMetricValue(long resourceId, long metricId, String value) {

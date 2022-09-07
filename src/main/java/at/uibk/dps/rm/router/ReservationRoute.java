@@ -10,12 +10,17 @@ public class ReservationRoute {
 
     public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         ReservationHandler reservationHandler = new ReservationHandler(serviceProxyProvider.getReservationService(),
-                serviceProxyProvider.getResourceService(), serviceProxyProvider.getResourceReservationService());
+                serviceProxyProvider.getResourceService(), serviceProxyProvider.getResourceReservationService(),
+                serviceProxyProvider.getMetricValueService());
         RequestHandler reservationRequestHandler = new RequestHandler(reservationHandler);
 
         router
-                .operation("reserveResources")
-                .handler(ReservationInputHandler::validateResourceArrayHasNoDuplicates)
-                .handler(reservationRequestHandler::postRequest);
+            .operation("getReservation")
+            .handler(reservationRequestHandler::getRequest);
+
+        router
+            .operation("reserveResources")
+            .handler(ReservationInputHandler::validateResourceArrayHasNoDuplicates)
+            .handler(reservationRequestHandler::postRequest);
     }
 }

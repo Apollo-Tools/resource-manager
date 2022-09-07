@@ -45,13 +45,20 @@ public class MetricValueServiceImpl extends ServiceProxy<MetricValue> implements
     }
 
     @Override
-    public Future<JsonArray> findAllByResource(long resourceId) {
+    public Future<JsonArray> findAllByResource(long resourceId, boolean includeValue) {
         return Future
             .fromCompletionStage(metricValueRepository.findByResourceAndFetch(resourceId))
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (MetricValue metricValue: result) {
-                    objects.add(JsonObject.mapFrom(metricValue.getMetric()));
+                    JsonObject entity;
+                    if (includeValue) {
+                        metricValue.setResource(null);
+                        entity = JsonObject.mapFrom(metricValue);
+                    } else {
+                        entity = JsonObject.mapFrom(metricValue.getMetric());
+                    }
+                    objects.add(entity);
                 }
                 return new JsonArray(objects);
             });

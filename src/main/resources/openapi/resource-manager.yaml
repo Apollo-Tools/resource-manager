@@ -407,6 +407,29 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
+  /reservation/{id}:
+    get:
+      description: Return details about a resource reservation
+      operationId: getReservation
+      tags:
+        - reservations
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of a reservation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reservation"
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+
   /resource-types/{id}:
     get:
       description: Return details about a resource type managed by the resource manager
@@ -745,6 +768,42 @@ components:
         description:
           type: string
           example: the availability of a resource
+        created_at:
+          type: string
+          format: date-time
+          #example: 2017-07-21T17:32:28Z
+    Reservation:
+      type: object
+      properties:
+        reservation_id:
+          type: integer
+          format: int64
+          example: 1
+        is_active:
+          type: boolean
+          example: true
+        resource_reservations:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResourceReservation"
+        created_at:
+          type: string
+          format: date-time
+          #example: 2017-07-21T17:32:28Z
+    ResourceReservation:
+      type: object
+      properties:
+        resource_reservation_id:
+          type: integer
+          format: int64
+          example: 1
+        reservation:
+          $ref: "#/components/schemas/Reservation"
+        resource:
+          $ref: "#/components/schemas/Resource"
+        is_deployed:
+          type: boolean
+          example: true
         created_at:
           type: string
           format: date-time
