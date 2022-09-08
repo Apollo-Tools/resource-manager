@@ -429,6 +429,27 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
+  /reservation/{id}/cancel:
+    patch:
+      description: Free the reserved resources
+      operationId: cancelReservation
+      tags:
+        - reservations
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful cancellation of a reservation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reservation"
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
 
   /resource-types/{id}:
     get:

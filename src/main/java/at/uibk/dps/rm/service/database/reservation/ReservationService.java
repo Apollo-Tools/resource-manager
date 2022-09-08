@@ -5,6 +5,7 @@ import at.uibk.dps.rm.service.database.ServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 
 @ProxyGen
@@ -18,4 +19,6 @@ public interface ReservationService extends ServiceInterface {
     static ReservationService createProxy(Vertx vertx, String address) {
         return new ReservationServiceVertxEBProxy(vertx, address);
     }
+
+    Future<Void> cancelReservationById(long id);
 }

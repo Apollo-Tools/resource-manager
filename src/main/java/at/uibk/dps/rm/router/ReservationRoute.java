@@ -22,5 +22,9 @@ public class ReservationRoute {
             .operation("reserveResources")
             .handler(ReservationInputHandler::validateResourceArrayHasNoDuplicates)
             .handler(reservationRequestHandler::postRequest);
+
+        router
+            .operation("cancelReservation")
+            .handler(reservationRequestHandler::patchRequest);
     }
 }

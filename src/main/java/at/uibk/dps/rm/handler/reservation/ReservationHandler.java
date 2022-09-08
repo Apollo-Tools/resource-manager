@@ -11,6 +11,7 @@ import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
 import at.uibk.dps.rm.service.rxjava3.database.reservation.ResourceReservationService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
 import at.uibk.dps.rm.service.rxjava3.database.reservation.ReservationService;
+import at.uibk.dps.rm.util.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
@@ -26,6 +27,8 @@ public class ReservationHandler extends ValidationHandler {
 
     private final ResourceChecker resourceChecker;
 
+    private final ReservationChecker reservationChecker;
+
     private final ResourceReservationChecker resourceReservationChecker;
 
     private final MetricValueChecker metricValueChecker;
@@ -33,6 +36,7 @@ public class ReservationHandler extends ValidationHandler {
     public ReservationHandler(ReservationService reservationService, ResourceService resourceService,
                               ResourceReservationService resourceReservationService, MetricValueService metricValueService) {
         super(new ReservationChecker(reservationService));
+        this.reservationChecker = (ReservationChecker) super.entityChecker;
         this.resourceChecker = new ResourceChecker(resourceService);
         this.resourceReservationChecker = new ResourceReservationChecker(resourceReservationService);
         this.metricValueChecker = new MetricValueChecker(metricValueService);
@@ -55,6 +59,7 @@ public class ReservationHandler extends ValidationHandler {
                 });
     }
 
+    // TODO: deploy resources
     @Override
     public Single<JsonObject> postOne(RoutingContext rc) {
         ReserveResourcesRequest requestDTO = rc.body()
@@ -71,6 +76,14 @@ public class ReservationHandler extends ValidationHandler {
                 .flatMap(resourceReservations -> resourceReservationChecker
                         .submitCreateAll(Json.encodeToBuffer(resourceReservations).toJsonArray())
                         .andThen(Single.just(JsonObject.mapFrom(resourceReservations.get(0).getReservation()))));
+    }
+
+    // TODO: terminate resources
+    @Override
+    protected Completable updateOne(RoutingContext rc) {
+        return HttpHelper.getLongPathParam(rc, "id")
+                .flatMap(entityChecker::checkFindOne)
+                .flatMapCompletable(reservationChecker::submitCancelReservation);
     }
 
     private Single<List<JsonObject>> checkFindResourcesFromReservation(JsonArray resourceReservations) {
