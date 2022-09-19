@@ -2,7 +2,6 @@ package at.uibk.dps.rm.util;
 
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
-import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,7 +20,7 @@ public class HttpHelperTest {
     RoutingContext rc;
 
     @Test
-    void getLongPathParamValid(Vertx vertx, VertxTestContext testContext) {
+    void getLongPathParamValid(VertxTestContext testContext) {
         doReturn("10").when(rc).pathParam(anyString());
 
         HttpHelper.getLongPathParam(rc, "id")
@@ -32,7 +31,7 @@ public class HttpHelperTest {
     }
 
     @Test
-    void getLongPathParamInValid(Vertx vertx, VertxTestContext testContext) {
+    void getLongPathParamInValid(VertxTestContext testContext) {
         doReturn("test").when(rc).pathParam(anyString());
 
         HttpHelper.getLongPathParam(rc, "id")
