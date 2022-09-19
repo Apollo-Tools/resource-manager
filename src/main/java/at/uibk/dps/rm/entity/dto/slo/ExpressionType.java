@@ -51,13 +51,13 @@ public enum ExpressionType {
         if (expressionType == ExpressionType.EQ) {
             return v1.compareTo(v2);
         }
-        return 0;
+        return -1;
     }
 
     public static int compareValues(ExpressionType expressionType, Boolean v1, Boolean v2) {
         if (expressionType == ExpressionType.EQ) {
             return v1.compareTo(v2);
         }
-        return 0;
+        return -1;
     }
 }
