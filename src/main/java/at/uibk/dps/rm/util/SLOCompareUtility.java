@@ -10,19 +10,28 @@ public class SLOCompareUtility {
     public static Boolean compareMetricValueWithSLO(MetricValue metricValue, ServiceLevelObjective slo) {
         int compareValue = -1;
         boolean isEqualityCheck = slo.getExpression().equals(ExpressionType.EQ);
-        for (SLOValue sloValue :slo.getValue()) {
+        for (SLOValue sloValue : slo.getValue()) {
             switch (sloValue.getSloValueType()) {
                 case NUMBER:
+                    if (metricValue.getValueNumber() == null) {
+                        return false;
+                    }
                     compareValue = ExpressionType.compareValues(slo.getExpression(),
                             sloValue.getValueNumber().doubleValue(),
                             metricValue.getValueNumber().doubleValue());
                     break;
                 case STRING:
+                    if (metricValue.getValueString() == null) {
+                        return false;
+                    }
                     compareValue = ExpressionType.compareValues(slo.getExpression(),
                             sloValue.getValuerString(),
                             metricValue.getValueString());
                     break;
                 case BOOLEAN:
+                    if (metricValue.getValueBool() == null) {
+                        return false;
+                    }
                     compareValue = ExpressionType.compareValues(slo.getExpression(),
                             sloValue.getValueBool(),
                             metricValue.getValueBool());
