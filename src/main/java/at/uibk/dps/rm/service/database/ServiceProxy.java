@@ -28,13 +28,13 @@ public abstract class ServiceProxy<T> implements ServiceInterface{
     }
 
     public Future<Void> saveAll(JsonArray data) {
-        List<T> metricValues = data
+        List<T> entities = data
             .stream()
             .map(object -> ((JsonObject) object).mapTo(entityClass))
             .collect(Collectors.toList());
 
         return Future
-            .fromCompletionStage(repository.createAll(metricValues));
+            .fromCompletionStage(repository.createAll(entities));
     }
 
     public Future<JsonObject> findOne(long id) {
