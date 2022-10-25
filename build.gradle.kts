@@ -5,6 +5,7 @@ plugins {
   java
   application
   id("com.github.johnrengelman.shadow") version "7.0.0"
+  jacoco
 }
 
 group = "Apollo-Tools-resource-manager"
@@ -69,6 +70,10 @@ java {
   targetCompatibility = JavaVersion.VERSION_11
 }
 
+jacoco {
+  toolVersion = "0.8.5"
+}
+
 tasks.withType<ShadowJar> {
   archiveClassifier.set("fat")
   manifest {
@@ -86,4 +91,10 @@ tasks.withType<Test> {
 
 tasks.withType<JavaExec> {
   args = listOf("run", mainVerticleName, "--redeploy=$watchForChange", "--launcher-class=$launcherClassName", "--on-redeploy=$doOnChange")
+}
+
+tasks.jacocoTestReport {
+  reports {
+    xml.required.set(true)
+  }
 }
