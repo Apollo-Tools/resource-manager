@@ -3,6 +3,7 @@ package at.uibk.dps.rm.service;
 import at.uibk.dps.rm.entity.model.ResourceType;
 import at.uibk.dps.rm.repository.Repository;
 import at.uibk.dps.rm.service.database.ServiceProxy;
+import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -14,6 +15,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletionStage;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,7 +41,8 @@ public class ServiceProxyTest {
     Repository<ResourceType> testRepository;
 
     @BeforeEach
-    void setupMock() {
+    void initTest() {
+        JsonMapperConfig.configJsonMapper();
         testClass = new ConcreteServiceProxy(testRepository);
     }
 
@@ -54,7 +58,6 @@ public class ServiceProxyTest {
 
         testClass.save(data)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result).isInstanceOf(JsonObject.class);
                 assertThat(result.getLong("type_id")).isEqualTo(1L);
                 verify(testRepository, times(1)).create(any(ResourceType.class));
                 testContext.completeNow();
@@ -87,12 +90,12 @@ public class ServiceProxyTest {
         doReturn(completionStage).when(testRepository).findById(typeId);
 
         testClass.findOne(typeId)
-                .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                    assertThat(result.getLong("type_id")).isEqualTo(1L);
-                    assertThat(result.getString("resource_type")).isEqualTo("cloud");
-                    verify(testRepository, times(1)).findById(typeId);
-                    testContext.completeNow();
-                })));
+            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result.getLong("type_id")).isEqualTo(1L);
+                assertThat(result.getString("resource_type")).isEqualTo("cloud");
+                verify(testRepository, times(1)).findById(typeId);
+                testContext.completeNow();
+        })));
     }
 
     @Test
@@ -102,11 +105,11 @@ public class ServiceProxyTest {
         doReturn(completionStage).when(testRepository).findById(typeId);
 
         testClass.findOne(typeId)
-                .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                    assertThat(result).isNull();
-                    verify(testRepository, times(1)).findById(typeId);
-                    testContext.completeNow();
-                })));
+            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result).isNull();
+                verify(testRepository, times(1)).findById(typeId);
+                testContext.completeNow();
+        })));
     }
 
     @Test
@@ -119,11 +122,11 @@ public class ServiceProxyTest {
         doReturn(completionStage).when(testRepository).findById(typeId);
 
         testClass.existsOneById(typeId)
-                .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                    assertThat(result).isEqualTo(true);
-                    verify(testRepository, times(1)).findById(typeId);
-                    testContext.completeNow();
-                })));
+            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result).isEqualTo(true);
+                verify(testRepository, times(1)).findById(typeId);
+                testContext.completeNow();
+        })));
     }
 
     @Test
@@ -133,13 +136,63 @@ public class ServiceProxyTest {
         doReturn(completionStage).when(testRepository).findById(typeId);
 
         testClass.existsOneById(typeId)
-                .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                    assertThat(result).isEqualTo(false);
-                    verify(testRepository, times(1)).findById(typeId);
-                    testContext.completeNow();
-                })));
+            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result).isEqualTo(false);
+                verify(testRepository, times(1)).findById(typeId);
+                testContext.completeNow();
+        })));
     }
 
-    // TODO: findAll, update, delete
+    @Test
+    void findAll(VertxTestContext testContext) {
+        ResourceType entity1 = new ResourceType();
+        entity1.setTypeId(1L);
+        entity1.setResource_type("cloud");
+        ResourceType entity2 = new ResourceType();
+        entity2.setTypeId(2L);
+        entity2.setResource_type("vm");
+        List<ResourceType> resultList = new ArrayList<>();
+        resultList.add(entity1);
+        resultList.add(entity2);
+        CompletionStage<List<ResourceType>> completionStage = CompletionStages.completedFuture(resultList);
+        doReturn(completionStage).when(testRepository).findAll();
 
+        testClass.findAll()
+            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result.size()).isEqualTo(2);
+                assertThat(result.getJsonObject(0).getString("resource_type")).isEqualTo("cloud");
+                assertThat(result.getJsonObject(1).getString("resource_type")).isEqualTo("vm");
+                verify(testRepository, times(1)).findAll();
+                testContext.completeNow();
+        })));
+    }
+
+    @Test
+    void updateEntity(VertxTestContext testContext) {
+        CompletionStage<ResourceType> completionStage = CompletionStages.completedFuture(null);
+        doReturn(completionStage).when(testRepository).update(any(ResourceType.class));
+
+        JsonObject data = new JsonObject("{\"type_id\": 1, \"resource_type\": \"cloud\"}");
+
+        testClass.update(data)
+            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result).isNull();
+                verify(testRepository, times(1)).update(any(ResourceType.class));
+                testContext.completeNow();
+        })));
+    }
+
+    @Test
+    void deleteEntity(VertxTestContext testContext) {
+        long typeId = 1L;
+        CompletionStage<ResourceType> completionStage = CompletionStages.completedFuture(null);
+        doReturn(completionStage).when(testRepository).deleteById(typeId);
+
+        testClass.delete(typeId)
+            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result).isNull();
+                verify(testRepository, times(1)).deleteById(typeId);
+                testContext.completeNow();
+        })));
+    }
 }
