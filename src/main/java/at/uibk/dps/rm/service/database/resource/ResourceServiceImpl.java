@@ -27,7 +27,9 @@ public class ResourceServiceImpl extends ServiceProxy<Resource> implements Resou
             .fromCompletionStage(resourceRepository.findByIdAndFetch(id))
             // TODO: fix
             .map(result -> {
-                result.setMetricValues(null);
+                if (result != null) {
+                    result.setMetricValues(null);
+                }
                 return JsonObject.mapFrom(result);
             });
     }
