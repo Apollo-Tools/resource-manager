@@ -1,9 +1,7 @@
 package at.uibk.dps.rm.service.resource;
 
-
 import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.entity.model.Resource;
-import at.uibk.dps.rm.entity.model.ResourceType;
 import at.uibk.dps.rm.repository.ResourceRepository;
 import at.uibk.dps.rm.service.database.resource.ResourceServiceImpl;
 import at.uibk.dps.rm.util.JsonMapperConfig;
@@ -109,5 +107,79 @@ public class ResourceServiceImplTest {
         })));
     }
 
+    @Test
+    void checkEntityExistsAndNotReserved(VertxTestContext testContext) {
+        long resourceId = 1L;
+        CompletionStage<Long> completionStage = CompletionStages.completedFuture(1L);
+        doReturn(completionStage).when(resourceRepository).findByIdAndNotReserved(resourceId);
 
+        resourceService.existsOneAndNotReserved(resourceId)
+            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result).isEqualTo(true);
+                verify(resourceRepository, times(1)).findByIdAndNotReserved(resourceId);
+                testContext.completeNow();
+        })));
+    }
+
+    @Test
+    void checkEntityNotExistsOrReserved(VertxTestContext testContext) {
+        long resourceId = 1L;
+        CompletionStage<Long> completionStage = CompletionStages.completedFuture(null);
+        doReturn(completionStage).when(resourceRepository).findByIdAndNotReserved(resourceId);
+
+        resourceService.existsOneAndNotReserved(resourceId)
+            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result).isEqualTo(false);
+                verify(resourceRepository, times(1)).findByIdAndNotReserved(1L);
+                testContext.completeNow();
+        })));
+    }
+
+    @Test
+    void findAll(VertxTestContext testContext) {
+        Resource entity1 = new Resource();
+        entity1.setResourceId(1L);
+        Set<MetricValue> metricValues1 = new HashSet<>();
+        entity1.setMetricValues(metricValues1);
+        Resource entity2 = new Resource();
+        entity2.setResourceId(2L);
+        Set<MetricValue> metricValues2 = new HashSet<>();
+        entity2.setMetricValues(metricValues2);
+        List<Resource> resultList = new ArrayList<>();
+        resultList.add(entity1);
+        resultList.add(entity2);
+        CompletionStage<List<Resource>> completionStage = CompletionStages.completedFuture(resultList);
+        doReturn(completionStage).when(resourceRepository).findAllAndFetch();
+
+        resourceService.findAll()
+                .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+                    assertThat(result.size()).isEqualTo(2);
+                    assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
+                    assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
+                    verify(resourceRepository, times(1)).findAllAndFetch();
+                    testContext.completeNow();
+                })));
+    }
+
+    @Test
+    void findAllByMultipleMetrics(VertxTestContext testContext) {
+        List<String> metrics = new ArrayList<>();
+        metrics.add("availability");
+        Resource entity1 = new Resource();
+        entity1.setResourceId(1L);
+        Set<MetricValue> metricValues1 = new HashSet<>();
+        entity1.setMetricValues(metricValues1);
+        List<Resource> resultList = new ArrayList<>();
+        resultList.add(entity1);
+        CompletionStage<List<Resource>> completionStage = CompletionStages.completedFuture(resultList);
+        doReturn(completionStage).when(resourceRepository).findByMultipleMetricsAndFetch(metrics);
+
+        resourceService.findAllByMultipleMetrics(metrics)
+                .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+                    assertThat(result.size()).isEqualTo(1);
+                    assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
+                    verify(resourceRepository, times(1)).findByMultipleMetricsAndFetch(metrics);
+                    testContext.completeNow();
+                })));
+    }
 }
