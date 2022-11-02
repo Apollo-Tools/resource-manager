@@ -2,6 +2,7 @@ package at.uibk.dps.rm.service.resource;
 
 import at.uibk.dps.rm.entity.model.ResourceType;
 import at.uibk.dps.rm.repository.ResourceTypeRepository;
+import at.uibk.dps.rm.service.database.resource.ResourceTypeService;
 import at.uibk.dps.rm.service.database.resource.ResourceTypeServiceImpl;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -22,7 +23,7 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 @ExtendWith(MockitoExtension.class)
 public class ResourceTypeServiceImplTest {
 
-    private ResourceTypeServiceImpl resourceTypeService;
+    private ResourceTypeService resourceTypeService;
 
     @Mock
     ResourceTypeRepository resourceTypeRepository;

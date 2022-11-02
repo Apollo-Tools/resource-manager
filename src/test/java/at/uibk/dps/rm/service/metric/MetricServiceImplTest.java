@@ -2,6 +2,7 @@ package at.uibk.dps.rm.service.metric;
 
 import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.repository.MetricRepository;
+import at.uibk.dps.rm.service.database.metric.MetricService;
 import at.uibk.dps.rm.service.database.metric.MetricServiceImpl;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
@@ -24,7 +25,7 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 @ExtendWith(MockitoExtension.class)
 public class MetricServiceImplTest {
 
-    private MetricServiceImpl metricService;
+    private MetricService metricService;
 
     @Mock
     MetricRepository metricRepository;

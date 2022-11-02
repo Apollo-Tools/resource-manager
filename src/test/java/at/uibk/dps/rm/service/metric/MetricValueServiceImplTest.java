@@ -5,6 +5,7 @@ import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.model.ResourceType;
 import at.uibk.dps.rm.repository.MetricValueRepository;
+import at.uibk.dps.rm.service.database.metric.MetricValueService;
 import at.uibk.dps.rm.service.database.metric.MetricValueServiceImpl;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.core.json.JsonArray;
@@ -31,7 +32,7 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 @ExtendWith(MockitoExtension.class)
 public class MetricValueServiceImplTest {
 
-    private MetricValueServiceImpl metricValueService;
+    private MetricValueService metricValueService;
 
     @Mock
     MetricValueRepository metricValueRepository;
