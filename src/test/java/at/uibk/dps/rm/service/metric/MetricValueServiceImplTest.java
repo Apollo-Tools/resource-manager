@@ -54,7 +54,7 @@ public class MetricValueServiceImplTest {
         metricValueService.saveAll(data)
                 .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                     assertThat(result).isNull();
-                    verify(metricValueRepository, times(1)).createAll(anyList());
+                    verify(metricValueRepository).createAll(anyList());
                     testContext.completeNow();
                 })));
     }
@@ -72,7 +72,7 @@ public class MetricValueServiceImplTest {
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("metric_value_id")).isEqualTo(1L);
                 assertThat(result.getJsonObject("resource")).isNull();
-                verify(metricValueRepository, times(1)).findByIdAndFetch(entityId);
+                verify(metricValueRepository).findByIdAndFetch(entityId);
                 testContext.completeNow();
         })));
     }
@@ -86,7 +86,7 @@ public class MetricValueServiceImplTest {
         metricValueService.findOne(entityId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
-                verify(metricValueRepository, times(1)).findByIdAndFetch(entityId);
+                verify(metricValueRepository).findByIdAndFetch(entityId);
                 testContext.completeNow();
         })));
     }
@@ -125,7 +125,7 @@ public class MetricValueServiceImplTest {
                 assertThat(result.getJsonObject(1).getLong("metric_value_id")).isEqualTo(2L);
                 assertThat(result.getJsonObject(1).getString("value_string")).isEqualTo("ubuntu");
                 assertThat(result.getJsonObject(1).getJsonObject("resource")).isNull();
-                verify(metricValueRepository, times(1)).findByResourceAndFetch(resourceId);
+                verify(metricValueRepository).findByResourceAndFetch(resourceId);
                 testContext.completeNow();
         })));
     }
@@ -153,7 +153,7 @@ public class MetricValueServiceImplTest {
                     assertThat(result.size()).isEqualTo(2);
                     assertThat(result.getJsonObject(0).getLong("metric_id")).isEqualTo(1L);
                     assertThat(result.getJsonObject(1).getLong("metric_id")).isEqualTo(2L);
-                    verify(metricValueRepository, times(1)).findByResourceAndFetch(resourceId);
+                    verify(metricValueRepository).findByResourceAndFetch(resourceId);
                     testContext.completeNow();
                 })));
     }
@@ -169,7 +169,7 @@ public class MetricValueServiceImplTest {
         metricValueService.findAllByResource(resourceId, includeValue)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(0);
-                verify(metricValueRepository, times(1)).findByResourceAndFetch(resourceId);
+                verify(metricValueRepository).findByResourceAndFetch(resourceId);
                 testContext.completeNow();
         })));
     }
@@ -188,7 +188,7 @@ public class MetricValueServiceImplTest {
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("metric_value_id")).isEqualTo(3L);
                 assertThat(result.getJsonObject("resource")).isNull();
-                verify(metricValueRepository, times(1)).findByResourceAndMetric(resourceId, metricId);
+                verify(metricValueRepository).findByResourceAndMetric(resourceId, metricId);
                 testContext.completeNow();
         })));
     }
@@ -203,7 +203,7 @@ public class MetricValueServiceImplTest {
         metricValueService.findOneByResourceAndMetric(resourceId, metricId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
-                verify(metricValueRepository, times(1)).findByResourceAndMetric(resourceId, metricId);
+                verify(metricValueRepository).findByResourceAndMetric(resourceId, metricId);
                 testContext.completeNow();
         })));
     }
@@ -219,7 +219,7 @@ public class MetricValueServiceImplTest {
         metricValueService.existsOneByResourceAndMetric(resourceId, metricId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isEqualTo(true);
-                verify(metricValueRepository, times(1)).findByResourceAndMetric(resourceId, metricId);
+                verify(metricValueRepository).findByResourceAndMetric(resourceId, metricId);
                 testContext.completeNow();
         })));
     }
@@ -234,7 +234,7 @@ public class MetricValueServiceImplTest {
         metricValueService.existsOneByResourceAndMetric(resourceId, metricId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isEqualTo(false);
-                verify(metricValueRepository, times(1)).findByResourceAndMetric(resourceId, metricId);
+                verify(metricValueRepository).findByResourceAndMetric(resourceId, metricId);
                 testContext.completeNow();
         })));
     }
@@ -252,7 +252,7 @@ public class MetricValueServiceImplTest {
         metricValueService.updateByResourceAndMetric(resourceId, metricId, null, valueNumber, null)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
-                verify(metricValueRepository, times(1))
+                verify(metricValueRepository)
                         .updateByResourceAndMetric(resourceId, metricId, null, valueNumber, null);
                 testContext.completeNow();
         })));
@@ -268,7 +268,7 @@ public class MetricValueServiceImplTest {
         metricValueService.deleteByResourceAndMetric(resourceId, metricId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
-                verify(metricValueRepository, times(1)).deleteByResourceAndMetric(resourceId, metricId);
+                verify(metricValueRepository).deleteByResourceAndMetric(resourceId, metricId);
                 testContext.completeNow();
         })));
     }

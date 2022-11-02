@@ -40,7 +40,7 @@ public class ResultHandlerTest {
 
         ResultHandler.handleGetOneRequest(rc, handler);
 
-        Mockito.verify(response, times(1)).setStatusCode(200);
+        Mockito.verify(response).setStatusCode(200);
         testContext.completeNow();
     }
 
@@ -54,7 +54,7 @@ public class ResultHandlerTest {
 
         ResultHandler.handleGetOneRequest(rc, handler);
 
-        Mockito.verify(rc, times(1)).fail(500, throwable);
+        Mockito.verify(rc).fail(500, throwable);
         testContext.completeNow();
     }
 
@@ -66,7 +66,7 @@ public class ResultHandlerTest {
 
         ResultHandler.handleGetAllRequest(rc, handler);
 
-        Mockito.verify(response, times(1)).setStatusCode(200);
+        Mockito.verify(response).setStatusCode(200);
         testContext.completeNow();
     }
 
@@ -80,7 +80,7 @@ public class ResultHandlerTest {
 
         ResultHandler.handleGetAllRequest(rc, handler);
 
-        Mockito.verify(rc, times(1)).fail(500, throwable);
+        Mockito.verify(rc).fail(500, throwable);
         testContext.completeNow();
     }
 
@@ -92,7 +92,7 @@ public class ResultHandlerTest {
 
         ResultHandler.handleSaveOneRequest(rc, handler);
 
-        Mockito.verify(response, times(1)).setStatusCode(201);
+        Mockito.verify(response).setStatusCode(201);
         testContext.completeNow();
     }
 
@@ -106,7 +106,7 @@ public class ResultHandlerTest {
 
         ResultHandler.handleSaveOneRequest(rc, handler);
 
-        Mockito.verify(rc, times(1)).fail(500, throwable);
+        Mockito.verify(rc).fail(500, throwable);
         testContext.completeNow();
     }
 
@@ -117,7 +117,7 @@ public class ResultHandlerTest {
 
         ResultHandler.handleSaveAllUpdateDeleteRequest(rc, handler);
 
-        Mockito.verify(response, times(1)).setStatusCode(204);
+        Mockito.verify(response).setStatusCode(204);
         testContext.completeNow();
     }
 
@@ -131,7 +131,7 @@ public class ResultHandlerTest {
 
         ResultHandler.handleSaveAllUpdateDeleteRequest(rc, handler);
 
-        Mockito.verify(rc, times(1)).fail(500, throwable);
+        Mockito.verify(rc).fail(500, throwable);
         testContext.completeNow();
     }
 
@@ -145,7 +145,7 @@ public class ResultHandlerTest {
 
         ResultHandler.handleGetOneRequest(rc, handler);
 
-        Mockito.verify(rc, times(1)).fail(404, throwable);
+        Mockito.verify(rc).fail(404, throwable);
         testContext.completeNow();
     }
 
@@ -159,7 +159,7 @@ public class ResultHandlerTest {
 
         ResultHandler.handleGetOneRequest(rc, handler);
 
-        Mockito.verify(rc, times(1)).fail(409, throwable);
+        Mockito.verify(rc).fail(409, throwable);
         testContext.completeNow();
     }
 
@@ -173,7 +173,7 @@ public class ResultHandlerTest {
 
         ResultHandler.handleGetOneRequest(rc, handler);
 
-        Mockito.verify(rc, times(1)).fail(409, throwable);
+        Mockito.verify(rc).fail(409, throwable);
         testContext.completeNow();
     }
 
@@ -187,7 +187,7 @@ public class ResultHandlerTest {
 
         ResultHandler.handleGetOneRequest(rc, handler);
 
-        Mockito.verify(rc, times(1)).fail(400, throwable);
+        Mockito.verify(rc).fail(400, throwable);
         testContext.completeNow();
     }
 

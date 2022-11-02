@@ -24,7 +24,6 @@ import java.util.concurrent.CompletionStage;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
-import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
@@ -55,8 +54,7 @@ public class ResourceServiceImplTest {
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("resource_id")).isEqualTo(1L);
                 assertThat(result.getJsonArray("metric_values")).isNull();
-                verify(resourceRepository, times(1)).findByIdAndFetch(resourceId);
-                verify(resourceRepository, times(0)).findById(resourceId);
+                verify(resourceRepository).findByIdAndFetch(resourceId);
                 testContext.completeNow();
         })));
     }
@@ -70,8 +68,7 @@ public class ResourceServiceImplTest {
         resourceService.findOne(resourceId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
-                verify(resourceRepository, times(1)).findByIdAndFetch(resourceId);
-                verify(resourceRepository, times(0)).findById(resourceId);
+                verify(resourceRepository).findByIdAndFetch(resourceId);
                 testContext.completeNow();
         })));
     }
@@ -88,7 +85,7 @@ public class ResourceServiceImplTest {
         resourceService.existsOneByResourceType(typeId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isEqualTo(true);
-                verify(resourceRepository, times(1)).findByResourceType(typeId);
+                verify(resourceRepository).findByResourceType(typeId);
                 testContext.completeNow();
         })));
     }
@@ -103,7 +100,7 @@ public class ResourceServiceImplTest {
         resourceService.existsOneByResourceType(typeId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isEqualTo(false);
-                verify(resourceRepository, times(1)).findByResourceType(typeId);
+                verify(resourceRepository).findByResourceType(typeId);
                 testContext.completeNow();
         })));
     }
@@ -117,7 +114,7 @@ public class ResourceServiceImplTest {
         resourceService.existsOneAndNotReserved(resourceId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isEqualTo(true);
-                verify(resourceRepository, times(1)).findByIdAndNotReserved(resourceId);
+                verify(resourceRepository).findByIdAndNotReserved(resourceId);
                 testContext.completeNow();
         })));
     }
@@ -131,7 +128,7 @@ public class ResourceServiceImplTest {
         resourceService.existsOneAndNotReserved(resourceId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isEqualTo(false);
-                verify(resourceRepository, times(1)).findByIdAndNotReserved(1L);
+                verify(resourceRepository).findByIdAndNotReserved(1L);
                 testContext.completeNow();
         })));
     }
@@ -157,7 +154,7 @@ public class ResourceServiceImplTest {
                     assertThat(result.size()).isEqualTo(2);
                     assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
                     assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
-                    verify(resourceRepository, times(1)).findAllAndFetch();
+                    verify(resourceRepository).findAllAndFetch();
                     testContext.completeNow();
                 })));
     }
@@ -179,7 +176,7 @@ public class ResourceServiceImplTest {
                 .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(1);
                     assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
-                    verify(resourceRepository, times(1)).findByMultipleMetricsAndFetch(metrics);
+                    verify(resourceRepository).findByMultipleMetricsAndFetch(metrics);
                     testContext.completeNow();
                 })));
     }

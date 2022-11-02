@@ -27,7 +27,6 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.*;
-import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
@@ -68,8 +67,8 @@ public class ValidationHandlerTest {
             .andThen(Maybe.just(testContext.verify(testContext::completeNow)))
             .blockingSubscribe();
 
-        verify(resourceTypeService, times(1)).findOne(entityId);
-        verify(resourceTypeService, times(1)).delete(entityId);
+        verify(resourceTypeService).findOne(entityId);
+        verify(resourceTypeService).delete(entityId);
     }
 
     @Test
@@ -188,7 +187,7 @@ public class ValidationHandlerTest {
                 throwable -> testContext.verify(() -> fail("method did throw exception"))
             );
 
-        verify(resourceTypeService, times(1)).save(jsonObject);
+        verify(resourceTypeService).save(jsonObject);
     }
 
     @Test
@@ -229,7 +228,7 @@ public class ValidationHandlerTest {
             .andThen(Maybe.just(testContext.verify(testContext::completeNow)))
             .blockingSubscribe();
 
-        verify(resourceTypeService, times(1)).saveAll(resultJson);
+        verify(resourceTypeService).saveAll(resultJson);
     }
 
     @Test
@@ -252,9 +251,9 @@ public class ValidationHandlerTest {
             .andThen(Maybe.just(testContext.verify(testContext::completeNow)))
             .blockingSubscribe();
 
-        verify(resourceTypeService, times(1)).findOne(entityId);
-        verify(resourceTypeService, times(1)).existsOneByResourceType("cloud");
-        verify(resourceTypeService, times(1)).update(jsonObject);
+        verify(resourceTypeService).findOne(entityId);
+        verify(resourceTypeService).existsOneByResourceType("cloud");
+        verify(resourceTypeService).update(jsonObject);
     }
 
     @Test

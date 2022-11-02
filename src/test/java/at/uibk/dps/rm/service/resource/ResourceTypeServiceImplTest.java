@@ -17,7 +17,6 @@ import java.util.concurrent.CompletionStage;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
-import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
@@ -45,7 +44,7 @@ public class ResourceTypeServiceImplTest {
         resourceTypeService.existsOneByResourceType(resourceType)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isTrue();
-                verify(resourceTypeRepository, times(1)).findByResourceType(resourceType);
+                verify(resourceTypeRepository).findByResourceType(resourceType);
                 testContext.completeNow();
         })));
     }
@@ -59,7 +58,7 @@ public class ResourceTypeServiceImplTest {
         resourceTypeService.existsOneByResourceType(resourceType)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isFalse();
-                verify(resourceTypeRepository, times(1)).findByResourceType(resourceType);
+                verify(resourceTypeRepository).findByResourceType(resourceType);
                 testContext.completeNow();
         })));
     }

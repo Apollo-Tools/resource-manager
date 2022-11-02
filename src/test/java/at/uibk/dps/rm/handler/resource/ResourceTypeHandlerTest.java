@@ -9,7 +9,6 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
-import io.vertx.rxjava3.ext.web.RoutingContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
@@ -33,9 +31,6 @@ public class ResourceTypeHandlerTest {
 
     @Mock
     private ResourceService resourceService;
-
-    @Mock
-    RoutingContext rc;
 
     @BeforeEach
     void initTest() {
@@ -55,7 +50,7 @@ public class ResourceTypeHandlerTest {
             .andThen(Maybe.just(testContext.verify(testContext::completeNow)))
             .blockingSubscribe();
 
-        verify(resourceService, times(1)).existsOneByResourceType(entityId);
+        verify(resourceService).existsOneByResourceType(entityId);
     }
 
     @Test

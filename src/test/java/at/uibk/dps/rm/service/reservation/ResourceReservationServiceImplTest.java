@@ -23,7 +23,6 @@ import java.util.concurrent.CompletionStage;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
-import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
@@ -40,22 +39,6 @@ public class ResourceReservationServiceImplTest {
         resourceReservationService = new ResourceReservationServiceImpl(resourceReservationRepository);
     }
 
-    /*
-    public Future<JsonArray> findAllByResourceId(long id) {
-        return Future
-                .fromCompletionStage(resourceReservationRepository.findAllByResourceId(id))
-                .map(result -> {
-                    ArrayList<JsonObject> objects = new ArrayList<>();
-                    for (ResourceReservation entity: result) {
-                        entity.setReservation(null);
-                        entity.getResource().setResourceType(null);
-                        entity.getResource().setMetricValues(null);
-                        objects.add(JsonObject.mapFrom(entity));
-                    }
-                    return new JsonArray(objects);
-                });
-    }
-     */
     @Test
     void findAllByResourceId(VertxTestContext testContext) {
         long resourceId = 1L;
@@ -90,7 +73,7 @@ public class ResourceReservationServiceImplTest {
                     assertThat(resultJson.getJsonObject("resource").getJsonObject("metric_values")).isNull();
                 }
 
-                verify(resourceReservationRepository, times(1)).findAllByResourceId(resourceId);
+                verify(resourceReservationRepository).findAllByResourceId(resourceId);
                 testContext.completeNow();
         })));
     }
@@ -105,7 +88,7 @@ public class ResourceReservationServiceImplTest {
         resourceReservationService.findAllByResourceId(resourceId)
                 .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(0);
-                    verify(resourceReservationRepository, times(1)).findAllByResourceId(resourceId);
+                    verify(resourceReservationRepository).findAllByResourceId(resourceId);
                     testContext.completeNow();
                 })));
     }

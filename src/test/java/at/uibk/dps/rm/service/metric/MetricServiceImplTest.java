@@ -49,7 +49,7 @@ public class MetricServiceImplTest {
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("metric_id")).isEqualTo(1L);
                 assertThat(result.getString("metric")).isEqualTo("testmetric");
-                verify(metricRepository, times(1)).findByMetric(metric);
+                verify(metricRepository).findByMetric(metric);
                 testContext.completeNow();
         })));
     }
@@ -63,7 +63,7 @@ public class MetricServiceImplTest {
         metricService.findOneByMetric(metric)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
-                verify(metricRepository, times(1)).findByMetric(metric);
+                verify(metricRepository).findByMetric(metric);
                 testContext.completeNow();
         })));
     }
@@ -78,7 +78,7 @@ public class MetricServiceImplTest {
         metricService.existsOneByMetric(metric)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isEqualTo(true);
-                verify(metricRepository, times(1)).findByMetric(metric);
+                verify(metricRepository).findByMetric(metric);
                 testContext.completeNow();
         })));
     }
@@ -92,7 +92,7 @@ public class MetricServiceImplTest {
         metricService.existsOneByMetric(metric)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isFalse();
-                verify(metricRepository, times(1)).findByMetric(metric);
+                verify(metricRepository).findByMetric(metric);
                 testContext.completeNow();
         })));
     }

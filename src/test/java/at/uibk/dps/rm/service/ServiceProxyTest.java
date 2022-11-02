@@ -23,7 +23,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
-import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
@@ -59,7 +58,7 @@ public class ServiceProxyTest {
         testClass.save(data)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("type_id")).isEqualTo(1L);
-                verify(testRepository, times(1)).create(any(ResourceType.class));
+                verify(testRepository).create(any(ResourceType.class));
                 testContext.completeNow();
         })));
     }
@@ -75,7 +74,7 @@ public class ServiceProxyTest {
         testClass.saveAll(data)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
-                verify(testRepository, times(1)).createAll(anyList());
+                verify(testRepository).createAll(anyList());
                 testContext.completeNow();
         })));
     }
@@ -93,7 +92,7 @@ public class ServiceProxyTest {
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("type_id")).isEqualTo(1L);
                 assertThat(result.getString("resource_type")).isEqualTo("cloud");
-                verify(testRepository, times(1)).findById(typeId);
+                verify(testRepository).findById(typeId);
                 testContext.completeNow();
         })));
     }
@@ -107,7 +106,7 @@ public class ServiceProxyTest {
         testClass.findOne(typeId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
-                verify(testRepository, times(1)).findById(typeId);
+                verify(testRepository).findById(typeId);
                 testContext.completeNow();
         })));
     }
@@ -124,7 +123,7 @@ public class ServiceProxyTest {
         testClass.existsOneById(typeId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isEqualTo(true);
-                verify(testRepository, times(1)).findById(typeId);
+                verify(testRepository).findById(typeId);
                 testContext.completeNow();
         })));
     }
@@ -138,7 +137,7 @@ public class ServiceProxyTest {
         testClass.existsOneById(typeId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isEqualTo(false);
-                verify(testRepository, times(1)).findById(typeId);
+                verify(testRepository).findById(typeId);
                 testContext.completeNow();
         })));
     }
@@ -162,7 +161,7 @@ public class ServiceProxyTest {
                 assertThat(result.size()).isEqualTo(2);
                 assertThat(result.getJsonObject(0).getString("resource_type")).isEqualTo("cloud");
                 assertThat(result.getJsonObject(1).getString("resource_type")).isEqualTo("vm");
-                verify(testRepository, times(1)).findAll();
+                verify(testRepository).findAll();
                 testContext.completeNow();
         })));
     }
@@ -177,7 +176,7 @@ public class ServiceProxyTest {
         testClass.update(data)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
-                verify(testRepository, times(1)).update(any(ResourceType.class));
+                verify(testRepository).update(any(ResourceType.class));
                 testContext.completeNow();
         })));
     }
@@ -191,7 +190,7 @@ public class ServiceProxyTest {
         testClass.delete(typeId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
-                verify(testRepository, times(1)).deleteById(typeId);
+                verify(testRepository).deleteById(typeId);
                 testContext.completeNow();
         })));
     }
