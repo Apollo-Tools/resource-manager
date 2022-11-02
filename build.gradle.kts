@@ -96,5 +96,12 @@ tasks.withType<JavaExec> {
 tasks.jacocoTestReport {
   reports {
     xml.required.set(true)
+    classDirectories.setFrom(
+      files(classDirectories.files.map {
+        fileTree(it) {
+          exclude("**/*VertxEBProxy.*", "**/*VertxProxyHandler.*", "**/rxjava3/**")
+        }
+      }
+    ))
   }
 }
