@@ -34,7 +34,7 @@ public class ResultHandlerTest {
 
     @Test
     void handleGetOneRequestValid(VertxTestContext testContext) {
-        setupMockResponse();
+        setupMockResponse(true);
         JsonObject basicJsonObject = new JsonObject("{\"id\": 10}");
         Single<JsonObject> handler = Single.just(basicJsonObject);
 
@@ -60,7 +60,7 @@ public class ResultHandlerTest {
 
     @Test
     void handleGetAllRequestValid(VertxTestContext testContext) {
-        setupMockResponse();
+        setupMockResponse(true);
         JsonArray basicJsonArray = new JsonArray("[10]");
         Single<JsonArray> handler = Single.just(basicJsonArray);
 
@@ -86,7 +86,7 @@ public class ResultHandlerTest {
 
     @Test
     void handleSaveOneRequestValid(VertxTestContext testContext) {
-        setupMockResponse();
+        setupMockResponse(true);
         JsonObject basicJsonObject = new JsonObject("{\"id\": 10}");
         Single<JsonObject> handler = Single.just(basicJsonObject);
 
@@ -112,7 +112,7 @@ public class ResultHandlerTest {
 
     @Test
     void handleSaveAllUpdateDeleteRequestValid(VertxTestContext testContext) {
-        setupMockResponse();
+        setupMockResponse(false);
         Completable handler = Completable.fromMaybe(Maybe.empty());
 
         ResultHandler.handleSaveAllUpdateDeleteRequest(rc, handler);
@@ -191,9 +191,14 @@ public class ResultHandlerTest {
         testContext.completeNow();
     }
 
-    private void setupMockResponse() {
+    private void setupMockResponse(boolean responseHasContent) {
         when(rc.response()).thenReturn(response);
         when(response.setStatusCode(anyInt())).thenReturn(response);
-        when(response.end(anyString())).thenReturn(Completable.fromMaybe(Maybe.empty()));
+        if (responseHasContent) {
+            when(response.end(anyString())).thenReturn(Completable.fromMaybe(Maybe.empty()));
+        } else {
+            // for getSaveAllUpdateDeleteResponse (no content)
+            when(response.end()).thenReturn(Completable.fromMaybe(Maybe.empty()));
+        }
     }
 }
