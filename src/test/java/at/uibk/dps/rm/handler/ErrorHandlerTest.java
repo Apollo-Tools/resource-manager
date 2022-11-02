@@ -4,13 +4,12 @@ import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UsedByOtherEntityException;
+import at.uibk.dps.rm.util.SingleHelper;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
-import io.vertx.rxjava3.impl.AsyncResultSingle;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -35,11 +34,7 @@ public class ErrorHandlerTest {
 
     @Test
     void handleFindOneNull(VertxTestContext testContext) {
-        JsonObject emptyJsonObject = null;
-        // As found in "build/generated/sources/annotationProcessor/java/Main/at.uibk.dps.rm.service/rxjava3.database/metric/MetricService"
-        Single<JsonObject> handler = AsyncResultSingle
-                .toSingle(Future.succeededFuture(emptyJsonObject), value -> value);
-
+        Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
 
         ErrorHandler.handleFindOne(handler)
                 .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
@@ -64,10 +59,7 @@ public class ErrorHandlerTest {
 
     @Test
     void handleFindAllNull(VertxTestContext testContext) {
-        JsonArray emptyJsonArray = null;
-        // As found in "build/generated/sources/annotationProcessor/java/Main/at.uibk.dps.rm.service/rxjava3.database/metric/MetricService"
-        Single<JsonArray>  handler = AsyncResultSingle
-                .toSingle(Future.succeededFuture(emptyJsonArray), value -> value);
+        Single<JsonArray> handler = new SingleHelper<JsonArray>().getEmptySingle();
 
         ErrorHandler.handleFindAll(handler)
                 .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),

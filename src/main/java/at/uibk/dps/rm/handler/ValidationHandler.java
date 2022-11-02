@@ -40,7 +40,7 @@ public abstract class ValidationHandler {
             .flatMap(result -> entityChecker.submitCreate(requestBody));
     }
 
-    protected  Completable postAll(RoutingContext rc) {
+    protected Completable postAll(RoutingContext rc) {
         JsonArray requestBody = rc.body().asJsonArray();
         return entityChecker.submitCreateAll(requestBody);
     }
