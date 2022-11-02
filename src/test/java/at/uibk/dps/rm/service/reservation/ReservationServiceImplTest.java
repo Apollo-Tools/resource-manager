@@ -1,13 +1,9 @@
 package at.uibk.dps.rm.service.reservation;
 
 import at.uibk.dps.rm.entity.model.Reservation;
-import at.uibk.dps.rm.entity.model.ResourceType;
-import at.uibk.dps.rm.repository.MetricValueRepository;
 import at.uibk.dps.rm.repository.ReservationRepository;
-import at.uibk.dps.rm.service.database.metric.MetricValueServiceImpl;
 import at.uibk.dps.rm.service.database.reservation.ReservationService;
 import at.uibk.dps.rm.service.database.reservation.ReservationServiceImpl;
-import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.hibernate.reactive.util.impl.CompletionStages;
