@@ -1,10 +1,10 @@
 package at.uibk.dps.rm.handler.resource;
 
+import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
-import io.vertx.rxjava3.ext.web.RequestBody;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,12 +22,10 @@ public class ResourceInputHandlerTest {
 
     @Test
     void validateAddMetricsRequestNoDuplicates(VertxTestContext testContext) {
-        JsonArray data = new JsonArray("[{\"metricId\": \"1\", \"value\": 4}, " +
+        JsonArray jsonArray = new JsonArray("[{\"metricId\": \"1\", \"value\": 4}, " +
             "{\"metricId\": \"2\", \"value\": \"ubuntu\"}]");
 
-        RequestBody mockBody = mock(RequestBody.class);
-        when(rc.body()).thenReturn(mockBody);
-        when(mockBody.asJsonArray()).thenReturn(data);
+        RoutingContextMockHelper.mockBody(rc, jsonArray);
 
         ResourceInputHandler.validateAddMetricsRequest(rc);
 
@@ -37,12 +35,10 @@ public class ResourceInputHandlerTest {
 
     @Test
     void validateAddMetricsRequestDuplicate(VertxTestContext testContext) {
-        JsonArray data = new JsonArray("[{\"metricId\": \"1\", \"value\": 4}, " +
+        JsonArray jsonArray = new JsonArray("[{\"metricId\": \"1\", \"value\": 4}, " +
             "{\"metricId\": \"1\", \"value\": 8}]");
 
-        RequestBody mockBody = mock(RequestBody.class);
-        when(rc.body()).thenReturn(mockBody);
-        when(mockBody.asJsonArray()).thenReturn(data);
+        RoutingContextMockHelper.mockBody(rc, jsonArray);
 
         ResourceInputHandler.validateAddMetricsRequest(rc);
 
@@ -52,14 +48,12 @@ public class ResourceInputHandlerTest {
 
     @Test
     void validateGetResourcesBySLORequestValid(VertxTestContext testContext) {
-        JsonObject data = new JsonObject("{\"slo\": " +
+        JsonObject jsonObject = new JsonObject("{\"slo\": " +
             "[{\"name\": \"region\", \"expression\": \"<\", \"value\": [\"eu-west\"]}, " +
             "{\"name\": \"bandwidth\", \"expression\": \">\", \"value\": [1000]}]," +
             "\"limit\": 58467637.71067335}");
 
-        RequestBody mockBody = mock(RequestBody.class);
-        when(rc.body()).thenReturn(mockBody);
-        when(mockBody.asJsonObject()).thenReturn(data);
+        RoutingContextMockHelper.mockBody(rc, jsonObject);
 
         ResourceInputHandler.validateGetResourcesBySLOsRequest(rc);
 
@@ -69,14 +63,12 @@ public class ResourceInputHandlerTest {
 
     @Test
     void validateGetResourcesBySLORequestInvalidExpression(VertxTestContext testContext) {
-        JsonObject data = new JsonObject("{\"slo\": " +
+        JsonObject jsonObject = new JsonObject("{\"slo\": " +
             "[{\"name\": \"region\", \"expression\": \"<\", \"value\": [\"eu-west\"]}, " +
             "{\"name\": \"bandwidth\", \"expression\": \">=<\", \"value\": [1000]}]," +
             "\"limit\": 58467637.71067335}");
 
-        RequestBody mockBody = mock(RequestBody.class);
-        when(rc.body()).thenReturn(mockBody);
-        when(mockBody.asJsonObject()).thenReturn(data);
+        RoutingContextMockHelper.mockBody(rc, jsonObject);
 
         ResourceInputHandler.validateGetResourcesBySLOsRequest(rc);
 
@@ -86,14 +78,12 @@ public class ResourceInputHandlerTest {
 
     @Test
     void validateGetResourcesBySLORequestDuplicate(VertxTestContext testContext) {
-        JsonObject data = new JsonObject("{\"slo\": " +
+        JsonObject jsonObject = new JsonObject("{\"slo\": " +
             "[{\"name\": \"region\", \"expression\": \"<\", \"value\": [\"eu-west\"]}, " +
             "{\"name\": \"region\", \"expression\": \">=<\", \"value\": [\"eu-north\"]}]," +
             "\"limit\": 58467637.71067335}");
 
-        RequestBody mockBody = mock(RequestBody.class);
-        when(rc.body()).thenReturn(mockBody);
-        when(mockBody.asJsonObject()).thenReturn(data);
+        RoutingContextMockHelper.mockBody(rc, jsonObject);
 
         ResourceInputHandler.validateGetResourcesBySLOsRequest(rc);
 

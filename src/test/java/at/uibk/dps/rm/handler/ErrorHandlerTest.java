@@ -4,7 +4,7 @@ import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UsedByOtherEntityException;
-import at.uibk.dps.rm.util.SingleHelper;
+import at.uibk.dps.rm.testutil.SingleHelper;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
