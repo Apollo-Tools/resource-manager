@@ -62,6 +62,7 @@ public class ResourceHandler extends ValidationHandler {
             .flatMapCompletable(result -> entityChecker.submitUpdate(requestBody, result));
     }
 
+    //TODO: simplify
     // remove reserved resources
     protected Single<JsonArray> getResourceBySLOs(RoutingContext rc) {
         ResourceChecker resourceChecker = (ResourceChecker) super.entityChecker;
@@ -72,13 +73,7 @@ public class ResourceHandler extends ValidationHandler {
         List<Completable> completables = new ArrayList<>();
         requestDTO.getServiceLevelObjectives().forEach(slo ->
                 completables.add(metricChecker.checkFindOneByMetric(slo.getName())
-                        .flatMap(metric -> {
-                            String sloValueType = slo.getValue().get(0).getSloValueType().name();
-                            String metricValueType = metric.getJsonObject("metric_type")
-                                    .getString("type").toUpperCase();
-                            boolean checkForTypeMatch = sloValueType.equals(metricValueType);
-                            return ErrorHandler.handleBadInput(Single.just(checkForTypeMatch));
-                        })
+                        .flatMap(metric -> metricChecker.checkEqualValueTypes(slo, metric))
                         .ignoreElement()));
         //noinspection unchecked
         return Completable.merge(completables)
@@ -101,46 +96,8 @@ public class ResourceHandler extends ValidationHandler {
                     int limit = requestDTO.getLimit();
                     List<Resource> result = resources
                             .stream()
-                            .filter(resource -> {
-                                for (ServiceLevelObjective slo : serviceLevelObjectives) {
-                                    for (MetricValue metricValue : resource.getMetricValues()) {
-                                        Metric metric = metricValue.getMetric();
-                                        if (metric.getMetric().equals(slo.getName())) {
-                                            if (!SLOCompareUtility.compareMetricValueWithSLO(metricValue, slo)) {
-                                                return false;
-                                            }
-                                        }
-                                    }
-                                }
-                                return true;
-                            })
-                            .sorted((r1, r2) -> {
-                                // TODO: transform outer loop into for each
-                                for (int i = 0; i < serviceLevelObjectives.size(); i++) {
-                                    ServiceLevelObjective slo = serviceLevelObjectives.get(i);
-                                    if (slo.getValue().get(0).getSloValueType() != SLOValueType.NUMBER) {
-                                        continue;
-                                    }
-                                    // TODO: support String values for sorting
-                                    for (MetricValue metricValue1 : r1.getMetricValues()) {
-                                        Metric metric1 = metricValue1.getMetric();
-                                        if (metric1.getMetric().equals(slo.getName())) {
-                                            for (MetricValue metricValue2 : r2.getMetricValues()) {
-                                                Metric metric2 = metricValue2.getMetric();
-                                                if (metric2.getMetric().equals(slo.getName())) {
-                                                    int compareValue = ExpressionType.compareValues(slo.getExpression(),
-                                                            metricValue1.getValueNumber().doubleValue(),
-                                                            metricValue2.getValueNumber().doubleValue());
-                                                    if (compareValue != 0 || i == serviceLevelObjectives.size() - 1) {
-                                                        return compareValue;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                return 0;
-                            })
+                            .filter(resource -> resourceFilterBySLO(resource, serviceLevelObjectives))
+                            .sorted((r1, r2) -> sortResourceBySLO(r1, r2, serviceLevelObjectives))
                             .collect(Collectors.toList());
                     return result.subList(0, Math.min(limit, result.size()));
                 })
@@ -168,5 +125,45 @@ public class ResourceHandler extends ValidationHandler {
                     jsonResource.put("metric_values", metrics);
                     return jsonResource;
                 });
+    }
+
+    protected boolean resourceFilterBySLO(Resource resource, List<ServiceLevelObjective> serviceLevelObjectives) {
+        for (ServiceLevelObjective slo : serviceLevelObjectives) {
+            for (MetricValue metricValue : resource.getMetricValues()) {
+                Metric metric = metricValue.getMetric();
+                if (metric.getMetric().equals(slo.getName())) {
+                    if (!SLOCompareUtility.compareMetricValueWithSLO(metricValue, slo)) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    protected int sortResourceBySLO(Resource r1, Resource r2, List<ServiceLevelObjective> serviceLevelObjectives) {
+        for (int i = 0; i < serviceLevelObjectives.size(); i++) {
+            ServiceLevelObjective slo = serviceLevelObjectives.get(i);
+            if (slo.getValue().get(0).getSloValueType() != SLOValueType.NUMBER) {
+                continue;
+            }
+            for (MetricValue metricValue1 : r1.getMetricValues()) {
+                Metric metric1 = metricValue1.getMetric();
+                if (metric1.getMetric().equals(slo.getName())) {
+                    for (MetricValue metricValue2 : r2.getMetricValues()) {
+                        Metric metric2 = metricValue2.getMetric();
+                        if (metric2.getMetric().equals(slo.getName())) {
+                            int compareValue = ExpressionType.compareValues(slo.getExpression(),
+                                metricValue1.getValueNumber().doubleValue(),
+                                metricValue2.getValueNumber().doubleValue());
+                            if (compareValue != 0 || i == serviceLevelObjectives.size() - 1) {
+                                return compareValue;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return 0;
     }
 }

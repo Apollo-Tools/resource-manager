@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.handler.metric;
 
+import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricService;
@@ -34,5 +35,13 @@ public class MetricChecker extends EntityChecker {
     public Single<JsonObject> checkFindOneByMetric(String metric) {
         Single<JsonObject> findOneByMetric = metricService.findOneByMetric(metric);
         return ErrorHandler.handleFindOne(findOneByMetric);
+    }
+
+    public Single<Boolean> checkEqualValueTypes(ServiceLevelObjective slo, JsonObject metric) {
+        String sloValueType = slo.getValue().get(0).getSloValueType().name();
+        String metricValueType = metric.getJsonObject("metric_type")
+            .getString("type").toUpperCase();
+        boolean checkForTypeMatch = sloValueType.equals(metricValueType);
+        return ErrorHandler.handleBadInput(Single.just(checkForTypeMatch));
     }
 }
