@@ -71,41 +71,18 @@ public class ResourceHandler extends ValidationHandler {
                 .mapTo(GetResourcesBySLOsRequest.class);
         List<ServiceLevelObjective> serviceLevelObjectives = requestDTO.getServiceLevelObjectives();
         List<Completable> completables = new ArrayList<>();
-        requestDTO.getServiceLevelObjectives().forEach(slo ->
-                completables.add(metricChecker.checkFindOneByMetric(slo.getName())
-                        .flatMap(metric -> metricChecker.checkEqualValueTypes(slo, metric))
-                        .ignoreElement()));
-        //noinspection unchecked
+        serviceLevelObjectives.forEach(slo -> completables.add(checkServiceLevelObjectives(slo)));
         return Completable.merge(completables)
                 .andThen(Observable.fromStream(serviceLevelObjectives.stream())
                         .map(ServiceLevelObjective::getName)
                         .toList())
                 .flatMap(resourceChecker::checkFindAllByMultipleMetrics)
-                .flatMap(resources -> Observable
-                        .fromIterable((List<JsonObject>) resources.getList())
-                        .flatMapSingle(this::findMetricValuesForResource)
-                        .toList())
-                .map(resources -> {
-                    List<Resource> resourceList = new ArrayList<>();
-                    for (JsonObject resource : resources) {
-                        resourceList.add(resource.mapTo(Resource.class));
-                    }
-                    return resourceList;
-                })
-                .map(resources -> {
-                    int limit = requestDTO.getLimit();
-                    List<Resource> result = resources
-                            .stream()
-                            .filter(resource -> resourceFilterBySLO(resource, serviceLevelObjectives))
-                            .sorted((r1, r2) -> sortResourceBySLO(r1, r2, serviceLevelObjectives))
-                            .collect(Collectors.toList());
-                    return result.subList(0, Math.min(limit, result.size()));
-                })
-                .map(JsonArray::new);
+                .flatMap(this::mapMetricValuesToResources)
+                .map(this::mapJsonListToResourceList)
+                .map(resources -> filterAndSortResultList(resources, serviceLevelObjectives, requestDTO.getLimit()));
     }
 
-
-    private Single<JsonObject> checkUpdateResourceTypeExists(JsonObject requestBody, JsonObject entity) {
+    protected Single<JsonObject> checkUpdateResourceTypeExists(JsonObject requestBody, JsonObject entity) {
         if (requestBody.containsKey("resource_type")) {
             return resourceTypeChecker.checkExistsOne(requestBody.getJsonObject("resource_type").getLong("type_id"))
                 .andThen(Single.just(entity));
@@ -113,7 +90,21 @@ public class ResourceHandler extends ValidationHandler {
         return Single.just(entity);
     }
 
-    private Single<JsonObject> findMetricValuesForResource(JsonObject jsonResource) {
+    protected Completable checkServiceLevelObjectives(ServiceLevelObjective slo) {
+        return metricChecker.checkFindOneByMetric(slo.getName())
+            .flatMap(metric -> metricChecker.checkEqualValueTypes(slo, metric))
+            .ignoreElement();
+    }
+
+    protected Single<List<JsonObject>> mapMetricValuesToResources(JsonArray resources) {
+        //noinspection unchecked
+        return Observable
+            .fromIterable((List<JsonObject>) resources.getList())
+            .flatMapSingle(this::findMetricValuesForResource)
+            .toList();
+    }
+
+    protected Single<JsonObject> findMetricValuesForResource(JsonObject jsonResource) {
         //noinspection unchecked
         return Observable
                 .fromIterable((List<JsonObject>) jsonResource
@@ -165,5 +156,24 @@ public class ResourceHandler extends ValidationHandler {
             }
         }
         return 0;
+    }
+
+    protected List<Resource> mapJsonListToResourceList(List<JsonObject> jsonObjectList) {
+        List<Resource> resourceList = new ArrayList<>();
+        for (JsonObject resource : jsonObjectList) {
+            resourceList.add(resource.mapTo(Resource.class));
+        }
+        return resourceList;
+    }
+
+    protected JsonArray filterAndSortResultList(List<Resource> resources,
+                                                     List<ServiceLevelObjective> serviceLevelObjectives, int limit) {
+        List<Resource> filteredAndSorted = resources
+            .stream()
+            .filter(resource -> resourceFilterBySLO(resource, serviceLevelObjectives))
+            .sorted((r1, r2) -> sortResourceBySLO(r1, r2, serviceLevelObjectives))
+            .collect(Collectors.toList());
+        List<Resource> subList = filteredAndSorted.subList(0, Math.min(limit, filteredAndSorted.size()));
+        return new JsonArray(subList);
     }
 }
