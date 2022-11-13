@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import io.vertx.core.json.JsonObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -46,9 +47,21 @@ public class ServiceLevelObjectiveDeserializer extends StdDeserializer<ServiceLe
         } else if (value.isTextual()) {
             sloValue.setSloValueType(SLOValueType.STRING);
             sloValue.setValuerString(value.textValue());
-        } else {
+        } else if (value.isBoolean()){
             sloValue.setSloValueType(SLOValueType.BOOLEAN);
             sloValue.setValueBool(value.booleanValue());
+        } else if (value.isContainerNode()){
+            sloValue.setSloValueType(SLOValueType.valueOf(value.get("slo_value_type").asText()));
+            switch (sloValue.getSloValueType()) {
+                case NUMBER:
+                    sloValue.setValueNumber(value.get("value_number").asDouble());
+                    break;
+                case STRING:
+                    sloValue.setValuerString(value.get("value_string").asText());
+                    break;
+                case BOOLEAN:
+                    sloValue.setValueBool(value.get("value_bool").asBoolean());
+            }
         }
         return sloValue;
     }

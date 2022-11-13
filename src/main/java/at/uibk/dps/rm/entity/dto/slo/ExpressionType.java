@@ -1,5 +1,7 @@
 package at.uibk.dps.rm.entity.dto.slo;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 import java.util.Arrays;
 
 public enum ExpressionType {
@@ -12,6 +14,7 @@ public enum ExpressionType {
         this.symbol = symbol;
     }
 
+    @JsonValue
     public String getSymbol()
     {
         return this.symbol;

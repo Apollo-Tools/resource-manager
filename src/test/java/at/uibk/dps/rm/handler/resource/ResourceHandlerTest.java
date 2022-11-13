@@ -1,10 +1,10 @@
 package at.uibk.dps.rm.handler.resource;
 
+import at.uibk.dps.rm.entity.dto.GetResourcesBySLOsRequest;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.SLOValue;
 import at.uibk.dps.rm.entity.dto.slo.SLOValueType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
-import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.exception.BadInputException;
@@ -15,6 +15,7 @@ import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceTypeService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.SingleHelper;
+import at.uibk.dps.rm.testutil.TestObjectProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -25,18 +26,15 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -175,11 +173,46 @@ public class ResourceHandlerTest {
             );
     }
 
-    //TODO: getResourceBySLOs
-    @Disabled
     @Test
     void getResourceBySLOs(VertxTestContext testContext) {
-        // TODO: implement
+        Resource resource1 = TestObjectProvider.createResource(1L);
+        MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", 25.0, null);
+        MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", 0.995, null);
+        Resource resource2 = TestObjectProvider.createResource(2L);
+        MetricValue mv3 = TestObjectProvider.createMetricValue(3L, 2L, "availability", 0.8, null);
+        Resource resource3 = TestObjectProvider.createResource(3L);
+        MetricValue mv4 = TestObjectProvider.createMetricValue(4L, 3L, "bandwidth", 1000, null);
+        MetricValue mv5 = TestObjectProvider.createMetricValue(5L, 2L, "availability", 0.999, null);
+        JsonArray resourcesJson = new JsonArray(List.of(JsonObject.mapFrom(resource1), JsonObject.mapFrom(resource2),
+            JsonObject.mapFrom(resource3)));
+        resourcesJson.getJsonObject(0).put("metric_values", new JsonArray(List.of(JsonObject.mapFrom(mv1), JsonObject.mapFrom(mv2))));
+        resourcesJson.getJsonObject(1).put("metric_values", new JsonArray(List.of(JsonObject.mapFrom(mv3))));
+        resourcesJson.getJsonObject(2).put("metric_values", new JsonArray(List.of(JsonObject.mapFrom(mv4), JsonObject.mapFrom(mv5))));
+        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("availability", ExpressionType.GT, 0.80);
+        List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
+        GetResourcesBySLOsRequest request = TestObjectProvider.createResourceBySLOsRequest(serviceLevelObjectives, 2);
+        JsonObject body = JsonObject.mapFrom(request);
+
+        RoutingContextMockHelper.mockBody(rc, body);
+        JsonObject metric1 = new JsonObject("{\"metric_id\": 1, " +
+            "\"metric\": \"availability\", \"metric_type\": {\"type\": \"number\"}}");
+        when(metricService.findOneByMetric("availability")).thenReturn(Single.just(metric1));
+        when(resourceService.findAllByMultipleMetrics(List.of("availability"))).thenReturn(Single.just(resourcesJson));
+        when(metricValueService.findOne(1L)).thenReturn(Single.just(JsonObject.mapFrom(mv1)));
+        when(metricValueService.findOne(2L)).thenReturn(Single.just(JsonObject.mapFrom(mv2)));
+        when(metricValueService.findOne(3L)).thenReturn(Single.just(JsonObject.mapFrom(mv3)));
+        when(metricValueService.findOne(4L)).thenReturn(Single.just(JsonObject.mapFrom(mv4)));
+        when(metricValueService.findOne(5L)).thenReturn(Single.just(JsonObject.mapFrom(mv5)));
+
+        resourceHandler.getResourceBySLOs(rc)
+            .subscribe(result -> testContext.verify(() -> {
+                    assertThat(result.size()).isEqualTo(2);
+                    assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(3L);
+                    assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(1L);
+                    testContext.completeNow();
+                }),
+                throwable -> testContext.verify(() -> fail("method did throw exception"))
+            );
     }
 
     @Test
@@ -223,7 +256,6 @@ public class ResourceHandlerTest {
 
     @Test
     void checkUpdateResourceTypeNotInRequestBody(VertxTestContext testContext) {
-        long typeId = 1L;
         Resource entity = new Resource();
         entity.setResourceId(1L);
         JsonObject entityJson = JsonObject.mapFrom(entity);
@@ -362,35 +394,166 @@ public class ResourceHandlerTest {
     }
 
     @Test
-    void resourceFilterBySLOValid() {
-        Resource resource = new Resource();
-        resource.setResourceId(1L);
-        Set<MetricValue> metricValues = new HashSet<>();
-        MetricValue mv1 = new MetricValue();
-        mv1.setMetricValueId(1L);
-        Metric metric1 = new Metric();
-        metric1.setMetric("latency");
-        mv1.setMetric(metric1);
-        MetricValue mv2 = new MetricValue();
-        mv2.setMetricValueId(2L);
-        Metric metric2 = new Metric();
-        metric2.setMetric("availability");
-        mv2.setMetric(metric2);
-        metricValues.add(mv1);
-        metricValues.add(mv2);
-        resource.setMetricValues(metricValues);
-        String metricName = "availability";
-        List<SLOValue> sloValues = new ArrayList<>();
-        SLOValue sloValue1 = new SLOValue();
-        sloValue1.setSloValueType(SLOValueType.NUMBER);
-        sloValues.add(sloValue1);
-        ServiceLevelObjective slo = new ServiceLevelObjective(metricName,
-            ExpressionType.GT, sloValues);
-        List<ServiceLevelObjective> serviceLevelObjectives = new ArrayList<>();
-        serviceLevelObjectives.add(slo);
+    void mapJsonListToResourceList() {
+        JsonObject resource1 = new JsonObject("{\"resource_id\": 1}");
+        JsonObject resource2 = new JsonObject("{\"resource_id\": 2}");
+        List<JsonObject> resourceList = new ArrayList<>();
+        resourceList.add(resource1);
+        resourceList.add(resource2);
 
-        boolean result = resourceHandler.resourceFilterBySLO(resource, serviceLevelObjectives);
+        List<Resource> result = resourceHandler.mapJsonListToResourceList(resourceList);
+
+        assertThat(result.size()).isEqualTo(2);
+        assertThat(result.get(0).getResourceId()).isEqualTo(1L);
+        assertThat(result.get(1).getResourceId()).isEqualTo(2L);
+    }
+
+    @Test
+    void mapJsonListToResourceListEmptyList() {
+        List<JsonObject> resourceList = new ArrayList<>();
+
+        List<Resource> result = resourceHandler.mapJsonListToResourceList(resourceList);
+
+        assertThat(result.size()).isEqualTo(0);
+    }
+
+    @Test
+    void filterAndSortResultList() {
+        Resource resource1 = TestObjectProvider.createResource(1L);
+        MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", 25.0, null);
+        MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", 0.995, null);
+        resource1.setMetricValues(Set.of(mv1, mv2));
+        Resource resource2 = TestObjectProvider.createResource(2L);
+        MetricValue mv3 = TestObjectProvider.createMetricValue(3L, 2L, "availability", 0.8, null);
+        Set<MetricValue> metricValues = Set.of(mv3);
+        resource2.setMetricValues(metricValues);
+        Resource resource3 = TestObjectProvider.createResource(3L);
+        MetricValue mv4 = TestObjectProvider.createMetricValue(4L, 3L, "bandwidth", 1000, null);
+        MetricValue mv5 = TestObjectProvider.createMetricValue(5L, 2L, "availability", 0.999, null);
+        resource3.setMetricValues(Set.of(mv4, mv5));
+        List<Resource> resources = List.of(resource1, resource2, resource3);
+        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("availability", ExpressionType.GT, 0.80);
+        List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
+        int limit = 2;
+
+        JsonArray result = resourceHandler.filterAndSortResultList(resources, serviceLevelObjectives, limit);
+
+        assertThat(result.size()).isEqualTo(2);
+        assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(3L);
+        assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(1L);
+    }
+
+    @Test
+    void filterAndSortResultListNoMatch() {
+        Resource resource1 = TestObjectProvider.createResource(1L);
+        MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", 25.0, null);
+        MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", 0.995, null);
+        resource1.setMetricValues(Set.of(mv1, mv2));
+        List<Resource> resources = List.of(resource1);
+        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("availability", ExpressionType.GT, 0.999);
+        List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
+        int limit = 2;
+
+        JsonArray result = resourceHandler.filterAndSortResultList(resources, serviceLevelObjectives, limit);
+
+        assertThat(result.size()).isEqualTo(0);
+    }
+
+    @Test
+    void resourceFilterBySLOValueTypeValid() {
+        Resource resource = TestObjectProvider.createResource(1L);
+        MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", 25.0, resource);
+        MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", "high", resource);
+        Set<MetricValue> metricValues = Set.of(mv1, mv2);
+        resource.setMetricValues(metricValues);
+        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("availability", ExpressionType.EQ, "high");
+        List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
+
+        boolean result = resourceHandler.resourceFilterBySLOValueType(resource, serviceLevelObjectives);
+
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void resourceFilterBySLOValueTypeNoValueTypeMatch() {
+        Resource resource = TestObjectProvider.createResource(1L);
+        MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", 25.0, resource);
+        MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", 0.995, resource);
+        Set<MetricValue> metricValues = Set.of(mv1, mv2);
+        resource.setMetricValues(metricValues);
+        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("availability", ExpressionType.EQ, "high");
+        List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
+
+        boolean result = resourceHandler.resourceFilterBySLOValueType(resource, serviceLevelObjectives);
 
         assertThat(result).isFalse();
+    }
+
+    @Test
+    void resourceFilterBySLOValueTypeNoNameMatch() {
+        Resource resource = TestObjectProvider.createResource(1L);
+        MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", 25.0, resource);
+        MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", 0.995, resource);
+        Set<MetricValue> metricValues = Set.of(mv1, mv2);
+        resource.setMetricValues(metricValues);
+        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("bandwidth", ExpressionType.EQ, "high");
+        List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
+
+        boolean result = resourceHandler.resourceFilterBySLOValueType(resource, serviceLevelObjectives);
+
+        assertThat(result).isTrue();
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "0, 2, 1, 0, >, -1",
+        "0, 1, 2, 0, >, 1",
+        "2, 2, 2, 1, >, -1",
+        "1, 2, 2, 2, >, 1",
+        "0, 2, 2, 0, >, 0",
+        "0, 2, 1, 0, <, 1",
+        "0, 1, 2, 0, <, -1",
+        "2, 2, 2, 1, <, 1",
+        "1, 2, 2, 2, <, -1",
+        "0, 2, 2, 0, <, 0",
+    })
+    void sortResourceBySLONumberSLOs(double v1, double v2, double v3, double v4, String symbol, int expectedResult) {
+        Resource resource1 = TestObjectProvider.createResource(1L);
+        MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", v1, null);
+        MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", v2, null);
+        resource1.setMetricValues(Set.of(mv1, mv2));
+        Resource resource2 = TestObjectProvider.createResource(2L);
+        MetricValue mv3 = TestObjectProvider.createMetricValue(3L, 2L, "availability", v3, null);
+        MetricValue mv4 = TestObjectProvider.createMetricValue(4L, 1L, "latency", v4, null);
+        Set<MetricValue> metricValues = Set.of(mv3, mv4);
+        resource2.setMetricValues(metricValues);
+        ServiceLevelObjective slo1 = TestObjectProvider.createServiceLevelObjective("availability",
+            ExpressionType.fromString(symbol), 0.80);
+        ServiceLevelObjective slo2 = TestObjectProvider.createServiceLevelObjective("latency",
+            ExpressionType.fromString(symbol), 0.80);
+        List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo1, slo2);
+
+        int result = resourceHandler.sortResourceBySLO(resource1, resource2, serviceLevelObjectives);
+
+        assertThat(result).isEqualTo(expectedResult);
+    }
+
+    @Test
+    void sortResourceBySLONonNumberSLO() {
+        Resource resource1 = TestObjectProvider.createResource(1L);
+        MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "region", "eu-west", null);
+        MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", 0.99, null);
+        resource1.setMetricValues(Set.of(mv1, mv2));
+        Resource resource2 = TestObjectProvider.createResource(2L);
+        MetricValue mv3 = TestObjectProvider.createMetricValue(3L, 2L, "region", "eu-west", null);
+        Set<MetricValue> metricValues = Set.of(mv3);
+        resource2.setMetricValues(metricValues);
+        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("region",
+            ExpressionType.EQ, "eu-west");
+        List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
+
+        int result = resourceHandler.sortResourceBySLO(resource1, resource2, serviceLevelObjectives);
+
+        assertThat(result).isEqualTo(0);
     }
 }
