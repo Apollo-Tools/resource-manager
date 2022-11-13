@@ -44,6 +44,17 @@ public class TestObjectProvider {
         return metricType;
     }
 
+    public static Metric createMetric(long metricId, String metricName, long metricTypeId, String metricType,boolean isMonitored) {
+        Metric metric = new Metric();
+        metric.setMetricId(metricId);
+        metric.setMetric(metricName);
+        metric.setMetricType(createMetricType(metricTypeId, metricType));
+        metric.setDescription("Blah");
+        metric.setMonitored(isMonitored);
+        return metric;
+    }
+
+
     public static Metric createMetric(long metricId, String metricName, MetricType metricType,boolean isMonitored) {
         Metric metric = new Metric();
         metric.setMetricId(metricId);

@@ -67,6 +67,7 @@ public class MetricValueHandler extends ValidationHandler {
                     .andThen(Single.just(ids))
                 ))
                 .flatMapCompletable(ids -> {
+                    //TODO: refactor
                     Object value = requestBody.getValue("value");
                     long resourceId = ids.get("resourceId");
                     long metricId = ids.get("metricId");
@@ -92,7 +93,7 @@ public class MetricValueHandler extends ValidationHandler {
             .flatMapCompletable(ids -> metricValueChecker.submitDeleteMetricValue(ids.get("resourceId"), ids.get("metricId")));
     }
 
-    private Single<List<MetricValue>> checkAddMetricsResourceExists(JsonArray requestBody, long resourceId) {
+    protected Single<List<MetricValue>> checkAddMetricsResourceExists(JsonArray requestBody, long resourceId) {
         List<MetricValue> metricValues = new ArrayList<>();
         List<Completable> completables = checkAddMetricList(requestBody, resourceId, metricValues);
         return Completable.merge(completables)
@@ -119,7 +120,8 @@ public class MetricValueHandler extends ValidationHandler {
         return completables;
     }
 
-    private Completable checkAddMetricValueSetCorrectly(JsonObject jsonEntry, long metricId, MetricValue metricValue) {
+    //TODO: migrate to MetricChecker
+    protected Completable checkAddMetricValueSetCorrectly(JsonObject jsonEntry, long metricId, MetricValue metricValue) {
         Single<Boolean> checkMetricValue = metricChecker.checkFindOne(metricId)
                 .map(result -> {
                     Metric metric = result.mapTo(Metric.class);
@@ -127,9 +129,9 @@ public class MetricValueHandler extends ValidationHandler {
                     boolean valueHasCorrectType = true;
                     if (stringMetricHasStringValue(metric, value)) {
                         metricValue.setValueString((String) value);
-                    } else if (numberMetricHasStringValue(metric, value)) {
+                    } else if (numberMetricHasNumberValue(metric, value)) {
                         metricValue.setValueNumber(jsonEntry.getNumber("value").doubleValue());
-                    } else if (boolMetricHasStringValue(metric, value)) {
+                    } else if (boolMetricHasNumberValue(metric, value)) {
                         metricValue.setValueBool((Boolean) value);
                     } else {
                         valueHasCorrectType = false;
@@ -139,34 +141,33 @@ public class MetricValueHandler extends ValidationHandler {
         return ErrorHandler.handleBadInput(checkMetricValue).ignoreElement();
     }
 
-    private Completable checkUpdateMetricValueSetCorrectly(JsonObject jsonEntry, long metricId) {
+    //TODO: migrate to MetricChecker
+    protected Completable checkUpdateMetricValueSetCorrectly(JsonObject jsonEntry, long metricId) {
         Single<Boolean> checkMetricValue = metricChecker.checkFindOne(metricId)
                 .map(result -> {
                     Metric metric = result.mapTo(Metric.class);
                     Object value = jsonEntry.getValue("value");
-                    return hasNoMetricValue(metric, value) || stringMetricHasStringValue(metric, value) ||
-                            numberMetricHasStringValue(metric, value) || boolMetricHasStringValue(metric, value);
+                    return !metric.getMonitored() &&
+                        (stringMetricHasStringValue(metric, value) ||
+                        numberMetricHasNumberValue(metric, value) ||
+                        boolMetricHasNumberValue(metric, value));
                 });
         return ErrorHandler.handleBadInput(checkMetricValue).ignoreElement();
-    }
-
-    private boolean hasNoMetricValue(Metric metric, Object value) {
-        return metric.getMonitored() && value == null;
     }
 
     private boolean stringMetricHasStringValue(Metric metric, Object value) {
         return value instanceof String && metric.getMetricType().getType().equals("string");
     }
 
-    private boolean numberMetricHasStringValue(Metric metric, Object value) {
+    private boolean numberMetricHasNumberValue(Metric metric, Object value) {
         return value instanceof Number && metric.getMetricType().getType().equals("number");
     }
 
-    private boolean boolMetricHasStringValue(Metric metric, Object value) {
-        return value instanceof Boolean && metric.getMetricType().getType().equals("bool");
+    private boolean boolMetricHasNumberValue(Metric metric, Object value) {
+        return value instanceof Boolean && metric.getMetricType().getType().equals("boolean");
     }
 
-    private Completable checkUpdateDeleteMetricValueExists(long resourceId, long metricId) {
+    protected Completable checkUpdateDeleteMetricValueExists(long resourceId, long metricId) {
         return Completable.mergeArray(
             resourceChecker.checkExistsOne(resourceId),
             metricChecker.checkExistsOne(metricId),
