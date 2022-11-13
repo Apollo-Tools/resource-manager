@@ -41,7 +41,7 @@ public class ResourceCheckerTest {
     }
 
     @Test
-    void checkFinAllByMultipleMetricsFound(VertxTestContext testContext) {
+    void checkFindAllByMultipleMetricsFound(VertxTestContext testContext) {
         Resource resource1 = TestObjectProvider.createResource(1L);
         Resource resource2 = TestObjectProvider.createResource(2L);
         Resource resource3 = TestObjectProvider.createResource(3L);
@@ -65,7 +65,7 @@ public class ResourceCheckerTest {
     }
 
     @Test
-    void checkFinAllByMultipleMetricsNotFound(VertxTestContext testContext) {
+    void checkFindAllByMultipleMetricsNotFound(VertxTestContext testContext) {
         List<String> metrics = List.of("availability", "bandwidth");
         Single<JsonArray> handler = new SingleHelper<JsonArray>().getEmptySingle();
 
