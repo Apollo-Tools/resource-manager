@@ -98,7 +98,7 @@ public class MetricCheckerTest {
     }
 
     @Test
-    void checkUpdateNoDuplicateWithMetricxists(VertxTestContext testContext) {
+    void checkUpdateNoDuplicateWithMetricExists(VertxTestContext testContext) {
         String metricName = "region";
         Metric metric = TestObjectProvider.createMetric(1L, metricName);
         JsonObject entity = JsonObject.mapFrom(metric);
