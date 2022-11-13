@@ -19,10 +19,11 @@ public class ResourceChecker extends EntityChecker {
     }
 
     public Single<JsonArray> checkFindAllByMultipleMetrics(List<String> metrics) {
-        return resourceService.findAllByMultipleMetrics(metrics);
+        Single<JsonArray> findAllByMultipleMetrics = resourceService.findAllByMultipleMetrics(metrics);
+        return ErrorHandler.handleFindAll(findAllByMultipleMetrics);
     }
 
-    public Completable checkExistsOneByResourceType(long resourceTypeId) {
+    public Completable checkOneUsedByResourceType(long resourceTypeId) {
         Single<Boolean> existsOneByResourceType = resourceService.existsOneByResourceType(resourceTypeId);
         return ErrorHandler.handleUsedByOtherEntity(existsOneByResourceType).ignoreElement();
     }

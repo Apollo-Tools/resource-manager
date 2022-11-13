@@ -17,6 +17,6 @@ public class ResourceTypeHandler extends ValidationHandler {
 
     @Override
     protected Completable checkDeleteEntityIsUsed(JsonObject entity) {
-        return resourceChecker.checkExistsOneByResourceType(entity.getLong("type_id"));
+        return resourceChecker.checkOneUsedByResourceType(entity.getLong("type_id"));
     }
 }
