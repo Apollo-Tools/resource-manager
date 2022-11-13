@@ -4,7 +4,6 @@ import at.uibk.dps.rm.entity.model.ResourceType;
 import at.uibk.dps.rm.exception.UsedByOtherEntityException;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceTypeService;
-import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -47,10 +46,12 @@ public class ResourceTypeHandlerTest {
         when(resourceService.existsOneByResourceType(entityId)).thenReturn(Single.just(false));
 
         resourceTypeHandler.checkDeleteEntityIsUsed(JsonObject.mapFrom((entity)))
-            .andThen(Maybe.just(testContext.verify(testContext::completeNow)))
-            .blockingSubscribe();
+            .blockingSubscribe(() -> {},
+                throwable -> testContext.verify(() -> fail("method did throw exception"))
+            );
 
         verify(resourceService).existsOneByResourceType(entityId);
+        testContext.completeNow();
     }
 
     @Test
@@ -63,8 +64,7 @@ public class ResourceTypeHandlerTest {
         when(resourceService.existsOneByResourceType(entityId)).thenReturn(Single.just(true));
 
         resourceTypeHandler.checkDeleteEntityIsUsed(JsonObject.mapFrom((entity)))
-            .andThen(Maybe.just(testContext.verify(testContext::completeNow)))
-            .blockingSubscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(UsedByOtherEntityException.class);
                     testContext.completeNow();

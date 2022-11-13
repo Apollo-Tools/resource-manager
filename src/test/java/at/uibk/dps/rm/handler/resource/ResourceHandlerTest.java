@@ -18,7 +18,6 @@ import at.uibk.dps.rm.testutil.SingleHelper;
 import at.uibk.dps.rm.testutil.TestObjectProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -121,8 +120,7 @@ public class ResourceHandlerTest {
         when(resourceService.update(jsonObject)).thenReturn(Completable.complete());
 
         resourceHandler.updateOne(rc)
-            .andThen(Maybe.just(testContext.verify(testContext::completeNow)))
-            .blockingSubscribe(result -> {},
+            .blockingSubscribe(() -> {},
                 throwable -> testContext.verify(() -> fail("method did throw exception"))
             );
 
@@ -131,6 +129,7 @@ public class ResourceHandlerTest {
             verify(resourceTypeService).existsOneById(1L);
         }
         verify(resourceService).update(jsonObject);
+        testContext.completeNow();
     }
 
     @Test
@@ -144,8 +143,7 @@ public class ResourceHandlerTest {
         when(resourceService.findOne(entityId)).thenReturn(handler);
 
         resourceHandler.updateOne(rc)
-            .andThen(Maybe.empty())
-            .blockingSubscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
@@ -164,8 +162,7 @@ public class ResourceHandlerTest {
         when(resourceTypeService.existsOneById(1L)).thenReturn(Single.just(false));
 
         resourceHandler.updateOne(rc)
-            .andThen(Maybe.just(testContext.verify(testContext::completeNow)))
-            .blockingSubscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+           .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
@@ -289,12 +286,12 @@ public class ResourceHandlerTest {
         when(metricService.findOneByMetric(metricName)).thenReturn(Single.just(metric));
 
         resourceHandler.checkServiceLevelObjectives(slo)
-            .andThen(Maybe.just(testContext.verify(testContext::completeNow)))
-            .blockingSubscribe(result -> {},
+            .blockingSubscribe(() -> {},
                 throwable -> testContext.verify(() -> fail("method did throw exception"))
             );
 
         verify(metricService).findOneByMetric(metricName);
+        testContext.completeNow();
     }
 
     @Test
@@ -306,8 +303,7 @@ public class ResourceHandlerTest {
         when(metricService.findOneByMetric(metricName)).thenReturn(handler);
 
         resourceHandler.checkServiceLevelObjectives(slo)
-            .andThen(Maybe.empty())
-            .blockingSubscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     verify(metricService).findOneByMetric(metricName);
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
@@ -331,8 +327,7 @@ public class ResourceHandlerTest {
         when(metricService.findOneByMetric(metricName)).thenReturn(Single.just(metric));
 
         resourceHandler.checkServiceLevelObjectives(slo)
-            .andThen(Maybe.empty())
-            .blockingSubscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     verify(metricService).findOneByMetric(metricName);
                     assertThat(throwable).isInstanceOf(BadInputException.class);

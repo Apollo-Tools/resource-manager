@@ -64,11 +64,13 @@ public class ValidationHandlerTest {
         when(resourceTypeService.delete(entityId)).thenReturn(Completable.complete());
 
         testClass.deleteOne(rc)
-            .andThen(Maybe.just(testContext.verify(testContext::completeNow)))
-            .blockingSubscribe();
+            .blockingSubscribe(() -> {},
+                throwable -> testContext.verify(() -> fail("method did throw exception"))
+            );
 
         verify(resourceTypeService).findOne(entityId);
         verify(resourceTypeService).delete(entityId);
+        testContext.completeNow();
     }
 
     @Test
@@ -79,8 +81,7 @@ public class ValidationHandlerTest {
         when(resourceTypeService.findOne(entityId)).thenReturn(handler);
 
         testClass.deleteOne(rc)
-            .andThen(Maybe.empty())
-            .blockingSubscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
@@ -218,10 +219,12 @@ public class ValidationHandlerTest {
         when(resourceTypeService.saveAll(resultJson)).thenReturn(Completable.complete());
 
         testClass.postAll(rc)
-            .andThen(Maybe.just(testContext.verify(testContext::completeNow)))
-            .blockingSubscribe();
+            .blockingSubscribe(() -> {},
+                throwable -> testContext.verify(() -> fail("method did throw exception"))
+            );
 
         verify(resourceTypeService).saveAll(resultJson);
+        testContext.completeNow();
     }
 
     @Test
@@ -239,12 +242,14 @@ public class ValidationHandlerTest {
         when(resourceTypeService.update(jsonObject)).thenReturn(Completable.complete());
 
         testClass.updateOne(rc)
-            .andThen(Maybe.just(testContext.verify(testContext::completeNow)))
-            .blockingSubscribe();
+            .blockingSubscribe(() -> {},
+                throwable -> testContext.verify(() -> fail("method did throw exception"))
+            );
 
         verify(resourceTypeService).findOne(entityId);
         verify(resourceTypeService).existsOneByResourceType("cloud");
         verify(resourceTypeService).update(jsonObject);
+        testContext.completeNow();
     }
 
     @Test
@@ -261,8 +266,7 @@ public class ValidationHandlerTest {
         when(resourceTypeService.findOne(entityId)).thenReturn(handler);
 
         testClass.updateOne(rc)
-            .andThen(Maybe.just(testContext.verify(testContext::completeNow)))
-            .blockingSubscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
@@ -284,8 +288,7 @@ public class ValidationHandlerTest {
         when(resourceTypeService.existsOneByResourceType("cloud")).thenReturn(Single.just(true));
 
         testClass.updateOne(rc)
-            .andThen(Maybe.just(testContext.verify(testContext::completeNow)))
-            .blockingSubscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
                     testContext.completeNow();
