@@ -52,7 +52,7 @@ public class MetricValueRepository extends Repository<MetricValue> {
                         .thenAccept(metricValues -> metricValues.forEach(metricValue -> {
                             metricValue.setValueString(valueString);
                             if (valueNumber!= null) {
-                                metricValue.setValueNumber(BigDecimal.valueOf(valueNumber));
+                                metricValue.setValueNumber(valueNumber);
                             }
                             metricValue.setValueBool(valueBool);
                         })));

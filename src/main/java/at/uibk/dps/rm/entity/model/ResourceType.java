@@ -1,9 +1,16 @@
 package at.uibk.dps.rm.entity.model;
 
+import at.uibk.dps.rm.annotations.Generated;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 
 @Entity
+@Getter
+@Setter
 public class ResourceType {
 
     @Id
@@ -13,29 +20,11 @@ public class ResourceType {
     private String resourceType;
 
     @Column(insertable = false, updatable = false)
-    private Timestamp createdAt;
+    private @Setter(value = AccessLevel.NONE) Timestamp createdAt;
 
-    public Long getType_id() {
-        return typeId;
-    }
-
-    public void setTypeId(Long typeId) {
-        this.typeId = typeId;
-    }
-
-    public String getResource_type() {
-        return resourceType;
-    }
-
-    public void setResource_type(String resourceType) {
-        this.resourceType = resourceType;
-    }
-
-    public Timestamp getCreatedAt() {
-        return createdAt;
-    }
-
-    @Override public boolean equals(Object o) {
+    @Override
+    @Generated
+    public boolean equals(Object o) {
         if (this == o)
             return true;
         if (o == null || getClass() != o.getClass())
@@ -46,7 +35,9 @@ public class ResourceType {
         return typeId.equals(that.typeId);
     }
 
-    @Override public int hashCode() {
+    @Override
+    @Generated
+    public int hashCode() {
         return typeId.hashCode();
     }
 }

@@ -49,7 +49,7 @@ public class ServiceProxyTest {
     void saveEntity(VertxTestContext testContext) {
         ResourceType entity = new ResourceType();
         entity.setTypeId(1L);
-        entity.setResource_type("cloud");
+        entity.setResourceType("cloud");
         CompletionStage<ResourceType> completionStage = CompletionStages.completedFuture(entity);
         doReturn(completionStage).when(testRepository).create(any(ResourceType.class));
 
@@ -84,7 +84,7 @@ public class ServiceProxyTest {
         long typeId = 1L;
         ResourceType entity = new ResourceType();
         entity.setTypeId(typeId);
-        entity.setResource_type("cloud");
+        entity.setResourceType("cloud");
         CompletionStage<ResourceType> completionStage = CompletionStages.completedFuture(entity);
         doReturn(completionStage).when(testRepository).findById(typeId);
 
@@ -116,7 +116,7 @@ public class ServiceProxyTest {
         long typeId = 1L;
         ResourceType resourceType = new ResourceType();
         resourceType.setTypeId(typeId);
-        resourceType.setResource_type("cloud");
+        resourceType.setResourceType("cloud");
         CompletionStage<ResourceType> completionStage = CompletionStages.completedFuture(resourceType);
         doReturn(completionStage).when(testRepository).findById(typeId);
 
@@ -146,10 +146,10 @@ public class ServiceProxyTest {
     void findAll(VertxTestContext testContext) {
         ResourceType entity1 = new ResourceType();
         entity1.setTypeId(1L);
-        entity1.setResource_type("cloud");
+        entity1.setResourceType("cloud");
         ResourceType entity2 = new ResourceType();
         entity2.setTypeId(2L);
-        entity2.setResource_type("vm");
+        entity2.setResourceType("vm");
         List<ResourceType> resultList = new ArrayList<>();
         resultList.add(entity1);
         resultList.add(entity2);

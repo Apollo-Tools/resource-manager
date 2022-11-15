@@ -72,7 +72,7 @@ public class MetricChecker extends EntityChecker {
             .map(result -> {
                 Metric metric = result.mapTo(Metric.class);
                 Object value = jsonEntry.getValue("value");
-                return !metric.getMonitored() &&
+                return !metric.getIsMonitored() &&
                     (stringMetricHasStringValue(metric, value) ||
                         numberMetricHasNumberValue(metric, value) ||
                         boolMetricHasNumberValue(metric, value));

@@ -6,6 +6,7 @@ plugins {
   application
   id("com.github.johnrengelman.shadow") version "7.0.0"
   jacoco
+  id("io.freefair.lombok") version "6.5.1"
 }
 
 group = "Apollo-Tools-resource-manager"
@@ -71,7 +72,7 @@ java {
 }
 
 jacoco {
-  toolVersion = "0.8.5"
+  toolVersion = "0.8.8"
 }
 
 tasks.withType<ShadowJar> {
@@ -93,7 +94,12 @@ tasks.withType<JavaExec> {
   args = listOf("run", mainVerticleName, "--redeploy=$watchForChange", "--launcher-class=$launcherClassName", "--on-redeploy=$doOnChange")
 }
 
+tasks.test {
+  finalizedBy(tasks.jacocoTestReport) // report is always generated after tests run
+}
+
 tasks.jacocoTestReport {
+  dependsOn(tasks.test) // tests are required to run before generating the report
   reports {
     xml.required.set(true)
     classDirectories.setFrom(

@@ -69,7 +69,7 @@ public class ReservationHandler extends ValidationHandler {
                 .merge(checkResourcesExistAndAreNotReserved(requestDTO.getResources()))
                 .andThen(Single.just(new Reservation()))
                 .flatMap(reservation -> {
-                    reservation.setActive(true);
+                    reservation.setIsActive(true);
                     return entityChecker.submitCreate(JsonObject.mapFrom(reservation));
                 })
                 .map(reservationJson -> createResourceReservationList(reservationJson, requestDTO.getResources()))

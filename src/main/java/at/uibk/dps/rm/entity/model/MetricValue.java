@@ -1,6 +1,10 @@
 package at.uibk.dps.rm.entity.model;
 
+import at.uibk.dps.rm.annotations.Generated;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -8,12 +12,13 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 @Entity
+@Getter
+@Setter
 public class MetricValue {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long metricValueId;
 
-    @Column(nullable = false)
     private Long count = 0L;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -34,80 +39,18 @@ public class MetricValue {
     private Metric metric;
 
     @Column(insertable = false, updatable = false)
-    private Timestamp createdAt;
+    private @Setter(value = AccessLevel.NONE) Timestamp createdAt;
 
     @Column(insertable = false, updatable = false)
-    private Timestamp updatedAt;
-
-    public Long getMetricValueId() {
-        return metricValueId;
-    }
-
-    public void setMetricValueId(Long metricValueId) {
-        this.metricValueId = metricValueId;
-    }
-
-    public Long getCount() {
-        return count;
-    }
-
-    public void setCount(Long count) {
-        this.count = count;
-    }
-
-    public BigDecimal getValueNumber() {
-        return valueNumber;
-    }
+    private @Setter(value = AccessLevel.NONE) Timestamp updatedAt;
 
     public void setValueNumber(double value) {
         this.valueNumber = BigDecimal.valueOf(value);
     }
 
-    public void setValueNumber(BigDecimal valueNumber) {
-        this.valueNumber = valueNumber;
-    }
-
-    public String getValueString() {
-        return valueString;
-    }
-
-    public void setValueString(String valueString) {
-        this.valueString = valueString;
-    }
-
-    public Boolean getValueBool() {
-        return valueBool;
-    }
-
-    public void setValueBool(Boolean valueBool) {
-        this.valueBool = valueBool;
-    }
-
-    public Resource getResource() {
-        return resource;
-    }
-
-    public void setResource(Resource resource) {
-        this.resource = resource;
-    }
-
-    public Metric getMetric() {
-        return metric;
-    }
-
-    public void setMetric(Metric metric) {
-        this.metric = metric;
-    }
-
-    public Timestamp getCreatedAt() {
-        return createdAt;
-    }
-
-    public Timestamp getUpdatedAt() {
-        return updatedAt;
-    }
-
-    @Override public boolean equals(Object o) {
+    @Override
+    @Generated
+    public boolean equals(Object o) {
         if (this == o)
             return true;
         if (o == null || getClass() != o.getClass())
@@ -118,7 +61,9 @@ public class MetricValue {
         return metricValueId.equals(that.metricValueId);
     }
 
-    @Override public int hashCode() {
+    @Override
+    @Generated
+    public int hashCode() {
         return metricValueId.hashCode();
     }
 }

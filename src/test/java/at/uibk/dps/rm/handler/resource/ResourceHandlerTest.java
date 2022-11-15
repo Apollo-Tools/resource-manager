@@ -180,10 +180,6 @@ public class ResourceHandlerTest {
         Resource resource3 = TestObjectProvider.createResource(3L);
         MetricValue mv4 = TestObjectProvider.createMetricValue(4L, 3L, "bandwidth", 1000, null);
         MetricValue mv5 = TestObjectProvider.createMetricValue(5L, 2L, "availability", 0.999, null);
-        // Necessary because jackson deserialization randomly fails when testing the whole project
-        resource1.setResourceType(null);
-        resource2.setResourceType(null);
-        resource3.setResourceType(null);
         JsonArray resourcesJson = new JsonArray(List.of(JsonObject.mapFrom(resource1), JsonObject.mapFrom(resource2),
             JsonObject.mapFrom(resource3)));
         resourcesJson.getJsonObject(0).put("metric_values", new JsonArray(List.of(JsonObject.mapFrom(mv1), JsonObject.mapFrom(mv2))));

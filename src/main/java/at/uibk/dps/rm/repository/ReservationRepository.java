@@ -19,7 +19,7 @@ public class ReservationRepository extends Repository<Reservation> {
                         .getSingleResultOrNull()
                         .thenApply(reservation -> {
                                 if (reservation != null) {
-                                    reservation.setActive(false);
+                                    reservation.setIsActive(false);
                                 }
                                 return reservation;
                             })

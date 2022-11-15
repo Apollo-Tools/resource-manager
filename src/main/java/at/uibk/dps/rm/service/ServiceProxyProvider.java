@@ -8,7 +8,9 @@ import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceTypeService;
 import io.vertx.rxjava3.core.Vertx;
+import lombok.Getter;
 
+@Getter
 public class ServiceProxyProvider {
     private final ResourceService resourceService;
     private final ResourceTypeService resourceTypeService;
@@ -27,33 +29,5 @@ public class ServiceProxyProvider {
         reservationService = ReservationService.createProxy(vertx, "reservation-service-address");
         resourceReservationService = ResourceReservationService
                 .createProxy(vertx, "resource-reservation-service-address");
-    }
-
-    public ResourceService getResourceService() {
-        return resourceService;
-    }
-
-    public ResourceTypeService getResourceTypeService() {
-        return resourceTypeService;
-    }
-
-    public MetricService getMetricService() {
-        return metricService;
-    }
-
-    public MetricValueService getMetricValueService() {
-        return metricValueService;
-    }
-
-    public MetricTypeService getMetricTypeService() {
-        return metricTypeService;
-    }
-
-    public ReservationService getReservationService() {
-        return reservationService;
-    }
-
-    public ResourceReservationService getResourceReservationService() {
-        return resourceReservationService;
     }
 }

@@ -65,7 +65,7 @@ public class ReservationHandlerTest {
     void getOneExistsAndIsActive(VertxTestContext testContext) {
         long reservationId = 1L;
         Reservation reservation = TestObjectProvider.createReservation(1L, true);
-        JsonArray resourceReservations = new JsonArray(TestObjectProvider.createResourceReservationsJson(reservation, false));
+        JsonArray resourceReservations = new JsonArray(TestObjectProvider.createResourceReservationsJson(reservation));
         MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", 25.0, null);
         MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", 0.995, null);
         MetricValue mv3 = TestObjectProvider.createMetricValue(3L, 3L, "bandwidth", 1000, null);
@@ -108,7 +108,7 @@ public class ReservationHandlerTest {
     void getOneExistsMetricValuesNotFound(VertxTestContext testContext) {
         long reservationId = 1L;
         Reservation reservation = TestObjectProvider.createReservation(1L, true);
-        JsonArray resourceReservations = new JsonArray(TestObjectProvider.createResourceReservationsJson(reservation, false));
+        JsonArray resourceReservations = new JsonArray(TestObjectProvider.createResourceReservationsJson(reservation));
         Single<JsonArray> handler = new SingleHelper<JsonArray>().getEmptySingle();
 
 

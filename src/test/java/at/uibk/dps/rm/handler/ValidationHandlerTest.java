@@ -7,6 +7,7 @@ import at.uibk.dps.rm.handler.resource.ResourceTypeChecker;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceTypeService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.SingleHelper;
+import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
@@ -25,7 +26,8 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
@@ -47,6 +49,7 @@ public class ValidationHandlerTest {
 
     @BeforeEach
     void initTest() {
+        JsonMapperConfig.configJsonMapper();
         ResourceTypeChecker entityChecker = new ResourceTypeChecker(resourceTypeService);
         testClass = new ConcreteValidationHandler(entityChecker);
     }
@@ -56,7 +59,7 @@ public class ValidationHandlerTest {
         long entityId = 1L;
         ResourceType entity = new ResourceType();
         entity.setTypeId(entityId);
-        entity.setResource_type("cloud");
+        entity.setResourceType("cloud");
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
         when(resourceTypeService.findOne(entityId)).thenReturn(Single.just(JsonObject.mapFrom(entity)));
@@ -93,7 +96,7 @@ public class ValidationHandlerTest {
         long entityId = 1L;
         ResourceType entity = new ResourceType();
         entity.setTypeId(entityId);
-        entity.setResource_type("cloud");
+        entity.setResourceType("cloud");
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
         when(resourceTypeService.findOne(entityId)).thenReturn(Single.just(JsonObject.mapFrom(entity)));
@@ -169,7 +172,7 @@ public class ValidationHandlerTest {
     void postOne(VertxTestContext testContext) {
         ResourceType entity = new ResourceType();
         entity.setTypeId(1L);
-        entity.setResource_type("cloud");
+        entity.setResourceType("cloud");
         JsonObject jsonObject = JsonObject.mapFrom(entity);
 
         RoutingContextMockHelper.mockBody(rc, jsonObject);
@@ -190,7 +193,7 @@ public class ValidationHandlerTest {
     @Test
     void postOneAlreadyExists(VertxTestContext testContext) {
         ResourceType entity = new ResourceType();
-        entity.setResource_type("cloud");
+        entity.setResourceType("cloud");
         JsonObject jsonObject = JsonObject.mapFrom(entity);
 
         RoutingContextMockHelper.mockBody(rc, jsonObject);
@@ -231,7 +234,7 @@ public class ValidationHandlerTest {
         long entityId = 1L;
         ResourceType entity = new ResourceType();
         entity.setTypeId(entityId);
-        entity.setResource_type("cloud");
+        entity.setResourceType("cloud");
         JsonObject jsonObject = JsonObject.mapFrom(entity);
 
         RoutingContextMockHelper.mockBody(rc, jsonObject);
@@ -257,7 +260,7 @@ public class ValidationHandlerTest {
         Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
         ResourceType entity = new ResourceType();
         entity.setTypeId(entityId);
-        entity.setResource_type("cloud");
+        entity.setResourceType("cloud");
         JsonObject jsonObject = JsonObject.mapFrom(entity);
 
         RoutingContextMockHelper.mockBody(rc, jsonObject);
@@ -278,7 +281,7 @@ public class ValidationHandlerTest {
         long entityId = 1L;
         ResourceType entity = new ResourceType();
         entity.setTypeId(entityId);
-        entity.setResource_type("cloud");
+        entity.setResourceType("cloud");
         JsonObject jsonObject = JsonObject.mapFrom(entity);
 
         RoutingContextMockHelper.mockBody(rc, jsonObject);

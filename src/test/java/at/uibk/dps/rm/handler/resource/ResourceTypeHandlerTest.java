@@ -41,7 +41,7 @@ public class ResourceTypeHandlerTest {
         long entityId = 1L;
         ResourceType entity = new ResourceType();
         entity.setTypeId(entityId);
-        entity.setResource_type("cloud");
+        entity.setResourceType("cloud");
 
         when(resourceService.existsOneByResourceType(entityId)).thenReturn(Single.just(false));
 
@@ -59,7 +59,7 @@ public class ResourceTypeHandlerTest {
         long entityId = 1L;
         ResourceType entity = new ResourceType();
         entity.setTypeId(entityId);
-        entity.setResource_type("cloud");
+        entity.setResourceType("cloud");
 
         when(resourceService.existsOneByResourceType(entityId)).thenReturn(Single.just(true));
 

@@ -1,34 +1,21 @@
 package at.uibk.dps.rm.entity.dto;
 
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
-import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
+@Data
 public class GetResourcesBySLOsRequest {
-    private final int DEFAULT_LIMIT = 10000;
 
-    @JsonAlias("slo")
+    private final @Getter(value = AccessLevel.NONE) @Setter(value = AccessLevel.NONE) int DEFAULT_LIMIT = 10000;
+
+    @JsonProperty("slo")
     private List<ServiceLevelObjective> serviceLevelObjectives;
 
     private int limit = DEFAULT_LIMIT;
-
-    public GetResourcesBySLOsRequest() {
-    }
-
-    public List<ServiceLevelObjective> getServiceLevelObjectives() {
-        return serviceLevelObjectives;
-    }
-
-    public void setServiceLevelObjectives(List<ServiceLevelObjective> serviceLevelObjectives) {
-        this.serviceLevelObjectives = serviceLevelObjectives;
-    }
-
-    public int getLimit() {
-        return limit;
-    }
-
-    public void setLimit(int limit) {
-        this.limit = limit;
-    }
 }

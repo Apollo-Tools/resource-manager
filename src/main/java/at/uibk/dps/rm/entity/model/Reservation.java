@@ -1,49 +1,32 @@
 package at.uibk.dps.rm.entity.model;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonSetter;
+import at.uibk.dps.rm.annotations.Generated;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
 
 @Entity
+@Getter
+@Setter
 public class Reservation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long reservationId;
 
-    @JsonAlias("is_active")
+    @JsonProperty("is_active")
     @Column(name = "is_active")
     private Boolean isActive;
 
     @Column(insertable = false, updatable = false)
-    private Timestamp createdAt;
-
-    public Long getReservationId() {
-        return reservationId;
-    }
-
-    public void setReservationId(Long reservationId) {
-        this.reservationId = reservationId;
-    }
-
-    @JsonGetter("is_active")
-    public Boolean getActive() {
-        return isActive;
-    }
-
-    @JsonSetter("is_active")
-    public void setActive(Boolean active) {
-        isActive = active;
-    }
-
-    public Timestamp getCreatedAt() {
-        return createdAt;
-    }
+    private @Setter(AccessLevel.NONE) Timestamp createdAt;
 
     @Override
+    @Generated
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -54,6 +37,7 @@ public class Reservation {
     }
 
     @Override
+    @Generated
     public int hashCode() {
         return reservationId.hashCode();
     }

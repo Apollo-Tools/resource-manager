@@ -37,7 +37,7 @@ public class ResourceTypeServiceImplTest {
         String resourceType = "cloud";
         ResourceType entity = new ResourceType();
         entity.setTypeId(1L);
-        entity.setResource_type("cloud");
+        entity.setResourceType("cloud");
         CompletionStage<ResourceType> completionStage = CompletionStages.completedFuture(entity);
         doReturn(completionStage).when(resourceTypeRepository).findByResourceType(resourceType);
 

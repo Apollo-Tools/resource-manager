@@ -19,7 +19,7 @@ public class TestObjectProvider {
         Resource resource = new Resource();
         resource.setResourceId(resourceId);
         resource.setResourceType(resourceType);
-        resource.setSelfManaged(true);
+        resource.setIsSelfManaged(true);
         return resource;
     }
 
@@ -27,7 +27,7 @@ public class TestObjectProvider {
         Resource resource = new Resource();
         resource.setResourceId(resourceId);
         resource.setResourceType(createResourceType(1L, "cloud"));
-        resource.setSelfManaged(false);
+        resource.setIsSelfManaged(false);
         resource.setMetricValues(new HashSet<>());
         return resource;
     }
@@ -35,7 +35,7 @@ public class TestObjectProvider {
     public static ResourceType createResourceType(long resourceTypeId, String resourceTypeLabel) {
         ResourceType resourceType = new ResourceType();
         resourceType.setTypeId(resourceTypeId);
-        resourceType.setResource_type(resourceTypeLabel);
+        resourceType.setResourceType(resourceTypeLabel);
         return resourceType;
     }
 
@@ -53,7 +53,7 @@ public class TestObjectProvider {
         metric.setMetric(metricName);
         metric.setMetricType(createMetricType(metricTypeId, metricType));
         metric.setDescription("Blah");
-        metric.setMonitored(isMonitored);
+        metric.setIsMonitored(isMonitored);
         return metric;
     }
 
@@ -64,7 +64,7 @@ public class TestObjectProvider {
         metric.setMetric(metricName);
         metric.setMetricType(metricType);
         metric.setDescription("Blah");
-        metric.setMonitored(isMonitored);
+        metric.setIsMonitored(isMonitored);
         return metric;
     }
 
@@ -74,7 +74,7 @@ public class TestObjectProvider {
         metric.setMetric(metricName);
         metric.setMetricType(createMetricType(1L, "number"));
         metric.setDescription("Blah");
-        metric.setMonitored(false);
+        metric.setIsMonitored(false);
         return metric;
     }
 
@@ -175,14 +175,14 @@ public class TestObjectProvider {
         resourceReservation.setResourceReservationId(id);
         resourceReservation.setResource(resource);
         resourceReservation.setReservation(reservation);
-        resourceReservation.setDeployed(isDeployed);
+        resourceReservation.setIsDeployed(isDeployed);
         return resourceReservation;
     }
 
     public static Reservation createReservation(long id, boolean isActive) {
         Reservation reservation = new Reservation();
         reservation.setReservationId(id);
-        reservation.setActive(isActive);
+        reservation.setIsActive(isActive);
         return  reservation;
     }
 
@@ -193,16 +193,11 @@ public class TestObjectProvider {
         return request;
     }
 
-    public static List<JsonObject> createResourceReservationsJson(Reservation reservation, boolean includeResourceType) {
+    public static List<JsonObject> createResourceReservationsJson(Reservation reservation) {
         Resource resource1 = TestObjectProvider.createResource(1L);
         Resource resource2 = TestObjectProvider.createResource(2L);
         Resource resource3 = TestObjectProvider.createResource(3L);
-        if (!includeResourceType) {
-            // Necessary because jackson deserialization randomly fails when testing the whole project
-            resource1.setResourceType(null);
-            resource2.setResourceType(null);
-            resource3.setResourceType(null);
-        }
+
         ResourceReservation resourceReservation1 = TestObjectProvider.createResourceReservation(1L, resource1,
             reservation, false);
         ResourceReservation resourceReservation2 = TestObjectProvider.createResourceReservation(2L, resource2,

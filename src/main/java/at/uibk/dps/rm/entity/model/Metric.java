@@ -1,12 +1,17 @@
 package at.uibk.dps.rm.entity.model;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonSetter;
+import at.uibk.dps.rm.annotations.Generated;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
 
 @Entity
+@Getter
+@Setter
 public class Metric {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -14,6 +19,7 @@ public class Metric {
 
     private String metric;
 
+    @JsonProperty("is_monitored")
     private Boolean isMonitored;
 
     private String description;
@@ -23,55 +29,11 @@ public class Metric {
     private MetricType metricType;
 
     @Column(insertable = false, updatable = false)
-    private Timestamp createdAt;
+    private  @Setter(value = AccessLevel.NONE) Timestamp createdAt;
 
-    public Long getMetricId() {
-        return metricId;
-    }
-
-    public void setMetricId(Long metricId) {
-        this.metricId = metricId;
-    }
-
-    public String getMetric() {
-        return metric;
-    }
-
-    public void setMetric(String metric) {
-        this.metric = metric;
-    }
-
-    @JsonGetter("is_monitored")
-    public Boolean getMonitored() {
-        return isMonitored;
-    }
-
-    @JsonSetter("is_monitored")
-    public void setMonitored(Boolean monitored) {
-        isMonitored = monitored;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public MetricType getMetricType() {
-        return metricType;
-    }
-
-    public void setMetricType(MetricType metricType) {
-        this.metricType = metricType;
-    }
-
-    public Timestamp getCreatedAt() {
-        return createdAt;
-    }
-
-    @Override public boolean equals(Object o) {
+    @Override
+    @Generated
+    public boolean equals(Object o) {
         if (this == o)
             return true;
         if (o == null || getClass() != o.getClass())
@@ -82,7 +44,9 @@ public class Metric {
         return metricId.equals(metric.metricId);
     }
 
-    @Override public int hashCode() {
+    @Override
+    @Generated
+    public int hashCode() {
         return metricId.hashCode();
     }
 }

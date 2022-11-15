@@ -43,6 +43,8 @@ public class ResourceHandler extends ValidationHandler {
         metricValueChecker = new MetricValueChecker(metricValueService);
     }
 
+    // TODO: delete check if resource has metric values
+
     @Override
     public Single<JsonObject> postOne(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
