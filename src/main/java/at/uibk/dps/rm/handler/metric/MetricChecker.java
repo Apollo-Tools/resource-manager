@@ -1,6 +1,8 @@
 package at.uibk.dps.rm.handler.metric;
 
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
+import at.uibk.dps.rm.entity.model.Metric;
+import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricService;
@@ -43,5 +45,50 @@ public class MetricChecker extends EntityChecker {
             .getString("type").toUpperCase();
         boolean checkForTypeMatch = sloValueType.equals(metricValueType);
         return ErrorHandler.handleBadInput(Single.just(checkForTypeMatch));
+    }
+
+    public Completable checkAddMetricValueSetCorrectly(JsonObject jsonEntry, long metricId, MetricValue metricValue) {
+        Single<Boolean> checkMetricValue = checkFindOne(metricId)
+            .map(result -> {
+                Metric metric = result.mapTo(Metric.class);
+                Object value = jsonEntry.getValue("value");
+                boolean valueHasCorrectType = true;
+                if (stringMetricHasStringValue(metric, value)) {
+                    metricValue.setValueString((String) value);
+                } else if (numberMetricHasNumberValue(metric, value)) {
+                    metricValue.setValueNumber(jsonEntry.getNumber("value").doubleValue());
+                } else if (boolMetricHasNumberValue(metric, value)) {
+                    metricValue.setValueBool((Boolean) value);
+                } else {
+                    valueHasCorrectType = false;
+                }
+                return valueHasCorrectType;
+            });
+        return ErrorHandler.handleBadInput(checkMetricValue).ignoreElement();
+    }
+
+    public Completable checkUpdateMetricValueSetCorrectly(JsonObject jsonEntry, long metricId) {
+        Single<Boolean> checkMetricValue = checkFindOne(metricId)
+            .map(result -> {
+                Metric metric = result.mapTo(Metric.class);
+                Object value = jsonEntry.getValue("value");
+                return !metric.getMonitored() &&
+                    (stringMetricHasStringValue(metric, value) ||
+                        numberMetricHasNumberValue(metric, value) ||
+                        boolMetricHasNumberValue(metric, value));
+            });
+        return ErrorHandler.handleBadInput(checkMetricValue).ignoreElement();
+    }
+
+    private boolean stringMetricHasStringValue(Metric metric, Object value) {
+        return value instanceof String && metric.getMetricType().getType().equals("string");
+    }
+
+    private boolean numberMetricHasNumberValue(Metric metric, Object value) {
+        return value instanceof Number && metric.getMetricType().getType().equals("number");
+    }
+
+    private boolean boolMetricHasNumberValue(Metric metric, Object value) {
+        return value instanceof Boolean && metric.getMetricType().getType().equals("boolean");
     }
 }

@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.entity.model.MetricType;
+import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
@@ -19,9 +20,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -271,6 +275,141 @@ public class MetricCheckerTest {
 
         metricChecker.checkEqualValueTypes(slo, entity)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(BadInputException.class);
+                    testContext.completeNow();
+                })
+            );
+    }
+
+    @Test
+    void checkAddMetricValueSetCorrectlyNumber(VertxTestContext testContext) {
+        long metricId = 1;
+        MetricType metricType = TestObjectProvider.createMetricType(1L, "number");
+        Metric metric = TestObjectProvider.createMetric(metricId, "availability", metricType, false);
+        JsonObject requestBody = new JsonObject("{\"metricId\": 1, \"value\": 4}");
+        MetricValue metricValue = new MetricValue();
+
+        when(metricService.findOne(metricId)).thenReturn(Single.just(JsonObject.mapFrom(metric)));
+
+        metricChecker.checkAddMetricValueSetCorrectly(requestBody, metricId, metricValue)
+            .blockingSubscribe(() -> {},
+                throwable -> testContext.verify(() -> fail("method did throw exception"))
+            );
+
+        assertThat(metricValue.getValueNumber()).isEqualTo(new BigDecimal("4.0"));
+        testContext.completeNow();
+    }
+
+    @Test
+    void checkAddMetricValueSetCorrectlyString(VertxTestContext testContext) {
+        long metricId = 1;
+        MetricType metricType = TestObjectProvider.createMetricType(1L, "string");
+        Metric metric = TestObjectProvider.createMetric(metricId, "availability", metricType, false);
+        JsonObject requestBody = new JsonObject("{\"metricId\": 1, \"value\": \"four\"}");
+        MetricValue metricValue = new MetricValue();
+
+        when(metricService.findOne(metricId)).thenReturn(Single.just(JsonObject.mapFrom(metric)));
+
+        metricChecker.checkAddMetricValueSetCorrectly(requestBody, metricId, metricValue)
+            .blockingSubscribe(() -> {},
+                throwable -> testContext.verify(() -> fail("method did throw exception"))
+            );
+
+        assertThat(metricValue.getValueString()).isEqualTo("four");
+        testContext.completeNow();
+    }
+
+    @Test
+    void checkAddMetricValueSetCorrectlyBoolean(VertxTestContext testContext) {
+        long metricId = 1;
+        MetricType metricType = TestObjectProvider.createMetricType(1L, "boolean");
+        Metric metric = TestObjectProvider.createMetric(metricId, "availability", metricType, false);
+        JsonObject requestBody = new JsonObject("{\"metricId\": 1, \"value\": true}");
+        MetricValue metricValue = new MetricValue();
+
+        when(metricService.findOne(metricId)).thenReturn(Single.just(JsonObject.mapFrom(metric)));
+
+        metricChecker.checkAddMetricValueSetCorrectly(requestBody, metricId, metricValue)
+            .blockingSubscribe(() -> {},
+                throwable -> testContext.verify(() -> fail("method did throw exception"))
+            );
+
+        assertThat(metricValue.getValueBool()).isTrue();
+        testContext.completeNow();
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "number, \"four\"",
+        "number, false",
+        "string, 4",
+        "string, false",
+        "boolean, 4",
+        "boolean, \"four\""
+    })
+    void checkAddMetricValueSetCorrectlyFalse(String metricTypeValue, String value, VertxTestContext testContext) {
+        long metricId = 1;
+        MetricType metricType = TestObjectProvider.createMetricType(1L, metricTypeValue);
+        Metric metric = TestObjectProvider.createMetric(metricId, "availability", metricType, false);
+        JsonObject requestBody = new JsonObject("{\"metricId\": 1, \"value\": " + value + "}");
+        MetricValue metricValue = new MetricValue();
+
+        when(metricService.findOne(metricId)).thenReturn(Single.just(JsonObject.mapFrom(metric)));
+
+        metricChecker.checkAddMetricValueSetCorrectly(requestBody, metricId, metricValue)
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(BadInputException.class);
+                    testContext.completeNow();
+                })
+            );
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "number, 4",
+        "string, \"four\"",
+        "boolean, false"
+    })
+    void checkUpdateMetricValueSetCorrectlyTrue(String metricTypeName, String value, VertxTestContext testContext) {
+        long metricId = 1;
+        MetricType metricType = TestObjectProvider.createMetricType(1L, metricTypeName);
+        Metric metric = TestObjectProvider.createMetric(metricId, "availability", metricType, false);
+        JsonObject requestBody = new JsonObject("{\"value\": " + value + "}");
+
+        when(metricService.findOne(metricId)).thenReturn(Single.just(JsonObject.mapFrom(metric)));
+
+        metricChecker.checkUpdateMetricValueSetCorrectly(requestBody, metricId)
+            .blockingSubscribe(() -> {},
+                throwable -> testContext.verify(() -> fail("method did throw exception"))
+            );
+
+        verify(metricService).findOne(metricId);
+        testContext.completeNow();
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "number, 4, true",
+        "number, \"four\", false",
+        "number, false, false",
+        "string, 4, false",
+        "string, false, false",
+        "boolean, 4, false",
+        "boolean, \"four\", false"
+    })
+    void checkUpdateMetricValueSetCorrectlyFalse(String metricTypeName, String value, Boolean isMonitored,
+                                                 VertxTestContext testContext) {
+        long metricId = 1;
+        MetricType metricType = TestObjectProvider.createMetricType(1L, metricTypeName);
+        Metric metric = TestObjectProvider.createMetric(metricId, "availability", metricType, isMonitored);
+        JsonObject requestBody = new JsonObject("{\"value\": " + value + "}");
+
+        when(metricService.findOne(metricId)).thenReturn(Single.just(JsonObject.mapFrom(metric)));
+
+        metricChecker.checkUpdateMetricValueSetCorrectly(requestBody, metricId)
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(BadInputException.class);
                     testContext.completeNow();
