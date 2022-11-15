@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.testutil;
 
 import at.uibk.dps.rm.entity.dto.GetResourcesBySLOsRequest;
+import at.uibk.dps.rm.entity.dto.ReserveResourcesRequest;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.SLOValue;
 import at.uibk.dps.rm.entity.dto.slo.SLOValueType;
@@ -182,5 +183,12 @@ public class TestObjectProvider {
         reservation.setReservationId(id);
         reservation.setActive(isActive);
         return  reservation;
+    }
+
+    public static ReserveResourcesRequest createReserveResourcesRequest(List<Long> resources, boolean deployResources) {
+        ReserveResourcesRequest request = new ReserveResourcesRequest();
+        request.setResources(resources);
+        request.setDeployResources(deployResources);
+        return request;
     }
 }
