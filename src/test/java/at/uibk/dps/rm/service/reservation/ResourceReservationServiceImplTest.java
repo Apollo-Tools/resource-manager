@@ -58,9 +58,9 @@ public class ResourceReservationServiceImplTest {
         resultList.add(entity1);
         resultList.add(entity2);
         CompletionStage<List<ResourceReservation>> completionStage = CompletionStages.completedFuture(resultList);
-        doReturn(completionStage).when(resourceReservationRepository).findAllByResourceId(resourceId);
+        doReturn(completionStage).when(resourceReservationRepository).findAllByReservationId(resourceId);
 
-        resourceReservationService.findAllByResourceId(resourceId)
+        resourceReservationService.findAllByReservationId(resourceId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
 
@@ -73,7 +73,7 @@ public class ResourceReservationServiceImplTest {
                     assertThat(resultJson.getJsonObject("resource").getJsonObject("metric_values")).isNull();
                 }
 
-                verify(resourceReservationRepository).findAllByResourceId(resourceId);
+                verify(resourceReservationRepository).findAllByReservationId(resourceId);
                 testContext.completeNow();
         })));
     }
@@ -83,12 +83,12 @@ public class ResourceReservationServiceImplTest {
         long resourceId = 1L;
         List<ResourceReservation> resultList = new ArrayList<>();
         CompletionStage<List<ResourceReservation>> completionStage = CompletionStages.completedFuture(resultList);
-        doReturn(completionStage).when(resourceReservationRepository).findAllByResourceId(resourceId);
+        doReturn(completionStage).when(resourceReservationRepository).findAllByReservationId(resourceId);
 
-        resourceReservationService.findAllByResourceId(resourceId)
+        resourceReservationService.findAllByReservationId(resourceId)
                 .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(0);
-                    verify(resourceReservationRepository).findAllByResourceId(resourceId);
+                    verify(resourceReservationRepository).findAllByReservationId(resourceId);
                     testContext.completeNow();
                 })));
     }

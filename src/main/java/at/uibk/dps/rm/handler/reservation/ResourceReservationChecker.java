@@ -16,7 +16,7 @@ public class ResourceReservationChecker extends EntityChecker {
     }
 
     public Single<JsonArray> checkFindAllByReservationId(long id) {
-        Single<JsonArray> findAllByResourceId = resourceReservationService.findAllByResourceId(id);
+        Single<JsonArray> findAllByResourceId = resourceReservationService.findAllByReservationId(id);
         return ErrorHandler.handleFindAll(findAllByResourceId);
     }
 }

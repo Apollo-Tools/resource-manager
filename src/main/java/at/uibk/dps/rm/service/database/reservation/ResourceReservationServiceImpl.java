@@ -18,9 +18,9 @@ public class ResourceReservationServiceImpl extends ServiceProxy<ResourceReserva
         this.resourceReservationRepository = resourceReservationRepository;
     }
 
-    public Future<JsonArray> findAllByResourceId(long id) {
+    public Future<JsonArray> findAllByReservationId(long id) {
         return Future
-                .fromCompletionStage(resourceReservationRepository.findAllByResourceId(id))
+                .fromCompletionStage(resourceReservationRepository.findAllByReservationId(id))
                 .map(result -> {
                     ArrayList<JsonObject> objects = new ArrayList<>();
                     for (ResourceReservation entity: result) {

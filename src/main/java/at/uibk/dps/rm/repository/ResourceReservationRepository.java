@@ -12,7 +12,7 @@ public class ResourceReservationRepository extends Repository<ResourceReservatio
         super(sessionFactory, entityClass);
     }
 
-    public CompletionStage<List<ResourceReservation>> findAllByResourceId(long id) {
+    public CompletionStage<List<ResourceReservation>> findAllByReservationId(long id) {
         return sessionFactory.withSession(session ->
                 session.createQuery("select distinct rr from ResourceReservation rr " +
                                 "left join fetch rr.resource r " +

@@ -18,7 +18,7 @@ public class TestObjectProvider {
         resource.setResourceId(resourceId);
         resource.setResourceType(resourceType);
         resource.setSelfManaged(true);
-        return  resource;
+        return resource;
     }
 
     public static Resource createResource(long resourceId) {
@@ -27,7 +27,7 @@ public class TestObjectProvider {
         resource.setResourceType(createResourceType(1L, "cloud"));
         resource.setSelfManaged(false);
         resource.setMetricValues(new HashSet<>());
-        return  resource;
+        return resource;
     }
 
     public static ResourceType createResourceType(long resourceTypeId, String resourceTypeLabel) {
@@ -44,7 +44,8 @@ public class TestObjectProvider {
         return metricType;
     }
 
-    public static Metric createMetric(long metricId, String metricName, long metricTypeId, String metricType,boolean isMonitored) {
+    public static Metric createMetric(long metricId, String metricName, long metricTypeId, String metricType,
+                                      boolean isMonitored) {
         Metric metric = new Metric();
         metric.setMetricId(metricId);
         metric.setMetric(metricName);
@@ -55,7 +56,7 @@ public class TestObjectProvider {
     }
 
 
-    public static Metric createMetric(long metricId, String metricName, MetricType metricType,boolean isMonitored) {
+    public static Metric createMetric(long metricId, String metricName, MetricType metricType, boolean isMonitored) {
         Metric metric = new Metric();
         metric.setMetricId(metricId);
         metric.setMetric(metricName);
@@ -75,28 +76,32 @@ public class TestObjectProvider {
         return metric;
     }
 
-    public static MetricValue createMetricValue(long metricValueId, long metricId, String metric, double value, Resource resource) {
+    public static MetricValue createMetricValue(long metricValueId, long metricId, String metric, double value,
+                                                Resource resource) {
         MetricValue metricValue = new MetricValue();
         initMetricValue(metricValue, metricValueId, metricId, metric, resource);
         metricValue.setValueNumber(value);
         return metricValue;
     }
 
-    public static MetricValue createMetricValue(long metricValueId, long metricId, String metric, String value, Resource resource) {
+    public static MetricValue createMetricValue(long metricValueId, long metricId, String metric, String value,
+                                                Resource resource) {
         MetricValue metricValue = new MetricValue();
         initMetricValue(metricValue, metricValueId, metricId, metric, resource);
         metricValue.setValueString(value);
         return metricValue;
     }
 
-    public static MetricValue createMetricValue(long metricValueId, long metricId, String metric, boolean value, Resource resource) {
+    public static MetricValue createMetricValue(long metricValueId, long metricId, String metric, boolean value,
+                                                Resource resource) {
         MetricValue metricValue = new MetricValue();
         initMetricValue(metricValue, metricValueId, metricId, metric, resource);
         metricValue.setValueBool(value);
         return metricValue;
     }
 
-    private static void initMetricValue(MetricValue metricValue, long metricValueId, long metricId, String metric, Resource resource) {
+    private static void initMetricValue(MetricValue metricValue, long metricValueId, long metricId, String metric,
+                                        Resource resource) {
         metricValue.setMetricValueId(metricValueId);
         metricValue.setMetric(createMetric(metricId, metric));
         metricValue.setResource(resource);
@@ -124,37 +129,58 @@ public class TestObjectProvider {
         return sloValue;
     }
 
-    public static ServiceLevelObjective createServiceLevelObjective(String metricName, ExpressionType expressionType, double... value) {
+    public static ServiceLevelObjective createServiceLevelObjective(String metricName, ExpressionType expressionType,
+                                                                    double... value) {
         List<SLOValue> sloValues = new ArrayList<>();
-        for (double v: value) {
+        for (double v : value) {
             SLOValue sloValue = TestObjectProvider.createSLOValue(v);
             sloValues.add(sloValue);
         }
         return new ServiceLevelObjective(metricName, expressionType, sloValues);
     }
 
-    public static ServiceLevelObjective createServiceLevelObjective(String metricName, ExpressionType expressionType, String... value) {
+    public static ServiceLevelObjective createServiceLevelObjective(String metricName, ExpressionType expressionType,
+                                                                    String... value) {
         List<SLOValue> sloValues = new ArrayList<>();
-        for (String v: value) {
+        for (String v : value) {
             SLOValue sloValue = TestObjectProvider.createSLOValue(v);
             sloValues.add(sloValue);
         }
         return new ServiceLevelObjective(metricName, expressionType, sloValues);
     }
 
-    public static ServiceLevelObjective createServiceLevelObjective(String metricName, ExpressionType expressionType, boolean... value) {
+    public static ServiceLevelObjective createServiceLevelObjective(String metricName, ExpressionType expressionType,
+                                                                    boolean... value) {
         List<SLOValue> sloValues = new ArrayList<>();
-        for (boolean v: value) {
+        for (boolean v : value) {
             SLOValue sloValue = TestObjectProvider.createSLOValue(v);
             sloValues.add(sloValue);
         }
         return new ServiceLevelObjective(metricName, expressionType, sloValues);
     }
 
-    public static GetResourcesBySLOsRequest createResourceBySLOsRequest(List<ServiceLevelObjective> serviceLevelObjectives, int limit) {
+    public static GetResourcesBySLOsRequest createResourceBySLOsRequest(List<ServiceLevelObjective> slos,
+                                                                        int limit) {
         GetResourcesBySLOsRequest request = new GetResourcesBySLOsRequest();
-        request.setServiceLevelObjectives(serviceLevelObjectives);
+        request.setServiceLevelObjectives(slos);
         request.setLimit(limit);
         return request;
+    }
+
+    public static ResourceReservation createResourceReservation(long id, Resource resource, Reservation reservation,
+                                                                boolean isDeployed) {
+        ResourceReservation resourceReservation = new ResourceReservation();
+        resourceReservation.setResourceReservationId(id);
+        resourceReservation.setResource(resource);
+        resourceReservation.setReservation(reservation);
+        resourceReservation.setDeployed(isDeployed);
+        return resourceReservation;
+    }
+
+    public static Reservation createReservation(long id, boolean isActive) {
+        Reservation reservation = new Reservation();
+        reservation.setReservationId(id);
+        reservation.setActive(isActive);
+        return  reservation;
     }
 }

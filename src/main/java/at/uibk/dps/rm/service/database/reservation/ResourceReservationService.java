@@ -21,5 +21,5 @@ public interface ResourceReservationService extends ServiceInterface {
         return new ResourceReservationServiceVertxEBProxy(vertx, address);
     }
 
-    Future<JsonArray> findAllByResourceId(long id);
+    Future<JsonArray> findAllByReservationId(long id);
 }
