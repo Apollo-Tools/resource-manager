@@ -8,7 +8,6 @@ import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceTypeService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.SingleHelper;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;

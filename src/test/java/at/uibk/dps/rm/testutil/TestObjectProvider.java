@@ -7,6 +7,7 @@ import at.uibk.dps.rm.entity.dto.slo.SLOValue;
 import at.uibk.dps.rm.entity.dto.slo.SLOValueType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.*;
+import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -190,5 +191,25 @@ public class TestObjectProvider {
         request.setResources(resources);
         request.setDeployResources(deployResources);
         return request;
+    }
+
+    public static List<JsonObject> createResourceReservationsJson(Reservation reservation, boolean includeResourceType) {
+        Resource resource1 = TestObjectProvider.createResource(1L);
+        Resource resource2 = TestObjectProvider.createResource(2L);
+        Resource resource3 = TestObjectProvider.createResource(3L);
+        if (!includeResourceType) {
+            // Necessary because jackson deserialization randomly fails when testing the whole project
+            resource1.setResourceType(null);
+            resource2.setResourceType(null);
+            resource3.setResourceType(null);
+        }
+        ResourceReservation resourceReservation1 = TestObjectProvider.createResourceReservation(1L, resource1,
+            reservation, false);
+        ResourceReservation resourceReservation2 = TestObjectProvider.createResourceReservation(2L, resource2,
+            reservation, true);
+        ResourceReservation resourceReservation3 = TestObjectProvider.createResourceReservation(3L, resource3,
+            reservation, true);
+        return List.of(JsonObject.mapFrom(resourceReservation1), JsonObject.mapFrom(resourceReservation2),
+            JsonObject.mapFrom(resourceReservation3));
     }
 }

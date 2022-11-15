@@ -95,7 +95,6 @@ public class ResourceReservationCheckerTest {
         long reservationId = 1L;
         Single<JsonArray> handler = new SingleHelper<JsonArray>().getEmptySingle();
 
-
         when(resourceReservationService.findAllByReservationId(reservationId)).thenReturn(handler);
 
         resourceReservationChecker.checkFindAllByReservationId(reservationId)
