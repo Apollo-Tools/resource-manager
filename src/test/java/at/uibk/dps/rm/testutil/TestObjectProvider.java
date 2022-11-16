@@ -120,7 +120,7 @@ public class TestObjectProvider {
     public static SLOValue createSLOValue(String value) {
         SLOValue sloValue = new SLOValue();
         sloValue.setSloValueType(SLOValueType.STRING);
-        sloValue.setValuerString(value);
+        sloValue.setValueString(value);
         return sloValue;
     }
 

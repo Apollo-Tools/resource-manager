@@ -42,25 +42,28 @@ public class ServiceLevelObjectiveDeserializer extends StdDeserializer<ServiceLe
         SLOValue sloValue = new SLOValue();
         if (value.isNumber()) {
             sloValue.setSloValueType(SLOValueType.NUMBER);
-            sloValue.setValueNumber(value.numberValue());
+            sloValue.setValueNumber(value.asDouble());
         } else if (value.isTextual()) {
             sloValue.setSloValueType(SLOValueType.STRING);
-            sloValue.setValuerString(value.textValue());
+            sloValue.setValueString(value.textValue());
         } else if (value.isBoolean()){
             sloValue.setSloValueType(SLOValueType.BOOLEAN);
             sloValue.setValueBool(value.booleanValue());
-        } else if (value.isContainerNode()){
-            sloValue.setSloValueType(SLOValueType.valueOf(value.get("slo_value_type").asText()));
+        } else if (value.isObject()){
+            sloValue.setSloValueType(SLOValueType.valueOf(value.get("slo_value_type").asText().toUpperCase()));
             switch (sloValue.getSloValueType()) {
                 case NUMBER:
                     sloValue.setValueNumber(value.get("value_number").asDouble());
                     break;
                 case STRING:
-                    sloValue.setValuerString(value.get("value_string").asText());
+                    sloValue.setValueString(value.get("value_string").asText());
                     break;
                 case BOOLEAN:
                     sloValue.setValueBool(value.get("value_bool").asBoolean());
             }
+        }
+        else {
+            throw new IllegalArgumentException();
         }
         return sloValue;
     }

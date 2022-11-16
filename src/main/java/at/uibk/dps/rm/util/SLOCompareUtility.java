@@ -25,7 +25,7 @@ public class SLOCompareUtility {
                         return false;
                     }
                     compareValue = ExpressionType.compareValues(slo.getExpression(),
-                            sloValue.getValuerString(),
+                            sloValue.getValueString(),
                             metricValue.getValueString());
                     break;
                 case BOOLEAN:

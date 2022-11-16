@@ -8,7 +8,7 @@ public class SLOValue {
 
     private Number valueNumber;
 
-    private String valuerString;
+    private String valueString;
 
     private boolean valueBool;
 

@@ -38,7 +38,7 @@ public class SLOCompareUtilityTest {
         for (String sloValue : sloValues) {
             SLOValue value = new SLOValue();
             value.setSloValueType(SLOValueType.STRING);
-            value.setValuerString(sloValue);
+            value.setValueString(sloValue);
             sloValueList.add(value);
         }
         return sloValueList;
