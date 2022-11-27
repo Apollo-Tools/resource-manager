@@ -9,6 +9,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class DeploymentTest {
 
@@ -18,7 +20,7 @@ public class DeploymentTest {
         String sessionToken = "###";
         String region = "us-east-1";
         String awsRole = "LabRole";
-        long reservationId = 10;
+        long reservationId = 11;
         ResourceType resourceType = new ResourceType();
         resourceType.setTypeId(1L);
         resourceType.setResourceType("faas");
@@ -28,18 +30,19 @@ public class DeploymentTest {
         resource.setResourceType(resourceType);
         MetricValue mv1 = setUpMetricValue(1L, "region", null, "us-east-1", null, "string", resource);
         MetricValue mv2 = setUpMetricValue(2L, "role", null, "LabRole", null, "string", resource);
-        MetricValue mv3 = setUpMetricValue(3L, "function-name", null, "template-python", null, "string", resource);
-        MetricValue mv4 = setUpMetricValue(4L, "handler", null, "main.lambda_handler", null, "string", resource);
-        MetricValue mv5 = setUpMetricValue(5L, "timeout", 300.0, null, null, "number", resource);
-        MetricValue mv6 = setUpMetricValue(6L, "memory-size", 256.0, null, null, "number", resource);
-        MetricValue mv7 = setUpMetricValue(7L, "layers", null, "", null, "string", resource);
-        MetricValue mv8 = setUpMetricValue(8L, "runtime", null, "python3.8", null, "string", resource);
-        MetricValue mv9 = setUpMetricValue(9L, "code", null, "", null, "string", resource);
-        resource.setMetricValues(List.of(mv1, mv2, mv3, mv4, mv5, mv6, mv7, mv8, mv9));
+        MetricValue mv3 = setUpMetricValue(3L, "function-type", null, "count", null, "string", resource);
+        MetricValue mv4 = setUpMetricValue(4L, "timeout", 300.0, null, null, "number", resource);
+        MetricValue mv5 = setUpMetricValue(5L, "memory-size", 256.0, null, null, "number", resource);
+        MetricValue mv6 = setUpMetricValue(6L, "layers", null, "", null, "string", resource);
+        MetricValue mv7 = setUpMetricValue(7L, "runtime", null, "python3.8", null, "string", resource);
+        MetricValue mv8 = setUpMetricValue(8L, "code", null, "def main(json_input):\n" +
+            "    input1 = json_input[\"input1\"]\n    # Processing\n    # return the result\n    res = {\n" +
+            "        \"input1\": input1\n    }\n    return res\n", null, "string", resource);
+        resource.setMetricValues(List.of(mv1, mv2, mv3, mv4, mv5, mv6, mv7, mv8));
 
         List<Resource> resources = List.of(resource);
         try {
-            Path terraformFile = Paths.get("temp\\aws\\reservation" + reservationId + ".tf");
+            Path terraformFile = Paths.get("temp\\reservation_" + reservationId + "\\aws-" + region + "\\deploy.tf");
             Files.deleteIfExists(terraformFile);
             // Load aws provider
             String loadProvider =
@@ -89,13 +92,19 @@ public class DeploymentTest {
             StringBuilder functionLayers = new StringBuilder();
             for (Resource r: resources) {
                 List<MetricValue> metricValues = r.getMetricValues();
-                functionNames.append("\"").append(metricValues.get(2).getValueString()).append("\",");
-                functionPaths.append("\"").append(metricValues.get(2).getValueString()).append(".zip\",");
-                functionHandlers.append("\"").append(metricValues.get(3).getValueString()).append("\",");
-                functionTimeouts.append(metricValues.get(4).getValueNumber()).append(",");
-                functionMemorySizes.append(metricValues.get(5).getValueNumber()).append(",");
+                String runtime = metricValues.get(6).getValueString().toLowerCase();
+                String functionIdentifier = metricValues.get(2).getValueString() + "_" +
+                    runtime.replace(".", "") + "_" + reservationId;
+                functionNames.append("\"").append(functionIdentifier).append("\",");
+                functionPaths.append("\"").append(functionIdentifier).append(".zip\",");
+                composeSourceCode(terraformFile.getParent(), functionIdentifier, metricValues.get(7).getValueString());
+                if (runtime.startsWith("python")) {
+                    functionHandlers.append("\"main.handler\",");
+                }
+                functionTimeouts.append(metricValues.get(3).getValueNumber()).append(",");
+                functionMemorySizes.append(metricValues.get(4).getValueNumber()).append(",");
                 functionLayers.append("[],");
-                functionRuntimes.append("\"").append(metricValues.get(7).getValueString()).append("\",");
+                functionRuntimes.append("\"").append(metricValues.get(6).getValueString().toLowerCase()).append("\",");
             }
             String setFunctionLocals = String.format(
                 "locals {\n" +
@@ -138,14 +147,15 @@ public class DeploymentTest {
                     "}\n";
             String tfContent = loadProvider + setupVariables + setupProvider + setAWSRole +
                 setFunctionLocals + setFunctions + setFunctionUrl + setOutput;
+            Files.createDirectories(terraformFile.getParent());
             Files.writeString(terraformFile, tfContent, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
 
             ProcessBuilder builder = new ProcessBuilder("terraform",  "-chdir=" + terraformFile.getParent(), "init");
-            int retValue = executeCli(builder);
+            System.out.println("Return value: " + executeCli(builder));
             builder = new ProcessBuilder("terraform", "-chdir="  + terraformFile.getParent(),
                 "apply", "-auto-approve", "-var=\"access_key=" + accessKey + "\"",
                 "-var=\"secret_access_key=" + secretKey + "\"", "-var=\"session_token=" + sessionToken + "\"");
-            retValue = executeCli(builder);
+            System.out.println("Return value: " + executeCli(builder));
         } catch (IOException e) {
             System.out.println("An error occurred.");
             e.printStackTrace();
@@ -200,5 +210,40 @@ public class DeploymentTest {
             BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
             input.lines().forEach(System.out::println);
         });
+    }
+
+    // Src: https://www.baeldung.com/java-compress-and-uncompress
+    private static void composeSourceCode(Path root, String functionIdentifier, String code) throws IOException {
+        Path sourceCode = Path.of(root.toString(), functionIdentifier, "cloud_function.py");
+        Files.createDirectories(sourceCode.getParent());
+        Files.writeString(sourceCode, code, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
+        FileOutputStream fileOutputStream = new FileOutputStream(root + "\\" + functionIdentifier + ".zip");
+        ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream);
+
+        File handlerFile = new File("src\\main\\resources\\faas\\python\\main.py");
+        File mainFile = new File(String.valueOf(sourceCode));
+        File[] filesToZip = {handlerFile, mainFile};
+        for (File fileToZip : filesToZip) {
+            zipFile(fileToZip, zipOutputStream);
+        }
+        zipOutputStream.close();
+        fileOutputStream.close();
+    }
+
+    private static void zipFile(File fileToZip, ZipOutputStream zipOutputStream) throws IOException {
+        FileInputStream fis = new FileInputStream(fileToZip);
+        ZipEntry zipEntry = new ZipEntry(fileToZip.getName());
+        zipOutputStream.putNextEntry(zipEntry);
+
+        byte[] bytes = new byte[1024];
+        int length;
+        while((length = fis.read(bytes)) >= 0) {
+            zipOutputStream.write(bytes, 0, length);
+        }
+        fis.close();
+    }
+
+    private static void cleanUp() {
+        // TODO: terraform destroy, delete temporary files
     }
 }
