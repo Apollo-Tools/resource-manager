@@ -16,7 +16,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 
@@ -45,7 +44,7 @@ public class ResourceReservationServiceImplTest {
         Resource resource = new Resource();
         resource.setResourceId(resourceId);
         resource.setResourceType(new ResourceType());
-        resource.setMetricValues(new HashSet<>());
+        resource.setMetricValues(new ArrayList<>());
         ResourceReservation entity1 = new ResourceReservation();
         entity1.setResourceReservationId(2L);
         entity1.setReservation(new Reservation());

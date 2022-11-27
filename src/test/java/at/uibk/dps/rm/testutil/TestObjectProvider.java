@@ -28,7 +28,7 @@ public class TestObjectProvider {
         resource.setResourceId(resourceId);
         resource.setResourceType(createResourceType(1L, "cloud"));
         resource.setIsSelfManaged(false);
-        resource.setMetricValues(new HashSet<>());
+        resource.setMetricValues(new ArrayList<>());
         return resource;
     }
 

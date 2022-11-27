@@ -16,9 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CompletionStage;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,7 +43,7 @@ public class ResourceServiceImplTest {
         long resourceId = 1L;
         Resource entity = new Resource();
         entity.setResourceId(resourceId);
-        Set<MetricValue> metricValueSet = new HashSet<>();
+        List<MetricValue> metricValueSet = new ArrayList<>();
         entity.setMetricValues(metricValueSet);
         CompletionStage<Resource> completionStage = CompletionStages.completedFuture(entity);
         doReturn(completionStage).when(resourceRepository).findByIdAndFetch(resourceId);
@@ -137,11 +135,11 @@ public class ResourceServiceImplTest {
     void findAll(VertxTestContext testContext) {
         Resource entity1 = new Resource();
         entity1.setResourceId(1L);
-        Set<MetricValue> metricValues1 = new HashSet<>();
+        List<MetricValue> metricValues1 = new ArrayList<>();
         entity1.setMetricValues(metricValues1);
         Resource entity2 = new Resource();
         entity2.setResourceId(2L);
-        Set<MetricValue> metricValues2 = new HashSet<>();
+        List<MetricValue> metricValues2 = new ArrayList<>();
         entity2.setMetricValues(metricValues2);
         List<Resource> resultList = new ArrayList<>();
         resultList.add(entity1);
@@ -165,7 +163,7 @@ public class ResourceServiceImplTest {
         metrics.add("availability");
         Resource entity1 = new Resource();
         entity1.setResourceId(1L);
-        Set<MetricValue> metricValues1 = new HashSet<>();
+        List<MetricValue> metricValues1 = new ArrayList<>();
         entity1.setMetricValues(metricValues1);
         List<Resource> resultList = new ArrayList<>();
         resultList.add(entity1);

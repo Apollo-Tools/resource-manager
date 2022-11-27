@@ -8,7 +8,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
-import java.util.Set;
+import java.util.List;
 
 @Entity
 @Getter
@@ -32,7 +32,7 @@ public class Resource {
     private ResourceType resourceType;
 
     @OneToMany(mappedBy="resource")
-    private Set<MetricValue> metricValues;
+    private List<MetricValue> metricValues;
 
     @Override
     @Generated

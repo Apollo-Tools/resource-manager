@@ -417,15 +417,15 @@ public class ResourceHandlerTest {
         Resource resource1 = TestObjectProvider.createResource(1L);
         MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", 25.0, null);
         MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", 0.995, null);
-        resource1.setMetricValues(Set.of(mv1, mv2));
+        resource1.setMetricValues(List.of(mv1, mv2));
         Resource resource2 = TestObjectProvider.createResource(2L);
         MetricValue mv3 = TestObjectProvider.createMetricValue(3L, 2L, "availability", 0.8, null);
-        Set<MetricValue> metricValues = Set.of(mv3);
+        List<MetricValue> metricValues = List.of(mv3);
         resource2.setMetricValues(metricValues);
         Resource resource3 = TestObjectProvider.createResource(3L);
         MetricValue mv4 = TestObjectProvider.createMetricValue(4L, 3L, "bandwidth", 1000, null);
         MetricValue mv5 = TestObjectProvider.createMetricValue(5L, 2L, "availability", 0.999, null);
-        resource3.setMetricValues(Set.of(mv4, mv5));
+        resource3.setMetricValues(List.of(mv4, mv5));
         List<Resource> resources = List.of(resource1, resource2, resource3);
         ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("availability", ExpressionType.GT, 0.80);
         List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
@@ -443,7 +443,7 @@ public class ResourceHandlerTest {
         Resource resource1 = TestObjectProvider.createResource(1L);
         MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", 25.0, null);
         MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", 0.995, null);
-        resource1.setMetricValues(Set.of(mv1, mv2));
+        resource1.setMetricValues(List.of(mv1, mv2));
         List<Resource> resources = List.of(resource1);
         ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("availability", ExpressionType.GT, 0.999);
         List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
@@ -459,7 +459,7 @@ public class ResourceHandlerTest {
         Resource resource = TestObjectProvider.createResource(1L);
         MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", 25.0, resource);
         MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", "high", resource);
-        Set<MetricValue> metricValues = Set.of(mv1, mv2);
+        List<MetricValue> metricValues = List.of(mv1, mv2);
         resource.setMetricValues(metricValues);
         ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("availability", ExpressionType.EQ, "high");
         List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
@@ -474,7 +474,7 @@ public class ResourceHandlerTest {
         Resource resource = TestObjectProvider.createResource(1L);
         MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", 25.0, resource);
         MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", 0.995, resource);
-        Set<MetricValue> metricValues = Set.of(mv1, mv2);
+        List<MetricValue> metricValues = List.of(mv1, mv2);
         resource.setMetricValues(metricValues);
         ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("availability", ExpressionType.EQ, "high");
         List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
@@ -489,7 +489,7 @@ public class ResourceHandlerTest {
         Resource resource = TestObjectProvider.createResource(1L);
         MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", 25.0, resource);
         MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", 0.995, resource);
-        Set<MetricValue> metricValues = Set.of(mv1, mv2);
+        List<MetricValue> metricValues = List.of(mv1, mv2);
         resource.setMetricValues(metricValues);
         ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("bandwidth", ExpressionType.EQ, "high");
         List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
@@ -516,11 +516,11 @@ public class ResourceHandlerTest {
         Resource resource1 = TestObjectProvider.createResource(1L);
         MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", v1, null);
         MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", v2, null);
-        resource1.setMetricValues(Set.of(mv1, mv2));
+        resource1.setMetricValues(List.of(mv1, mv2));
         Resource resource2 = TestObjectProvider.createResource(2L);
         MetricValue mv3 = TestObjectProvider.createMetricValue(3L, 2L, "availability", v3, null);
         MetricValue mv4 = TestObjectProvider.createMetricValue(4L, 1L, "latency", v4, null);
-        Set<MetricValue> metricValues = Set.of(mv3, mv4);
+        List<MetricValue> metricValues = List.of(mv3, mv4);
         resource2.setMetricValues(metricValues);
         ServiceLevelObjective slo1 = TestObjectProvider.createServiceLevelObjective("availability",
             ExpressionType.fromString(symbol), 0.80);
@@ -538,10 +538,10 @@ public class ResourceHandlerTest {
         Resource resource1 = TestObjectProvider.createResource(1L);
         MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "region", "eu-west", null);
         MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", 0.99, null);
-        resource1.setMetricValues(Set.of(mv1, mv2));
+        resource1.setMetricValues(List.of(mv1, mv2));
         Resource resource2 = TestObjectProvider.createResource(2L);
         MetricValue mv3 = TestObjectProvider.createMetricValue(3L, 2L, "region", "eu-west", null);
-        Set<MetricValue> metricValues = Set.of(mv3);
+        List<MetricValue> metricValues = List.of(mv3);
         resource2.setMetricValues(metricValues);
         ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("region",
             ExpressionType.EQ, "eu-west");

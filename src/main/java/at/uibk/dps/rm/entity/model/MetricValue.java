@@ -44,8 +44,12 @@ public class MetricValue {
     @Column(insertable = false, updatable = false)
     private @Setter(value = AccessLevel.NONE) Timestamp updatedAt;
 
-    public void setValueNumber(double value) {
-        this.valueNumber = BigDecimal.valueOf(value);
+    public void setValueNumber(Double value) {
+        if (value != null) {
+            this.valueNumber = BigDecimal.valueOf(value);
+        } else {
+            this.valueNumber = null;
+        }
     }
 
     @Override

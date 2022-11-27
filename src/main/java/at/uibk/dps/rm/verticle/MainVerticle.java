@@ -18,12 +18,14 @@ public class MainVerticle extends AbstractVerticle {
                 Single<String> deployMigrationVerticle = vertx.rxDeployVerticle(new MigrationVerticle(), new DeploymentOptions().setConfig(config))
                         .map(verticle -> vertx.rxUndeploy(verticle).toString());
                 Single<String> deployDatabaseVerticle = vertx.rxDeployVerticle(new DatabaseVerticle(), new DeploymentOptions().setConfig(config));
+                Single<String> deployDeploymentVerticle = vertx.rxDeployVerticle(new DeploymentVerticle(), new DeploymentOptions().setConfig(config));
                 Single<String> deployApiVerticle = vertx.rxDeployVerticle(new ApiVerticle(), new DeploymentOptions().setConfig(config));
 
                 return Completable
-                        .fromSingle(deployMigrationVerticle)
-                        .andThen(deployDatabaseVerticle).ignoreElement()
-                        .andThen(deployApiVerticle).ignoreElement();
+                    .fromSingle(deployMigrationVerticle)
+                    .andThen(deployDatabaseVerticle).ignoreElement()
+                    .andThen(deployDeploymentVerticle).ignoreElement()
+                    .andThen(deployApiVerticle).ignoreElement();
               }
             );
   }
