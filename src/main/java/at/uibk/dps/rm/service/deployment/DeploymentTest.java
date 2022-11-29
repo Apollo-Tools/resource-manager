@@ -42,112 +42,34 @@ public class DeploymentTest {
 
         List<Resource> resources = List.of(resource);
         try {
-            Path terraformFile = Paths.get("temp\\reservation_" + reservationId + "\\aws-" + region + "\\deploy.tf");
+            Path rootFolder = Paths.get("temp\\reservation_" + reservationId);
+            Path terraformFile = Paths.get(rootFolder + "\\aws-" + region + "\\deploy.tf");
             Files.deleteIfExists(terraformFile);
             // Load aws provider
-            String loadProvider =
-                "terraform {\n" +
-                "  required_providers {\n" +
-                "    aws = {\n" +
-                "      source  = \"hashicorp/aws\"\n" +
-                "      version = \"~> 4.16\"\n" +
-                "    }\n" +
-                "  }\n" +
-                "  required_version = \">= 1.2.0\"\n" +
-                "}\n";
+            String loadProvider = getProviderString();
             // Initialize variables
-            String setupVariables =
-                "variable \"access_key\" {\n" +
-                    "  type = string\n" +
-                    "  default = \"\"\n" +
-                    "}\n" +
-                    "variable \"secret_access_key\" {\n" +
-                    "  type = string\n" +
-                    "  default = \"\"\n" +
-                    "}\n" +
-                    "variable \"session_token\" {\n" +
-                    "  type = string\n" +
-                    "  default = \"\"\n" +
-                    "}\n";
+            String setupVariables = getAWSCredentialVariables();
             // Setup aws
-            String setupProvider = String.format(
-                "provider \"aws\" {\n" +
-                "  access_key = var.access_key\n" +
-                "  secret_key = var.secret_access_key\n" +
-                "  token = var.session_token\n" +
-                "  region = \"%s\"\n" +
-                "}\n", region);
+            String setupProvider = getAWSProvider(region);
             // Select role
-            String setAWSRole = String.format(
-                "data \"aws_iam_role\" \"labRole\" {\n" +
-                "  name = \"%s\"\n" +
-                "}\n", awsRole);
+            String setAWSRole = getAWSRole(awsRole);
             // Set functionLocals
-            StringBuilder functionNames = new StringBuilder();
-            StringBuilder functionPaths = new StringBuilder();
-            StringBuilder functionRuntimes = new StringBuilder();
-            StringBuilder functionTimeouts = new StringBuilder();
-            StringBuilder functionMemorySizes = new StringBuilder();
-            StringBuilder functionHandlers = new StringBuilder();
-            StringBuilder functionLayers = new StringBuilder();
-            for (Resource r: resources) {
-                List<MetricValue> metricValues = r.getMetricValues();
-                String runtime = metricValues.get(6).getValueString().toLowerCase();
-                String functionIdentifier = metricValues.get(2).getValueString() + "_" +
-                    runtime.replace(".", "") + "_" + reservationId;
-                functionNames.append("\"").append(functionIdentifier).append("\",");
-                functionPaths.append("\"").append(functionIdentifier).append(".zip\",");
-                composeSourceCode(terraformFile.getParent(), functionIdentifier, metricValues.get(7).getValueString());
-                if (runtime.startsWith("python")) {
-                    functionHandlers.append("\"main.handler\",");
-                }
-                functionTimeouts.append(metricValues.get(3).getValueNumber()).append(",");
-                functionMemorySizes.append(metricValues.get(4).getValueNumber()).append(",");
-                functionLayers.append("[],");
-                functionRuntimes.append("\"").append(metricValues.get(6).getValueString().toLowerCase()).append("\",");
-            }
-            String setFunctionLocals = String.format(
-                "locals {\n" +
-                "  function_names = [%s]\n" +
-                "  function_paths = [%s]\n" +
-                "  function_handlers = [%s]\n" +
-                "  function_timeouts = [%s]\n" +
-                "  function_memory_sizes = [%s]\n" +
-                "  function_layers = [%s]\n" +
-                "  function_runtimes = [%s]\n" +
-                "}\n", functionNames, functionPaths, functionHandlers, functionTimeouts,
-                functionMemorySizes, functionLayers, functionRuntimes
-            );
-            // Set functions
-            String setFunctions =
-                "resource \"aws_lambda_function\" \"lambda\" {\n" +
-                    "  count = length(local.function_names)\n" +
-                    "  filename      = local.function_paths[count.index]\n" +
-                    "  function_name = local.function_names[count.index]\n" +
-                    "  role          = data.aws_iam_role.labRole.arn\n" +
-                    "  handler       = local.function_handlers[count.index]\n" +
-                    "  timeout       = local.function_timeouts[count.index]\n" +
-                    "  memory_size   = local.function_memory_sizes[count.index]\n" +
-                    "  layers        = local.function_layers[count.index]\n" +
-                    "  runtime       = local.function_runtimes[count.index]\n" +
-                    "  source_code_hash = filebase64sha256(local.function_paths[count.index])\n" +
-                    "}\n";
+            String setFunctionLocals = setFunctionLocals(resources, reservationId, terraformFile);
+                // Set functions
+            String setFunctions = setFunctions();
             // Set function url
-            String setFunctionUrl =
-                "resource \"aws_lambda_function_url\" \"function_url\" {\n" +
-                    "  count = length(local.function_names)\n" +
-                    "\n" +
-                    "  function_name      = aws_lambda_function.lambda[count.index].function_name\n" +
-                    "  authorization_type = \"NONE\"\n" +
-                    "}\n";
+            String setFunctionUrl = setFunctionUrl();
             // Set output
-            String setOutput =
-                "output \"function-urls\" {\n" +
-                    "  value = aws_lambda_function_url.function_url\n" +
-                    "}\n";
-            String tfContent = loadProvider + setupVariables + setupProvider + setAWSRole +
+            String setOutput = setOutput();
+            String tfContent = setupVariables + setupProvider + setAWSRole +
                 setFunctionLocals + setFunctions + setFunctionUrl + setOutput;
+            Files.createDirectories(rootFolder);
             Files.createDirectories(terraformFile.getParent());
+            // TODO: setup all files
+            Path mainFile = Paths.get(rootFolder + "\\main.tf");
+            Path variableFile = Paths.get(rootFolder + "\\variables.tf");
+            Files.deleteIfExists(terraformFile);
+
             Files.writeString(terraformFile, tfContent, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
 
             ProcessBuilder builder = new ProcessBuilder("terraform",  "-chdir=" + terraformFile.getParent(), "init");
@@ -193,6 +115,134 @@ public class DeploymentTest {
         metricType.setMetricTypeId(1L);
         metricType.setType(metricTypeName);
         return metricType;
+    }
+
+    private static String getProviderString() {
+        return "terraform {\n" +
+            "  required_providers {\n" +
+            "    aws = {\n" +
+            "      source  = \"hashicorp/aws\"\n" +
+            "      version = \"~> 4.16\"\n" +
+            "    }\n" +
+            "  }\n" +
+            "  required_version = \">= 1.2.0\"\n" +
+            "}\n";
+    }
+
+    private static String getAWSCredentialVariables() {
+        return "variable \"access_key\" {\n" +
+            "  type = string\n" +
+            "  default = \"\"\n" +
+            "}\n" +
+            "variable \"secret_access_key\" {\n" +
+            "  type = string\n" +
+            "  default = \"\"\n" +
+            "}\n" +
+            "variable \"session_token\" {\n" +
+            "  type = string\n" +
+            "  default = \"\"\n" +
+            "}\n";
+    }
+
+    private static String getAWSProvider(String region) {
+        return String.format(
+            "provider \"aws\" {\n" +
+            "  access_key = var.access_key\n" +
+            "  secret_key = var.secret_access_key\n" +
+            "  token = var.session_token\n" +
+            "  region = \"%s\"\n" +
+            "}\n", region);
+    }
+
+    private static String getAWSRole(String awsRole) {
+        return String.format(
+            "data \"aws_iam_role\" \"labRole\" {\n" +
+            "  name = \"%s\"\n" +
+            "}\n", awsRole);
+    }
+
+    private static String setFunctionLocals(List<Resource> resources, long reservationId, Path terraformFile) throws IOException {
+        StringBuilder functionNames = new StringBuilder();
+        StringBuilder functionPaths = new StringBuilder();
+        StringBuilder functionRuntimes = new StringBuilder();
+        StringBuilder functionTimeouts = new StringBuilder();
+        StringBuilder functionMemorySizes = new StringBuilder();
+        StringBuilder functionHandlers = new StringBuilder();
+        StringBuilder functionLayers = new StringBuilder();
+        for (Resource r: resources) {
+            List<MetricValue> metricValues = r.getMetricValues();
+            String runtime = metricValues.get(6).getValueString().toLowerCase();
+            String functionIdentifier = metricValues.get(2).getValueString() + "_" +
+                runtime.replace(".", "") + "_" + reservationId;
+            functionNames.append("\"").append(functionIdentifier).append("\",");
+            functionPaths.append("\"").append(functionIdentifier).append(".zip\",");
+            composeSourceCode(terraformFile.getParent(), functionIdentifier, metricValues.get(7).getValueString());
+            if (runtime.startsWith("python")) {
+                functionHandlers.append("\"main.handler\",");
+            }
+            functionTimeouts.append(metricValues.get(3).getValueNumber()).append(",");
+            functionMemorySizes.append(metricValues.get(4).getValueNumber()).append(",");
+            functionLayers.append("[],");
+            functionRuntimes.append("\"").append(metricValues.get(6).getValueString().toLowerCase()).append("\",");
+        }
+        return String.format(
+            "locals {\n" +
+            "  function_names = [%s]\n" +
+            "  function_paths = [%s]\n" +
+            "  function_handlers = [%s]\n" +
+            "  function_timeouts = [%s]\n" +
+            "  function_memory_sizes = [%s]\n" +
+            "  function_layers = [%s]\n" +
+            "  function_runtimes = [%s]\n" +
+            "}\n", functionNames, functionPaths, functionHandlers, functionTimeouts,
+            functionMemorySizes, functionLayers, functionRuntimes
+        );
+    }
+
+    private static String setFunctions() {
+        return "resource \"aws_lambda_function\" \"lambda\" {\n" +
+            "  count = length(local.function_names)\n" +
+            "  filename      = local.function_paths[count.index]\n" +
+            "  function_name = local.function_names[count.index]\n" +
+            "  role          = data.aws_iam_role.labRole.arn\n" +
+            "  handler       = local.function_handlers[count.index]\n" +
+            "  timeout       = local.function_timeouts[count.index]\n" +
+            "  memory_size   = local.function_memory_sizes[count.index]\n" +
+            "  layers        = local.function_layers[count.index]\n" +
+            "  runtime       = local.function_runtimes[count.index]\n" +
+            "  source_code_hash = filebase64sha256(local.function_paths[count.index])\n" +
+            "}\n";
+    }
+
+    private static String setFunctionUrl() {
+        return "resource \"aws_lambda_function_url\" \"function_url\" {\n" +
+            "  count = length(local.function_names)\n" +
+            "\n" +
+            "  function_name      = aws_lambda_function.lambda[count.index].function_name\n" +
+            "  authorization_type = \"NONE\"\n" +
+            "}\n";
+    }
+
+    private static String setOutput() {
+        return "output \"function-urls\" {\n" +
+            "  value = aws_lambda_function_url.function_url\n" +
+            "}\n";
+    }
+
+    private static String setLocalModule(String cloud, String region, String accessKey, String secretAccessKey,
+                                         String sessionToken) {
+        String moduleName = cloud + "_" + region;
+        return String.format(
+            "module \"%s\" {\n" +
+            "  source = \"/%s\"\n" +
+            "  access_key = var.aws_access_key\n" +
+            "  secret_access_key = var.aws_secret_access_key\n" +
+            "  session_token = var.aws_session_token\n" +
+            "}", moduleName, moduleName);
+    }
+
+    private static void setUpMainFile() {
+        String mainContent = getProviderString();
     }
 
     private static int executeCli(ProcessBuilder processBuilder) throws IOException, InterruptedException {
