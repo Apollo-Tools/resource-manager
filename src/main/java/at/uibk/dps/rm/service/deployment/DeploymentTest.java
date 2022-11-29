@@ -15,12 +15,13 @@ import java.util.zip.ZipOutputStream;
 public class DeploymentTest {
 
     public static void main(String[] args) {
-        String accessKey = "###";
-        String secretKey = "###";
-        String sessionToken = "###";
+        String accessKey = "ASIAQE3ZRVFQ2WXWQ4XH";
+        String secretKey = "jpy8WifQrIpi/ZApXrmuwG6LarvkT9rUKFz/OFqF";
+        String sessionToken = "FwoGZXIvYXdzEFQaDFpXf/8W63G7XqpyiyLUAQZ4PpN7/cp30Yav3+0Ai9slvC7wD4d4KgQfxtB08LkZUtGUjG+mrb/1X12VuUiuK0vcVOsZkVdtshKXdFlLsYeT6iJlpWk31PcypoI2cz91JetEQAXQ4pfm/KDprky7vFiBQsjiHmaKIS+TOf37lLD8hu8Jlozrt9r0Q8NpyoQTjWvmbnBjB/oUW7MDH/oRAbFpcjIj/qv2mPvz6uuLNozJ78aoPH9QvGSgpbAYTCjee6lfyiHdbV5U7fSVuR/Ki7OPU7JAKoRgTYM3fuFCpB5afxMSKJ++l5wGMi0nc1cHo7nN5bTpLVmDAH9aQ9gORrsSA7nGj9ZDpfNgrtvjhIYkaLp29zZjuy8=";
         String region = "us-east-1";
         String awsRole = "LabRole";
-        long reservationId = 11;
+        String moduleName = "aws-" + region;
+        long reservationId = 16;
         ResourceType resourceType = new ResourceType();
         resourceType.setTypeId(1L);
         resourceType.setResourceType("faas");
@@ -28,55 +29,21 @@ public class DeploymentTest {
         resource.setResourceId(1L);
         resource.setIsSelfManaged(false);
         resource.setResourceType(resourceType);
-        MetricValue mv1 = setUpMetricValue(1L, "region", null, "us-east-1", null, "string", resource);
-        MetricValue mv2 = setUpMetricValue(2L, "role", null, "LabRole", null, "string", resource);
-        MetricValue mv3 = setUpMetricValue(3L, "function-type", null, "count", null, "string", resource);
-        MetricValue mv4 = setUpMetricValue(4L, "timeout", 300.0, null, null, "number", resource);
-        MetricValue mv5 = setUpMetricValue(5L, "memory-size", 256.0, null, null, "number", resource);
-        MetricValue mv6 = setUpMetricValue(6L, "layers", null, "", null, "string", resource);
-        MetricValue mv7 = setUpMetricValue(7L, "runtime", null, "python3.8", null, "string", resource);
-        MetricValue mv8 = setUpMetricValue(8L, "code", null, "def main(json_input):\n" +
-            "    input1 = json_input[\"input1\"]\n    # Processing\n    # return the result\n    res = {\n" +
-            "        \"input1\": input1\n    }\n    return res\n", null, "string", resource);
-        resource.setMetricValues(List.of(mv1, mv2, mv3, mv4, mv5, mv6, mv7, mv8));
+        resource.setMetricValues(setUpMetricValues(resource));
 
         List<Resource> resources = List.of(resource);
         try {
             Path rootFolder = Paths.get("temp\\reservation_" + reservationId);
-            Path terraformFile = Paths.get(rootFolder + "\\aws-" + region + "\\deploy.tf");
-            Files.deleteIfExists(terraformFile);
-            // Load aws provider
-            String loadProvider = getProviderString();
-            // Initialize variables
-            String setupVariables = getAWSCredentialVariables();
-            // Setup aws
-            String setupProvider = getAWSProvider(region);
-            // Select role
-            String setAWSRole = getAWSRole(awsRole);
-            // Set functionLocals
-            String setFunctionLocals = setFunctionLocals(resources, reservationId, terraformFile);
-                // Set functions
-            String setFunctions = setFunctions();
-            // Set function url
-            String setFunctionUrl = setFunctionUrl();
-            // Set output
-            String setOutput = setOutput();
-            String tfContent = setupVariables + setupProvider + setAWSRole +
-                setFunctionLocals + setFunctions + setFunctionUrl + setOutput;
-            Files.createDirectories(rootFolder);
-            Files.createDirectories(terraformFile.getParent());
-            // TODO: setup all files
-            Path mainFile = Paths.get(rootFolder + "\\main.tf");
-            Path variableFile = Paths.get(rootFolder + "\\variables.tf");
-            Files.deleteIfExists(terraformFile);
-
-            Files.writeString(terraformFile, tfContent, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
-
-            ProcessBuilder builder = new ProcessBuilder("terraform",  "-chdir=" + terraformFile.getParent(), "init");
+            Path awsFolder = Paths.get(rootFolder + "\\" + moduleName);
+            // Create files
+            setUpMainDirectory(rootFolder, moduleName);
+            setUpAwsDirectory(awsFolder, region, awsRole, resources, reservationId);
+            // Run terraform
+            ProcessBuilder builder = new ProcessBuilder("terraform",  "-chdir=" + rootFolder, "init");
             System.out.println("Return value: " + executeCli(builder));
-            builder = new ProcessBuilder("terraform", "-chdir="  + terraformFile.getParent(),
-                "apply", "-auto-approve", "-var=\"access_key=" + accessKey + "\"",
-                "-var=\"secret_access_key=" + secretKey + "\"", "-var=\"session_token=" + sessionToken + "\"");
+            builder = new ProcessBuilder("terraform", "-chdir="  + rootFolder,
+                "apply", "-auto-approve", "-var=\"aws_access_key=" + accessKey + "\"",
+                "-var=\"aws_secret_access_key=" + secretKey + "\"", "-var=\"aws_session_token=" + sessionToken + "\"");
             System.out.println("Return value: " + executeCli(builder));
         } catch (IOException e) {
             System.out.println("An error occurred.");
@@ -117,7 +84,21 @@ public class DeploymentTest {
         return metricType;
     }
 
-    private static String getProviderString() {
+    private static List<MetricValue> setUpMetricValues(Resource resource) {
+        MetricValue mv1 = setUpMetricValue(1L, "region", null, "us-east-1", null, "string", resource);
+        MetricValue mv2 = setUpMetricValue(2L, "role", null, "LabRole", null, "string", resource);
+        MetricValue mv3 = setUpMetricValue(3L, "function-type", null, "count", null, "string", resource);
+        MetricValue mv4 = setUpMetricValue(4L, "timeout", 300.0, null, null, "number", resource);
+        MetricValue mv5 = setUpMetricValue(5L, "memory-size", 256.0, null, null, "number", resource);
+        MetricValue mv6 = setUpMetricValue(6L, "layers", null, "", null, "string", resource);
+        MetricValue mv7 = setUpMetricValue(7L, "runtime", null, "python3.8", null, "string", resource);
+        MetricValue mv8 = setUpMetricValue(8L, "code", null, "def main(json_input):\n" +
+            "    input1 = json_input[\"input1\"]\n    # Processing\n    # return the result\n    res = {\n" +
+            "        \"input1\": input1\n    }\n    return res\n", null, "string", resource);
+        return List.of(mv1, mv2, mv3, mv4, mv5, mv6, mv7, mv8);
+    }
+
+    private static String setProvider() {
         return "terraform {\n" +
             "  required_providers {\n" +
             "    aws = {\n" +
@@ -129,22 +110,24 @@ public class DeploymentTest {
             "}\n";
     }
 
-    private static String getAWSCredentialVariables() {
-        return "variable \"access_key\" {\n" +
+    private static String setCredentialVariables(String cloud) {
+        String preFix = cloud.equals("") ? "" : cloud + "_";
+        return String.format(
+            "variable \"%saccess_key\" {\n" +
             "  type = string\n" +
             "  default = \"\"\n" +
             "}\n" +
-            "variable \"secret_access_key\" {\n" +
+            "variable \"%ssecret_access_key\" {\n" +
             "  type = string\n" +
             "  default = \"\"\n" +
             "}\n" +
-            "variable \"session_token\" {\n" +
+            "variable \"%ssession_token\" {\n" +
             "  type = string\n" +
             "  default = \"\"\n" +
-            "}\n";
+            "}\n", preFix, preFix, preFix);
     }
 
-    private static String getAWSProvider(String region) {
+    private static String setAWSProvider(String region) {
         return String.format(
             "provider \"aws\" {\n" +
             "  access_key = var.access_key\n" +
@@ -154,7 +137,7 @@ public class DeploymentTest {
             "}\n", region);
     }
 
-    private static String getAWSRole(String awsRole) {
+    private static String setAWSRole(String awsRole) {
         return String.format(
             "data \"aws_iam_role\" \"labRole\" {\n" +
             "  name = \"%s\"\n" +
@@ -202,7 +185,7 @@ public class DeploymentTest {
     private static String setFunctions() {
         return "resource \"aws_lambda_function\" \"lambda\" {\n" +
             "  count = length(local.function_names)\n" +
-            "  filename      = local.function_paths[count.index]\n" +
+            "  filename      = \"${path.module}/${local.function_paths[count.index]}\"\n" +
             "  function_name = local.function_names[count.index]\n" +
             "  role          = data.aws_iam_role.labRole.arn\n" +
             "  handler       = local.function_handlers[count.index]\n" +
@@ -210,7 +193,7 @@ public class DeploymentTest {
             "  memory_size   = local.function_memory_sizes[count.index]\n" +
             "  layers        = local.function_layers[count.index]\n" +
             "  runtime       = local.function_runtimes[count.index]\n" +
-            "  source_code_hash = filebase64sha256(local.function_paths[count.index])\n" +
+            "  source_code_hash = filebase64sha256(\"${path.module}/${local.function_paths[count.index]}\")\n" +
             "}\n";
     }
 
@@ -223,26 +206,54 @@ public class DeploymentTest {
             "}\n";
     }
 
-    private static String setOutput() {
-        return "output \"function-urls\" {\n" +
-            "  value = aws_lambda_function_url.function_url\n" +
-            "}\n";
+    private static String setOutput(String module) {
+        return String.format("output \"function_url\" {\n" +
+            "  value = %s.function_url\n" +
+            "}\n", module);
     }
 
-    private static String setLocalModule(String cloud, String region, String accessKey, String secretAccessKey,
-                                         String sessionToken) {
-        String moduleName = cloud + "_" + region;
+    private static String setLocalModule(String moduleName) {
         return String.format(
             "module \"%s\" {\n" +
-            "  source = \"/%s\"\n" +
+            "  source = \"./%s\"\n" +
             "  access_key = var.aws_access_key\n" +
             "  secret_access_key = var.aws_secret_access_key\n" +
             "  session_token = var.aws_session_token\n" +
-            "}", moduleName, moduleName);
+            "}\n", moduleName, moduleName);
     }
 
-    private static void setUpMainFile() {
-        String mainContent = getProviderString();
+    private static void setUpMainDirectory(Path rootFolder, String moduleName) throws IOException {
+        Files.createDirectories(rootFolder);
+        // Create files
+        Path mainFile = Paths.get(rootFolder + "\\main.tf");
+        String mainContent = setProvider() + setLocalModule(moduleName);
+        Files.writeString(mainFile, mainContent, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
+
+        Path variableFile = Paths.get(rootFolder + "\\variables.tf");
+        String variableContent = setCredentialVariables("aws");
+        Files.writeString(variableFile, variableContent, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
+
+        Path outputFile = Paths.get(rootFolder + "\\outputs.tf");
+        String outputContent = setOutput("module." + moduleName);
+        Files.writeString(outputFile, outputContent, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
+    }
+
+    private static void setUpAwsDirectory(Path rootFolder, String region, String awsRole, List<Resource> resources,
+                                          long reservationId) throws IOException {
+        Files.createDirectories(rootFolder);
+
+        Path mainFile = Paths.get(rootFolder + "\\main.tf");
+        String mainContent = setAWSProvider(region) + setAWSRole(awsRole) +
+            setFunctionLocals(resources, reservationId, mainFile) + setFunctions() + setFunctionUrl();
+        Files.writeString(mainFile, mainContent, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
+
+        Path variableFile = Paths.get(rootFolder + "\\variables.tf");
+        String variableContent = setCredentialVariables("");
+        Files.writeString(variableFile, variableContent, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
+
+        Path outputFile = Paths.get(rootFolder + "\\outputs.tf");
+        String outputContent =  setOutput("aws_lambda_function_url");
+        Files.writeString(outputFile, outputContent, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
     }
 
     private static int executeCli(ProcessBuilder processBuilder) throws IOException, InterruptedException {
