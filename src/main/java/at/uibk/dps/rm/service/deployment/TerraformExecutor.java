@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.service.deployment;
 
-import at.uibk.dps.rm.entity.model.CloudProvider;
+import at.uibk.dps.rm.entity.deployment.CloudProvider;
+import at.uibk.dps.rm.entity.deployment.Credentials;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;

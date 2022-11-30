@@ -1,16 +1,16 @@
 package at.uibk.dps.rm.service.deployment;
 
+import at.uibk.dps.rm.entity.deployment.CloudProvider;
+import at.uibk.dps.rm.entity.deployment.Credentials;
 import at.uibk.dps.rm.entity.model.*;
+import at.uibk.dps.rm.service.deployment.terraform.AWSFileService;
+import at.uibk.dps.rm.service.deployment.terraform.MainFileService;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 public class DeploymentTest {
 
@@ -23,8 +23,8 @@ public class DeploymentTest {
         terraformExecutor.addCredentials(CloudProvider.AWS, credentials);
         String region = "us-east-1";
         String awsRole = "LabRole";
-        String moduleName = "aws-" + region;
-        long reservationId = 20;
+        TerraformModule module = new TerraformModule(CloudProvider.AWS, "aws_" + region.replace("-", "_"));
+        long reservationId = 24;
         ResourceType resourceType = new ResourceType();
         resourceType.setTypeId(1L);
         resourceType.setResourceType("faas");
@@ -33,15 +33,19 @@ public class DeploymentTest {
         resource.setIsSelfManaged(false);
         resource.setResourceType(resourceType);
         resource.setMetricValues(setUpMetricValues(resource));
-
         List<Resource> resources = List.of(resource);
+
+        List<TerraformModule> modules = new ArrayList<>();
+        modules.add(module);
         try {
             Path rootFolder = Paths.get("temp\\reservation_" + reservationId);
-            Path awsFolder = Paths.get(rootFolder + "\\" + moduleName);
+            Path awsFolder = Paths.get(rootFolder + "\\" + module.getModuleName());
+            AWSFileService awsUsEast1 = new AWSFileService(awsFolder, region, awsRole, resources, reservationId);
+            MainFileService mainFileService = new MainFileService(rootFolder, modules);
             // Create files
+            mainFileService.setUpDirectory();
+            awsUsEast1.setUpDirectory();
             terraformExecutor.setPluginCacheFolder(Paths.get("temp\\plugin_cache").toAbsolutePath());
-            setUpMainDirectory(rootFolder, moduleName);
-            setUpAwsDirectory(awsFolder, region, awsRole, resources, reservationId);
             // Run terraform
             System.out.println("Return value: " + terraformExecutor.init(rootFolder));
             System.out.println("Return value: " + terraformExecutor.apply(rootFolder));
@@ -96,198 +100,5 @@ public class DeploymentTest {
             "    input1 = json_input[\"input1\"]\n    # Processing\n    # return the result\n    res = {\n" +
             "        \"input1\": input1\n    }\n    return res\n", null, "string", resource);
         return List.of(mv1, mv2, mv3, mv4, mv5, mv6, mv7, mv8);
-    }
-
-    private static String setProvider() {
-        return "terraform {\n" +
-            "  required_providers {\n" +
-            "    aws = {\n" +
-            "      source  = \"hashicorp/aws\"\n" +
-            "      version = \"~> 4.16\"\n" +
-            "    }\n" +
-            "  }\n" +
-            "  required_version = \">= 1.2.0\"\n" +
-            "}\n";
-    }
-
-    private static String setCredentialVariables(String cloud) {
-        String preFix = cloud.equals("") ? "" : cloud + "_";
-        return String.format(
-            "variable \"%saccess_key\" {\n" +
-            "  type = string\n" +
-            "  default = \"\"\n" +
-            "}\n" +
-            "variable \"%ssecret_access_key\" {\n" +
-            "  type = string\n" +
-            "  default = \"\"\n" +
-            "}\n" +
-            "variable \"%ssession_token\" {\n" +
-            "  type = string\n" +
-            "  default = \"\"\n" +
-            "}\n", preFix, preFix, preFix);
-    }
-
-    private static String setAWSProvider(String region) {
-        return String.format(
-            "provider \"aws\" {\n" +
-            "  access_key = var.access_key\n" +
-            "  secret_key = var.secret_access_key\n" +
-            "  token = var.session_token\n" +
-            "  region = \"%s\"\n" +
-            "}\n", region);
-    }
-
-    private static String setAWSRole(String awsRole) {
-        return String.format(
-            "data \"aws_iam_role\" \"labRole\" {\n" +
-            "  name = \"%s\"\n" +
-            "}\n", awsRole);
-    }
-
-    private static String setFunctionLocals(List<Resource> resources, long reservationId, Path terraformFile) throws IOException {
-        StringBuilder functionNames = new StringBuilder();
-        StringBuilder functionPaths = new StringBuilder();
-        StringBuilder functionRuntimes = new StringBuilder();
-        StringBuilder functionTimeouts = new StringBuilder();
-        StringBuilder functionMemorySizes = new StringBuilder();
-        StringBuilder functionHandlers = new StringBuilder();
-        StringBuilder functionLayers = new StringBuilder();
-        for (Resource r: resources) {
-            List<MetricValue> metricValues = r.getMetricValues();
-            String runtime = metricValues.get(6).getValueString().toLowerCase();
-            String functionIdentifier = metricValues.get(2).getValueString() + "_" +
-                runtime.replace(".", "") + "_" + reservationId;
-            functionNames.append("\"").append(functionIdentifier).append("\",");
-            functionPaths.append("\"").append(functionIdentifier).append(".zip\",");
-            composeSourceCode(terraformFile.getParent(), functionIdentifier, metricValues.get(7).getValueString());
-            if (runtime.startsWith("python")) {
-                functionHandlers.append("\"main.handler\",");
-            }
-            functionTimeouts.append(metricValues.get(3).getValueNumber()).append(",");
-            functionMemorySizes.append(metricValues.get(4).getValueNumber()).append(",");
-            functionLayers.append("[],");
-            functionRuntimes.append("\"").append(metricValues.get(6).getValueString().toLowerCase()).append("\",");
-        }
-        return String.format(
-            "locals {\n" +
-            "  function_names = [%s]\n" +
-            "  function_paths = [%s]\n" +
-            "  function_handlers = [%s]\n" +
-            "  function_timeouts = [%s]\n" +
-            "  function_memory_sizes = [%s]\n" +
-            "  function_layers = [%s]\n" +
-            "  function_runtimes = [%s]\n" +
-            "}\n", functionNames, functionPaths, functionHandlers, functionTimeouts,
-            functionMemorySizes, functionLayers, functionRuntimes
-        );
-    }
-
-    private static String setFunctions() {
-        return "resource \"aws_lambda_function\" \"lambda\" {\n" +
-            "  count = length(local.function_names)\n" +
-            "  filename      = \"${path.module}/${local.function_paths[count.index]}\"\n" +
-            "  function_name = local.function_names[count.index]\n" +
-            "  role          = data.aws_iam_role.labRole.arn\n" +
-            "  handler       = local.function_handlers[count.index]\n" +
-            "  timeout       = local.function_timeouts[count.index]\n" +
-            "  memory_size   = local.function_memory_sizes[count.index]\n" +
-            "  layers        = local.function_layers[count.index]\n" +
-            "  runtime       = local.function_runtimes[count.index]\n" +
-            "  source_code_hash = filebase64sha256(\"${path.module}/${local.function_paths[count.index]}\")\n" +
-            "}\n";
-    }
-
-    private static String setFunctionUrl() {
-        return "resource \"aws_lambda_function_url\" \"function_url\" {\n" +
-            "  count = length(local.function_names)\n" +
-            "\n" +
-            "  function_name      = aws_lambda_function.lambda[count.index].function_name\n" +
-            "  authorization_type = \"NONE\"\n" +
-            "}\n";
-    }
-
-    private static String setOutput(String module) {
-        return String.format("output \"function_url\" {\n" +
-            "  value = %s.function_url\n" +
-            "}\n", module);
-    }
-
-    private static String setLocalModule(String moduleName) {
-        return String.format(
-            "module \"%s\" {\n" +
-            "  source = \"./%s\"\n" +
-            "  access_key = var.aws_access_key\n" +
-            "  secret_access_key = var.aws_secret_access_key\n" +
-            "  session_token = var.aws_session_token\n" +
-            "}\n", moduleName, moduleName);
-    }
-
-    private static void setUpMainDirectory(Path rootFolder, String moduleName) throws IOException {
-        Files.createDirectories(rootFolder);
-        // Create files
-        Path mainFile = Paths.get(rootFolder + "\\main.tf");
-        String mainContent = setProvider() + setLocalModule(moduleName);
-        Files.writeString(mainFile, mainContent, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
-
-        Path variableFile = Paths.get(rootFolder + "\\variables.tf");
-        String variableContent = setCredentialVariables("aws");
-        Files.writeString(variableFile, variableContent, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
-
-        Path outputFile = Paths.get(rootFolder + "\\outputs.tf");
-        String outputContent = setOutput("module." + moduleName);
-        Files.writeString(outputFile, outputContent, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
-    }
-
-    private static void setUpAwsDirectory(Path rootFolder, String region, String awsRole, List<Resource> resources,
-                                          long reservationId) throws IOException {
-        Files.createDirectories(rootFolder);
-
-        Path mainFile = Paths.get(rootFolder + "\\main.tf");
-        String mainContent = setAWSProvider(region) + setAWSRole(awsRole) +
-            setFunctionLocals(resources, reservationId, mainFile) + setFunctions() + setFunctionUrl();
-        Files.writeString(mainFile, mainContent, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
-
-        Path variableFile = Paths.get(rootFolder + "\\variables.tf");
-        String variableContent = setCredentialVariables("");
-        Files.writeString(variableFile, variableContent, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
-
-        Path outputFile = Paths.get(rootFolder + "\\outputs.tf");
-        String outputContent =  setOutput("aws_lambda_function_url");
-        Files.writeString(outputFile, outputContent, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
-    }
-
-    // Src: https://www.baeldung.com/java-compress-and-uncompress
-    private static void composeSourceCode(Path root, String functionIdentifier, String code) throws IOException {
-        Path sourceCode = Path.of(root.toString(), functionIdentifier, "cloud_function.py");
-        Files.createDirectories(sourceCode.getParent());
-        Files.writeString(sourceCode, code, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
-        FileOutputStream fileOutputStream = new FileOutputStream(root + "\\" + functionIdentifier + ".zip");
-        ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream);
-
-        File handlerFile = new File("src\\main\\resources\\faas\\python\\main.py");
-        File mainFile = new File(String.valueOf(sourceCode));
-        File[] filesToZip = {handlerFile, mainFile};
-        for (File fileToZip : filesToZip) {
-            zipFile(fileToZip, zipOutputStream);
-        }
-        zipOutputStream.close();
-        fileOutputStream.close();
-    }
-
-    private static void zipFile(File fileToZip, ZipOutputStream zipOutputStream) throws IOException {
-        FileInputStream fis = new FileInputStream(fileToZip);
-        ZipEntry zipEntry = new ZipEntry(fileToZip.getName());
-        zipOutputStream.putNextEntry(zipEntry);
-
-        byte[] bytes = new byte[1024];
-        int length;
-        while((length = fis.read(bytes)) >= 0) {
-            zipOutputStream.write(bytes, 0, length);
-        }
-        fis.close();
-    }
-
-    private static void cleanUp() {
-        // TODO: terraform destroy, delete temporary files
     }
 }

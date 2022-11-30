@@ -1,7 +1,5 @@
 package at.uibk.dps.rm.service.deployment;
 
-import io.vertx.codegen.annotations.ProxyGen;
-import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 

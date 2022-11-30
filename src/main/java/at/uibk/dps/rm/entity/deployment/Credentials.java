@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.service.deployment;
+package at.uibk.dps.rm.entity.deployment;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
