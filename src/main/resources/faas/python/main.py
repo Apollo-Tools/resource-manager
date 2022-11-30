@@ -16,7 +16,7 @@ from cloud_function import main
 
 def handler(event, context):
     # read in the args from the POST object
-    if 'body' in event:
+    if 'body' in event and isinstance(event['body'], str):
         input = json.loads(event['body'])
     else:
         input = event

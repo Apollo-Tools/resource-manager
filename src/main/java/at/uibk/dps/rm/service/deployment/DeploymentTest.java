@@ -15,13 +15,16 @@ import java.util.zip.ZipOutputStream;
 public class DeploymentTest {
 
     public static void main(String[] args) {
-        String accessKey = "ASIAQE3ZRVFQ2WXWQ4XH";
-        String secretKey = "jpy8WifQrIpi/ZApXrmuwG6LarvkT9rUKFz/OFqF";
-        String sessionToken = "FwoGZXIvYXdzEFQaDFpXf/8W63G7XqpyiyLUAQZ4PpN7/cp30Yav3+0Ai9slvC7wD4d4KgQfxtB08LkZUtGUjG+mrb/1X12VuUiuK0vcVOsZkVdtshKXdFlLsYeT6iJlpWk31PcypoI2cz91JetEQAXQ4pfm/KDprky7vFiBQsjiHmaKIS+TOf37lLD8hu8Jlozrt9r0Q8NpyoQTjWvmbnBjB/oUW7MDH/oRAbFpcjIj/qv2mPvz6uuLNozJ78aoPH9QvGSgpbAYTCjee6lfyiHdbV5U7fSVuR/Ki7OPU7JAKoRgTYM3fuFCpB5afxMSKJ++l5wGMi0nc1cHo7nN5bTpLVmDAH9aQ9gORrsSA7nGj9ZDpfNgrtvjhIYkaLp29zZjuy8=";
+        String accessKey = "ASIAQE3ZRVFQUWDSWQFG";
+        String secretKey = "LpjP3ErHmiMVgigXLttxOgGoeVxzlmnoPQYYgyBo";
+        String sessionToken = "FwoGZXIvYXdzEGwaDBz+oh65X7ns9hZuuyLUAdMHu8h4RN2CMbFTOSPrJGUrminNm+Y5WNBuztvVcbTe07wrEyGHRLm9aKYcMUAENiIQiQVFBHHlcYJkEOzOs0+Yto/I9rd72hhvNBG4e17ro+67tn9DXVBGDWdjx9QX4qUcBs9eCYCiYysM3C6Wx/pmtG3pwPKrYFScrfCEFbwS7zV5+sPtdLQD8qLCzCjQfIsozQxw1XkgwfXq/RhAV3BLcPaQqlZmsSaG8IPLYe8ccp0k6PHmQp5qdPYEcNuOQl1ykVBXBAa879VBTEDL0ag5k4jbKP3dnJwGMi23ka74uYOGIn3rKV3Ajk4DbDfUtVNUJlISg7rfBXbYe5O8QbbZMePoBcopz98=";
+        Credentials credentials = new Credentials(accessKey, secretKey, sessionToken);
+        TerraformExecutor terraformExecutor = new TerraformExecutor();
+        terraformExecutor.addCredentials(CloudProvider.AWS, credentials);
         String region = "us-east-1";
         String awsRole = "LabRole";
         String moduleName = "aws-" + region;
-        long reservationId = 16;
+        long reservationId = 20;
         ResourceType resourceType = new ResourceType();
         resourceType.setTypeId(1L);
         resourceType.setResourceType("faas");
@@ -36,15 +39,12 @@ public class DeploymentTest {
             Path rootFolder = Paths.get("temp\\reservation_" + reservationId);
             Path awsFolder = Paths.get(rootFolder + "\\" + moduleName);
             // Create files
+            terraformExecutor.setPluginCacheFolder(Paths.get("temp\\plugin_cache").toAbsolutePath());
             setUpMainDirectory(rootFolder, moduleName);
             setUpAwsDirectory(awsFolder, region, awsRole, resources, reservationId);
             // Run terraform
-            ProcessBuilder builder = new ProcessBuilder("terraform",  "-chdir=" + rootFolder, "init");
-            System.out.println("Return value: " + executeCli(builder));
-            builder = new ProcessBuilder("terraform", "-chdir="  + rootFolder,
-                "apply", "-auto-approve", "-var=\"aws_access_key=" + accessKey + "\"",
-                "-var=\"aws_secret_access_key=" + secretKey + "\"", "-var=\"aws_session_token=" + sessionToken + "\"");
-            System.out.println("Return value: " + executeCli(builder));
+            System.out.println("Return value: " + terraformExecutor.init(rootFolder));
+            System.out.println("Return value: " + terraformExecutor.apply(rootFolder));
         } catch (IOException e) {
             System.out.println("An error occurred.");
             e.printStackTrace();
@@ -254,23 +254,6 @@ public class DeploymentTest {
         Path outputFile = Paths.get(rootFolder + "\\outputs.tf");
         String outputContent =  setOutput("aws_lambda_function_url");
         Files.writeString(outputFile, outputContent, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
-    }
-
-    private static int executeCli(ProcessBuilder processBuilder) throws IOException, InterruptedException {
-        processBuilder.redirectErrorStream(true);
-        final Process initTF = processBuilder.start();
-        Thread thread = printTerraformOutput(initTF);
-        thread.start();
-        initTF.waitFor();
-        initTF.destroy();
-        return initTF.exitValue();
-    }
-
-    private static Thread printTerraformOutput(Process process) {
-        return new Thread(() -> {
-            BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            input.lines().forEach(System.out::println);
-        });
     }
 
     // Src: https://www.baeldung.com/java-compress-and-uncompress
