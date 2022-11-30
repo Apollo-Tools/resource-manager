@@ -12,22 +12,20 @@ import java.sql.Timestamp;
 @Entity
 @Getter
 @Setter
-public class Reservation {
-
+public class Account {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long reservationId;
+    private Long accountId;
+
+    private String username;
+
+    private String password;
 
     @JsonProperty("is_active")
-    @Column(name = "is_active")
-    private Boolean isActive;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by_id")
-    private Account createdBy;
+    private Boolean isActive = true;
 
     @Column(insertable = false, updatable = false)
-    private @Setter(AccessLevel.NONE) Timestamp createdAt;
+    private @Setter(value= AccessLevel.NONE) Timestamp createdAt;
 
     @Override
     @Generated
@@ -35,14 +33,14 @@ public class Reservation {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Reservation that = (Reservation) o;
+        Account account = (Account) o;
 
-        return reservationId.equals(that.reservationId);
+        return accountId.equals(account.accountId);
     }
 
     @Override
     @Generated
     public int hashCode() {
-        return reservationId.hashCode();
+        return accountId.hashCode();
     }
 }

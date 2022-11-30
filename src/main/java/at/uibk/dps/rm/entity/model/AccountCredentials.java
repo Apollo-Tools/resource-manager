@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.entity.model;
 
 import at.uibk.dps.rm.annotations.Generated;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,22 +11,22 @@ import java.sql.Timestamp;
 @Entity
 @Getter
 @Setter
-public class Reservation {
-
+public class AccountCredentials {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long reservationId;
-
-    @JsonProperty("is_active")
-    @Column(name = "is_active")
-    private Boolean isActive;
+    private Long accountCredentialsId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by_id")
-    private Account createdBy;
+    @JoinColumn(name = "account_id")
+    private Account account;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "credentials_id")
+    private Credentials credentials;
 
     @Column(insertable = false, updatable = false)
-    private @Setter(AccessLevel.NONE) Timestamp createdAt;
+    private  @Setter(value = AccessLevel.NONE)
+    Timestamp createdAt;
 
     @Override
     @Generated
@@ -35,14 +34,14 @@ public class Reservation {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Reservation that = (Reservation) o;
+        AccountCredentials that = (AccountCredentials) o;
 
-        return reservationId.equals(that.reservationId);
+        return accountCredentialsId.equals(that.accountCredentialsId);
     }
 
     @Override
     @Generated
     public int hashCode() {
-        return reservationId.hashCode();
+        return accountCredentialsId.hashCode();
     }
 }
