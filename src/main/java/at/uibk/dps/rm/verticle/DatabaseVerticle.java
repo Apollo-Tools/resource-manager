@@ -1,7 +1,9 @@
 package at.uibk.dps.rm.verticle;
 
-import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.repository.*;
+import at.uibk.dps.rm.service.database.account.*;
+import at.uibk.dps.rm.service.database.cloudprovider.CloudProviderService;
+import at.uibk.dps.rm.service.database.cloudprovider.CloudProviderServiceImpl;
 import at.uibk.dps.rm.service.database.metric.*;
 import at.uibk.dps.rm.service.database.reservation.ReservationService;
 import at.uibk.dps.rm.service.database.reservation.ReservationServiceImpl;
@@ -27,6 +29,10 @@ public class DatabaseVerticle extends AbstractVerticle {
 
     private SessionFactory sessionFactory;
 
+    private AccountCredentialsRepository accountCredentialsRepository;
+    private AccountRepository accountRepository;
+    private CloudProviderRepository cloudProviderRepository;
+    private CredentialsRepository credentialsRepository;
     private ResourceTypeRepository resourceTypeRepository;
     private ResourceRepository resourceRepository;
     private MetricRepository metricRepository;
@@ -63,14 +69,17 @@ public class DatabaseVerticle extends AbstractVerticle {
 
     private Completable initializeRepositories() {
         Maybe<Void> setupServices = Maybe.create(emitter -> {
-                resourceTypeRepository = new ResourceTypeRepository(sessionFactory, ResourceType.class);
-                resourceRepository = new ResourceRepository(sessionFactory, Resource.class);
-                metricRepository = new MetricRepository(sessionFactory, Metric.class);
-                metricValueRepository = new MetricValueRepository(sessionFactory, MetricValue.class);
-                metricTypeRepository = new MetricTypeRepository(sessionFactory, MetricType.class);
-                reservationRepository = new ReservationRepository(sessionFactory, Reservation.class);
-                resourceReservationRepository = new ResourceReservationRepository(sessionFactory, ResourceReservation.class);
-
+                accountCredentialsRepository = new AccountCredentialsRepository(sessionFactory);
+                accountRepository = new AccountRepository(sessionFactory);
+                cloudProviderRepository = new CloudProviderRepository(sessionFactory);
+                credentialsRepository = new CredentialsRepository(sessionFactory);
+                resourceTypeRepository = new ResourceTypeRepository(sessionFactory);
+                resourceRepository = new ResourceRepository(sessionFactory);
+                metricRepository = new MetricRepository(sessionFactory);
+                metricValueRepository = new MetricValueRepository(sessionFactory);
+                metricTypeRepository = new MetricTypeRepository(sessionFactory);
+                reservationRepository = new ReservationRepository(sessionFactory);
+                resourceReservationRepository = new ResourceReservationRepository(sessionFactory);
                 emitter.onComplete();
             }
         );
@@ -79,6 +88,30 @@ public class DatabaseVerticle extends AbstractVerticle {
 
     private Completable setupEventBus() {
         Maybe<Void> setupEventBus = Maybe.create(emitter -> {
+            AccountCredentialsService accountCredentialsService =
+                new AccountCredentialsServiceImpl(accountCredentialsRepository);
+            new ServiceBinder(vertx.getDelegate())
+                .setAddress("account-credentials-service-address")
+                .register(AccountCredentialsService.class, accountCredentialsService);
+
+            AccountService accountService =
+                new AccountServiceImpl(accountRepository);
+            new ServiceBinder(vertx.getDelegate())
+                .setAddress("account-service-address")
+                .register(AccountService.class, accountService);
+
+            CloudProviderService cloudProviderService =
+                new CloudProviderServiceImpl(cloudProviderRepository);
+            new ServiceBinder(vertx.getDelegate())
+                .setAddress("cloud-provider-service-address")
+                .register(CloudProviderService.class, cloudProviderService);
+
+            CredentialsService credentialsService =
+                new CredentialsServiceImpl(credentialsRepository);
+            new ServiceBinder(vertx.getDelegate())
+                .setAddress("credentials-service-address")
+                .register(CredentialsService.class, credentialsService);
+
             ResourceTypeService resourceTypeService =
                 new ResourceTypeServiceImpl(resourceTypeRepository);
             new ServiceBinder(vertx.getDelegate())

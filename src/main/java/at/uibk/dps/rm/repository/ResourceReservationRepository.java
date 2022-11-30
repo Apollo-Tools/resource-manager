@@ -7,9 +7,8 @@ import java.util.List;
 import java.util.concurrent.CompletionStage;
 
 public class ResourceReservationRepository extends Repository<ResourceReservation>{
-    public ResourceReservationRepository(Stage.SessionFactory sessionFactory,
-                                 Class<ResourceReservation> entityClass) {
-        super(sessionFactory, entityClass);
+    public ResourceReservationRepository(Stage.SessionFactory sessionFactory) {
+        super(sessionFactory, ResourceReservation.class);
     }
 
     public CompletionStage<List<ResourceReservation>> findAllByReservationId(long id) {

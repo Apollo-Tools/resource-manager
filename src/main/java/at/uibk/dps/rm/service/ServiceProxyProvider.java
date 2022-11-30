@@ -1,5 +1,9 @@
 package at.uibk.dps.rm.service;
 
+import at.uibk.dps.rm.service.rxjava3.database.account.AccountCredentialsService;
+import at.uibk.dps.rm.service.rxjava3.database.account.AccountService;
+import at.uibk.dps.rm.service.rxjava3.database.account.CredentialsService;
+import at.uibk.dps.rm.service.rxjava3.database.cloudprovider.CloudProviderService;
 import at.uibk.dps.rm.service.rxjava3.database.reservation.ReservationService;
 import at.uibk.dps.rm.service.rxjava3.database.reservation.ResourceReservationService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricTypeService;
@@ -13,6 +17,10 @@ import lombok.Getter;
 
 @Getter
 public class ServiceProxyProvider {
+    private final AccountCredentialsService accountCredentialsService;
+    private final AccountService accountService;
+    private final CloudProviderService cloudProviderService;
+    private final CredentialsService credentialsService;
     private final ResourceService resourceService;
     private final ResourceTypeService resourceTypeService;
     private final MetricService metricService;
@@ -23,6 +31,11 @@ public class ServiceProxyProvider {
     private final DeploymentService deploymentService;
 
     public ServiceProxyProvider(Vertx vertx) {
+        accountCredentialsService = AccountCredentialsService
+            .createProxy(vertx, "account-credentials-service-address");
+        accountService = AccountService.createProxy(vertx, "account-service-address");
+        cloudProviderService = CloudProviderService.createProxy(vertx, "cloud-provider-service-address");
+        credentialsService = CredentialsService.createProxy(vertx, "credentials-service-address");
         resourceService = ResourceService.createProxy(vertx,"resource-service-address");
         resourceTypeService = ResourceTypeService.createProxy(vertx,"resource-type-service-address");
         metricService = MetricService.createProxy(vertx,"metric-service-address");

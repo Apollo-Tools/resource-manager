@@ -8,9 +8,8 @@ import java.util.concurrent.CompletionStage;
 
 public class ResourceRepository extends Repository<Resource> {
 
-    public ResourceRepository(Stage.SessionFactory sessionFactory,
-        Class<Resource> entityClass) {
-        super(sessionFactory, entityClass);
+    public ResourceRepository(Stage.SessionFactory sessionFactory) {
+        super(sessionFactory, Resource.class);
     }
 
     public CompletionStage<Resource> findByIdAndFetch(long id) {

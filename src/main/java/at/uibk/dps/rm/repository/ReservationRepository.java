@@ -6,9 +6,8 @@ import org.hibernate.reactive.stage.Stage;
 import java.util.concurrent.CompletionStage;
 
 public class ReservationRepository extends Repository<Reservation> {
-    public ReservationRepository(Stage.SessionFactory sessionFactory,
-                              Class<Reservation> entityClass) {
-        super(sessionFactory, entityClass);
+    public ReservationRepository(Stage.SessionFactory sessionFactory) {
+        super(sessionFactory, Reservation.class);
     }
 
     public CompletionStage<Reservation> cancelReservation(long id) {

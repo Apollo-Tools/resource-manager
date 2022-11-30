@@ -3,13 +3,12 @@ package at.uibk.dps.rm.repository;
 import at.uibk.dps.rm.entity.model.MetricValue;
 import org.hibernate.reactive.stage.Stage;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 
 public class MetricValueRepository extends Repository<MetricValue> {
-    public MetricValueRepository(Stage.SessionFactory sessionFactory, Class<MetricValue> entityClass) {
-        super(sessionFactory, entityClass);
+    public MetricValueRepository(Stage.SessionFactory sessionFactory) {
+        super(sessionFactory, MetricValue.class);
     }
 
     public CompletionStage<MetricValue> findByIdAndFetch(long metricValueId) {

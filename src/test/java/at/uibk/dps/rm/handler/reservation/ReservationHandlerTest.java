@@ -202,6 +202,7 @@ public class ReservationHandlerTest {
                     assertThat(result.getLong("reservation_id")).isEqualTo(1L);
                     assertThat(result.getBoolean("is_active")).isTrue();
                     verify(reservationService).save(new JsonObject("{\"reservation_id\":null," +
+                        "\"created_by\":null," +
                         "\"created_at\":null," +
                         "\"is_active\":true}"));
                     testContext.completeNow();
