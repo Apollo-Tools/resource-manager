@@ -1,9 +1,6 @@
 package at.uibk.dps.rm.handler;
 
-import at.uibk.dps.rm.exception.AlreadyExistsException;
-import at.uibk.dps.rm.exception.BadInputException;
-import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.exception.UsedByOtherEntityException;
+import at.uibk.dps.rm.exception.*;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.Disposable;
@@ -62,6 +59,8 @@ public class ResultHandler {
             statusCode = 409;
         } else if (throwable instanceof BadInputException) {
             statusCode = 400;
+        } else if (throwable instanceof UnauthorizedException) {
+            statusCode = 401;
         }
         rc.fail(statusCode, throwable);
     }

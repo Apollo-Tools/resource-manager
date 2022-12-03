@@ -21,7 +21,8 @@ public class DeploymentVerticle extends AbstractVerticle {
             new ServiceBinder(vertx.getDelegate())
                 .setAddress("deployment-service-address")
                 .register(DeploymentService.class, deploymentService);
+            emitter.onComplete();
         });
-        return setupEventBus.ignoreElement();
+        return Completable.fromMaybe(setupEventBus);
     }
 }

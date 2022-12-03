@@ -1,9 +1,6 @@
 package at.uibk.dps.rm.handler;
 
-import at.uibk.dps.rm.exception.AlreadyExistsException;
-import at.uibk.dps.rm.exception.BadInputException;
-import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.exception.UsedByOtherEntityException;
+import at.uibk.dps.rm.exception.*;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -62,11 +59,21 @@ public class ErrorHandler {
 
     public static Single<Boolean> handleBadInput(Single<Boolean> handler) {
         return handler
-                .map(result -> {
-                    if (!result) {
-                        throw new BadInputException();
-                    }
-                    return true;
-                });
+            .map(result -> {
+                if (!result) {
+                    throw new BadInputException();
+                }
+                return true;
+            });
+    }
+
+    public static Single<JsonObject> handleLoginCredentials(Single<JsonObject> handler) {
+        return handler
+            .map(result -> {
+                if (result == null) {
+                    throw new UnauthorizedException();
+                }
+                return result;
+            });
     }
 }
