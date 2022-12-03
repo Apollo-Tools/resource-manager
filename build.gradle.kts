@@ -39,6 +39,7 @@ dependencies {
   implementation("io.vertx:vertx-web:$vertxVersion")
   implementation("io.vertx:vertx-pg-client:$vertxVersion")
   implementation("io.vertx:vertx-auth-oauth2:$vertxVersion")
+  implementation("io.vertx:vertx-auth-jwt:$vertxVersion")
   implementation("io.vertx:vertx-config:$vertxVersion")
   implementation("io.vertx:vertx-service-proxy:$vertxVersion")
   implementation("io.vertx:vertx-web-openapi:$vertxVersion")
@@ -47,6 +48,9 @@ dependencies {
   annotationProcessor("io.vertx:vertx-rx-java3-gen:$vertxVersion")
   annotationProcessor("io.vertx:vertx-codegen:$vertxVersion:processor")
   annotationProcessor("io.vertx:vertx-service-proxy:$vertxVersion")
+
+  // Password hashing
+  implementation("de.mkammerer:argon2-jvm:2.11")
 
   // Json parsing
   implementation("com.fasterxml.jackson.core:jackson-databind:2.13.3")
