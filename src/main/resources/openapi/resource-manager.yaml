@@ -5,14 +5,121 @@ info:
   description: "An API that allows users to manage resources"
   license:
     name: TODO
+
 servers:
   - url: localhost:8888/api
     description: Local Dev Server
 paths:
+  /accounts:
+    get:
+      description: Return details about the currently logged in user account
+      operationId: getAccount
+      security:
+        - bearerAuth: []
+      tags:
+        - accounts
+      responses:
+        200:
+          description: Successful pull of the user account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        400:
+          $ref: "#/components/responses/400"
+        403:
+          $ref: "#/components/responses/403"
+        500:
+          $ref: "#/components/responses/500"
+
+  /accounts/signup:
+    post:
+      description: Registers a new user account
+      operationId: signUp
+      tags:
+        - accounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              additionalProperties: false
+              properties:
+                username:
+                  type: string
+                  example: johndoe
+                  minLength: 4
+                  maxLength: 32
+                password:
+                  type: string
+                  example: password1234!?
+                  minLength: 8
+                  maxLength: 512
+      responses:
+        201:
+          description: Successful registration of a new user account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        400:
+          $ref: "#/components/responses/400"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+  /accounts/login:
+    post:
+      description: Login a user account
+      operationId: login
+      tags:
+        - accounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              additionalProperties: false
+              properties:
+                username:
+                  type: string
+                  example: johndoe
+                  minLength: 4
+                  maxLength: 32
+                password:
+                  type: string
+                  example: password1234!?
+                  minLength: 8
+                  maxLength: 512
+      responses:
+        201:
+          description: Successful registration of a new user account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
   /resources/{id}:
     get:
       description: Return details about a resource managed by the resource manager
       operationId: getResource
+      security:
+        - bearerAuth: []
       tags:
         - resources
       parameters:
@@ -34,6 +141,8 @@ paths:
     patch:
       description: Updates a resource
       operationId: updateResource
+      security:
+        - bearerAuth: []
       tags:
         - resources
       parameters:
@@ -75,6 +184,8 @@ paths:
     delete:
       description: Deletes a resource
       operationId: deleteResource
+      security:
+        - bearerAuth: []
       tags:
         - resources
       parameters:
@@ -93,6 +204,8 @@ paths:
     get:
       description: Return details about all resources managed by the resource manager
       operationId: listResources
+      security:
+        - bearerAuth: []
       tags:
         - resources
       responses:
@@ -110,6 +223,8 @@ paths:
     post:
       description: Registers a new resource
       operationId: createResource
+      security:
+        - bearerAuth: []
       tags:
         - resources
       requestBody:
@@ -155,6 +270,8 @@ paths:
     get:
       description: Return all metrics that are linked with an existing resource
       operationId: listResourceMetrics
+      security:
+        - bearerAuth: []
       tags:
         - resources/metrics
       parameters:
@@ -178,6 +295,8 @@ paths:
     post:
       description: Adds multiple metrics to an existing resource
       operationId: addResourceMetrics
+      security:
+        - bearerAuth: []
       tags:
         - resources/metrics
       parameters:
@@ -223,6 +342,8 @@ paths:
     patch:
       description: updates the value of a metric
       operationId: updateMetricValue
+      security:
+        - bearerAuth: []
       tags:
         - resources/metrics
       parameters:
@@ -273,6 +394,8 @@ paths:
     delete:
       description: Deletes a resource metric
       operationId: deleteResourceMetric
+      security:
+        - bearerAuth: []
       tags:
         - resources/metrics
       parameters:
@@ -306,6 +429,8 @@ paths:
     post:
       description: Return all resources that conform to the given service level objectives
       operationId: getResourcesBySLOs
+      security:
+        - bearerAuth: []
       tags:
         - resourcesBySLOs
       requestBody:
@@ -368,6 +493,8 @@ paths:
     post:
       description: Reserves resources and deploys undeployed ones if wanted
       operationId: reserveResources
+      security:
+        - bearerAuth: []
       tags:
         - reserveResources
       requestBody:
@@ -411,6 +538,8 @@ paths:
     get:
       description: Return details about a resource reservation
       operationId: getReservation
+      security:
+        - bearerAuth: []
       tags:
         - reservations
       parameters:
@@ -433,6 +562,8 @@ paths:
     patch:
       description: Free the reserved resources
       operationId: cancelReservation
+      security:
+        - bearerAuth: []
       tags:
         - reservations
       parameters:
@@ -455,6 +586,8 @@ paths:
     get:
       description: Return details about a resource type managed by the resource manager
       operationId: getResourceType
+      security:
+        - bearerAuth: []
       tags:
         - resourceTypes
       parameters:
@@ -476,6 +609,8 @@ paths:
     patch:
       description: Updates a resource type
       operationId: updateResourceType
+      security:
+        - bearerAuth: []
       tags:
         - resourceTypes
       parameters:
@@ -509,6 +644,8 @@ paths:
     delete:
       description: Deletes a resource type
       operationId: deleteResourceType
+      security:
+        - bearerAuth: []
       tags:
         - resourceTypes
       parameters:
@@ -527,6 +664,8 @@ paths:
     get:
       description: Return details about all resource types managed by the resource manager
       operationId: listResourceTypes
+      security:
+        - bearerAuth: []
       tags:
         - resourceTypes
       responses:
@@ -544,6 +683,8 @@ paths:
     post:
       description: Creates a new resource type
       operationId: createResourceType
+      security:
+        - bearerAuth: []
       tags:
         - resourceTypes
       requestBody:
@@ -579,6 +720,8 @@ paths:
     get:
       description: Return details about a metric managed by the resource manager
       operationId: getMetric
+      security:
+        - bearerAuth: []
       tags:
         - metrics
       parameters:
@@ -600,6 +743,8 @@ paths:
     patch:
       description: Updates a metric
       operationId: updateMetric
+      security:
+        - bearerAuth: []
       tags:
         - metrics
       parameters:
@@ -638,6 +783,8 @@ paths:
     delete:
       description: Deletes a metric
       operationId: deleteMetric
+      security:
+        - bearerAuth: []
       tags:
         - metrics
       parameters:
@@ -656,6 +803,8 @@ paths:
     get:
       description: Return details about all metrics managed by the resource manager
       operationId: listMetrics
+      security:
+        - bearerAuth: []
       tags:
         - metrics
       responses:
@@ -673,6 +822,8 @@ paths:
     post:
       description: Creates a new metric
       operationId: createMetric
+      security:
+        - bearerAuth: []
       tags:
         - metrics
       requestBody:
@@ -728,6 +879,19 @@ paths:
 
 components:
   schemas:
+    Account:
+      type: object
+      properties:
+        username:
+          type: string
+          example: johndoe
+        password:
+          type: string
+          example: password1234!?
+        created_at:
+          type: string
+          format: date-time
+          #example: 2017-07-21T17:32:28Z
     Resource:
       type: object
       properties:
@@ -880,6 +1044,13 @@ components:
           schema:
             type: string
             example: bad input
+    403:
+      description: Forbidden
+      content:
+        "*/*":
+          schema:
+            type: string
+            example: forbidden
     404:
       description: Not found
       content:
@@ -901,3 +1072,8 @@ components:
           schema:
             type: string
             example: internal server error
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
