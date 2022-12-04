@@ -3,6 +3,7 @@ package at.uibk.dps.rm.router;
 import at.uibk.dps.rm.handler.RequestHandler;
 import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.handler.account.AccountHandler;
+import at.uibk.dps.rm.handler.account.AccountInputHandler;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.service.database.account.JWTAuthProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
@@ -20,6 +21,7 @@ public class AccountRoute {
 
         router
             .operation("signUp")
+            .handler(AccountInputHandler::validateSignupRequest)
             .handler(requestHandler::postRequest);
 
         router
