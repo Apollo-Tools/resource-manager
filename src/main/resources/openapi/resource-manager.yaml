@@ -611,6 +611,104 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
+  /cloud-providers/{id}:
+    get:
+      description: Return details about a cloud provider
+      operationId: getCloudProvider
+      security:
+        - bearerAuth: []
+      tags:
+        - cloudProviders
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of a cloud provider
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CloudProvider"
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+    delete:
+      description: Deletes a cloud provider
+      operationId: deleteCloudProvider
+      security:
+        - bearerAuth: []
+      tags:
+        - cloudProviders
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        204:
+          description: Successful deletion of a cloud provider
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /cloud-providers:
+    get:
+      description: Return details about all cloud providers managed by the resource manager
+      operationId: listCloudProviders
+      security:
+        - bearerAuth: []
+      tags:
+        - cloudProviders
+      responses:
+        200:
+          description: Successful pull of all cloud providers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CloudProvider"
+        500:
+          $ref: "#/components/responses/500"
+
+    post:
+      description: Creates a new cloud provider
+      operationId: createCloudProvider
+      security:
+        - bearerAuth: []
+      tags:
+        - cloudProviders
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - provider
+              additionalProperties: false
+              properties:
+                provider:
+                  type: string
+                  minLength: 3
+                  maxLength: 8
+                  example: aws
+      responses:
+        201:
+          description: Successful creation of a new cloud provider
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CloudProvider"
+        400:
+          $ref: "#/components/responses/400"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
   /resource-types/{id}:
     get:
       description: Return details about a resource type managed by the resource manager
@@ -917,6 +1015,20 @@ components:
         is_active:
           type: boolean
           example: true
+        created_at:
+          type: string
+          format: date-time
+          #example: 2017-07-21T17:32:28Z
+    CloudProvider:
+      type: object
+      properties:
+        provider_id:
+          type: integer
+          format: int64
+          example: 1
+        provider:
+          type: string
+          example: aws
         created_at:
           type: string
           format: date-time

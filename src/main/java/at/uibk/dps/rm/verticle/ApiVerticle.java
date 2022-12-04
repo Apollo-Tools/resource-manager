@@ -53,6 +53,7 @@ public class ApiVerticle extends AbstractVerticle {
     private void setupRoutes(RouterBuilder routerBuilder) {
         ServiceProxyProvider serviceProxyProvider = new ServiceProxyProvider(vertx);
         AccountRoute.init(routerBuilder, serviceProxyProvider, jwtAuthProvider);
+        CloudProviderRoute.init(routerBuilder, serviceProxyProvider);
         ResourceRoute.init(routerBuilder, serviceProxyProvider);
         ResourceTypeRoute.init(routerBuilder, serviceProxyProvider);
         ResourceMetricRoute.init(routerBuilder, serviceProxyProvider);
