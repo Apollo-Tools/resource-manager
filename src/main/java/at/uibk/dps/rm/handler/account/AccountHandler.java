@@ -2,6 +2,7 @@ package at.uibk.dps.rm.handler.account;
 
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.service.rxjava3.database.account.AccountService;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.auth.jwt.JWTAuth;
@@ -40,6 +41,20 @@ public class AccountHandler extends ValidationHandler {
                 result.remove("password");
                 return result;
             });
+    }
+
+    @Override
+    public Completable updateOne(RoutingContext rc) {
+        JsonObject requestBody = rc.body().asJsonObject();
+        return accountChecker.checkFindLoginAccount(rc.user().principal().getString("username"))
+            .map(account -> accountChecker
+                .checkComparePasswords(account,
+                    requestBody.getString("old_password").toCharArray()))
+            .map(account -> {
+                account.put("password", requestBody.getString("new_password"));
+                return accountChecker.hashAccountPassword(account);
+            })
+            .flatMapCompletable(entityChecker::submitUpdate);
     }
 
     public Single<JsonObject> login(RoutingContext rc) {

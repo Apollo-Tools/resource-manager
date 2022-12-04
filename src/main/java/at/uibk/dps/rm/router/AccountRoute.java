@@ -27,5 +27,10 @@ public class AccountRoute {
         router
             .operation("login")
             .handler(rc -> ResultHandler.handleGetOneRequest(rc, accountHandler.login(rc)));
+
+        router
+            .operation("changePassword")
+            .handler(AccountInputHandler::validateChangePasswordRequest)
+            .handler(requestHandler::patchRequest);
     }
 }

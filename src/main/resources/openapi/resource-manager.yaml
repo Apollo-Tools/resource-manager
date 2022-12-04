@@ -31,6 +31,35 @@ paths:
           $ref: "#/components/responses/403"
         500:
           $ref: "#/components/responses/500"
+    patch:
+      description: Change the password of the currently logged in user account
+      operationId: changePassword
+      security:
+        - bearerAuth: []
+      tags:
+        - accounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              minProperties: 2
+              additionalProperties: false
+              properties:
+                old_password:
+                  type: string
+                  example: "old-password!"
+                new_password:
+                  type: string
+                  example: "new-password!"
+      responses:
+        204:
+          description: Successful update of an accounts password
+        400:
+          $ref: "#/components/responses/400"
+        500:
+          $ref: "#/components/responses/500"
 
   /accounts/signup:
     post:
@@ -885,9 +914,9 @@ components:
         username:
           type: string
           example: johndoe
-        password:
-          type: string
-          example: password1234!?
+        is_active:
+          type: boolean
+          example: true
         created_at:
           type: string
           format: date-time

@@ -48,6 +48,10 @@ public abstract class EntityChecker {
         for (String field : requestBody.fieldNames()) {
             entity.put(field, requestBody.getValue(field));
         }
+        return submitUpdate(entity);
+    }
+
+    public Completable submitUpdate(JsonObject entity) {
         return service.update(entity);
     }
 
