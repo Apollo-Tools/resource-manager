@@ -55,7 +55,7 @@ public abstract class EntityChecker {
         return service.update(entity);
     }
 
-    protected Completable submitDelete(long id) {
+    public Completable submitDelete(long id) {
         return service.delete(id);
     }
 }

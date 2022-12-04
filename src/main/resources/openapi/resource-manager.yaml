@@ -787,6 +787,111 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
+  /credentials/{id}:
+    delete:
+      description: Deletes credentials from user account
+      operationId: deleteCredentials
+      security:
+        - bearerAuth: []
+      tags:
+        - credentials
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        204:
+          description: Successful deletion of credentials
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /credentials:
+    get:
+      description: Returns all credentials linked to the current user account
+      operationId: listCredentials
+      security:
+        - bearerAuth: []
+      tags:
+        - credentials
+      responses:
+        200:
+          description: Successful pull of all credentials linked to the current user account
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    credentials_id:
+                      type: integer
+                      format: int64
+                      example: 1
+                    cloud_provider:
+                      $ref: "#/components/schemas/CloudProvider"
+        500:
+          $ref: "#/components/responses/500"
+
+    post:
+      description: Add new credentials the current user account
+      operationId: addCredentials
+      security:
+        - bearerAuth: []
+      tags:
+        - credentials
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - access_key
+                - cloud_provider
+              additionalProperties: false
+              properties:
+                access_key:
+                  type: string
+                  example: accesskey1234
+                secret_access_key:
+                  type: string
+                  example: secretaccesskey1234
+                session_token:
+                  type: string
+                  example: sessiontoken1234
+                cloud_provider:
+                  type: object
+                  required:
+                    - provider_id
+                  additionalProperties: false
+                  properties:
+                    provider_id:
+                      type: integer
+                      format: int64
+                      example: 1
+      responses:
+        201:
+          description: Successful creation of new credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  credentials_id:
+                    type: integer
+                    format: int64
+                    example: 1
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
   /resource-types:
     get:
       description: Return details about all resource types managed by the resource manager
