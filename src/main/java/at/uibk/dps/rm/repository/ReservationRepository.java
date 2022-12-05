@@ -24,4 +24,15 @@ public class ReservationRepository extends Repository<Reservation> {
                             })
                         );
     }
+
+    public CompletionStage<Reservation> findByIdAndAccountId(long id, long accountId) {
+        return sessionFactory.withSession(session ->
+            session.createQuery("select r from Reservation r " +
+                    "left join fetch r.createdBy cb " +
+                    "where r.reservationId=:id and cb.accountId=:accountId", entityClass)
+                .setParameter("id", id)
+                .setParameter("accountId", accountId)
+                .getSingleResultOrNull()
+        );
+    }
 }

@@ -7,6 +7,7 @@ import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 
 @ProxyGen
 @VertxGen
@@ -21,4 +22,6 @@ public interface ReservationService extends ServiceInterface {
     }
 
     Future<Void> cancelReservationById(long id);
+
+    Future<JsonObject> findOneByByIdAndAccountId(long id, long accountId);
 }

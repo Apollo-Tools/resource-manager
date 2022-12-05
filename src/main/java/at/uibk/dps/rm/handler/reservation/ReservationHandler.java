@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler.reservation;
 
 import at.uibk.dps.rm.entity.dto.ReserveResourcesRequest;
+import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.entity.model.Reservation;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.model.ResourceReservation;
@@ -44,19 +45,20 @@ public class ReservationHandler extends ValidationHandler {
 
     @Override
     protected Single<JsonObject> getOne(RoutingContext rc) {
-        return super.getOne(rc)
-                .flatMap(reservation -> {
-                    if (!reservation.getBoolean("is_active")) {
-                        return Single.just(reservation);
-                    }
-                    return resourceReservationChecker
-                            .checkFindAllByReservationId(reservation.getLong("reservation_id"))
-                            .flatMap(this::checkFindResourcesFromReservation)
-                            .map(resourceReservations -> {
-                                reservation.put("resource_reservations", resourceReservations);
-                                return reservation;
-                            });
-                });
+        return HttpHelper.getLongPathParam(rc, "id")
+            .flatMap(id -> reservationChecker.checkFindOne(id, rc.user().principal().getLong("account_id")))
+            .flatMap(reservation -> {
+                if (!reservation.getBoolean("is_active")) {
+                    return Single.just(reservation);
+                }
+                return resourceReservationChecker
+                        .checkFindAllByReservationId(reservation.getLong("reservation_id"))
+                        .flatMap(this::checkFindResourcesFromReservation)
+                        .map(resourceReservations -> {
+                            reservation.put("resource_reservations", resourceReservations);
+                            return reservation;
+                        });
+            });
     }
 
     // TODO: deploy resources
@@ -70,6 +72,9 @@ public class ReservationHandler extends ValidationHandler {
                 .andThen(Single.just(new Reservation()))
                 .flatMap(reservation -> {
                     reservation.setIsActive(true);
+                    Account account = new Account();
+                    account.setAccountId(rc.user().principal().getLong("account_id"));
+                    reservation.setCreatedBy(account);
                     return entityChecker.submitCreate(JsonObject.mapFrom(reservation));
                 })
                 .map(reservationJson -> createResourceReservationList(reservationJson, requestDTO.getResources()))
@@ -82,7 +87,7 @@ public class ReservationHandler extends ValidationHandler {
     @Override
     protected Completable updateOne(RoutingContext rc) {
         return HttpHelper.getLongPathParam(rc, "id")
-                .flatMap(entityChecker::checkFindOne)
+                .flatMap(id -> reservationChecker.checkFindOne(id, rc.user().principal().getLong("account_id")))
                 .flatMapCompletable(reservationChecker::submitCancelReservation);
     }
 
