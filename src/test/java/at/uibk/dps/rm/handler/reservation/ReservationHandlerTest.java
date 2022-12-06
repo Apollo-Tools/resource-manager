@@ -64,7 +64,8 @@ public class ReservationHandlerTest {
     @Test
     void getOneExistsAndIsActive(VertxTestContext testContext) {
         long reservationId = 1L;
-        Reservation reservation = TestObjectProvider.createReservation(1L, true);
+        Account account = TestObjectProvider.createAccount(1L, "user", "password");
+        Reservation reservation = TestObjectProvider.createReservation(1L, true, account);
         JsonArray resourceReservations = new JsonArray(TestObjectProvider.createResourceReservationsJson(reservation));
         MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", 25.0, null);
         MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", 0.995, null);
@@ -75,8 +76,10 @@ public class ReservationHandlerTest {
         JsonArray metricValues2 = new JsonArray(List.of(JsonObject.mapFrom(mv3)));
         JsonArray metricValues3 = new JsonArray(List.of(JsonObject.mapFrom(mv4), JsonObject.mapFrom(mv5)));
 
+        RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(reservationId));
-        when(reservationService.findOne(reservationId)).thenReturn(Single.just(JsonObject.mapFrom(reservation)));
+        when(reservationService.findOneByByIdAndAccountId(reservationId, account.getAccountId()))
+            .thenReturn(Single.just(JsonObject.mapFrom(reservation)));
         when(resourceReservationService.findAllByReservationId(reservationId))
             .thenReturn(Single.just(resourceReservations));
         when(metricValueService.findAllByResource(1L, true)).thenReturn(Single.just(metricValues1));
@@ -107,13 +110,15 @@ public class ReservationHandlerTest {
     @Test
     void getOneExistsMetricValuesNotFound(VertxTestContext testContext) {
         long reservationId = 1L;
-        Reservation reservation = TestObjectProvider.createReservation(1L, true);
+        Account account = TestObjectProvider.createAccount(1L, "user", "password");
+        Reservation reservation = TestObjectProvider.createReservation(1L, true, account);
         JsonArray resourceReservations = new JsonArray(TestObjectProvider.createResourceReservationsJson(reservation));
         Single<JsonArray> handler = new SingleHelper<JsonArray>().getEmptySingle();
 
-
+        RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(reservationId));
-        when(reservationService.findOne(reservationId)).thenReturn(Single.just(JsonObject.mapFrom(reservation)));
+        when(reservationService.findOneByByIdAndAccountId(reservationId, account.getAccountId()))
+            .thenReturn(Single.just(JsonObject.mapFrom(reservation)));
         when(resourceReservationService.findAllByReservationId(reservationId))
             .thenReturn(Single.just(resourceReservations));
         when(metricValueService.findAllByResource(anyLong(),anyBoolean())).thenReturn(handler);
@@ -130,11 +135,14 @@ public class ReservationHandlerTest {
     @Test
     void getOneExistsResourceReservationEmpty(VertxTestContext testContext) {
         long reservationId = 1L;
-        Reservation reservation = TestObjectProvider.createReservation(1L, true);
+        Account account = TestObjectProvider.createAccount(1L, "user", "password");
+        Reservation reservation = TestObjectProvider.createReservation(1L, true, account);
         JsonArray resourceReservations = new JsonArray(new ArrayList<JsonObject>());
 
+        RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(reservationId));
-        when(reservationService.findOne(reservationId)).thenReturn(Single.just(JsonObject.mapFrom(reservation)));
+        when(reservationService.findOneByByIdAndAccountId(reservationId, account.getAccountId()))
+            .thenReturn(Single.just(JsonObject.mapFrom(reservation)));
         when(resourceReservationService.findAllByReservationId(reservationId))
             .thenReturn(Single.just(resourceReservations));
 
@@ -150,10 +158,13 @@ public class ReservationHandlerTest {
     @Test
     void getOneExistsNotActive(VertxTestContext testContext) {
         long reservationId = 1L;
-        Reservation reservation = TestObjectProvider.createReservation(1L, false);
+        Account account = TestObjectProvider.createAccount(1L, "user", "password");
+        Reservation reservation = TestObjectProvider.createReservation(1L, false, account);
 
+        RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(reservationId));
-        when(reservationService.findOne(reservationId)).thenReturn(Single.just(JsonObject.mapFrom(reservation)));
+        when(reservationService.findOneByByIdAndAccountId(reservationId, account.getAccountId()))
+            .thenReturn(Single.just(JsonObject.mapFrom(reservation)));
 
         reservationHandler.getOne(rc)
             .subscribe(result -> testContext.verify(() -> {
@@ -170,9 +181,11 @@ public class ReservationHandlerTest {
     void getOneNotFound(VertxTestContext testContext) {
         long reservationId = 1L;
         Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
+        Account account = TestObjectProvider.createAccount(1L, "user", "password");
 
+        RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(reservationId));
-        when(reservationService.findOne(reservationId)).thenReturn(handler);
+        when(reservationService.findOneByByIdAndAccountId(reservationId, account.getAccountId())).thenReturn(handler);
 
         reservationHandler.getOne(rc)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
@@ -189,9 +202,11 @@ public class ReservationHandlerTest {
         ReserveResourcesRequest request = TestObjectProvider.createReserveResourcesRequest(resources,
             false);
         JsonObject requestBody = JsonObject.mapFrom(request);
-        Reservation reservation = TestObjectProvider.createReservation(1L, true);
+        Account account = TestObjectProvider.createAccount(1L, "user", "password");
+        Reservation reservation = TestObjectProvider.createReservation(1L, true, account);
         JsonObject reservationJson = JsonObject.mapFrom(reservation);
 
+        RoutingContextMockHelper.mockUserPrincipal(rc, account);
         RoutingContextMockHelper.mockBody(rc, requestBody);
         when(resourceService.existsOneAndNotReserved(anyLong())).thenReturn(Single.just(true));
         when(reservationService.save(any())).thenReturn(Single.just(reservationJson));
@@ -203,6 +218,13 @@ public class ReservationHandlerTest {
                     assertThat(result.getBoolean("is_active")).isTrue();
                     verify(reservationService).save(new JsonObject("{\"reservation_id\":null," +
                         "\"created_by\":null," +
+                        "\"created_by\":{" +
+                        "   \"account_id\":1," +
+                        "   \"username\":null," +
+                        "   \"password\":null," +
+                        "   \"created_at\":null," +
+                        "   \"is_active\":true" +
+                        "}," +
                         "\"created_at\":null," +
                         "\"is_active\":true}"));
                     testContext.completeNow();
@@ -233,11 +255,14 @@ public class ReservationHandlerTest {
     @Test
     void updateOneValid(VertxTestContext testContext) {
         long reservationId = 1L;
-        Reservation reservation = TestObjectProvider.createReservation(1L, true);
+        Account account = TestObjectProvider.createAccount(1L, "user", "password");
+        Reservation reservation = TestObjectProvider.createReservation(1L, true, account);
         JsonObject reservationJson = JsonObject.mapFrom(reservation);
 
+        RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(reservationId));
-        when(reservationService.findOne(reservationId)).thenReturn(Single.just(reservationJson));
+        when(reservationService.findOneByByIdAndAccountId(reservationId, account.getAccountId()))
+            .thenReturn(Single.just(reservationJson));
         when(reservationService.cancelReservationById(reservationId)).thenReturn(Completable.complete());
 
         reservationHandler.updateOne(rc)
@@ -252,10 +277,12 @@ public class ReservationHandlerTest {
     @Test
     void updateOneNotFound(VertxTestContext testContext) {
         long reservationId = 1L;
+        Account account = TestObjectProvider.createAccount(1L, "user", "password");
         Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
 
+        RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(reservationId));
-        when(reservationService.findOne(reservationId)).thenReturn(handler);
+        when(reservationService.findOneByByIdAndAccountId(reservationId, account.getAccountId())).thenReturn(handler);
 
         reservationHandler.updateOne(rc)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),

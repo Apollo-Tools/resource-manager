@@ -14,11 +14,20 @@ import java.util.List;
 
 public class TestObjectProvider {
 
+    public static Account createAccount(long accountId, String username, String password) {
+        Account account = new Account();
+        account.setAccountId(accountId);
+        account.setUsername(username);
+        account.setPassword(password);
+        account.setIsActive(true);
+        return account;
+    }
+
     public static Resource createResource(long resourceId, ResourceType resourceType, boolean selfManaged) {
         Resource resource = new Resource();
         resource.setResourceId(resourceId);
         resource.setResourceType(resourceType);
-        resource.setIsSelfManaged(true);
+        resource.setIsSelfManaged(selfManaged);
         return resource;
     }
 
@@ -178,10 +187,11 @@ public class TestObjectProvider {
         return resourceReservation;
     }
 
-    public static Reservation createReservation(long id, boolean isActive) {
+    public static Reservation createReservation(long id, boolean isActive, Account account) {
         Reservation reservation = new Reservation();
         reservation.setReservationId(id);
         reservation.setIsActive(isActive);
+        reservation.setCreatedBy(account);
         return  reservation;
     }
 

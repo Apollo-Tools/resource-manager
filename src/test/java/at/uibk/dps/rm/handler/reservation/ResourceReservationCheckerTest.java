@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.handler.reservation;
 
+import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.entity.model.Reservation;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.model.ResourceReservation;
@@ -45,7 +46,8 @@ public class ResourceReservationCheckerTest {
     @Test
     void checkFindAllByReservationIdValid(VertxTestContext testContext) {
         long reservationId = 1L;
-        Reservation reservation = TestObjectProvider.createReservation(reservationId, false);
+        Account account = TestObjectProvider.createAccount(1L, "user", "password");
+        Reservation reservation = TestObjectProvider.createReservation(reservationId, false, account);
         Resource resource1 = TestObjectProvider.createResource(1L);
         Resource resource2 = TestObjectProvider.createResource(2L);
         Resource resource3 = TestObjectProvider.createResource(3L);
