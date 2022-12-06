@@ -49,6 +49,12 @@ public class TestObjectProvider {
         return resourceProvider;
     }
 
+    public static ResourceProvider createResourceProvider(long providerId, String provider) {
+        ResourceProvider resourceProvider = createResourceProvider(providerId);
+        resourceProvider.setProvider(provider);
+        return resourceProvider;
+    }
+
     public static AccountCredentials createAccountCredentials(long accountCredentialsId, Account account,
                                                               Credentials credentials) {
         AccountCredentials accountCredentials = new AccountCredentials();
