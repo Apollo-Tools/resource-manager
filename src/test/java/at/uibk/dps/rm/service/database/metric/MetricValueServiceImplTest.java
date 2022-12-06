@@ -1,12 +1,10 @@
-package at.uibk.dps.rm.service.metric;
+package at.uibk.dps.rm.service.database.metric;
 
 import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.model.ResourceType;
 import at.uibk.dps.rm.repository.MetricValueRepository;
-import at.uibk.dps.rm.service.database.metric.MetricValueService;
-import at.uibk.dps.rm.service.database.metric.MetricValueServiceImpl;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.core.json.JsonArray;
 import io.vertx.junit5.VertxExtension;

@@ -23,7 +23,7 @@ public class AccountCredentialsChecker extends EntityChecker {
     }
 
     public Single<JsonObject> checkFindOneByCredentials(long credentialsId) {
-        Single<JsonObject> findOneByCredentials = accountCredentialsService.findOneByByCredentials(credentialsId);
+        Single<JsonObject> findOneByCredentials = accountCredentialsService.findOneByCredentials(credentialsId);
         return ErrorHandler.handleFindOne(findOneByCredentials);
     }
 }

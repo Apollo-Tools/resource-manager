@@ -1,9 +1,7 @@
-package at.uibk.dps.rm.service.resource;
+package at.uibk.dps.rm.service.database.resource;
 
 import at.uibk.dps.rm.entity.model.ResourceType;
 import at.uibk.dps.rm.repository.ResourceTypeRepository;
-import at.uibk.dps.rm.service.database.resource.ResourceTypeService;
-import at.uibk.dps.rm.service.database.resource.ResourceTypeServiceImpl;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.hibernate.reactive.util.impl.CompletionStages;
@@ -43,7 +41,7 @@ public class ResourceTypeServiceImplTest {
 
         resourceTypeService.existsOneByResourceType(resourceType)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result).isTrue();
+                assertThat(result).isEqualTo(true);
                 verify(resourceTypeRepository).findByResourceType(resourceType);
                 testContext.completeNow();
         })));
@@ -57,7 +55,7 @@ public class ResourceTypeServiceImplTest {
 
         resourceTypeService.existsOneByResourceType(resourceType)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result).isFalse();
+                assertThat(result).isEqualTo(false);
                 verify(resourceTypeRepository).findByResourceType(resourceType);
                 testContext.completeNow();
         })));

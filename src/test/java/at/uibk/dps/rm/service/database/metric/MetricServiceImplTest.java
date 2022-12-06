@@ -1,9 +1,7 @@
-package at.uibk.dps.rm.service.metric;
+package at.uibk.dps.rm.service.database.metric;
 
 import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.repository.MetricRepository;
-import at.uibk.dps.rm.service.database.metric.MetricService;
-import at.uibk.dps.rm.service.database.metric.MetricServiceImpl;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -90,7 +88,7 @@ public class MetricServiceImplTest {
 
         metricService.existsOneByMetric(metric)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result).isFalse();
+                assertThat(result).isEqualTo(false);
                 verify(metricRepository).findByMetric(metric);
                 testContext.completeNow();
         })));

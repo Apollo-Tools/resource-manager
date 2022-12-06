@@ -1,10 +1,8 @@
-package at.uibk.dps.rm.service.resource;
+package at.uibk.dps.rm.service.database.resource;
 
 import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.repository.ResourceRepository;
-import at.uibk.dps.rm.service.database.resource.ResourceService;
-import at.uibk.dps.rm.service.database.resource.ResourceServiceImpl;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;

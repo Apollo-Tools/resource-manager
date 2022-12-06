@@ -1,9 +1,7 @@
-package at.uibk.dps.rm.service.reservation;
+package at.uibk.dps.rm.service.database.reservation;
 
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.repository.ResourceReservationRepository;
-import at.uibk.dps.rm.service.database.reservation.ResourceReservationService;
-import at.uibk.dps.rm.service.database.reservation.ResourceReservationServiceImpl;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;

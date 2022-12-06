@@ -5,7 +5,7 @@ import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.handler.account.AccountHandler;
 import at.uibk.dps.rm.handler.account.AccountInputHandler;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
-import at.uibk.dps.rm.service.database.account.JWTAuthProvider;
+import at.uibk.dps.rm.util.JWTAuthProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 public class AccountRoute {

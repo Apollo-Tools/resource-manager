@@ -2,7 +2,7 @@ package at.uibk.dps.rm.verticle;
 
 import at.uibk.dps.rm.router.*;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
-import at.uibk.dps.rm.service.database.account.JWTAuthProvider;
+import at.uibk.dps.rm.util.JWTAuthProvider;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.impl.logging.Logger;
