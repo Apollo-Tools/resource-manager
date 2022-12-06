@@ -11,7 +11,7 @@ import java.sql.Timestamp;
 @Entity
 @Getter
 @Setter
-public class CloudProvider {
+public class ResourceProvider {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long providerId;
@@ -28,9 +28,9 @@ public class CloudProvider {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        CloudProvider cloudProvider = (CloudProvider) o;
+        ResourceProvider resourceProvider = (ResourceProvider) o;
 
-        return providerId.equals(cloudProvider.providerId);
+        return providerId.equals(resourceProvider.providerId);
     }
 
     @Override

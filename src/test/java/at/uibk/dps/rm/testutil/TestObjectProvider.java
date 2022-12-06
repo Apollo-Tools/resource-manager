@@ -10,7 +10,6 @@ import at.uibk.dps.rm.entity.model.*;
 import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 public class TestObjectProvider {

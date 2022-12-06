@@ -14,7 +14,7 @@ public class AccountCredentialsRepository extends Repository<AccountCredentials>
         return this.sessionFactory.withSession(session ->
             session.createQuery("from AccountCredentials ac " +
                         "where ac.account.accountId=:accountId and " +
-                        "ac.credentials.cloudProvider.providerId=:providerId",
+                        "ac.credentials.resourceProvider.providerId=:providerId",
                     entityClass)
                 .setParameter("accountId", accountId)
                 .setParameter("providerId", providerId)

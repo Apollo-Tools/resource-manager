@@ -13,7 +13,7 @@ public class CredentialsRepository  extends Repository<Credentials> {
 
     public CompletionStage<Credentials> findByIdAndFetch(long id) {
         return sessionFactory.withSession(session -> session.createQuery(
-                "from Credentials c left join fetch c.cloudProvider where c.credentialsId =:id", entityClass)
+                "from Credentials c left join fetch c.resourceProvider where c.credentialsId =:id", entityClass)
             .setParameter("id", id)
             .getSingleResultOrNull()
         );
@@ -23,7 +23,7 @@ public class CredentialsRepository  extends Repository<Credentials> {
         return sessionFactory.withSession(session ->
             session.createQuery("select c from AccountCredentials ac " +
                     "left join ac.credentials c " +
-                    "left join fetch c.cloudProvider " +
+                    "left join fetch c.resourceProvider " +
                     "where ac.account.accountId=:accountId", entityClass)
                 .setParameter("accountId", accountId)
                 .getResultList()

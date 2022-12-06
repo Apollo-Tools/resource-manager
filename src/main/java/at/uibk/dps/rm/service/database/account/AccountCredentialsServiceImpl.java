@@ -30,7 +30,7 @@ public class AccountCredentialsServiceImpl extends ServiceProxy<AccountCredentia
             .fromCompletionStage(accountCredentialsRepository.findByCredentials(credentialsId))
             .map(result -> {
                 if (result != null) {
-                    result.getCredentials().setCloudProvider(null);
+                    result.getCredentials().setResourceProvider(null);
                     result.setAccount(null);
                 }
                 return JsonObject.mapFrom(result);

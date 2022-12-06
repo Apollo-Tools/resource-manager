@@ -24,7 +24,7 @@ public class Credentials {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "provider_id")
-    private CloudProvider cloudProvider;
+    private ResourceProvider resourceProvider;
 
     @Column(insertable = false, updatable = false)
     private @Setter(value = AccessLevel.NONE)

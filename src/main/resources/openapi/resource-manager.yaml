@@ -611,23 +611,23 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /cloud-providers/{id}:
+  /resource-providers/{id}:
     get:
-      description: Return details about a cloud provider
-      operationId: getCloudProvider
+      description: Return details about a resource provider
+      operationId: getResourceProvider
       security:
         - bearerAuth: []
       tags:
-        - cloudProviders
+        - resourceProviders
       parameters:
         - $ref: "#/components/parameters/idParam"
       responses:
         200:
-          description: Successful pull of a cloud provider
+          description: Successful pull of a resource provider
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CloudProvider"
+                $ref: "#/components/schemas/ResourceProvider"
         400:
           $ref: "#/components/responses/400"
         404:
@@ -635,17 +635,17 @@ paths:
         500:
           $ref: "#/components/responses/500"
     delete:
-      description: Deletes a cloud provider
-      operationId: deleteCloudProvider
+      description: Deletes a resource provider
+      operationId: deleteResourceProvider
       security:
         - bearerAuth: []
       tags:
-        - cloudProviders
+        - resourceProviders
       parameters:
         - $ref: "#/components/parameters/idParam"
       responses:
         204:
-          description: Successful deletion of a cloud provider
+          description: Successful deletion of a resource provider
         400:
           $ref: "#/components/responses/400"
         404:
@@ -653,33 +653,33 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /cloud-providers:
+  /resource-providers:
     get:
-      description: Return details about all cloud providers managed by the resource manager
-      operationId: listCloudProviders
+      description: Return details about all resource providers managed by the resource manager
+      operationId: listResourceProviders
       security:
         - bearerAuth: []
       tags:
-        - cloudProviders
+        - resourceProviders
       responses:
         200:
-          description: Successful pull of all cloud providers
+          description: Successful pull of all resource providers
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/CloudProvider"
+                  $ref: "#/components/schemas/ResourceProvider"
         500:
           $ref: "#/components/responses/500"
 
     post:
-      description: Creates a new cloud provider
-      operationId: createCloudProvider
+      description: Creates a new resource provider
+      operationId: createResourceProvider
       security:
         - bearerAuth: []
       tags:
-        - cloudProviders
+        - resourceProviders
       requestBody:
         required: true
         content:
@@ -697,11 +697,11 @@ paths:
                   example: aws
       responses:
         201:
-          description: Successful creation of a new cloud provider
+          description: Successful creation of a new resource provider
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CloudProvider"
+                $ref: "#/components/schemas/ResourceProvider"
         400:
           $ref: "#/components/responses/400"
         409:
@@ -829,8 +829,8 @@ paths:
                       type: integer
                       format: int64
                       example: 1
-                    cloud_provider:
-                      $ref: "#/components/schemas/CloudProvider"
+                    resource_provider:
+                      $ref: "#/components/schemas/ResourceProvider"
         500:
           $ref: "#/components/responses/500"
 
@@ -849,7 +849,7 @@ paths:
               type: object
               required:
                 - access_key
-                - cloud_provider
+                - resource_provider
               additionalProperties: false
               properties:
                 access_key:
@@ -861,7 +861,7 @@ paths:
                 session_token:
                   type: string
                   example: sessiontoken1234
-                cloud_provider:
+                resource_provider:
                   type: object
                   required:
                     - provider_id
@@ -1124,7 +1124,7 @@ components:
           type: string
           format: date-time
           #example: 2017-07-21T17:32:28Z
-    CloudProvider:
+    ResourceProvider:
       type: object
       properties:
         provider_id:

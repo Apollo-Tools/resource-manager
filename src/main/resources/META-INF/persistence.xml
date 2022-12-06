@@ -6,7 +6,7 @@
         <provider>org.hibernate.reactive.provider.ReactivePersistenceProvider</provider>
         <class>at.uibk.dps.rm.entity.model.Account</class>
         <class>at.uibk.dps.rm.entity.model.AccountCredentials</class>
-        <class>at.uibk.dps.rm.entity.model.CloudProvider</class>
+        <class>at.uibk.dps.rm.entity.model.ResourceProvider</class>
         <class>at.uibk.dps.rm.entity.model.Credentials</class>
         <class>at.uibk.dps.rm.entity.model.Metric</class>
         <class>at.uibk.dps.rm.entity.model.MetricValue</class>

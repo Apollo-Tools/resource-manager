@@ -6,14 +6,14 @@ INSERT INTO account (username, password, is_active)
 -- password == password1
 VALUES ('user2', '$argon2i$v=19$m=15,t=2,p=1$FLjLOen0guXBQXGtA6p2Qw$ybqyFx0/vUUxrrgYQm3Cje/G46cp/uTMaPAR6/Q1frA', true);
 
--- cloud provider
-INSERT INTO cloud_provider (provider)
+-- resource provider
+INSERT INTO resource_provider (provider)
 VALUES ('aws');
-INSERT INTO cloud_provider (provider)
+INSERT INTO resource_provider (provider)
 VALUES ('azure');
-INSERT INTO cloud_provider (provider)
-VALUES ('google_cloud');
-INSERT INTO cloud_provider (provider)
+INSERT INTO resource_provider (provider)
+VALUES ('google');
+INSERT INTO resource_provider (provider)
 VALUES ('ibm');
 
 -- metric_type

@@ -1,30 +1,30 @@
 package at.uibk.dps.rm.router;
 
 import at.uibk.dps.rm.handler.RequestHandler;
-import at.uibk.dps.rm.handler.cloudprovider.CloudProviderHandler;
+import at.uibk.dps.rm.handler.resourceprovider.ResourceProviderHandler;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
-public class CloudProviderRoute {
+public class ResourceProviderRoute {
     public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
-        CloudProviderHandler cloudProviderHandler = new CloudProviderHandler(
-            serviceProxyProvider.getCloudProviderService());
-        RequestHandler requestHandler = new RequestHandler(cloudProviderHandler);
+        ResourceProviderHandler resourceProviderHandler = new ResourceProviderHandler(
+            serviceProxyProvider.getResourceProviderService());
+        RequestHandler requestHandler = new RequestHandler(resourceProviderHandler);
 
         router
-            .operation("createCloudProvider")
+            .operation("createResourceProvider")
             .handler(requestHandler::postRequest);
 
         router
-            .operation("listCloudProviders")
+            .operation("listResourceProviders")
             .handler(requestHandler::getAllRequest);
 
         router
-            .operation("getCloudProvider")
+            .operation("getResourceProvider")
             .handler(requestHandler::getRequest);
 
         router
-            .operation("deleteCloudProvider")
+            .operation("deleteResourceProvider")
             .handler(requestHandler::deleteRequest);
     }
 }

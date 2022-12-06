@@ -8,7 +8,7 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 public class CredentialsRoute {
     public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         CredentialsHandler credentialsHandler = new CredentialsHandler(serviceProxyProvider.getCredentialsService(),
-            serviceProxyProvider.getAccountCredentialsService(), serviceProxyProvider.getCloudProviderService());
+            serviceProxyProvider.getAccountCredentialsService(), serviceProxyProvider.getResourceProviderService());
         RequestHandler requestHandler = new RequestHandler(credentialsHandler);
 
         router

@@ -1,10 +1,10 @@
 package at.uibk.dps.rm.handler.account;
 
 import at.uibk.dps.rm.handler.ValidationHandler;
-import at.uibk.dps.rm.handler.cloudprovider.CloudProviderChecker;
+import at.uibk.dps.rm.handler.resourceprovider.ResourceProviderChecker;
 import at.uibk.dps.rm.service.rxjava3.database.account.AccountCredentialsService;
 import at.uibk.dps.rm.service.rxjava3.database.account.CredentialsService;
-import at.uibk.dps.rm.service.rxjava3.database.cloudprovider.CloudProviderService;
+import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.ResourceProviderService;
 import at.uibk.dps.rm.util.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -18,14 +18,14 @@ public class CredentialsHandler extends ValidationHandler {
 
     private final AccountCredentialsChecker accountCredentialsChecker;
 
-    private final CloudProviderChecker cloudProviderChecker;
+    private final ResourceProviderChecker resourceProviderChecker;
 
     public CredentialsHandler(CredentialsService credentialsService, AccountCredentialsService accountCredentialsService,
-                              CloudProviderService cloudProviderService) {
+                              ResourceProviderService resourceProviderService) {
         super(new CredentialsChecker(credentialsService));
         this.credentialsChecker = (CredentialsChecker) super.entityChecker;
         this.accountCredentialsChecker = new AccountCredentialsChecker(accountCredentialsService);
-        this.cloudProviderChecker = new CloudProviderChecker(cloudProviderService);
+        this.resourceProviderChecker = new ResourceProviderChecker(resourceProviderService);
     }
 
     @Override
@@ -37,10 +37,10 @@ public class CredentialsHandler extends ValidationHandler {
     @Override
     protected Single<JsonObject> postOne(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
-        long providerId = requestBody.getJsonObject("cloud_provider").getLong("provider_id");
+        long providerId = requestBody.getJsonObject("resource_provider").getLong("provider_id");
         long accountId = rc.user().principal().getLong("account_id");
         return accountCredentialsChecker.checkForDuplicateEntity(requestBody, accountId)
-            .andThen(cloudProviderChecker.checkExistsOne(providerId))
+            .andThen(resourceProviderChecker.checkExistsOne(providerId))
             // see https://stackoverflow.com/a/50670502/13164629 for further information
             .andThen(Single.defer(() -> Single.just(1L)))
             .flatMap(result -> entityChecker.submitCreate(requestBody))

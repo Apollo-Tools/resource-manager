@@ -2,8 +2,8 @@ package at.uibk.dps.rm.verticle;
 
 import at.uibk.dps.rm.repository.*;
 import at.uibk.dps.rm.service.database.account.*;
-import at.uibk.dps.rm.service.database.cloudprovider.CloudProviderService;
-import at.uibk.dps.rm.service.database.cloudprovider.CloudProviderServiceImpl;
+import at.uibk.dps.rm.service.database.resourceprovider.ResourceProviderService;
+import at.uibk.dps.rm.service.database.resourceprovider.ResourceProviderServiceImpl;
 import at.uibk.dps.rm.service.database.metric.*;
 import at.uibk.dps.rm.service.database.reservation.ReservationService;
 import at.uibk.dps.rm.service.database.reservation.ReservationServiceImpl;
@@ -31,7 +31,7 @@ public class DatabaseVerticle extends AbstractVerticle {
 
     private AccountCredentialsRepository accountCredentialsRepository;
     private AccountRepository accountRepository;
-    private CloudProviderRepository cloudProviderRepository;
+    private ResourceProviderRepository resourceProviderRepository;
     private CredentialsRepository credentialsRepository;
     private ResourceTypeRepository resourceTypeRepository;
     private ResourceRepository resourceRepository;
@@ -71,7 +71,7 @@ public class DatabaseVerticle extends AbstractVerticle {
         Maybe<Void> setupServices = Maybe.create(emitter -> {
                 accountCredentialsRepository = new AccountCredentialsRepository(sessionFactory);
                 accountRepository = new AccountRepository(sessionFactory);
-                cloudProviderRepository = new CloudProviderRepository(sessionFactory);
+                resourceProviderRepository = new ResourceProviderRepository(sessionFactory);
                 credentialsRepository = new CredentialsRepository(sessionFactory);
                 resourceTypeRepository = new ResourceTypeRepository(sessionFactory);
                 resourceRepository = new ResourceRepository(sessionFactory);
@@ -100,11 +100,11 @@ public class DatabaseVerticle extends AbstractVerticle {
                 .setAddress("account-service-address")
                 .register(AccountService.class, accountService);
 
-            CloudProviderService cloudProviderService =
-                new CloudProviderServiceImpl(cloudProviderRepository);
+            ResourceProviderService resourceProviderService =
+                new ResourceProviderServiceImpl(resourceProviderRepository);
             new ServiceBinder(vertx.getDelegate())
-                .setAddress("cloud-provider-service-address")
-                .register(CloudProviderService.class, cloudProviderService);
+                .setAddress("resource-provider-service-address")
+                .register(ResourceProviderService.class, resourceProviderService);
 
             CredentialsService credentialsService =
                 new CredentialsServiceImpl(credentialsRepository);
