@@ -1,9 +1,6 @@
 package at.uibk.dps.rm.handler;
 
-import at.uibk.dps.rm.exception.AlreadyExistsException;
-import at.uibk.dps.rm.exception.BadInputException;
-import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.exception.UsedByOtherEntityException;
+import at.uibk.dps.rm.exception.*;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
@@ -188,6 +185,20 @@ public class ResultHandlerTest {
         ResultHandler.handleGetOneRequest(rc, handler);
 
         Mockito.verify(rc).fail(400, throwable);
+        testContext.completeNow();
+    }
+
+    @Test
+    void handleUnauthorized(VertxTestContext testContext) {
+        Throwable throwable = new UnauthorizedException();
+        Single<JsonObject> handler = Single.just(1)
+                .map(res -> {
+                    throw throwable;
+                });
+
+        ResultHandler.handleGetOneRequest(rc, handler);
+
+        Mockito.verify(rc).fail(401, throwable);
         testContext.completeNow();
     }
 

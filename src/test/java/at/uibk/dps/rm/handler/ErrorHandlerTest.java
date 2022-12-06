@@ -1,9 +1,6 @@
 package at.uibk.dps.rm.handler;
 
-import at.uibk.dps.rm.exception.AlreadyExistsException;
-import at.uibk.dps.rm.exception.BadInputException;
-import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.exception.UsedByOtherEntityException;
+import at.uibk.dps.rm.exception.*;
 import at.uibk.dps.rm.testutil.SingleHelper;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
@@ -75,7 +72,7 @@ public class ErrorHandlerTest {
 
         ErrorHandler.handleExistsOne(handler)
                 .subscribe(result -> testContext.verify(() -> {
-                            assertThat(result).isTrue();
+                            assertThat(result).isEqualTo(true);
                             testContext.completeNow();
                         }),
                         throwable -> testContext.verify(() -> fail("method throw exception")));
@@ -111,7 +108,7 @@ public class ErrorHandlerTest {
 
         ErrorHandler.handleDuplicates(handler)
                 .subscribe(result -> testContext.verify(() -> {
-                            assertThat(result).isFalse();
+                            assertThat(result).isEqualTo(false);
                             testContext.completeNow();
                         }),
                         throwable -> testContext.verify(() -> fail("method throw exception")));
@@ -135,7 +132,7 @@ public class ErrorHandlerTest {
 
         ErrorHandler.handleUsedByOtherEntity(handler)
                 .subscribe(result -> testContext.verify(() -> {
-                            assertThat(result).isFalse();
+                            assertThat(result).isEqualTo(false);
                             testContext.completeNow();
                         }),
                         throwable -> testContext.verify(() -> fail("method throw exception")));
@@ -147,7 +144,7 @@ public class ErrorHandlerTest {
 
         ErrorHandler.handleBadInput(handler)
                 .subscribe(result -> testContext.verify(() -> {
-                            assertThat(result).isTrue();
+                            assertThat(result).isEqualTo(true);
                             testContext.completeNow();
                         }),
                         throwable -> testContext.verify(() -> fail("method throw exception")));
@@ -163,5 +160,30 @@ public class ErrorHandlerTest {
                             assertThat(throwable).isInstanceOf(BadInputException.class);
                             testContext.completeNow();
                         }));
+    }
+
+    @Test
+    void handleLoginCredentialsNotNull(VertxTestContext testContext) {
+        JsonObject basicJsonObject = new JsonObject("{\"id\": 10}");
+        Single<JsonObject> handler = Single.just(basicJsonObject);
+
+        ErrorHandler.handleLoginCredentials(handler)
+            .subscribe(result -> testContext.verify(() -> {
+                    assertThat(result.getInteger("id")).isEqualTo(10);
+                    testContext.completeNow();
+                }),
+                throwable -> testContext.verify(() -> fail("method throw exception")));
+    }
+
+    @Test
+    void handleLoginCredentialsNull(VertxTestContext testContext) {
+        Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
+
+        ErrorHandler.handleLoginCredentials(handler)
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(UnauthorizedException.class);
+                    testContext.completeNow();
+                }));
     }
 }
