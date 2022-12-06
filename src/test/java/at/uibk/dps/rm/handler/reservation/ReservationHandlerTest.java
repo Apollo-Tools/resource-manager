@@ -64,7 +64,7 @@ public class ReservationHandlerTest {
     @Test
     void getOneExistsAndIsActive(VertxTestContext testContext) {
         long reservationId = 1L;
-        Account account = TestObjectProvider.createAccount(1L, "user", "password");
+        Account account = TestObjectProvider.createAccount(1L);
         Reservation reservation = TestObjectProvider.createReservation(1L, true, account);
         JsonArray resourceReservations = new JsonArray(TestObjectProvider.createResourceReservationsJson(reservation));
         MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", 25.0, null);
@@ -110,7 +110,7 @@ public class ReservationHandlerTest {
     @Test
     void getOneExistsMetricValuesNotFound(VertxTestContext testContext) {
         long reservationId = 1L;
-        Account account = TestObjectProvider.createAccount(1L, "user", "password");
+        Account account = TestObjectProvider.createAccount(1L);
         Reservation reservation = TestObjectProvider.createReservation(1L, true, account);
         JsonArray resourceReservations = new JsonArray(TestObjectProvider.createResourceReservationsJson(reservation));
         Single<JsonArray> handler = new SingleHelper<JsonArray>().getEmptySingle();
@@ -135,7 +135,7 @@ public class ReservationHandlerTest {
     @Test
     void getOneExistsResourceReservationEmpty(VertxTestContext testContext) {
         long reservationId = 1L;
-        Account account = TestObjectProvider.createAccount(1L, "user", "password");
+        Account account = TestObjectProvider.createAccount(1L);
         Reservation reservation = TestObjectProvider.createReservation(1L, true, account);
         JsonArray resourceReservations = new JsonArray(new ArrayList<JsonObject>());
 
@@ -158,7 +158,7 @@ public class ReservationHandlerTest {
     @Test
     void getOneExistsNotActive(VertxTestContext testContext) {
         long reservationId = 1L;
-        Account account = TestObjectProvider.createAccount(1L, "user", "password");
+        Account account = TestObjectProvider.createAccount(1L);
         Reservation reservation = TestObjectProvider.createReservation(1L, false, account);
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
@@ -181,7 +181,7 @@ public class ReservationHandlerTest {
     void getOneNotFound(VertxTestContext testContext) {
         long reservationId = 1L;
         Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
-        Account account = TestObjectProvider.createAccount(1L, "user", "password");
+        Account account = TestObjectProvider.createAccount(1L);
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(reservationId));
@@ -202,7 +202,7 @@ public class ReservationHandlerTest {
         ReserveResourcesRequest request = TestObjectProvider.createReserveResourcesRequest(resources,
             false);
         JsonObject requestBody = JsonObject.mapFrom(request);
-        Account account = TestObjectProvider.createAccount(1L, "user", "password");
+        Account account = TestObjectProvider.createAccount(1L);
         Reservation reservation = TestObjectProvider.createReservation(1L, true, account);
         JsonObject reservationJson = JsonObject.mapFrom(reservation);
 
@@ -255,7 +255,7 @@ public class ReservationHandlerTest {
     @Test
     void updateOneValid(VertxTestContext testContext) {
         long reservationId = 1L;
-        Account account = TestObjectProvider.createAccount(1L, "user", "password");
+        Account account = TestObjectProvider.createAccount(1L);
         Reservation reservation = TestObjectProvider.createReservation(1L, true, account);
         JsonObject reservationJson = JsonObject.mapFrom(reservation);
 
@@ -277,7 +277,7 @@ public class ReservationHandlerTest {
     @Test
     void updateOneNotFound(VertxTestContext testContext) {
         long reservationId = 1L;
-        Account account = TestObjectProvider.createAccount(1L, "user", "password");
+        Account account = TestObjectProvider.createAccount(1L);
         Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);

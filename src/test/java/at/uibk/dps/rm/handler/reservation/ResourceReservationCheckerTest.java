@@ -46,7 +46,7 @@ public class ResourceReservationCheckerTest {
     @Test
     void checkFindAllByReservationIdValid(VertxTestContext testContext) {
         long reservationId = 1L;
-        Account account = TestObjectProvider.createAccount(1L, "user", "password");
+        Account account = TestObjectProvider.createAccount(1L);
         Reservation reservation = TestObjectProvider.createReservation(reservationId, false, account);
         Resource resource1 = TestObjectProvider.createResource(1L);
         Resource resource2 = TestObjectProvider.createResource(2L);
