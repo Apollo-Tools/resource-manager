@@ -73,7 +73,7 @@ public class AccountCheckerTest {
     }
 
     @Test
-    void checkFindForDuplicateEntityFalse(VertxTestContext testContext) {
+    void checkForDuplicateEntityFalse(VertxTestContext testContext) {
         String username = "user";
         Account account = TestObjectProvider.createAccount(1L, username, "password");
 
@@ -91,7 +91,7 @@ public class AccountCheckerTest {
     }
 
     @Test
-    void checkFindForDuplicateEntityTrue(VertxTestContext testContext) {
+    void checkForDuplicateEntityTrue(VertxTestContext testContext) {
         String username = "user";
         Account account = TestObjectProvider.createAccount(1L, username, "password");
 

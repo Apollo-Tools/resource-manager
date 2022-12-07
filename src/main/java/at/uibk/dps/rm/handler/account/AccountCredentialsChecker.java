@@ -16,9 +16,10 @@ public class AccountCredentialsChecker extends EntityChecker {
         this.accountCredentialsService = accountCredentialsService;
     }
 
-    public Completable checkForDuplicateEntity(JsonObject entity, long accountId) {
+    public Completable checkForDuplicateEntity(JsonObject credentials, long accountId) {
         Single<Boolean> existsOneByAccountAndProvider = accountCredentialsService
-            .existsOneByAccountAndProvider(accountId, entity.getJsonObject("resource_provider").getLong("provider_id"));
+            .existsOneByAccountAndProvider(accountId, credentials.getJsonObject("resource_provider")
+                .getLong("provider_id"));
         return ErrorHandler.handleDuplicates(existsOneByAccountAndProvider).ignoreElement();
     }
 
