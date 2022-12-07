@@ -13,6 +13,8 @@ import at.uibk.dps.rm.util.JsonMapperConfig;
 import at.uibk.dps.rm.util.PasswordUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.config.ConfigRetrieverOptions;
+import io.vertx.config.ConfigStoreOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -50,7 +52,12 @@ public class AccountHandlerTest {
     @BeforeEach
     void initTest(Vertx vertx) {
         JsonMapperConfig.configJsonMapper();
-        ConfigRetriever retriever = ConfigRetriever.create(vertx);
+        ConfigStoreOptions fileStore = new ConfigStoreOptions()
+            .setType("file")
+            .setFormat("json")
+            .setConfig(new JsonObject().put("path", "./conf/config.test.json"));
+        ConfigRetriever retriever = ConfigRetriever.create(vertx,
+            new ConfigRetrieverOptions().addStore(fileStore));
         JsonObject config = retriever.getConfig().blockingGet();
         jwtAuthProvider = new JWTAuthProvider(vertx, config.getString("jwt_algorithm"),
             config.getString("jwt_secret"), config.getInteger("token_minutes_valid"));

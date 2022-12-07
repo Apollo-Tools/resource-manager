@@ -1,14 +1,14 @@
 {
   "db_host": "localhost",
   "db_port": 5432,
-  "db_user": "**USER**",
-  "db_password": "**PASSWORD**",
+  "db_user": "root",
+  "db_password": "root",
 
   "api_port": 8888,
 
   "temp_folder_path": "./tmp/",
 
-  "jwt_secret": "**secret**",
+  "jwt_secret": "test-secret",
   "jwt_algorithm": "HS256",
   "token_minutes_valid": 1080
 }
