@@ -64,9 +64,9 @@ public class MetricValueHandlerTest {
     @Test
     void getAllValid(VertxTestContext testContext) {
         long resourceId = 1L;
-        MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", 25.0, null);
-        MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", 0.995, null);
-        MetricValue mv3 = TestObjectProvider.createMetricValue(3L, 3L, "bandwidth", 1000, null);
+        MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", 25.0);
+        MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", 0.995);
+        MetricValue mv3 = TestObjectProvider.createMetricValue(3L, 3L, "bandwidth", 1000);
         JsonArray metricValues = new JsonArray(List.of(JsonObject.mapFrom(mv1),
             JsonObject.mapFrom(mv2), JsonObject.mapFrom(mv3)));
 

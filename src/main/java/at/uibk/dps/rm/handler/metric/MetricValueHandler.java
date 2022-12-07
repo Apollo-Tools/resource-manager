@@ -51,21 +51,33 @@ public class MetricValueHandler extends ValidationHandler {
         return HttpHelper.getLongPathParam(rc, "id")
             .flatMap(id -> resourceChecker.checkExistsOne(id)
                 .andThen(Single.just(id)))
-            .flatMap(id -> checkAddMetricsResourceExists(requestBody, id))
-            .flatMapCompletable(metricValues -> metricValueChecker.submitCreateAll(Json.encodeToBuffer(metricValues).toJsonArray()));
+            .flatMapCompletable(id -> checkAddMetricsResourceExists(requestBody, id)
+                .flatMapCompletable(metricValues -> {
+                    JsonArray metricValuesJson = Json.encodeToBuffer(metricValues)
+                        .toJsonArray();
+                    metricValuesJson.forEach(entry -> {
+                            JsonObject metricValue = (JsonObject) entry;
+                            JsonObject resource = new JsonObject();
+                            resource.put("resource_id", id);
+                            metricValue.put("resource", resource);
+                        });
+                    return metricValueChecker
+                            .submitCreateAll(metricValuesJson);
+                    }));
     }
 
     @Override
     public Completable updateOne(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
         return HttpHelper.getLongPathParam(rc, "resourceId")
-                .flatMap(resourceId -> HttpHelper.getLongPathParam(rc, "metricId")
-                .map(metricId -> Map.of("resourceId", resourceId, "metricId", metricId))
-                .flatMap(ids -> checkUpdateDeleteMetricValueExists(ids.get("resourceId"), ids.get("metricId"))
-                    .andThen(metricChecker.checkUpdateMetricValueSetCorrectly(requestBody,  ids.get("metricId")))
-                    .andThen(Single.just(ids))
-                ))
-                .flatMapCompletable(ids -> submitUpdateByValue(requestBody, ids));
+            .flatMap(resourceId -> HttpHelper.getLongPathParam(rc, "metricId")
+            .map(metricId -> Map.of("resourceId", resourceId, "metricId", metricId))
+            .flatMap(ids -> checkUpdateDeleteMetricValueExists(ids.get("resourceId"), ids.get("metricId"))
+                .andThen(metricChecker.checkUpdateMetricValueSetCorrectly(requestBody,  ids.get("metricId")))
+                .andThen(Single.just(ids))
+            ))
+            .map(result -> result)
+            .flatMapCompletable(ids -> submitUpdateByValue(requestBody, ids));
     }
 
     @Override

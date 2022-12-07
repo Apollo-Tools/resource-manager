@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.database.metric;
 
+import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.repository.MetricValueRepository;
 import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.service.database.ServiceProxy;
@@ -25,7 +26,14 @@ public class MetricValueServiceImpl extends ServiceProxy<MetricValue> implements
     public Future<Void> saveAll(JsonArray data) {
         List<MetricValue> metricValues = data
             .stream()
-            .map(object -> ((JsonObject) object).mapTo(MetricValue.class))
+            .map(object -> {
+                JsonObject metricValueJson = (JsonObject) object;
+                Resource resource = metricValueJson.getJsonObject("resource").mapTo(Resource.class);
+                resource.setIsSelfManaged(null);
+                MetricValue metricValue = metricValueJson.mapTo(MetricValue.class);
+                metricValue.setResource(resource);
+                return metricValue;
+            })
             .collect(Collectors.toList());
 
         return Future
@@ -36,12 +44,7 @@ public class MetricValueServiceImpl extends ServiceProxy<MetricValue> implements
     public Future<JsonObject> findOne(long id) {
         return Future
                 .fromCompletionStage(metricValueRepository.findByIdAndFetch(id))
-                .map(result -> {
-                    if (result != null) {
-                        result.setResource(null);
-                    }
-                    return JsonObject.mapFrom(result);
-                });
+                .map(JsonObject::mapFrom);
     }
 
     @Override
@@ -53,7 +56,6 @@ public class MetricValueServiceImpl extends ServiceProxy<MetricValue> implements
                 for (MetricValue metricValue: result) {
                     JsonObject entity;
                     if (includeValue) {
-                        metricValue.setResource(null);
                         entity = JsonObject.mapFrom(metricValue);
                     } else {
                         entity = JsonObject.mapFrom(metricValue.getMetric());
@@ -68,12 +70,7 @@ public class MetricValueServiceImpl extends ServiceProxy<MetricValue> implements
     public Future<JsonObject> findOneByResourceAndMetric(long resourceId, long metricId) {
         return Future
             .fromCompletionStage(metricValueRepository.findByResourceAndMetric(resourceId, metricId))
-            .map(result -> {
-                if (result != null) {
-                    result.setResource(null);
-                }
-                return JsonObject.mapFrom(result);
-            });
+            .map(JsonObject::mapFrom);
     }
 
     @Override

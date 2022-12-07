@@ -67,11 +67,11 @@ public class ReservationHandlerTest {
         Account account = TestObjectProvider.createAccount(1L);
         Reservation reservation = TestObjectProvider.createReservation(1L, true, account);
         JsonArray resourceReservations = new JsonArray(TestObjectProvider.createResourceReservationsJson(reservation));
-        MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", 25.0, null);
-        MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", 0.995, null);
-        MetricValue mv3 = TestObjectProvider.createMetricValue(3L, 3L, "bandwidth", 1000, null);
-        MetricValue mv4 = TestObjectProvider.createMetricValue(3L, 3L, "bandwidth", 1000, null);
-        MetricValue mv5 = TestObjectProvider.createMetricValue(3L, 3L, "bandwidth", 1000, null);
+        MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", 25.0);
+        MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", 0.995);
+        MetricValue mv3 = TestObjectProvider.createMetricValue(3L, 3L, "bandwidth", 1000);
+        MetricValue mv4 = TestObjectProvider.createMetricValue(3L, 3L, "bandwidth", 1000);
+        MetricValue mv5 = TestObjectProvider.createMetricValue(3L, 3L, "bandwidth", 1000);
         JsonArray metricValues1 = new JsonArray(List.of(JsonObject.mapFrom(mv1), JsonObject.mapFrom(mv2)));
         JsonArray metricValues2 = new JsonArray(List.of(JsonObject.mapFrom(mv3)));
         JsonArray metricValues3 = new JsonArray(List.of(JsonObject.mapFrom(mv4), JsonObject.mapFrom(mv5)));

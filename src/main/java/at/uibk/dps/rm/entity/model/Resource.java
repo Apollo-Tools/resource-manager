@@ -31,7 +31,12 @@ public class Resource {
     @JoinColumn(name = "resource_type")
     private ResourceType resourceType;
 
-    @OneToMany(mappedBy="resource")
+    @OneToMany
+    @JoinTable(
+        name="MetricValue",
+        joinColumns = @JoinColumn(name="resource_id"),
+        inverseJoinColumns = @JoinColumn(name="MetricValueId")
+    )
     private List<MetricValue> metricValues;
 
     @Override

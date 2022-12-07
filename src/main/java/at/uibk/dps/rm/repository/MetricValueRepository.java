@@ -22,8 +22,10 @@ public class MetricValueRepository extends Repository<MetricValue> {
 
     public CompletionStage<List<MetricValue>> findByResourceAndFetch(long resourceId) {
         return this.sessionFactory.withSession(session ->
-            session.createQuery("from MetricValue mv left join fetch mv.metric "
-                    + "where mv.resource.resourceId=:resourceId", entityClass)
+            session.createQuery("select mv from Resource r " +
+                    "left join r.metricValues mv " +
+                    "left join fetch mv.metric " +
+                    "where r.resourceId=:resourceId", entityClass)
                 .setParameter("resourceId", resourceId)
                 .getResultList()
         );
@@ -31,8 +33,9 @@ public class MetricValueRepository extends Repository<MetricValue> {
 
     public CompletionStage<MetricValue> findByResourceAndMetric(long resourceId, long metricId) {
         return this.sessionFactory.withSession(session ->
-            session.createQuery("from MetricValue mv "
-                    + "where mv.resource.resourceId=:resourceId and mv.metric.metricId=:metricId",
+            session.createQuery("select mv from Resource r " +
+                        "left join r.metricValues mv " +
+                        "where r.resourceId=:resourceId and mv.metric.metricId=:metricId",
                     entityClass)
                 .setParameter("resourceId", resourceId)
                 .setParameter("metricId", metricId)
@@ -43,8 +46,9 @@ public class MetricValueRepository extends Repository<MetricValue> {
     public CompletionStage<Void> updateByResourceAndMetric(long resourceId, long metricId, String valueString,
                                                               Double valueNumber, Boolean valueBool) {
         return this.sessionFactory.withTransaction(session ->
-                session.createQuery("from MetricValue mv " +
-                        "where mv.resource.resourceId=:resourceId and mv.metric.metricId=:metricId", entityClass)
+                session.createQuery("select mv from Resource r " +
+                        "left join r.metricValues mv " +
+                        "where r.resourceId=:resourceId and mv.metric.metricId=:metricId", entityClass)
                         .setParameter("resourceId", resourceId)
                         .setParameter("metricId", metricId)
                         .getResultList()
@@ -59,11 +63,16 @@ public class MetricValueRepository extends Repository<MetricValue> {
 
     public CompletionStage<Integer> deleteByResourceAndMetric(long resourceId, long metricId) {
         return this.sessionFactory.withTransaction(session ->
-            session.createQuery("delete from MetricValue mv "
-                    + "where mv.resource.resourceId=:resourceId and mv.metric.metricId=:metricId")
+            session.createQuery("select mv.metricValueId from Resource r " +
+                    "left join r.metricValues mv " +
+                    "where r.resourceId=:resourceId and mv.metric.metricId=:metricId", Long.class)
                 .setParameter("resourceId", resourceId)
                 .setParameter("metricId", metricId)
-                .executeUpdate()
+                .getSingleResult()
+                .thenCompose(result -> session.createQuery("delete from MetricValue mv " +
+                    "where mv.metricValueId=:metricValue")
+                    .setParameter("metricValue", result)
+                    .executeUpdate())
         );
     }
 }

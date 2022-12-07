@@ -1,6 +1,5 @@
 package at.uibk.dps.rm.service.database.resource;
 
-import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.repository.ResourceRepository;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.service.database.ServiceProxy;
@@ -63,14 +62,16 @@ public class ResourceServiceImpl extends ServiceProxy<Resource> implements Resou
                 .map(this::encodeResourceList);
     }
 
+    @Override
+    public Future<JsonArray> findAllByReservationId(long reservationId) {
+        return Future
+            .fromCompletionStage(resourceRepository.findAllByReservationIdAndFetch(reservationId))
+            .map(this::encodeResourceList);
+    }
+
     private JsonArray encodeResourceList(List<Resource> resourceList) {
         ArrayList<JsonObject> objects = new ArrayList<>();
         for (Resource resource: resourceList) {
-            for (MetricValue metricValue : resource.getMetricValues()) {
-                // TODO: fix
-                metricValue.setMetric(null);
-                metricValue.setResource(null);
-            }
             objects.add(JsonObject.mapFrom(resource));
         }
         return new JsonArray(objects);

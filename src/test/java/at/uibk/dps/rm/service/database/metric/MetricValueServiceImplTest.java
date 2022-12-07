@@ -2,11 +2,12 @@ package at.uibk.dps.rm.service.database.metric;
 
 import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.entity.model.MetricValue;
-import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.model.ResourceType;
 import at.uibk.dps.rm.repository.MetricValueRepository;
+import at.uibk.dps.rm.testutil.TestObjectProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.hibernate.reactive.util.impl.CompletionStages;
@@ -43,10 +44,14 @@ public class MetricValueServiceImplTest {
     @Test
     void testSaveAll(VertxTestContext testContext) {
         CompletionStage<Void> completionStage = CompletionStages.voidFuture();
+        MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "availability", 0.99);
+        MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "latency", 40);
+        List<JsonObject> metricValues = List.of(JsonObject.mapFrom(mv1), JsonObject.mapFrom(mv2));
+        metricValues.forEach(entry -> entry.put("resource", new JsonObject("{\"resource_id\": 1}")));
+
         doReturn(completionStage).when(metricValueRepository).createAll(anyList());
 
-        JsonArray data = new JsonArray("[{\"count\": 10, \"value_bool\": false}, " +
-                "{\"count\": 3, \"value_string\": \"ubuntu \"}]");
+        JsonArray data = new JsonArray(metricValues);
 
         metricValueService.saveAll(data)
                 .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -61,7 +66,6 @@ public class MetricValueServiceImplTest {
         long entityId = 1L;
         MetricValue entity = new MetricValue();
         entity.setMetricValueId(entityId);
-        entity.setResource(new Resource());
         CompletionStage<MetricValue> completionStage = CompletionStages.completedFuture(entity);
         doReturn(completionStage).when(metricValueRepository).findByIdAndFetch(entityId);
 
@@ -92,7 +96,6 @@ public class MetricValueServiceImplTest {
     void findAllByResourceWithValue(VertxTestContext testContext) {
         long resourceId = 1L;
         boolean includeValue = true;
-        Resource resource = new Resource();
         Metric metric1 = new Metric();
         metric1.setMetricId(1L);
         Metric metric2 = new Metric();
@@ -101,12 +104,10 @@ public class MetricValueServiceImplTest {
         entity1.setMetricValueId(1L);
         entity1.setMetric(metric1);
         entity1.setValueNumber(10.0);
-        entity1.setResource(resource);
         MetricValue entity2 = new MetricValue();
         entity2.setMetricValueId(2L);
         entity2.setMetric(metric2);
         entity2.setValueString("ubuntu");
-        entity2.setResource(resource);
         List<MetricValue> metricValueList = new ArrayList<>();
         metricValueList.add(entity1);
         metricValueList.add(entity2);
@@ -118,10 +119,8 @@ public class MetricValueServiceImplTest {
                 assertThat(result.size()).isEqualTo(2);
                 assertThat(result.getJsonObject(0).getLong("metric_value_id")).isEqualTo(1L);
                 assertThat(result.getJsonObject(0).getDouble("value_number")).isEqualTo(10.0);
-                assertThat(result.getJsonObject(0).getJsonObject("resource")).isNull();
                 assertThat(result.getJsonObject(1).getLong("metric_value_id")).isEqualTo(2L);
                 assertThat(result.getJsonObject(1).getString("value_string")).isEqualTo("ubuntu");
-                assertThat(result.getJsonObject(1).getJsonObject("resource")).isNull();
                 verify(metricValueRepository).findByResourceAndFetch(resourceId);
                 testContext.completeNow();
         })));
@@ -177,14 +176,12 @@ public class MetricValueServiceImplTest {
         long metricId = 2L;
         MetricValue entity = new MetricValue();
         entity.setMetricValueId(3L);
-        entity.setResource(new Resource());
         CompletionStage<MetricValue> completionStage = CompletionStages.completedFuture(entity);
         doReturn(completionStage).when(metricValueRepository).findByResourceAndMetric(resourceId, metricId);
 
         metricValueService.findOneByResourceAndMetric(resourceId, metricId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("metric_value_id")).isEqualTo(3L);
-                assertThat(result.getJsonObject("resource")).isNull();
                 verify(metricValueRepository).findByResourceAndMetric(resourceId, metricId);
                 testContext.completeNow();
         })));

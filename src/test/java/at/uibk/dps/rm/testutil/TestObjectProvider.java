@@ -127,35 +127,30 @@ public class TestObjectProvider {
         return metric;
     }
 
-    public static MetricValue createMetricValue(long metricValueId, long metricId, String metric, double value,
-                                                Resource resource) {
+    public static MetricValue createMetricValue(long metricValueId, long metricId, String metric, double value) {
         MetricValue metricValue = new MetricValue();
-        initMetricValue(metricValue, metricValueId, metricId, metric, resource);
+        initMetricValue(metricValue, metricValueId, metricId, metric);
         metricValue.setValueNumber(value);
         return metricValue;
     }
 
-    public static MetricValue createMetricValue(long metricValueId, long metricId, String metric, String value,
-                                                Resource resource) {
+    public static MetricValue createMetricValue(long metricValueId, long metricId, String metric, String value) {
         MetricValue metricValue = new MetricValue();
-        initMetricValue(metricValue, metricValueId, metricId, metric, resource);
+        initMetricValue(metricValue, metricValueId, metricId, metric);
         metricValue.setValueString(value);
         return metricValue;
     }
 
-    public static MetricValue createMetricValue(long metricValueId, long metricId, String metric, boolean value,
-                                                Resource resource) {
+    public static MetricValue createMetricValue(long metricValueId, long metricId, String metric, boolean value) {
         MetricValue metricValue = new MetricValue();
-        initMetricValue(metricValue, metricValueId, metricId, metric, resource);
+        initMetricValue(metricValue, metricValueId, metricId, metric);
         metricValue.setValueBool(value);
         return metricValue;
     }
 
-    private static void initMetricValue(MetricValue metricValue, long metricValueId, long metricId, String metric,
-                                        Resource resource) {
+    private static void initMetricValue(MetricValue metricValue, long metricValueId, long metricId, String metric) {
         metricValue.setMetricValueId(metricValueId);
         metricValue.setMetric(createMetric(metricId, metric));
-        metricValue.setResource(resource);
         metricValue.setCount(10L);
     }
 
