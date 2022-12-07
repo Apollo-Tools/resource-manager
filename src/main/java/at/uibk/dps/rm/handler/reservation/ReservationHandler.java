@@ -6,12 +6,10 @@ import at.uibk.dps.rm.entity.model.Reservation;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.model.ResourceReservation;
 import at.uibk.dps.rm.handler.ValidationHandler;
+import at.uibk.dps.rm.handler.deployment.DeploymentHandler;
 import at.uibk.dps.rm.handler.metric.MetricValueChecker;
 import at.uibk.dps.rm.handler.resource.ResourceChecker;
-import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
-import at.uibk.dps.rm.service.rxjava3.database.reservation.ResourceReservationService;
-import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
-import at.uibk.dps.rm.service.rxjava3.database.reservation.ReservationService;
+import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.util.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
@@ -34,13 +32,16 @@ public class ReservationHandler extends ValidationHandler {
 
     private final MetricValueChecker metricValueChecker;
 
-    public ReservationHandler(ReservationService reservationService, ResourceService resourceService,
-                              ResourceReservationService resourceReservationService, MetricValueService metricValueService) {
-        super(new ReservationChecker(reservationService));
+    private final DeploymentHandler deploymentHandler;
+
+    public ReservationHandler(ServiceProxyProvider serviceProxyProvider) {
+        super(new ReservationChecker(serviceProxyProvider.getReservationService()));
         this.reservationChecker = (ReservationChecker) super.entityChecker;
-        this.resourceChecker = new ResourceChecker(resourceService);
-        this.resourceReservationChecker = new ResourceReservationChecker(resourceReservationService);
-        this.metricValueChecker = new MetricValueChecker(metricValueService);
+        this.resourceChecker = new ResourceChecker(serviceProxyProvider.getResourceService());
+        this.resourceReservationChecker = new ResourceReservationChecker(serviceProxyProvider.getResourceReservationService());
+        this.metricValueChecker = new MetricValueChecker(serviceProxyProvider.getMetricValueService());
+        this.deploymentHandler = new DeploymentHandler(serviceProxyProvider.getDeploymentService(),
+            serviceProxyProvider.getCredentialsService(), serviceProxyProvider.getResourceService());
     }
 
     @Override
@@ -67,20 +68,28 @@ public class ReservationHandler extends ValidationHandler {
         ReserveResourcesRequest requestDTO = rc.body()
                 .asJsonObject()
                 .mapTo(ReserveResourcesRequest.class);
+        long accountId = rc.user().principal().getLong("account_id");
         return Completable
                 .merge(checkResourcesExistAndAreNotReserved(requestDTO.getResources()))
                 .andThen(Single.just(new Reservation()))
                 .flatMap(reservation -> {
                     reservation.setIsActive(true);
                     Account account = new Account();
-                    account.setAccountId(rc.user().principal().getLong("account_id"));
+                    account.setAccountId(accountId);
                     reservation.setCreatedBy(account);
                     return entityChecker.submitCreate(JsonObject.mapFrom(reservation));
                 })
                 .map(reservationJson -> createResourceReservationList(reservationJson, requestDTO.getResources()))
                 .flatMap(resourceReservations -> resourceReservationChecker
-                        .submitCreateAll(Json.encodeToBuffer(resourceReservations).toJsonArray())
-                        .andThen(Single.just(JsonObject.mapFrom(resourceReservations.get(0).getReservation()))));
+                    .submitCreateAll(Json.encodeToBuffer(resourceReservations).toJsonArray())
+                    .andThen(Single.just(JsonObject.mapFrom(resourceReservations.get(0).getReservation())))
+                    .map(result -> {
+                        deploymentHandler
+                            .deployResources(result.getLong("reservation_id"), accountId)
+                            .subscribe();
+                        return result;
+                    })
+                );
     }
 
     // TODO: terminate resources

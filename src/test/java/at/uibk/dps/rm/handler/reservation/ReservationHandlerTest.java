@@ -3,10 +3,13 @@ package at.uibk.dps.rm.handler.reservation;
 import at.uibk.dps.rm.entity.dto.ReserveResourcesRequest;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.NotFoundException;
+import at.uibk.dps.rm.service.ServiceProxyProvider;
+import at.uibk.dps.rm.service.rxjava3.database.account.CredentialsService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
 import at.uibk.dps.rm.service.rxjava3.database.reservation.ReservationService;
 import at.uibk.dps.rm.service.rxjava3.database.reservation.ResourceReservationService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
+import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.SingleHelper;
 import at.uibk.dps.rm.testutil.TestObjectProvider;
@@ -52,13 +55,27 @@ public class ReservationHandlerTest {
     private MetricValueService metricValueService;
 
     @Mock
+    private DeploymentService deploymentService;
+
+    @Mock
+    private CredentialsService credentialsService;
+
+    @Mock
     private RoutingContext rc;
+
+    @Mock
+    private ServiceProxyProvider serviceProxyProvider;
 
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        reservationHandler = new ReservationHandler(reservationService, resourceService, resourceReservationService,
-            metricValueService);
+        when(serviceProxyProvider.getReservationService()).thenReturn(reservationService);
+        when(serviceProxyProvider.getResourceService()).thenReturn(resourceService);
+        when(serviceProxyProvider.getResourceReservationService()).thenReturn(resourceReservationService);
+        when(serviceProxyProvider.getMetricValueService()).thenReturn(metricValueService);
+        when(serviceProxyProvider.getDeploymentService()).thenReturn(deploymentService);
+        when(serviceProxyProvider.getCredentialsService()).thenReturn(credentialsService);
+        reservationHandler = new ReservationHandler(serviceProxyProvider);
     }
 
     @Test
@@ -236,10 +253,12 @@ public class ReservationHandlerTest {
     @Test
     void postOneResourceNotExistsOrReserved(VertxTestContext testContext) {
         List<Long> resources = List.of(1L);
+        Account account = TestObjectProvider.createAccount(1L);
         ReserveResourcesRequest request = TestObjectProvider.createReserveResourcesRequest(resources,
             false);
         JsonObject requestBody = JsonObject.mapFrom(request);
 
+        RoutingContextMockHelper.mockUserPrincipal(rc, account);
         RoutingContextMockHelper.mockBody(rc, requestBody);
         when(resourceService.existsOneAndNotReserved(1L)).thenReturn(Single.just(false));
 

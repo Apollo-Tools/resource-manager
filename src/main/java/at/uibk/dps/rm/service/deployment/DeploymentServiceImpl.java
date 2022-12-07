@@ -5,9 +5,11 @@ import io.vertx.core.json.JsonObject;
 
 public class DeploymentServiceImpl  implements DeploymentService {
 
+    DeploymentExecutor deploymentExecutor = new DeploymentExecutor();
+
     @Override
-    public Future<JsonObject> deploy(JsonObject data) {
-        return null;
+    public Future<Long> deploy(JsonObject data) {
+        return Future.fromCompletionStage(deploymentExecutor.deploy(data).toCompletionStage());
     }
 
     @Override

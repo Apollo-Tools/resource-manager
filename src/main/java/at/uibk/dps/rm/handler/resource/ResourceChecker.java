@@ -23,6 +23,12 @@ public class ResourceChecker extends EntityChecker {
         return ErrorHandler.handleFindAll(findAllByMultipleMetrics);
     }
 
+    // Set error for reservation (maybe add status field)
+    public Single<JsonArray> checkFindAllByReservationId(long reservationId) {
+        Single<JsonArray> findAllByReservationId  = resourceService.findAllByReservationId(reservationId);
+        return ErrorHandler.handleFindAll(findAllByReservationId);
+    }
+
     public Completable checkOneUsedByResourceType(long resourceTypeId) {
         Single<Boolean> existsOneByResourceType = resourceService.existsOneByResourceType(resourceTypeId);
         return ErrorHandler.handleUsedByOtherEntity(existsOneByResourceType).ignoreElement();

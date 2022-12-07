@@ -9,9 +9,7 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 public class ReservationRoute {
 
     public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
-        ReservationHandler reservationHandler = new ReservationHandler(serviceProxyProvider.getReservationService(),
-                serviceProxyProvider.getResourceService(), serviceProxyProvider.getResourceReservationService(),
-                serviceProxyProvider.getMetricValueService());
+        ReservationHandler reservationHandler = new ReservationHandler(serviceProxyProvider);
         RequestHandler reservationRequestHandler = new RequestHandler(reservationHandler);
 
         router
