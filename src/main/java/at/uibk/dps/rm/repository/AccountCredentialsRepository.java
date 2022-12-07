@@ -22,13 +22,15 @@ public class AccountCredentialsRepository extends Repository<AccountCredentials>
         );
     }
 
-    public CompletionStage<AccountCredentials> findByCredentials(long credentialsId) {
+    public CompletionStage<AccountCredentials> findByCredentialsAndAccount(long credentialsId, long accountId) {
         return this.sessionFactory.withSession(session ->
             session.createQuery("from AccountCredentials ac " +
                         "left join fetch ac.credentials " +
-                        "where ac.credentials.credentialsId=:credentialsId",
+                        "left join ac.account " +
+                        "where ac.credentials.credentialsId=:credentialsId and ac.account.accountId=:accountId",
                     entityClass)
                 .setParameter("credentialsId", credentialsId)
+                .setParameter("accountId", accountId)
                 .getSingleResultOrNull()
         );
     }

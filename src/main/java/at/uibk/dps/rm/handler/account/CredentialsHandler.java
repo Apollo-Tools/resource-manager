@@ -55,9 +55,10 @@ public class CredentialsHandler extends ValidationHandler {
 
     @Override
     public Completable deleteOne(RoutingContext rc) {
+        long accountId = rc.user().principal().getLong("account_id");
         return HttpHelper.getLongPathParam(rc, "id")
             .flatMap(id -> entityChecker.checkFindOne(id)
-                .flatMap(result -> accountCredentialsChecker.checkFindOneByCredentials(id)))
+                .flatMap(result -> accountCredentialsChecker.checkFindOneByCredentialsAndAccount(id, accountId)))
             .flatMap(result -> accountCredentialsChecker
                 .submitDelete(result.getLong("account_credentials_id"))
                 .andThen(Single.just(result)))

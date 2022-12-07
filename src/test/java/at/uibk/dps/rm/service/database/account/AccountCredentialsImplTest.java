@@ -34,19 +34,20 @@ public class AccountCredentialsImplTest {
     }
 
     @Test
-    void findEntityByCredentialsExists(VertxTestContext testContext) {
+    void findEntityByCredentialsAndAccountExists(VertxTestContext testContext) {
         long credentialsId = 1L;
-        Account account = TestObjectProvider.createAccount(1L);
+        long accountId = 2L;
+        Account account = TestObjectProvider.createAccount(accountId);
         Credentials credentials = TestObjectProvider.createCredentials(credentialsId, new ResourceProvider());
         AccountCredentials entity = TestObjectProvider
             .createAccountCredentials(1L, account, credentials);
         CompletionStage<AccountCredentials> completionStage = CompletionStages.completedFuture(entity);
-        doReturn(completionStage).when(accountCredentialsRepository).findByCredentials(credentialsId);
+        doReturn(completionStage).when(accountCredentialsRepository)
+            .findByCredentialsAndAccount(credentialsId, accountId);
 
-        accountCredentialsService.findOneByCredentials(credentialsId)
+        accountCredentialsService.findOneByCredentialsAndAccount(credentialsId, accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("account_credentials_id")).isEqualTo(1L);
-                assertThat(result.getJsonObject("account")).isNull();
                 assertThat(result.getJsonObject("credentials")
                     .getLong("credentials_id")).isEqualTo(credentialsId);
                 assertThat(result.getJsonObject("credentials")
@@ -56,12 +57,14 @@ public class AccountCredentialsImplTest {
     }
 
     @Test
-    void findEntityByCredentialsNotExists(VertxTestContext testContext) {
+    void findEntityByCredentialsAndAccountNotExists(VertxTestContext testContext) {
         long credentialsId = 1L;
+        long accountId = 2L;
         CompletionStage<AccountCredentials> completionStage = CompletionStages.completedFuture(null);
-        doReturn(completionStage).when(accountCredentialsRepository).findByCredentials(credentialsId);
+        doReturn(completionStage).when(accountCredentialsRepository)
+            .findByCredentialsAndAccount(credentialsId, accountId);
 
-        accountCredentialsService.findOneByCredentials(credentialsId)
+        accountCredentialsService.findOneByCredentialsAndAccount(credentialsId, accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
                 testContext.completeNow();
@@ -94,35 +97,6 @@ public class AccountCredentialsImplTest {
         doReturn(completionStage).when(accountCredentialsRepository).findByAccountAndProvider(accountId, providerId);
 
         accountCredentialsService.existsOneByAccountAndProvider(accountId, providerId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result).isEqualTo(false);
-                testContext.completeNow();
-            })));
-    }
-
-    @Test
-    void checkEntityByCredentialsExists(VertxTestContext testContext) {
-        long credentialsId = 1L;
-        Account account = TestObjectProvider.createAccount(1L);
-        Credentials credentials = TestObjectProvider.createCredentials(credentialsId, new ResourceProvider());
-        AccountCredentials entity = TestObjectProvider
-            .createAccountCredentials(1L, account, credentials);
-        CompletionStage<AccountCredentials> completionStage = CompletionStages.completedFuture(entity);
-        doReturn(completionStage).when(accountCredentialsRepository).findByCredentials(credentialsId);
-
-        accountCredentialsService.existsOneByCredentials(credentialsId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result).isEqualTo(true);
-                testContext.completeNow();
-            })));
-    }
-    @Test
-    void checkEntityCredentialsNotExists(VertxTestContext testContext) {
-        long credentialsId = 1L;
-        CompletionStage<AccountCredentials> completionStage = CompletionStages.completedFuture(null);
-        doReturn(completionStage).when(accountCredentialsRepository).findByCredentials(credentialsId);
-
-        accountCredentialsService.existsOneByCredentials(credentialsId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isEqualTo(false);
                 testContext.completeNow();

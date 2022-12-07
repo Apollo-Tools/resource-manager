@@ -22,8 +22,9 @@ public class AccountCredentialsChecker extends EntityChecker {
         return ErrorHandler.handleDuplicates(existsOneByAccountAndProvider).ignoreElement();
     }
 
-    public Single<JsonObject> checkFindOneByCredentials(long credentialsId) {
-        Single<JsonObject> findOneByCredentials = accountCredentialsService.findOneByCredentials(credentialsId);
+    public Single<JsonObject> checkFindOneByCredentialsAndAccount(long credentialsId, long accountId) {
+        Single<JsonObject> findOneByCredentials = accountCredentialsService
+            .findOneByCredentialsAndAccount(credentialsId, accountId);
         return ErrorHandler.handleFindOne(findOneByCredentials);
     }
 }

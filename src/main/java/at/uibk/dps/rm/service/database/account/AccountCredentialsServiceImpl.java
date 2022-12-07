@@ -18,13 +18,12 @@ public class AccountCredentialsServiceImpl extends ServiceProxy<AccountCredentia
     }
 
     @Override
-    public Future<JsonObject> findOneByCredentials(long credentialsId) {
+    public Future<JsonObject> findOneByCredentialsAndAccount(long credentialsId, long accountId) {
         return Future
-            .fromCompletionStage(accountCredentialsRepository.findByCredentials(credentialsId))
+            .fromCompletionStage(accountCredentialsRepository.findByCredentialsAndAccount(credentialsId, accountId))
             .map(result -> {
                 if (result != null) {
                     result.getCredentials().setResourceProvider(null);
-                    result.setAccount(null);
                 }
                 return JsonObject.mapFrom(result);
             });
@@ -34,13 +33,6 @@ public class AccountCredentialsServiceImpl extends ServiceProxy<AccountCredentia
     public Future<Boolean> existsOneByAccountAndProvider(long accountId, long providerId) {
         return Future
             .fromCompletionStage(accountCredentialsRepository.findByAccountAndProvider(accountId, providerId))
-            .map(Objects::nonNull);
-    }
-
-    @Override
-    public Future<Boolean> existsOneByCredentials(long credentialsId) {
-        return Future
-            .fromCompletionStage(accountCredentialsRepository.findByCredentials(credentialsId))
             .map(Objects::nonNull);
     }
 }

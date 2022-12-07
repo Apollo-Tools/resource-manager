@@ -21,9 +21,7 @@ public interface AccountCredentialsService extends ServiceInterface {
         return new AccountCredentialsServiceVertxEBProxy(vertx, address);
     }
 
-    Future<JsonObject> findOneByCredentials(long credentialsId);
+    Future<JsonObject> findOneByCredentialsAndAccount(long credentialsId, long accountId);
 
     Future<Boolean> existsOneByAccountAndProvider(long accountId, long providerId);
-
-    Future<Boolean> existsOneByCredentials(long credentialsId);
 }

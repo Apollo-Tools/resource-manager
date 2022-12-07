@@ -200,7 +200,7 @@ public class ValidationHandlerTest {
         when(resourceTypeService.existsOneByResourceType("cloud")).thenReturn(Single.just(true));
 
         testClass.postOne(rc)
-            .subscribe(result -> testContext.verify(() -> fail("method did throw exception")),
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
                     testContext.completeNow();
