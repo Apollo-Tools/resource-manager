@@ -174,3 +174,6 @@ nbdist/
 
 # Config containing secret values
 /conf/config.json
+
+# Temp folder
+/temp/
