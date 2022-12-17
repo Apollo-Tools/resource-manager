@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.service.deployment;
 
-import at.uibk.dps.rm.entity.deployment.CloudProvider;
-import at.uibk.dps.rm.entity.deployment.Credentials;
+import at.uibk.dps.rm.entity.model.Credentials;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -13,10 +12,10 @@ import java.util.*;
 
 public class TerraformExecutor {
 
-    private final Map<CloudProvider, Credentials> credentialsMap = new HashMap<>();
+    private final List<Credentials> credentils;
 
-    public void addCredentials(CloudProvider cloudProvider, Credentials credentials) {
-        credentialsMap.put(cloudProvider, credentials);
+    public TerraformExecutor(List<Credentials> credentils) {
+        this.credentils = credentils;
     }
 
     // TODO: test if this works on linux as well
@@ -46,17 +45,17 @@ public class TerraformExecutor {
     }
 
     public int destroy(Path folder) {
-
+        // TODO: implemnt
         return -1;
     }
     
     private List<String> getCredentialsCommands() {
         List<String> variables = new ArrayList<>();
-        for (Map.Entry<CloudProvider, Credentials> entry : credentialsMap.entrySet()) {
-            String key = entry.getKey().toString().toLowerCase();
-            variables.add("-var=\"" + key + "_access_key=" + entry.getValue().getAccessKey() + "\"");
-            variables.add("-var=\"" + key + "_secret_access_key=" + entry.getValue().getSecretAccessKey() + "\"");
-            variables.add("-var=\"" + key + "_session_token=" + entry.getValue().getSessionToken() + "\"");
+        for (Credentials entry : credentils) {
+            String prefix = entry.getResourceProvider().getProvider().toLowerCase();
+            variables.add("-var=\"" + prefix + "_access_key=" + entry.getAccessKey() + "\"");
+            variables.add("-var=\"" + prefix + "_secret_access_key=" + entry.getSecretAccessKey() + "\"");
+            variables.add("-var=\"" + prefix + "_session_token=" + entry.getSessionToken() + "\"");
         }
         return variables;
     }

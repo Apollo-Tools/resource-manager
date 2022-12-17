@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.service.deployment;
 
 import at.uibk.dps.rm.entity.deployment.CloudProvider;
-import at.uibk.dps.rm.entity.deployment.Credentials;
+import at.uibk.dps.rm.entity.model.Credentials;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.service.deployment.terraform.AWSFileService;
 import at.uibk.dps.rm.service.deployment.terraform.MainFileService;
@@ -18,9 +18,16 @@ public class DeploymentTest {
         String accessKey = "ASIAQE3ZRVFQUWDSWQFG";
         String secretKey = "LpjP3ErHmiMVgigXLttxOgGoeVxzlmnoPQYYgyBo";
         String sessionToken = "FwoGZXIvYXdzEGwaDBz+oh65X7ns9hZuuyLUAdMHu8h4RN2CMbFTOSPrJGUrminNm+Y5WNBuztvVcbTe07wrEyGHRLm9aKYcMUAENiIQiQVFBHHlcYJkEOzOs0+Yto/I9rd72hhvNBG4e17ro+67tn9DXVBGDWdjx9QX4qUcBs9eCYCiYysM3C6Wx/pmtG3pwPKrYFScrfCEFbwS7zV5+sPtdLQD8qLCzCjQfIsozQxw1XkgwfXq/RhAV3BLcPaQqlZmsSaG8IPLYe8ccp0k6PHmQp5qdPYEcNuOQl1ykVBXBAa879VBTEDL0ag5k4jbKP3dnJwGMi23ka74uYOGIn3rKV3Ajk4DbDfUtVNUJlISg7rfBXbYe5O8QbbZMePoBcopz98=";
-        Credentials credentials = new Credentials(accessKey, secretKey, sessionToken);
-        TerraformExecutor terraformExecutor = new TerraformExecutor();
-        terraformExecutor.addCredentials(CloudProvider.AWS, credentials);
+        ResourceProvider resourceProvider = new ResourceProvider();
+        resourceProvider.setProviderId(1L);
+        resourceProvider.setProvider("aws");
+        Credentials credentials = new Credentials();
+        credentials.setCredentialsId(1L);
+        credentials.setAccessKey(accessKey);
+        credentials.setSecretAccessKey(secretKey);
+        credentials.setSessionToken(sessionToken);
+        credentials.setResourceProvider(resourceProvider);
+        TerraformExecutor terraformExecutor = new TerraformExecutor(List.of(credentials));
         String region = "us-east-1";
         String awsRole = "LabRole";
         TerraformModule module = new TerraformModule(CloudProvider.AWS, "aws_" + region.replace("-", "_"));

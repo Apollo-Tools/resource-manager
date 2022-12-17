@@ -7,7 +7,9 @@ import at.uibk.dps.rm.service.deployment.sourcecode.PackageSourceCode;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AWSFileService extends ModuleFileService {
 
@@ -56,9 +58,10 @@ public class AWSFileService extends ModuleFileService {
         StringBuilder functionLayers = new StringBuilder();
         for (Resource r: resources) {
             PackageSourceCode packageSourceCode;
+            Map<String, String> defaultValues = setDefaultValues(r);
             List<MetricValue> metricValues = r.getMetricValues();
-            String runtime = metricValues.get(6).getValueString().toLowerCase();
-            String functionIdentifier = metricValues.get(2).getValueString() + "_" +
+            String runtime = defaultValues.get("runtime").toLowerCase();
+            String functionIdentifier = defaultValues.get("function-type") + "_" +
                 runtime.replace(".", "") + "_" + reservationId;
             functionNames.append("\"").append(functionIdentifier).append("\",");
             functionPaths.append("\"").append(functionIdentifier).append(".zip\",");
@@ -66,12 +69,12 @@ public class AWSFileService extends ModuleFileService {
                 functionHandlers.append("\"main.handler\",");
                 packageSourceCode = new PackagePythonCode();
                 packageSourceCode.composeSourceCode(rootFolder, functionIdentifier,
-                    metricValues.get(7).getValueString());
+                    defaultValues.get("code"));
             }
-            functionTimeouts.append(metricValues.get(3).getValueNumber()).append(",");
-            functionMemorySizes.append(metricValues.get(4).getValueNumber()).append(",");
+            functionTimeouts.append(defaultValues.get("timeout")).append(",");
+            functionMemorySizes.append(defaultValues.get("memory-size")).append(",");
             functionLayers.append("[],");
-            functionRuntimes.append("\"").append(metricValues.get(6).getValueString().toLowerCase()).append("\",");
+            functionRuntimes.append("\"").append(runtime).append("\",");
         }
         return String.format(
             "locals {\n" +
@@ -85,6 +88,26 @@ public class AWSFileService extends ModuleFileService {
                 "}\n", functionNames, functionPaths, functionHandlers, functionTimeouts,
             functionMemorySizes, functionLayers, functionRuntimes
         );
+    }
+
+
+
+
+    // TODO: Enforce different resource types to have specifice properties set (e.g. code, function-type, region)
+    // TODO: Persist default values and link to user
+    private Map<String, String> setDefaultValues(Resource resource) {
+        Map<String, String> defaultValues = new HashMap<>();
+        defaultValues.put("region", "us-east-1");
+        defaultValues.put("awsrole", "LabRole");
+        defaultValues.put("function-type", "count");
+        defaultValues.put("timeout", "300.0");
+        defaultValues.put("memory-size", "256.0");
+        defaultValues.put("layers", "");
+        defaultValues.put("runtime", "python3.8");
+        defaultValues.put("code", "def main(json_input):\n" +
+            "    input1 = json_input[\"input1\"]\n    # Processing\n    # return the result\n    res = {\n" +
+            "        \"input1\": input1\n    }\n    return res\n");
+        return defaultValues;
     }
 
     @Override
