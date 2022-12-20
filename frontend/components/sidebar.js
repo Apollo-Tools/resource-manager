@@ -22,44 +22,31 @@ const Sidebar = ({ children }) => {
         logout();
     }
 
+    function getItem(label, key, icon, children) {
+        return {
+            key,
+            icon,
+            children,
+            label,
+        };
+    }
+
+    const items = [
+        getItem(<Link href="/" ><HomeOutlined /><span>Home</span></Link>, "0"),
+        getItem(<Link href="/resources/resources" ><DesktopOutlined /><span>Resources</span></Link>,"1"),
+        getItem(<Link href="/reservations/reservations" ><BookOutlined /><span>Reservations</span></Link>,"2"),
+        getItem(<Link href="/accounts/profile" ><UserOutlined /><span>Profile</span></Link>,"3"),
+        getItem(<div onClick={onClickLogout}><LogoutOutlined /><span>Logout</span></div>,"4"),
+    ]
+
     return (
         <Layout className="min-h-screen"
         >
             <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
-                <Menu theme="dark" defaultSelectedKeys={[selectedKey]} mode="inline" className="mt-2"
+                <Menu theme="dark"  items={items} defaultSelectedKeys={[selectedKey]} mode="inline" className="mt-2"
                       onClick={(e) => setSelectedKey(e.key)}
-                >
-                    <Menu.Item key="0">
-                        <Link href="/" >
-                            <HomeOutlined />
-                            <span>Home</span>
-                        </Link>
-                    </Menu.Item>
-                    <Menu.Item key="1">
-                        <Link href="/resources/resources" >
-                            <DesktopOutlined />
-                            <span>Resources</span>
-                        </Link>
-                    </Menu.Item>
-                    <Menu.Item key="2">
-                        <Link href="/reservations/reservations">
-                            <BookOutlined />
-                            <span className="mr-2">Reservations</span>
-                        </Link>
-                    </Menu.Item>
-                    <Menu.Item key="3">
-                        <Link href="/accounts/profile">
-                            <UserOutlined />
-                            <span className="mr-2">Profile</span>
-                        </Link>
-                    </Menu.Item>
-                    <Menu.Item key="4">
-                        <div onClick={onClickLogout}>
-                            <LogoutOutlined />
-                            <span className="mr-2">Logout</span>
-                        </div>
-                    </Menu.Item>
-                </Menu>
+                />
+
             </Sider>
             <Layout className="site-layout">
                 <div
