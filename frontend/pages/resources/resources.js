@@ -1,10 +1,10 @@
 import Head from 'next/head';
-import { siteTitle } from '../../components/sidebar';
+import { siteTitle } from '../../components/Sidebar';
 import { useEffect, useState } from 'react';
 import { Button, Space, Table, Modal } from 'antd';
-import { listResources, deleteResource } from '../../lib/resources';
-import { useAuth } from '../../lib/authenticationprovider';
-import Date from '../../components/date';
+import { listResources, deleteResource } from '../../lib/ResourceService';
+import { useAuth } from '../../lib/AuthenticationProvider';
+import Date from '../../components/Date';
 import { DeleteOutlined, InfoCircleOutlined, ExclamationCircleFilled } from '@ant-design/icons';
 import Link from 'next/link';
 

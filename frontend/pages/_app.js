@@ -1,7 +1,7 @@
 import '../styles/globals.css'
-import { AuthenticationProvider } from '../lib/authenticationprovider';
+import { AuthenticationProvider } from '../lib/AuthenticationProvider';
 import { ConfigProvider } from 'antd';
-import Sidebar from '../components/sidebar';
+import Sidebar from '../components/Sidebar';
 
 
 function App({ Component, pageProps: { ...pageProps }

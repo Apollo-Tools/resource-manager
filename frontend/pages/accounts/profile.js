@@ -1,4 +1,4 @@
-import { siteTitle } from '../../components/sidebar';
+import { siteTitle } from '../../components/Sidebar';
 import Head from 'next/head';
 
 const Profile = () => {

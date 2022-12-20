@@ -7,7 +7,7 @@ import {
     HomeOutlined,
 } from '@ant-design/icons';
 import { Layout, Menu } from 'antd';
-import { useAuth } from '../lib/authenticationprovider';
+import { useAuth } from '../lib/AuthenticationProvider';
 import Link from 'next/link';
 const { Content, Footer, Sider } = Layout;
 
@@ -22,10 +22,10 @@ const Sidebar = ({ children }) => {
         logout();
     }
 
-    function getItem(label, key, icon, children) {
+    function getItem(label, key, children) {
         return {
             key,
-            icon,
+            undefined,
             children,
             label,
         };
