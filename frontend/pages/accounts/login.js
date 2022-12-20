@@ -1,24 +1,30 @@
 import { useEffect, useState } from 'react';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
-import { Button, Form, Input, Typography } from 'antd';
+import { Button, Form, Input, Typography, message } from 'antd';
 import {login} from '../../lib/accounts';
 import { useAuth } from '../../lib/authenticationprovider';
-import Router from 'next/router';
+import { siteTitle } from '../../components/sidebar';
+import Head from 'next/head';
 
 const {Title} = Typography;
 
 const loginForm = () => {
-    const {token, setToken} = useAuth()
-    const [error, setError] = useState(false)
-    const [authorized, setAuthorized] = useState(false);
+    const {setNewToken} = useAuth();
+    const [error, setError] = useState(false);
+    const [messageApi, contextHolder] = message.useMessage();
+
+    useEffect(() => {
+        if (error) {
+            messageApi.open({
+                type: 'error',
+                content: 'Invalid credentials!',
+            });
+            setError(false);
+        }
+    }, [error]);
 
     const onFinish = async (values) => {
-        await login(values.username, values.password, setToken, setError)
-            .then(() => {
-                if (!error) {
-                    Router.push("/");
-                }
-            });
+        await login(values.username, values.password, setNewToken, setError);
     }
 
     const onFinishFailed = (errorInfo) => {
@@ -27,6 +33,10 @@ const loginForm = () => {
 
     return (
         <div className="card container md:w-1/2 max-w-xl p-10 border-2">
+            <Head>
+                <title>{`${siteTitle}: Login`}</title>
+            </Head>
+            {contextHolder}
             <div className="mb-6">
                 <Title level={3} className="text-center m-0">Resource Manager</Title>
                 <Title level={4} className="text-center m-0">Apollo Tools</Title>

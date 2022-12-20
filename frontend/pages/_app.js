@@ -1,24 +1,27 @@
 import '../styles/globals.css'
-import { AuthenticationProvider, AuthContext } from '../lib/authenticationprovider';
-import { useState } from 'react';
-
-const unauthenticated = {
-    token: '',
-    isAuthenticated: false,
-    username: '',
-}
+import { AuthenticationProvider } from '../lib/authenticationprovider';
+import { ConfigProvider } from 'antd';
+import Sidebar from '../components/sidebar';
 
 
 function App({ Component, pageProps: { ...pageProps }
 }) {
-    const [authentication, setAuthentication] = useState(unauthenticated);
-
-
-
     return (
-        <AuthenticationProvider>
-            <Component {...pageProps} />
-        </AuthenticationProvider>
+        <ConfigProvider
+            theme={{
+                token: {
+                    colorPrimary: '#192B4F',
+                    colorFillSecondary: '#3083DC',
+                    colorBgContainer: '#F7F7FF'
+                },
+            }}
+        >
+            <AuthenticationProvider>
+                <Sidebar>
+                    <Component {...pageProps} />
+                </Sidebar>
+            </AuthenticationProvider>
+        </ConfigProvider>
     );
 }
 
