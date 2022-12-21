@@ -5,6 +5,8 @@ import {
     UserOutlined,
     LogoutOutlined,
     HomeOutlined,
+    PlusSquareOutlined,
+    GroupOutlined,
 } from '@ant-design/icons';
 import { Layout, Menu } from 'antd';
 import { useAuth } from '../lib/AuthenticationProvider';
@@ -33,7 +35,10 @@ const Sidebar = ({ children }) => {
 
     const items = [
         getItem(<Link href="/" ><HomeOutlined /><span>Home</span></Link>, "0"),
-        getItem(<Link href="/resources/resources" ><DesktopOutlined /><span>Resources</span></Link>,"1"),
+        getItem(<><DesktopOutlined /><span>Resources</span></>,"1", [
+            getItem(<Link href="/resources/resources" ><GroupOutlined /><span>All Resources</span></Link>, "1.1"),
+            getItem(<Link href="/resources/new-resource" ><PlusSquareOutlined /><span>New Resource</span></Link>, "1.2"),
+        ]),
         getItem(<Link href="/reservations/reservations" ><BookOutlined /><span>Reservations</span></Link>,"2"),
         getItem(<Link href="/accounts/profile" ><UserOutlined /><span>Profile</span></Link>,"3"),
         getItem(<div onClick={onClickLogout}><LogoutOutlined /><span>Logout</span></div>,"4"),

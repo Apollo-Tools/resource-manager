@@ -48,10 +48,11 @@ const Resources = () => {
             <Head>
                 <title>{`${siteTitle}: Resources`}</title>
             </Head>
-            <div className="card container w-11/12 max-w-7xl p-10 border-2">
+            <div className="card container w-11/12 max-w-7xl p-10">
                 <Table dataSource={resources} rowKey={(record) => record.resource_id}>
                     <Column title="Id" dataIndex="resource_id" key="id"
                         sorter={(a, b) => a.resource_id - b.resource_id}
+                        defaultSortOrder="ascend"
                     />
                     <Column title="Type" dataIndex="resource_type" key="resource_type"
                         render={(resourceType) => resourceType.resource_type}
