@@ -18,9 +18,10 @@ const decodeTokenPayload = (encodedToken) => {
     if (tokenParts.length !== 3) {
         return null;
     }
-    return Buffer.from(tokenParts[1],'base64').toString();
+    return JSON.parse(Buffer.from(tokenParts[1],'base64').toString());
 }
 
+// TODO: add check for expiration on every request
 export const AuthenticationProvider = ({ children }) => {
     const [token, setToken] = useState('');
     const [payload, setPayload] = useState(null);
@@ -47,17 +48,20 @@ export const AuthenticationProvider = ({ children }) => {
     }, []);
 
     useEffect(() => {
-        setAuthenticated(() => {
-            if (token == null || token === '') {
-                return false
-            }
-            else if (payload == null || payload.exp < new Date()/1000) {
-                console.log("token" + token)
-                return false
-            }
-            console.log("token changed: " + token);
-            return true;
-        });
+        if (token != null && payload != null) {
+            setAuthenticated(() => {
+                if (token === '') {
+                    return false
+                }
+                else if (payload.exp < new Date()/1000) {
+                    console.log("token" + token)
+                    return false
+                }
+                console.log("token changed: " + token);
+                return true;
+            });
+        }
+
     }, [token])
 
     useEffect(() => {

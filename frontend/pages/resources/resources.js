@@ -12,12 +12,15 @@ const {Column} = Table;
 const { confirm } = Modal;
 
 const Resources = () => {
-    const {token} = useAuth();
+    const {token, isAuthenticated} = useAuth();
     const [error, setError] = useState(false);
     const [resources, setResources] = useState([]);
 
     useEffect(() => {
         listResources(token, setResources, setError);
+
+
+        console.log("isauthenticated: " + isAuthenticated)
     }, [])
 
     const onClickDelete = (id) => {

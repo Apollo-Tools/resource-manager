@@ -59,7 +59,7 @@ const Sidebar = ({ children }) => {
                 >
                     <div className="text-white text-sm md:text-xl text-center font-semibold">{siteTitle}</div>
                 </div>
-                <Content className="ml-4">
+                <Content className="md:ml-4">
                     <main>{children}</main>
                 </Content>
                 <Footer
