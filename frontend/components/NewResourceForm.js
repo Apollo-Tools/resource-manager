@@ -14,6 +14,7 @@ const NewResourceForm = ({ setNewResource, token }) => {
 
     const onFinish = async (values) => {
         await createResource(values.resourceType, values.isSelfManaged, token, setNewResource, setError);
+        console.log(values)
     };
     const onFinishFailed = (errorInfo) => {
         console.log('Failed:', errorInfo);
@@ -39,6 +40,12 @@ const NewResourceForm = ({ setNewResource, token }) => {
                 <Form.Item
                     label="Resource Type"
                     name="resourceType"
+                    rules={[
+                        {
+                            required: true,
+                            message: 'Missing resource type',
+                        },
+                    ]}
                 >
                     <Select className="w-40">
                         {resourceTypes.map(resourceType => {

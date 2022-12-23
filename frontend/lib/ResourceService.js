@@ -53,3 +53,20 @@ export async function deleteResource(id, token, setError) {
         console.log(error)
     }
 }
+
+export async function addResourceMetrics(resourceId, metricValues, token, setError) {
+    try {
+        const response = await fetch(`${API_ROUTE}/${resourceId}/metrics`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(metricValues)
+        });
+        await response;
+    } catch(error) {
+        setError(true);
+        console.log(error)
+    }
+}
