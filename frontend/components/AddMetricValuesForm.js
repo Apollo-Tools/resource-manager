@@ -5,27 +5,24 @@ import { useAuth } from '../lib/AuthenticationProvider';
 import { listMetrics } from '../lib/MetricService';
 import { addResourceMetrics } from '../lib/ResourceService';
 
-const checkMetricType = (metrics, form, key, metricType) => {
+const getMetricById = (metrics, metricId) => {
     return metrics
         .find((metric) =>
-            metric.metric.metric_id === form
-                .getFieldValue('metricValues')[key]?.metric)
+            metric.metric.metric_id === metricId)
+}
+
+const checkMetricType = (metrics, form, name, metricType) => {
+    return getMetricById(metrics, form.getFieldValue('metricValues')[name]?.metric)
         ?.metric.metric_type.type === metricType;
 }
 
-const checkMetricIsMonitored = (metrics, form, key) => {
-    return metrics
-        .find((metric) =>
-            metric.metric.metric_id === form
-                .getFieldValue('metricValues')[key]?.metric)
+const checkMetricIsMonitored = (metrics, form, name) => {
+    return getMetricById(metrics, form.getFieldValue('metricValues')[name]?.metric)
         ?.metric.is_monitored;
 }
 
-const getInitialMetricValue = (isBoolean) => {
-    if (isBoolean) {
-        console.log(isBoolean);
-        return true;
-    }
+const checkMetricIsSelected = (metrics, form, name) => {
+    return getMetricById(metrics, form.getFieldValue('metricValues')[name]?.metric) != null;
 }
 
 const AddMetricValuesForm = ({ resource, setFinished }) => {
@@ -33,7 +30,7 @@ const AddMetricValuesForm = ({ resource, setFinished }) => {
     const {token} = useAuth();
     const [metrics, setMetrics] = useState([]);
     const [error, setError] = useState(false);
-    Form.useWatch("metricValues", form);
+    Form.useWatch("basic", form);
 
     useEffect(() => {
         listMetrics(token, setMetrics, setError)
@@ -49,7 +46,15 @@ const AddMetricValuesForm = ({ resource, setFinished }) => {
     const onFinish = async (values) => {
         let requestBody = values.metricValues.map((metricValue) => {
             console.log(metricValue);
-            return {metricId: metricValue.metric, value: metricValue.value ? metricValue.value : false}
+            let metric = metrics.find((metric) => metric.metric.metric_id === metricValue.metric).metric
+            if (metric.is_monitored) {
+                return {metricId: metricValue.metric}
+            } else {
+                return {
+                    metricId: metricValue.metric,
+                    value: metric.metric_type.type === 'boolean' && metricValue.value === undefined ? false :
+                        metricValue.value }
+            }
         })
         await addResourceMetrics(resource.resource_id, requestBody, token, setError)
             .then(() => {
@@ -62,6 +67,7 @@ const AddMetricValuesForm = ({ resource, setFinished }) => {
 
     const onChangeMetric = () => {
         let selectedMetrics = form.getFieldValue('metricValues')
+            .filter(metric => metric != null)
             .map(metric => metric.metric);
         setMetrics(prevMetrics => {
             return prevMetrics.map(metric => {
@@ -84,7 +90,7 @@ const AddMetricValuesForm = ({ resource, setFinished }) => {
         <div className="card container w-full md:w-11/12 max-w-7xl p-10 mt-2 mb-2">
             <h2>Add Metric Values</h2>
             <Form form={form}
-                name="basic"
+                name="metricValueForm"
                 onFinish={onFinish}
                 onFinishFailed={onFinishFailed}
                 autoComplete="off"
@@ -111,36 +117,37 @@ const AddMetricValuesForm = ({ resource, setFinished }) => {
                                         <Select className="w-40" placeholder="Metric" onChange={onChangeMetric}>
                                             {metrics.map(metric => {
                                                 return (
-                                                    <Select.Option disabled={metric.isSelected} value={metric.metric.metric_id} key={metric.metric.metric_id}>
+                                                    <Select.Option disabled={metric.isSelected}
+                                                                   value={metric.metric.metric_id}
+                                                                   key={metric.metric.metric_id}
+                                                    >
                                                         {metric.metric.metric}
                                                     </Select.Option>
                                                 );
                                             })}
-
                                         </Select>
                                     </Form.Item>
                                     <Form.Item
                                         {...field}
                                         name={[name, 'value']}
-                                        valuePropName={ checkMetricType(metrics, form, key, 'boolean') ?
+                                        valuePropName={ checkMetricType(metrics, form, name, 'boolean') ?
                                             'checked' : 'value' }
                                         className="w-40"
                                         rules={[
                                             {
-                                                required: !checkMetricType(metrics, form, key, 'boolean') &&
-                                                    !checkMetricIsMonitored(metrics, form, key),
+                                                required: !checkMetricType(metrics, form, name, 'boolean') &&
+                                                    !checkMetricIsMonitored(metrics, form, name),
                                                 message: 'Missing value',
                                             },
                                         ]}
-                                        // TODO: fix initial value
-                                        //hidden={checkMetricIsMonitored(metrics, form, key)}
-                                        //initialValue={getInitialMetricValue(checkMetricType(metrics, form, key, 'boolean'))}
+                                        hidden={checkMetricIsMonitored(metrics, form, name) ||
+                                            !checkMetricIsSelected(metrics, form, name)}
                                     >
-                                        {checkMetricType(metrics, form, key, 'boolean') ?
+                                        {checkMetricType(metrics, form, name, 'boolean') ?
                                             <Checkbox className="w-full">
                                                 Value
                                             </Checkbox>:
-                                            checkMetricType(metrics, form, key, 'number') ?
+                                            checkMetricType(metrics, form, name, 'number') ?
                                                 <InputNumber placeholder='0.00' controls={false} className="w-full"/>:
                                                 <Input placeholder='value' className="w-full"/>
 
@@ -151,7 +158,8 @@ const AddMetricValuesForm = ({ resource, setFinished }) => {
                                 </Space>
                             ))}
                             <Form.Item>
-                                <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
+                                <Button disabled={form.getFieldValue("metricValues")?.length >= metrics.length}
+                                        type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
                                     Add Metric Value
                                 </Button>
                             </Form.Item>

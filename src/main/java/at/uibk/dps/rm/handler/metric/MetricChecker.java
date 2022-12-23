@@ -53,7 +53,10 @@ public class MetricChecker extends EntityChecker {
                 Metric metric = result.mapTo(Metric.class);
                 Object value = jsonEntry.getValue("value");
                 boolean valueHasCorrectType = true;
-                if (stringMetricHasStringValue(metric, value)) {
+                if (metric.getIsMonitored()) {
+                    setDefaultMonitoredMetricValue(metricValue, metric);
+                }
+                else if (stringMetricHasStringValue(metric, value)) {
                     metricValue.setValueString((String) value);
                 } else if (numberMetricHasNumberValue(metric, value)) {
                     metricValue.setValueNumber(jsonEntry.getNumber("value").doubleValue());
@@ -90,5 +93,18 @@ public class MetricChecker extends EntityChecker {
 
     private boolean boolMetricHasNumberValue(Metric metric, Object value) {
         return value instanceof Boolean && metric.getMetricType().getType().equals("boolean");
+    }
+
+    private void setDefaultMonitoredMetricValue (MetricValue metricValue, Metric metric) {
+        switch (metric.getMetricType().getType()) {
+            case "number":
+                metricValue.setValueNumber(0.0);
+                break;
+            case "string":
+                metricValue.setValueString("");
+                break;
+            case "boolean":
+                metricValue.setValueBool(false);
+        }
     }
 }
