@@ -85,7 +85,7 @@ export const AuthenticationProvider = ({ children }) => {
     }
 
     const checkTokenExpired = () => {
-        if (payload.exp < new Date()/1000 + 3600*10) {
+        if (payload.exp < new Date()/1000) {
             console.log("token expired");
             logout();
             return true;

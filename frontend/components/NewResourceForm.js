@@ -25,7 +25,7 @@ const NewResourceForm = ({ setNewResource }) => {
     };
 
     return (
-        <div className="card container w-full md:w-11/12 w-11/12 max-w-7xl p-10 mt-2 mb-2">
+        <>
             <h2>New Resource</h2>
             <Form
                 name="basic"
@@ -69,7 +69,7 @@ const NewResourceForm = ({ setNewResource }) => {
                     </Button>
                 </Form.Item>
             </Form>
-        </div>
+        </>
     );
 }
 

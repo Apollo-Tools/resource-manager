@@ -39,6 +39,44 @@ export async function listResources(token, setResources, setError) {
     }
 }
 
+export async function getResource(id, token, setResource, setError) {
+    try {
+        const response = await fetch(`${API_ROUTE}/${id}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        const data = await response.json();
+        setResource(() => data);
+    } catch(error) {
+        setError(true);
+        console.log(error)
+    }
+}
+
+export async function updateResource(id, resourceTypeId, isSelfManaged, token, setError) {
+    try {
+        const response = await fetch(`${API_ROUTE}/${id}`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                resource_type: {
+                    type_id: resourceTypeId
+                },
+                is_self_managed: isSelfManaged
+            })
+        });
+        return response.ok;
+    } catch(error) {
+        setError(true);
+        console.log(error)
+    }
+}
+
 export async function deleteResource(id, token, setError) {
     try {
         const response = await fetch(`${API_ROUTE}/${id}`, {

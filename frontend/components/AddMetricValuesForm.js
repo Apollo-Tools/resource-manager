@@ -25,7 +25,7 @@ const checkMetricIsSelected = (metrics, form, name) => {
     return getMetricById(metrics, form.getFieldValue('metricValues')[name]?.metric) != null;
 }
 
-const AddMetricValuesForm = ({ resource, setFinished }) => {
+const AddMetricValuesForm = ({ resource, excludeMetricIds, setFinished, isSkipable }) => {
     const [form] = Form.useForm();
     const {token, checkTokenExpired} = useAuth();
     const [metrics, setMetrics] = useState([]);
@@ -37,15 +37,23 @@ const AddMetricValuesForm = ({ resource, setFinished }) => {
             listMetrics(token, setMetrics, setError)
                 .then(() => {
                     setMetrics(prevMetrics => {
-                        return prevMetrics.map(metric => {
+                        let filteredMetrics = prevMetrics;
+                        if (excludeMetricIds != null) {
+                            filteredMetrics = prevMetrics
+                                .filter(metric => !excludeMetricIds.includes(metric.metric_id));
+                        }
+                        console.log(filteredMetrics);
+                        return filteredMetrics
+                            .map(metric => {
                             return {metric: metric, isSelected: false}
                         });
                     })
                 })
         }
-    }, [])
+    }, [excludeMetricIds])
 
     const onFinish = async (values) => {
+        console.log(values);
         if (checkTokenExpired()) return;
         let requestBody = values.metricValues.map((metricValue) => {
             console.log(metricValue);
@@ -90,8 +98,12 @@ const AddMetricValuesForm = ({ resource, setFinished }) => {
         setFinished(true);
     }
 
+    if (metrics.length === 0) {
+        return (<></>);
+    }
+
     return (
-        <div className="card container w-full md:w-11/12 max-w-7xl p-10 mt-2 mb-2">
+        <>
             <h2>Add Metric Values</h2>
             <Form form={form}
                 name="metricValueForm"
@@ -162,7 +174,8 @@ const AddMetricValuesForm = ({ resource, setFinished }) => {
                                 </Space>
                             ))}
                             <Form.Item>
-                                <Button disabled={form.getFieldValue("metricValues")?.length >= metrics.length}
+                                <Button disabled={metrics.length === 0 ||
+                                    form.getFieldValue("metricValues")?.length >= metrics.length}
                                         type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
                                     Add Metric Value
                                 </Button>
@@ -173,19 +186,21 @@ const AddMetricValuesForm = ({ resource, setFinished }) => {
 
                 <div className="flex">
                     <Form.Item>
-                        <Button type="primary" htmlType="submit">
+                        <Button type="primary" htmlType="submit"
+                                disabled={form.getFieldValue("metricValues") == null ||
+                                    form.getFieldValue("metricValues")?.length <= 0}>
                             Create
                         </Button>
                     </Form.Item>
                     <div className="flex-1"/>
-                    <Form.Item>
+                    <Form.Item hidden={!isSkipable}>
                         <Button type="default" onClick={onClickSkip}>
                             Skip
                         </Button>
                     </Form.Item>
                 </div>
             </Form>
-        </div>
+        </>
     )
 }
 

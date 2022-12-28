@@ -27,16 +27,18 @@ const NewResource = () => {
             <Head>
                 <title>{`${siteTitle}: New Resource`}</title>
             </Head>
-            {finished ?
-                <Result
-                    icon={<SmileOutlined />}
-                    title="The resource has been created!"
-                    extra={<Button type="primary" onClick={onClickRestart}>Restart</Button>}
-                />:
-                (newResource ?
-                <AddMetricValuesForm resource={newResource} setFinished={setFinished}/>:
-                <NewResourceForm setNewResource={setNewResource}/>)
-            }
+            <div className="card container w-full md:w-11/12 max-w-7xl p-10 mt-2 mb-2">
+                {finished ?
+                    <Result
+                        icon={<SmileOutlined />}
+                        title="The resource has been created!"
+                        extra={<Button type="primary" onClick={onClickRestart}>Restart</Button>}
+                    />:
+                    (newResource ?
+                    <AddMetricValuesForm resource={newResource} setFinished={setFinished} isSkipable />:
+                    <NewResourceForm setNewResource={setNewResource} />)
+                }
+            </div>
         </>
     );
 }
