@@ -1,7 +1,6 @@
 import Head from 'next/head';
 import { siteTitle } from '../../components/Sidebar';
 import { useEffect, useState } from 'react';
-import { useAuth } from '../../lib/AuthenticationProvider';
 import { Result, Button } from 'antd';
 import { SmileOutlined } from '@ant-design/icons';
 import NewResourceForm from '../../components/NewResourceForm';
@@ -9,7 +8,6 @@ import AddMetricValuesForm from '../../components/AddMetricValuesForm';
 
 
 const NewResource = () => {
-    const {token} = useAuth();
     const [newResource, setNewResource] = useState(null);
     const [finished, setFinished] = useState(false);
 
@@ -37,7 +35,7 @@ const NewResource = () => {
                 />:
                 (newResource ?
                 <AddMetricValuesForm resource={newResource} setFinished={setFinished}/>:
-                <NewResourceForm setNewResource={setNewResource} token={token}/>)
+                <NewResourceForm setNewResource={setNewResource}/>)
             }
         </>
     );

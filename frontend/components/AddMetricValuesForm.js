@@ -27,23 +27,26 @@ const checkMetricIsSelected = (metrics, form, name) => {
 
 const AddMetricValuesForm = ({ resource, setFinished }) => {
     const [form] = Form.useForm();
-    const {token} = useAuth();
+    const {token, checkTokenExpired} = useAuth();
     const [metrics, setMetrics] = useState([]);
     const [error, setError] = useState(false);
     Form.useWatch("basic", form);
 
     useEffect(() => {
-        listMetrics(token, setMetrics, setError)
-            .then(() => {
-                setMetrics(prevMetrics => {
-                    return prevMetrics.map(metric => {
-                        return {metric: metric, isSelected: false}
-                    });
+        if (!checkTokenExpired()) {
+            listMetrics(token, setMetrics, setError)
+                .then(() => {
+                    setMetrics(prevMetrics => {
+                        return prevMetrics.map(metric => {
+                            return {metric: metric, isSelected: false}
+                        });
+                    })
                 })
-            })
+        }
     }, [])
 
     const onFinish = async (values) => {
+        if (checkTokenExpired()) return;
         let requestBody = values.metricValues.map((metricValue) => {
             console.log(metricValue);
             let metric = metrics.find((metric) => metric.metric.metric_id === metricValue.metric).metric
@@ -61,6 +64,7 @@ const AddMetricValuesForm = ({ resource, setFinished }) => {
                 if(!error) setFinished(true)
             });
     };
+
     const onFinishFailed = (errorInfo) => {
         console.log('Failed:', errorInfo);
     };

@@ -12,24 +12,25 @@ const {Column} = Table;
 const { confirm } = Modal;
 
 const Resources = () => {
-    const {token, isAuthenticated} = useAuth();
+    const {token, checkTokenExpired} = useAuth();
     const [error, setError] = useState(false);
     const [resources, setResources] = useState([]);
 
     useEffect(() => {
-        listResources(token, setResources, setError);
-
-
-        console.log("isauthenticated: " + isAuthenticated)
+        if (!checkTokenExpired()) {
+            listResources(token, setResources, setError);
+        }
     }, [])
 
     const onClickDelete = (id) => {
-        deleteResource(id, token, setError)
-            .then(result => {
-                if (result) {
-                    setResources(resources.filter(resource => resource.resource_id !== id))
-                }
-            });
+        if (!checkTokenExpired()) {
+            deleteResource(id, token, setError)
+                .then(result => {
+                    if (result) {
+                        setResources(resources.filter(resource => resource.resource_id !== id))
+                    }
+                });
+        }
     }
 
     const showDeleteConfirm = (id) => {

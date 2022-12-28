@@ -2,9 +2,11 @@ import { Button, Checkbox, Form, Select } from 'antd';
 import { createResource } from '../lib/ResourceService';
 import { useEffect, useState } from 'react';
 import { listResourceTypes } from '../lib/ResourceTypeService';
+import { useAuth } from '../lib/AuthenticationProvider';
 
 
-const NewResourceForm = ({ setNewResource, token }) => {
+const NewResourceForm = ({ setNewResource }) => {
+    const {token, checkTokenExpired} = useAuth();
     const [error, setError] = useState();
     const [resourceTypes, setResourceTypes] = useState([]);
 
@@ -13,8 +15,10 @@ const NewResourceForm = ({ setNewResource, token }) => {
     }, [])
 
     const onFinish = async (values) => {
-        await createResource(values.resourceType, values.isSelfManaged, token, setNewResource, setError);
-        console.log(values)
+        if (!checkTokenExpired()) {
+            await createResource(values.resourceType, values.isSelfManaged, token, setNewResource, setError);
+            console.log(values)
+        }
     };
     const onFinishFailed = (errorInfo) => {
         console.log('Failed:', errorInfo);

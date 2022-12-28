@@ -21,7 +21,6 @@ const decodeTokenPayload = (encodedToken) => {
     return JSON.parse(Buffer.from(tokenParts[1],'base64').toString());
 }
 
-// TODO: add check for expiration on every request
 export const AuthenticationProvider = ({ children }) => {
     const [token, setToken] = useState('');
     const [payload, setPayload] = useState(null);
@@ -85,8 +84,17 @@ export const AuthenticationProvider = ({ children }) => {
         storeTokenToStorage('');
     }
 
+    const checkTokenExpired = () => {
+        if (payload.exp < new Date()/1000 + 3600*10) {
+            console.log("token expired");
+            logout();
+            return true;
+        }
+        return false;
+    }
+
     return (
-        <AuthContext.Provider value={{token, isAuthenticated, setNewToken, logout}}>
+        <AuthContext.Provider value={{token, isAuthenticated, setNewToken, logout, checkTokenExpired}}>
             {isInitialised && (isAuthenticated ? children : <LoginForm />)}
         </AuthContext.Provider>
     )
