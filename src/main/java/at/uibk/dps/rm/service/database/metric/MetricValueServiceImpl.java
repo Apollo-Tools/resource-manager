@@ -54,6 +54,9 @@ public class MetricValueServiceImpl extends ServiceProxy<MetricValue> implements
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (MetricValue metricValue: result) {
+                    if (metricValue == null) {
+                        continue;
+                    }
                     JsonObject entity;
                     if (includeValue) {
                         entity = JsonObject.mapFrom(metricValue);
