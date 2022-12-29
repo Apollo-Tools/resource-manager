@@ -3,13 +3,12 @@ package at.uibk.dps.rm.handler.reservation;
 import at.uibk.dps.rm.entity.dto.ReserveResourcesRequest;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.NotFoundException;
+import at.uibk.dps.rm.handler.deployment.DeploymentHandler;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
-import at.uibk.dps.rm.service.rxjava3.database.account.CredentialsService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
 import at.uibk.dps.rm.service.rxjava3.database.reservation.ReservationService;
 import at.uibk.dps.rm.service.rxjava3.database.reservation.ResourceReservationService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
-import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.SingleHelper;
 import at.uibk.dps.rm.testutil.TestObjectProvider;
@@ -55,16 +54,13 @@ public class ReservationHandlerTest {
     private MetricValueService metricValueService;
 
     @Mock
-    private DeploymentService deploymentService;
-
-    @Mock
-    private CredentialsService credentialsService;
-
-    @Mock
     private RoutingContext rc;
 
     @Mock
     private ServiceProxyProvider serviceProxyProvider;
+
+    @Mock
+    private DeploymentHandler deploymentHandler;
 
     @BeforeEach
     void initTest() {
@@ -73,9 +69,7 @@ public class ReservationHandlerTest {
         when(serviceProxyProvider.getResourceService()).thenReturn(resourceService);
         when(serviceProxyProvider.getResourceReservationService()).thenReturn(resourceReservationService);
         when(serviceProxyProvider.getMetricValueService()).thenReturn(metricValueService);
-        when(serviceProxyProvider.getDeploymentService()).thenReturn(deploymentService);
-        when(serviceProxyProvider.getCredentialsService()).thenReturn(credentialsService);
-        reservationHandler = new ReservationHandler(serviceProxyProvider);
+        reservationHandler = new ReservationHandler(serviceProxyProvider, deploymentHandler);
     }
 
     @Test
@@ -228,12 +222,14 @@ public class ReservationHandlerTest {
         when(resourceService.existsOneAndNotReserved(anyLong())).thenReturn(Single.just(true));
         when(reservationService.save(any())).thenReturn(Single.just(reservationJson));
         when(resourceReservationService.saveAll(any())).thenReturn(Completable.complete());
+        when(deploymentHandler.deployResources(1L, 1L)).thenReturn(Completable.complete());
 
         reservationHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.getLong("reservation_id")).isEqualTo(1L);
                     assertThat(result.getBoolean("is_active")).isTrue();
-                    verify(reservationService).save(new JsonObject("{\"reservation_id\":null," +
+                    verify(reservationService).save(new JsonObject(
+                        "{\"reservation_id\":null," +
                         "\"created_by\":null," +
                         "\"created_by\":{" +
                         "   \"account_id\":1," +

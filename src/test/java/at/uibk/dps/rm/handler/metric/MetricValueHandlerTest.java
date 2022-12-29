@@ -72,7 +72,7 @@ public class MetricValueHandlerTest {
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(resourceId));
         when(resourceService.existsOneById(resourceId)).thenReturn(Single.just(true));
-        when(metricValueService.findAllByResource(resourceId, false)).thenReturn(Single.just(metricValues));
+        when(metricValueService.findAllByResource(resourceId, true)).thenReturn(Single.just(metricValues));
 
         metricValueHandler.getAll(rc)
             .subscribe(result -> testContext.verify(() -> {
@@ -109,7 +109,7 @@ public class MetricValueHandlerTest {
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(resourceId));
         when(resourceService.existsOneById(resourceId)).thenReturn(Single.just(true));
-        when(metricValueService.findAllByResource(resourceId, false)).thenReturn(Single.just(metricValues));
+        when(metricValueService.findAllByResource(resourceId, true)).thenReturn(Single.just(metricValues));
 
         metricValueHandler.getAll(rc)
             .subscribe(result -> testContext.verify(() -> {
@@ -127,7 +127,7 @@ public class MetricValueHandlerTest {
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(resourceId));
         when(resourceService.existsOneById(resourceId)).thenReturn(Single.just(true));
-        when(metricValueService.findAllByResource(resourceId, false)).thenReturn(handler);
+        when(metricValueService.findAllByResource(resourceId, true)).thenReturn(handler);
 
         metricValueHandler.getAll(rc)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),

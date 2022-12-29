@@ -34,14 +34,13 @@ public class ReservationHandler extends ValidationHandler {
 
     private final DeploymentHandler deploymentHandler;
 
-    public ReservationHandler(ServiceProxyProvider serviceProxyProvider) {
+    public ReservationHandler(ServiceProxyProvider serviceProxyProvider, DeploymentHandler deploymentHandler) {
         super(new ReservationChecker(serviceProxyProvider.getReservationService()));
         this.reservationChecker = (ReservationChecker) super.entityChecker;
         this.resourceChecker = new ResourceChecker(serviceProxyProvider.getResourceService());
         this.resourceReservationChecker = new ResourceReservationChecker(serviceProxyProvider.getResourceReservationService());
         this.metricValueChecker = new MetricValueChecker(serviceProxyProvider.getMetricValueService());
-        this.deploymentHandler = new DeploymentHandler(serviceProxyProvider.getDeploymentService(),
-            serviceProxyProvider.getCredentialsService(), serviceProxyProvider.getResourceService());
+        this.deploymentHandler = deploymentHandler;
     }
 
     @Override
