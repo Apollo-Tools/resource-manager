@@ -69,7 +69,10 @@ const AddMetricValuesForm = ({ resource, excludeMetricIds, setFinished, isSkipab
         })
         await addResourceMetrics(resource.resource_id, requestBody, token, setError)
             .then(() => {
-                if(!error) setFinished(true)
+                if(!error) {
+                    setFinished(true);
+                    form.resetFields();
+                }
             });
     };
 
