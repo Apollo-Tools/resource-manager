@@ -518,7 +518,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /reservation:
+  /reservations:
     post:
       description: Reserves resources and deploys undeployed ones if wanted
       operationId: reserveResources
@@ -549,7 +549,7 @@ paths:
                   example: true
       responses:
         200:
-          description: Successful reservation and deployment of resources
+          description: Successful reservation of resources
           content:
             application/json:
               schema:
@@ -563,7 +563,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /reservation/{id}:
+  /reservations/{id}:
     get:
       description: Return details about a resource reservation
       operationId: getReservation
@@ -587,7 +587,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /reservation/{id}/cancel:
+  /reservations/{id}/cancel:
     patch:
       description: Free the reserved resources
       operationId: cancelReservation
