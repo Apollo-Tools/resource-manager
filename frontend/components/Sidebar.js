@@ -39,7 +39,10 @@ const Sidebar = ({ children }) => {
             getItem(<Link href="/resources/resources" ><GroupOutlined /><span>All Resources</span></Link>, "1.1"),
             getItem(<Link href="/resources/new-resource" ><PlusSquareOutlined /><span>New Resource</span></Link>, "1.2"),
         ]),
-        getItem(<Link href="/reservations/reservations" ><BookOutlined /><span>Reservations</span></Link>,"2"),
+        getItem(<><BookOutlined /><span>Reservations</span></>,"2", [
+            getItem(<Link href="/reservations/reservations" ><GroupOutlined /><span>All Reservations</span></Link>, "2.1"),
+            getItem(<Link href="/reservations/new-reservation" ><PlusSquareOutlined /><span>New Reservation</span></Link>, "2.2"),
+        ]),
         getItem(<Link href="/accounts/profile" ><UserOutlined /><span>Profile</span></Link>,"3"),
         getItem(<div onClick={onClickLogout}><LogoutOutlined /><span>Logout</span></div>,"4"),
     ]
