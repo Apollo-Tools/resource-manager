@@ -124,7 +124,7 @@ const ResourceDetails = () => {
                                         render={(updatedAt) => <Date dateString={updatedAt}/>}
                                         sorter={(a, b) => a.updated_at - b.updated_at}
                                 />
-                                <Column title="Action at" key="action"
+                                <Column title="Actions" key="action"
                                         render={(_, metricValue) => (
                                             <Button onClick={() => showDeleteConfirm(metricValue.metric.metric_id)}
                                                     icon={<DeleteOutlined />}/>

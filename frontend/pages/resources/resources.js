@@ -70,7 +70,7 @@ const Resources = () => {
                         render={(createdAt) => <Date dateString={createdAt}/>}
                         sorter={(a, b) => a.created_at - b.created_at}
                     />
-                    <Column title="Action at" key="action"
+                    <Column title="Actions" key="action"
                         render={(_, record) => (
                             <Space size="middle">
                                 <Link href={`/resources/${record.resource_id}`}>
