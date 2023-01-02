@@ -5,7 +5,7 @@ export async function listResourceTypes(token, setResourceTypes, setError) {
     const response = await fetch(`${API_ROUTE}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     });
     const data = await response.json();

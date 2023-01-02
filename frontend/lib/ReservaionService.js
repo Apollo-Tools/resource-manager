@@ -5,7 +5,7 @@ export async function listReservations(token, setReservations, setError) {
     const response = await fetch(`${API_ROUTE}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     });
     const data = await response.json();
@@ -26,7 +26,7 @@ export async function reserveResources(
     const response = await fetch(`${API_ROUTE}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
