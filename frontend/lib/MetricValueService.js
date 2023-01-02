@@ -17,19 +17,19 @@ export async function listResourceMetrics(resourceId, token, setMetricValues, se
 }
 
 export async function deleteResourceMetric(
-  resourceId,
-  metricId,
-  token,
-  setError
+    resourceId,
+    metricId,
+    token,
+    setError,
 ) {
   try {
     const response = await fetch(
-      `${API_ROUTE}/${resourceId}/metrics/${metricId}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-      },
-    });
+        `${API_ROUTE}/${resourceId}/metrics/${metricId}`, {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
     return response.ok;
   } catch (error) {
     setError(true);

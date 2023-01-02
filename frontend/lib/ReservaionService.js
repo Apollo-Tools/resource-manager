@@ -17,16 +17,16 @@ export async function listReservations(token, setReservations, setError) {
 }
 
 export async function reserveResources(
-  resourceIds,
-  token,
-  setNewReservation,
-  setError,
+    resourceIds,
+    token,
+    setNewReservation,
+    setError,
 ) {
   try {
     const response = await fetch(`${API_ROUTE}`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

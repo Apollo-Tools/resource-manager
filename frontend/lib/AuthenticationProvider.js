@@ -1,10 +1,11 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import {createContext, useContext, useEffect, useState} from 'react';
 import LoginForm from '../components/LoginForm';
+import PropTypes from 'prop-types';
 
 const AuthContext = createContext(null);
 
 const getTokenFromStorage = () => {
-  let token = localStorage.getItem('jwt');
+  const token = localStorage.getItem('jwt');
   console.log('local storage: ' + token);
   return token;
 };
@@ -14,14 +15,14 @@ const storeTokenToStorage = (jwt) => {
 };
 
 const decodeTokenPayload = (encodedToken) => {
-  let tokenParts = encodedToken.split('.');
+  const tokenParts = encodedToken.split('.');
   if (tokenParts.length !== 3) {
     return null;
   }
   return JSON.parse(Buffer.from(tokenParts[1], 'base64').toString());
 };
 
-export const AuthenticationProvider = ({ children }) => {
+export const AuthenticationProvider = ({children}) => {
   const [token, setToken] = useState('');
   const [payload, setPayload] = useState(null);
   const [newToken, setNewToken] = useState(null);
@@ -30,9 +31,9 @@ export const AuthenticationProvider = ({ children }) => {
 
   useEffect(() => {
     console.log('Get initial token');
-    let jwtToken = getTokenFromStorage();
+    const jwtToken = getTokenFromStorage();
     if (jwtToken != null && jwtToken !== '') {
-      let decodedPayload = decodeTokenPayload(jwtToken);
+      const decodedPayload = decodeTokenPayload(jwtToken);
       if (decodedPayload == null) {
         setAuthenticated(false);
         return;
@@ -59,13 +60,12 @@ export const AuthenticationProvider = ({ children }) => {
         return true;
       });
     }
-
   }, [token]);
 
   useEffect(() => {
     if (newToken != null) {
       console.log('new token');
-      let decodedPayload = decodeTokenPayload(newToken);
+      const decodedPayload = decodeTokenPayload(newToken);
       if (decodedPayload == null) {
         setAuthenticated(false);
         return;
@@ -93,10 +93,14 @@ export const AuthenticationProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={ { token, isAuthenticated, setNewToken, logout, checkTokenExpired } }>
+    <AuthContext.Provider value={ {token, isAuthenticated, setNewToken, logout, checkTokenExpired} }>
       { isInitialised && (isAuthenticated ? children : <LoginForm/>) }
     </AuthContext.Provider>
   );
+};
+
+AuthenticationProvider.propTypes = {
+  children: PropTypes.node.isRequired,
 };
 
 export const useAuth = () => useContext(AuthContext);

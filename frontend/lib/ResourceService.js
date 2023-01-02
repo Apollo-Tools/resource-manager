@@ -5,7 +5,7 @@ export async function createResource(resourceTypeId, isSelfManaged, token, setRe
     const response = await fetch(`${API_ROUTE}`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -60,7 +60,7 @@ export async function updateResource(id, resourceTypeId, isSelfManaged, token, s
     const response = await fetch(`${API_ROUTE}/${id}`, {
       method: 'PATCH',
       headers: {
-        Authorization: `Bearer ${token}`,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -97,7 +97,7 @@ export async function addResourceMetrics(resourceId, metricValues, token, setErr
     const response = await fetch(`${API_ROUTE}/${resourceId}/metrics`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(metricValues),
