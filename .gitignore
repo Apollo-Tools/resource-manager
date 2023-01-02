@@ -173,7 +173,7 @@ nbdist/
 /backend/build/
 
 # Config containing secret values
-/backend/conf/config.json
+/conf/config.json
 
 # Temp folder
 /temp/
