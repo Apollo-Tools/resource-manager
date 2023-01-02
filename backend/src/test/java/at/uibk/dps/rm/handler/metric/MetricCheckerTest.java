@@ -182,7 +182,7 @@ public class MetricCheckerTest {
 
         metricChecker.checkEqualValueTypes(slo, entity)
             .subscribe(result -> {
-                    assertThat(result).isTrue();
+                    assertThat(result).isEqualTo(true);
                     testContext.completeNow();
             },
             throwable -> testContext.verify(() -> fail("method did throw exception"))
@@ -219,7 +219,7 @@ public class MetricCheckerTest {
 
         metricChecker.checkEqualValueTypes(slo, entity)
             .subscribe(result -> {
-                    assertThat(result).isTrue();
+                    assertThat(result).isEqualTo(true);
                     testContext.completeNow();
                 },
                 throwable -> testContext.verify(() -> fail("method did throw exception"))
@@ -256,7 +256,7 @@ public class MetricCheckerTest {
 
         metricChecker.checkEqualValueTypes(slo, entity)
             .subscribe(result -> {
-                    assertThat(result).isTrue();
+                    assertThat(result).isEqualTo(true);
                     testContext.completeNow();
                 },
                 throwable -> testContext.verify(() -> fail("method did throw exception"))
@@ -335,7 +335,7 @@ public class MetricCheckerTest {
                 throwable -> testContext.verify(() -> fail("method did throw exception"))
             );
 
-        assertThat(metricValue.getValueBool()).isTrue();
+        assertThat(metricValue.getValueBool()).isEqualTo(true);
         testContext.completeNow();
     }
 
