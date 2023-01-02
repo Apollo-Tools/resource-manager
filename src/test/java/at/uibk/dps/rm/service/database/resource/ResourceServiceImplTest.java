@@ -143,14 +143,14 @@ public class ResourceServiceImplTest {
         resultList.add(entity1);
         resultList.add(entity2);
         CompletionStage<List<Resource>> completionStage = CompletionStages.completedFuture(resultList);
-        doReturn(completionStage).when(resourceRepository).findAllAndFetch();
+        doReturn(completionStage).when(resourceRepository).findAllAndFetch(false);
 
         resourceService.findAll()
                 .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(2);
                     assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
                     assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
-                    verify(resourceRepository).findAllAndFetch();
+                    verify(resourceRepository).findAllAndFetch(false);
                     testContext.completeNow();
                 })));
     }

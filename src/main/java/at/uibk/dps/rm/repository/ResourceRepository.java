@@ -20,12 +20,26 @@ public class ResourceRepository extends Repository<Resource> {
             );
     }
 
-    public CompletionStage<List<Resource>> findAllAndFetch() {
+    public CompletionStage<List<Resource>> findAllAndFetch(boolean excludeReservedResources) {
+        final String excludeClause;
+
+        if (excludeReservedResources) {
+            excludeClause = "where r1.resourceId not in " +
+                "(select distinct r2.resourceId from ResourceReservation rr " +
+                "left join rr.reservation res " +
+                "left join rr.resource r2 " +
+                "where res.isActive=true)";
+        } else {
+            excludeClause = "";
+        }
+
+
         return sessionFactory.withSession(session ->
-            session.createQuery("select distinct r from Resource r " +
-                            "left join fetch r.metricValues mv " +
+            session.createQuery("select distinct r1 from Resource r1 " +
+                            "left join fetch r1.metricValues mv " +
                             "left join fetch mv.metric " +
-                            "left join fetch r.resourceType " , entityClass)
+                            "left join fetch r1.resourceType " +
+                            excludeClause, entityClass)
                 .getResultList()
             );
     }

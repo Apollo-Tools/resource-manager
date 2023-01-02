@@ -237,6 +237,12 @@ paths:
         - bearerAuth: []
       tags:
         - resources
+      parameters:
+        - in: query
+          name: excludeReserved
+          schema:
+            type: boolean
+          description: Wether to exclude reserved resources in the result list
       responses:
         200:
           description: Successful pull of all resources

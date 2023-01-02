@@ -29,6 +29,8 @@ import java.util.stream.Collectors;
 
 public class ResourceHandler extends ValidationHandler {
 
+    private final ResourceChecker resourceChecker;
+
     private final ResourceTypeChecker resourceTypeChecker;
 
     private final MetricChecker metricChecker;
@@ -38,12 +40,23 @@ public class ResourceHandler extends ValidationHandler {
     public ResourceHandler(ResourceService resourceService, ResourceTypeService resourceTypeService,
                            MetricService metricService, MetricValueService metricValueService) {
         super(new ResourceChecker(resourceService));
+        resourceChecker = (ResourceChecker) super.entityChecker;
         resourceTypeChecker = new ResourceTypeChecker(resourceTypeService);
         metricChecker = new MetricChecker(metricService);
         metricValueChecker = new MetricValueChecker(metricValueService);
     }
 
     // TODO: delete check if resource has metric values
+
+    @Override
+    protected Single<JsonArray> getAll(RoutingContext rc) {
+        List<String> queryParams = rc.queryParam("excludeReserved");
+        if (queryParams.size() == 0 || !queryParams.get(0).equalsIgnoreCase("true")) {
+            return super.getAll(rc);
+        } else {
+            return resourceChecker.checkFindAllUnreserved();
+        }
+    }
 
     @Override
     public Single<JsonObject> postOne(RoutingContext rc) {

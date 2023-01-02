@@ -23,6 +23,8 @@ public interface ResourceService extends ServiceInterface {
         return new ResourceServiceVertxEBProxy(vertx, address);
     }
 
+    Future<JsonArray> findAllUnreserved();
+
     Future<JsonArray> findAllByMultipleMetrics(List<String> metrics);
 
     Future<JsonArray> findAllByReservationId(long reservationId);
