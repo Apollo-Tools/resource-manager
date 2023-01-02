@@ -170,10 +170,10 @@ nbdist/
 !.vscode/extensions.json
 
 # Build folder ###
-/build/
+/backend/build/
 
 # Config containing secret values
-/conf/config.json
+/backend/conf/config.json
 
 # Temp folder
 /temp/

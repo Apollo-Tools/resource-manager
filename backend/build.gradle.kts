@@ -9,7 +9,7 @@ plugins {
   id("io.freefair.lombok") version "6.5.1"
 }
 
-group = "Apollo-Tools-resource-manager"
+group = "Apollo-Tools-RM"
 version = "1.0.0-SNAPSHOT"
 
 repositories {
