@@ -17,10 +17,10 @@ from cloud_function import main
 def handler(event, context):
     # read in the args from the POST object
     if 'body' in event and isinstance(event['body'], str):
-        input = json.loads(event['body'])
+        input_body = json.loads(event['body'])
     else:
-        input = event
-    res = main(input)
+        input_body = event
+    res = main(input_body)
     return {"statusCode": 200, "body": res}
 
 
