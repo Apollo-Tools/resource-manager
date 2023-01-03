@@ -2,16 +2,12 @@ import {getResource} from '../../lib/ResourceService';
 import {useRouter} from 'next/router';
 import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
-import {Divider, Segmented, Table, Modal, Button} from 'antd';
+import {Divider, Segmented, Typography} from 'antd';
 import {listResourceTypes} from '../../lib/ResourceTypeService';
 import UpdateResourceForm from '../../components/UpdateResourceForm';
 import AddMetricValuesForm from '../../components/AddMetricValuesForm';
 import {deleteResourceMetric, listResourceMetrics} from '../../lib/MetricValueService';
-import DateFormatter from '../../components/DateFormatter';
-import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
-
-const {Column} = Table;
-const {confirm} = Modal;
+import MetricValuesTable from '../../components/MetricValuesTable';
 
 // TODO: add way to update values
 const ResourceDetails = () => {
@@ -57,20 +53,6 @@ const ResourceDetails = () => {
     }
   };
 
-  const showDeleteConfirm = (id) => {
-    confirm({
-      title: 'Confirmation',
-      icon: <ExclamationCircleFilled />,
-      content: 'Are you sure you want to delete this metric value?',
-      okText: 'Yes',
-      okType: 'danger',
-      cancelText: 'No',
-      onOk() {
-        onClickDelete(id);
-      },
-    });
-  };
-
   const mapValuesToValueField = () => {
     setMetricValues((prevValues) => {
       return prevValues.map((metricValue) => {
@@ -94,7 +76,7 @@ const ResourceDetails = () => {
 
   return (
     <div className="card container w-full md:w-11/12 w-11/12 max-w-7xl mt-2 mb-2">
-      <h2>Resource Details ({resource.resource_id})</h2>
+      <Typography.Title level={2}>Resource Details ({resource.resource_id})</Typography.Title>
       <Divider />
       <Segmented options={['Details', 'Metric Values']} value={selectedSegment}
         onChange={(e) => setSelectedSegment(e)} size="large"/>
@@ -107,30 +89,7 @@ const ResourceDetails = () => {
         selectedSegment === 'Metric Values' && (
           <>
             <div>
-              <Table dataSource={metricValues} rowKey={(mv) => mv.metric_id}>
-                <Column title="Metric" dataIndex={['metric', 'metric']} key="metric"
-                  sorter={(a, b) =>
-                    a.metric.localeCompare(b.metric)}
-                />
-                <Column title="Is monitored" dataIndex={['metric', 'is_monitored']} key="is_monitored"
-                  render={(isMonitored) => isMonitored.toString()}
-                />
-                <Column title="Value" dataIndex="value" key="is_monitored" />
-                <Column title="Created at" dataIndex="created_at" key="created_at"
-                  render={(createdAt) => <DateFormatter dateString={createdAt}/>}
-                  sorter={(a, b) => a.created_at - b.created_at}
-                />
-                <Column title="Modified at" dataIndex="updated_at" key="updated_at"
-                  render={(updatedAt) => <DateFormatter dateString={updatedAt}/>}
-                  sorter={(a, b) => a.updated_at - b.updated_at}
-                />
-                <Column title="Actions" key="action"
-                  render={(_, metricValue) => (
-                    <Button onClick={() => showDeleteConfirm(metricValue.metric.metric_id)}
-                      icon={<DeleteOutlined />}/>
-                  )}
-                />
-              </Table>
+              <MetricValuesTable metricValues={metricValues} onClickDelete={onClickDelete}/>
             </div>
             <Divider />
             <AddMetricValuesForm

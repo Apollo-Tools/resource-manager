@@ -1,6 +1,6 @@
 import {siteTitle} from '../../components/Sidebar';
 import Head from 'next/head';
-import {Button, Modal, Table} from 'antd';
+import {Button, Modal, Table, Typography} from 'antd';
 import DateFormatter from '../../components/DateFormatter';
 import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
 import {useEffect, useState} from 'react';
@@ -45,6 +45,7 @@ const Reservations = () => {
         <title>{`${siteTitle}: Reservations`}</title>
       </Head>
       <div className="card container w-11/12 max-w-7xl p-10">
+        <Typography.Title level={2}>My Reservations</Typography.Title>
         <Table dataSource={reservations} rowKey={(record) => record.reservation_id}>
           <Column title="Id" dataIndex="resource_id" key="id"
             sorter={(a, b) => a.reservation_id - b.reservation_id}

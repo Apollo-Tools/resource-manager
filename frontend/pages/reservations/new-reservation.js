@@ -4,7 +4,7 @@ import {listResources} from '../../lib/ResourceService';
 import {InfoCircleOutlined} from '@ant-design/icons';
 import Head from 'next/head';
 import {siteTitle} from '../../components/Sidebar';
-import {Button, Table, message} from 'antd';
+import {Button, Table, message, Typography} from 'antd';
 import DateFormatter from '../../components/DateFormatter';
 import Link from 'next/link';
 import {reserveResources} from '../../lib/ReservaionService';
@@ -51,6 +51,7 @@ const NewReservation = () => {
         <title>{`${siteTitle}: Resources`}</title>
       </Head>
       <div className="card container w-11/12 max-w-7xl p-10">
+        <Typography.Title level={2}>New Reservation</Typography.Title>
         <Table dataSource={resources} rowKey={(record) => record.resource_id}
           rowSelection={{type: 'checkbox', ...rowSelection}}
         >

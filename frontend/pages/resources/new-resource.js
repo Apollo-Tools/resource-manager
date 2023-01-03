@@ -1,7 +1,7 @@
 import Head from 'next/head';
 import {siteTitle} from '../../components/Sidebar';
 import {useEffect, useState} from 'react';
-import {Result, Button} from 'antd';
+import {Result, Button, Typography} from 'antd';
 import {SmileOutlined} from '@ant-design/icons';
 import NewResourceForm from '../../components/NewResourceForm';
 import AddMetricValuesForm from '../../components/AddMetricValuesForm';
@@ -28,6 +28,7 @@ const NewResource = () => {
         <title>{`${siteTitle}: New Resource`}</title>
       </Head>
       <div className="card container w-full md:w-11/12 max-w-7xl p-10 mt-2 mb-2">
+        <Typography.Title level={2}>New Resource</Typography.Title>
         {finished ?
                     <Result
                       icon={<SmileOutlined />}

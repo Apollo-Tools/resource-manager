@@ -27,7 +27,6 @@ const NewResourceForm = ({setNewResource}) => {
 
   return (
     <>
-      <h2>New Resource</h2>
       <Form
         name="basic"
         onFinish={onFinish}
