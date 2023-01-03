@@ -202,7 +202,7 @@ const AddMetricValuesForm = ({
             <Button type="primary" htmlType="submit"
               disabled={form.getFieldValue('metricValues') == null ||
                                     form.getFieldValue('metricValues')?.length <= 0}>
-                            Create
+              Create
             </Button>
           </Form.Item>
           <div className="flex-1"/>

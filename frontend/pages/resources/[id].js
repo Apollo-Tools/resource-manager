@@ -6,7 +6,7 @@ import {Divider, Segmented, Typography} from 'antd';
 import {listResourceTypes} from '../../lib/ResourceTypeService';
 import UpdateResourceForm from '../../components/UpdateResourceForm';
 import AddMetricValuesForm from '../../components/AddMetricValuesForm';
-import {deleteResourceMetric, listResourceMetrics} from '../../lib/MetricValueService';
+import {listResourceMetrics} from '../../lib/MetricValueService';
 import MetricValuesTable from '../../components/MetricValuesTable';
 
 // TODO: add way to update values
@@ -40,17 +40,6 @@ const ResourceDetails = () => {
 
   const reloadResource = async () => {
     await getResource(id, token, setResource, setError);
-  };
-
-  const onClickDelete = (metricId) => {
-    if (!checkTokenExpired()) {
-      deleteResourceMetric(id, metricId, token, setError)
-          .then((result) => {
-            if (result) {
-              setMetricValues(metricValues.filter((metricValue) => metricValue.metric.metric_id !== metricId));
-            }
-          });
-    }
   };
 
   const mapValuesToValueField = () => {
@@ -89,7 +78,7 @@ const ResourceDetails = () => {
         selectedSegment === 'Metric Values' && (
           <>
             <div>
-              <MetricValuesTable metricValues={metricValues} onClickDelete={onClickDelete}/>
+              <MetricValuesTable resourceId={id} metricValues={metricValues} setMetricValues={setMetricValues}/>
             </div>
             <Divider />
             <AddMetricValuesForm

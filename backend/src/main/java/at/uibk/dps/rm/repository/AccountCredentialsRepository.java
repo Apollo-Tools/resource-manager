@@ -26,7 +26,7 @@ public class AccountCredentialsRepository extends Repository<AccountCredentials>
         return this.sessionFactory.withSession(session ->
             session.createQuery("from AccountCredentials ac " +
                         "left join fetch ac.credentials " +
-                        "left join ac.account " +
+                        "left join fetch ac.account " +
                         "where ac.credentials.credentialsId=:credentialsId and ac.account.accountId=:accountId",
                     entityClass)
                 .setParameter("credentialsId", credentialsId)

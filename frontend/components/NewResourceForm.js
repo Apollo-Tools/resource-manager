@@ -12,7 +12,9 @@ const NewResourceForm = ({setNewResource}) => {
   const [resourceTypes, setResourceTypes] = useState([]);
 
   useEffect(() => {
-    listResourceTypes(token, setResourceTypes, setError);
+    if (!checkTokenExpired()) {
+      listResourceTypes(token, setResourceTypes, setError);
+    }
   }, []);
 
   const onFinish = async (values) => {

@@ -1,11 +1,17 @@
 import DateFormatter from './DateFormatter';
 import {Button, Modal, Table} from 'antd';
 import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
+import {deleteResourceMetric} from '../lib/MetricValueService';
+import {useAuth} from '../lib/AuthenticationProvider';
+import {useState} from 'react';
 
 const {Column} = Table;
 const {confirm} = Modal;
 
-const MetricValuesTable = ({metricValues, onClickDelete}) => {
+const MetricValuesTable = ({resourceId, metricValues, setMetricValues}) => {
+  const {token, checkTokenExpired} = useAuth();
+  const [error, setError] = useState();
+
   const showDeleteConfirm = (id) => {
     confirm({
       title: 'Confirmation',
@@ -18,6 +24,17 @@ const MetricValuesTable = ({metricValues, onClickDelete}) => {
         onClickDelete(id);
       },
     });
+  };
+
+  const onClickDelete = (metricId) => {
+    if (!checkTokenExpired()) {
+      deleteResourceMetric(resourceId, metricId, token, setError)
+          .then((result) => {
+            if (result) {
+              setMetricValues(metricValues.filter((metricValue) => metricValue.metric.metric_id !== metricId));
+            }
+          });
+    }
   };
 
   return (
