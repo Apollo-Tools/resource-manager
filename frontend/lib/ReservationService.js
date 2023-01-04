@@ -1,6 +1,6 @@
 const API_ROUTE = `${process.env.NEXT_PUBLIC_API_URL}/reservations`;
 
-export async function listReservations(token, setReservations, setError) {
+export async function listMyReservations(token, setReservations, setError) {
   try {
     const response = await fetch(`${API_ROUTE}`, {
       method: 'GET',
@@ -36,6 +36,21 @@ export async function reserveResources(
     });
     const data = await response.json();
     setNewReservation(() => data);
+  } catch (error) {
+    setError(true);
+    console.log(error);
+  }
+}
+
+export async function cancelReservation(id, token, setError) {
+  try {
+    const response = await fetch(`${API_ROUTE}/${id}/cancel`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return response.ok;
   } catch (error) {
     setError(true);
     console.log(error);

@@ -23,9 +23,10 @@ export async function createResource(resourceTypeId, isSelfManaged, token, setRe
   }
 }
 
-export async function listResources(token, setResources, setError) {
+export async function listResources(excludeReserved, token, setResources, setError) {
   try {
-    const response = await fetch(`${API_ROUTE}`, {
+    const route = `${API_ROUTE}${excludeReserved ? '?excludeReserved=true': ''}`;
+    const response = await fetch(route, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,

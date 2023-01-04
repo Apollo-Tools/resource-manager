@@ -7,7 +7,7 @@ import {siteTitle} from '../../components/Sidebar';
 import {Button, Table, message, Typography} from 'antd';
 import DateFormatter from '../../components/DateFormatter';
 import Link from 'next/link';
-import {reserveResources} from '../../lib/ReservaionService';
+import {reserveResources} from '../../lib/ReservationService';
 
 const {Column} = Table;
 
@@ -21,19 +21,25 @@ const NewReservation = () => {
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listResources(token, setResources, setError);
+      listResources(true, token, setResources, setError);
     }
   }, []);
+  useEffect(() => {
+    if (newReservation != null) {
+      messageApi.open({
+        type: 'success',
+        content: `Reservation with id '${newReservation.reservation_id}' has been created!`,
+      });
+      setNewReservation(null);
+    }
+  }, [newReservation]);
 
   const onClickReserve = () => {
     if (!checkTokenExpired()) {
       reserveResources(selectedResourceIds, token, setNewReservation, setError)
           .then(() => {
-            messageApi.open({
-              type: 'success',
-              content: `Reservation with id '${newReservation.reservation_id}' has been created!`,
-            });
-            setSelectedResourceIds([]);
+            listResources(true, token, setResources, setError)
+                .then(() => setSelectedResourceIds([]));
           });
     }
   };
@@ -47,6 +53,7 @@ const NewReservation = () => {
 
   return (
     <>
+      {contextHolder}
       <Head>
         <title>{`${siteTitle}: Resources`}</title>
       </Head>

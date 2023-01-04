@@ -525,6 +525,26 @@ paths:
           $ref: "#/components/responses/500"
 
   /reservations:
+    get:
+      description: Return details about the user's reservations
+      operationId: listMyReservations
+      security:
+        - bearerAuth: []
+      tags:
+        - reservations
+      responses:
+        200:
+          description: Successful pull of all reservations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Reservation"
+        500:
+          $ref: "#/components/responses/500"
+
+
     post:
       description: Reserves resources and deploys undeployed ones if wanted
       operationId: reserveResources

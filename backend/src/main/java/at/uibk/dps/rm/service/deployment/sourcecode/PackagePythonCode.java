@@ -8,7 +8,7 @@ import java.util.zip.ZipOutputStream;
 
 public class PackagePythonCode extends PackageSourceCode{
     protected final String SOURCE_CODE_NAME = "cloud_function.py";
-    private final File HANDLER_FILE = new File("src\\main\\resources\\faas\\python\\main.py");
+    private final File HANDLER_FILE = new File("backend\\src\\main\\resources\\faas\\python\\main.py");
 
     public PackagePythonCode() {
         setSourceCodeName(SOURCE_CODE_NAME);

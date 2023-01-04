@@ -20,6 +20,10 @@ public class ReservationRoute {
             .handler(reservationRequestHandler::getRequest);
 
         router
+            .operation("listMyReservations")
+            .handler(reservationRequestHandler::getAllRequest);
+
+        router
             .operation("reserveResources")
             .handler(ReservationInputHandler::validateResourceArrayHasNoDuplicates)
             .handler(reservationRequestHandler::postRequest);

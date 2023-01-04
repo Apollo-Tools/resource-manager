@@ -3,6 +3,7 @@ package at.uibk.dps.rm.repository;
 import at.uibk.dps.rm.entity.model.Reservation;
 import org.hibernate.reactive.stage.Stage;
 
+import java.util.List;
 import java.util.concurrent.CompletionStage;
 
 public class ReservationRepository extends Repository<Reservation> {
@@ -23,6 +24,17 @@ public class ReservationRepository extends Repository<Reservation> {
                                 return reservation;
                             })
                         );
+    }
+
+    public CompletionStage<List<Reservation>> findAllByAccountId(long accountId) {
+        return sessionFactory.withSession(session ->
+            session.createQuery("from Reservation r " +
+                    "left join fetch r.createdBy cb " +
+                    "where cb.accountId=:accountId " +
+                    "order by r.id", entityClass)
+                .setParameter("accountId", accountId)
+                .getResultList()
+        );
     }
 
     public CompletionStage<Reservation> findByIdAndAccountId(long id, long accountId) {

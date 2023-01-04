@@ -61,6 +61,12 @@ public class ReservationHandler extends ValidationHandler {
             });
     }
 
+    @Override
+    protected Single<JsonArray> getAll(RoutingContext rc) {
+        long accountId = rc.user().principal().getLong("account_id");
+        return reservationChecker.checkFindAll(accountId);
+    }
+
     // TODO: deploy resources
     @Override
     public Single<JsonObject> postOne(RoutingContext rc) {
