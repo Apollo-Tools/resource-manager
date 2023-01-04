@@ -89,7 +89,7 @@ public class ReservationHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(reservationId));
-        when(reservationService.findOneByByIdAndAccountId(reservationId, account.getAccountId()))
+        when(reservationService.findOneByIdAndAccountId(reservationId, account.getAccountId()))
             .thenReturn(Single.just(JsonObject.mapFrom(reservation)));
         when(resourceReservationService.findAllByReservationId(reservationId))
             .thenReturn(Single.just(resourceReservations));
@@ -128,7 +128,7 @@ public class ReservationHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(reservationId));
-        when(reservationService.findOneByByIdAndAccountId(reservationId, account.getAccountId()))
+        when(reservationService.findOneByIdAndAccountId(reservationId, account.getAccountId()))
             .thenReturn(Single.just(JsonObject.mapFrom(reservation)));
         when(resourceReservationService.findAllByReservationId(reservationId))
             .thenReturn(Single.just(resourceReservations));
@@ -152,7 +152,7 @@ public class ReservationHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(reservationId));
-        when(reservationService.findOneByByIdAndAccountId(reservationId, account.getAccountId()))
+        when(reservationService.findOneByIdAndAccountId(reservationId, account.getAccountId()))
             .thenReturn(Single.just(JsonObject.mapFrom(reservation)));
         when(resourceReservationService.findAllByReservationId(reservationId))
             .thenReturn(Single.just(resourceReservations));
@@ -174,7 +174,7 @@ public class ReservationHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(reservationId));
-        when(reservationService.findOneByByIdAndAccountId(reservationId, account.getAccountId()))
+        when(reservationService.findOneByIdAndAccountId(reservationId, account.getAccountId()))
             .thenReturn(Single.just(JsonObject.mapFrom(reservation)));
 
         reservationHandler.getOne(rc)
@@ -196,7 +196,7 @@ public class ReservationHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(reservationId));
-        when(reservationService.findOneByByIdAndAccountId(reservationId, account.getAccountId())).thenReturn(handler);
+        when(reservationService.findOneByIdAndAccountId(reservationId, account.getAccountId())).thenReturn(handler);
 
         reservationHandler.getOne(rc)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
@@ -276,7 +276,7 @@ public class ReservationHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(reservationId));
-        when(reservationService.findOneByByIdAndAccountId(reservationId, account.getAccountId()))
+        when(reservationService.findOneByIdAndAccountId(reservationId, account.getAccountId()))
             .thenReturn(Single.just(reservationJson));
         when(reservationService.cancelReservationById(reservationId)).thenReturn(Completable.complete());
 
@@ -297,7 +297,7 @@ public class ReservationHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(reservationId));
-        when(reservationService.findOneByByIdAndAccountId(reservationId, account.getAccountId())).thenReturn(handler);
+        when(reservationService.findOneByIdAndAccountId(reservationId, account.getAccountId())).thenReturn(handler);
 
         reservationHandler.updateOne(rc)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
