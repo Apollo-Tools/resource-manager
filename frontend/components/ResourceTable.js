@@ -20,6 +20,14 @@ const ResourceTable = () => {
     }
   }, []);
 
+  // TODO: improve error handling
+  useEffect(() => {
+    if (error) {
+      console.log('Unexpected error');
+      setError(false);
+    }
+  }, [error]);
+
   const onClickDelete = (id) => {
     if (!checkTokenExpired()) {
       deleteResource(id, token, setError)

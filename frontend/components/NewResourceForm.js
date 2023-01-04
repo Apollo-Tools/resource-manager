@@ -17,6 +17,14 @@ const NewResourceForm = ({setNewResource}) => {
     }
   }, []);
 
+  // TODO: improve error handling
+  useEffect(() => {
+    if (error) {
+      console.log('Unexpected error');
+      setError(false);
+    }
+  }, [error]);
+
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
       await createResource(values.resourceType, values.isSelfManaged, token, setNewResource, setError);

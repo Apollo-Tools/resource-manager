@@ -24,6 +24,7 @@ const NewReservation = () => {
       listResources(true, token, setResources, setError);
     }
   }, []);
+
   useEffect(() => {
     if (newReservation != null) {
       messageApi.open({
@@ -33,6 +34,14 @@ const NewReservation = () => {
       setNewReservation(null);
     }
   }, [newReservation]);
+
+  // TODO: improve error handling
+  useEffect(() => {
+    if (error) {
+      console.log('Unexpected error');
+      setError(false);
+    }
+  }, [error]);
 
   const onClickReserve = () => {
     if (!checkTokenExpired()) {

@@ -26,6 +26,14 @@ const Reservations = () => {
     }
   }, []);
 
+  // TODO: improve error handling
+  useEffect(() => {
+    if (error) {
+      console.log('Unexpected error');
+      setError(false);
+    }
+  }, [error]);
+
   const onClickDelete = async (id) => {
     if (!checkTokenExpired()) {
       await cancelReservation(id, token, setError)

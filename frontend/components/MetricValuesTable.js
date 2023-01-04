@@ -3,7 +3,8 @@ import {Button, Modal, Table} from 'antd';
 import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
 import {deleteResourceMetric} from '../lib/MetricValueService';
 import {useAuth} from '../lib/AuthenticationProvider';
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
+import PropTypes from 'prop-types';
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -25,6 +26,14 @@ const MetricValuesTable = ({resourceId, metricValues, setMetricValues}) => {
       },
     });
   };
+
+  // TODO: improve error handling
+  useEffect(() => {
+    if (error) {
+      console.log('Unexpected error');
+      setError(false);
+    }
+  }, [error]);
 
   const onClickDelete = (metricId) => {
     if (!checkTokenExpired()) {
@@ -63,6 +72,12 @@ const MetricValuesTable = ({resourceId, metricValues, setMetricValues}) => {
       />
     </Table>
   );
+};
+
+MetricValuesTable.propTypes = {
+  resourceId: PropTypes.number,
+  metricValues: PropTypes.arrayOf(PropTypes.object),
+  setMetricValues: PropTypes.func,
 };
 
 export default MetricValuesTable;

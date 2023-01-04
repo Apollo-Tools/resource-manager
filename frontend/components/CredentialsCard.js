@@ -2,6 +2,7 @@ import NewCredentialsForm from './NewCredentialsForm';
 import {Divider} from 'antd';
 import CredentialsList from './CredentialsList';
 import {useEffect, useState} from 'react';
+import PropTypes from 'prop-types';
 
 const CredentialsCard = ({credentials, reloadCredentials, setCredentials}) => {
   const [isFinished, setFinished] = useState(false);
@@ -24,6 +25,12 @@ const CredentialsCard = ({credentials, reloadCredentials, setCredentials}) => {
       </div>
     </div>
   );
+};
+
+CredentialsCard.propTypes = {
+  credentials: PropTypes.arrayOf(PropTypes.object),
+  reloadCredentials: PropTypes.func,
+  setCredentials: PropTypes.func,
 };
 
 export default CredentialsCard;

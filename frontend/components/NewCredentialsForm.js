@@ -4,6 +4,7 @@ import {Button, Form, Input, message, Select} from 'antd';
 import {listResourceProviders} from '../lib/ResourceProviderService';
 import {LockOutlined} from '@ant-design/icons';
 import {createCredentials} from '../lib/CredentialsService';
+import PropTypes from 'prop-types';
 
 
 const NewCredentialsForm = ({excludeProviders, setFinished}) => {
@@ -117,6 +118,11 @@ const NewCredentialsForm = ({excludeProviders, setFinished}) => {
       </Form>
     </>
   );
+};
+
+NewCredentialsForm.propTypes = {
+  excludeProviders: PropTypes.bool,
+  setFinished: PropTypes.func,
 };
 
 export default NewCredentialsForm;

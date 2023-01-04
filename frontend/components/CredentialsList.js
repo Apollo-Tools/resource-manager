@@ -1,9 +1,10 @@
 import DateFormatter from './DateFormatter';
 import {Button, Modal, Space, Table} from 'antd';
 import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {deleteCredentials} from '../lib/CredentialsService';
 import {useAuth} from '../lib/AuthenticationProvider';
+import PropTypes from 'prop-types';
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -11,6 +12,14 @@ const {confirm} = Modal;
 const CredentialsList = ({credentials, setCredentials}) => {
   const {token, checkTokenExpired} = useAuth();
   const [error, setError] = useState(false);
+
+  // TODO: improve error handling
+  useEffect(() => {
+    if (error) {
+      console.log('Unexpected error');
+      setError(false);
+    }
+  }, [error]);
 
   const onClickDelete = (id) => {
     if (!checkTokenExpired()) {
@@ -59,6 +68,11 @@ const CredentialsList = ({credentials, setCredentials}) => {
       </Table>
     </>
   );
+};
+
+CredentialsList.propTypes = {
+  credentials: PropTypes.arrayOf(PropTypes.object),
+  setCredentials: PropTypes.func,
 };
 
 export default CredentialsList;

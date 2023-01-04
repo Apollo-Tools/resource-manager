@@ -31,5 +31,6 @@ module.exports = {
         'ignoreTemplateLiterals': true,
       },
     ],
+    'require-jsdoc': 1,
   },
 };

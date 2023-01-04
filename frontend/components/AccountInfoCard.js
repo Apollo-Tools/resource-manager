@@ -1,6 +1,7 @@
 import DateFormatter from './DateFormatter';
 import ResetPasswordForm from './ResetPasswordForm';
 import {Typography} from 'antd';
+import PropTypes from 'prop-types';
 
 const {Title} = Typography;
 
@@ -22,6 +23,10 @@ const AccountInfoCard = ({account}) => {
       </div>
     </div>
   );
+};
+
+AccountInfoCard.propTypes = {
+  account: PropTypes.object,
 };
 
 export default AccountInfoCard;

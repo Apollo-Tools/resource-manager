@@ -23,6 +23,14 @@ const Profile = () => {
     }
   }, []);
 
+  // TODO: improve error handling
+  useEffect(() => {
+    if (error) {
+      console.log('Unexpected error');
+      setError(false);
+    }
+  }, [error]);
+
   const reloadCredentials = async () => {
     return listCredentials(token, setCredentials, setError);
   };

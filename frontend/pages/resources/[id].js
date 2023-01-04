@@ -38,6 +38,14 @@ const ResourceDetails = () => {
     }
   }, [isFinished]);
 
+  // TODO: improve error handling
+  useEffect(() => {
+    if (error) {
+      console.log('Unexpected error');
+      setError(false);
+    }
+  }, [error]);
+
   const reloadResource = async () => {
     await getResource(id, token, setResource, setError);
   };
