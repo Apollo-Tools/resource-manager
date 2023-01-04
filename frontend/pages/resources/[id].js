@@ -68,7 +68,7 @@ const ResourceDetails = () => {
       <Typography.Title level={2}>Resource Details ({resource.resource_id})</Typography.Title>
       <Divider />
       <Segmented options={['Details', 'Metric Values']} value={selectedSegment}
-        onChange={(e) => setSelectedSegment(e)} size="large"/>
+        onChange={(e) => setSelectedSegment(e)} size="large" block/>
       <Divider />
       {
         selectedSegment === 'Details' &&

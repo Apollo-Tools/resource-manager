@@ -59,7 +59,7 @@ const Sidebar = ({children}) => {
       </Sider>
       <Layout className="site-layout">
         <div
-          className="h-12 flex justify-center items-center p-0 bg-secondary"
+          className="h-12 flex justify-center items-center p-0 bg-primary"
         >
           <div className="text-white text-sm md:text-xl text-center font-semibold">{siteTitle}</div>
         </div>

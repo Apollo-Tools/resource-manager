@@ -41,7 +41,7 @@ const MetricValuesTable = ({resourceId, metricValues, setMetricValues}) => {
     <Table dataSource={metricValues} rowKey={(mv) => mv.metric_id}>
       <Column title="Metric" dataIndex={['metric', 'metric']} key="metric"
         sorter={(a, b) =>
-          a.metric.localeCompare(b.metric)}
+          a.metric.metric.localeCompare(b.metric.metric)}
       />
       <Column title="Is monitored" dataIndex={['metric', 'is_monitored']} key="is_monitored"
         render={(isMonitored) => isMonitored.toString()}

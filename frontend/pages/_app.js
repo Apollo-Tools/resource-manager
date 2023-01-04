@@ -11,7 +11,7 @@ const App = ({Component, pageProps: {...pageProps}}) => {
       theme={{
         token: {
           colorPrimary: '#192B4F',
-          colorFillSecondary: '#3083DC',
+          colorFillSecondary: 'rgba(0, 199, 255, 0.25)',
           colorBgContainer: '#F7F7FF',
         },
       }}

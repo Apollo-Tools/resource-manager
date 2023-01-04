@@ -36,7 +36,7 @@ const Profile = () => {
         <Title>Profile</Title>
         <Divider />
         <Segmented options={['Account Info', 'Cloud Credentials']} value={selectedSegment}
-          onChange={(e) => setSelectedSegment(e)} size="large"/>
+          onChange={(e) => setSelectedSegment(e)} size="large" block={true}/>
         <Divider />
         { selectedSegment === 'Account Info' ?
           <AccountInfoCard account={account}/> :
