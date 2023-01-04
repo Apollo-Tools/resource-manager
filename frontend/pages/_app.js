@@ -12,7 +12,8 @@ const App = ({Component, pageProps: {...pageProps}}) => {
         token: {
           colorPrimary: '#192B4F',
           colorFillSecondary: 'rgba(0, 199, 255, 0.25)',
-          colorBgContainer: '#F7F7FF',
+          colorPrimaryBg: '#00C7FF1A',
+          colorPrimaryBgHover: '#00C7FF33',
         },
       }}
     >
