@@ -10,7 +10,7 @@ import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 
 //TODO: discuss if it is necessary to encrypt secrets
-public class CredentialsServiceImpl  extends ServiceProxy<Credentials> implements  CredentialsService {
+public class CredentialsServiceImpl extends ServiceProxy<Credentials> implements  CredentialsService {
 
     private final CredentialsRepository credentialsRepository;
 

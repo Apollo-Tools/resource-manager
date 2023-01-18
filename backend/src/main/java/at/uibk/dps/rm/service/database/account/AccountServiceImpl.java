@@ -8,7 +8,7 @@ import io.vertx.core.json.JsonObject;
 
 import java.util.Objects;
 
-public class AccountServiceImpl  extends ServiceProxy<Account> implements  AccountService {
+public class AccountServiceImpl extends ServiceProxy<Account> implements  AccountService {
 
     private final AccountRepository accountRepository;
 
