@@ -2,6 +2,7 @@ package at.uibk.dps.rm.verticle;
 
 import at.uibk.dps.rm.repository.*;
 import at.uibk.dps.rm.service.database.account.*;
+import at.uibk.dps.rm.service.database.function.*;
 import at.uibk.dps.rm.service.database.resourceprovider.ResourceProviderService;
 import at.uibk.dps.rm.service.database.resourceprovider.ResourceProviderServiceImpl;
 import at.uibk.dps.rm.service.database.metric.*;
@@ -38,6 +39,9 @@ public class DatabaseVerticle extends AbstractVerticle {
     private MetricRepository metricRepository;
     private MetricValueRepository metricValueRepository;
     private MetricTypeRepository metricTypeRepository;
+    private RuntimeRepository runtimeRepository;
+    private FunctionRepository functionRepository;
+    private FunctionResourceRepository functionResourceRepository;
     private ReservationRepository reservationRepository;
     private ResourceReservationRepository resourceReservationRepository;
 
@@ -78,6 +82,9 @@ public class DatabaseVerticle extends AbstractVerticle {
                 metricRepository = new MetricRepository(sessionFactory);
                 metricValueRepository = new MetricValueRepository(sessionFactory);
                 metricTypeRepository = new MetricTypeRepository(sessionFactory);
+                runtimeRepository = new RuntimeRepository(sessionFactory);
+                functionRepository = new FunctionRepository(sessionFactory);
+                functionResourceRepository = new FunctionResourceRepository(sessionFactory);
                 reservationRepository = new ReservationRepository(sessionFactory);
                 resourceReservationRepository = new ResourceReservationRepository(sessionFactory);
                 emitter.onComplete();
@@ -90,67 +97,77 @@ public class DatabaseVerticle extends AbstractVerticle {
         Maybe<Void> setupEventBus = Maybe.create(emitter -> {
             AccountCredentialsService accountCredentialsService =
                 new AccountCredentialsServiceImpl(accountCredentialsRepository);
-            new ServiceBinder(vertx.getDelegate())
+
+            ServiceBinder serviceBinder = new ServiceBinder(vertx.getDelegate());
+            serviceBinder
                 .setAddress("account-credentials-service-address")
                 .register(AccountCredentialsService.class, accountCredentialsService);
 
-            AccountService accountService =
-                new AccountServiceImpl(accountRepository);
-            new ServiceBinder(vertx.getDelegate())
+            AccountService accountService = new AccountServiceImpl(accountRepository);
+            serviceBinder
                 .setAddress("account-service-address")
                 .register(AccountService.class, accountService);
 
             ResourceProviderService resourceProviderService =
                 new ResourceProviderServiceImpl(resourceProviderRepository);
-            new ServiceBinder(vertx.getDelegate())
+            serviceBinder
                 .setAddress("resource-provider-service-address")
                 .register(ResourceProviderService.class, resourceProviderService);
 
-            CredentialsService credentialsService =
-                new CredentialsServiceImpl(credentialsRepository);
-            new ServiceBinder(vertx.getDelegate())
+            CredentialsService credentialsService = new CredentialsServiceImpl(credentialsRepository);
+            serviceBinder
                 .setAddress("credentials-service-address")
                 .register(CredentialsService.class, credentialsService);
 
-            ResourceTypeService resourceTypeService =
-                new ResourceTypeServiceImpl(resourceTypeRepository);
-            new ServiceBinder(vertx.getDelegate())
+            ResourceTypeService resourceTypeService = new ResourceTypeServiceImpl(resourceTypeRepository);
+            serviceBinder
                 .setAddress("resource-type-service-address")
                 .register(ResourceTypeService.class, resourceTypeService);
 
-            ResourceService resourceService =
-                new ResourceServiceImpl(resourceRepository);
-            new ServiceBinder(vertx.getDelegate())
+            ResourceService resourceService = new ResourceServiceImpl(resourceRepository);
+            serviceBinder
                 .setAddress("resource-service-address")
                 .register(ResourceService.class, resourceService);
 
-            MetricService metricService =
-                new MetricServiceImpl(metricRepository);
-            new ServiceBinder(vertx.getDelegate())
+            MetricService metricService = new MetricServiceImpl(metricRepository);
+            serviceBinder
                 .setAddress("metric-service-address")
                 .register(MetricService.class, metricService);
 
-            MetricValueService metricValueService =
-                    new MetricValueServiceImpl(metricValueRepository);
-            new ServiceBinder(vertx.getDelegate())
+            MetricValueService metricValueService = new MetricValueServiceImpl(metricValueRepository);
+            serviceBinder
                     .setAddress("metric-value-service-address")
                     .register(MetricValueService.class, metricValueService);
 
-            MetricTypeService metricTypeService =
-                    new MetricTypeServiceImpl(metricTypeRepository);
-            new ServiceBinder(vertx.getDelegate())
+            MetricTypeService metricTypeService = new MetricTypeServiceImpl(metricTypeRepository);
+            serviceBinder
                     .setAddress("metric-type-service-address")
                     .register(MetricTypeService.class, metricTypeService);
 
-            ReservationService reservationService =
-                    new ReservationServiceImpl(reservationRepository);
-            new ServiceBinder(vertx.getDelegate())
+            RuntimeService runtimeService = new RuntimeServiceImpl(runtimeRepository);
+            serviceBinder
+                .setAddress("runtime-service-address")
+                .register(RuntimeService.class, runtimeService);
+
+            FunctionService functionService = new FunctionServiceImpl(functionRepository);
+            serviceBinder
+                .setAddress("function-service-address")
+                .register(FunctionService.class, functionService);
+
+            FunctionResourceService functionResourceService =
+                new FunctionResourceServiceImpl(functionResourceRepository);
+            serviceBinder
+                .setAddress("function-resource-service-address")
+                .register(FunctionResourceService.class, functionResourceService);
+
+            ReservationService reservationService = new ReservationServiceImpl(reservationRepository);
+            serviceBinder
                     .setAddress("reservation-service-address")
                     .register(ReservationService.class, reservationService);
 
             ResourceReservationService resourceReservationService =
-                    new ResourceReservationServiceImpl(resourceReservationRepository);
-            new ServiceBinder(vertx.getDelegate())
+                new ResourceReservationServiceImpl(resourceReservationRepository);
+            serviceBinder
                     .setAddress("resource-reservation-service-address")
                     .register(ResourceReservationService.class, resourceReservationService);
             emitter.onComplete();
