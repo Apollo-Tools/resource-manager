@@ -583,7 +583,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Runtimes"
+                  $ref: "#/components/schemas/Runtime"
         500:
           $ref: "#/components/responses/500"
 
@@ -681,7 +681,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Functions"
+                  $ref: "#/components/schemas/Function"
         500:
           $ref: "#/components/responses/500"
 
