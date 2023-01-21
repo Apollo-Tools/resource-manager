@@ -397,7 +397,7 @@ public class MetricValueHandlerTest {
         long metricId = 1L;
 
         when(rc.pathParam("resourceId")).thenReturn(String.valueOf(resourceId));
-        when(rc.pathParam("metricId")).thenReturn(String.valueOf(resourceId));
+        when(rc.pathParam("metricId")).thenReturn(String.valueOf(metricId));
         when(metricService.existsOneById(metricId)).thenReturn(Single.just(false));
         when(resourceService.existsOneById(resourceId)).thenReturn(Single.just(true));
         when(metricValueService.existsOneByResourceAndMetric(resourceId, metricId)).thenReturn(Single.just(true));
@@ -417,7 +417,7 @@ public class MetricValueHandlerTest {
         long metricId = 1L;
 
         when(rc.pathParam("resourceId")).thenReturn(String.valueOf(resourceId));
-        when(rc.pathParam("metricId")).thenReturn(String.valueOf(resourceId));
+        when(rc.pathParam("metricId")).thenReturn(String.valueOf(metricId));
         when(metricService.existsOneById(metricId)).thenReturn(Single.just(true));
         when(resourceService.existsOneById(resourceId)).thenReturn(Single.just(false));
         when(metricValueService.existsOneByResourceAndMetric(resourceId, metricId)).thenReturn(Single.just(true));
@@ -437,7 +437,7 @@ public class MetricValueHandlerTest {
         long metricId = 1L;
 
         when(rc.pathParam("resourceId")).thenReturn(String.valueOf(resourceId));
-        when(rc.pathParam("metricId")).thenReturn(String.valueOf(resourceId));
+        when(rc.pathParam("metricId")).thenReturn(String.valueOf(metricId));
         when(metricService.existsOneById(metricId)).thenReturn(Single.just(true));
         when(resourceService.existsOneById(resourceId)).thenReturn(Single.just(true));
         when(metricValueService.existsOneByResourceAndMetric(resourceId, metricId)).thenReturn(Single.just(false));
@@ -482,7 +482,7 @@ public class MetricValueHandlerTest {
     }
 
     @Test
-    void checkAddMetricsResourceExistsResourceNotExists(VertxTestContext testContext) {
+    void checkAddMetricsResourceExistsMetricNotExists(VertxTestContext testContext) {
         JsonObject value1 = new JsonObject("{\"metricId\": 1, \"value\": 4}");
         JsonArray requestBody = new JsonArray(List.of(value1));
         long resourceId = 1L;

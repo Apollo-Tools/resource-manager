@@ -49,7 +49,7 @@ public class FunctionResourceHandler extends ValidationHandler {
         return HttpHelper.getLongPathParam(rc, "id")
             .flatMap(id -> functionChecker.checkExistsOne(id)
                 .andThen(Single.just(id)))
-            .flatMapCompletable(id -> checkAddResourcesExists(requestBody, id)
+            .flatMapCompletable(id -> checkAddResourcesExist(requestBody, id)
                 .flatMapCompletable(functionResources -> {
                     JsonArray functionResourcesJson = Json.encodeToBuffer(functionResources)
                         .toJsonArray();
@@ -68,7 +68,7 @@ public class FunctionResourceHandler extends ValidationHandler {
         return HttpHelper.getLongPathParam(rc, "functionId")
             .flatMap(functionId -> HttpHelper.getLongPathParam(rc, "resourceId")
                 .map(resourceId -> Map.of("functionId", functionId, "resourceId", resourceId))
-                .flatMap(ids -> checkUpdateDeleteFunctionResourceExists(ids.get("functionId"), ids.get("resourceId"))
+                .flatMap(ids -> checkDeleteFunctionResourceExists(ids.get("functionId"), ids.get("resourceId"))
                     .andThen(Single.just(ids))
                 ))
             .flatMapCompletable(ids -> functionResourceChecker.submitDeleteFunctionResource(
@@ -76,7 +76,7 @@ public class FunctionResourceHandler extends ValidationHandler {
     }
 
 
-    protected Single<List<FunctionResource>> checkAddResourcesExists(JsonArray requestBody, long functionId) {
+    protected Single<List<FunctionResource>> checkAddResourcesExist(JsonArray requestBody, long functionId) {
         List<FunctionResource> functionResources = new ArrayList<>();
         List<Completable> completables = checkAddResourcesList(requestBody, functionId, functionResources);
         return Completable.merge(completables)
@@ -103,7 +103,7 @@ public class FunctionResourceHandler extends ValidationHandler {
         return completables;
     }
 
-    protected Completable checkUpdateDeleteFunctionResourceExists(long functionId, long resourceId) {
+    protected Completable checkDeleteFunctionResourceExists(long functionId, long resourceId) {
         return Completable.mergeArray(
             functionChecker.checkExistsOne(functionId),
             resourceChecker.checkExistsOne(resourceId),

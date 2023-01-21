@@ -7,6 +7,7 @@ import at.uibk.dps.rm.entity.dto.slo.SLOValue;
 import at.uibk.dps.rm.entity.dto.slo.SLOValueType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.*;
+import at.uibk.dps.rm.entity.model.Runtime;
 import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
@@ -251,5 +252,31 @@ public class TestObjectProvider {
             reservation, true);
         return List.of(JsonObject.mapFrom(resourceReservation1), JsonObject.mapFrom(resourceReservation2),
             JsonObject.mapFrom(resourceReservation3));
+    }
+
+    public static Runtime createRuntime(long runtimeId, String name) {
+        Runtime runtime = new Runtime();
+        runtime.setRuntimeId(runtimeId);
+        runtime.setName(name);
+        return runtime;
+    }
+
+    public static Function createFunction(long functionId, String code) {
+        Function function = new Function();
+        function.setFunctionId(functionId);
+        Runtime runtime = createRuntime(11L, "python3.9");
+        function.setRuntime(runtime);
+        function.setCode(code);
+        return function;
+    }
+
+    public static FunctionResource createFunctionResource(long id, Function function, boolean isDeployed) {
+        FunctionResource functionResource = new FunctionResource();
+        functionResource.setFunctionResourceId(id);
+        functionResource.setFunction(function);
+        Resource resource = createResource(33L);
+        functionResource.setResource(resource);
+        functionResource.setIsDeployed(isDeployed);
+        return functionResource;
     }
 }
