@@ -7,6 +7,7 @@ import at.uibk.dps.rm.service.database.ServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 
 @ProxyGen
@@ -20,4 +21,8 @@ public interface FunctionResourceService extends ServiceInterface {
     static FunctionResourceService createProxy(Vertx vertx, String address) {
         return new FunctionResourceServiceVertxEBProxy(vertx, address);
     }
+
+    Future<Boolean> existsOneByFunctionAndResource(long functionId, long resourceId);
+
+    Future<Void> deleteByFunctionAndResource(long functionId, long resourceId);
 }

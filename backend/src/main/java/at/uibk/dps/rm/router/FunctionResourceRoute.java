@@ -9,7 +9,8 @@ public class FunctionResourceRoute {
 
     public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         FunctionResourceHandler functionResourceHandler = new FunctionResourceHandler(
-            serviceProxyProvider.getFunctionResourceService());
+            serviceProxyProvider.getFunctionResourceService(), serviceProxyProvider.getFunctionService(),
+            serviceProxyProvider.getResourceService());
         RequestHandler functionResourceRequestHandler = new RequestHandler(functionResourceHandler);
 
         router

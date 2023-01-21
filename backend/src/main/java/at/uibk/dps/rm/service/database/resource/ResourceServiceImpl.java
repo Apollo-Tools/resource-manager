@@ -76,6 +76,13 @@ public class ResourceServiceImpl extends ServiceProxy<Resource> implements Resou
             .map(this::encodeResourceList);
     }
 
+    @Override
+    public Future<JsonArray> findAllByFunctionId(long functionId) {
+        return Future
+            .fromCompletionStage(resourceRepository.findAllByFunctionIdAndFetch(functionId))
+            .map(this::encodeResourceList);
+    }
+
     private JsonArray encodeResourceList(List<Resource> resourceList) {
         ArrayList<JsonObject> objects = new ArrayList<>();
         for (Resource resource: resourceList) {

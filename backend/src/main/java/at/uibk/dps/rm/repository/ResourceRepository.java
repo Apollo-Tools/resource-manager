@@ -88,4 +88,18 @@ public class ResourceRepository extends Repository<Resource> {
                 .getSingleResultOrNull()
         );
     }
+
+    public CompletionStage<List<Resource>> findAllByFunctionIdAndFetch(long functionId) {
+        return this.sessionFactory.withSession(session ->
+            session.createQuery("select distinct r from FunctionResource fr " +
+                    "left join fr.function f " +
+                    "left join fr.resource r " +
+                    "left join fetch r.resourceType " +
+                    "left join fetch r.metricValues mv " +
+                    "left join fetch mv.metric " +
+                    "where f.functionId=:functionId", Resource.class)
+                .setParameter("functionId", functionId)
+                .getResultList()
+        );
+    }
 }

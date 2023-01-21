@@ -34,6 +34,11 @@ public class ResourceChecker extends EntityChecker {
         return ErrorHandler.handleFindAll(findAllByReservationId);
     }
 
+    public Single<JsonArray> checkFindAllByFunction(long id) {
+        Single<JsonArray> findAllByFunction = resourceService.findAllByFunctionId(id);
+        return ErrorHandler.handleFindAll(findAllByFunction);
+    }
+
     public Completable checkOneUsedByResourceType(long resourceTypeId) {
         Single<Boolean> existsOneByResourceType = resourceService.existsOneByResourceType(resourceTypeId);
         return ErrorHandler.handleUsedByOtherEntity(existsOneByResourceType).ignoreElement();

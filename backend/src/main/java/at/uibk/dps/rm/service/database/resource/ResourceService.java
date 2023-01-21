@@ -29,6 +29,8 @@ public interface ResourceService extends ServiceInterface {
 
     Future<JsonArray> findAllByReservationId(long reservationId);
 
+    Future<JsonArray> findAllByFunctionId(long functionId);
+
     Future<Boolean> existsOneByResourceType(long typeId);
 
     Future<Boolean> existsOneAndNotReserved(long id);
