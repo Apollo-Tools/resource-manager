@@ -61,6 +61,7 @@ public class ApiVerticle extends AbstractVerticle {
         MetricRoute.init(routerBuilder, serviceProxyProvider);
         RuntimeRoute.init(routerBuilder, serviceProxyProvider);
         FunctionRoute.init(routerBuilder, serviceProxyProvider);
+        FunctionResourceRoute.init(routerBuilder, serviceProxyProvider);
         ResourceDeploymentRoute.init(routerBuilder, serviceProxyProvider);
         ReservationRoute.init(routerBuilder, serviceProxyProvider);
     }
