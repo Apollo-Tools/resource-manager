@@ -34,7 +34,7 @@ public class MetricServiceImplTest {
     }
 
     @Test
-    void findOneMyMetricExists(VertxTestContext testContext) {
+    void findOneByMetricExists(VertxTestContext testContext) {
         String metric = "testmetric";
         Metric entity = new Metric();
         entity.setMetricId(1L);
@@ -52,7 +52,7 @@ public class MetricServiceImplTest {
     }
 
     @Test
-    void findOneMyMetricNotExists(VertxTestContext testContext) {
+    void findOneByMetricNotExists(VertxTestContext testContext) {
         String metric = "testmetric";
         CompletionStage<Metric> completionStage = CompletionStages.completedFuture(null);
         doReturn(completionStage).when(metricRepository).findByMetric(metric);
