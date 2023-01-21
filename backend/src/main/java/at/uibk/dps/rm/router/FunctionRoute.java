@@ -8,7 +8,8 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 public class FunctionRoute {
 
     public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
-        FunctionHandler functionHandler = new FunctionHandler(serviceProxyProvider.getFunctionService());
+        FunctionHandler functionHandler = new FunctionHandler(serviceProxyProvider.getFunctionService(),
+            serviceProxyProvider.getRuntimeService());
         RequestHandler functionRequestHandler = new RequestHandler(functionHandler);
 
         router

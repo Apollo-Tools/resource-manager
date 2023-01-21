@@ -755,7 +755,13 @@ paths:
                 runtime:
                   type: object
                   required:
-                    - type_id
+                    - runtime_id
+                  additionalProperties: false
+                  properties:
+                    runtime_id:
+                      type: integer
+                      format: int64
+                      example: 1
                 code:
                   type: string
                   minLength: 1
