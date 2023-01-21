@@ -67,6 +67,88 @@ public class ResourceHandlerTest {
         resourceHandler = new ResourceHandler(resourceService, resourceTypeService, metricService, metricValueService);
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"", "true", "false"})
+    void getAllValid(String excludeUnreserved, VertxTestContext testContext) {
+        Resource r1 = TestObjectProvider.createResource(1L);
+        Resource r2 = TestObjectProvider.createResource(2L);
+        Resource r3 = TestObjectProvider.createResource(3L);
+        JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1),
+            JsonObject.mapFrom(r2), JsonObject.mapFrom(r3)));
+
+        ArrayList<String> mockedValues = new ArrayList<>();
+        if (!excludeUnreserved.equals("")) {
+            mockedValues.add(excludeUnreserved);
+        }
+        RoutingContextMockHelper.mockQueryParam(rc, "excludeReserved", mockedValues);
+        if (mockedValues.size() == 0 || excludeUnreserved.equals("false")) {
+            when(resourceService.findAll()).thenReturn(Single.just(resources));
+        } else {
+            when(resourceService.findAllUnreserved()).thenReturn(Single.just(resources));
+        }
+
+        resourceHandler.getAll(rc)
+            .subscribe(result -> testContext.verify(() -> {
+                    assertThat(result.size()).isEqualTo(3);
+                    assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
+                    assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
+                    assertThat(result.getJsonObject(2).getLong("resource_id")).isEqualTo(3L);
+                    testContext.completeNow();
+                }),
+                throwable -> testContext.verify(() -> fail("method did throw exception"))
+            );
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "true", "false"})
+    void getAllEmptyValid(String excludeUnreserved, VertxTestContext testContext) {
+        JsonArray resources = new JsonArray(List.of());
+
+        ArrayList<String> mockedValues = new ArrayList<>();
+        if (!excludeUnreserved.equals("")) {
+            mockedValues.add(excludeUnreserved);
+        }
+        RoutingContextMockHelper.mockQueryParam(rc, "excludeReserved", mockedValues);
+        if (mockedValues.size() == 0 || excludeUnreserved.equals("false")) {
+            when(resourceService.findAll()).thenReturn(Single.just(resources));
+        } else {
+            when(resourceService.findAllUnreserved()).thenReturn(Single.just(resources));
+        }
+
+        resourceHandler.getAll(rc)
+            .subscribe(result -> testContext.verify(() -> {
+                    assertThat(result.size()).isEqualTo(0);
+                    testContext.completeNow();
+                }),
+                throwable -> testContext.verify(() -> fail("method did throw exception"))
+            );
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "true", "false"})
+    void getAllNotFound(String excludeUnreserved, VertxTestContext testContext) {
+        Single<JsonArray> handler = new SingleHelper<JsonArray>().getEmptySingle();
+
+        ArrayList<String> mockedValues = new ArrayList<>();
+        if (!excludeUnreserved.equals("")) {
+            mockedValues.add(excludeUnreserved);
+        }
+        RoutingContextMockHelper.mockQueryParam(rc, "excludeReserved", mockedValues);
+        if (mockedValues.size() == 0 || excludeUnreserved.equals("false")) {
+            when(resourceService.findAll()).thenReturn(handler);
+        } else {
+            when(resourceService.findAllUnreserved()).thenReturn(handler);
+        }
+
+        resourceHandler.getAll(rc)
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(NotFoundException.class);
+                    testContext.completeNow();
+                })
+            );
+    }
+
     @Test
     void postOneValid(VertxTestContext testContext) {
         JsonObject jsonObject = new JsonObject("{\"resource_type\": {\"type_id\": 1}, \"is_self_managed\": false}");

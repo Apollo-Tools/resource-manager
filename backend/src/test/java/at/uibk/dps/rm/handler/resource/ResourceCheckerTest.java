@@ -41,6 +41,60 @@ public class ResourceCheckerTest {
     }
 
     @Test
+    void checkFindAllUnreservedFound(VertxTestContext testContext) {
+        Resource resource1 = TestObjectProvider.createResource(1L);
+        Resource resource2 = TestObjectProvider.createResource(2L);
+        Resource resource3 = TestObjectProvider.createResource(3L);
+        JsonArray resourcesJson = new JsonArray(List.of(JsonObject.mapFrom(resource1), JsonObject.mapFrom(resource2),
+            JsonObject.mapFrom(resource3)));
+
+        when(resourceService.findAllUnreserved()).thenReturn(Single.just(resourcesJson));
+
+        resourceChecker.checkFindAllUnreserved()
+            .subscribe(result -> testContext.verify(() -> {
+                    assertThat(result.size()).isEqualTo(3);
+                    assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
+                    assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
+                    assertThat(result.getJsonObject(2).getLong("resource_id")).isEqualTo(3L);
+                    verify(resourceService).findAllUnreserved();
+                    testContext.completeNow();
+                }),
+                throwable -> testContext.verify(() -> fail("method did throw exception " + throwable.getMessage()))
+            );
+    }
+
+    @Test
+    void checkFindAllUnreservedEmpty(VertxTestContext testContext) {
+        JsonArray resourcesJson = new JsonArray(List.of());
+
+        when(resourceService.findAllUnreserved()).thenReturn(Single.just(resourcesJson));
+
+        resourceChecker.checkFindAllUnreserved()
+            .subscribe(result -> testContext.verify(() -> {
+                    assertThat(result.size()).isEqualTo(0);
+                    verify(resourceService).findAllUnreserved();
+                    testContext.completeNow();
+                }),
+                throwable -> testContext.verify(() -> fail("method did throw exception " + throwable.getMessage()))
+            );
+    }
+
+    @Test
+    void checkFindAllUnreservedNotFound(VertxTestContext testContext) {
+        Single<JsonArray> handler = new SingleHelper<JsonArray>().getEmptySingle();
+
+        when(resourceService.findAllUnreserved()).thenReturn(handler);
+
+        resourceChecker.checkFindAllUnreserved()
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(NotFoundException.class);
+                    testContext.completeNow();
+                })
+            );
+    }
+
+    @Test
     void checkFindAllByMultipleMetricsFound(VertxTestContext testContext) {
         Resource resource1 = TestObjectProvider.createResource(1L);
         Resource resource2 = TestObjectProvider.createResource(2L);
@@ -65,6 +119,23 @@ public class ResourceCheckerTest {
     }
 
     @Test
+    void checkFindAllByMultipleMetricsEmpty(VertxTestContext testContext) {
+        JsonArray resourcesJson = new JsonArray(List.of());
+        List<String> metrics = List.of("availability", "bandwidth");
+
+        when(resourceService.findAllByMultipleMetrics(metrics)).thenReturn(Single.just(resourcesJson));
+
+        resourceChecker.checkFindAllByMultipleMetrics(metrics)
+            .subscribe(result -> testContext.verify(() -> {
+                    assertThat(result.size()).isEqualTo(0);
+                    verify(resourceService).findAllByMultipleMetrics(metrics);
+                    testContext.completeNow();
+                }),
+                throwable -> testContext.verify(() -> fail("method did throw exception " + throwable.getMessage()))
+            );
+    }
+
+    @Test
     void checkFindAllByMultipleMetricsNotFound(VertxTestContext testContext) {
         List<String> metrics = List.of("availability", "bandwidth");
         Single<JsonArray> handler = new SingleHelper<JsonArray>().getEmptySingle();
@@ -72,6 +143,120 @@ public class ResourceCheckerTest {
         when(resourceService.findAllByMultipleMetrics(metrics)).thenReturn(handler);
 
         resourceChecker.checkFindAllByMultipleMetrics(metrics)
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(NotFoundException.class);
+                    testContext.completeNow();
+                })
+            );
+    }
+
+    @Test
+    void checkFindAllByReservationIdFound(VertxTestContext testContext) {
+        long reservationId = 1L;
+        Resource resource1 = TestObjectProvider.createResource(1L);
+        Resource resource2 = TestObjectProvider.createResource(2L);
+        Resource resource3 = TestObjectProvider.createResource(3L);
+        JsonArray resourcesJson = new JsonArray(List.of(JsonObject.mapFrom(resource1), JsonObject.mapFrom(resource2),
+            JsonObject.mapFrom(resource3)));
+
+        when(resourceService.findAllByReservationId(reservationId)).thenReturn(Single.just(resourcesJson));
+
+        resourceChecker.checkFindAllByReservationId(reservationId)
+            .subscribe(result -> testContext.verify(() -> {
+                    assertThat(result.size()).isEqualTo(3);
+                    assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
+                    assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
+                    assertThat(result.getJsonObject(2).getLong("resource_id")).isEqualTo(3L);
+                    verify(resourceService).findAllByReservationId(reservationId);
+                    testContext.completeNow();
+                }),
+                throwable -> testContext.verify(() -> fail("method did throw exception " + throwable.getMessage()))
+            );
+    }
+
+    @Test
+    void checkFindAllByReservationIdEmpty(VertxTestContext testContext) {
+        long reservationId = 1L;
+        JsonArray resourcesJson = new JsonArray(List.of());
+
+        when(resourceService.findAllByReservationId(reservationId)).thenReturn(Single.just(resourcesJson));
+
+        resourceChecker.checkFindAllByReservationId(reservationId)
+            .subscribe(result -> testContext.verify(() -> {
+                    assertThat(result.size()).isEqualTo(0);
+                    verify(resourceService).findAllByReservationId(reservationId);
+                    testContext.completeNow();
+                }),
+                throwable -> testContext.verify(() -> fail("method did throw exception " + throwable.getMessage()))
+            );
+    }
+
+    @Test
+    void checkFindAllByMultipleReservationIdNotFound(VertxTestContext testContext) {
+        long reservationId = 1L;
+        Single<JsonArray> handler = new SingleHelper<JsonArray>().getEmptySingle();
+
+        when(resourceService.findAllByReservationId(reservationId)).thenReturn(handler);
+
+        resourceChecker.checkFindAllByReservationId(reservationId)
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(NotFoundException.class);
+                    testContext.completeNow();
+                })
+            );
+    }
+
+    @Test
+    void checkFindAllByFunctionIdFound(VertxTestContext testContext) {
+        long functionId = 1L;
+        Resource resource1 = TestObjectProvider.createResource(1L);
+        Resource resource2 = TestObjectProvider.createResource(2L);
+        Resource resource3 = TestObjectProvider.createResource(3L);
+        JsonArray resourcesJson = new JsonArray(List.of(JsonObject.mapFrom(resource1), JsonObject.mapFrom(resource2),
+            JsonObject.mapFrom(resource3)));
+
+        when(resourceService.findAllByFunctionId(functionId)).thenReturn(Single.just(resourcesJson));
+
+        resourceChecker.checkFindAllByFunction(functionId)
+            .subscribe(result -> testContext.verify(() -> {
+                    assertThat(result.size()).isEqualTo(3);
+                    assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
+                    assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
+                    assertThat(result.getJsonObject(2).getLong("resource_id")).isEqualTo(3L);
+                    verify(resourceService).findAllByFunctionId(functionId);
+                    testContext.completeNow();
+                }),
+                throwable -> testContext.verify(() -> fail("method did throw exception " + throwable.getMessage()))
+            );
+    }
+
+    @Test
+    void checkFindAllByReservationEmpty(VertxTestContext testContext) {
+        long functionId = 1L;
+        JsonArray resourcesJson = new JsonArray(List.of());
+
+        when(resourceService.findAllByFunctionId(functionId)).thenReturn(Single.just(resourcesJson));
+
+        resourceChecker.checkFindAllByFunction(functionId)
+            .subscribe(result -> testContext.verify(() -> {
+                    assertThat(result.size()).isEqualTo(0);
+                    verify(resourceService).findAllByFunctionId(functionId);
+                    testContext.completeNow();
+                }),
+                throwable -> testContext.verify(() -> fail("method did throw exception " + throwable.getMessage()))
+            );
+    }
+
+    @Test
+    void checkFindAllByMultipleReservationNotFound(VertxTestContext testContext) {
+        long functionId = 1L;
+        Single<JsonArray> handler = new SingleHelper<JsonArray>().getEmptySingle();
+
+        when(resourceService.findAllByFunctionId(functionId)).thenReturn(handler);
+
+        resourceChecker.checkFindAllByFunction(functionId)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);

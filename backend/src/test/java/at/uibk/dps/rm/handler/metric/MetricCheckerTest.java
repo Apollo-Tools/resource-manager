@@ -25,8 +25,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.verify;
@@ -282,11 +280,15 @@ public class MetricCheckerTest {
             );
     }
 
-    @Test
-    void checkAddMetricValueSetCorrectlyNumber(VertxTestContext testContext) {
+    @ParameterizedTest
+    @CsvSource({
+        "true, 0.0",
+        "false, 4.0"
+    })
+    void checkAddMetricValueSetCorrectlyNumber(boolean isMonitored, double result, VertxTestContext testContext) {
         long metricId = 1;
         MetricType metricType = TestObjectProvider.createMetricType(1L, "number");
-        Metric metric = TestObjectProvider.createMetric(metricId, "availability", metricType, false);
+        Metric metric = TestObjectProvider.createMetric(metricId, "availability", metricType, isMonitored);
         JsonObject requestBody = new JsonObject("{\"metricId\": 1, \"value\": 4}");
         MetricValue metricValue = new MetricValue();
 
@@ -297,15 +299,19 @@ public class MetricCheckerTest {
                 throwable -> testContext.verify(() -> fail("method did throw exception"))
             );
 
-        assertThat(metricValue.getValueNumber()).isEqualTo(new BigDecimal("4.0"));
+        assertThat(metricValue.getValueNumber().doubleValue()).isEqualTo(result);
         testContext.completeNow();
     }
 
-    @Test
-    void checkAddMetricValueSetCorrectlyString(VertxTestContext testContext) {
+    @ParameterizedTest
+    @CsvSource({
+        "true, ''",
+        "false, four"
+    })
+    void checkAddMetricValueSetCorrectlyString(boolean isMonitored, String result, VertxTestContext testContext) {
         long metricId = 1;
         MetricType metricType = TestObjectProvider.createMetricType(1L, "string");
-        Metric metric = TestObjectProvider.createMetric(metricId, "availability", metricType, false);
+        Metric metric = TestObjectProvider.createMetric(metricId, "availability", metricType, isMonitored);
         JsonObject requestBody = new JsonObject("{\"metricId\": 1, \"value\": \"four\"}");
         MetricValue metricValue = new MetricValue();
 
@@ -316,15 +322,19 @@ public class MetricCheckerTest {
                 throwable -> testContext.verify(() -> fail("method did throw exception"))
             );
 
-        assertThat(metricValue.getValueString()).isEqualTo("four");
+        assertThat(metricValue.getValueString()).isEqualTo(result);
         testContext.completeNow();
     }
 
-    @Test
-    void checkAddMetricValueSetCorrectlyBoolean(VertxTestContext testContext) {
+    @ParameterizedTest
+    @CsvSource({
+        "true, false",
+        "false, true"
+    })
+    void checkAddMetricValueSetCorrectlyBoolean(boolean isMonitored, boolean result, VertxTestContext testContext) {
         long metricId = 1;
         MetricType metricType = TestObjectProvider.createMetricType(1L, "boolean");
-        Metric metric = TestObjectProvider.createMetric(metricId, "availability", metricType, false);
+        Metric metric = TestObjectProvider.createMetric(metricId, "availability", metricType, isMonitored);
         JsonObject requestBody = new JsonObject("{\"metricId\": 1, \"value\": true}");
         MetricValue metricValue = new MetricValue();
 
@@ -335,7 +345,7 @@ public class MetricCheckerTest {
                 throwable -> testContext.verify(() -> fail("method did throw exception"))
             );
 
-        assertThat(metricValue.getValueBool()).isEqualTo(true);
+        assertThat(metricValue.getValueBool()).isEqualTo(result);
         testContext.completeNow();
     }
 

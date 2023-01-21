@@ -208,6 +208,64 @@ public class ReservationHandlerTest {
     }
 
     @Test
+    void getAllValid(VertxTestContext testContext) {
+        Account account = TestObjectProvider.createAccount(1L);
+        Reservation r1 = TestObjectProvider.createReservation(1L, true, account);
+        Reservation r2 = TestObjectProvider.createReservation(2L, true, account);
+        Reservation r3 = TestObjectProvider.createReservation(3L, true, account);
+        JsonArray reservations = new JsonArray(List.of(JsonObject.mapFrom(r1),
+            JsonObject.mapFrom(r2), JsonObject.mapFrom(r3)));
+
+        RoutingContextMockHelper.mockUserPrincipal(rc, account);
+        when(reservationService.findAllByAccountId(account.getAccountId())).thenReturn(Single.just(reservations));
+
+        reservationHandler.getAll(rc)
+            .subscribe(result -> testContext.verify(() -> {
+                    assertThat(result.size()).isEqualTo(3);
+                    assertThat(result.getJsonObject(0).getLong("reservation_id")).isEqualTo(1L);
+                    assertThat(result.getJsonObject(1).getLong("reservation_id")).isEqualTo(2L);
+                    assertThat(result.getJsonObject(2).getLong("reservation_id")).isEqualTo(3L);
+                    testContext.completeNow();
+                }),
+                throwable -> testContext.verify(() -> fail("method did throw exception"))
+            );
+    }
+
+    @Test
+    void getAllEmptyValid(VertxTestContext testContext) {
+        Account account = TestObjectProvider.createAccount(1L);
+        JsonArray reservations = new JsonArray(List.of());
+
+        RoutingContextMockHelper.mockUserPrincipal(rc, account);
+        when(reservationService.findAllByAccountId(account.getAccountId())).thenReturn(Single.just(reservations));
+
+        reservationHandler.getAll(rc)
+            .subscribe(result -> testContext.verify(() -> {
+                    assertThat(result.size()).isEqualTo(0);
+                    testContext.completeNow();
+                }),
+                throwable -> testContext.verify(() -> fail("method did throw exception"))
+            );
+    }
+
+    @Test
+    void getAllNotFound(VertxTestContext testContext) {
+        Account account = TestObjectProvider.createAccount(1L);
+        Single<JsonArray> handler = new SingleHelper<JsonArray>().getEmptySingle();
+
+        RoutingContextMockHelper.mockUserPrincipal(rc, account);
+        when(reservationService.findAllByAccountId(account.getAccountId())).thenReturn(handler);
+
+        reservationHandler.getAll(rc)
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(NotFoundException.class);
+                    testContext.completeNow();
+                })
+            );
+    }
+
+    @Test
     void postOneValid(VertxTestContext testContext) {
         List<Long> resources = List.of(1L, 2L, 3L, 4L);
         ReserveResourcesRequest request = TestObjectProvider.createReserveResourcesRequest(resources,

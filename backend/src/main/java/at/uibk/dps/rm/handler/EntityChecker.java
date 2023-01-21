@@ -20,7 +20,7 @@ public abstract class EntityChecker {
     }
 
     public Single<JsonArray> checkFindAll() {
-        return service.findAll();
+        return ErrorHandler.handleFindAll(service.findAll());
     }
 
     public Completable checkExistsOne(long id) {

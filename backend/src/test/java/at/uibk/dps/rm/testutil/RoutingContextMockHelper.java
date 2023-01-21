@@ -7,6 +7,8 @@ import io.vertx.rxjava3.ext.auth.User;
 import io.vertx.rxjava3.ext.web.RequestBody;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
+import java.util.List;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -29,5 +31,9 @@ public class RoutingContextMockHelper {
         userPrincipal.put("username", account.getUsername());
         userPrincipal.put("account_id", account.getAccountId());
         when(rc.user()).thenReturn(User.create(userPrincipal));
+    }
+
+    public static void mockQueryParam(RoutingContext rc, String key, List<String> values) {
+        when(rc.queryParam(key)).thenReturn(values);
     }
 }
