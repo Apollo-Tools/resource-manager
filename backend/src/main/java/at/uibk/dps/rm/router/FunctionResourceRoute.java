@@ -2,6 +2,7 @@ package at.uibk.dps.rm.router;
 
 import at.uibk.dps.rm.handler.RequestHandler;
 import at.uibk.dps.rm.handler.function.FunctionResourceHandler;
+import at.uibk.dps.rm.handler.function.FunctionResourceInputHandler;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
@@ -15,6 +16,7 @@ public class FunctionResourceRoute {
 
         router
             .operation("addFunctionResources")
+            .handler(FunctionResourceInputHandler::validateAddFunctionResourceRequest)
             .handler(functionResourceRequestHandler::postAllRequest);
 
         router
