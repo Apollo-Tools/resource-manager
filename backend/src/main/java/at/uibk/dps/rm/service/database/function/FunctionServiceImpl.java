@@ -8,6 +8,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class FunctionServiceImpl extends ServiceProxy<Function> implements FunctionService {
     private final FunctionRepository functionRepository;
@@ -40,15 +41,15 @@ public class FunctionServiceImpl extends ServiceProxy<Function> implements Funct
     @Override
     public Future<Boolean> existsOneByNameAndRuntimeIdExcludeEntity(long excludeId, String name, long runtimeId) {
         return Future
-            .fromCompletionStage(functionRepository.findByNameAndRuntimeId(excludeId, name, runtimeId))
-            .map(result -> !result.isEmpty());
+            .fromCompletionStage(functionRepository.findOneByNameAndRuntimeId(excludeId, name, runtimeId))
+            .map(Objects::nonNull);
     }
 
     @Override
     public Future<Boolean> existsOneByNameAndRuntimeId(String name, long runtimeId) {
         return Future
-            .fromCompletionStage(functionRepository.findByNameAndRuntimeId(name, runtimeId))
-            .map(result -> !result.isEmpty());
+            .fromCompletionStage(functionRepository.findOneByNameAndRuntimeId(name, runtimeId))
+            .map(Objects::nonNull);
     }
 
 }

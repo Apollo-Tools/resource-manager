@@ -20,7 +20,7 @@ public class FunctionRepository extends Repository<Function> {
         );
     }
 
-    public CompletionStage<List<Function>> findByNameAndRuntimeId(long excludeId, String name, long runtimeId) {
+    public CompletionStage<Function> findOneByNameAndRuntimeId(long excludeId, String name, long runtimeId) {
         return sessionFactory.withSession(session -> session.createQuery(
                 "from Function f " +
                     "left join fetch f.runtime r " +
@@ -28,18 +28,18 @@ public class FunctionRepository extends Repository<Function> {
             .setParameter("excludeId", excludeId)
             .setParameter("name", name)
             .setParameter("runtimeId", runtimeId)
-            .getResultList()
+            .getSingleResultOrNull()
         );
     }
 
-    public CompletionStage<List<Function>> findByNameAndRuntimeId(String name, long runtimeId) {
+    public CompletionStage<Function> findOneByNameAndRuntimeId(String name, long runtimeId) {
         return sessionFactory.withSession(session -> session.createQuery(
                 "from Function f " +
                     "left join fetch f.runtime r " +
                     "where f.name=:name and r.runtimeId =:runtimeId", entityClass)
             .setParameter("name", name)
             .setParameter("runtimeId", runtimeId)
-            .getResultList()
+            .getSingleResultOrNull()
         );
     }
 

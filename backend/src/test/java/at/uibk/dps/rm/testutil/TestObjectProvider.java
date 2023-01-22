@@ -261,10 +261,21 @@ public class TestObjectProvider {
         return runtime;
     }
 
-    public static Function createFunction(long functionId, String code) {
+    public static Function createFunction(long functionId, String name, String code) {
         Function function = new Function();
         function.setFunctionId(functionId);
+        function.setName(name);
         Runtime runtime = createRuntime(11L, "python3.9");
+        function.setRuntime(runtime);
+        function.setCode(code);
+        return function;
+    }
+
+    public static Function createFunction(long functionId, String name, String code, long runtimeId) {
+        Function function = new Function();
+        function.setFunctionId(functionId);
+        function.setName(name);
+        Runtime runtime = createRuntime(runtimeId, "python3.9");
         function.setRuntime(runtime);
         function.setCode(code);
         return function;

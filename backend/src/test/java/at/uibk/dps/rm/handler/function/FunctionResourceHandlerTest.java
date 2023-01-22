@@ -61,7 +61,7 @@ public class FunctionResourceHandlerTest {
     @Test
     void getAllValid(VertxTestContext testContext) {
         long functionId = 1L;
-        Function function = TestObjectProvider.createFunction(functionId, "true");
+        Function function = TestObjectProvider.createFunction(functionId, "func","true");
         FunctionResource fr1 = TestObjectProvider.createFunctionResource(1L, function, true);
         FunctionResource fr2 = TestObjectProvider.createFunctionResource(2L, function, true);
         FunctionResource fr3 = TestObjectProvider.createFunctionResource(3L, function, false);

@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler.function;
 
 import at.uibk.dps.rm.entity.model.Function;
+import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.rxjava3.database.function.FunctionService;
 import at.uibk.dps.rm.service.rxjava3.database.function.RuntimeService;
@@ -49,10 +50,14 @@ public class FunctionHandlerTest {
 
     @Test
     void postOneValid(VertxTestContext testContext) {
-        JsonObject jsonObject = new JsonObject("{\"runtime\": {\"runtime_id\": 1}, \"code\": \"x = 10\"}");
+        String name = "func";
+        long runtimeId = 1L;
+        JsonObject jsonObject = new JsonObject("{\"name\": \"" + name + "\", \"runtime\": {\"runtime_id\": "
+            + runtimeId + "}, \"code\": \"x = 10\"}");
 
         RoutingContextMockHelper.mockBody(rc, jsonObject);
         when(runtimeService.existsOneById(1L)).thenReturn(Single.just(true));
+        when(functionService.existsOneByNameAndRuntimeId(name, runtimeId)).thenReturn(Single.just(false));
         when(functionService.save(jsonObject)).thenReturn(Single.just(jsonObject));
 
         functionHandler.postOne(rc)
@@ -67,15 +72,39 @@ public class FunctionHandlerTest {
 
     @Test
     void postOneRuntimeNotFound(VertxTestContext testContext) {
-        JsonObject jsonObject = new JsonObject("{\"runtime\": {\"runtime_id\": 1}, \"code\": \"x = 10\"}");
+        String name = "func";
+        long runtimeId = 1L;
+        JsonObject jsonObject = new JsonObject("{\"name\": \"" + name + "\", \"runtime\": {\"runtime_id\": "
+            + runtimeId + "}, \"code\": \"x = 10\"}");
 
         RoutingContextMockHelper.mockBody(rc, jsonObject);
         when(runtimeService.existsOneById(1L)).thenReturn(Single.just(false));
+        when(functionService.existsOneByNameAndRuntimeId(name, runtimeId)).thenReturn(Single.just(false));
 
         functionHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> fail("method did throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
+                    testContext.completeNow();
+                })
+            );
+    }
+
+    @Test
+    void postOneAlreadyExists(VertxTestContext testContext) {
+        String name = "func";
+        long runtimeId = 1L;
+        JsonObject jsonObject = new JsonObject("{\"name\": \"" + name + "\", \"runtime\": {\"runtime_id\": "
+            + runtimeId + "}, \"code\": \"x = 10\"}");
+
+        RoutingContextMockHelper.mockBody(rc, jsonObject);
+        when(runtimeService.existsOneById(1L)).thenReturn(Single.just(true));
+        when(functionService.existsOneByNameAndRuntimeId(name, runtimeId)).thenReturn(Single.just(true));
+
+        functionHandler.postOne(rc)
+            .subscribe(result -> testContext.verify(() -> fail("method did throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
                     testContext.completeNow();
                 })
             );
