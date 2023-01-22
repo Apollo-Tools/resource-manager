@@ -37,4 +37,18 @@ public class FunctionServiceImpl extends ServiceProxy<Function> implements Funct
             });
     }
 
+    @Override
+    public Future<Boolean> existsOneByNameAndRuntimeIdExcludeEntity(long excludeId, String name, long runtimeId) {
+        return Future
+            .fromCompletionStage(functionRepository.findByNameAndRuntimeId(excludeId, name, runtimeId))
+            .map(result -> !result.isEmpty());
+    }
+
+    @Override
+    public Future<Boolean> existsOneByNameAndRuntimeId(String name, long runtimeId) {
+        return Future
+            .fromCompletionStage(functionRepository.findByNameAndRuntimeId(name, runtimeId))
+            .map(result -> !result.isEmpty());
+    }
+
 }

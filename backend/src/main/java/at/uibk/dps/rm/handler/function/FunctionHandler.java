@@ -11,10 +11,13 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
 
 public class FunctionHandler extends ValidationHandler {
 
+    private final FunctionChecker functionChecker;
+
     private final RuntimeChecker runtimeChecker;
 
     public FunctionHandler(FunctionService functionService, RuntimeService runtimeService) {
         super(new FunctionChecker(functionService));
+        functionChecker = (FunctionChecker) super.entityChecker;
         runtimeChecker = new RuntimeChecker(runtimeService);
     }
 
@@ -24,6 +27,7 @@ public class FunctionHandler extends ValidationHandler {
         return runtimeChecker.checkExistsOne(requestBody
                 .getJsonObject("runtime")
                 .getLong("runtime_id"))
+            .andThen(entityChecker.checkForDuplicateEntity(requestBody))
             .andThen(Single.defer(() -> Single.just(1L)))
             .flatMap(result -> entityChecker.submitCreate(requestBody));
     }
@@ -34,6 +38,7 @@ public class FunctionHandler extends ValidationHandler {
         return HttpHelper.getLongPathParam(rc, "id")
             .flatMap(entityChecker::checkFindOne)
             .flatMap(result -> checkUpdateRuntimeExists(requestBody, result))
+            .flatMap(result -> functionChecker.checkUpdateNoDuplicate(requestBody, result))
             .flatMapCompletable(result -> entityChecker.submitUpdate(requestBody, result));
     }
 

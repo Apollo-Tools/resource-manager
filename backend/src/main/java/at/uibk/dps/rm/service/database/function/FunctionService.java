@@ -25,4 +25,8 @@ public interface FunctionService extends ServiceInterface {
     Future<JsonObject> findOne(long id);
 
     Future<JsonArray> findAll();
+
+    Future<Boolean> existsOneByNameAndRuntimeIdExcludeEntity(long excludeId, String name, long runtimeId);
+
+    Future<Boolean> existsOneByNameAndRuntimeId(String name, long runtimeId);
 }

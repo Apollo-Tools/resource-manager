@@ -16,6 +16,8 @@ public class Function {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long functionId;
 
+    private String name;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "runtime_id")
     private Runtime runtime;
