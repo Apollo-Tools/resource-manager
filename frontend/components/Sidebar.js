@@ -7,6 +7,7 @@ import {
   HomeOutlined,
   PlusSquareOutlined,
   GroupOutlined,
+  FunctionOutlined,
 } from '@ant-design/icons';
 import {Layout, Menu} from 'antd';
 import {useAuth} from '../lib/AuthenticationProvider';
@@ -40,12 +41,16 @@ const Sidebar = ({children}) => {
       getItem(<Link href="/resources/resources" ><GroupOutlined /><span>All Resources</span></Link>, '1.1'),
       getItem(<Link href="/resources/new-resource" ><PlusSquareOutlined /><span>New Resource</span></Link>, '1.2'),
     ]),
-    getItem(<><BookOutlined /><span>Reservations</span></>, '2', [
-      getItem(<Link href="/reservations/reservations" ><GroupOutlined /><span>All Reservations</span></Link>, '2.1'),
-      getItem(<Link href="/reservations/new-reservation" ><PlusSquareOutlined /><span>New Reservation</span></Link>, '2.2'),
+    getItem(<><FunctionOutlined /><span>Functions</span></>, '2', [
+      getItem(<Link href="/functions/functions"><GroupOutlined /><span>All Functions</span></Link>, '2.1'),
+      getItem(<Link href="/functions/new-function" ><PlusSquareOutlined /><span>New Function</span></Link>, '2.2'),
     ]),
-    getItem(<Link href="/accounts/profile" ><UserOutlined /><span>Profile</span></Link>, '3'),
-    getItem(<div onClick={onClickLogout}><LogoutOutlined /><span>Logout</span></div>, '4'),
+    getItem(<><BookOutlined /><span>Reservations</span></>, '3', [
+      getItem(<Link href="/reservations/reservations" ><GroupOutlined /><span>All Reservations</span></Link>, '3.1'),
+      getItem(<Link href="/reservations/new-reservation" ><PlusSquareOutlined /><span>New Reservation</span></Link>, '3.2'),
+    ]),
+    getItem(<Link href="/accounts/profile" ><UserOutlined /><span>Profile</span></Link>, '4'),
+    getItem(<div onClick={onClickLogout}><LogoutOutlined /><span>Logout</span></div>, '5'),
   ];
 
   return (

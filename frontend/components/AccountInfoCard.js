@@ -15,7 +15,7 @@ const AccountInfoCard = ({account}) => {
         <Title level={5} className="mt-0.5">Username</Title>
         {account.username}
         <Title level={5}>Created At</Title>
-        <DateFormatter dateString={account.created_at} />
+        <DateFormatter dateTimestamp={account.created_at} />
       </div>
       <div className="basis-full md:basis-1/2">
         <Title level={5} className="mt-0.5">Reset Password</Title>

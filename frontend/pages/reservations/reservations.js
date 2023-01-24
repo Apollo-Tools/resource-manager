@@ -87,7 +87,7 @@ const Reservations = () => {
             defaultSortOrder="ascend"
           />
           <Column title="Created at" dataIndex="created_at" key="created_at"
-            render={(createdAt) => <DateFormatter dateString={createdAt}/>}
+            render={(createdAt) => <DateFormatter dateTimestamp={createdAt}/>}
             sorter={(a, b) => a.created_at - b.created_at}
           />
           <Column title="Action at" key="action"

@@ -2,21 +2,21 @@ import DateFormatter from './DateFormatter';
 import {Button, Modal, Space, Table} from 'antd';
 import Link from 'next/link';
 import {DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined} from '@ant-design/icons';
-import {deleteResource, listResources} from '../lib/ResourceService';
 import {useAuth} from '../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
+import {deleteFunction, listFunctions} from '../lib/FunctionService';
 
 const {Column} = Table;
 const {confirm} = Modal;
 
-const ResourceTable = () => {
+const FunctionTable = () => {
   const {token, checkTokenExpired} = useAuth();
   const [error, setError] = useState(false);
-  const [resources, setResources] = useState([]);
+  const [functions, setFunctions] = useState([]);
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listResources(false, token, setResources, setError);
+      listFunctions(token, setFunctions, setError);
     }
   }, []);
 
@@ -30,10 +30,10 @@ const ResourceTable = () => {
 
   const onClickDelete = (id) => {
     if (!checkTokenExpired()) {
-      deleteResource(id, token, setError)
+      deleteFunction(id, token, setError)
           .then((result) => {
             if (result) {
-              setResources(resources.filter((resource) => resource.resource_id !== id));
+              setFunctions(functions.filter((func) => func.function_id !== id));
             }
           });
     }
@@ -43,7 +43,7 @@ const ResourceTable = () => {
     confirm({
       title: 'Confirmation',
       icon: <ExclamationCircleFilled />,
-      content: 'Are you sure you want to delete this resource?',
+      content: 'Are you sure you want to delete this function?',
       okText: 'Yes',
       okType: 'danger',
       cancelText: 'No',
@@ -54,18 +54,19 @@ const ResourceTable = () => {
   };
 
   return (
-    <Table dataSource={resources} rowKey={(record) => record.resource_id}>
-      <Column title="Id" dataIndex="resource_id" key="id"
-        sorter={(a, b) => a.resource_id - b.resource_id}
+    <Table dataSource={functions} rowKey={(record) => record.function_id}>
+      <Column title="Id" dataIndex="function_id" key="id"
+        sorter={(a, b) => a.function_id - b.function_id}
         defaultSortOrder="ascend"
       />
-      <Column title="Type" dataIndex="resource_type" key="resource_type"
-        render={(resourceType) => resourceType.resource_type}
+      <Column title="Name" dataIndex="name" key="name"
         sorter={(a, b) =>
-          a.resource_type.resource_type.localeCompare(b.resource_type.resource_type)}
+          a.name.localeCompare(b.name)}
       />
-      <Column title="Self managed" dataIndex="is_self_managed" key="is_self_managed"
-        render={(isSelfManaged) => isSelfManaged.toString()}
+      <Column title="Runtime" dataIndex="runtime" key="runtime"
+        render={(runtime) => runtime.name}
+        sorter={(a, b) =>
+          a.runtime.name.localeCompare(b.runtime.name)}
       />
       <Column title="Created at" dataIndex="created_at" key="created_at"
         render={(createdAt) => <DateFormatter dateTimestamp={createdAt}/>}
@@ -74,10 +75,10 @@ const ResourceTable = () => {
       <Column title="Actions" key="action"
         render={(_, record) => (
           <Space size="middle">
-            <Link href={`/resources/${record.resource_id}`}>
+            <Link href={`/functions/${record.function_id}`}>
               <Button icon={<InfoCircleOutlined />}/>
             </Link>
-            <Button onClick={() => showDeleteConfirm(record.resource_id)} icon={<DeleteOutlined />}/>
+            <Button onClick={() => showDeleteConfirm(record.function_id)} icon={<DeleteOutlined />}/>
           </Space>
         )}
       />
@@ -85,4 +86,4 @@ const ResourceTable = () => {
   );
 };
 
-export default ResourceTable;
+export default FunctionTable;

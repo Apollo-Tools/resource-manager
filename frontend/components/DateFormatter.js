@@ -1,14 +1,13 @@
 import PropTypes from 'prop-types';
 import {format} from 'date-fns';
 
-const DateFormatter = ({dateString}) => {
-  return <time dateTime={
-    dateString}>{format(new Date(dateString), 'yyyy-MM-dd')}
+const DateFormatter = ({dateTimestamp}) => {
+  return <time dateTime={dateTimestamp}>{format(new Date(dateTimestamp), 'yyyy-MM-dd')}
   </time>;
 };
 
 DateFormatter.propTypes = {
-  dateString: PropTypes.string,
+  dateTimestamp: PropTypes.number,
 };
 
 export default DateFormatter;

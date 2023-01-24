@@ -57,11 +57,11 @@ const MetricValuesTable = ({resourceId, metricValues, setMetricValues}) => {
       />
       <Column title="Value" dataIndex="value" key="is_monitored" />
       <Column title="Created at" dataIndex="created_at" key="created_at"
-        render={(createdAt) => <DateFormatter dateString={createdAt}/>}
+        render={(createdAt) => <DateFormatter dateTimestamp={createdAt}/>}
         sorter={(a, b) => a.created_at - b.created_at}
       />
       <Column title="Modified at" dataIndex="updated_at" key="updated_at"
-        render={(updatedAt) => <DateFormatter dateString={updatedAt}/>}
+        render={(updatedAt) => <DateFormatter dateTimestamp={updatedAt}/>}
         sorter={(a, b) => a.updated_at - b.updated_at}
       />
       <Column title="Actions" key="action"
