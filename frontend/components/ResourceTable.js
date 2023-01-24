@@ -1,58 +1,16 @@
 import DateFormatter from './DateFormatter';
-import {Button, Modal, Space, Table} from 'antd';
+import {Button, Space, Table} from 'antd';
 import Link from 'next/link';
-import {DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined} from '@ant-design/icons';
-import {deleteResource, listResources} from '../lib/ResourceService';
-import {useAuth} from '../lib/AuthenticationProvider';
-import {useEffect, useState} from 'react';
+import {DeleteOutlined, InfoCircleOutlined} from '@ant-design/icons';
+import PropTypes from 'prop-types';
 
 const {Column} = Table;
-const {confirm} = Modal;
 
-const ResourceTable = () => {
-  const {token, checkTokenExpired} = useAuth();
-  const [error, setError] = useState(false);
-  const [resources, setResources] = useState([]);
-
-  useEffect(() => {
-    if (!checkTokenExpired()) {
-      listResources(false, token, setResources, setError);
-    }
-  }, []);
-
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
-
-  const onClickDelete = (id) => {
-    if (!checkTokenExpired()) {
-      deleteResource(id, token, setError)
-          .then((result) => {
-            if (result) {
-              setResources(resources.filter((resource) => resource.resource_id !== id));
-            }
-          });
-    }
-  };
-
-  const showDeleteConfirm = (id) => {
-    confirm({
-      title: 'Confirmation',
-      icon: <ExclamationCircleFilled />,
-      content: 'Are you sure you want to delete this resource?',
-      okText: 'Yes',
-      okType: 'danger',
-      cancelText: 'No',
-      onOk() {
-        onClickDelete(id);
-      },
-    });
-  };
-
+const ResourceTable = ({
+  resources,
+  onDelete,
+  hasActions,
+}) => {
   return (
     <Table dataSource={resources} rowKey={(record) => record.resource_id}>
       <Column title="Id" dataIndex="resource_id" key="id"
@@ -71,18 +29,25 @@ const ResourceTable = () => {
         render={(createdAt) => <DateFormatter dateTimestamp={createdAt}/>}
         sorter={(a, b) => a.created_at - b.created_at}
       />
-      <Column title="Actions" key="action"
+      {hasActions && (<Column title="Actions" key="action"
         render={(_, record) => (
           <Space size="middle">
             <Link href={`/resources/${record.resource_id}`}>
               <Button icon={<InfoCircleOutlined />}/>
             </Link>
-            <Button onClick={() => showDeleteConfirm(record.resource_id)} icon={<DeleteOutlined />}/>
+            {onDelete && (<Button onClick={() => onDelete(record.resource_id)} icon={<DeleteOutlined />}/>)}
           </Space>
         )}
-      />
+      />)}
     </Table>
   );
 };
+
+ResourceTable.propTypes={
+  resources: PropTypes.array,
+  onDelete: PropTypes.func,
+  hasActions: PropTypes.bool,
+};
+
 
 export default ResourceTable;
