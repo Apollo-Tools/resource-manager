@@ -10,6 +10,7 @@ const AddFunctionResourcesForm = ({
   func,
   excludeResourceIds,
   setFinished,
+  isSkipable,
 }) => {
   const [form] = Form.useForm();
   const {token, checkTokenExpired} = useAuth();
@@ -53,6 +54,10 @@ const AddFunctionResourcesForm = ({
     },
   };
 
+  const onClickSkip = () => {
+    setFinished(true);
+  };
+
   if (resources.length === 0) {
     return (<></>);
   }
@@ -61,7 +66,19 @@ const AddFunctionResourcesForm = ({
     <>
       <Typography.Title level={3}>Add Resources</Typography.Title>
       <ResourceTable resources={resources} hasActions rowSelection={rowSelection}/>
-      <Button disabled={selectedResourceIds.length <= 0 } type="primary" onClick={onClickAdd}>Add Resources</Button>
+      <div className="flex">
+        <Button disabled={selectedResourceIds.length <= 0 } type="primary" onClick={onClickAdd}>
+          Add Resources
+        </Button>
+        <div className="flex-1"/>
+        {isSkipable &&
+          (<div>
+            <Button type="default" onClick={onClickSkip}>
+              Skip
+            </Button>
+          </div>)
+        }
+      </div>
     </>
   );
 };
@@ -70,6 +87,7 @@ AddFunctionResourcesForm.propTypes = {
   func: PropTypes.object.isRequired,
   excludeResourceIds: PropTypes.arrayOf(PropTypes.number.isRequired),
   setFinished: PropTypes.func.isRequired,
+  isSkipable: PropTypes.bool,
 };
 
 export default AddFunctionResourcesForm;

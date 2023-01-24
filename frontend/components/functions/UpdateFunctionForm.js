@@ -4,15 +4,7 @@ import {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import {updateFunction} from '../../lib/FunctionService';
 import CodeMirror from '@uiw/react-codemirror';
-import {python} from '@codemirror/lang-python';
-
-function getEditorExtension(runtimeName) {
-  if (runtimeName.toLowerCase().startsWith('python')) {
-    return python();
-  }
-  return null;
-}
-
+import {getEditorExtension} from '../../lib/CodeEditorService';
 
 const UpdateFunctionForm = ({func, runtimes, reloadFunction}) => {
   const [form] = Form.useForm();
@@ -139,7 +131,6 @@ const UpdateFunctionForm = ({func, runtimes, reloadFunction}) => {
           ]}
         >
           <CodeMirror
-            value="console.log('hello world!');"
             height="200px"
             extensions={editorExtensions}
             onChange={() => setModified(checkIsModified())}
