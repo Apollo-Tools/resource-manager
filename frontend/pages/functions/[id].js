@@ -1,15 +1,17 @@
 import {useRouter} from 'next/router';
 import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
-import {Divider, Segmented, Typography} from 'antd';
+import {Divider, Segmented, Typography, Modal} from 'antd';
 import {getFunction} from '../../lib/FunctionService';
 import {listRuntimes} from '../../lib/RuntimeService';
-import {listFunctionResources} from '../../lib/FunctionResourceService';
+import {deleteFunctionResource, listFunctionResources} from '../../lib/FunctionResourceService';
 import UpdateFunctionForm from '../../components/UpdateFunctionForm';
 import AddFunctionResourcesForm from '../../components/AddFunctionResourcesForm';
 import ResourceTable from '../../components/ResourceTable';
+import {ExclamationCircleFilled} from '@ant-design/icons';
 
-// TODO: add way to update values
+const {confirm} = Modal;
+
 const ResourceDetails = () => {
   const {token, checkTokenExpired} = useAuth();
   const [func, setFunction] = useState('');
@@ -30,7 +32,7 @@ const ResourceDetails = () => {
   }, [id]);
 
   useEffect(() => {
-    if (isFinished) {
+    if (isFinished && !checkTokenExpired()) {
       listFunctionResources(id, token, setFunctionResources, setError)
           .then(() => setFinished(false));
     }
@@ -45,7 +47,36 @@ const ResourceDetails = () => {
   }, [error]);
 
   const reloadFunction = async () => {
-    await getFunction(id, token, setFunction, setError);
+    if (!checkTokenExpired()) {
+      await getFunction(id, token, setFunction, setError);
+    }
+  };
+
+  const onDeleteFunctionResource = (resourceId) => {
+    if (!checkTokenExpired()) {
+      deleteFunctionResource(id, resourceId, token, setError)
+          .then((result) => {
+            if (result) {
+              setFunctionResources((prevResources) => {
+                return prevResources.filter((resource) => resource.resource_id !== resourceId);
+              });
+            }
+          });
+    }
+  };
+
+  const showDeleteConfirm = (id) => {
+    confirm({
+      title: 'Confirmation',
+      icon: <ExclamationCircleFilled />,
+      content: 'Are you sure you want to delete this resource?',
+      okText: 'Yes',
+      okType: 'danger',
+      cancelText: 'No',
+      onOk() {
+        onDeleteFunctionResource(id);
+      },
+    });
   };
 
   return (
@@ -64,7 +95,7 @@ const ResourceDetails = () => {
           <>
             <div>
               {
-                <ResourceTable />
+                <ResourceTable resources={functionResources} hasActions onDelete={showDeleteConfirm} />
               }
             </div>
             <Divider />

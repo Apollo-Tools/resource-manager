@@ -14,7 +14,7 @@ function getEditorExtension(runtimeName) {
 }
 
 
-const UpdateResourceForm = ({func, runtimes, reloadFunction}) => {
+const UpdateFunctionForm = ({func, runtimes, reloadFunction}) => {
   const [form] = Form.useForm();
   const {token, checkTokenExpired} = useAuth();
   const [isModified, setModified] = useState(false);
@@ -161,10 +161,10 @@ const UpdateResourceForm = ({func, runtimes, reloadFunction}) => {
   );
 };
 
-UpdateResourceForm.propTypes = {
+UpdateFunctionForm.propTypes = {
   func: PropTypes.object.isRequired,
   runtimes: PropTypes.arrayOf(PropTypes.object).isRequired,
   reloadFunction: PropTypes.func.isRequired,
 };
 
-export default UpdateResourceForm;
+export default UpdateFunctionForm;

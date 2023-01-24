@@ -10,9 +10,11 @@ const ResourceTable = ({
   resources,
   onDelete,
   hasActions,
+  rowSelection,
 }) => {
   return (
-    <Table dataSource={resources} rowKey={(record) => record.resource_id}>
+    <Table dataSource={resources} rowKey={(record) => record.resource_id} rowSelection={rowSelection}
+      size={'small'}>
       <Column title="Id" dataIndex="resource_id" key="id"
         sorter={(a, b) => a.resource_id - b.resource_id}
         defaultSortOrder="ascend"
@@ -44,9 +46,10 @@ const ResourceTable = ({
 };
 
 ResourceTable.propTypes={
-  resources: PropTypes.array,
+  resources: PropTypes.array.isRequired,
   onDelete: PropTypes.func,
   hasActions: PropTypes.bool,
+  rowSelection: PropTypes.object,
 };
 
 
