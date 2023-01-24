@@ -2,10 +2,10 @@ import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import {listResources} from '../../lib/ResourceService';
 import Head from 'next/head';
-import {siteTitle} from '../../components/Sidebar';
+import {siteTitle} from '../../components/misc/Sidebar';
 import {Button, message, Typography} from 'antd';
 import {reserveResources} from '../../lib/ReservationService';
-import ResourceTable from '../../components/ResourceTable';
+import ResourceTable from '../../components/resources/ResourceTable';
 
 const NewReservation = () => {
   const {token, checkTokenExpired} = useAuth();

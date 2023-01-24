@@ -1,6 +1,6 @@
 import Head from 'next/head';
-import {siteTitle} from '../../components/Sidebar';
-import ResourceTable from '../../components/ResourceTable';
+import {siteTitle} from '../../components/misc/Sidebar';
+import ResourceTable from '../../components/resources/ResourceTable';
 import {Modal, Typography} from 'antd';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {deleteResource, listResources} from '../../lib/ResourceService';

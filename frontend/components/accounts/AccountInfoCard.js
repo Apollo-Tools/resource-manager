@@ -1,4 +1,4 @@
-import DateFormatter from './DateFormatter';
+import DateFormatter from '../misc/DateFormatter';
 import ResetPasswordForm from './ResetPasswordForm';
 import {Typography} from 'antd';
 import PropTypes from 'prop-types';

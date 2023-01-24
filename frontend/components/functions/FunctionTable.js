@@ -1,10 +1,10 @@
-import DateFormatter from './DateFormatter';
+import DateFormatter from '../misc/DateFormatter';
 import {Button, Modal, Space, Table} from 'antd';
 import Link from 'next/link';
 import {DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined} from '@ant-design/icons';
-import {useAuth} from '../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
-import {deleteFunction, listFunctions} from '../lib/FunctionService';
+import {deleteFunction, listFunctions} from '../../lib/FunctionService';
 
 const {Column} = Table;
 const {confirm} = Modal;

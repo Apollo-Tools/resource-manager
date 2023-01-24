@@ -4,10 +4,10 @@ import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {Divider, Segmented, Typography} from 'antd';
 import {listResourceTypes} from '../../lib/ResourceTypeService';
-import UpdateResourceForm from '../../components/UpdateResourceForm';
-import AddMetricValuesForm from '../../components/AddMetricValuesForm';
+import UpdateResourceForm from '../../components/resources/UpdateResourceForm';
+import AddMetricValuesForm from '../../components/metrics/AddMetricValuesForm';
 import {listResourceMetrics} from '../../lib/MetricValueService';
-import MetricValuesTable from '../../components/MetricValuesTable';
+import MetricValuesTable from '../../components/metrics/MetricValuesTable';
 
 // TODO: add way to update values
 const ResourceDetails = () => {

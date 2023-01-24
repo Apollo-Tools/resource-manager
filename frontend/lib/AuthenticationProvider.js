@@ -1,5 +1,5 @@
 import {createContext, useContext, useEffect, useState} from 'react';
-import LoginForm from '../components/LoginForm';
+import LoginForm from '../components/accounts/LoginForm';
 import PropTypes from 'prop-types';
 
 const AuthContext = createContext(null);

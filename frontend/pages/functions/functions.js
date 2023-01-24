@@ -1,7 +1,7 @@
 import Head from 'next/head';
-import {siteTitle} from '../../components/Sidebar';
+import {siteTitle} from '../../components/misc/Sidebar';
 import {Typography} from 'antd';
-import FunctionTable from '../../components/FunctionTable';
+import FunctionTable from '../../components/functions/FunctionTable';
 
 const Functions = () => {
   return (

@@ -10,7 +10,7 @@ import {
   FunctionOutlined,
 } from '@ant-design/icons';
 import {Layout, Menu} from 'antd';
-import {useAuth} from '../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/AuthenticationProvider';
 import Link from 'next/link';
 import PropTypes from 'prop-types';
 const {Content, Footer, Sider} = Layout;

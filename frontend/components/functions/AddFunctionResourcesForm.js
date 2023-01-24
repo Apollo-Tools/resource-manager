@@ -1,10 +1,10 @@
 import {Button, Form, Typography} from 'antd';
 import {useEffect, useState} from 'react';
-import {useAuth} from '../lib/AuthenticationProvider';
-import {listResources} from '../lib/ResourceService';
+import {useAuth} from '../../lib/AuthenticationProvider';
+import {listResources} from '../../lib/ResourceService';
 import PropTypes from 'prop-types';
-import {addFunctionResources} from '../lib/FunctionResourceService';
-import ResourceTable from './ResourceTable';
+import {addFunctionResources} from '../../lib/FunctionResourceService';
+import ResourceTable from '../resources/ResourceTable';
 
 const AddFunctionResourcesForm = ({
   func,

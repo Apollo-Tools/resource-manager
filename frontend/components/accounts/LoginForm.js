@@ -1,9 +1,9 @@
 import {useEffect, useState} from 'react';
 import {LockOutlined, UserOutlined} from '@ant-design/icons';
 import {Button, Form, Input, Typography, message} from 'antd';
-import {login} from '../lib/AccountService';
-import {useAuth} from '../lib/AuthenticationProvider';
-import {siteTitle} from './Sidebar';
+import {login} from '../../lib/AccountService';
+import {useAuth} from '../../lib/AuthenticationProvider';
+import {siteTitle} from '../misc/Sidebar';
 import Head from 'next/head';
 
 const {Title} = Typography;

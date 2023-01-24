@@ -1,10 +1,10 @@
 import Head from 'next/head';
-import {siteTitle} from '../../components/Sidebar';
+import {siteTitle} from '../../components/misc/Sidebar';
 import {useEffect, useState} from 'react';
 import {Result, Button, Typography} from 'antd';
 import {SmileOutlined} from '@ant-design/icons';
-import NewResourceForm from '../../components/NewResourceForm';
-import AddMetricValuesForm from '../../components/AddMetricValuesForm';
+import NewResourceForm from '../../components/resources/NewResourceForm';
+import AddMetricValuesForm from '../../components/metrics/AddMetricValuesForm';
 
 
 const NewResource = () => {

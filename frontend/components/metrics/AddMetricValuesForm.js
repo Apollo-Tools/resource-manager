@@ -1,9 +1,9 @@
 import {Button, Checkbox, Form, Select, Input, Space, InputNumber} from 'antd';
 import {MinusCircleOutlined, PlusOutlined} from '@ant-design/icons';
 import {useEffect, useState} from 'react';
-import {useAuth} from '../lib/AuthenticationProvider';
-import {listMetrics} from '../lib/MetricService';
-import {addResourceMetrics} from '../lib/ResourceService';
+import {useAuth} from '../../lib/AuthenticationProvider';
+import {listMetrics} from '../../lib/MetricService';
+import {addResourceMetrics} from '../../lib/ResourceService';
 import PropTypes from 'prop-types';
 
 const getMetricById = (metrics, metricId) => {

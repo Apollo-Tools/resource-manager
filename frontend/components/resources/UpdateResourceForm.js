@@ -1,7 +1,7 @@
 import {Button, Checkbox, Form, Select, Space} from 'antd';
-import {useAuth} from '../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
-import {updateResource} from '../lib/ResourceService';
+import {updateResource} from '../../lib/ResourceService';
 import PropTypes from 'prop-types';
 
 

@@ -1,8 +1,8 @@
-import DateFormatter from './DateFormatter';
+import DateFormatter from '../misc/DateFormatter';
 import {Button, Modal, Table} from 'antd';
 import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
-import {deleteResourceMetric} from '../lib/MetricValueService';
-import {useAuth} from '../lib/AuthenticationProvider';
+import {deleteResourceMetric} from '../../lib/MetricValueService';
+import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 

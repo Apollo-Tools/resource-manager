@@ -1,4 +1,4 @@
-import DateFormatter from './DateFormatter';
+import DateFormatter from '../misc/DateFormatter';
 import {Button, Space, Table} from 'antd';
 import Link from 'next/link';
 import {DeleteOutlined, InfoCircleOutlined} from '@ant-design/icons';

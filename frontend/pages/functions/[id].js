@@ -5,9 +5,9 @@ import {Divider, Segmented, Typography, Modal} from 'antd';
 import {getFunction} from '../../lib/FunctionService';
 import {listRuntimes} from '../../lib/RuntimeService';
 import {deleteFunctionResource, listFunctionResources} from '../../lib/FunctionResourceService';
-import UpdateFunctionForm from '../../components/UpdateFunctionForm';
-import AddFunctionResourcesForm from '../../components/AddFunctionResourcesForm';
-import ResourceTable from '../../components/ResourceTable';
+import UpdateFunctionForm from '../../components/functions/UpdateFunctionForm';
+import AddFunctionResourcesForm from '../../components/functions/AddFunctionResourcesForm';
+import ResourceTable from '../../components/resources/ResourceTable';
 import {ExclamationCircleFilled} from '@ant-design/icons';
 
 const {confirm} = Modal;

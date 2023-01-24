@@ -1,5 +1,5 @@
 import Head from 'next/head';
-import {siteTitle} from '../components/Sidebar';
+import {siteTitle} from '../components/misc/Sidebar';
 import Link from 'next/link';
 
 export default function Home() {

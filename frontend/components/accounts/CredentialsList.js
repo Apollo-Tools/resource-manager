@@ -1,9 +1,9 @@
-import DateFormatter from './DateFormatter';
+import DateFormatter from '../misc/DateFormatter';
 import {Button, Modal, Space, Table} from 'antd';
 import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
 import {useEffect, useState} from 'react';
-import {deleteCredentials} from '../lib/CredentialsService';
-import {useAuth} from '../lib/AuthenticationProvider';
+import {deleteCredentials} from '../../lib/CredentialsService';
+import {useAuth} from '../../lib/AuthenticationProvider';
 import PropTypes from 'prop-types';
 
 const {Column} = Table;

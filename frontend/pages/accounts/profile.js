@@ -1,12 +1,12 @@
-import {siteTitle} from '../../components/Sidebar';
+import {siteTitle} from '../../components/misc/Sidebar';
 import Head from 'next/head';
 import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {getAccount} from '../../lib/AccountService';
 import {Divider, Segmented, Typography} from 'antd';
-import AccountInfoCard from '../../components/AccountInfoCard';
+import AccountInfoCard from '../../components/accounts/AccountInfoCard';
 import {listCredentials} from '../../lib/CredentialsService';
-import CredentialsCard from '../../components/CredentialsCard';
+import CredentialsCard from '../../components/accounts/CredentialsCard';
 const {Title} = Typography;
 
 const Profile = () => {

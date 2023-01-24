@@ -1,8 +1,8 @@
 import {Button, Form, Input, Select, Space} from 'antd';
-import {useAuth} from '../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
-import {updateFunction} from '../lib/FunctionService';
+import {updateFunction} from '../../lib/FunctionService';
 import CodeMirror from '@uiw/react-codemirror';
 import {python} from '@codemirror/lang-python';
 

@@ -1,7 +1,7 @@
-import {siteTitle} from '../../components/Sidebar';
+import {siteTitle} from '../../components/misc/Sidebar';
 import Head from 'next/head';
 import {Button, Modal, Table, Typography} from 'antd';
-import DateFormatter from '../../components/DateFormatter';
+import DateFormatter from '../../components/misc/DateFormatter';
 import {
   DisconnectOutlined,
   ExclamationCircleFilled,

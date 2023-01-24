@@ -1,7 +1,7 @@
 import '../styles/globals.css';
 import {AuthenticationProvider} from '../lib/AuthenticationProvider';
 import {ConfigProvider} from 'antd';
-import Sidebar from '../components/Sidebar';
+import Sidebar from '../components/misc/Sidebar';
 import PropTypes from 'prop-types';
 
 
