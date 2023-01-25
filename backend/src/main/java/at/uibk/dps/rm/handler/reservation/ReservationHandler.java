@@ -110,7 +110,8 @@ public class ReservationHandler extends ValidationHandler {
                 .flatMapSingle(resourceReservationObject -> {
                     ResourceReservation resourceReservation = ((JsonObject) resourceReservationObject)
                             .mapTo(ResourceReservation.class);
-                    Resource resource = resourceReservation.getResource();
+                    // TODO FIX
+                    Resource resource = null; //resourceReservation.getResource();
                     JsonObject resourceJson = JsonObject.mapFrom(resource);
                     return metricValueChecker.checkFindAllByResource(resource.getResourceId(), true)
                             .map(metricValues -> mapMetricValuesToResourceReservation(
@@ -148,7 +149,8 @@ public class ReservationHandler extends ValidationHandler {
     private ResourceReservation createNewResourceReservation(Reservation reservation, Resource resource) {
         ResourceReservation resourceReservation = new ResourceReservation();
         resourceReservation.setReservation(reservation);
-        resourceReservation.setResource(resource);
+        // TODO: fix
+        //resourceReservation.setResource(resource);
         return resourceReservation;
     }
 }

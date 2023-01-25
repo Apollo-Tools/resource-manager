@@ -22,8 +22,8 @@ public class ResourceReservation {
     private Boolean isDeployed = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "resource_id")
-    private Resource resource;
+    @JoinColumn(name = "function_resource_id")
+    private FunctionResource functionResource;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reservation_id")
