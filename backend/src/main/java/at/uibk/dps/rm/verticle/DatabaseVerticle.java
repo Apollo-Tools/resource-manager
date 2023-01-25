@@ -14,6 +14,8 @@ import at.uibk.dps.rm.service.database.resource.ResourceService;
 import at.uibk.dps.rm.service.database.resource.ResourceServiceImpl;
 import at.uibk.dps.rm.service.database.resource.ResourceTypeService;
 import at.uibk.dps.rm.service.database.resource.ResourceTypeServiceImpl;
+import at.uibk.dps.rm.service.util.FilePathService;
+import at.uibk.dps.rm.service.util.FilePathServiceImpl;
 import io.reactivex.rxjava3.core.*;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
@@ -170,6 +172,12 @@ public class DatabaseVerticle extends AbstractVerticle {
             serviceBinder
                     .setAddress("resource-reservation-service-address")
                     .register(ResourceReservationService.class, resourceReservationService);
+
+            FilePathService filePathService =
+                new FilePathServiceImpl(vertx.getDelegate());
+            serviceBinder
+                    .setAddress("file-path-service-address")
+                    .register(FilePathService.class, filePathService);
             emitter.onComplete();
         });
         return Completable.fromMaybe(setupEventBus);

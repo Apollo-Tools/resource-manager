@@ -15,6 +15,7 @@ import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceTypeService;
 import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentService;
+import at.uibk.dps.rm.service.rxjava3.util.FilePathService;
 import io.vertx.rxjava3.core.Vertx;
 import lombok.Getter;
 
@@ -36,6 +37,8 @@ public class ServiceProxyProvider {
     private final ResourceReservationService resourceReservationService;
     private final DeploymentService deploymentService;
 
+    private final FilePathService filePathService;
+
     public ServiceProxyProvider(Vertx vertx) {
         accountCredentialsService = AccountCredentialsService
             .createProxy(vertx, "account-credentials-service-address");
@@ -56,5 +59,6 @@ public class ServiceProxyProvider {
         resourceReservationService = ResourceReservationService
                 .createProxy(vertx, "resource-reservation-service-address");
         deploymentService = DeploymentService.createProxy(vertx, "deployment-service-address");
+        filePathService = FilePathService.createProxy(vertx, "file-path-service-address");
     }
 }

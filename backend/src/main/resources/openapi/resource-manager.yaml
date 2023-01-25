@@ -548,6 +548,41 @@ paths:
           $ref: "#/components/responses/404"
         500:
           $ref: "#/components/responses/500"
+
+    patch:
+      description: Updates a runtime
+      operationId: updateRuntime
+      security:
+        - bearerAuth: []
+      tags:
+        - runtimes
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              minProperties: 1
+              additionalProperties: false
+              properties:
+                template_path:
+                  type: string
+                  maxLength: 2048
+                  example: ./faas/python/cloud_function.py
+      responses:
+        204:
+          description: Successful update of a resource type
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
     delete:
       description: Deletes a runtime
       operationId: deleteRuntime
@@ -609,6 +644,11 @@ paths:
                   minLength: 8
                   maxLength: 512
                   example: Python 3.9
+                template_path:
+                  type: string
+                  minLength: 1
+                  maxLength: 2048
+                  example: ./faas/python/cloud_function.py
       responses:
         201:
           description: Successful creation of a new runtime
@@ -1658,6 +1698,8 @@ components:
           format: int64
           example: 1
         name:
+          type: string
+        template_path:
           type: string
         created_at:
           type: string

@@ -5,7 +5,7 @@ import io.vertx.core.json.JsonObject;
 
 public class DeploymentServiceImpl  implements DeploymentService {
 
-    DeploymentExecutor deploymentExecutor = new DeploymentExecutor();
+    private final DeploymentExecutor deploymentExecutor = new DeploymentExecutor();
 
     @Override
     public Future<Long> deploy(JsonObject data) {

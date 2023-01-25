@@ -1,0 +1,2 @@
+ALTER TABLE runtime
+ADD COLUMN template_path VARCHAR(2048) DEFAULT '';

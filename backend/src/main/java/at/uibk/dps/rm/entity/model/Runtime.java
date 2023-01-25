@@ -18,6 +18,8 @@ public class Runtime {
 
     private String name;
 
+    private String templatePath = "";
+
     @Column(insertable = false, updatable = false)
     private @Setter(value = AccessLevel.NONE)
     Timestamp createdAt;

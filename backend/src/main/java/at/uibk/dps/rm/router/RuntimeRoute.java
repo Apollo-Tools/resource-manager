@@ -7,7 +7,8 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 public class RuntimeRoute {
     public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
-        RuntimeHandler runtimeHandler = new RuntimeHandler(serviceProxyProvider.getRuntimeService());
+        RuntimeHandler runtimeHandler = new RuntimeHandler(serviceProxyProvider.getRuntimeService(),
+            serviceProxyProvider.getFilePathService());
         RequestHandler runtimeRequestHandler = new RequestHandler(runtimeHandler);
 
         router
@@ -21,6 +22,10 @@ public class RuntimeRoute {
         router
             .operation("getRuntime")
             .handler(runtimeRequestHandler::getRequest);
+
+        router
+            .operation("updateRuntime")
+            .handler(runtimeRequestHandler::patchRequest);
 
         router
             .operation("deleteRuntime")
