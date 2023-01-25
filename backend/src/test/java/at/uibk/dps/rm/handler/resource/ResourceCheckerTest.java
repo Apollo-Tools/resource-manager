@@ -325,8 +325,5 @@ public class ResourceCheckerTest {
                     testContext.completeNow();
                 })
             );
-
-        verify(resourceService).existsOneAndNotReserved(resourceId);
-        testContext.completeNow();
     }
 }

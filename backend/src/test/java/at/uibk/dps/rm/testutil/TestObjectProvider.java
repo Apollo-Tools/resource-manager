@@ -258,6 +258,7 @@ public class TestObjectProvider {
         Runtime runtime = new Runtime();
         runtime.setRuntimeId(runtimeId);
         runtime.setName(name);
+        runtime.setTemplatePath("");
         return runtime;
     }
 
@@ -286,6 +287,15 @@ public class TestObjectProvider {
         functionResource.setFunctionResourceId(id);
         functionResource.setFunction(function);
         Resource resource = createResource(33L);
+        functionResource.setResource(resource);
+        functionResource.setIsDeployed(isDeployed);
+        return functionResource;
+    }
+
+    public static FunctionResource createFunctionResource(long id, Function function, Resource resource, boolean isDeployed) {
+        FunctionResource functionResource = new FunctionResource();
+        functionResource.setFunctionResourceId(id);
+        functionResource.setFunction(function);
         functionResource.setResource(resource);
         functionResource.setIsDeployed(isDeployed);
         return functionResource;
