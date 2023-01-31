@@ -1,12 +1,12 @@
 package at.uibk.dps.rm.handler.reservation;
 
 import at.uibk.dps.rm.entity.dto.ReserveResourcesRequest;
-import at.uibk.dps.rm.entity.model.Account;
-import at.uibk.dps.rm.entity.model.Reservation;
-import at.uibk.dps.rm.entity.model.Resource;
-import at.uibk.dps.rm.entity.model.ResourceReservation;
+import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
+import at.uibk.dps.rm.entity.model.*;
+import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.handler.deployment.DeploymentHandler;
+import at.uibk.dps.rm.handler.function.FunctionResourceChecker;
 import at.uibk.dps.rm.handler.metric.MetricValueChecker;
 import at.uibk.dps.rm.handler.resource.ResourceChecker;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
@@ -24,9 +24,9 @@ import java.util.List;
 
 public class ReservationHandler extends ValidationHandler {
 
-    private final ResourceChecker resourceChecker;
-
     private final ReservationChecker reservationChecker;
+
+    private final FunctionResourceChecker functionResourceChecker;
 
     private final ResourceReservationChecker resourceReservationChecker;
 
@@ -37,9 +37,9 @@ public class ReservationHandler extends ValidationHandler {
     public ReservationHandler(ServiceProxyProvider serviceProxyProvider, DeploymentHandler deploymentHandler) {
         super(new ReservationChecker(serviceProxyProvider.getReservationService()));
         this.reservationChecker = (ReservationChecker) super.entityChecker;
-        this.resourceChecker = new ResourceChecker(serviceProxyProvider.getResourceService());
         this.resourceReservationChecker = new ResourceReservationChecker(serviceProxyProvider.getResourceReservationService());
         this.metricValueChecker = new MetricValueChecker(serviceProxyProvider.getMetricValueService());
+        this.functionResourceChecker = new FunctionResourceChecker(serviceProxyProvider.getFunctionResourceService());
         this.deploymentHandler = deploymentHandler;
     }
 
@@ -74,27 +74,29 @@ public class ReservationHandler extends ValidationHandler {
                 .asJsonObject()
                 .mapTo(ReserveResourcesRequest.class);
         long accountId = rc.user().principal().getLong("account_id");
-        return Completable
-                .merge(checkResourcesExistAndAreNotReserved(requestDTO.getResources()))
-                .andThen(Single.just(new Reservation()))
-                .flatMap(reservation -> {
-                    reservation.setIsActive(true);
-                    Account account = new Account();
-                    account.setAccountId(accountId);
-                    reservation.setCreatedBy(account);
-                    return entityChecker.submitCreate(JsonObject.mapFrom(reservation));
+        return checkFindFunctionResources(requestDTO.getFunctionResources())
+            .toList()
+            .flatMap(functionResources -> {
+                Reservation reservation = new Reservation();
+                reservation.setIsActive(true);
+                Account account = new Account();
+                account.setAccountId(accountId);
+                reservation.setCreatedBy(account);
+                return entityChecker.submitCreate(JsonObject.mapFrom(reservation))
+                    .map(reservationJson -> createResourceReservationList(reservationJson,
+                        functionResources));
+            })
+            .flatMap(resourceReservations -> resourceReservationChecker
+                .submitCreateAll(Json.encodeToBuffer(resourceReservations).toJsonArray())
+                .andThen(Single.just(JsonObject.mapFrom(resourceReservations.get(0).getReservation())))
+                .map(result -> {
+                    // TODO: fix
+                    //deploymentHandler
+                    //    .deployResources(result.getLong("reservation_id"), accountId)
+                    //    .subscribe();
+                    return result;
                 })
-                .map(reservationJson -> createResourceReservationList(reservationJson, requestDTO.getResources()))
-                .flatMap(resourceReservations -> resourceReservationChecker
-                    .submitCreateAll(Json.encodeToBuffer(resourceReservations).toJsonArray())
-                    .andThen(Single.just(JsonObject.mapFrom(resourceReservations.get(0).getReservation())))
-                    .map(result -> {
-                        deploymentHandler
-                            .deployResources(result.getLong("reservation_id"), accountId)
-                            .subscribe();
-                        return result;
-                    })
-                );
+            );
     }
 
     // TODO: terminate resources
@@ -110,8 +112,7 @@ public class ReservationHandler extends ValidationHandler {
                 .flatMapSingle(resourceReservationObject -> {
                     ResourceReservation resourceReservation = ((JsonObject) resourceReservationObject)
                             .mapTo(ResourceReservation.class);
-                    // TODO FIX
-                    Resource resource = null; //resourceReservation.getResource();
+                    Resource resource = resourceReservation.getFunctionResource().getResource();
                     JsonObject resourceJson = JsonObject.mapFrom(resource);
                     return metricValueChecker.checkFindAllByResource(resource.getResourceId(), true)
                             .map(metricValues -> mapMetricValuesToResourceReservation(
@@ -121,36 +122,36 @@ public class ReservationHandler extends ValidationHandler {
                 .toList();
     }
 
-    private List<Completable> checkResourcesExistAndAreNotReserved(List<Long> resourceIds) {
-        List<Completable> completables = new ArrayList<>();
-        resourceIds.forEach(resourceId ->
-                completables.add(resourceChecker.checkExistsOneAndIsNotReserved(resourceId)));
-        return completables;
+    private Observable<JsonObject> checkFindFunctionResources(List<FunctionResourceIds> functionResourceIds) {
+        return Observable.fromIterable(functionResourceIds)
+            .flatMapSingle(ids -> ErrorHandler.handleFindOne(
+                functionResourceChecker.checkFindOneByFunctionAndResource(ids.getFunctionId(), ids.getResourceId()))
+            );
     }
 
     private JsonObject mapMetricValuesToResourceReservation(JsonObject resourceReservationObject, JsonObject resource,
                                                             JsonArray metricValues) {
         resource.put("metric_values", metricValues);
-        resourceReservationObject.put("resource", resource);
+        resourceReservationObject.getJsonObject("function_resource").put("resource", resource);
         return resourceReservationObject;
     }
 
-    private List<ResourceReservation> createResourceReservationList(JsonObject reservationJson, List<Long> resourceIds) {
+    private List<ResourceReservation> createResourceReservationList(JsonObject reservationJson,
+                                                                    List<JsonObject> functionResources) {
         List<ResourceReservation> resourceReservations = new ArrayList<>();
         Reservation reservation = reservationJson.mapTo(Reservation.class);
-        for (Long resourceId : resourceIds) {
-            Resource resource = new Resource();
-            resource.setResourceId(resourceId);
-            resourceReservations.add(createNewResourceReservation(reservation, resource));
+        for (JsonObject functionResourceJson : functionResources) {
+            FunctionResource functionResource = new FunctionResource();
+            functionResource.setFunctionResourceId(functionResourceJson.getLong("function_resource_id"));
+            resourceReservations.add(createNewResourceReservation(reservation, functionResource));
         }
         return resourceReservations;
     }
 
-    private ResourceReservation createNewResourceReservation(Reservation reservation, Resource resource) {
+    private ResourceReservation createNewResourceReservation(Reservation reservation, FunctionResource functionResource) {
         ResourceReservation resourceReservation = new ResourceReservation();
         resourceReservation.setReservation(reservation);
-        // TODO: fix
-        //resourceReservation.setResource(resource);
+        resourceReservation.setFunctionResource(functionResource);
         return resourceReservation;
     }
 }

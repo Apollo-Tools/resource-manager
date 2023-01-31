@@ -9,6 +9,7 @@ import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 
 @ProxyGen
 @VertxGen
@@ -21,6 +22,8 @@ public interface FunctionResourceService extends ServiceInterface {
     static FunctionResourceService createProxy(Vertx vertx, String address) {
         return new FunctionResourceServiceVertxEBProxy(vertx, address);
     }
+
+    Future<JsonObject> findOneByFunctionAndResource(long functionId, long resourceId);
 
     Future<Boolean> existsOneByFunctionAndResource(long functionId, long resourceId);
 

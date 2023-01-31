@@ -5,6 +5,7 @@ import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.function.FunctionResourceService;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonObject;
 
 public class FunctionResourceChecker  extends EntityChecker {
     private final FunctionResourceService functionResourceService;
@@ -18,13 +19,19 @@ public class FunctionResourceChecker  extends EntityChecker {
         return functionResourceService.deleteByFunctionAndResource(functionId, resourceId);
     }
 
+    public Single<JsonObject> checkFindOneByFunctionAndResource(long functionId, long resourceId) {
+        Single<JsonObject> findOneByFunctionAndResource = functionResourceService
+            .findOneByFunctionAndResource(functionId, resourceId);
+        return ErrorHandler.handleFindOne(findOneByFunctionAndResource);
+    }
+
     public Completable checkForDuplicateByFunctionAndResource(long functionId, long resourceId) {
         Single<Boolean> existsOneByFunctionAndResource = functionResourceService
             .existsOneByFunctionAndResource(functionId, resourceId);
         return ErrorHandler.handleDuplicates(existsOneByFunctionAndResource).ignoreElement();
     }
 
-    public Completable checkFunctionResourceExistsByFunctionAndResource(long functionId, long resourceId) {
+    public Completable checkExistsByFunctionAndResource(long functionId, long resourceId) {
         Single<Boolean> existsOneByFunctionAndResource =
             functionResourceService.existsOneByFunctionAndResource(functionId, resourceId);
         return ErrorHandler.handleExistsOne(existsOneByFunctionAndResource).ignoreElement();

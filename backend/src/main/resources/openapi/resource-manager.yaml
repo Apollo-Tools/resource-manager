@@ -971,20 +971,27 @@ paths:
             schema:
               type: object
               required:
-                - resources
-                - deploy_resources
+                - function_resources
               additionalProperties: false
               properties:
-                resources:
+                function_resources:
                   type: array
                   minItems: 1
                   items:
-                    type: integer
-                    format: int64
-                    example: 1
-                deploy_resources:
-                  type: boolean
-                  example: true
+                    type: object
+                    required:
+                      - function_id
+                      - resource_id
+                    additionalProperties: false
+                    properties:
+                      function_id:
+                        type: integer
+                        format: int64
+                        example: 1
+                      resource_id:
+                        type: integer
+                        format: int64
+                        example: 1
       responses:
         200:
           description: Successful reservation of resources

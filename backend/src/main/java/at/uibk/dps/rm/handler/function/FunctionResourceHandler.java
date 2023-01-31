@@ -107,6 +107,6 @@ public class FunctionResourceHandler extends ValidationHandler {
         return Completable.mergeArray(
             functionChecker.checkExistsOne(functionId),
             resourceChecker.checkExistsOne(resourceId),
-            functionResourceChecker.checkFunctionResourceExistsByFunctionAndResource(functionId, resourceId));
+            functionResourceChecker.checkExistsByFunctionAndResource(functionId, resourceId));
     }
 }

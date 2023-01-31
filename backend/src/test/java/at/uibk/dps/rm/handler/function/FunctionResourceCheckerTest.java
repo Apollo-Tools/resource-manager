@@ -76,7 +76,7 @@ public class FunctionResourceCheckerTest {
         when(functionResourceService.existsOneByFunctionAndResource(functionId, resourceId))
             .thenReturn(Single.just(true));
 
-        functionResourceChecker.checkFunctionResourceExistsByFunctionAndResource(functionId, resourceId)
+        functionResourceChecker.checkExistsByFunctionAndResource(functionId, resourceId)
             .blockingSubscribe(() -> {
                 },
                 throwable -> testContext.verify(() -> fail("method did throw exception"))
@@ -94,7 +94,7 @@ public class FunctionResourceCheckerTest {
         when(functionResourceService.existsOneByFunctionAndResource(functionId, resourceId))
             .thenReturn(Single.just(false));
 
-        functionResourceChecker.checkFunctionResourceExistsByFunctionAndResource(functionId, resourceId)
+        functionResourceChecker.checkExistsByFunctionAndResource(functionId, resourceId)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);

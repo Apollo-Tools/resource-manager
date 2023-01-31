@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler.reservation;
 
 import at.uibk.dps.rm.entity.dto.ReserveResourcesRequest;
+import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.rxjava3.ext.web.RoutingContext;
@@ -16,16 +17,16 @@ public class ReservationInputHandler {
         ReserveResourcesRequest requestDTO = rc.body()
                 .asJsonObject()
                 .mapTo(ReserveResourcesRequest.class);
-        checkForResourceDuplicates(requestDTO.getResources())
+        checkForFunctionResourceDuplicates(requestDTO.getFunctionResources())
                 .subscribe(rc::next, throwable -> rc.fail(400, throwable))
                 .dispose();
     }
 
-    private static Completable checkForResourceDuplicates(List<Long> resources) {
-        return Maybe.just(resources)
+    private static Completable checkForFunctionResourceDuplicates(List<FunctionResourceIds> functionResourceIds) {
+        return Maybe.just(functionResourceIds)
                 .mapOptional(ids -> {
-                    Set<Long> resourceIds = new HashSet<>(ids);
-                    if (ids.size() != resourceIds.size()) {
+                    Set<FunctionResourceIds> functionResourceIdsSet = new HashSet<>(ids);
+                    if (ids.size() != functionResourceIdsSet.size()) {
                         throw new Throwable("duplicated input");
                     }
                     return Optional.empty();
