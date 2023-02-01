@@ -134,32 +134,14 @@ public class ResourceServiceImplTest {
         Resource r2 = TestObjectProvider.createResource(2L);
         CompletionStage<List<Resource>> completionStage = CompletionStages.completedFuture(List.of(r1, r2));
 
-        doReturn(completionStage).when(resourceRepository).findAllAndFetch(false);
+        doReturn(completionStage).when(resourceRepository).findAllAndFetch();
 
         resourceService.findAll()
                 .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(2);
                     assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
                     assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
-                    verify(resourceRepository).findAllAndFetch(false);
-                    testContext.completeNow();
-                })));
-    }
-
-    @Test
-    void findAllUnreserved(VertxTestContext testContext) {
-        Resource r1 = TestObjectProvider.createResource(1L);
-        Resource r2 = TestObjectProvider.createResource(2L);
-        CompletionStage<List<Resource>> completionStage = CompletionStages.completedFuture(List.of(r1, r2));
-
-        doReturn(completionStage).when(resourceRepository).findAllAndFetch(true);
-
-        resourceService.findAllUnreserved()
-                .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                    assertThat(result.size()).isEqualTo(2);
-                    assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
-                    assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
-                    verify(resourceRepository).findAllAndFetch(true);
+                    verify(resourceRepository).findAllAndFetch();
                     testContext.completeNow();
                 })));
     }

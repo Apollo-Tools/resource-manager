@@ -1,9 +1,6 @@
 package at.uibk.dps.rm.handler.reservation;
 
-import at.uibk.dps.rm.entity.model.Account;
-import at.uibk.dps.rm.entity.model.Reservation;
-import at.uibk.dps.rm.entity.model.Resource;
-import at.uibk.dps.rm.entity.model.ResourceReservation;
+import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.rxjava3.database.reservation.ResourceReservationService;
 import at.uibk.dps.rm.testutil.SingleHelper;
@@ -48,14 +45,14 @@ public class ResourceReservationCheckerTest {
         long reservationId = 1L;
         Account account = TestObjectProvider.createAccount(1L);
         Reservation reservation = TestObjectProvider.createReservation(reservationId, false, account);
-        Resource resource1 = TestObjectProvider.createResource(1L);
-        Resource resource2 = TestObjectProvider.createResource(2L);
-        Resource resource3 = TestObjectProvider.createResource(3L);
-        ResourceReservation resourceReservation1 = TestObjectProvider.createResourceReservation(1L, resource1,
+        FunctionResource functionResource1 = TestObjectProvider.createFunctionResource(1L);
+        FunctionResource functionResource2 = TestObjectProvider.createFunctionResource(2L);
+        FunctionResource functionResource3 = TestObjectProvider.createFunctionResource(3L);
+        ResourceReservation resourceReservation1 = TestObjectProvider.createResourceReservation(1L, functionResource1,
             reservation, false);
-        ResourceReservation resourceReservation2 = TestObjectProvider.createResourceReservation(2L, resource2,
+        ResourceReservation resourceReservation2 = TestObjectProvider.createResourceReservation(2L, functionResource2,
             reservation, true);
-        ResourceReservation resourceReservation3 = TestObjectProvider.createResourceReservation(3L, resource3,
+        ResourceReservation resourceReservation3 = TestObjectProvider.createResourceReservation(3L, functionResource3,
             reservation, true);
         JsonArray resourceReservations = new JsonArray(List.of(JsonObject.mapFrom(resourceReservation1),
             JsonObject.mapFrom(resourceReservation2), JsonObject.mapFrom(resourceReservation3)));
@@ -65,9 +62,12 @@ public class ResourceReservationCheckerTest {
         resourceReservationChecker.checkFindAllByReservationId(reservationId)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(3);
-                    assertThat(result.getJsonObject(0).getJsonObject("resource").getLong("resource_id")).isEqualTo(1L);
-                    assertThat(result.getJsonObject(1).getJsonObject("resource").getLong("resource_id")).isEqualTo(2L);
-                    assertThat(result.getJsonObject(2).getJsonObject("resource").getLong("resource_id")).isEqualTo(3L);
+                    assertThat(result.getJsonObject(0).getJsonObject("function_resource")
+                        .getLong("function_resource_id")).isEqualTo(1L);
+                    assertThat(result.getJsonObject(1).getJsonObject("function_resource")
+                        .getLong("function_resource_id")).isEqualTo(2L);
+                    assertThat(result.getJsonObject(2).getJsonObject("function_resource")
+                        .getLong("function_resource_id")).isEqualTo(3L);
                     verify(resourceReservationService).findAllByReservationId(reservationId);
                     testContext.completeNow();
                 }),

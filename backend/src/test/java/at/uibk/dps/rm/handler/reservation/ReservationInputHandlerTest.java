@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler.reservation;
 
 import at.uibk.dps.rm.entity.dto.ReserveResourcesRequest;
+import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.TestObjectProvider;
 import io.vertx.core.json.JsonObject;
@@ -29,9 +30,12 @@ public class ReservationInputHandlerTest {
 
     @Test
     void validateResourceArrayHasNoDuplicatesNoDuplicates(VertxTestContext testContext) {
-        List<Long> resources = List.of(1L, 2L, 3L, 4L);
-        ReserveResourcesRequest request = TestObjectProvider.createReserveResourcesRequest(resources,
-            false);
+        FunctionResourceIds ids1 = TestObjectProvider.createFunctionResourceIds(1L, 1L);
+        FunctionResourceIds ids2 = TestObjectProvider.createFunctionResourceIds(2L, 6L);
+        FunctionResourceIds ids3 = TestObjectProvider.createFunctionResourceIds(3L, 2L);
+        FunctionResourceIds ids4 = TestObjectProvider.createFunctionResourceIds(4L, 1L);
+        List<FunctionResourceIds> functionResourceIds = List.of(ids1, ids2, ids3, ids4);
+        ReserveResourcesRequest request = TestObjectProvider.createReserveResourcesRequest(functionResourceIds);
         JsonObject requestBody = JsonObject.mapFrom(request);
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
@@ -44,16 +48,19 @@ public class ReservationInputHandlerTest {
 
     @ParameterizedTest
     @CsvSource({
-        "1, 2, 3, 1",
-        "1, 1, 1, 1",
-        "2, 1, 2, 1",
-        "1, 3, 1, 1"
+        "1, 2, 3, 1, 2, 1, 2, 2",
+        "1, 1, 1, 1, 2, 2, 2, 2",
+        "2, 1, 2, 1, 2, 1, 2, 1",
+        "1, 3, 1, 1, 2, 2, 3, 3"
     })
-    void validateResourceArrayHasNoDuplicatesDuplicate(long a, long b, long c, long d,
-                                                       VertxTestContext testContext) {
-        List<Long> resources = List.of(a, b, c, d);
-        ReserveResourcesRequest request = TestObjectProvider.createReserveResourcesRequest(resources,
-            false);
+    void validateResourceArrayHasNoDuplicatesDuplicate(long f1, long f2, long f3, long f4, long r1, long r2, long r3,
+                                                       long r4, VertxTestContext testContext) {
+        FunctionResourceIds ids1 = TestObjectProvider.createFunctionResourceIds(f1, r1);
+        FunctionResourceIds ids2 = TestObjectProvider.createFunctionResourceIds(f2, r2);
+        FunctionResourceIds ids3 = TestObjectProvider.createFunctionResourceIds(f3, r3);
+        FunctionResourceIds ids4 = TestObjectProvider.createFunctionResourceIds(f4, r4);
+        List<FunctionResourceIds> functionResourceIds = List.of(ids1, ids2, ids3, ids4);
+        ReserveResourcesRequest request = TestObjectProvider.createReserveResourcesRequest(functionResourceIds);
         JsonObject requestBody = JsonObject.mapFrom(request);
 
         RoutingContextMockHelper.mockBody(rc, requestBody);

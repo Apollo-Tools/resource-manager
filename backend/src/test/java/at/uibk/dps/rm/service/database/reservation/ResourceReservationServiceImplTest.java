@@ -2,6 +2,7 @@ package at.uibk.dps.rm.service.database.reservation;
 
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.repository.reservation.ResourceReservationRepository;
+import at.uibk.dps.rm.testutil.TestObjectProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -38,39 +39,38 @@ public class ResourceReservationServiceImplTest {
 
     @Test
     void findAllByResourceId(VertxTestContext testContext) {
-        long resourceId = 1L;
-        Resource resource = new Resource();
-        resource.setResourceId(resourceId);
-        resource.setResourceType(new ResourceType());
-        resource.setMetricValues(new ArrayList<>());
-        ResourceReservation entity1 = new ResourceReservation();
-        entity1.setResourceReservationId(2L);
-        entity1.setReservation(new Reservation());
-        entity1.setResource(resource);
-        ResourceReservation entity2 = new ResourceReservation();
-        entity2.setResourceReservationId(3L);
-        entity2.setReservation(new Reservation());
-        entity2.setResource(resource);
+        long reservationId = 1L, functionResourceId = 3L;
+        Resource resource = TestObjectProvider.createResource(1L);
+        Function function = TestObjectProvider.createFunction(2L, "func", "false");
+        FunctionResource functionResource = TestObjectProvider
+            .createFunctionResource(functionResourceId, function, resource, false);
+        ResourceReservation entity1 = TestObjectProvider
+            .createResourceReservation(4L, functionResource, new Reservation(), false);
+        ResourceReservation entity2 = TestObjectProvider
+            .createResourceReservation(5L, functionResource, new Reservation(), false);
         List<ResourceReservation> resultList = new ArrayList<>();
         resultList.add(entity1);
         resultList.add(entity2);
         CompletionStage<List<ResourceReservation>> completionStage = CompletionStages.completedFuture(resultList);
-        doReturn(completionStage).when(resourceReservationRepository).findAllByReservationId(resourceId);
+        doReturn(completionStage).when(resourceReservationRepository).findAllByReservationId(reservationId);
 
-        resourceReservationService.findAllByReservationId(resourceId)
+        resourceReservationService.findAllByReservationId(reservationId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
 
                 for (int i = 0; i < 2; i++) {
                     JsonObject resultJson = result.getJsonObject(i);
-                    assertThat(resultJson.getLong("resource_reservation_id")).isEqualTo(i + 2);
+                    assertThat(resultJson.getLong("resource_reservation_id")).isEqualTo(i + 4);
                     assertThat(resultJson.getJsonObject("reservation")).isNull();
-                    assertThat(resultJson.getJsonObject("resource").getLong("resource_id")).isEqualTo(resourceId);
-                    assertThat(resultJson.getJsonObject("resource").getJsonObject("resource_type")).isNull();
-                    assertThat(resultJson.getJsonObject("resource").getJsonObject("metric_values")).isNull();
+                    JsonObject functionResourceResult = resultJson.getJsonObject("function_resource");
+                    assertThat(functionResourceResult.getLong("function_resource_id")).isEqualTo(functionResourceId);
+                    assertThat(functionResourceResult.getJsonObject("resource").getJsonObject("resource_type"))
+                        .isNull();
+                    assertThat(functionResourceResult.getJsonObject("resource").getJsonObject("metric_values"))
+                        .isNull();
+                    assertThat(functionResourceResult.getJsonObject("function").getJsonObject("runtime"))
+                        .isNull();
                 }
-
-                verify(resourceReservationRepository).findAllByReservationId(resourceId);
                 testContext.completeNow();
         })));
     }

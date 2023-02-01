@@ -1,14 +1,15 @@
 package at.uibk.dps.rm.handler.reservation;
 
 import at.uibk.dps.rm.entity.dto.ReserveResourcesRequest;
+import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.handler.deployment.DeploymentHandler;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
+import at.uibk.dps.rm.service.rxjava3.database.function.FunctionResourceService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
 import at.uibk.dps.rm.service.rxjava3.database.reservation.ReservationService;
 import at.uibk.dps.rm.service.rxjava3.database.reservation.ResourceReservationService;
-import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.SingleHelper;
 import at.uibk.dps.rm.testutil.TestObjectProvider;
@@ -45,7 +46,7 @@ public class ReservationHandlerTest {
     private ReservationService reservationService;
 
     @Mock
-    private ResourceService resourceService;
+    private FunctionResourceService functionResourceService;
 
     @Mock
     private ResourceReservationService resourceReservationService;
@@ -66,9 +67,9 @@ public class ReservationHandlerTest {
     void initTest() {
         JsonMapperConfig.configJsonMapper();
         when(serviceProxyProvider.getReservationService()).thenReturn(reservationService);
-        when(serviceProxyProvider.getResourceService()).thenReturn(resourceService);
         when(serviceProxyProvider.getResourceReservationService()).thenReturn(resourceReservationService);
         when(serviceProxyProvider.getMetricValueService()).thenReturn(metricValueService);
+        when(serviceProxyProvider.getFunctionResourceService()).thenReturn(functionResourceService);
         reservationHandler = new ReservationHandler(serviceProxyProvider, deploymentHandler);
     }
 
@@ -80,12 +81,7 @@ public class ReservationHandlerTest {
         JsonArray resourceReservations = new JsonArray(TestObjectProvider.createResourceReservationsJson(reservation));
         MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", 25.0);
         MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", 0.995);
-        MetricValue mv3 = TestObjectProvider.createMetricValue(3L, 3L, "bandwidth", 1000);
-        MetricValue mv4 = TestObjectProvider.createMetricValue(3L, 3L, "bandwidth", 1000);
-        MetricValue mv5 = TestObjectProvider.createMetricValue(3L, 3L, "bandwidth", 1000);
-        JsonArray metricValues1 = new JsonArray(List.of(JsonObject.mapFrom(mv1), JsonObject.mapFrom(mv2)));
-        JsonArray metricValues2 = new JsonArray(List.of(JsonObject.mapFrom(mv3)));
-        JsonArray metricValues3 = new JsonArray(List.of(JsonObject.mapFrom(mv4), JsonObject.mapFrom(mv5)));
+        JsonArray metricValues = new JsonArray(List.of(JsonObject.mapFrom(mv1), JsonObject.mapFrom(mv2)));
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(reservationId));
@@ -93,25 +89,20 @@ public class ReservationHandlerTest {
             .thenReturn(Single.just(JsonObject.mapFrom(reservation)));
         when(resourceReservationService.findAllByReservationId(reservationId))
             .thenReturn(Single.just(resourceReservations));
-        when(metricValueService.findAllByResource(1L, true)).thenReturn(Single.just(metricValues1));
-        when(metricValueService.findAllByResource(2L, true)).thenReturn(Single.just(metricValues2));
-        when(metricValueService.findAllByResource(3L, true)).thenReturn(Single.just(metricValues3));
+        when(metricValueService.findAllByResource(33L, true)).thenReturn(Single.just(metricValues));
 
         reservationHandler.getOne(rc)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.getJsonArray("resource_reservations").size()).isEqualTo(3);
-                    JsonObject resourceJson1 = result.getJsonArray("resource_reservations").getJsonObject(0)
-                        .getJsonObject("resource");
-                    JsonObject resourceJson2 = result.getJsonArray("resource_reservations").getJsonObject(1)
-                        .getJsonObject("resource");
-                    JsonObject resourceJson3 = result.getJsonArray("resource_reservations").getJsonObject(2)
-                        .getJsonObject("resource");
-                    assertThat(resourceJson1.getLong("resource_id")).isEqualTo(1L);
-                    assertThat(resourceJson1.getJsonArray("metric_values").size()).isEqualTo(2);
-                    assertThat(resourceJson2.getLong("resource_id")).isEqualTo(2L);
-                    assertThat(resourceJson2.getJsonArray("metric_values").size()).isEqualTo(1);
-                    assertThat(resourceJson3.getLong("resource_id")).isEqualTo(3L);
-                    assertThat(resourceJson3.getJsonArray("metric_values").size()).isEqualTo(2);
+                    JsonObject functionResourceJson1 = result.getJsonArray("resource_reservations").getJsonObject(0)
+                        .getJsonObject("function_resource");
+                    JsonObject functionResourceJson2 = result.getJsonArray("resource_reservations").getJsonObject(1)
+                        .getJsonObject("function_resource");
+                    JsonObject functionResourceJson3 = result.getJsonArray("resource_reservations").getJsonObject(2)
+                        .getJsonObject("function_resource");
+                    assertThat(functionResourceJson1.getLong("function_resource_id")).isEqualTo(1L);
+                    assertThat(functionResourceJson2.getLong("function_resource_id")).isEqualTo(2L);
+                    assertThat(functionResourceJson3.getLong("function_resource_id")).isEqualTo(3L);
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method did throw exception"))
@@ -267,9 +258,12 @@ public class ReservationHandlerTest {
 
     @Test
     void postOneValid(VertxTestContext testContext) {
-        List<Long> resources = List.of(1L, 2L, 3L, 4L);
-        ReserveResourcesRequest request = TestObjectProvider.createReserveResourcesRequest(resources,
-            false);
+        FunctionResourceIds ids1 = TestObjectProvider.createFunctionResourceIds(1L, 1L);
+        FunctionResourceIds ids2 = TestObjectProvider.createFunctionResourceIds(2L, 6L);
+        FunctionResourceIds ids3 = TestObjectProvider.createFunctionResourceIds(3L, 2L);
+        FunctionResourceIds ids4 = TestObjectProvider.createFunctionResourceIds(4L, 1L);
+        List<FunctionResourceIds> functionResourceIds = List.of(ids1, ids2, ids3, ids4);
+        ReserveResourcesRequest request = TestObjectProvider.createReserveResourcesRequest(functionResourceIds);
         JsonObject requestBody = JsonObject.mapFrom(request);
         Account account = TestObjectProvider.createAccount(1L);
         Reservation reservation = TestObjectProvider.createReservation(1L, true, account);
@@ -277,7 +271,14 @@ public class ReservationHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(resourceService.existsOneAndNotReserved(anyLong())).thenReturn(Single.just(true));
+        when(functionResourceService.findOneByFunctionAndResource(1L, 1L))
+            .thenReturn(Single.just(JsonObject.mapFrom(ids1)));
+        when(functionResourceService.findOneByFunctionAndResource(2L, 6L))
+            .thenReturn(Single.just(JsonObject.mapFrom(ids2)));
+        when(functionResourceService.findOneByFunctionAndResource(3L, 2L))
+            .thenReturn(Single.just(JsonObject.mapFrom(ids3)));
+        when(functionResourceService.findOneByFunctionAndResource(4L, 1L))
+            .thenReturn(Single.just(JsonObject.mapFrom(ids4)));
         when(reservationService.save(any())).thenReturn(Single.just(reservationJson));
         when(resourceReservationService.saveAll(any())).thenReturn(Completable.complete());
         when(deploymentHandler.deployResources(1L, 1L)).thenReturn(Completable.complete());
@@ -300,21 +301,23 @@ public class ReservationHandlerTest {
                         "\"is_active\":true}"));
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method did throw exception" + " " + throwable.getMessage()))
             );
     }
 
     @Test
-    void postOneResourceNotExistsOrReserved(VertxTestContext testContext) {
-        List<Long> resources = List.of(1L);
+    void postOneFunctionResourceNotExists(VertxTestContext testContext) {
         Account account = TestObjectProvider.createAccount(1L);
-        ReserveResourcesRequest request = TestObjectProvider.createReserveResourcesRequest(resources,
-            false);
+        FunctionResourceIds ids = TestObjectProvider.createFunctionResourceIds(1L, 2L);
+        List<FunctionResourceIds> functionResourceIds = List.of(ids);
+        ReserveResourcesRequest request = TestObjectProvider.createReserveResourcesRequest(functionResourceIds);
         JsonObject requestBody = JsonObject.mapFrom(request);
+        Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(resourceService.existsOneAndNotReserved(1L)).thenReturn(Single.just(false));
+        when(functionResourceService.findOneByFunctionAndResource(1L, 2L))
+            .thenReturn(handler);
 
         reservationHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),

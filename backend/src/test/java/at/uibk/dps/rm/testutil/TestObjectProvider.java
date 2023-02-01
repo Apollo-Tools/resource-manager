@@ -2,6 +2,7 @@ package at.uibk.dps.rm.testutil;
 
 import at.uibk.dps.rm.entity.dto.GetResourcesBySLOsRequest;
 import at.uibk.dps.rm.entity.dto.ReserveResourcesRequest;
+import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.SLOValue;
 import at.uibk.dps.rm.entity.dto.slo.SLOValueType;
@@ -214,11 +215,11 @@ public class TestObjectProvider {
         return request;
     }
 
-    public static ResourceReservation createResourceReservation(long id, Resource resource, Reservation reservation,
+    public static ResourceReservation createResourceReservation(long id, FunctionResource functionResource, Reservation reservation,
                                                                 boolean isDeployed) {
         ResourceReservation resourceReservation = new ResourceReservation();
         resourceReservation.setResourceReservationId(id);
-        resourceReservation.setResource(resource);
+        resourceReservation.setFunctionResource(functionResource);
         resourceReservation.setReservation(reservation);
         resourceReservation.setIsDeployed(isDeployed);
         return resourceReservation;
@@ -232,23 +233,29 @@ public class TestObjectProvider {
         return  reservation;
     }
 
-    public static ReserveResourcesRequest createReserveResourcesRequest(List<Long> resources, boolean deployResources) {
+    public static FunctionResourceIds createFunctionResourceIds(long functionId, long resourceId) {
+        FunctionResourceIds ids = new FunctionResourceIds();
+        ids.setFunctionId(functionId);
+        ids.setResourceId(resourceId);
+        return ids;
+    }
+
+    public static ReserveResourcesRequest createReserveResourcesRequest(List<FunctionResourceIds> functionResources) {
         ReserveResourcesRequest request = new ReserveResourcesRequest();
-        request.setResources(resources);
-        request.setDeployResources(deployResources);
+        request.setFunctionResources(functionResources);
         return request;
     }
 
     public static List<JsonObject> createResourceReservationsJson(Reservation reservation) {
-        Resource resource1 = TestObjectProvider.createResource(1L);
-        Resource resource2 = TestObjectProvider.createResource(2L);
-        Resource resource3 = TestObjectProvider.createResource(3L);
+        FunctionResource functionResource1 = TestObjectProvider.createFunctionResource(1L);
+        FunctionResource functionResource2 = TestObjectProvider.createFunctionResource(2L);
+        FunctionResource functionResource3 = TestObjectProvider.createFunctionResource(3L);
 
-        ResourceReservation resourceReservation1 = TestObjectProvider.createResourceReservation(1L, resource1,
+        ResourceReservation resourceReservation1 = TestObjectProvider.createResourceReservation(1L, functionResource1,
             reservation, false);
-        ResourceReservation resourceReservation2 = TestObjectProvider.createResourceReservation(2L, resource2,
+        ResourceReservation resourceReservation2 = TestObjectProvider.createResourceReservation(2L, functionResource2,
             reservation, true);
-        ResourceReservation resourceReservation3 = TestObjectProvider.createResourceReservation(3L, resource3,
+        ResourceReservation resourceReservation3 = TestObjectProvider.createResourceReservation(3L, functionResource3,
             reservation, true);
         return List.of(JsonObject.mapFrom(resourceReservation1), JsonObject.mapFrom(resourceReservation2),
             JsonObject.mapFrom(resourceReservation3));
@@ -280,6 +287,16 @@ public class TestObjectProvider {
         function.setRuntime(runtime);
         function.setCode(code);
         return function;
+    }
+
+    public static FunctionResource createFunctionResource(long id) {
+        FunctionResource functionResource = new FunctionResource();
+        functionResource.setFunctionResourceId(id);
+        Function function = createFunction(22L, "func-test", "false");
+        functionResource.setFunction(function);
+        Resource resource = createResource(33L);
+        functionResource.setResource(resource);
+        return functionResource;
     }
 
     public static FunctionResource createFunctionResource(long id, Function function, boolean isDeployed) {
