@@ -3,7 +3,6 @@ package at.uibk.dps.rm.handler.reservation;
 import at.uibk.dps.rm.entity.dto.ReserveResourcesRequest;
 import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
 import at.uibk.dps.rm.entity.model.*;
-import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.handler.deployment.DeploymentHandler;
 import at.uibk.dps.rm.handler.function.FunctionResourceChecker;
@@ -123,8 +122,8 @@ public class ReservationHandler extends ValidationHandler {
 
     private Observable<JsonObject> checkFindFunctionResources(List<FunctionResourceIds> functionResourceIds) {
         return Observable.fromIterable(functionResourceIds)
-            .flatMapSingle(ids -> ErrorHandler.handleFindOne(
-                functionResourceChecker.checkFindOneByFunctionAndResource(ids.getFunctionId(), ids.getResourceId()))
+            .flatMapSingle(ids -> functionResourceChecker
+                .checkFindOneByFunctionAndResource(ids.getFunctionId(), ids.getResourceId())
             );
     }
 

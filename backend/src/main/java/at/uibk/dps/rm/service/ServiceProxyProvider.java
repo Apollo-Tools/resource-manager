@@ -6,6 +6,7 @@ import at.uibk.dps.rm.service.rxjava3.database.account.CredentialsService;
 import at.uibk.dps.rm.service.rxjava3.database.function.FunctionResourceService;
 import at.uibk.dps.rm.service.rxjava3.database.function.FunctionService;
 import at.uibk.dps.rm.service.rxjava3.database.function.RuntimeService;
+import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.RegionService;
 import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.ResourceProviderService;
 import at.uibk.dps.rm.service.rxjava3.database.reservation.ReservationService;
 import at.uibk.dps.rm.service.rxjava3.database.reservation.ResourceReservationService;
@@ -24,6 +25,7 @@ public class ServiceProxyProvider {
     private final AccountCredentialsService accountCredentialsService;
     private final AccountService accountService;
     private final ResourceProviderService resourceProviderService;
+    private final RegionService regionService;
     private final CredentialsService credentialsService;
     private final ResourceService resourceService;
     private final ResourceTypeService resourceTypeService;
@@ -45,6 +47,7 @@ public class ServiceProxyProvider {
         accountService = AccountService.createProxy(vertx, "account-service-address");
         resourceProviderService = ResourceProviderService.createProxy(
             vertx, "resource-provider-service-address");
+        regionService = RegionService.createProxy(vertx, "region-service-address");
         credentialsService = CredentialsService.createProxy(vertx, "credentials-service-address");
         resourceService = ResourceService.createProxy(vertx,"resource-service-address");
         resourceTypeService = ResourceTypeService.createProxy(vertx,"resource-type-service-address");

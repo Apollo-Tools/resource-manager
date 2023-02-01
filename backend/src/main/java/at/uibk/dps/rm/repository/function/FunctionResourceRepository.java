@@ -33,6 +33,8 @@ public class FunctionResourceRepository extends Repository<FunctionResource> {
                     "left join fetch r.metricValues mv " +
                     "left join fetch mv.metric " +
                     "left join fetch r.resourceType " +
+                    "left join fetch r.region reg " +
+                    "left join fetch reg.resourceProvider " +
                     "where rr.reservation.reservationId=:reservationId", entityClass)
                 .setParameter("reservationId", reservationId)
                 .getResultList());

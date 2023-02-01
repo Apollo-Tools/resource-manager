@@ -15,45 +15,39 @@ public class ResourceRepository extends Repository<Resource> {
 
     public CompletionStage<Resource> findByIdAndFetch(long id) {
         return sessionFactory.withSession(session -> session.createQuery(
-            "from Resource r left join fetch r.resourceType where r.resourceId =:id", entityClass)
+                "from Resource r " +
+                "left join fetch r.resourceType " +
+                "left join fetch r.region " +
+                "left join fetch r.region.resourceProvider " +
+                "where r.resourceId =:id", entityClass)
                 .setParameter("id", id)
                 .getSingleResultOrNull()
             );
     }
 
-    public CompletionStage<List<Resource>> findAllAndFetch(boolean excludeReservedResources) {
-        final String excludeClause;
-
-        if (excludeReservedResources) {
-            excludeClause = "where r1.resourceId not in " +
-                "(select distinct r2.resourceId from ResourceReservation rr " +
-                "left join rr.reservation res " +
-                "left join rr.resource r2 " +
-                "where res.isActive=true)";
-        } else {
-            excludeClause = "";
-        }
-
-
+    public CompletionStage<List<Resource>> findAllAndFetch() {
         return sessionFactory.withSession(session ->
-            session.createQuery("select distinct r1 from Resource r1 " +
-                            "left join fetch r1.metricValues mv " +
-                            "left join fetch mv.metric " +
-                            "left join fetch r1.resourceType " +
-                            excludeClause, entityClass)
+            session.createQuery("from Resource r " +
+                    "left join fetch r.metricValues mv " +
+                    "left join fetch mv.metric " +
+                    "left join fetch r.region " +
+                    "left join fetch r.region.resourceProvider " +
+                    "left join fetch r.resourceType ", entityClass)
                 .getResultList()
             );
     }
 
     public CompletionStage<List<Resource>> findByMultipleMetricsAndFetch(List<String> metrics) {
         return this.sessionFactory.withSession(session ->
-                session.createQuery("select distinct r from Resource r " +
-                        "left join fetch r.metricValues mv " +
-                        "left join fetch r.resourceType " +
-                        "left join fetch mv.metric m " +
-                        "where m.metric in :metrics", Resource.class)
-                        .setParameter("metrics", metrics)
-                        .getResultList()
+            session.createQuery("select distinct r from Resource r " +
+                    "left join fetch r.metricValues mv " +
+                    "left join fetch r.resourceType " +
+                    "left join fetch r.region " +
+                    "left join fetch r.region.resourceProvider " +
+                    "left join fetch mv.metric m " +
+                    "where m.metric in :metrics", Resource.class)
+                .setParameter("metrics", metrics)
+                .getResultList()
         );
     }
 
@@ -63,6 +57,8 @@ public class ResourceRepository extends Repository<Resource> {
                     "left join rr.reservation " +
                     "left join rr.resource r " +
                     "left join fetch r.resourceType " +
+                    "left join fetch r.region " +
+                    "left join fetch r.region.resourceProvider " +
                     "left join fetch r.metricValues mv " +
                     "left join fetch mv.metric " +
                     "where rr.reservation.reservationId=:reservationId", Resource.class)
@@ -73,7 +69,8 @@ public class ResourceRepository extends Repository<Resource> {
 
     public CompletionStage<List<Resource>> findByResourceType(long typeId) {
         return sessionFactory.withSession(session ->
-            session.createQuery("from Resource r where r.resourceType.typeId=:typeId", entityClass)
+            session.createQuery("from Resource r " +
+                    "where r.resourceType.typeId=:typeId", entityClass)
                 .setParameter("typeId", typeId)
                 .getResultList());
     }
@@ -95,6 +92,8 @@ public class ResourceRepository extends Repository<Resource> {
             session.createQuery("select distinct r from FunctionResource fr " +
                     "left join fr.function f " +
                     "left join fr.resource r " +
+                    "left join fetch r.region " +
+                    "left join fetch r.region.resourceProvider " +
                     "left join fetch r.resourceType " +
                     "left join fetch r.metricValues mv " +
                     "left join fetch mv.metric " +

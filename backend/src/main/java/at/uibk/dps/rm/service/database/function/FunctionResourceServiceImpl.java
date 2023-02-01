@@ -23,8 +23,10 @@ public class FunctionResourceServiceImpl extends ServiceProxy<FunctionResource> 
         return Future
             .fromCompletionStage(functionResourceRepository.findByFunctionAndResource(functionId, resourceId))
             .map(functionResource -> {
-                functionResource.setResource(null);
-                functionResource.setFunction(null);
+                if (functionResource != null) {
+                    functionResource.setResource(null);
+                    functionResource.setFunction(null);
+                }
                 return JsonObject.mapFrom(functionResource);
             });
     }

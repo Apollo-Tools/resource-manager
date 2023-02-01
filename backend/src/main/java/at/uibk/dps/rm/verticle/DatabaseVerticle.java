@@ -13,9 +13,12 @@ import at.uibk.dps.rm.repository.reservation.ReservationRepository;
 import at.uibk.dps.rm.repository.reservation.ResourceReservationRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resource.ResourceTypeRepository;
+import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.service.database.account.*;
 import at.uibk.dps.rm.service.database.function.*;
+import at.uibk.dps.rm.service.database.resourceprovider.RegionService;
+import at.uibk.dps.rm.service.database.resourceprovider.RegionServiceImpl;
 import at.uibk.dps.rm.service.database.resourceprovider.ResourceProviderService;
 import at.uibk.dps.rm.service.database.resourceprovider.ResourceProviderServiceImpl;
 import at.uibk.dps.rm.service.database.metric.*;
@@ -48,6 +51,7 @@ public class DatabaseVerticle extends AbstractVerticle {
     private AccountCredentialsRepository accountCredentialsRepository;
     private AccountRepository accountRepository;
     private ResourceProviderRepository resourceProviderRepository;
+    private RegionRepository regionRepository;
     private CredentialsRepository credentialsRepository;
     private ResourceTypeRepository resourceTypeRepository;
     private ResourceRepository resourceRepository;
@@ -91,6 +95,7 @@ public class DatabaseVerticle extends AbstractVerticle {
                 accountCredentialsRepository = new AccountCredentialsRepository(sessionFactory);
                 accountRepository = new AccountRepository(sessionFactory);
                 resourceProviderRepository = new ResourceProviderRepository(sessionFactory);
+                regionRepository = new RegionRepository(sessionFactory);
                 credentialsRepository = new CredentialsRepository(sessionFactory);
                 resourceTypeRepository = new ResourceTypeRepository(sessionFactory);
                 resourceRepository = new ResourceRepository(sessionFactory);
@@ -128,6 +133,12 @@ public class DatabaseVerticle extends AbstractVerticle {
             serviceBinder
                 .setAddress("resource-provider-service-address")
                 .register(ResourceProviderService.class, resourceProviderService);
+
+            RegionService regionService =
+                new RegionServiceImpl(regionRepository);
+            serviceBinder
+                .setAddress("region-service-address")
+                .register(RegionService.class, regionService);
 
             CredentialsService credentialsService = new CredentialsServiceImpl(credentialsRepository);
             serviceBinder

@@ -285,6 +285,16 @@ paths:
                 is_self_managed:
                   type: boolean
                   example: false
+                region:
+                  type: object
+                  required:
+                    - region_id
+                  additionalProperties: false
+                  properties:
+                    region_id:
+                      type: integer
+                      format: int64
+                      example: 1
       responses:
         201:
           description: Successful registration of a new resource
@@ -1098,6 +1108,29 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
+  /resource-providers/{id}/regions:
+    get:
+      description: Return details about all registerd resource provider's regions
+      operationId: listResourceProviderRegions
+      security:
+        - bearerAuth: []
+      tags:
+        - resourceProviders
+        - regions
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of all resource provider's regions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Region"
+        500:
+          $ref: "#/components/responses/500"
+
   /resource-providers:
     get:
       description: Return details about all resource providers managed by the resource manager
@@ -1171,6 +1204,116 @@ paths:
           $ref: "#/components/responses/400"
         404:
           $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /regions/{id}:
+    get:
+      description: Return details about a region managed by the resource manager
+      operationId: getRegion
+      security:
+        - bearerAuth: []
+      tags:
+        - regions
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of a region
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Region"
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+    delete:
+      description: Deletes a region
+      operationId: deleteRegion
+      security:
+        - bearerAuth: []
+      tags:
+        - regions
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        204:
+          description: Successful deletion of a region
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /regions:
+    get:
+      description: Return details about all regions managed by the resource manager
+      operationId: listRegions
+      security:
+        - bearerAuth: []
+      tags:
+        - regions
+      responses:
+        200:
+          description: Successful pull of all regions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Region"
+        500:
+          $ref: "#/components/responses/500"
+
+    post:
+      description: Creates a new region
+      operationId: createRegion
+      security:
+        - bearerAuth: []
+      tags:
+        - regions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - resource_provider
+              additionalProperties: false
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 512
+                  example: us-east
+                resource_provider:
+                  type: object
+                  required:
+                    - provider_id
+                  additionalProperties: false
+                  properties:
+                    provider_id:
+                      type: integer
+                      format: int64
+                      example: 1
+      responses:
+        201:
+          description: Successful creation of a new region
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Region"
+        400:
+          $ref: "#/components/responses/400"
+        409:
+          $ref: "#/components/responses/409"
         500:
           $ref: "#/components/responses/500"
 
@@ -1583,6 +1726,22 @@ components:
           type: string
           format: date-time
           #example: 2017-07-21T17:32:28Z
+    Region:
+      type: object
+      properties:
+        region_id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: us-east
+        resource_provider:
+          $ref: "#/components/schemas/Runtime"
+        created_at:
+          type: string
+          format: date-time
+          #example: 2017-07-21T17:32:28Z
     Resource:
       type: object
       properties:
@@ -1595,6 +1754,8 @@ components:
         is_self_managed:
           type: boolean
           example: true
+        region:
+          $ref: "#/components/schemas/Region"
         created_at:
           type: string
           format: date-time

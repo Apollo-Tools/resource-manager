@@ -50,14 +50,16 @@ public class ResourceServiceImpl extends ServiceProxy<Resource> implements Resou
     @Override
     public Future<JsonArray> findAll() {
         return Future
-            .fromCompletionStage(resourceRepository.findAllAndFetch(false))
+            .fromCompletionStage(resourceRepository.findAllAndFetch())
             .map(this::encodeResourceList);
     }
 
+    // TODO: remove
+    @Deprecated
     @Override
     public Future<JsonArray> findAllUnreserved() {
         return Future
-            .fromCompletionStage(resourceRepository.findAllAndFetch(true))
+            .fromCompletionStage(resourceRepository.findAllAndFetch())
             .map(this::encodeResourceList);
     }
 
