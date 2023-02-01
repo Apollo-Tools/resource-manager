@@ -16,6 +16,7 @@
         <class>at.uibk.dps.rm.entity.model.Function</class>
         <class>at.uibk.dps.rm.entity.model.FunctionResource</class>
         <class>at.uibk.dps.rm.entity.model.Runtime</class>
+        <class>at.uibk.dps.rm.entity.model.Region</class>
         <class>at.uibk.dps.rm.entity.model.Reservation</class>
         <class>at.uibk.dps.rm.entity.model.ResourceReservation</class>
 

@@ -31,6 +31,10 @@ public class Resource {
     @JoinColumn(name = "resource_type")
     private ResourceType resourceType;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "region_id")
+    private Region region;
+
     @OneToMany
     @JoinTable(
         name="MetricValue",
