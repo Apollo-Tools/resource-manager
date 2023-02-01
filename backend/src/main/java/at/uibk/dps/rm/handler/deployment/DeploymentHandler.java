@@ -2,9 +2,9 @@ package at.uibk.dps.rm.handler.deployment;
 
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.handler.account.CredentialsChecker;
-import at.uibk.dps.rm.handler.resource.ResourceChecker;
+import at.uibk.dps.rm.handler.function.FunctionResourceChecker;
 import at.uibk.dps.rm.service.rxjava3.database.account.CredentialsService;
-import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
+import at.uibk.dps.rm.service.rxjava3.database.function.FunctionResourceService;
 import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentService;
 import io.reactivex.rxjava3.core.Completable;
 
@@ -14,13 +14,13 @@ public class DeploymentHandler {
 
     private final CredentialsChecker credentialsChecker;
 
-    private final ResourceChecker resourceChecker;
+    private final FunctionResourceChecker functionResourceChecker;
 
     public DeploymentHandler(DeploymentService deploymentService, CredentialsService credentialsService,
-                             ResourceService resourceService) {
+                             FunctionResourceService functionResourceService) {
         this.deploymentChecker = new DeploymentChecker(deploymentService);
         this.credentialsChecker = new CredentialsChecker(credentialsService);
-        this.resourceChecker = new ResourceChecker(resourceService);
+        this.functionResourceChecker = new FunctionResourceChecker(functionResourceService);
     }
 
     public Completable deployResources(long reservationId, long accountId) {
@@ -28,13 +28,14 @@ public class DeploymentHandler {
         request.setReservationId(reservationId);
         return credentialsChecker.checkFindAll(accountId)
             .map(credentials -> {
+                // TODO: add provider to resource
                 request.setCredentialsList(credentials.getList());
                 return request;
             })
             .flatMap(deployRequest ->
-                resourceChecker.checkFindAllByReservationId(reservationId)
-                    .map(resources -> {
-                        deployRequest.setResources(resources.getList());
+                functionResourceChecker.checkFindAllByReservationId(reservationId)
+                    .map(functionResources -> {
+                        deployRequest.setFunctionResources(functionResources.getList());
                         return deployRequest;
                     }
                 ))

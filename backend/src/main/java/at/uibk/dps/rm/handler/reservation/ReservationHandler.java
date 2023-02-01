@@ -8,7 +8,6 @@ import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.handler.deployment.DeploymentHandler;
 import at.uibk.dps.rm.handler.function.FunctionResourceChecker;
 import at.uibk.dps.rm.handler.metric.MetricValueChecker;
-import at.uibk.dps.rm.handler.resource.ResourceChecker;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.util.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
@@ -91,9 +90,9 @@ public class ReservationHandler extends ValidationHandler {
                 .andThen(Single.just(JsonObject.mapFrom(resourceReservations.get(0).getReservation())))
                 .map(result -> {
                     // TODO: fix
-                    //deploymentHandler
-                    //    .deployResources(result.getLong("reservation_id"), accountId)
-                    //    .subscribe();
+                    deploymentHandler
+                        .deployResources(result.getLong("reservation_id"), accountId)
+                        .subscribe();
                     return result;
                 })
             );

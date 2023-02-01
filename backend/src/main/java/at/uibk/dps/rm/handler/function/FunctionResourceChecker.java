@@ -5,6 +5,7 @@ import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.function.FunctionResourceService;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 public class FunctionResourceChecker  extends EntityChecker {
@@ -23,6 +24,11 @@ public class FunctionResourceChecker  extends EntityChecker {
         Single<JsonObject> findOneByFunctionAndResource = functionResourceService
             .findOneByFunctionAndResource(functionId, resourceId);
         return ErrorHandler.handleFindOne(findOneByFunctionAndResource);
+    }
+
+    public Single<JsonArray> checkFindAllByReservationId(long reservationId) {
+        Single<JsonArray> findAllByReservationId = functionResourceService.findAllByReservationId(reservationId);
+        return ErrorHandler.handleFindAll(findAllByReservationId);
     }
 
     public Completable checkForDuplicateByFunctionAndResource(long functionId, long resourceId) {

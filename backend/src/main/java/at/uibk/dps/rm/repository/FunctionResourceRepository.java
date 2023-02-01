@@ -3,6 +3,7 @@ package at.uibk.dps.rm.repository;
 import at.uibk.dps.rm.entity.model.FunctionResource;
 import org.hibernate.reactive.stage.Stage;
 
+import java.util.List;
 import java.util.concurrent.CompletionStage;
 
 public class FunctionResourceRepository extends Repository<FunctionResource> {
@@ -19,6 +20,21 @@ public class FunctionResourceRepository extends Repository<FunctionResource> {
                 .setParameter("resourceId", resourceId)
                 .getSingleResultOrNull()
         );
+    }
+
+    public CompletionStage<List<FunctionResource>> findAllByReservationIdAndFetch(long reservationId) {
+        return this.sessionFactory.withSession(session ->
+            session.createQuery("select distinct fr from ResourceReservation rr " +
+                    "left join rr.functionResource fr " +
+                    "left join fetch fr.function f " +
+                    "left join fetch f.runtime " +
+                    "left join fetch fr.resource r " +
+                    "left join fetch r.metricValues mv " +
+                    "left join fetch mv.metric " +
+                    "left join fetch r.resourceType " +
+                    "where rr.reservation.reservationId=:reservationId", entityClass)
+                .setParameter("reservationId", reservationId)
+                .getResultList());
     }
 
     public CompletionStage<Integer> deleteByFunctionAndResource(long functionId, long resourceId) {

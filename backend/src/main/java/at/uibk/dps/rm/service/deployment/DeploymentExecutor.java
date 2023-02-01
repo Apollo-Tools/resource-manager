@@ -2,6 +2,7 @@ package at.uibk.dps.rm.service.deployment;
 
 import at.uibk.dps.rm.entity.deployment.CloudProvider;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
+import at.uibk.dps.rm.entity.model.FunctionResource;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.service.deployment.terraform.AWSFileService;
 import at.uibk.dps.rm.service.deployment.terraform.MainFileService;
@@ -13,13 +14,17 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class DeploymentExecutor {
 
     public Single<Long> deploy(JsonObject jsonObject) {
         DeployResourcesRequest deployResourcesRequest = jsonObject.mapTo(DeployResourcesRequest.class);
         // Do this for each region -> group resources by region
-        List<Resource> resources = deployResourcesRequest.getResources();
+        List<Resource> resources = deployResourcesRequest.getFunctionResources()
+            .stream()
+            .map(FunctionResource::getResource)
+            .collect(Collectors.toList());
         TerraformExecutor terraformExecutor = new TerraformExecutor(deployResourcesRequest.getCredentialsList());
         // TODO: get rid of these
         String region = "us-east-1";

@@ -4,8 +4,10 @@ import at.uibk.dps.rm.entity.model.FunctionResource;
 import at.uibk.dps.rm.repository.FunctionResourceRepository;
 import at.uibk.dps.rm.service.database.ServiceProxy;
 import io.vertx.core.Future;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class FunctionResourceServiceImpl extends ServiceProxy<FunctionResource> implements FunctionResourceService {
@@ -24,6 +26,19 @@ public class FunctionResourceServiceImpl extends ServiceProxy<FunctionResource> 
                 functionResource.setResource(null);
                 functionResource.setFunction(null);
                 return JsonObject.mapFrom(functionResource);
+            });
+    }
+
+    @Override
+    public Future<JsonArray> findAllByReservationId(long reservationId) {
+        return Future
+            .fromCompletionStage(functionResourceRepository.findAllByReservationIdAndFetch(reservationId))
+            .map(functionResources -> {
+                ArrayList<JsonObject> objects = new ArrayList<>();
+                for ( FunctionResource functionResource: functionResources) {
+                    objects.add(JsonObject.mapFrom(functionResource));
+                }
+                return new JsonArray(objects);
             });
     }
 

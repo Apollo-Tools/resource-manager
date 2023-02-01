@@ -11,7 +11,7 @@ public class ReservationRoute {
 
     public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         DeploymentHandler deploymentHandler = new DeploymentHandler(serviceProxyProvider.getDeploymentService(),
-            serviceProxyProvider.getCredentialsService(), serviceProxyProvider.getResourceService());
+            serviceProxyProvider.getCredentialsService(), serviceProxyProvider.getFunctionResourceService());
         ReservationHandler reservationHandler = new ReservationHandler(serviceProxyProvider, deploymentHandler);
         RequestHandler reservationRequestHandler = new RequestHandler(reservationHandler);
 

@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.entity.dto;
 
 import at.uibk.dps.rm.entity.model.Credentials;
-import at.uibk.dps.rm.entity.model.Resource;
+import at.uibk.dps.rm.entity.model.FunctionResource;
 import lombok.Data;
 
 import java.util.List;
@@ -13,5 +13,5 @@ public class DeployResourcesRequest {
 
     private List<Credentials> credentialsList;
 
-    private List<Resource> resources;
+    private List<FunctionResource> functionResources;
 }
