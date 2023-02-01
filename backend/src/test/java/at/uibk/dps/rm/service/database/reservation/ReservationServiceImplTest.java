@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.service.database.reservation;
 
 import at.uibk.dps.rm.entity.model.*;
-import at.uibk.dps.rm.repository.ReservationRepository;
+import at.uibk.dps.rm.repository.reservation.ReservationRepository;
 import at.uibk.dps.rm.testutil.TestObjectProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;

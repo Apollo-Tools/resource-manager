@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.service.database.resource;
 
-import at.uibk.dps.rm.repository.ResourceTypeRepository;
+import at.uibk.dps.rm.repository.resource.ResourceTypeRepository;
 import at.uibk.dps.rm.service.database.ServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;

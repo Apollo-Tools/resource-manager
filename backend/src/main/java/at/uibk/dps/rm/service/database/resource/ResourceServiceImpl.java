@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.service.database.resource;
 
-import at.uibk.dps.rm.repository.ResourceRepository;
+import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.service.database.ServiceProxy;
 import io.vertx.core.Future;

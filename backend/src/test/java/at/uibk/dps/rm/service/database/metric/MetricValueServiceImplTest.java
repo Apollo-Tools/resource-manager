@@ -3,7 +3,7 @@ package at.uibk.dps.rm.service.database.metric;
 import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.entity.model.ResourceType;
-import at.uibk.dps.rm.repository.MetricValueRepository;
+import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.testutil.TestObjectProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.core.json.JsonArray;

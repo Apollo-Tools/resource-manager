@@ -3,7 +3,7 @@ package at.uibk.dps.rm.service.database.account;
 import at.uibk.dps.rm.entity.model.Credentials;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.model.ResourceProvider;
-import at.uibk.dps.rm.repository.CredentialsRepository;
+import at.uibk.dps.rm.repository.account.CredentialsRepository;
 import at.uibk.dps.rm.testutil.TestObjectProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;

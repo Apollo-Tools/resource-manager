@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.service.database.metric;
 
-import at.uibk.dps.rm.repository.MetricRepository;
+import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.service.database.ServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;

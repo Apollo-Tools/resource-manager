@@ -1,6 +1,7 @@
-package at.uibk.dps.rm.repository;
+package at.uibk.dps.rm.repository.reservation;
 
 import at.uibk.dps.rm.entity.model.Reservation;
+import at.uibk.dps.rm.repository.Repository;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.List;

@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.service.database.resource;
 
 import at.uibk.dps.rm.entity.model.ResourceType;
-import at.uibk.dps.rm.repository.ResourceTypeRepository;
+import at.uibk.dps.rm.repository.resource.ResourceTypeRepository;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.hibernate.reactive.util.impl.CompletionStages;

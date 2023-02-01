@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.service.database.metric;
 
 import at.uibk.dps.rm.entity.model.Resource;
-import at.uibk.dps.rm.repository.MetricValueRepository;
+import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.service.database.ServiceProxy;
 import io.vertx.core.Future;

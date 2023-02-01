@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.service.database.reservation;
 
-import at.uibk.dps.rm.repository.ResourceReservationRepository;
+import at.uibk.dps.rm.repository.reservation.ResourceReservationRepository;
 import at.uibk.dps.rm.service.database.ServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;

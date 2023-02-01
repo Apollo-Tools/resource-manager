@@ -1,6 +1,19 @@
 package at.uibk.dps.rm.verticle;
 
-import at.uibk.dps.rm.repository.*;
+import at.uibk.dps.rm.repository.account.AccountCredentialsRepository;
+import at.uibk.dps.rm.repository.account.AccountRepository;
+import at.uibk.dps.rm.repository.account.CredentialsRepository;
+import at.uibk.dps.rm.repository.function.FunctionRepository;
+import at.uibk.dps.rm.repository.function.FunctionResourceRepository;
+import at.uibk.dps.rm.repository.function.RuntimeRepository;
+import at.uibk.dps.rm.repository.metric.MetricRepository;
+import at.uibk.dps.rm.repository.metric.MetricTypeRepository;
+import at.uibk.dps.rm.repository.metric.MetricValueRepository;
+import at.uibk.dps.rm.repository.reservation.ReservationRepository;
+import at.uibk.dps.rm.repository.reservation.ResourceReservationRepository;
+import at.uibk.dps.rm.repository.resource.ResourceRepository;
+import at.uibk.dps.rm.repository.resource.ResourceTypeRepository;
+import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.service.database.account.*;
 import at.uibk.dps.rm.service.database.function.*;
 import at.uibk.dps.rm.service.database.resourceprovider.ResourceProviderService;

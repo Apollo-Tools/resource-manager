@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.service.database.account;
 
-import at.uibk.dps.rm.repository.CredentialsRepository;
+import at.uibk.dps.rm.repository.account.CredentialsRepository;
 import at.uibk.dps.rm.service.database.ServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;

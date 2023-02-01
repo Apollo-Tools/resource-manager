@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.service.database.function;
 
 
-import at.uibk.dps.rm.repository.FunctionResourceRepository;
+import at.uibk.dps.rm.repository.function.FunctionResourceRepository;
 import at.uibk.dps.rm.service.database.ServiceInterface;
 
 import io.vertx.codegen.annotations.GenIgnore;

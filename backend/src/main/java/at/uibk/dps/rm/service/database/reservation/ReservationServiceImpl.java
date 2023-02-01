@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.service.database.reservation;
 
 import at.uibk.dps.rm.entity.model.Reservation;
-import at.uibk.dps.rm.repository.ReservationRepository;
+import at.uibk.dps.rm.repository.reservation.ReservationRepository;
 import at.uibk.dps.rm.service.database.ServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;

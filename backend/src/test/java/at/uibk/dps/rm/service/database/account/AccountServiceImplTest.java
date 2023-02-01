@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.service.database.account;
 
 import at.uibk.dps.rm.entity.model.Account;
-import at.uibk.dps.rm.repository.AccountRepository;
+import at.uibk.dps.rm.repository.account.AccountRepository;
 import at.uibk.dps.rm.testutil.TestObjectProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;

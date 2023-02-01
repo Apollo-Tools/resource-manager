@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.service.database.function;
 
-import at.uibk.dps.rm.repository.RuntimeRepository;
+import at.uibk.dps.rm.repository.function.RuntimeRepository;
 import at.uibk.dps.rm.service.database.ServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;

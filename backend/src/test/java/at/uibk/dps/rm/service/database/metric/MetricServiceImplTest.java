@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.service.database.metric;
 
 import at.uibk.dps.rm.entity.model.Metric;
-import at.uibk.dps.rm.repository.MetricRepository;
+import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;

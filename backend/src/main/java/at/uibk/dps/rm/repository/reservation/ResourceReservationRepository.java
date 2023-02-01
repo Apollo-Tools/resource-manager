@@ -1,12 +1,13 @@
-package at.uibk.dps.rm.repository;
+package at.uibk.dps.rm.repository.reservation;
 
 import at.uibk.dps.rm.entity.model.ResourceReservation;
+import at.uibk.dps.rm.repository.Repository;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 
-public class ResourceReservationRepository extends Repository<ResourceReservation>{
+public class ResourceReservationRepository extends Repository<ResourceReservation> {
     public ResourceReservationRepository(Stage.SessionFactory sessionFactory) {
         super(sessionFactory, ResourceReservation.class);
     }

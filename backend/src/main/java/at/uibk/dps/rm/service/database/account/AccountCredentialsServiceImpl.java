@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.service.database.account;
 
 import at.uibk.dps.rm.entity.model.AccountCredentials;
-import at.uibk.dps.rm.repository.AccountCredentialsRepository;
+import at.uibk.dps.rm.repository.account.AccountCredentialsRepository;
 import at.uibk.dps.rm.service.database.ServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;

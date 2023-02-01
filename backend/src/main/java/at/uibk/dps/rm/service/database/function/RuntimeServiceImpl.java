@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.service.database.function;
 
 import at.uibk.dps.rm.entity.model.Runtime;
-import at.uibk.dps.rm.repository.RuntimeRepository;
+import at.uibk.dps.rm.repository.function.RuntimeRepository;
 import at.uibk.dps.rm.service.database.ServiceProxy;
 import io.vertx.core.Future;
 

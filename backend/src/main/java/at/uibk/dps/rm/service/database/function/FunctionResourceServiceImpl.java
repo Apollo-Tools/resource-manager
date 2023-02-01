@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.service.database.function;
 
 import at.uibk.dps.rm.entity.model.FunctionResource;
-import at.uibk.dps.rm.repository.FunctionResourceRepository;
+import at.uibk.dps.rm.repository.function.FunctionResourceRepository;
 import at.uibk.dps.rm.service.database.ServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;

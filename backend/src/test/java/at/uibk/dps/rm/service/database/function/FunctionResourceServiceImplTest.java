@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.service.database.function;
 
 import at.uibk.dps.rm.entity.model.*;
-import at.uibk.dps.rm.repository.FunctionResourceRepository;
+import at.uibk.dps.rm.repository.function.FunctionResourceRepository;
 import at.uibk.dps.rm.testutil.TestObjectProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;

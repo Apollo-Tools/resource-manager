@@ -1,6 +1,7 @@
-package at.uibk.dps.rm.repository;
+package at.uibk.dps.rm.repository.resourceprovider;
 
 import at.uibk.dps.rm.entity.model.ResourceProvider;
+import at.uibk.dps.rm.repository.Repository;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.concurrent.CompletionStage;

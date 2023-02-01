@@ -2,7 +2,7 @@ package at.uibk.dps.rm.service.database.resourceprovider;
 
 import at.uibk.dps.rm.entity.model.AccountCredentials;
 import at.uibk.dps.rm.entity.model.ResourceProvider;
-import at.uibk.dps.rm.repository.ResourceProviderRepository;
+import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.testutil.TestObjectProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
