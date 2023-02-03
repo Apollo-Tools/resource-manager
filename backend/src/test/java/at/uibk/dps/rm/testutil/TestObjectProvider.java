@@ -317,4 +317,16 @@ public class TestObjectProvider {
         functionResource.setIsDeployed(isDeployed);
         return functionResource;
     }
+
+    public static Region createRegion(long id, String name) {
+        return createRegion(id, name, new ResourceProvider());
+    }
+
+    public static Region createRegion(long id, String name, ResourceProvider resourceProvider) {
+        Region region = new Region();
+        region.setRegionId(id);
+        region.setName(name);
+        region.setResourceProvider(resourceProvider);
+        return region;
+    }
 }
