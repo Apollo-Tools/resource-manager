@@ -71,7 +71,7 @@ public class ResourceReservationCheckerTest {
                     verify(resourceReservationService).findAllByReservationId(reservationId);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception " + throwable.getMessage()))
+                throwable -> testContext.verify(() -> fail("method did throw exception"))
             );
     }
 
@@ -88,7 +88,7 @@ public class ResourceReservationCheckerTest {
                     verify(resourceReservationService).findAllByReservationId(reservationId);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception " + throwable.getMessage()))
+                throwable -> testContext.verify(() -> fail("method did throw exception"))
             );
     }
 
