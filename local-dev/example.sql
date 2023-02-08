@@ -35,10 +35,6 @@ VALUES ('online', 'indicates if the resource is online', true, '3');
 -- configuration metrics
 INSERT INTO metric (metric, description, is_monitored, metric_type_id)
 VALUES ('cpu', 'the amount of cpu cores of a resource', false, 1);
-INSERT INTO metric (metric, description, is_monitored, metric_type_id)
-VALUES ('region', 'the region of a resource', false, 2);
-INSERT INTO metric (metric, description, is_monitored, metric_type_id)
-VALUES ('trigger_url', 'the url of the deployed function', false, 2);
 
 -- resource_type
 INSERT INTO resource_type (resource_type)

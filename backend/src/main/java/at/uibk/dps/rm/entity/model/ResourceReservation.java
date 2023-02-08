@@ -21,6 +21,8 @@ public class ResourceReservation {
     @JsonProperty("is_deployed")
     private Boolean isDeployed = false;
 
+    private String triggerUrl = "";
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "function_resource_id")
     private FunctionResource functionResource;

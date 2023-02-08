@@ -24,6 +24,7 @@ public class ReservationServiceImpl extends ServiceProxy<Reservation> implements
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Reservation entity: result) {
+                    entity.setCreatedBy(null);
                     objects.add(JsonObject.mapFrom(entity));
                 }
                 return new JsonArray(objects);
@@ -41,6 +42,11 @@ public class ReservationServiceImpl extends ServiceProxy<Reservation> implements
     public Future<JsonObject> findOneByIdAndAccountId(long id, long accountId) {
         return Future
             .fromCompletionStage(reservationRepository.findByIdAndAccountId(id, accountId))
-            .map(JsonObject::mapFrom);
+            .map(result -> {
+                if (result != null) {
+                    result.setCreatedBy(null);
+                }
+                return JsonObject.mapFrom(result);
+            });
     }
 }

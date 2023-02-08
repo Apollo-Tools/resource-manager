@@ -28,6 +28,7 @@ public class ResourceReservationServiceImpl extends ServiceProxy<ResourceReserva
                         // TODO: fix
                         entity.getFunctionResource().getResource().setResourceType(null);
                         entity.getFunctionResource().getResource().setMetricValues(null);
+                        entity.getFunctionResource().getResource().setRegion(null);
                         entity.getFunctionResource().getFunction().setRuntime(null);
                         objects.add(JsonObject.mapFrom(entity));
                     }

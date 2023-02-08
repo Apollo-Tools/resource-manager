@@ -79,9 +79,6 @@ public class ReservationHandlerTest {
         Account account = TestObjectProvider.createAccount(1L);
         Reservation reservation = TestObjectProvider.createReservation(1L, true, account);
         JsonArray resourceReservations = new JsonArray(TestObjectProvider.createResourceReservationsJson(reservation));
-        MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", 25.0);
-        MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", 0.995);
-        JsonArray metricValues = new JsonArray(List.of(JsonObject.mapFrom(mv1), JsonObject.mapFrom(mv2)));
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(reservationId));
@@ -89,7 +86,6 @@ public class ReservationHandlerTest {
             .thenReturn(Single.just(JsonObject.mapFrom(reservation)));
         when(resourceReservationService.findAllByReservationId(reservationId))
             .thenReturn(Single.just(resourceReservations));
-        when(metricValueService.findAllByResource(33L, true)).thenReturn(Single.just(metricValues));
 
         reservationHandler.getOne(rc)
             .subscribe(result -> testContext.verify(() -> {
@@ -106,31 +102,6 @@ public class ReservationHandlerTest {
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method did throw exception"))
-            );
-    }
-
-    @Test
-    void getOneExistsMetricValuesNotFound(VertxTestContext testContext) {
-        long reservationId = 1L;
-        Account account = TestObjectProvider.createAccount(1L);
-        Reservation reservation = TestObjectProvider.createReservation(1L, true, account);
-        JsonArray resourceReservations = new JsonArray(TestObjectProvider.createResourceReservationsJson(reservation));
-        Single<JsonArray> handler = new SingleHelper<JsonArray>().getEmptySingle();
-
-        RoutingContextMockHelper.mockUserPrincipal(rc, account);
-        when(rc.pathParam("id")).thenReturn(String.valueOf(reservationId));
-        when(reservationService.findOneByIdAndAccountId(reservationId, account.getAccountId()))
-            .thenReturn(Single.just(JsonObject.mapFrom(reservation)));
-        when(resourceReservationService.findAllByReservationId(reservationId))
-            .thenReturn(Single.just(resourceReservations));
-        when(metricValueService.findAllByResource(anyLong(),anyBoolean())).thenReturn(handler);
-
-        reservationHandler.getOne(rc)
-            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(NotFoundException.class);
-                    testContext.completeNow();
-                })
             );
     }
 

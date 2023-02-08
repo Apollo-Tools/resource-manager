@@ -6,7 +6,6 @@ import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.handler.deployment.DeploymentHandler;
 import at.uibk.dps.rm.handler.function.FunctionResourceChecker;
-import at.uibk.dps.rm.handler.metric.MetricValueChecker;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.util.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
@@ -28,15 +27,13 @@ public class ReservationHandler extends ValidationHandler {
 
     private final ResourceReservationChecker resourceReservationChecker;
 
-    private final MetricValueChecker metricValueChecker;
-
     private final DeploymentHandler deploymentHandler;
 
     public ReservationHandler(ServiceProxyProvider serviceProxyProvider, DeploymentHandler deploymentHandler) {
         super(new ReservationChecker(serviceProxyProvider.getReservationService()));
         this.reservationChecker = (ReservationChecker) super.entityChecker;
-        this.resourceReservationChecker = new ResourceReservationChecker(serviceProxyProvider.getResourceReservationService());
-        this.metricValueChecker = new MetricValueChecker(serviceProxyProvider.getMetricValueService());
+        this.resourceReservationChecker = new ResourceReservationChecker(serviceProxyProvider
+            .getResourceReservationService());
         this.functionResourceChecker = new FunctionResourceChecker(serviceProxyProvider.getFunctionResourceService());
         this.deploymentHandler = deploymentHandler;
     }
@@ -51,7 +48,6 @@ public class ReservationHandler extends ValidationHandler {
                 }
                 return resourceReservationChecker
                         .checkFindAllByReservationId(reservation.getLong("reservation_id"))
-                        .flatMap(this::checkFindResourcesFromReservation)
                         .map(resourceReservations -> {
                             reservation.put("resource_reservations", resourceReservations);
                             return reservation;
@@ -105,33 +101,11 @@ public class ReservationHandler extends ValidationHandler {
                 .flatMapCompletable(reservationChecker::submitCancelReservation);
     }
 
-    private Single<List<JsonObject>> checkFindResourcesFromReservation(JsonArray resourceReservations) {
-        return Observable.fromStream(resourceReservations.stream())
-                .flatMapSingle(resourceReservationObject -> {
-                    ResourceReservation resourceReservation = ((JsonObject) resourceReservationObject)
-                            .mapTo(ResourceReservation.class);
-                    Resource resource = resourceReservation.getFunctionResource().getResource();
-                    JsonObject resourceJson = JsonObject.mapFrom(resource);
-                    return metricValueChecker.checkFindAllByResource(resource.getResourceId(), true)
-                            .map(metricValues -> mapMetricValuesToResourceReservation(
-                                    (JsonObject) resourceReservationObject, resourceJson, metricValues)
-                            );
-                })
-                .toList();
-    }
-
     private Observable<JsonObject> checkFindFunctionResources(List<FunctionResourceIds> functionResourceIds) {
         return Observable.fromIterable(functionResourceIds)
             .flatMapSingle(ids -> functionResourceChecker
                 .checkFindOneByFunctionAndResource(ids.getFunctionId(), ids.getResourceId())
             );
-    }
-
-    private JsonObject mapMetricValuesToResourceReservation(JsonObject resourceReservationObject, JsonObject resource,
-                                                            JsonArray metricValues) {
-        resource.put("metric_values", metricValues);
-        resourceReservationObject.getJsonObject("function_resource").put("resource", resource);
-        return resourceReservationObject;
     }
 
     private List<ResourceReservation> createResourceReservationList(JsonObject reservationJson,
