@@ -1,9 +1,8 @@
-import {Button, Checkbox, Form, Select, Space} from 'antd';
+import {Button, Checkbox, Form, Input, Select, Space} from 'antd';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import {updateResource} from '../../lib/ResourceService';
 import PropTypes from 'prop-types';
-import ProviderIcon from '../misc/ProviderIcon';
 import {listResourceTypes} from '../../lib/ResourceTypeService';
 
 
@@ -53,7 +52,8 @@ const UpdateResourceForm = ({resource, reloadResource}) => {
     form.setFieldsValue({
       resourceType: resource.resource_type.type_id,
       isSelfManaged: resource.is_self_managed,
-      region: resource.region.region_id,
+      region: resource.region.name,
+      provider: resource.region.resource_provider.provider,
     });
     setModified(false);
   };
@@ -106,12 +106,17 @@ const UpdateResourceForm = ({resource, reloadResource}) => {
         </Form.Item>
 
         <Form.Item
+          label="Provider"
+          name="provider"
+        >
+          <Input className="text-black bg-blank w-40" onChange={() => setModified(checkIsModified())} disabled />
+        </Form.Item>
+
+        <Form.Item
           label="Region"
           name="region"
         >
-          <div className="bg-white-100 w-40 border-blue-200">
-            <ProviderIcon provider={resource.region.resource_provider.provider} className="mr-1"/> {resource.region.name}
-          </div>
+          <Input className="text-black bg-blank w-40" onChange={() => setModified(checkIsModified())} disabled />
         </Form.Item>
 
         <Form.Item>
