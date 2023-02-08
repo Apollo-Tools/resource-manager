@@ -130,11 +130,3 @@ INSERT INTO metric_value (value_number, resource_id, metric_id)
 VALUES (4, 2, 4);
 INSERT INTO metric_value (value_number, resource_id, metric_id)
 VALUES (16, 3, 4);
-
--- trigger_url
-INSERT INTO metric_value (value_string, resource_id, metric_id)
-VALUES ('https://function1.url', 1, 6);
-INSERT INTO metric_value (value_string, resource_id, metric_id)
-VALUES ('https://function2.url', 2, 6);
-INSERT INTO metric_value (value_string, resource_id, metric_id)
-VALUES ('https://function3.url', 3, 6);
