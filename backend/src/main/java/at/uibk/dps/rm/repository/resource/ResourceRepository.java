@@ -27,11 +27,11 @@ public class ResourceRepository extends Repository<Resource> {
 
     public CompletionStage<List<Resource>> findAllAndFetch() {
         return sessionFactory.withSession(session ->
-            session.createQuery("from Resource r " +
+            session.createQuery("select distinct r from Resource r " +
                     "left join fetch r.metricValues mv " +
                     "left join fetch mv.metric " +
-                    "left join fetch r.region " +
-                    "left join fetch r.region.resourceProvider " +
+                    "left join fetch r.region reg " +
+                    "left join fetch reg.resourceProvider " +
                     "left join fetch r.resourceType ", entityClass)
                 .getResultList()
             );
