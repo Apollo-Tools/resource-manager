@@ -75,10 +75,22 @@ VALUES ('python3.8', './faas/python/cloud_function.py');
 
 -- function
 INSERT INTO function (name, runtime_id, code)
-VALUES ('add1', 1, 'def main(json_input):\n  input1 = json_input[\"input1\"]\n  res = {\n      \"output\": input1 + 1\n  }\n  return res\n');
+VALUES ('add1', 1, 'def main(json_input):
+  input1 = json_input["input1"]
+  res = {
+    "output": input1 + 1
+  }
+  return res
+');
 
 INSERT INTO function (name, runtime_id, code)
-VALUES ('sub1', 1, 'def main(json_input):\n  input1 = json_input[\"input1\"]\n  res = {\n      \"output\": input1 - 1\n  }\n  return res\n');
+VALUES ('sub1', 1, 'def main(json_input):
+  input1 = json_input["input1"]
+  res = {
+    "output": input1 - 1
+  }
+  return res
+');
 
 -- function_resource
 INSERT INTO function_resource (function_id, resource_id, is_deployed)
