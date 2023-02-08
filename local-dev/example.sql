@@ -50,17 +50,45 @@ VALUES ('vm');
 INSERT INTO resource_type (resource_type)
 VALUES ('iot');
 
+-- region
+INSERT INTO region (name, resource_provider_id)
+VALUES ('eu-north', 1);
+INSERT INTO region (name, resource_provider_id)
+VALUES ('eu-east', 1);
+INSERT INTO region (name, resource_provider_id)
+VALUES ('eu-west', 1);
+
 -- resource
 -- faas
-INSERT INTO resource (resource_type, is_self_managed)
-VALUES (1, false);
+INSERT INTO resource (resource_type, is_self_managed, region_id)
+VALUES (1, false, 1);
 -- edge
-INSERT INTO resource(resource_type, is_self_managed)
-VALUES (2, true);
+INSERT INTO resource(resource_type, is_self_managed, region_id)
+VALUES (2, true, 2);
 -- vm
-INSERT INTO resource(resource_type, is_self_managed)
-VALUES (3, false);
+INSERT INTO resource(resource_type, is_self_managed, region_id)
+VALUES (3, false, 1);
 
+-- runtime
+INSERT INTO runtime (name, template_path)
+VALUES ('python3.8', './faas/python/cloud_function.py');
+
+-- function
+INSERT INTO function (name, runtime_id, code)
+VALUES ('add1', 1, 'def main(json_input):\n  input1 = json_input[\"input1\"]\n  res = {\n      \"output\": input1 + 1\n  }\n  return res\n');
+
+INSERT INTO function (name, runtime_id, code)
+VALUES ('sub1', 1, 'def main(json_input):\n  input1 = json_input[\"input1\"]\n  res = {\n      \"output\": input1 - 1\n  }\n  return res\n');
+
+-- function_resource
+INSERT INTO function_resource (function_id, resource_id, is_deployed)
+VALUES (1, 1, false);
+INSERT INTO function_resource (function_id, resource_id, is_deployed)
+VALUES (1, 2, false);
+INSERT INTO function_resource (function_id, resource_id, is_deployed)
+VALUES (1, 3, false);
+INSERT INTO function_resource (function_id, resource_id, is_deployed)
+VALUES (2, 3, false);
 
 -- metric_value
 -- availability
@@ -94,14 +122,6 @@ INSERT INTO metric_value (value_number, resource_id, metric_id)
 VALUES (4, 2, 4);
 INSERT INTO metric_value (value_number, resource_id, metric_id)
 VALUES (16, 3, 4);
-
--- region
-INSERT INTO metric_value (value_string, resource_id, metric_id)
-VALUES ('eu-north', 1, 5);
-INSERT INTO metric_value (value_string, resource_id, metric_id)
-VALUES ('eu-east', 2, 5);
-INSERT INTO metric_value (value_string, resource_id, metric_id)
-VALUES ('eu-west', 3, 5);
 
 -- trigger_url
 INSERT INTO metric_value (value_string, resource_id, metric_id)
