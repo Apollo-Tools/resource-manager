@@ -17,19 +17,15 @@ const NewResourceForm = ({setNewResource}) => {
   useEffect(() => {
     if (!checkTokenExpired()) {
       listResourceTypes(token, setResourceTypes, setError)
-          .then(() => {
-            setResourceTypes((prevTypes) =>
-              prevTypes.sort((a, b) => a.resource_type.localeCompare(b.resource_type)),
-            );
-          });
+          .then(() => setResourceTypes((prevTypes) =>
+            prevTypes.sort((a, b) => a.resource_type.localeCompare(b.resource_type)),
+          ));
       listRegions(token, setRegions, setError)
-          .then(() => {
-            setRegions((prevRegions) =>
-              prevRegions.sort((a, b) =>
-                a.resource_provider.provider.localeCompare(b.resource_provider.provider) ||
-              a.name.localeCompare(b.name)),
-            );
-          });
+          .then(() => setRegions((prevRegions) =>
+            prevRegions.sort((a, b) =>
+              a.resource_provider.provider.localeCompare(b.resource_provider.provider) ||
+            a.name.localeCompare(b.name)),
+          ));
     }
   }, []);
 
@@ -86,7 +82,6 @@ const NewResourceForm = ({setNewResource}) => {
                 </Select.Option>
               );
             })}
-
           </Select>
         </Form.Item>
 
@@ -108,7 +103,6 @@ const NewResourceForm = ({setNewResource}) => {
                 </Select.Option>
               );
             })}
-
           </Select>
         </Form.Item>
 

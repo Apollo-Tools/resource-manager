@@ -3,7 +3,6 @@ import {useRouter} from 'next/router';
 import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {Divider, Segmented, Typography} from 'antd';
-import {listResourceTypes} from '../../lib/ResourceTypeService';
 import UpdateResourceForm from '../../components/resources/UpdateResourceForm';
 import AddMetricValuesForm from '../../components/metrics/AddMetricValuesForm';
 import {listResourceMetrics} from '../../lib/MetricValueService';
@@ -12,9 +11,8 @@ import MetricValuesTable from '../../components/metrics/MetricValuesTable';
 // TODO: add way to update values
 const ResourceDetails = () => {
   const {token, checkTokenExpired} = useAuth();
-  const [resource, setResource] = useState('');
+  const [resource, setResource] = useState();
   const [selectedSegment, setSelectedSegment] = useState('Details');
-  const [resourceTypes, setResourceTypes] = useState([]);
   const [metricValues, setMetricValues] = useState([]);
   const [isFinished, setFinished] = useState(false);
   const [error, setError] = useState(false);
@@ -24,7 +22,6 @@ const ResourceDetails = () => {
   useEffect(() => {
     if (!checkTokenExpired() && id != null) {
       getResource(id, token, setResource, setError);
-      listResourceTypes(token, setResourceTypes, setError);
       listResourceMetrics(id, token, setMetricValues, setError)
           .then(mapValuesToValueField);
     }
@@ -73,17 +70,17 @@ const ResourceDetails = () => {
 
   return (
     <div className="card container w-full md:w-11/12 w-11/12 max-w-7xl mt-2 mb-2">
-      <Typography.Title level={2}>Resource Details ({resource.resource_id})</Typography.Title>
+      <Typography.Title level={2}>Resource Details ({resource?.resource_id})</Typography.Title>
       <Divider />
       <Segmented options={['Details', 'Metric Values']} value={selectedSegment}
         onChange={(e) => setSelectedSegment(e)} size="large" block/>
       <Divider />
       {
-        selectedSegment === 'Details' &&
-                <UpdateResourceForm resource={resource} resourceTypes={resourceTypes} reloadResource={reloadResource}/>
+        selectedSegment === 'Details' && resource != null &&
+          <UpdateResourceForm resource={resource} reloadResource={reloadResource}/>
       }
       {
-        selectedSegment === 'Metric Values' && (
+        selectedSegment === 'Metric Values' && resource != null && (
           <>
             <div>
               <MetricValuesTable resourceId={id} metricValues={metricValues} setMetricValues={setMetricValues}/>

@@ -3,13 +3,25 @@ import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import {updateResource} from '../../lib/ResourceService';
 import PropTypes from 'prop-types';
+import ProviderIcon from '../misc/ProviderIcon';
+import {listResourceTypes} from '../../lib/ResourceTypeService';
 
 
-const UpdateResourceForm = ({resource, resourceTypes, reloadResource}) => {
+const UpdateResourceForm = ({resource, reloadResource}) => {
   const [form] = Form.useForm();
   const {token, checkTokenExpired} = useAuth();
   const [isModified, setModified] = useState(false);
   const [error, setError] = useState(false);
+  const [resourceTypes, setResourceTypes] = useState([]);
+
+  useEffect(() => {
+    if (!checkTokenExpired()) {
+      listResourceTypes(token, setResourceTypes, setError)
+          .then(() => setResourceTypes((prevTypes) =>
+            prevTypes.sort((a, b) => a.resource_type.localeCompare(b.resource_type)),
+          ));
+    }
+  }, []);
 
   useEffect(() => {
     if (resource != null && resourceTypes.length > 0) {
@@ -41,18 +53,23 @@ const UpdateResourceForm = ({resource, resourceTypes, reloadResource}) => {
     form.setFieldsValue({
       resourceType: resource.resource_type.type_id,
       isSelfManaged: resource.is_self_managed,
+      region: resource.region.region_id,
     });
+    setModified(false);
   };
 
   const checkIsModified = () => {
     const isSelfManaged = form.getFieldValue('isSelfManaged');
     const resourceType = form.getFieldValue('resourceType');
+    const region = form.getFieldValue('region');
 
     console.log('check ' + isModified + isSelfManaged + resourceType);
     if (resource === null) {
       return false;
     }
-    return isSelfManaged !== resource.is_self_managed || resourceType !== resource.resource_type?.type_id;
+    return isSelfManaged !== resource.is_self_managed ||
+      resourceType !== resource.resource_type?.type_id ||
+      region !== resource.region.region_id;
   };
 
   return (
@@ -74,7 +91,7 @@ const UpdateResourceForm = ({resource, resourceTypes, reloadResource}) => {
         </Form.Item>
 
         <Form.Item
-          label="Resource Type:"
+          label="Resource Type"
           name="resourceType"
         >
           <Select className="w-40" onChange={() => setModified(checkIsModified())}>
@@ -88,13 +105,22 @@ const UpdateResourceForm = ({resource, resourceTypes, reloadResource}) => {
           </Select>
         </Form.Item>
 
+        <Form.Item
+          label="Region"
+          name="region"
+        >
+          <div className="bg-white-100 w-40 border-blue-200">
+            <ProviderIcon provider={resource.region.resource_provider.provider} className="mr-1"/> {resource.region.name}
+          </div>
+        </Form.Item>
+
         <Form.Item>
           <Space>
             <Button type="primary" htmlType="submit" disabled={!isModified}>
-                            Update
+              Update
             </Button>
             <Button type="default" onClick={() => resetFields()} disabled={!isModified}>
-                            Reset
+              Reset
             </Button>
           </Space>
         </Form.Item>
@@ -105,7 +131,6 @@ const UpdateResourceForm = ({resource, resourceTypes, reloadResource}) => {
 
 UpdateResourceForm.propTypes = {
   resource: PropTypes.object.isRequired,
-  resourceTypes: PropTypes.arrayOf(PropTypes.object).isRequired,
   reloadResource: PropTypes.func.isRequired,
 };
 
