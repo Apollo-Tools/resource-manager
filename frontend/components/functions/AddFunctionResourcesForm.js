@@ -64,7 +64,7 @@ const AddFunctionResourcesForm = ({
 
   return (
     <>
-      <Typography.Title level={3}>Add Resources</Typography.Title>
+      <Typography.Title level={3}>Add more Resources</Typography.Title>
       <ResourceTable resources={resources} hasActions rowSelection={rowSelection}/>
       <div className="flex">
         <Button disabled={selectedResourceIds.length <= 0 } type="primary" onClick={onClickAdd}>

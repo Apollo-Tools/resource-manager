@@ -3,7 +3,6 @@ import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {Divider, Segmented, Typography, Modal} from 'antd';
 import {getFunction} from '../../lib/FunctionService';
-import {listRuntimes} from '../../lib/RuntimeService';
 import {deleteFunctionResource, listFunctionResources} from '../../lib/FunctionResourceService';
 import UpdateFunctionForm from '../../components/functions/UpdateFunctionForm';
 import AddFunctionResourcesForm from '../../components/functions/AddFunctionResourcesForm';
@@ -16,7 +15,6 @@ const ResourceDetails = () => {
   const {token, checkTokenExpired} = useAuth();
   const [func, setFunction] = useState('');
   const [selectedSegment, setSelectedSegment] = useState('Details');
-  const [runtimes, setRuntimes] = useState([]);
   const [functionResources, setFunctionResources] = useState([]);
   const [isFinished, setFinished] = useState(false);
   const [error, setError] = useState(false);
@@ -26,7 +24,6 @@ const ResourceDetails = () => {
   useEffect(() => {
     if (!checkTokenExpired() && id != null) {
       getFunction(id, token, setFunction, setError);
-      listRuntimes(token, setRuntimes, setError);
       listFunctionResources(id, token, setFunctionResources, setError);
     }
   }, [id]);
@@ -87,13 +84,14 @@ const ResourceDetails = () => {
         onChange={(e) => setSelectedSegment(e)} size="large" block/>
       <Divider />
       {
-        selectedSegment === 'Details' &&
-        <UpdateFunctionForm func={func} runtimes={runtimes} reloadFunction={reloadFunction}/>
+        selectedSegment === 'Details' && func &&
+        <UpdateFunctionForm func={func} reloadFunction={reloadFunction}/>
       }
       {
-        selectedSegment === 'Function Resources' && (
+        selectedSegment === 'Function Resources' && func && (
           <>
             <div>
+              <Typography.Title level={3}>Function Resources</Typography.Title>
               {
                 <ResourceTable resources={functionResources} hasActions onDelete={showDeleteConfirm} />
               }

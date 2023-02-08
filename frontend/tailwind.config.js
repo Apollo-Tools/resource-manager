@@ -46,6 +46,7 @@ module.exports = {
         'primary': '#192B4F',
         'secondary': '#3083DC',
         'white': '#F7F7FF',
+        'blank': '#FFFFFF',
         'tertiary': '#7DDE92',
         'quaternary': '#2EBFA5',
       },

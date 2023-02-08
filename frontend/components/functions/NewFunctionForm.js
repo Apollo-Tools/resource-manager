@@ -57,6 +57,7 @@ const NewFunctionFrom = ({setNewFunction}) => {
         onFinish={onFinish}
         onFinishFailed={onFinishFailed}
         autoComplete="off"
+        layout="vertical"
       >
         <Form.Item
           label="Name"
@@ -72,7 +73,7 @@ const NewFunctionFrom = ({setNewFunction}) => {
         </Form.Item>
 
         <Form.Item
-          label="Runtime:"
+          label="Runtime"
           name="runtime"
           rules={[
             {

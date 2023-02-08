@@ -92,8 +92,8 @@ public class ResourceRepository extends Repository<Resource> {
             session.createQuery("select distinct r from FunctionResource fr " +
                     "left join fr.function f " +
                     "left join fr.resource r " +
-                    "left join fetch r.region " +
-                    "left join fetch r.region.resourceProvider " +
+                    "left join fetch r.region reg " +
+                    "left join fetch reg.resourceProvider " +
                     "left join fetch r.resourceType " +
                     "left join fetch r.metricValues mv " +
                     "left join fetch mv.metric " +

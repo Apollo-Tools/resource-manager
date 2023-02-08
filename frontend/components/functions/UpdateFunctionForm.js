@@ -1,4 +1,4 @@
-import {Button, Form, Input, Select, Space} from 'antd';
+import {Button, Form, Input, Space} from 'antd';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
@@ -6,7 +6,7 @@ import {updateFunction} from '../../lib/FunctionService';
 import CodeMirror from '@uiw/react-codemirror';
 import {getEditorExtension} from '../../lib/CodeEditorService';
 
-const UpdateFunctionForm = ({func, runtimes, reloadFunction}) => {
+const UpdateFunctionForm = ({func, reloadFunction}) => {
   const [form] = Form.useForm();
   const {token, checkTokenExpired} = useAuth();
   const [isModified, setModified] = useState(false);
@@ -21,10 +21,10 @@ const UpdateFunctionForm = ({func, runtimes, reloadFunction}) => {
   }, [func]);
 
   useEffect(() => {
-    if (func != null && runtimes.length > 0) {
+    if (func != null) {
       resetFields();
     }
-  }, [func, runtimes]);
+  }, [func]);
 
   // TODO: improve error handling
   useEffect(() => {
@@ -50,8 +50,8 @@ const UpdateFunctionForm = ({func, runtimes, reloadFunction}) => {
   const resetFields = () => {
     form.setFieldsValue({
       name: func.name,
-      runtime: func.runtime.runtime_id,
       code: func.code,
+      runtime: func.runtime.name,
     });
     const extension = getEditorExtension(func.runtime.name);
     setEditorExtensions(extension != null ? [extension] : []);
@@ -67,16 +67,6 @@ const UpdateFunctionForm = ({func, runtimes, reloadFunction}) => {
       return false;
     }
     return name !== func.name || runtime !== func.runtime?.runtime_id || runtime !== func.code;
-  };
-
-  const getCurrentRuntime = () => {
-    return runtimes
-        .filter((runtime) => runtime.runtime_id === form.getFieldValue('runtime'))[0];
-  };
-
-  const onChangeRuntime = () => {
-    const extension = getEditorExtension(getCurrentRuntime().name);
-    setEditorExtensions(extension != null ? [extension] : []);
   };
 
   return (
@@ -103,21 +93,10 @@ const UpdateFunctionForm = ({func, runtimes, reloadFunction}) => {
         </Form.Item>
 
         <Form.Item
-          label="Runtime:"
+          label="Runtime"
           name="runtime"
         >
-          <Select className="w-40" onChange={() => {
-            setModified(checkIsModified());
-            onChangeRuntime();
-          }}>
-            {runtimes.map((runtime) => {
-              return (
-                <Select.Option value={runtime.runtime_id} key={runtime.runtime_id} >
-                  {runtime.name}
-                </Select.Option>
-              );
-            })}
-          </Select>
+          <Input className="text-black bg-blank w-40" onChange={() => setModified(checkIsModified())} disabled/>
         </Form.Item>
 
         <Form.Item
@@ -154,7 +133,6 @@ const UpdateFunctionForm = ({func, runtimes, reloadFunction}) => {
 
 UpdateFunctionForm.propTypes = {
   func: PropTypes.object.isRequired,
-  runtimes: PropTypes.arrayOf(PropTypes.object).isRequired,
   reloadFunction: PropTypes.func.isRequired,
 };
 

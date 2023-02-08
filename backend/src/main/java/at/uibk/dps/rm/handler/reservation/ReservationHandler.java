@@ -80,6 +80,7 @@ public class ReservationHandler extends ValidationHandler {
                     .map(reservationJson -> createResourceReservationList(reservationJson,
                         functionResources));
             })
+            // TODO: if resource is self managed copy trigger url to resource reservation (or ignore self managed resources)
             .flatMap(resourceReservations -> resourceReservationChecker
                 .submitCreateAll(Json.encodeToBuffer(resourceReservations).toJsonArray())
                 .andThen(Single.just(JsonObject.mapFrom(resourceReservations.get(0).getReservation())))
