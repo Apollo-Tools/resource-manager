@@ -1,6 +1,6 @@
 const API_ROUTE = `${process.env.NEXT_PUBLIC_API_URL}/resources`;
 
-export async function createResource(resourceTypeId, isSelfManaged, token, setResource, setError) {
+export async function createResource(resourceTypeId, isSelfManaged, regionId, token, setResource, setError) {
   try {
     const response = await fetch(`${API_ROUTE}`, {
       method: 'POST',
@@ -13,6 +13,9 @@ export async function createResource(resourceTypeId, isSelfManaged, token, setRe
           type_id: resourceTypeId,
         },
         is_self_managed: isSelfManaged,
+        region: {
+          region_id: regionId,
+        },
       }),
     });
     const data = await response.json();

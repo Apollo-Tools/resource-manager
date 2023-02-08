@@ -4,16 +4,32 @@ import {useEffect, useState} from 'react';
 import {listResourceTypes} from '../../lib/ResourceTypeService';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import PropTypes from 'prop-types';
+import {listRegions} from '../../lib/RegionService';
+import ProviderIcon from '../misc/ProviderIcon';
 
 
 const NewResourceForm = ({setNewResource}) => {
   const {token, checkTokenExpired} = useAuth();
   const [error, setError] = useState();
   const [resourceTypes, setResourceTypes] = useState([]);
+  const [regions, setRegions] = useState([]);
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listResourceTypes(token, setResourceTypes, setError);
+      listResourceTypes(token, setResourceTypes, setError)
+          .then(() => {
+            setResourceTypes((prevTypes) =>
+              prevTypes.sort((a, b) => a.resource_type.localeCompare(b.resource_type)),
+            );
+          });
+      listRegions(token, setRegions, setError)
+          .then(() => {
+            setRegions((prevRegions) =>
+              prevRegions.sort((a, b) =>
+                a.resource_provider.provider.localeCompare(b.resource_provider.provider) ||
+              a.name.localeCompare(b.name)),
+            );
+          });
     }
   }, []);
 
@@ -27,7 +43,7 @@ const NewResourceForm = ({setNewResource}) => {
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
-      await createResource(values.resourceType, values.isSelfManaged, token, setNewResource, setError);
+      await createResource(values.resourceType, values.isSelfManaged, values.region, token, setNewResource, setError);
       console.log(values);
     }
   };
@@ -42,6 +58,7 @@ const NewResourceForm = ({setNewResource}) => {
         onFinish={onFinish}
         onFinishFailed={onFinishFailed}
         autoComplete="off"
+        layout="vertical"
       >
         <Form.Item
           label="Is self managed?"
@@ -66,6 +83,28 @@ const NewResourceForm = ({setNewResource}) => {
               return (
                 <Select.Option value={resourceType.type_id} key={resourceType.type_id}>
                   {resourceType.resource_type}
+                </Select.Option>
+              );
+            })}
+
+          </Select>
+        </Form.Item>
+
+        <Form.Item
+          label="Region"
+          name="region"
+          rules={[
+            {
+              required: true,
+              message: 'Missing region',
+            },
+          ]}
+        >
+          <Select className="w-40">
+            {regions.map((region) => {
+              return (
+                <Select.Option value={region.region_id} key={region.region_id}>
+                  <ProviderIcon provider={region.resource_provider.provider} className="mr-1"/> {region.name}
                 </Select.Option>
               );
             })}
