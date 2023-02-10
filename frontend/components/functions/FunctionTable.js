@@ -5,14 +5,17 @@ import {DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined} from '@ant-
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import {deleteFunction, listFunctions} from '../../lib/FunctionService';
+import {getFunctionResources} from '../../lib/FunctionResourceService';
 
 const {Column} = Table;
 const {confirm} = Modal;
 
-const FunctionTable = () => {
+const FunctionTable = ({isExpandable}) => {
   const {token, checkTokenExpired} = useAuth();
   const [error, setError] = useState(false);
+  const [expandedKeys, setExpandedKeys] = useState([]);
   const [functions, setFunctions] = useState([]);
+  const [functionResources, setFunctionResources] = useState([]);
 
   useEffect(() => {
     if (!checkTokenExpired()) {
@@ -53,8 +56,40 @@ const FunctionTable = () => {
     });
   };
 
+  const onExpandRow = async (expanded, record) => {
+    console.log(expanded);
+    const keys = [];
+    if (expanded) {
+      if (!Object.hasOwn(record, 'function_resources')) {
+        await getFunctionResources(record.function_id, token, setError)
+            .then((result) => {
+              console.log(result);
+              record.function_resources = result;
+            });
+      }
+      keys.push(record.function_id);
+    }
+    setExpandedKeys(keys);
+  };
+
   return (
-    <Table dataSource={functions} rowKey={(record) => record.function_id}>
+    <Table
+      dataSource={functions}
+      rowKey={(record) => record.function_id}
+      expandable={{
+        expandedRowRender: (func) => {
+          if (Object.hasOwn(func, 'function_resources') && func.function_resources.length > 0) {
+            return func.function_resources.map((fr) => {
+              return (<p key={fr.resource_id}>{fr.resource_id}</p>);
+            });
+          }
+          return <p>No resources</p>;
+        },
+        rowExpandable: (record) => isExpandable,
+        expandedRowKeys: expandedKeys,
+        onExpand: onExpandRow,
+      }}
+    >
       <Column title="Id" dataIndex="function_id" key="id"
         sorter={(a, b) => a.function_id - b.function_id}
         defaultSortOrder="ascend"

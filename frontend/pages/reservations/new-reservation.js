@@ -6,10 +6,13 @@ import {siteTitle} from '../../components/misc/Sidebar';
 import {Button, message, Typography} from 'antd';
 import {reserveResources} from '../../lib/ReservationService';
 import ResourceTable from '../../components/resources/ResourceTable';
+import {listFunctions} from '../../lib/FunctionService';
+import FunctionTable from '../../components/functions/FunctionTable';
 
 const NewReservation = () => {
   const {token, checkTokenExpired} = useAuth();
   const [error, setError] = useState(false);
+  const [functions, setFunctions] = useState([]);
   const [resources, setResources] = useState([]);
   const [selectedResourceIds, setSelectedResourceIds] = useState([]);
   const [newReservation, setNewReservation] = useState();
@@ -18,6 +21,9 @@ const NewReservation = () => {
   useEffect(() => {
     if (!checkTokenExpired()) {
       listResources(true, token, setResources, setError);
+      listFunctions(token, setFunctions, setError)
+          .then(setFunctions((prevFunctions) =>
+            prevFunctions.sort((a, b) => a.name.localeCompare(b.name))));
     }
   }, []);
 
@@ -65,6 +71,7 @@ const NewReservation = () => {
       <div className="card container w-11/12 max-w-7xl p-10">
         <Typography.Title level={2}>New Reservation</Typography.Title>
         <ResourceTable resources={resources} hasActions rowSelection={rowSelection} />
+        <FunctionTable isExpandable />
         <Button disabled={selectedResourceIds.length <= 0 } type="primary" onClick={onClickReserve} >Reserve</Button>
       </div>
     </>

@@ -9,7 +9,22 @@ export async function listFunctionResources(functionId, token, setFunctionResour
       },
     });
     const data = await response.json();
-    setFunctionResources(() => data);
+    setFunctionResources(data);
+  } catch (error) {
+    setError(true);
+    console.log(error);
+  }
+}
+
+export async function getFunctionResources(functionId, token, setError) {
+  try {
+    const response = await fetch(`${API_ROUTE}/${functionId}/resources`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.json();
   } catch (error) {
     setError(true);
     console.log(error);
