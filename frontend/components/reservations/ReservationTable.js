@@ -64,7 +64,6 @@ const ReservationTable = () => {
     });
   };
 
-
   return (
     <Table dataSource={ reservations } rowKey={ (record) => record.reservation_id }>
       <Column title="Id" dataIndex="reservation_id" key="id"
@@ -89,9 +88,9 @@ const ReservationTable = () => {
               render={ (_, record) => (
                 <Space size="middle">
                   <Link href={ `/reservations/${ record.reservation_id }` }>
-                    <Button icon={ <InfoCircleOutlined/> }/>
+                    <Button disabled={!record.is_active} icon={ <InfoCircleOutlined/> }/>
                   </Link>
-                  <Button onClick={ () => showDeleteConfirm(record.reservation_id) } icon={ <DisconnectOutlined/> }/>
+                  <Button disabled={!record.is_active} onClick={ () => showDeleteConfirm(record.reservation_id) } icon={ <DisconnectOutlined/> }/>
                 </Space>
               ) }
       />

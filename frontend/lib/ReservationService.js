@@ -41,6 +41,22 @@ export async function reserveResources(
   }
 }
 
+export async function getReservation(id, token, setReservation, setError) {
+  try {
+    const response = await fetch(`${API_ROUTE}/${id}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await response.json();
+    setReservation(() => data);
+  } catch (error) {
+    setError(true);
+    console.log(error);
+  }
+}
+
 export async function cancelReservation(id, token, setError) {
   try {
     const response = await fetch(`${API_ROUTE}/${id}/cancel`, {
