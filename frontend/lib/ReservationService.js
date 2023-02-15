@@ -30,8 +30,7 @@ export async function reserveResources(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        resources: resourceIds,
-        deploy_resources: true,
+        function_resources: resourceIds,
       }),
     });
     const data = await response.json();

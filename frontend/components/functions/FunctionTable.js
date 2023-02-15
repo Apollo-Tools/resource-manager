@@ -1,21 +1,21 @@
 import DateFormatter from '../misc/DateFormatter';
-import {Button, Modal, Space, Table} from 'antd';
+import { Button, Modal, Space, Table } from 'antd';
 import Link from 'next/link';
 import {DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined} from '@ant-design/icons';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import {deleteFunction, listFunctions} from '../../lib/FunctionService';
 import {getFunctionResources} from '../../lib/FunctionResourceService';
+import ResourceTable from '../resources/ResourceTable';
 
 const {Column} = Table;
 const {confirm} = Modal;
 
-const FunctionTable = ({isExpandable}) => {
+const FunctionTable = ({hideDelete, isExpandable, selectedResourceIds, setSelectedResourceIds}) => {
   const {token, checkTokenExpired} = useAuth();
   const [error, setError] = useState(false);
   const [expandedKeys, setExpandedKeys] = useState([]);
   const [functions, setFunctions] = useState([]);
-  const [functionResources, setFunctionResources] = useState([]);
 
   useEffect(() => {
     if (!checkTokenExpired()) {
@@ -56,15 +56,32 @@ const FunctionTable = ({isExpandable}) => {
     });
   };
 
+  const updatedSelectedResourceIds = (functionId, newSelectedResourceIds) => {
+    setSelectedResourceIds((prevValues) => {
+      if (newSelectedResourceIds.length > 0) {
+        return new Map(prevValues.set(functionId, newSelectedResourceIds))
+      } else if (prevValues.has(functionId)) {
+        const newMap = new Map(prevValues)
+        newMap.delete(functionId)
+        return newMap
+      }
+    })
+  }
+
   const onExpandRow = async (expanded, record) => {
-    console.log(expanded);
     const keys = [];
     if (expanded) {
       if (!Object.hasOwn(record, 'function_resources')) {
         await getFunctionResources(record.function_id, token, setError)
             .then((result) => {
-              console.log(result);
+              const rowSelection = {
+                selectedResourceIds,
+                onChange: (newSelectedResourceIds) => {
+                  updatedSelectedResourceIds(record.function_id, newSelectedResourceIds);
+                },
+              };
               record.function_resources = result;
+              record.rowSelection = rowSelection;
             });
       }
       keys.push(record.function_id);
@@ -79,13 +96,11 @@ const FunctionTable = ({isExpandable}) => {
       expandable={{
         expandedRowRender: (func) => {
           if (Object.hasOwn(func, 'function_resources') && func.function_resources.length > 0) {
-            return func.function_resources.map((fr) => {
-              return (<p key={fr.resource_id}>{fr.resource_id}</p>);
-            });
+            return (<ResourceTable resources={func.function_resources} hasActions rowSelection={func.rowSelection}/>)
           }
           return <p>No resources</p>;
         },
-        rowExpandable: (record) => isExpandable,
+        rowExpandable: () => isExpandable,
         expandedRowKeys: expandedKeys,
         onExpand: onExpandRow,
       }}
@@ -113,7 +128,7 @@ const FunctionTable = ({isExpandable}) => {
             <Link href={`/functions/${record.function_id}`}>
               <Button icon={<InfoCircleOutlined />}/>
             </Link>
-            <Button onClick={() => showDeleteConfirm(record.function_id)} icon={<DeleteOutlined />}/>
+            {!hideDelete && (<Button onClick={() => showDeleteConfirm(record.function_id)} icon={<DeleteOutlined />}/>)}
           </Space>
         )}
       />
