@@ -38,4 +38,11 @@ public class CredentialsServiceImpl extends ServiceProxy<Credentials> implements
                 return new JsonArray(objects);
             });
     }
+
+    @Override
+    public Future<Boolean> existsAtLeastOneByAccount(long accountId) {
+        return Future
+            .fromCompletionStage(credentialsRepository.findAllByAccountId(accountId))
+            .map(result -> result != null && !result.isEmpty());
+    }
 }

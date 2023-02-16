@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.dto.ReserveResourcesRequest;
 import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.handler.ValidationHandler;
+import at.uibk.dps.rm.handler.account.CredentialsChecker;
 import at.uibk.dps.rm.handler.deployment.DeploymentHandler;
 import at.uibk.dps.rm.handler.function.FunctionResourceChecker;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
@@ -27,6 +28,8 @@ public class ReservationHandler extends ValidationHandler {
 
     private final ResourceReservationChecker resourceReservationChecker;
 
+    private final CredentialsChecker credentialsChecker;
+
     private final DeploymentHandler deploymentHandler;
 
     public ReservationHandler(ServiceProxyProvider serviceProxyProvider, DeploymentHandler deploymentHandler) {
@@ -36,6 +39,7 @@ public class ReservationHandler extends ValidationHandler {
             .getResourceReservationService());
         this.functionResourceChecker = new FunctionResourceChecker(serviceProxyProvider.getFunctionResourceService());
         this.deploymentHandler = deploymentHandler;
+        this.credentialsChecker = new CredentialsChecker(serviceProxyProvider.getCredentialsService());
     }
 
     @Override
@@ -68,8 +72,8 @@ public class ReservationHandler extends ValidationHandler {
                 .asJsonObject()
                 .mapTo(ReserveResourcesRequest.class);
         long accountId = rc.user().principal().getLong("account_id");
-        return checkFindFunctionResources(requestDTO.getFunctionResources())
-            .toList()
+        return credentialsChecker.checkExistsAtLeastOne(accountId)
+            .flatMap(result -> checkFindFunctionResources(requestDTO.getFunctionResources()).toList())
             .flatMap(functionResources -> {
                 Reservation reservation = new Reservation();
                 reservation.setIsActive(true);
