@@ -6,8 +6,8 @@ import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.handler.deployment.DeploymentHandler;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
+import at.uibk.dps.rm.service.rxjava3.database.account.CredentialsService;
 import at.uibk.dps.rm.service.rxjava3.database.function.FunctionResourceService;
-import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
 import at.uibk.dps.rm.service.rxjava3.database.reservation.ReservationService;
 import at.uibk.dps.rm.service.rxjava3.database.reservation.ResourceReservationService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
@@ -52,7 +52,7 @@ public class ReservationHandlerTest {
     private ResourceReservationService resourceReservationService;
 
     @Mock
-    private MetricValueService metricValueService;
+    private CredentialsService credentialsService;
 
     @Mock
     private RoutingContext rc;
@@ -68,8 +68,8 @@ public class ReservationHandlerTest {
         JsonMapperConfig.configJsonMapper();
         when(serviceProxyProvider.getReservationService()).thenReturn(reservationService);
         when(serviceProxyProvider.getResourceReservationService()).thenReturn(resourceReservationService);
-        when(serviceProxyProvider.getMetricValueService()).thenReturn(metricValueService);
         when(serviceProxyProvider.getFunctionResourceService()).thenReturn(functionResourceService);
+        when(serviceProxyProvider.getCredentialsService()).thenReturn(credentialsService);
         reservationHandler = new ReservationHandler(serviceProxyProvider, deploymentHandler);
     }
 
@@ -242,6 +242,7 @@ public class ReservationHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         RoutingContextMockHelper.mockBody(rc, requestBody);
+        when(credentialsService.existsAtLeastOneByAccount(account.getAccountId())).thenReturn(Single.just(true));
         when(functionResourceService.findOneByFunctionAndResource(1L, 1L))
             .thenReturn(Single.just(JsonObject.mapFrom(ids1)));
         when(functionResourceService.findOneByFunctionAndResource(2L, 6L))
@@ -277,6 +278,27 @@ public class ReservationHandlerTest {
     }
 
     @Test
+    void postOneNoCredentialsExist(VertxTestContext testContext) {
+        Account account = TestObjectProvider.createAccount(1L);
+        FunctionResourceIds ids = TestObjectProvider.createFunctionResourceIds(1L, 2L);
+        List<FunctionResourceIds> functionResourceIds = List.of(ids);
+        ReserveResourcesRequest request = TestObjectProvider.createReserveResourcesRequest(functionResourceIds);
+        JsonObject requestBody = JsonObject.mapFrom(request);
+
+        RoutingContextMockHelper.mockUserPrincipal(rc, account);
+        RoutingContextMockHelper.mockBody(rc, requestBody);
+        when(credentialsService.existsAtLeastOneByAccount(account.getAccountId())).thenReturn(Single.just(false));
+
+        reservationHandler.postOne(rc)
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(NotFoundException.class);
+                    testContext.completeNow();
+                })
+            );
+    }
+
+    @Test
     void postOneFunctionResourceNotExists(VertxTestContext testContext) {
         Account account = TestObjectProvider.createAccount(1L);
         FunctionResourceIds ids = TestObjectProvider.createFunctionResourceIds(1L, 2L);
@@ -287,6 +309,7 @@ public class ReservationHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         RoutingContextMockHelper.mockBody(rc, requestBody);
+        when(credentialsService.existsAtLeastOneByAccount(account.getAccountId())).thenReturn(Single.just(true));
         when(functionResourceService.findOneByFunctionAndResource(1L, 2L))
             .thenReturn(handler);
 
