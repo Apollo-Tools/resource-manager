@@ -12,6 +12,7 @@ import at.uibk.dps.rm.entity.model.Runtime;
 import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 public class TestObjectProvider {
@@ -79,7 +80,7 @@ public class TestObjectProvider {
         resource.setResourceId(resourceId);
         resource.setResourceType(createResourceType(1L, "cloud"));
         resource.setIsSelfManaged(false);
-        resource.setMetricValues(new ArrayList<>());
+        resource.setMetricValues(new HashSet<>());
         return resource;
     }
 

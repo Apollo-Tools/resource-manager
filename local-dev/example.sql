@@ -35,6 +35,10 @@ VALUES ('online', 'indicates if the resource is online', true, '3');
 -- configuration metrics
 INSERT INTO metric (metric, description, is_monitored, metric_type_id)
 VALUES ('cpu', 'the amount of cpu cores of a resource', false, 1);
+INSERT INTO metric (metric, description, is_monitored, metric_type_id)
+VALUES ('timeout', 'the maximum timeout for function executions', false, 1);
+INSERT INTO metric (metric, description, is_monitored, metric_type_id)
+VALUES ('memory-size', 'the memory size allocated for functions', false, 1);
 
 -- resource_type
 INSERT INTO resource_type (resource_type)
@@ -50,20 +54,20 @@ VALUES ('iot');
 INSERT INTO region (name, resource_provider_id)
 VALUES ('eu-north', 1);
 INSERT INTO region (name, resource_provider_id)
-VALUES ('eu-east', 1);
+VALUES ('us-east-1', 1);
 INSERT INTO region (name, resource_provider_id)
-VALUES ('eu-west', 1);
+VALUES ('us-west-2', 1);
 
 -- resource
 -- faas
 INSERT INTO resource (resource_type, is_self_managed, region_id)
-VALUES (1, false, 1);
+VALUES (1, false, 3);
 -- edge
 INSERT INTO resource(resource_type, is_self_managed, region_id)
 VALUES (2, true, 2);
 -- vm
 INSERT INTO resource(resource_type, is_self_managed, region_id)
-VALUES (3, false, 1);
+VALUES (3, false, 3);
 
 -- runtime
 INSERT INTO runtime (name, template_path)
@@ -130,3 +134,19 @@ INSERT INTO metric_value (value_number, resource_id, metric_id)
 VALUES (4, 2, 4);
 INSERT INTO metric_value (value_number, resource_id, metric_id)
 VALUES (16, 3, 4);
+
+-- timeout
+INSERT INTO metric_value (value_number, resource_id, metric_id)
+VALUES (450, 1, 5);
+INSERT INTO metric_value (value_number, resource_id, metric_id)
+VALUES (400, 2, 5);
+INSERT INTO metric_value (value_number, resource_id, metric_id)
+VALUES (500, 3, 5);
+
+-- memory-size
+INSERT INTO metric_value (value_number, resource_id, metric_id)
+VALUES (512, 1, 6);
+INSERT INTO metric_value (value_number, resource_id, metric_id)
+VALUES (128, 2, 6);
+INSERT INTO metric_value (value_number, resource_id, metric_id)
+VALUES (1024, 3, 6);

@@ -68,6 +68,7 @@ public class ResourceHandler extends ValidationHandler {
             .flatMap(result -> entityChecker.submitCreate(requestBody));
     }
 
+    // TODO: remove
     @Override
     public Completable updateOne(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();

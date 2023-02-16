@@ -8,7 +8,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -36,12 +36,8 @@ public class Resource {
     private Region region;
 
     @OneToMany
-    @JoinTable(
-        name="MetricValue",
-        joinColumns = @JoinColumn(name="resource_id"),
-        inverseJoinColumns = @JoinColumn(name="MetricValueId")
-    )
-    private List<MetricValue> metricValues;
+    @JoinColumn(name="resource_id")
+    private Set<MetricValue> metricValues;
 
     @Override
     @Generated

@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
-import at.uibk.dps.rm.entity.model.Resource;
+import at.uibk.dps.rm.entity.model.FunctionResource;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -16,7 +16,7 @@ public abstract class ModuleFileService extends TerraformFileService {
     protected abstract String getRoleString(String roleName);
 
     /*** Serverless functions ***/
-    protected abstract String getFunctionLocalsString(List<Resource> resources, long reservationId, Path rootFolder) throws IOException;
+    protected abstract String getFunctionLocalsString(List<FunctionResource> resources, long reservationId, Path rootFolder) throws IOException;
 
     protected abstract String getFunctionsString();
 
