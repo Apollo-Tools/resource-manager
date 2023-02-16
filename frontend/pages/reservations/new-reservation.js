@@ -6,6 +6,7 @@ import { Button, message, Result, Space, Typography } from 'antd';
 import {reserveResources} from '../../lib/ReservationService';
 import FunctionTable from '../../components/functions/FunctionTable';
 import { SmileOutlined } from '@ant-design/icons';
+import Link from 'next/link';
 
 const NewReservation = () => {
   const {token, checkTokenExpired} = useAuth();
@@ -64,7 +65,9 @@ const NewReservation = () => {
               icon={<SmileOutlined />}
               title="The reservation has been created!"
               extra={(<Space size={100}>
+                  <Link href={ `/reservations/${ newReservation.reservation_id }` }>
                     <Button type="primary">Show</Button>
+                  </Link>
                     <Button type="default" onClick={onClickRestart}>Restart</Button>
                 </Space>
               )}
@@ -73,7 +76,7 @@ const NewReservation = () => {
           <>
             <FunctionTable hideDelete isExpandable selectedResourceIds={selectedResourceIds}
                            setSelectedResourceIds={setSelectedResourceIds}/>
-            <Button disabled={selectedResourceIds.size <= 0 } type="primary" onClick={onClickReserve} >Reserve</Button>
+            <Button disabled={selectedResourceIds.size <= 0 } type="primary" onClick={onClickReserve}>Reserve</Button>
           </>
         }
       </div>
