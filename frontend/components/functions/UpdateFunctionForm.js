@@ -36,7 +36,7 @@ const UpdateFunctionForm = ({func, reloadFunction}) => {
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
-      await updateFunction(func.function_id, values.name, values.runtime, values.code, token, setError)
+      await updateFunction(func.function_id, values.name, values.code, token, setError)
           .then(() => reloadFunction())
           .then(() => setModified(false));
       console.log(values);

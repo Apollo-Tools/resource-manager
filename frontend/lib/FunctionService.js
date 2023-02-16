@@ -56,7 +56,7 @@ export async function getFunction(id, token, setFunction, setError) {
   }
 }
 
-export async function updateFunction(id, name, runtimeId, code, token, setError) {
+export async function updateFunction(id, name, code, token, setError) {
   try {
     const response = await fetch(`${API_ROUTE}/${id}`, {
       method: 'PATCH',
@@ -66,9 +66,6 @@ export async function updateFunction(id, name, runtimeId, code, token, setError)
       },
       body: JSON.stringify({
         name: name,
-        runtime: {
-          runtime_id: runtimeId,
-        },
         code: code,
       }),
     });
