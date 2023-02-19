@@ -57,7 +57,7 @@ resource "aws_security_group" "vm" {
 }
 
 data "aws_iam_role" "awsRole" {
-  name = "LabRole"
+  name = var.aws_role
 }
 
 resource "aws_instance" "vm" {

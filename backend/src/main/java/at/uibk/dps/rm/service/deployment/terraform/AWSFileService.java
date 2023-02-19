@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
 import at.uibk.dps.rm.entity.model.*;
+import at.uibk.dps.rm.service.deployment.TerraformModule;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackagePythonCode;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackageSourceCode;
 
@@ -16,15 +17,23 @@ public class AWSFileService extends ModuleFileService {
     private final List<FunctionResource> functionResources;
     private final long reservationId;
 
+    private final TerraformModule module;
+
+    private final Map<String, String> defaultValues = setDefaultValues();
+
     private final Set<Long> faasFunctionIds = new HashSet<>();
 
+    private final Set<Long> vmResourceIds = new HashSet<>();
+    private final Set<Long> vmFunctionIds = new HashSet<>();
+
     public AWSFileService(Path rootFolder, String region, String awsRole, List<FunctionResource> functionResources,
-                          long reservationId) {
+                          long reservationId, TerraformModule module) {
         super(rootFolder);
         this.region = region;
         this.awsRole = awsRole;
         this.functionResources = functionResources;
         this.reservationId = reservationId;
+        this.module = module;
     }
 
 
@@ -79,7 +88,6 @@ public class AWSFileService extends ModuleFileService {
                     faasFunctionIds.add(function.getFunctionId());
                 }
             }
-            Map<String, String> defaultValues = setDefaultValues();
             Map<String, MetricValue> metricValues = resource.getMetricValues()
                 .stream()
                 .collect(Collectors.toMap(metricValue -> metricValue.getMetric().getMetric(),
@@ -109,8 +117,34 @@ public class AWSFileService extends ModuleFileService {
         );
     }
 
+    private String getSingleModuleString(Resource resource) {
+        String resourceName = "resource_" + resource.getResourceId();
+        // TODO: get vpc from persisted values
+        return String.format(
+            "module \"%s\" {\n" +
+                "  source = \"../../../terraform/aws/vm\"\n" +
+                "  name      = \"%s\"\n" +
+                "  vpc_id    = \"%s\"\n" +
+                "  subnet_id = \"%s\"\n" +
+                "  aws_role = \"LabRole\"\n" +
+                "}", resourceName, resourceName, defaultValues.get("vpc-id"), defaultValues.get("subnet-id")
+        );
+    }
 
-
+    @Override
+    protected String getVmModulesString(List<FunctionResource> functionResources) {
+        StringBuilder moduleStrings = new StringBuilder();
+        for (FunctionResource functionResource: functionResources) {
+            Resource resource = functionResource.getResource();
+            Function function = functionResource.getFunction();
+            if (!resource.getIsSelfManaged() && !vmResourceIds.contains(resource.getResourceId())) {
+                moduleStrings.append(getSingleModuleString(resource));
+                vmResourceIds.add(resource.getResourceId());
+            }
+            // TODO: push function onto vm
+        }
+        return moduleStrings.toString();
+    }
 
     // TODO: Enforce different resource types to have specific properties set (e.g. code, function-type, region)
     // TODO: Persist default values
@@ -120,6 +154,8 @@ public class AWSFileService extends ModuleFileService {
         defaultValues.put("timeout", "300.0");
         defaultValues.put("memory-size", "256.0");
         defaultValues.put("layers", "");
+        defaultValues.put("vpc-id", "vpc-03e37d94124ae821c");
+        defaultValues.put("subnet-id", "subnet-02109321bd7f82080");
         return defaultValues;
     }
 
@@ -175,17 +211,62 @@ public class AWSFileService extends ModuleFileService {
     // TODO: rework for vms
     @Override
     protected String getOutputString() {
-        String module = "aws_lambda_function_url";
-        return String.format("output \"function_url\" {\n" +
-            "  value = %s.function_url\n" +
-            "}\n", module);
+        StringBuilder outputString = new StringBuilder();
+        if (!this.faasFunctionIds.isEmpty()) {
+            String module = "aws_lambda_function_url";
+            String functionUrl = String.format("output \"function_url\" {\n" +
+                "  value = %s.function_url\n" +
+                "}\n", module);
+            outputString.append(functionUrl);
+        }
+        if (!this.vmResourceIds.isEmpty()) {
+            for (Long resourceId : vmResourceIds) {
+                String resourceName = "resource_" + resourceId;
+                String vmGateway = String.format("output \"%s_gateway_url\" {\n" +
+                    "  value = module.%s.gateway_url\n" +
+                    "}\n", resourceName, resourceName);
+                String vmPassword = String.format("output \"%s_password\" {\n" +
+                    "  value = module.%s.basic_auth_password\n" +
+                    "  sensitive = true\n" +
+                    "}\n", resourceName, resourceName);
+                outputString.append(vmGateway).append(vmPassword);
+            }
+        }
+        setModuleGlobalOutputString();
+        return outputString.toString();
+    }
+
+    @Override
+    protected void setModuleGlobalOutputString() {
+        StringBuilder outputString = new StringBuilder();
+        if (!this.faasFunctionIds.isEmpty()) {
+            String module = "aws_lambda_function_url";
+            String functionUrl = String.format("output \"function_url\" {\n" +
+                "  value = %s.function_url\n" +
+                "}\n", module);
+            outputString.append(functionUrl);
+        }
+        if (!this.vmResourceIds.isEmpty()) {
+            for (Long resourceId : vmResourceIds) {
+                String resourceName = "resource_" + resourceId;
+                String vmGateway = String.format("output \"%s_gateway_url\" {\n" +
+                    "  value = module.%s.%s_gateway_url\n" +
+                    "}\n", resourceName, module.getModuleName(), resourceName);
+                String vmPassword = String.format("output \"%s_password\" {\n" +
+                    "  value = module.%s.%s_password\n" +
+                    "  sensitive = true\n" +
+                    "}\n", resourceName, module.getModuleName(), resourceName);
+                outputString.append(vmGateway).append(vmPassword);
+            }
+        }
+        this.module.setGlobalOutput(outputString.toString());
     }
 
     @Override
     protected String getMainFileContent() throws IOException {
         return this.getProviderString() + this.getRoleString(awsRole) +
             this.getFunctionLocalsString(functionResources, reservationId, getRootFolder()) + this.getFunctionsString() +
-            this.getFunctionUrlString();
+            this.getFunctionUrlString() + this.getVmModulesString(functionResources);
     }
 
     @Override

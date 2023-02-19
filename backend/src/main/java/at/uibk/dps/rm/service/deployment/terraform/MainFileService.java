@@ -78,9 +78,7 @@ public class MainFileService extends TerraformFileService {
     public String getOutputString() {
         StringBuilder output = new StringBuilder();
         for (TerraformModule module : modules) {
-            output.append(String.format("output \"%s_function_url\" {\n" +
-                "  value = module.%s.function_url\n" +
-                "}\n", module.getModuleName(), module.getModuleName()));
+            output.append(module.getGlobalOutput());
         }
         return output.toString();
     }

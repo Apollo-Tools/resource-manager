@@ -69,7 +69,7 @@ public class DeploymentExecutor {
             region.replace("-", "_"));
         Path awsFolder = Paths.get(rootFolder + "\\" + module.getModuleName());
         AWSFileService fileService = new AWSFileService(awsFolder, region,
-            awsRole, functionResources, deployResourcesRequest.getReservationId());
+            awsRole, functionResources, deployResourcesRequest.getReservationId(), module);
         fileService.setUpDirectory();
         return module;
     }

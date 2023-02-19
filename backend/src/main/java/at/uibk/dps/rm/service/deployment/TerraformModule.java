@@ -1,16 +1,20 @@
 package at.uibk.dps.rm.service.deployment;
 
 import at.uibk.dps.rm.entity.deployment.CloudProvider;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 import java.util.Objects;
 
 @Getter
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class TerraformModule {
-    private CloudProvider cloudProvider;
-    private String moduleName;
+    private final CloudProvider cloudProvider;
+    private final String moduleName;
+
+    @Setter
+    private String globalOutput = "";
 
     @Override
     public boolean equals(Object o) {

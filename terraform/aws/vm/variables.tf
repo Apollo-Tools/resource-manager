@@ -9,6 +9,11 @@ variable "basic_auth_user" {
   default     = "admin"
 }
 
+variable "aws_role" {
+  description = "The user role to use."
+  type        = string
+}
+
 variable "vpc_id" {
   description = "VPC ID."
   type        = string
