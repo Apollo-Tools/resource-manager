@@ -4,7 +4,7 @@ variable "names" {
 }
 
 variable "paths" {
-  description = "The path to the source code."
+  description = "The absolute paths to the source code."
   type        = list(string)
 }
 

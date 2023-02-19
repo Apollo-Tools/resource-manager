@@ -48,17 +48,9 @@ public class AWSFileService extends ModuleFileService {
                 "}\n", region);
     }
 
-    @Override
-    protected String getRoleString(String roleName) {
-        return String.format(
-            "data \"aws_iam_role\" \"awsRole\" {\n" +
-                "  name = \"%s\"\n" +
-                "}\n", roleName);
-    }
-
     // TODO: rework access to metric values
     @Override
-    protected String getFunctionLocalsString(List<FunctionResource> functionResources, long reservationId,
+    protected String getFunctionsModulString(List<FunctionResource> functionResources, long reservationId,
                                              Path rootFolder) throws IOException {
         StringBuilder functionNames = new StringBuilder(), functionPaths = new StringBuilder(),
             functionRuntimes = new StringBuilder(), functionTimeouts = new StringBuilder(),
@@ -78,7 +70,10 @@ public class AWSFileService extends ModuleFileService {
             functionNames.append("\"").append("r").append(resource.getResourceId())
                 .append("_").append(functionIdentifier)
                 .append("\",");
-            functionPaths.append("\"").append(functionIdentifier).append(".zip\",");
+            functionPaths.append("\"")
+                .append(rootFolder.toAbsolutePath().toString().replace("\\","/")).append("/")
+                .append(functionIdentifier)
+                .append(".zip\",");
             if (runtime.startsWith("python")) {
                 functionHandlers.append("\"main.handler\",");
                 if (!faasFunctionIds.contains(function.getFunctionId())) {
@@ -104,16 +99,18 @@ public class AWSFileService extends ModuleFileService {
         }
 
         return String.format(
-            "locals {\n" +
-                "  function_names = [%s]\n" +
-                "  function_paths = [%s]\n" +
-                "  function_handlers = [%s]\n" +
-                "  function_timeouts = [%s]\n" +
-                "  function_memory_sizes = [%s]\n" +
-                "  function_layers = [%s]\n" +
-                "  function_runtimes = [%s]\n" +
+            "module \"faas\" {\n" +
+                "  source = \"../../../terraform/aws/faas\"\n" +
+                "  names = [%s]\n" +
+                "  paths = [%s]\n" +
+                "  handlers = [%s]\n" +
+                "  timeouts = [%s]\n" +
+                "  memory_sizes = [%s]\n" +
+                "  layers = [%s]\n" +
+                "  runtimes = [%s]\n" +
+                "  aws_role = \"%s\"\n" +
                 "}\n", functionNames, functionPaths, functionHandlers, functionTimeouts,
-            functionMemorySizes, functionLayers, functionRuntimes
+            functionMemorySizes, functionLayers, functionRuntimes, awsRole
         );
     }
 
@@ -131,13 +128,18 @@ public class AWSFileService extends ModuleFileService {
         );
     }
 
+    private boolean checkMustDeployVM(Resource resource) {
+        return resource.getResourceType().getResourceType().equals("vm") &&
+            !resource.getIsSelfManaged() && !vmResourceIds.contains(resource.getResourceId());
+    }
+
     @Override
     protected String getVmModulesString(List<FunctionResource> functionResources) {
         StringBuilder moduleStrings = new StringBuilder();
         for (FunctionResource functionResource: functionResources) {
             Resource resource = functionResource.getResource();
             Function function = functionResource.getFunction();
-            if (!resource.getIsSelfManaged() && !vmResourceIds.contains(resource.getResourceId())) {
+            if (checkMustDeployVM(resource)) {
                 moduleStrings.append(getSingleModuleString(resource));
                 vmResourceIds.add(resource.getResourceId());
             }
@@ -157,39 +159,6 @@ public class AWSFileService extends ModuleFileService {
         defaultValues.put("vpc-id", "vpc-03e37d94124ae821c");
         defaultValues.put("subnet-id", "subnet-02109321bd7f82080");
         return defaultValues;
-    }
-
-    @Override
-    protected String getFunctionsString() {
-        if (faasFunctionIds.isEmpty()) {
-            return "";
-        }
-
-        return "resource \"aws_lambda_function\" \"lambda\" {\n" +
-            "  count = length(local.function_names)\n" +
-            "  filename      = \"${path.module}/${local.function_paths[count.index]}\"\n" +
-            "  function_name = local.function_names[count.index]\n" +
-            "  role          = data.aws_iam_role.awsRole.arn\n" +
-            "  handler       = local.function_handlers[count.index]\n" +
-            "  timeout       = local.function_timeouts[count.index]\n" +
-            "  memory_size   = local.function_memory_sizes[count.index]\n" +
-            "  layers        = local.function_layers[count.index]\n" +
-            "  runtime       = local.function_runtimes[count.index]\n" +
-            "  source_code_hash = filebase64sha256(\"${path.module}/${local.function_paths[count.index]}\")\n" +
-            "}\n";
-    }
-
-    @Override
-    protected String getFunctionUrlString() {
-        if (faasFunctionIds.isEmpty()) {
-            return "";
-        }
-
-        return "resource \"aws_lambda_function_url\" \"function_url\" {\n" +
-            "  count = length(local.function_names)\n" +
-            "  function_name      = aws_lambda_function.lambda[count.index].function_name\n" +
-            "  authorization_type = \"NONE\"\n" +
-            "}\n";
     }
 
     @Override
@@ -213,10 +182,10 @@ public class AWSFileService extends ModuleFileService {
     protected String getOutputString() {
         StringBuilder outputString = new StringBuilder();
         if (!this.faasFunctionIds.isEmpty()) {
-            String module = "aws_lambda_function_url";
-            String functionUrl = String.format("output \"function_url\" {\n" +
-                "  value = %s.function_url\n" +
-                "}\n", module);
+            String functionUrl =
+                "output \"function_urls\" {\n" +
+                "  value = module.faas.function_urls\n" +
+                "}\n";
             outputString.append(functionUrl);
         }
         if (!this.vmResourceIds.isEmpty()) {
@@ -240,10 +209,9 @@ public class AWSFileService extends ModuleFileService {
     protected void setModuleGlobalOutputString() {
         StringBuilder outputString = new StringBuilder();
         if (!this.faasFunctionIds.isEmpty()) {
-            String module = "aws_lambda_function_url";
-            String functionUrl = String.format("output \"function_url\" {\n" +
-                "  value = %s.function_url\n" +
-                "}\n", module);
+            String functionUrl = String.format("output \"%s_function_urls\" {\n" +
+                "  value = module.%s.function_urls\n" +
+                "}\n", module.getModuleName(), module.getModuleName());
             outputString.append(functionUrl);
         }
         if (!this.vmResourceIds.isEmpty()) {
@@ -264,9 +232,9 @@ public class AWSFileService extends ModuleFileService {
 
     @Override
     protected String getMainFileContent() throws IOException {
-        return this.getProviderString() + this.getRoleString(awsRole) +
-            this.getFunctionLocalsString(functionResources, reservationId, getRootFolder()) + this.getFunctionsString() +
-            this.getFunctionUrlString() + this.getVmModulesString(functionResources);
+        return this.getProviderString() +
+            this.getFunctionsModulString(functionResources, reservationId, getRootFolder()) +
+            this.getVmModulesString(functionResources);
     }
 
     @Override

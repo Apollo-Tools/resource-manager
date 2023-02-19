@@ -17,7 +17,7 @@ code by adding a `module` configuration and setting its `source` parameter to th
 module "faas" {
   source       = "./path-to-module"
   names        = ["add",]
-  paths        = ["./add.zip",]
+  paths        = ["absolute/path/add.zip",]
   handlers     = ["main.handler",]
   timeouts     = [600,]
   memory_sizes = [512,]
@@ -52,20 +52,20 @@ module "faas" {
 
 ## Inputs
 
-| Name          | Description                           | Type     | Default | Required |
-|---------------|---------------------------------------|----------|---------|:--------:|
-| names         | The names of the functions to deploy. | `list`   | n/a     |   yes    |
-| paths         | The path to the source code.          | `list`   | n/a     |   yes    |
-| handlers      | The function handlers.                | `list`   | n/a     |   yes    |
-| timeouts      | The function timeouts.                | `list`   | n/a     |   yes    |
-| memory\_sizes | The memory size for each function.    | `list`   | n/a     |   yes    |
-| layers        | The function layers.                  | `list`   | n/a     |   yes    |
-| runtimes      | The function runtimes.                | `list`   | n/a     |   yes    |
-| aws_role      | The aws user role to use.             | `string` | n/a     |   yes    |
+| Name          | Description                            | Type     | Default | Required |
+|---------------|----------------------------------------|----------|---------|:--------:|
+| names         | The names of the functions to deploy.  | `list`   | n/a     |   yes    |
+| paths         | The absolute paths to the source code. | `list`   | n/a     |   yes    |
+| handlers      | The function handlers.                 | `list`   | n/a     |   yes    |
+| timeouts      | The function timeouts.                 | `list`   | n/a     |   yes    |
+| memory\_sizes | The memory size for each function.     | `list`   | n/a     |   yes    |
+| layers        | The function layers.                   | `list`   | n/a     |   yes    |
+| runtimes      | The function runtimes.                 | `list`   | n/a     |   yes    |
+| aws_role      | The aws user role to use.              | `string` | n/a     |   yes    |
 
 ## Outputs
 
-| Name          | Description               |
-|---------------|---------------------------|
-| function\_url | The list of trigger urls. |
+| Name           | Description               |
+|----------------|---------------------------|
+| function\_urls | The list of trigger urls. |
 <!-- END_TF_DOCS -->

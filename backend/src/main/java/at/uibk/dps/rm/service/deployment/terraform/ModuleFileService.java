@@ -12,16 +12,9 @@ public abstract class ModuleFileService extends TerraformFileService {
         super(rootFolder);
     }
 
-    /*** Cloud role ***/
-    protected abstract String getRoleString(String roleName);
-
     /*** Serverless functions ***/
-    protected abstract String getFunctionLocalsString(List<FunctionResource> resources, long reservationId,
+    protected abstract String getFunctionsModulString(List<FunctionResource> resources, long reservationId,
                                                       Path rootFolder) throws IOException;
-
-    protected abstract String getFunctionsString();
-
-    protected abstract String getFunctionUrlString();
 
     /*** Virtual machines ***/
     protected abstract String getVmModulesString(List<FunctionResource> functionResources);
