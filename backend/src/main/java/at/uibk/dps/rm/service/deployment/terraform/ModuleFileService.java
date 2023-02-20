@@ -20,5 +20,5 @@ public abstract class ModuleFileService extends TerraformFileService {
     protected abstract String getVmModulesString(List<FunctionResource> functionResources);
 
     /*** Output variables ***/
-    protected abstract void setModuleGlobalOutputString();
+    protected abstract void setModuleResourceTypes();
 }

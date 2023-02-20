@@ -74,13 +74,25 @@ public class MainFileService extends TerraformFileService {
         return moduleString.toString();
     }
 
+    // TODO: add edge output
     @Override
     public String getOutputString() {
-        StringBuilder output = new StringBuilder();
+        StringBuilder functionsOutput = new StringBuilder(), vmOutput = new StringBuilder(),
+            edgeOutput = new StringBuilder();
         for (TerraformModule module : modules) {
-            output.append(module.getGlobalOutput());
+            functionsOutput.append(module.getFunctionsString());
+            vmOutput.append(module.getVMString());
+            edgeOutput.append(module.getEdgeString());
         }
-        return output.toString();
+        return String.format(
+            "output \"function_urls\" {\n" +
+            "   value = merge(%s)\n" +
+            "}\n" +
+            "output \"vm_props\" {\n" +
+            "  value = merge(%s)\n" +
+            "  sensitive = true\n" +
+            "}\n", functionsOutput, vmOutput
+        );
     }
 
     @Override

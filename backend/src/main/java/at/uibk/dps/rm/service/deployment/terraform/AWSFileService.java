@@ -26,6 +26,8 @@ public class AWSFileService extends ModuleFileService {
     private final Set<Long> vmResourceIds = new HashSet<>();
     private final Set<Long> vmFunctionIds = new HashSet<>();
 
+    private final Set<Long> edgeFunctionIds = new HashSet<>();
+
     public AWSFileService(Path rootFolder, String region, String awsRole, List<FunctionResource> functionResources,
                           long reservationId, TerraformModule module) {
         super(rootFolder);
@@ -202,27 +204,15 @@ public class AWSFileService extends ModuleFileService {
                 "}\n";
             outputString.append(vmProps);
         }
-        setModuleGlobalOutputString();
+        setModuleResourceTypes();
         return outputString.toString();
     }
 
     @Override
-    protected void setModuleGlobalOutputString() {
-        StringBuilder outputString = new StringBuilder();
-        if (!this.faasFunctionIds.isEmpty()) {
-            String functionUrl = String.format("output \"%s_function_urls\" {\n" +
-                "  value = module.%s.function_urls\n" +
-                "}\n", module.getModuleName(), module.getModuleName());
-            outputString.append(functionUrl);
-        }
-        if (!this.vmResourceIds.isEmpty()) {
-            String vmProps = String.format("output \"%s_vm_props\" {\n" +
-                "  value = module.%s.vm_props\n" +
-                "  sensitive = true\n" +
-                "}\n", module.getModuleName(), module.getModuleName());
-            outputString.append(vmProps);
-        }
-        this.module.setGlobalOutput(outputString.toString());
+    protected void setModuleResourceTypes() {
+        this.module.setHasFaas(!faasFunctionIds.isEmpty());
+        this.module.setHasVM(!vmResourceIds.isEmpty());
+        this.module.setHasEdge(!edgeFunctionIds.isEmpty());
     }
 
     @Override
