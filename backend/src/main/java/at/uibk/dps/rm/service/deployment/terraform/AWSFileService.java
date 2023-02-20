@@ -191,16 +191,12 @@ public class AWSFileService extends ModuleFileService {
             outputString.append(functionUrl);
         }
         if (!this.vmResourceIds.isEmpty()) {
-            String vmGateways =
-                "output \"gateway_urls\" {\n" +
-                "  value = module.vm.gateway_urls\n" +
-                "}\n";
-            String vmPasswords =
-                "output \"passwords\" {\n" +
-                "  value = module.vm.auth_passwords\n" +
+            String vmProps =
+                "output \"vm_props\" {\n" +
+                "  value = module.vm.vm_props\n" +
                 "  sensitive = true\n" +
                 "}\n";
-            outputString.append(vmGateways).append(vmPasswords);
+            outputString.append(vmProps);
         }
         setModuleGlobalOutputString();
         return outputString.toString();
@@ -216,14 +212,11 @@ public class AWSFileService extends ModuleFileService {
             outputString.append(functionUrl);
         }
         if (!this.vmResourceIds.isEmpty()) {
-            String vmGateways = String.format("output \"%s_gateway_urls\" {\n" +
-                "  value = module.%s.gateway_urls\n" +
-                "}\n", module.getModuleName(), module.getModuleName());
-            String vmPasswords = String.format("output \"%s_passwords\" {\n" +
-                "  value = module.%s.passwords\n" +
+            String vmProps = String.format("output \"%s_vm_props\" {\n" +
+                "  value = module.%s.vm_props\n" +
                 "  sensitive = true\n" +
                 "}\n", module.getModuleName(), module.getModuleName());
-            outputString.append(vmGateways).append(vmPasswords);
+            outputString.append(vmProps);
         }
         this.module.setGlobalOutput(outputString.toString());
     }

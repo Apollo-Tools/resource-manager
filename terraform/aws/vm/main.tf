@@ -3,15 +3,11 @@ locals {
     Reservation = var.reservation
     System = "Apollo Resource Manager"
   }
-  user_data_vars = {
-    basic_auth_user     = var.basic_auth_user
-    basic_auth_password = random_password.vm[0].result
-  }
 }
 
-# Generate password to access the vm
+# Generate passwords to access the vm
 resource "random_password" "vm" {
-  count   = 1
+  count   = length(var.names)
   length  = 16
   special = false
 }
@@ -35,7 +31,7 @@ data "aws_ami" "ubuntu" {
 
 # Create a security group
 resource "aws_security_group" "vm" {
-  name = "Apollo ${var.reservation}"
+  name        = "Apollo ${var.reservation}"
   description = "Allow all incoming traffic"
   vpc_id      = var.vpc_id
 
@@ -61,10 +57,12 @@ resource "aws_security_group" "vm" {
 # Deploy instances
 resource "aws_instance" "vm" {
   count                  = length(var.names)
-
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = var.instance_types[count.index]
-  user_data_base64       = base64encode(templatefile("${path.module}/templates/startup.sh", local.user_data_vars))
+  user_data_base64       = base64encode(templatefile("${path.module}/templates/startup.sh", {
+                            basic_auth_user     = var.basic_auth_user
+                            basic_auth_password = random_password.vm[count.index].result
+                          }))
   vpc_security_group_ids = [aws_security_group.vm.id]
   subnet_id              = var.subnet_id
   tags = merge(local.tags, {Name = var.names[count.index]})
