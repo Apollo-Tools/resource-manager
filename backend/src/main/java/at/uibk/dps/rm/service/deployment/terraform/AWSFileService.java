@@ -135,6 +135,10 @@ public class AWSFileService extends ModuleFileService {
             // TODO: push function onto vm
         }
 
+        if (vmResourceIds.isEmpty()) {
+            return "";
+        }
+
         // TODO: get vpc from persisted values
         return String.format(
             "module \"vm\" {\n" +
