@@ -1,17 +1,17 @@
-variable "name" {
-  description = "The name of the faasd instance."
+variable "reservation" {
+  description = "The reservation identifier."
   type        = string
+}
+
+variable "names" {
+  description = "The names of the faasd instance."
+  type        = list(string)
 }
 
 variable "basic_auth_user" {
   description = "The basic auth user name."
   type        = string
   default     = "admin"
-}
-
-variable "aws_role" {
-  description = "The user role to use."
-  type        = string
 }
 
 variable "vpc_id" {
@@ -24,8 +24,7 @@ variable "subnet_id" {
   type        = string
 }
 
-variable "instance_type" {
-  description = "The instance type to use for the instance."
-  type        = string
-  default     = "t2.micro"
+variable "instance_types" {
+  description = "The instance types to use for the instances."
+  type        = list(string)
 }

@@ -114,20 +114,6 @@ public class AWSFileService extends ModuleFileService {
         );
     }
 
-    private String getSingleModuleString(Resource resource) {
-        String resourceName = "resource_" + resource.getResourceId();
-        // TODO: get vpc from persisted values
-        return String.format(
-            "module \"%s\" {\n" +
-                "  source = \"../../../terraform/aws/vm\"\n" +
-                "  name      = \"%s\"\n" +
-                "  vpc_id    = \"%s\"\n" +
-                "  subnet_id = \"%s\"\n" +
-                "  aws_role = \"LabRole\"\n" +
-                "}", resourceName, resourceName, defaultValues.get("vpc-id"), defaultValues.get("subnet-id")
-        );
-    }
-
     private boolean checkMustDeployVM(Resource resource) {
         return resource.getResourceType().getResourceType().equals("vm") &&
             !resource.getIsSelfManaged() && !vmResourceIds.contains(resource.getResourceId());
@@ -135,17 +121,32 @@ public class AWSFileService extends ModuleFileService {
 
     @Override
     protected String getVmModulesString(List<FunctionResource> functionResources) {
-        StringBuilder moduleStrings = new StringBuilder();
+        StringBuilder resourceNamesString = new StringBuilder(),
+            instanceTypesString = new StringBuilder();
+
         for (FunctionResource functionResource: functionResources) {
             Resource resource = functionResource.getResource();
             Function function = functionResource.getFunction();
             if (checkMustDeployVM(resource)) {
-                moduleStrings.append(getSingleModuleString(resource));
+                resourceNamesString.append("\"resource_").append(resource.getResourceId()).append("\",");
+                instanceTypesString.append("\"").append(defaultValues.get("instance-type")).append("\",");
                 vmResourceIds.add(resource.getResourceId());
             }
             // TODO: push function onto vm
         }
-        return moduleStrings.toString();
+
+        // TODO: get vpc from persisted values
+        return String.format(
+            "module \"vm\" {\n" +
+                "  source         = \"../../../terraform/aws/vm\"\n" +
+                "  reservation    = \"%s\"\n" +
+                "  names          = [%s]\n" +
+                "  instance_types = [%s]\n" +
+                "  vpc_id         = \"%s\"\n" +
+                "  subnet_id      = \"%s\"\n" +
+                "}", reservationId, resourceNamesString, instanceTypesString, defaultValues.get("vpc-id"),
+            defaultValues.get("subnet-id")
+        );
     }
 
     // TODO: Enforce different resource types to have specific properties set (e.g. code, function-type, region)
@@ -158,6 +159,7 @@ public class AWSFileService extends ModuleFileService {
         defaultValues.put("layers", "");
         defaultValues.put("vpc-id", "vpc-03e37d94124ae821c");
         defaultValues.put("subnet-id", "subnet-02109321bd7f82080");
+        defaultValues.put("instance-type", "t2.micro");
         return defaultValues;
     }
 
@@ -189,17 +191,16 @@ public class AWSFileService extends ModuleFileService {
             outputString.append(functionUrl);
         }
         if (!this.vmResourceIds.isEmpty()) {
-            for (Long resourceId : vmResourceIds) {
-                String resourceName = "resource_" + resourceId;
-                String vmGateway = String.format("output \"%s_gateway_url\" {\n" +
-                    "  value = module.%s.gateway_url\n" +
-                    "}\n", resourceName, resourceName);
-                String vmPassword = String.format("output \"%s_password\" {\n" +
-                    "  value = module.%s.basic_auth_password\n" +
-                    "  sensitive = true\n" +
-                    "}\n", resourceName, resourceName);
-                outputString.append(vmGateway).append(vmPassword);
-            }
+            String vmGateways =
+                "output \"gateway_urls\" {\n" +
+                "  value = module.vm.gateway_urls\n" +
+                "}\n";
+            String vmPasswords =
+                "output \"passwords\" {\n" +
+                "  value = module.vm.auth_passwords\n" +
+                "  sensitive = true\n" +
+                "}\n";
+            outputString.append(vmGateways).append(vmPasswords);
         }
         setModuleGlobalOutputString();
         return outputString.toString();
@@ -215,17 +216,14 @@ public class AWSFileService extends ModuleFileService {
             outputString.append(functionUrl);
         }
         if (!this.vmResourceIds.isEmpty()) {
-            for (Long resourceId : vmResourceIds) {
-                String resourceName = "resource_" + resourceId;
-                String vmGateway = String.format("output \"%s_gateway_url\" {\n" +
-                    "  value = module.%s.%s_gateway_url\n" +
-                    "}\n", resourceName, module.getModuleName(), resourceName);
-                String vmPassword = String.format("output \"%s_password\" {\n" +
-                    "  value = module.%s.%s_password\n" +
-                    "  sensitive = true\n" +
-                    "}\n", resourceName, module.getModuleName(), resourceName);
-                outputString.append(vmGateway).append(vmPassword);
-            }
+            String vmGateways = String.format("output \"%s_gateway_urls\" {\n" +
+                "  value = module.%s.gateway_urls\n" +
+                "}\n", module.getModuleName(), module.getModuleName());
+            String vmPasswords = String.format("output \"%s_passwords\" {\n" +
+                "  value = module.%s.passwords\n" +
+                "  sensitive = true\n" +
+                "}\n", module.getModuleName(), module.getModuleName());
+            outputString.append(vmGateways).append(vmPasswords);
         }
         this.module.setGlobalOutput(outputString.toString());
     }

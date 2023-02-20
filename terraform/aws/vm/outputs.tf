@@ -1,10 +1,10 @@
-output "gateway_url" {
+output "gateway_urls" {
   description = "The url of the faasd gateway"
-  value       = format("http:/%s:8080", aws_eip.vm.public_ip)
+  value       = format("http:/%s:8080", aws_eip.vm[*].public_ip)
 }
 
-output "basic_auth_password" {
-  description = "The basic auth password."
-  value       = random_password.vm[0].result
+output "auth_passwords" {
+  description = "The basic auth passwords."
+  value       = random_password.vm[*].result
   sensitive = true
 }
