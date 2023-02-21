@@ -25,14 +25,18 @@ public class AWSFileService extends ModuleFileService {
 
     private final Set<Long> edgeFunctionIds = new HashSet<>();
 
+    private final String dockerUserName;
+
     public AWSFileService(Path rootFolder, Path functionsDir, String region, String awsRole,
-                          List<FunctionResource> functionResources, long reservationId, TerraformModule module) {
+                          List<FunctionResource> functionResources, long reservationId, TerraformModule module,
+                          String dockerUserName) {
         super(rootFolder, module);
         this.functionsDir = functionsDir;
         this.region = region;
         this.awsRole = awsRole;
         this.functionResources = functionResources;
         this.reservationId = reservationId;
+        this.dockerUserName = dockerUserName;
     }
 
 
@@ -113,36 +117,58 @@ public class AWSFileService extends ModuleFileService {
 
     @Override
     protected String getVmModulesString(List<FunctionResource> functionResources) {
-        StringBuilder resourceNamesString = new StringBuilder(),
-            instanceTypesString = new StringBuilder();
+        StringBuilder resourceNamesString = new StringBuilder(), instanceTypesString = new StringBuilder(),
+            functionsString = new StringBuilder(), vmString = new StringBuilder();
 
         for (FunctionResource functionResource: functionResources) {
             Resource resource = functionResource.getResource();
             Function function = functionResource.getFunction();
+            String resourceName = "resource_" + resource.getResourceId();
             if (checkMustDeployVM(resource)) {
-                resourceNamesString.append("\"resource_").append(resource.getResourceId()).append("\",");
+                resourceNamesString.append("\"").append(resourceName).append("\",");
                 instanceTypesString.append("\"").append(defaultValues.get("instance-type")).append("\",");
                 vmResourceIds.add(resource.getResourceId());
             }
-            // TODO: push function onto vm
+            if (resource.getResourceType().getResourceType().equals("vm")) {
+                String runtime = function.getRuntime().getName().toLowerCase();
+                String functionIdentifier =  function.getName().toLowerCase() +
+                    "_" + runtime.replace(".", "");
+                functionsString.append(String.format(
+                    "module \"%s\" {\n" +
+                        "  depends_on = [time_sleep_sleep]\n" +
+                        "  source = \"../../../terraform/openfaas\"\n" +
+                        "  name = \"r%s_%s_%s\"\n" +
+                        "  image = \"%s/%s\"\n" +
+                        "  basic_auth_user = \"admin\"\n" +
+                        "  vm_props = module.vm.vm_props[\"%s\"]\n" +
+                        "}\n",functionIdentifier, resource.getResourceId(), functionIdentifier, reservationId, dockerUserName,
+                    functionIdentifier, resourceName
+                ));
+            }
         }
 
         if (vmResourceIds.isEmpty()) {
             return "";
         }
+        vmString.append(String.format(
+                "module \"vm\" {\n" +
+                    "  source         = \"../../../terraform/aws/vm\"\n" +
+                    "  reservation    = \"%s\"\n" +
+                    "  names          = [%s]\n" +
+                    "  instance_types = [%s]\n" +
+                    "  vpc_id         = \"%s\"\n" +
+                    "  subnet_id      = \"%s\"\n" +
+                    "}\n", reservationId, resourceNamesString, instanceTypesString, defaultValues.get("vpc-id"),
+                defaultValues.get("subnet-id")));
+        vmString.append(
+            "resource \"time_sleep\" \"sleep\" {\n" +
+            "  depends_on = [module.vm]\n" +
+            "  create_duration = \"120s\"\n" +
+            "}\n");
+        vmString.append(functionsString);
 
         // TODO: get vpc from persisted values
-        return String.format(
-            "module \"vm\" {\n" +
-                "  source         = \"../../../terraform/aws/vm\"\n" +
-                "  reservation    = \"%s\"\n" +
-                "  names          = [%s]\n" +
-                "  instance_types = [%s]\n" +
-                "  vpc_id         = \"%s\"\n" +
-                "  subnet_id      = \"%s\"\n" +
-                "}", reservationId, resourceNamesString, instanceTypesString, defaultValues.get("vpc-id"),
-            defaultValues.get("subnet-id")
-        );
+        return vmString.toString();
     }
 
     // TODO: Enforce different resource types to have specific properties set (e.g. code, function-type, region)

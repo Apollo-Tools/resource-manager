@@ -21,3 +21,8 @@ variable "basic_auth_user" {
   type        = string
   default     = "admin"
 }
+
+variable "openfaas_depends_on" {
+  description = "A dependency to wait for"
+  type        = any
+}

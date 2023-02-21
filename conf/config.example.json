@@ -10,5 +10,8 @@
 
   "jwt_secret": "**secret**",
   "jwt_algorithm": "HS256",
-  "token_minutes_valid": 1080
+  "token_minutes_valid": 1080,
+
+  "docker-user": "**USER**",
+  "docker-password": "**PASSWORD**"
 }

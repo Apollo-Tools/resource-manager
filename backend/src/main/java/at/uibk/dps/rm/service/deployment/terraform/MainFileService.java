@@ -24,6 +24,10 @@ public class MainFileService extends TerraformFileService {
             "      source  = \"hashicorp/aws\"\n" +
             "      version = \"~> 4.16\"\n" +
             "    }\n" +
+            "    time = {\n" +
+            "      source = \"hashicorp/time\"\n" +
+            "      version = \"0.9.1\"\n" +
+            "    }\n" +
             "  }\n" +
             "  required_version = \">= 1.2.0\"\n" +
             "}\n";

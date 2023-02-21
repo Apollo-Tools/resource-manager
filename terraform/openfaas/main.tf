@@ -5,6 +5,7 @@ provider "openfaas" {
 }
 
 resource "openfaas_function" "function" {
+  depends_on = [var.openfaas_depends_on]
   name      = var.name
   image     = "${var.image}:latest"
 

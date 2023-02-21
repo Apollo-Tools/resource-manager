@@ -14,4 +14,8 @@ public class DeployResourcesRequest {
     private List<Credentials> credentialsList;
 
     private List<FunctionResource> functionResources;
+
+    private String dockerUserName;
+
+    private String dockerPassword;
 }
