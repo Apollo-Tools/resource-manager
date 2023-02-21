@@ -2,22 +2,19 @@ package at.uibk.dps.rm.service.deployment.terraform;
 
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.service.deployment.TerraformModule;
-import at.uibk.dps.rm.service.deployment.sourcecode.PackagePythonCode;
-import at.uibk.dps.rm.service.deployment.sourcecode.PackageSourceCode;
-
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class AWSFileService extends ModuleFileService {
 
+    private final Path functionsDir;
+
     private final String region;
     private final String awsRole;
     private final List<FunctionResource> functionResources;
-    private final long reservationId;
 
-    private final TerraformModule module;
+    private final long reservationId;
 
     private final Map<String, String> defaultValues = setDefaultValues();
 
@@ -28,14 +25,14 @@ public class AWSFileService extends ModuleFileService {
 
     private final Set<Long> edgeFunctionIds = new HashSet<>();
 
-    public AWSFileService(Path rootFolder, String region, String awsRole, List<FunctionResource> functionResources,
-                          long reservationId, TerraformModule module) {
-        super(rootFolder);
+    public AWSFileService(Path rootFolder, Path functionsDir, String region, String awsRole,
+                          List<FunctionResource> functionResources, long reservationId, TerraformModule module) {
+        super(rootFolder, module);
+        this.functionsDir = functionsDir;
         this.region = region;
         this.awsRole = awsRole;
         this.functionResources = functionResources;
         this.reservationId = reservationId;
-        this.module = module;
     }
 
 
@@ -53,7 +50,7 @@ public class AWSFileService extends ModuleFileService {
     // TODO: rework access to metric values
     @Override
     protected String getFunctionsModulString(List<FunctionResource> functionResources, long reservationId,
-                                             Path rootFolder) throws IOException {
+                                             Path rootFolder) {
         StringBuilder functionNames = new StringBuilder(), functionPaths = new StringBuilder(),
             functionRuntimes = new StringBuilder(), functionTimeouts = new StringBuilder(),
             functionMemorySizes = new StringBuilder(), functionHandlers = new StringBuilder(),
@@ -64,26 +61,20 @@ public class AWSFileService extends ModuleFileService {
                 continue;
             }
             Function function = fr.getFunction();
-            PackageSourceCode packageSourceCode;
-            String runtime = function.getRuntime().getName();
-            String functionIdentifier =  function.getName() +
+            String runtime = function.getRuntime().getName().toLowerCase();
+            String functionIdentifier =  function.getName().toLowerCase() +
                 "_" + runtime.replace(".", "") +
                 "_" + reservationId;
             functionNames.append("\"").append("r").append(resource.getResourceId())
                 .append("_").append(functionIdentifier)
                 .append("\",");
             functionPaths.append("\"")
-                .append(rootFolder.toAbsolutePath().toString().replace("\\","/")).append("/")
+                .append(functionsDir.toAbsolutePath().toString().replace("\\","/")).append("/")
                 .append(functionIdentifier)
                 .append(".zip\",");
             if (runtime.startsWith("python")) {
                 functionHandlers.append("\"main.handler\",");
-                if (!faasFunctionIds.contains(function.getFunctionId())) {
-                    packageSourceCode = new PackagePythonCode();
-                    packageSourceCode.composeSourceCode(rootFolder, functionIdentifier,
-                        function.getCode());
-                    faasFunctionIds.add(function.getFunctionId());
-                }
+                faasFunctionIds.add(function.getFunctionId());
             }
             Map<String, MetricValue> metricValues = resource.getMetricValues()
                 .stream()
@@ -210,13 +201,13 @@ public class AWSFileService extends ModuleFileService {
 
     @Override
     protected void setModuleResourceTypes() {
-        this.module.setHasFaas(!faasFunctionIds.isEmpty());
-        this.module.setHasVM(!vmResourceIds.isEmpty());
-        this.module.setHasEdge(!edgeFunctionIds.isEmpty());
+        getModule().setHasFaas(!faasFunctionIds.isEmpty());
+        getModule().setHasVM(!vmResourceIds.isEmpty());
+        getModule().setHasEdge(!edgeFunctionIds.isEmpty());
     }
 
     @Override
-    protected String getMainFileContent() throws IOException {
+    protected String getMainFileContent() {
         return this.getProviderString() +
             this.getFunctionsModulString(functionResources, reservationId, getRootFolder()) +
             this.getVmModulesString(functionResources);

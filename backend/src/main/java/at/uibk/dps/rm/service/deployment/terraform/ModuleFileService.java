@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
 import at.uibk.dps.rm.entity.model.FunctionResource;
+import at.uibk.dps.rm.service.deployment.TerraformModule;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -8,8 +9,11 @@ import java.util.List;
 
 public abstract class ModuleFileService extends TerraformFileService {
 
-    public ModuleFileService(Path rootFolder) {
+    private final TerraformModule module;
+
+    public ModuleFileService(Path rootFolder, TerraformModule module) {
         super(rootFolder);
+        this.module = module;
     }
 
     /*** Serverless functions ***/
@@ -21,4 +25,8 @@ public abstract class ModuleFileService extends TerraformFileService {
 
     /*** Output variables ***/
     protected abstract void setModuleResourceTypes();
+
+    protected TerraformModule getModule() {
+        return this.module;
+    }
 }
