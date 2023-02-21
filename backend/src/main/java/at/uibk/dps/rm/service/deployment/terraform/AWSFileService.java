@@ -63,10 +63,9 @@ public class AWSFileService extends ModuleFileService {
             Function function = fr.getFunction();
             String runtime = function.getRuntime().getName().toLowerCase();
             String functionIdentifier =  function.getName().toLowerCase() +
-                "_" + runtime.replace(".", "") +
-                "_" + reservationId;
+                "_" + runtime.replace(".", "");
             functionNames.append("\"").append("r").append(resource.getResourceId())
-                .append("_").append(functionIdentifier)
+                .append("_").append(functionIdentifier).append("_").append(reservationId)
                 .append("\",");
             functionPaths.append("\"")
                 .append(functionsDir.toAbsolutePath().toString().replace("\\","/")).append("/")
