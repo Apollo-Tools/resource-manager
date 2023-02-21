@@ -92,9 +92,8 @@ public class MainFileService extends TerraformFileService {
             "output \"function_urls\" {\n" +
             "   value = merge(%s)\n" +
             "}\n" +
-            "output \"vm_props\" {\n" +
+            "output \"vm_urls\" {\n" +
             "  value = merge(%s)\n" +
-            "  sensitive = true\n" +
             "}\n", functionsOutput, vmOutput
         );
     }

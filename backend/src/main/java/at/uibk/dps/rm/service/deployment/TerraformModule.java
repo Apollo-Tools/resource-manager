@@ -45,7 +45,7 @@ public class TerraformModule {
 
     public String getVMString() {
         if (this.hasVM) {
-            return String.format("module.%s.vm_props,", this.moduleName);
+            return String.format("module.%s.vm_urls,", this.moduleName);
         }
         return "";
     }

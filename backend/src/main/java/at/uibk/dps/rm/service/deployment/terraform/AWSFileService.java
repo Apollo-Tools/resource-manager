@@ -129,21 +129,23 @@ public class AWSFileService extends ModuleFileService {
                 instanceTypesString.append("\"").append(defaultValues.get("instance-type")).append("\",");
                 vmResourceIds.add(resource.getResourceId());
             }
-            if (resource.getResourceType().getResourceType().equals("vm")) {
+            if (resource.getResourceType().getResourceType().equals("vm") && !resource.getIsSelfManaged()) {
                 String runtime = function.getRuntime().getName().toLowerCase();
                 String functionIdentifier =  function.getName().toLowerCase() +
                     "_" + runtime.replace(".", "");
                 functionsString.append(String.format(
-                    "module \"%s\" {\n" +
-                        "  depends_on = [time_sleep_sleep]\n" +
+                    "module \"r%s_%s\" {\n" +
+                        "  openfaas_depends_on = time_sleep.sleep\n" +
                         "  source = \"../../../terraform/openfaas\"\n" +
                         "  name = \"r%s_%s_%s\"\n" +
                         "  image = \"%s/%s\"\n" +
                         "  basic_auth_user = \"admin\"\n" +
                         "  vm_props = module.vm.vm_props[\"%s\"]\n" +
-                        "}\n",functionIdentifier, resource.getResourceId(), functionIdentifier, reservationId, dockerUserName,
+                        "}\n", resource.getResourceId(), functionIdentifier, resource.getResourceId(),
+                    functionIdentifier, reservationId, dockerUserName,
                     functionIdentifier, resourceName
                 ));
+                vmFunctionIds.add(function.getFunctionId());
             }
         }
 
@@ -219,6 +221,28 @@ public class AWSFileService extends ModuleFileService {
                 "  sensitive = true\n" +
                 "}\n";
             outputString.append(vmProps);
+        }
+        if (!this.vmFunctionIds.isEmpty()) {
+            StringBuilder vmUrls = new StringBuilder(), vmFunctionIds = new StringBuilder();
+            for (FunctionResource functionResource: functionResources) {
+                Resource resource = functionResource.getResource();
+                Function function = functionResource.getFunction();
+                String runtime = function.getRuntime().getName().toLowerCase();
+                String functionIdentifier = function.getName().toLowerCase() +
+                    "_" + runtime.replace(".", "");
+                if (resource.getResourceType().getResourceType().equals("vm")) {
+                    vmUrls.append(String.format("module.r%s_%s.function_url,",
+                        resource.getResourceId(), functionIdentifier));
+                    vmFunctionIds.append(String.format("\"r%s_%s.function_url\",",
+                        resource.getResourceId(), functionIdentifier));
+                }
+            }
+            outputString.append(String.format(
+                "output \"vm_urls\" {\n" +
+                "  value = zipmap([%s], [%s])\n" +
+                "}\n", vmFunctionIds, vmUrls
+            ));
+
         }
         setModuleResourceTypes();
         return outputString.toString();
