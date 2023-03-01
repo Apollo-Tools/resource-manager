@@ -51,12 +51,11 @@ public class FunctionFileService {
                 packageSourceCode.composeSourceCode(functionsDir, functionIdentifier,
                     function.getCode());
 
-                // TODO: replace user name with environment variable
                 functionsString.append(String.format(
                     "  %s:\n" +
                     "    lang: python3-flask-debian\n" +
                     "    handler: ./%s\n" +
-                    "    image: %s/%s:latest\n", functionIdentifier, functionIdentifier, "matthigas", functionIdentifier));
+                    "    image: %s/%s:latest\n", functionIdentifier, functionIdentifier, dockerUsername, functionIdentifier));
             }
             functionIds.add(function.getFunctionId());
             functionIdentifiers.add(functionIdentifier);
