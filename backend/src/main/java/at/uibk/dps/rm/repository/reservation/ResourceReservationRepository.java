@@ -18,6 +18,7 @@ public class ResourceReservationRepository extends Repository<ResourceReservatio
                                 "left join fetch rr.functionResource fr " +
                                 "left join fetch fr.resource " +
                                 "left join fetch fr.function " +
+                                "left join fetch rr.status " +
                                 "where rr.reservation.reservationId=:id", entityClass)
                         .setParameter("id", id)
                         .getResultList()

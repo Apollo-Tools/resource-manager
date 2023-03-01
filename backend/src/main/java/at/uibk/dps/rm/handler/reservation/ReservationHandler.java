@@ -30,6 +30,8 @@ public class ReservationHandler extends ValidationHandler {
 
     private final CredentialsChecker credentialsChecker;
 
+    private final ResourceReservationStatusChecker statusChecker;
+
     private final DeploymentHandler deploymentHandler;
 
     public ReservationHandler(ServiceProxyProvider serviceProxyProvider, DeploymentHandler deploymentHandler) {
@@ -40,6 +42,8 @@ public class ReservationHandler extends ValidationHandler {
         this.functionResourceChecker = new FunctionResourceChecker(serviceProxyProvider.getFunctionResourceService());
         this.deploymentHandler = deploymentHandler;
         this.credentialsChecker = new CredentialsChecker(serviceProxyProvider.getCredentialsService());
+        this.statusChecker = new ResourceReservationStatusChecker(serviceProxyProvider
+            .getResourceReservationStatusService());
     }
 
     @Override
@@ -72,6 +76,7 @@ public class ReservationHandler extends ValidationHandler {
                 .asJsonObject()
                 .mapTo(ReserveResourcesRequest.class);
         long accountId = rc.user().principal().getLong("account_id");
+        // TODO: change to check if all necessary credentials exist
         return credentialsChecker.checkExistsAtLeastOne(accountId)
             .flatMap(result -> checkFindFunctionResources(requestDTO.getFunctionResources()).toList())
             .flatMap(functionResources -> {
@@ -81,8 +86,9 @@ public class ReservationHandler extends ValidationHandler {
                 account.setAccountId(accountId);
                 reservation.setCreatedBy(account);
                 return entityChecker.submitCreate(JsonObject.mapFrom(reservation))
-                    .map(reservationJson -> createResourceReservationList(reservationJson,
-                        functionResources));
+                    .flatMap(reservationJson -> statusChecker.checkFindOneByStatusValue("NEW")
+                        .flatMap(status -> createResourceReservationList(reservationJson, functionResources,
+                            status.mapTo(ResourceReservationStatus.class))));
             })
             // TODO: if resource is self managed copy trigger url to resource reservation (or ignore self managed resources)
             .flatMap(resourceReservations -> resourceReservationChecker
@@ -113,22 +119,25 @@ public class ReservationHandler extends ValidationHandler {
             );
     }
 
-    private List<ResourceReservation> createResourceReservationList(JsonObject reservationJson,
-                                                                    List<JsonObject> functionResources) {
+    private Single<List<ResourceReservation>> createResourceReservationList(JsonObject reservationJson,
+                                                                            List<JsonObject> functionResources,
+                                                                            ResourceReservationStatus status) {
         List<ResourceReservation> resourceReservations = new ArrayList<>();
         Reservation reservation = reservationJson.mapTo(Reservation.class);
         for (JsonObject functionResourceJson : functionResources) {
             FunctionResource functionResource = new FunctionResource();
             functionResource.setFunctionResourceId(functionResourceJson.getLong("function_resource_id"));
-            resourceReservations.add(createNewResourceReservation(reservation, functionResource));
+            resourceReservations.add(createNewResourceReservation(reservation, functionResource, status));
         }
-        return resourceReservations;
+        return Single.just(resourceReservations);
     }
 
-    private ResourceReservation createNewResourceReservation(Reservation reservation, FunctionResource functionResource) {
+    private ResourceReservation createNewResourceReservation(Reservation reservation, FunctionResource functionResource,
+                                                             ResourceReservationStatus status) {
         ResourceReservation resourceReservation = new ResourceReservation();
         resourceReservation.setReservation(reservation);
         resourceReservation.setFunctionResource(functionResource);
+        resourceReservation.setStatus(status);
         return resourceReservation;
     }
 }
