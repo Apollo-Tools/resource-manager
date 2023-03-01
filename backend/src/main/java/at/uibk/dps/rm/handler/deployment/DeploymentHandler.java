@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler.deployment;
 
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
+import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.model.FunctionResource;
 import at.uibk.dps.rm.entity.model.ResourceProvider;
 import at.uibk.dps.rm.handler.account.CredentialsChecker;
@@ -29,9 +30,10 @@ public class DeploymentHandler {
         this.functionResourceChecker = new FunctionResourceChecker(functionResourceService);
     }
 
-    public Completable deployResources(long reservationId, long accountId) {
+    public Completable deployResources(long reservationId, long accountId, DockerCredentials dockerCredentials) {
         DeployResourcesRequest request = new DeployResourcesRequest();
         request.setReservationId(reservationId);
+        request.setDockerCredentials(dockerCredentials);
         ObjectMapper mapper = DatabindCodec.mapper();
         return credentialsChecker.checkFindAll(accountId)
             .map(credentials -> {

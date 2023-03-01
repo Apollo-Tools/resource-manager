@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler.reservation;
 
 import at.uibk.dps.rm.entity.dto.ReserveResourcesRequest;
+import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.NotFoundException;
@@ -239,6 +240,9 @@ public class ReservationHandlerTest {
         Account account = TestObjectProvider.createAccount(1L);
         Reservation reservation = TestObjectProvider.createReservation(1L, true, account);
         JsonObject reservationJson = JsonObject.mapFrom(reservation);
+        DockerCredentials dockerCredentials = new DockerCredentials();
+        dockerCredentials.setUsername("testuser");
+        dockerCredentials.setAccessToken("abcdef12234");
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         RoutingContextMockHelper.mockBody(rc, requestBody);
@@ -253,7 +257,7 @@ public class ReservationHandlerTest {
             .thenReturn(Single.just(JsonObject.mapFrom(ids4)));
         when(reservationService.save(any())).thenReturn(Single.just(reservationJson));
         when(resourceReservationService.saveAll(any())).thenReturn(Completable.complete());
-        when(deploymentHandler.deployResources(1L, 1L)).thenReturn(Completable.complete());
+        when(deploymentHandler.deployResources(1L, 1L, dockerCredentials)).thenReturn(Completable.complete());
 
         reservationHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> {

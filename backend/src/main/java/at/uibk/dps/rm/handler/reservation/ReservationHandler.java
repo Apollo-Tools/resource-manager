@@ -97,7 +97,8 @@ public class ReservationHandler extends ValidationHandler {
                 .map(result -> {
                     // TODO: fix
                     deploymentHandler
-                        .deployResources(result.getLong("reservation_id"), accountId)
+                        .deployResources(result.getLong("reservation_id"), accountId,
+                            requestDTO.getDockerCredentials())
                         .subscribe();
                     return result;
                 })

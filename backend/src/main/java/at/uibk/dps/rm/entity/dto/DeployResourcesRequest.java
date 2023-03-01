@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.entity.dto;
 
+import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.model.Credentials;
 import at.uibk.dps.rm.entity.model.FunctionResource;
 import lombok.Data;
@@ -15,7 +16,5 @@ public class DeployResourcesRequest {
 
     private List<FunctionResource> functionResources;
 
-    private String dockerUsername;
-
-    private String dockerPassword;
+    private DockerCredentials dockerCredentials;
 }

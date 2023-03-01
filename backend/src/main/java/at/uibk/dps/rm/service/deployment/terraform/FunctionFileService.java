@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
+import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.entity.model.FunctionResource;
 import at.uibk.dps.rm.service.deployment.ProcessExecutor;
@@ -19,20 +20,17 @@ public class FunctionFileService {
 
     private final Path functionsDir;
 
-    private final String dockerUsername;
-
-    private final String dockerPassword;
+    private final DockerCredentials dockerCredentials;
 
     private final Set<Long> functionIds = new HashSet<>();
 
     private final List<String> functionIdentifiers = new ArrayList<>();
 
     public FunctionFileService(List<FunctionResource> functionResources, Path functionsDir,
-                               String dockerUsername, String dockerPassword) {
+                               DockerCredentials dockerCredentials) {
         this.functionResources = functionResources;
         this.functionsDir = functionsDir;
-        this.dockerUsername = dockerUsername;
-        this.dockerPassword = dockerPassword;
+        this.dockerCredentials = dockerCredentials;
     }
 
     public void packageCode() throws IOException, InterruptedException {
@@ -55,7 +53,8 @@ public class FunctionFileService {
                     "  %s:\n" +
                     "    lang: python3-flask-debian\n" +
                     "    handler: ./%s\n" +
-                    "    image: %s/%s:latest\n", functionIdentifier, functionIdentifier, dockerUsername, functionIdentifier));
+                    "    image: %s/%s:latest\n", functionIdentifier, functionIdentifier,
+                    dockerCredentials.getUsername(), functionIdentifier));
             }
             functionIds.add(function.getFunctionId());
             functionIdentifiers.add(functionIdentifier);
@@ -90,12 +89,13 @@ public class FunctionFileService {
         List<String> dockerCommands = new java.util.ArrayList<>(List.of("docker", "run", "-v",
             "\"/var/run/docker.sock:/var/run/docker.sock\"", "--privileged", "--rm", "-v",
             rootFolder.toAbsolutePath() + "\\build:/build", "docker:latest", "sh", "-c"));
-        StringBuilder dockerInteractiveCommands = new StringBuilder("\"cd ./build && docker login -u " + dockerUsername + " -p " +
-            dockerPassword);
+        StringBuilder dockerInteractiveCommands = new StringBuilder("\"cd ./build && docker login -u " +
+            dockerCredentials.getUsername() + " -p " + dockerCredentials.getAccessToken());
         for (String functionIdentifier : functionIdentifiers) {
-            dockerInteractiveCommands.append(String.format("&& docker build -t %s/%s ./%s", dockerUsername,
-                functionIdentifier, functionIdentifier));
-            dockerInteractiveCommands.append(String.format("&& docker push %s/%s", dockerUsername, functionIdentifier));
+            dockerInteractiveCommands.append(String.format("&& docker build -t %s/%s ./%s",
+                dockerCredentials.getUsername(), functionIdentifier, functionIdentifier));
+            dockerInteractiveCommands.append(String.format("&& docker push %s/%s", dockerCredentials.getUsername(),
+                functionIdentifier));
         }
         dockerInteractiveCommands.append("\"");
         dockerCommands.add(dockerInteractiveCommands.toString());

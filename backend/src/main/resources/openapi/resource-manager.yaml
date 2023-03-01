@@ -1002,6 +1002,19 @@ paths:
                         type: integer
                         format: int64
                         example: 1
+                docker_credentials:
+                  type: object
+                  required:
+                    - username
+                    - access_token
+                  additionalProperties: false
+                  properties:
+                    username:
+                      type: string
+                      example: user1
+                    access_token:
+                      type: string
+                      example: abcdef1234
       responses:
         200:
           description: Successful reservation of resources
