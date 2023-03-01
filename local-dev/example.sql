@@ -150,3 +150,13 @@ INSERT INTO metric_value (value_number, resource_id, metric_id)
 VALUES (128, 2, 6);
 INSERT INTO metric_value (value_number, resource_id, metric_id)
 VALUES (1024, 3, 6);
+
+-- resource_reservation_status
+INSERT INTO resource_reservation_status (status_value)
+VALUES ('NEW');
+INSERT INTO resource_reservation_status (status_value)
+VALUES ('ERROR');
+INSERT INTO resource_reservation_status (status_value)
+VALUES ('DEPLOYED');
+INSERT INTO resource_reservation_status (status_value)
+VALUES ('TERMINATED');
