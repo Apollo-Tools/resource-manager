@@ -2,6 +2,7 @@ package at.uibk.dps.rm.service.deployment.terraform;
 
 import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.entity.model.FunctionResource;
+import at.uibk.dps.rm.service.deployment.ProcessExecutor;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackagePythonCode;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackageSourceCode;
 
@@ -10,9 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class FunctionFileService {
 
@@ -20,17 +19,23 @@ public class FunctionFileService {
 
     private final Path functionsDir;
 
-    private final long reservationId;
+    private final String dockerUsername;
+
+    private final String dockerPassword;
 
     private final Set<Long> functionIds = new HashSet<>();
 
-    public FunctionFileService(List<FunctionResource> functionResources, Path functionsDir, long reservationId) {
+    private final List<String> functionIdentifiers = new ArrayList<>();
+
+    public FunctionFileService(List<FunctionResource> functionResources, Path functionsDir,
+                               String dockerUsername, String dockerPassword) {
         this.functionResources = functionResources;
-        this.reservationId = reservationId;
         this.functionsDir = functionsDir;
+        this.dockerUsername = dockerUsername;
+        this.dockerPassword = dockerPassword;
     }
 
-    public void packageCode() throws IOException {
+    public void packageCode() throws IOException, InterruptedException {
         PackageSourceCode packageSourceCode;
         StringBuilder functionsString = new StringBuilder();
         for (FunctionResource fr : functionResources) {
@@ -54,6 +59,7 @@ public class FunctionFileService {
                     "    image: %s/%s:latest\n", functionIdentifier, functionIdentifier, "matthigas", functionIdentifier));
             }
             functionIds.add(function.getFunctionId());
+            functionIdentifiers.add(functionIdentifier);
         }
 
         String stackFile = String.format(
@@ -65,11 +71,36 @@ public class FunctionFileService {
                 "    - name: python3-flask-debian\n" +
                 "functions:\n" +
                 "%s\n", functionsString);
-        createStackFile(functionsDir, "stack.yml", stackFile);
+        createStackFile(functionsDir, stackFile);
+
+        buildFunctionsDockerFile(functionsDir);
+        pushDockerFiles(functionsDir);
     }
 
-    private void createStackFile(Path rootFolder, String fileName, String fileContent) throws IOException {
-        Path filePath = Path.of(rootFolder.toString(), fileName);
+    private void createStackFile(Path rootFolder, String fileContent) throws IOException {
+        Path filePath = Path.of(rootFolder.toString(), "stack.yml");
         Files.writeString(filePath, fileContent, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
+    }
+
+    private int buildFunctionsDockerFile(Path rootFolder) throws IOException, InterruptedException {
+        ProcessExecutor processExecutor = new ProcessExecutor(rootFolder,"faas-cli", "build", "-f", "stack.yml", "--shrinkwrap");
+        return processExecutor.executeCli();
+    }
+
+    private int pushDockerFiles(Path rootFolder) throws IOException, InterruptedException {
+        List<String> dockerCommands = new java.util.ArrayList<>(List.of("docker", "run", "-v",
+            "\"/var/run/docker.sock:/var/run/docker.sock\"", "--privileged", "--rm", "-v",
+            rootFolder.toAbsolutePath() + "\\build:/build", "docker:latest", "sh", "-c"));
+        StringBuilder dockerInteractiveCommands = new StringBuilder("\"cd ./build && docker login -u " + dockerUsername + " -p " +
+            dockerPassword);
+        for (String functionIdentifier : functionIdentifiers) {
+            dockerInteractiveCommands.append(String.format("&& docker build -t %s/%s ./%s", dockerUsername,
+                functionIdentifier, functionIdentifier));
+            dockerInteractiveCommands.append(String.format("&& docker push %s/%s", dockerUsername, functionIdentifier));
+        }
+        dockerInteractiveCommands.append("\"");
+        dockerCommands.add(dockerInteractiveCommands.toString());
+        ProcessExecutor processExecutor = new ProcessExecutor(rootFolder, dockerCommands);
+        return processExecutor.executeCli();
     }
 }
