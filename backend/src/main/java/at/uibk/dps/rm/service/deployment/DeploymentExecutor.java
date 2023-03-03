@@ -51,8 +51,7 @@ public class DeploymentExecutor {
             mainFileService.setUpDirectory();
             // Build functions
             FunctionFileService functionFileService = new FunctionFileService(deployResourcesRequest.getFunctionResources(),
-                functionsDir, deployResourcesRequest.getDockerUsername(),
-                deployResourcesRequest.getDockerPassword());
+                functionsDir, deployResourcesRequest.getDockerCredentials());
             functionFileService.packageCode();
             //
             // Run terraform

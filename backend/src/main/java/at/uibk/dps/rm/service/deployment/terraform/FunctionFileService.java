@@ -26,6 +26,8 @@ public class FunctionFileService {
 
     private final List<String> functionIdentifiers = new ArrayList<>();
 
+    private final Set<Long> dockerFunctions = new HashSet<>();
+
     public FunctionFileService(List<FunctionResource> functionResources, Path functionsDir,
                                DockerCredentials dockerCredentials) {
         this.functionResources = functionResources;
@@ -46,20 +48,28 @@ public class FunctionFileService {
                 "_" + runtime.replace(".", "");
             if (runtime.startsWith("python")) {
                 packageSourceCode = new PackagePythonCode();
-                packageSourceCode.composeSourceCode(functionsDir, functionIdentifier,
-                    function.getCode());
-
-                functionsString.append(String.format(
-                    "  %s:\n" +
-                    "    lang: python3-flask-debian\n" +
-                    "    handler: ./%s\n" +
-                    "    image: %s/%s:latest\n", functionIdentifier, functionIdentifier,
-                    dockerCredentials.getUsername(), functionIdentifier));
+                packageSourceCode.composeSourceCode(functionsDir, functionIdentifier, function.getCode());
+                if (deployFunctionOnVMOrEdge(function, functionResources)) {
+                    functionsString.append(String.format(
+                        "  %s:\n" +
+                            "    lang: python3-flask-debian\n" +
+                            "    handler: ./%s\n" +
+                            "    image: %s/%s:latest\n", functionIdentifier, functionIdentifier,
+                        dockerCredentials.getUsername(), functionIdentifier));
+                    dockerFunctions.add(function.getFunctionId());
+                }
             }
             functionIds.add(function.getFunctionId());
             functionIdentifiers.add(functionIdentifier);
         }
 
+        buildAndPushDockerImages(functionsString.toString());
+    }
+
+    private void buildAndPushDockerImages(String functionsString) throws IOException, InterruptedException {
+        if (dockerFunctions.isEmpty()) {
+            return;
+        }
         String stackFile = String.format(
             "version: 1.0\n" +
                 "provider:\n" +
@@ -71,8 +81,8 @@ public class FunctionFileService {
                 "%s\n", functionsString);
         createStackFile(functionsDir, stackFile);
 
-        buildFunctionsDockerFile(functionsDir);
-        pushDockerFiles(functionsDir);
+        buildFunctionsDockerFiles(functionsDir);
+        pushDockerImages(functionsDir);
     }
 
     private void createStackFile(Path rootFolder, String fileContent) throws IOException {
@@ -80,12 +90,13 @@ public class FunctionFileService {
         Files.writeString(filePath, fileContent, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
     }
 
-    private int buildFunctionsDockerFile(Path rootFolder) throws IOException, InterruptedException {
-        ProcessExecutor processExecutor = new ProcessExecutor(rootFolder,"faas-cli", "build", "-f", "stack.yml", "--shrinkwrap");
+    private int buildFunctionsDockerFiles(Path rootFolder) throws IOException, InterruptedException {
+        ProcessExecutor processExecutor = new ProcessExecutor(rootFolder,"faas-cli", "build", "-f",
+            "stack.yml", "--shrinkwrap");
         return processExecutor.executeCli();
     }
 
-    private int pushDockerFiles(Path rootFolder) throws IOException, InterruptedException {
+    private int pushDockerImages(Path rootFolder) throws IOException, InterruptedException {
         List<String> dockerCommands = new java.util.ArrayList<>(List.of("docker", "run", "-v",
             "\"/var/run/docker.sock:/var/run/docker.sock\"", "--privileged", "--rm", "-v",
             rootFolder.toAbsolutePath() + "\\build:/build", "docker:latest", "sh", "-c"));
@@ -101,5 +112,13 @@ public class FunctionFileService {
         dockerCommands.add(dockerInteractiveCommands.toString());
         ProcessExecutor processExecutor = new ProcessExecutor(rootFolder, dockerCommands);
         return processExecutor.executeCli();
+    }
+
+    private boolean deployFunctionOnVMOrEdge(Function function, List<FunctionResource> functionResources) {
+        return functionResources.stream().anyMatch(functionResource -> {
+            String resourceType = functionResource.getResource().getResourceType().getResourceType();
+            return functionResource.getFunction().equals(function) &&
+                (resourceType.equals("edge") || resourceType.equals("vm"));
+        });
     }
 }
