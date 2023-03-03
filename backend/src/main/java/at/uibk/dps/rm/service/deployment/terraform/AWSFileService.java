@@ -233,7 +233,7 @@ public class AWSFileService extends ModuleFileService {
                 if (resource.getResourceType().getResourceType().equals("vm")) {
                     vmUrls.append(String.format("module.r%s_%s.function_url,",
                         resource.getResourceId(), functionIdentifier));
-                    vmFunctionIds.append(String.format("\"r%s_%s.function_url\",",
+                    vmFunctionIds.append(String.format("\"r%s_%s\",",
                         resource.getResourceId(), functionIdentifier));
                 }
             }
