@@ -62,7 +62,7 @@ public class FunctionFileService {
             functionIds.add(function.getFunctionId());
             functionIdentifiers.add(functionIdentifier);
         }
-
+        // TODO: add check if this is necessary (=no changes since last push)
         buildAndPushDockerImages(functionsString.toString());
     }
 
@@ -101,12 +101,12 @@ public class FunctionFileService {
             "\"/var/run/docker.sock:/var/run/docker.sock\"", "--privileged", "--rm", "-v",
             rootFolder.toAbsolutePath() + "\\build:/build", "docker:latest", "sh", "-c"));
         StringBuilder dockerInteractiveCommands = new StringBuilder("\"cd ./build && docker login -u " +
-            dockerCredentials.getUsername() + " -p " + dockerCredentials.getAccessToken());
+            dockerCredentials.getUsername() + " -p " + dockerCredentials.getAccessToken() + " && docker buildx create " +
+            "--name multiarch --driver docker-container --bootstrap --use");
         for (String functionIdentifier : functionIdentifiers) {
-            dockerInteractiveCommands.append(String.format("&& docker build -t %s/%s ./%s",
+            dockerInteractiveCommands.append(String.format(" && docker buildx build -t %s/%s ./%s --platform " +
+                    "linux/arm/v7,linux/amd64 --push",
                 dockerCredentials.getUsername(), functionIdentifier, functionIdentifier));
-            dockerInteractiveCommands.append(String.format("&& docker push %s/%s", dockerCredentials.getUsername(),
-                functionIdentifier));
         }
         dockerInteractiveCommands.append("\"");
         dockerCommands.add(dockerInteractiveCommands.toString());

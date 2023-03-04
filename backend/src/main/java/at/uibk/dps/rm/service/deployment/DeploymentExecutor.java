@@ -5,6 +5,7 @@ import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.model.FunctionResource;
 import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.service.deployment.terraform.AWSFileService;
+import at.uibk.dps.rm.service.deployment.terraform.EdgeFileService;
 import at.uibk.dps.rm.service.deployment.terraform.MainFileService;
 import at.uibk.dps.rm.service.deployment.terraform.FunctionFileService;
 import at.uibk.dps.rm.util.JsonMapperConfig;
@@ -40,14 +41,26 @@ public class DeploymentExecutor {
             terraformExecutor.setPluginCacheFolder(Paths.get("temp\\plugin_cache").toAbsolutePath());
             Path rootFolder = Paths.get("temp\\reservation_" + deployResourcesRequest.getReservationId());
             Path functionsDir = Path.of(rootFolder.toString(), "functions");
+            // TF: Cloud resources
             for (Region region: functionResources.keySet()) {
                 List<FunctionResource> regionFunctionResources = functionResources.get(region);
-                TerraformModule module = regionDeployment(deployResourcesRequest, rootFolder, functionsDir,
-                    region.getName(), regionFunctionResources);
+                TerraformModule module;
+                if (region.getName().equals("edge")) {
+                    // TF: Edge resources
+                    module = new TerraformModule(CloudProvider.EDGE, "edge");
+                    Path edgeFolder = Paths.get(rootFolder.toString(), module.getModuleName());
+                    EdgeFileService edgeService = new EdgeFileService(edgeFolder, deployResourcesRequest.getFunctionResources(),
+                        deployResourcesRequest.getReservationId(), deployResourcesRequest.getDockerCredentials().getUsername());
+                    edgeService.setUpDirectory();
+                } else {
+                    module = regionDeployment(deployResourcesRequest, rootFolder, functionsDir,
+                        region.getName(), regionFunctionResources);
+                }
                 modules.add(module);
             }
+
+            // TF: main files
             MainFileService mainFileService = new MainFileService(rootFolder, modules);
-            // Create files
             mainFileService.setUpDirectory();
             // Build functions
             FunctionFileService functionFileService = new FunctionFileService(deployResourcesRequest.getFunctionResources(),
@@ -68,6 +81,7 @@ public class DeploymentExecutor {
         return Single.just(1L);
     }
 
+    // TODO: Rework for other cloud providers
     protected TerraformModule regionDeployment(DeployResourcesRequest deployResourcesRequest, Path rootFolder,
                                                Path functionsDir,String region, List<FunctionResource> functionResources)
         throws IOException {
@@ -78,7 +92,8 @@ public class DeploymentExecutor {
             region.replace("-", "_"));
         Path awsFolder = Paths.get(rootFolder + "\\" + module.getModuleName());
         AWSFileService fileService = new AWSFileService(awsFolder, functionsDir, region,
-            awsRole, functionResources, deployResourcesRequest.getReservationId(), module, "matthigas");
+            awsRole, functionResources, deployResourcesRequest.getReservationId(), module,
+            deployResourcesRequest.getDockerCredentials().getUsername());
         fileService.setUpDirectory();
         return module;
     }

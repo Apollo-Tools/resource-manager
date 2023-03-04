@@ -15,6 +15,8 @@ INSERT INTO resource_provider (provider)
 VALUES ('google');
 INSERT INTO resource_provider (provider)
 VALUES ('ibm');
+INSERT INTO resource_provider (provider)
+VALUES ('edge');
 
 -- metric_type
 INSERT INTO metric_type (type)
@@ -57,6 +59,8 @@ INSERT INTO region (name, resource_provider_id)
 VALUES ('us-east-1', 1);
 INSERT INTO region (name, resource_provider_id)
 VALUES ('us-west-2', 1);
+INSERT INTO region (name, resource_provider_id)
+VALUES ('edge', 5);
 
 -- resource
 -- faas

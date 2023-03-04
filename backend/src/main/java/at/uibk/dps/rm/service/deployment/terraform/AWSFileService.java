@@ -11,6 +11,7 @@ public class AWSFileService extends ModuleFileService {
     private final Path functionsDir;
 
     private final String region;
+
     private final String awsRole;
     private final List<FunctionResource> functionResources;
 
@@ -21,9 +22,8 @@ public class AWSFileService extends ModuleFileService {
     private final Set<Long> faasFunctionIds = new HashSet<>();
 
     private final Set<Long> vmResourceIds = new HashSet<>();
-    private final Set<Long> vmFunctionIds = new HashSet<>();
 
-    private final Set<Long> edgeFunctionIds = new HashSet<>();
+    private final Set<Long> vmFunctionIds = new HashSet<>();
 
     private final String dockerUserName;
 
@@ -252,7 +252,6 @@ public class AWSFileService extends ModuleFileService {
     protected void setModuleResourceTypes() {
         getModule().setHasFaas(!faasFunctionIds.isEmpty());
         getModule().setHasVM(!vmResourceIds.isEmpty());
-        getModule().setHasEdge(!edgeFunctionIds.isEmpty());
     }
 
     @Override
