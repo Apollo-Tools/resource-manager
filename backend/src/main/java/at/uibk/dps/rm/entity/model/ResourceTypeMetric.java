@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.entity.model;
 
 import at.uibk.dps.rm.annotations.Generated;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,24 +12,25 @@ import java.sql.Timestamp;
 @Entity
 @Getter
 @Setter
-public class Function {
+public class ResourceTypeMetric {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long functionId;
+    private Long resourceTypeMetricId;
 
-    private String name;
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "resource_type_id")
+    private ResourceType resourceType;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "runtime_id")
-    private Runtime runtime;
+    @JoinColumn(name = "metric_id")
+    private Metric metric;
 
-    private String code;
+    private Boolean required;
 
     @Column(insertable = false, updatable = false)
     private @Setter(value = AccessLevel.NONE) Timestamp createdAt;
-
-    @Column(insertable = false, updatable = false)
-    private @Setter(value = AccessLevel.NONE) Timestamp updatedAt;
 
     @Override
     @Generated
@@ -36,14 +38,14 @@ public class Function {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Function function = (Function) o;
+        ResourceTypeMetric rtm = (ResourceTypeMetric) o;
 
-        return functionId.equals(function.functionId);
+        return resourceTypeMetricId.equals(rtm.resourceTypeMetricId);
     }
 
     @Override
     @Generated
     public int hashCode() {
-        return functionId.hashCode();
+        return resourceTypeMetricId.hashCode();
     }
 }

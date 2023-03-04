@@ -11,24 +11,22 @@ import java.sql.Timestamp;
 @Entity
 @Getter
 @Setter
-public class Function {
+public class VPC {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long functionId;
+    private Long vpcId;
 
-    private String name;
+    private String vpcIdValue;
+
+    private String subnetIdValue;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "runtime_id")
-    private Runtime runtime;
-
-    private String code;
+    @JoinColumn(name = "region_id")
+    private Region region;
 
     @Column(insertable = false, updatable = false)
     private @Setter(value = AccessLevel.NONE) Timestamp createdAt;
-
-    @Column(insertable = false, updatable = false)
-    private @Setter(value = AccessLevel.NONE) Timestamp updatedAt;
 
     @Override
     @Generated
@@ -36,14 +34,14 @@ public class Function {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Function function = (Function) o;
+        VPC vpc = (VPC) o;
 
-        return functionId.equals(function.functionId);
+        return vpcId.equals(vpc.vpcId);
     }
 
     @Override
     @Generated
     public int hashCode() {
-        return functionId.hashCode();
+        return vpcId.hashCode();
     }
 }

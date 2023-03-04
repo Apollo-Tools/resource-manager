@@ -34,6 +34,8 @@ INSERT INTO metric (metric, description, is_monitored, metric_type_id)
 VALUES ('latency', 'the latency between a resource and the resource manager', true, 1);
 INSERT INTO metric (metric, description, is_monitored, metric_type_id)
 VALUES ('online', 'indicates if the resource is online', true, '3');
+INSERT INTO metric (metric, description, is_monitored, metric_type_id)
+VALUES ('is-deployed', 'if a vm is currently deployed', true, 3);
 -- configuration metrics
 INSERT INTO metric (metric, description, is_monitored, metric_type_id)
 VALUES ('cpu', 'the amount of cpu cores of a resource', false, 1);
@@ -41,6 +43,14 @@ INSERT INTO metric (metric, description, is_monitored, metric_type_id)
 VALUES ('timeout', 'the maximum timeout for function executions', false, 1);
 INSERT INTO metric (metric, description, is_monitored, metric_type_id)
 VALUES ('memory-size', 'the memory size allocated for functions', false, 1);
+INSERT INTO metric (metric, description, is_monitored, metric_type_id)
+VALUES ('gateway-url', 'the openfaas gateway_url', false, 2);
+INSERT INTO metric (metric, description, is_monitored, metric_type_id)
+VALUES ('openfaas-user', 'the openfaas basic auth user', false, 2);
+INSERT INTO metric (metric, description, is_monitored, metric_type_id)
+VALUES ('openfaas-pw', 'the openfaas basic auth password', false, 2);
+INSERT INTO metric (metric, description, is_monitored, metric_type_id)
+VALUES ('instance-type', 'the vm instance type', false, 2);
 
 -- resource_type
 INSERT INTO resource_type (resource_type)
@@ -52,6 +62,47 @@ VALUES ('vm');
 INSERT INTO resource_type (resource_type)
 VALUES ('iot');
 
+-- resource_type_metrics
+-- faas
+INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
+VALUES (1, 1, false);
+INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
+VALUES (1, 2, false);
+INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
+VALUES (1, 6, true);
+INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
+VALUES (1, 7, true);
+-- edge
+INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
+VALUES (2, 1, false);
+INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
+VALUES (2, 2, false);
+INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
+VALUES (2, 6, true);
+INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
+VALUES (2, 7, true);
+INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
+VALUES (2, 8, true);
+INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
+VALUES (2, 9, true);
+INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
+VALUES (2, 10, true);
+-- vm
+INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
+VALUES (3, 1, false);
+INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
+VALUES (3, 2, false);
+INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
+VALUES (3, 4, true);
+INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
+VALUES (3, 8, true);
+INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
+VALUES (3, 9, true);
+INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
+VALUES (3, 10, true);
+INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
+VALUES (3, 11, true);
+
 -- region
 INSERT INTO region (name, resource_provider_id)
 VALUES ('eu-north', 1);
@@ -61,6 +112,12 @@ INSERT INTO region (name, resource_provider_id)
 VALUES ('us-west-2', 1);
 INSERT INTO region (name, resource_provider_id)
 VALUES ('edge', 5);
+
+-- vpc
+INSERT INTO vpc (vpc_id_value, subnet_id_value, region_id)
+VALUES ('vpc-034ecb3faf855301a', 'subnet-02c1ba2560529be72', 2);
+INSERT INTO vpc (vpc_id_value, subnet_id_value, region_id)
+VALUES ('vpc-03e37d94124ae821c', 'subnet-02109321bd7f82080', 3);
 
 -- resource
 -- faas
@@ -131,29 +188,56 @@ VALUES (10, false, 2, 3);
 INSERT INTO metric_value (count, value_bool, resource_id, metric_id)
 VALUES (10, true, 3, 3);
 
+-- is-deployed
+INSERT INTO metric_value (count, value_bool, resource_id, metric_id)
+VALUES (10, true, 3, 4);
+
 -- cpu
 INSERT INTO metric_value (value_number, resource_id, metric_id)
-VALUES (8, 1, 4);
+VALUES (8, 1, 5);
 INSERT INTO metric_value (value_number, resource_id, metric_id)
-VALUES (4, 2, 4);
+VALUES (4, 2, 5);
 INSERT INTO metric_value (value_number, resource_id, metric_id)
-VALUES (16, 3, 4);
+VALUES (16, 3, 5);
 
 -- timeout
 INSERT INTO metric_value (value_number, resource_id, metric_id)
-VALUES (450, 1, 5);
+VALUES (450, 1, 6);
 INSERT INTO metric_value (value_number, resource_id, metric_id)
-VALUES (400, 2, 5);
+VALUES (400, 2, 6);
 INSERT INTO metric_value (value_number, resource_id, metric_id)
-VALUES (500, 3, 5);
+VALUES (500, 3, 6);
 
 -- memory-size
 INSERT INTO metric_value (value_number, resource_id, metric_id)
-VALUES (512, 1, 6);
+VALUES (512, 1, 7);
 INSERT INTO metric_value (value_number, resource_id, metric_id)
-VALUES (128, 2, 6);
+VALUES (128, 2, 7);
 INSERT INTO metric_value (value_number, resource_id, metric_id)
-VALUES (1024, 3, 6);
+VALUES (1024, 3, 7);
+
+-- gateway-url
+INSERT INTO metric_value (value_string, resource_id, metric_id)
+VALUES ('http://192.168.10.131:8080', 2, 8);
+INSERT INTO metric_value (value_string, resource_id, metric_id)
+VALUES ('', 3, 8);
+
+-- openfaas-user
+INSERT INTO metric_value (value_string, resource_id, metric_id)
+VALUES ('admin', 2, 9);
+INSERT INTO metric_value (value_string, resource_id, metric_id)
+VALUES ('', 3, 9);
+
+-- openfaas-pw
+INSERT INTO metric_value (value_string, resource_id, metric_id)
+VALUES ('123', 2, 10);
+INSERT INTO metric_value (value_string, resource_id, metric_id)
+VALUES ('', 3, 10);
+
+-- instance-type
+INSERT INTO metric_value (value_string, resource_id, metric_id)
+VALUES ('t2.micro', 3, 11);
+
 
 -- resource_reservation_status
 INSERT INTO resource_reservation_status (status_value)
