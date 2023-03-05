@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.router;
+package at.uibk.dps.rm.router.resource;
 
 import at.uibk.dps.rm.handler.resource.ResourceDeploymentHandler;
 import at.uibk.dps.rm.handler.resource.ResourceHandler;

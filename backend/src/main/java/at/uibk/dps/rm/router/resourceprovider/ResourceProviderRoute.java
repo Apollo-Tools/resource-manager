@@ -1,30 +1,30 @@
-package at.uibk.dps.rm.router;
+package at.uibk.dps.rm.router.resourceprovider;
 
 import at.uibk.dps.rm.handler.RequestHandler;
-import at.uibk.dps.rm.handler.resourceprovider.RegionHandler;
+import at.uibk.dps.rm.handler.resourceprovider.ResourceProviderHandler;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
-public class RegionRoute {
+public class ResourceProviderRoute {
     public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
-        RegionHandler regionHandler = new RegionHandler(serviceProxyProvider.getRegionService(),
+        ResourceProviderHandler resourceProviderHandler = new ResourceProviderHandler(
             serviceProxyProvider.getResourceProviderService());
-        RequestHandler requestHandler = new RequestHandler(regionHandler);
+        RequestHandler requestHandler = new RequestHandler(resourceProviderHandler);
 
         router
-            .operation("createRegion")
+            .operation("createResourceProvider")
             .handler(requestHandler::postRequest);
 
         router
-            .operation("listRegions")
+            .operation("listResourceProviders")
             .handler(requestHandler::getAllRequest);
 
         router
-            .operation("getRegion")
+            .operation("getResourceProvider")
             .handler(requestHandler::getRequest);
 
         router
-            .operation("deleteRegion")
+            .operation("deleteResourceProvider")
             .handler(requestHandler::deleteRequest);
     }
 }

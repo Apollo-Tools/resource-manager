@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.router;
+package at.uibk.dps.rm.router.account;
 
 import at.uibk.dps.rm.handler.RequestHandler;
 import at.uibk.dps.rm.handler.account.CredentialsHandler;

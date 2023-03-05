@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.router;
+package at.uibk.dps.rm.router.metric;
 
 import at.uibk.dps.rm.handler.metric.MetricValueHandler;
 import at.uibk.dps.rm.handler.RequestHandler;
