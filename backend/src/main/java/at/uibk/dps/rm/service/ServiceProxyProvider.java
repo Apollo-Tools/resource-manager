@@ -18,6 +18,7 @@ import at.uibk.dps.rm.service.rxjava3.database.metric.MetricService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceTypeService;
+import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.VPCService;
 import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentService;
 import at.uibk.dps.rm.service.rxjava3.util.FilePathService;
 import io.vertx.rxjava3.core.Vertx;
@@ -43,6 +44,7 @@ public class ServiceProxyProvider {
     private final ResourceReservationStatusService resourceReservationStatusService;
     private final ResourceTypeService resourceTypeService;
     private final RuntimeService runtimeService;
+    private final VPCService vpcService;
     private final DeploymentService deploymentService;
     private final FilePathService filePathService;
 
@@ -70,6 +72,7 @@ public class ServiceProxyProvider {
             .createProxy(vertx, "resource-reservation-status-service-address");
         resourceTypeService = ResourceTypeService.createProxy(vertx,"resource-type-service-address");
         runtimeService = RuntimeService.createProxy(vertx, "runtime-service-address");
+        vpcService = VPCService.createProxy(vertx, "vpc-service-address");
         deploymentService = DeploymentService.createProxy(vertx, "deployment-service-address");
         filePathService = FilePathService.createProxy(vertx, "file-path-service-address");
     }

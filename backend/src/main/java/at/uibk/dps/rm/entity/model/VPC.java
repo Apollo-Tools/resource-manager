@@ -25,6 +25,10 @@ public class VPC {
     @JoinColumn(name = "region_id")
     private Region region;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_id")
+    private Account createdBy;
+
     @Column(insertable = false, updatable = false)
     private @Setter(value = AccessLevel.NONE) Timestamp createdAt;
 

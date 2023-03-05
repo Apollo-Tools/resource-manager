@@ -114,10 +114,10 @@ INSERT INTO region (name, resource_provider_id)
 VALUES ('edge', 5);
 
 -- vpc
-INSERT INTO vpc (vpc_id_value, subnet_id_value, region_id)
-VALUES ('vpc-034ecb3faf855301a', 'subnet-02c1ba2560529be72', 2);
-INSERT INTO vpc (vpc_id_value, subnet_id_value, region_id)
-VALUES ('vpc-03e37d94124ae821c', 'subnet-02109321bd7f82080', 3);
+INSERT INTO vpc (vpc_id_value, subnet_id_value, region_id, created_by_id)
+VALUES ('vpc-034ecb3faf855301a', 'subnet-02c1ba2560529be72', 2, 1);
+INSERT INTO vpc (vpc_id_value, subnet_id_value, region_id, created_by_id)
+VALUES ('vpc-03e37d94124ae821c', 'subnet-02109321bd7f82080', 3, 1);
 
 -- resource
 -- faas

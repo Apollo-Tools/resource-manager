@@ -1330,6 +1330,85 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
+  /regions/{id}/vpcs:
+    get:
+      description: Returns the vpc linked to the given region and current user account
+      operationId: getVPC
+      security:
+        - bearerAuth: []
+      tags:
+        - vpc
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of the vpc linked to the given region and current user account
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  vpc_id:
+                    type: integer
+                    format: int64
+                    example: 1
+                  vpc_id_value:
+                    type: string
+                    example: vpc-ave2412
+                  subnet_id_value:
+                    type: string
+                    example: subnet-ave2412
+                  region:
+                    $ref: "#/components/schemas/Region"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+    post:
+      description: Creates a new vpc linked to the given region and current user account
+      operationId: createVPC
+      security:
+        - bearerAuth: []
+      tags:
+        - vpc
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful creation of the vpc
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VPC"
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+    delete:
+      description: Deletes a vpc
+      operationId: deleteVPC
+      security:
+        - bearerAuth: []
+      tags:
+        - vpc
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        204:
+          description: Successful deletion of a vpc
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
   /credentials:
     get:
       description: Returns all credentials linked to the current user account
@@ -1886,6 +1965,21 @@ components:
           type: string
           format: date-time
           #example: 2017-07-21T17:32:28Z
+    VPC:
+      type: object
+      properties:
+        vpc_id:
+          type: integer
+          format: int64
+          example: 1
+        vpc_id_value:
+          type: string
+          example: vpc-ave2412
+        subnet_id_value:
+          type: string
+          example: subnet-ave2412
+        region:
+          $ref: "#/components/schemas/Region"
     Url:
       type: string
       minLength: 1

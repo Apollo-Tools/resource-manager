@@ -18,6 +18,7 @@ import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resource.ResourceTypeRepository;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
+import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
 import at.uibk.dps.rm.service.database.account.*;
 import at.uibk.dps.rm.service.database.function.*;
 import at.uibk.dps.rm.service.database.log.LogService;
@@ -25,10 +26,7 @@ import at.uibk.dps.rm.service.database.log.LogServiceImpl;
 import at.uibk.dps.rm.service.database.log.ReservationLogService;
 import at.uibk.dps.rm.service.database.log.ReservationLogServiceImpl;
 import at.uibk.dps.rm.service.database.reservation.*;
-import at.uibk.dps.rm.service.database.resourceprovider.RegionService;
-import at.uibk.dps.rm.service.database.resourceprovider.RegionServiceImpl;
-import at.uibk.dps.rm.service.database.resourceprovider.ResourceProviderService;
-import at.uibk.dps.rm.service.database.resourceprovider.ResourceProviderServiceImpl;
+import at.uibk.dps.rm.service.database.resourceprovider.*;
 import at.uibk.dps.rm.service.database.metric.*;
 import at.uibk.dps.rm.service.database.resource.ResourceService;
 import at.uibk.dps.rm.service.database.resource.ResourceServiceImpl;
@@ -70,6 +68,7 @@ public class DatabaseVerticle extends AbstractVerticle {
     private ResourceReservationStatusRepository resourceReservationStatusRepository;
     private ResourceTypeRepository resourceTypeRepository;
     private RuntimeRepository runtimeRepository;
+    private VPCRepository vpcRepository;
 
     @Override
     public Completable rxStart() {
@@ -117,6 +116,7 @@ public class DatabaseVerticle extends AbstractVerticle {
             resourceReservationStatusRepository = new ResourceReservationStatusRepository(sessionFactory);
             resourceTypeRepository = new ResourceTypeRepository(sessionFactory);
             runtimeRepository = new RuntimeRepository(sessionFactory);
+            vpcRepository = new VPCRepository(sessionFactory);
             emitter.onComplete();
         });
         return Completable.fromMaybe(setupServices);
@@ -223,8 +223,12 @@ public class DatabaseVerticle extends AbstractVerticle {
                 .setAddress("runtime-service-address")
                 .register(RuntimeService.class, runtimeService);
 
-            FilePathService filePathService =
-                new FilePathServiceImpl(vertx.getDelegate());
+            VPCService vpcService = new VPCServiceImpl(vpcRepository);
+            serviceBinder
+                .setAddress("vpc-service-address")
+                .register(VPCService.class, vpcService);
+
+            FilePathService filePathService = new FilePathServiceImpl(vertx.getDelegate());
             serviceBinder
                     .setAddress("file-path-service-address")
                     .register(FilePathService.class, filePathService);
