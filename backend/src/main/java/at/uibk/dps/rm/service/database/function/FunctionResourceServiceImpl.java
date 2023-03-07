@@ -24,7 +24,8 @@ public class FunctionResourceServiceImpl extends ServiceProxy<FunctionResource> 
             .fromCompletionStage(functionResourceRepository.findByFunctionAndResource(functionId, resourceId))
             .map(functionResource -> {
                 if (functionResource != null) {
-                    functionResource.setResource(null);
+                    functionResource.getResource().setResourceType(null);
+                    functionResource.getResource().setMetricValues(null);
                     functionResource.setFunction(null);
                 }
                 return JsonObject.mapFrom(functionResource);

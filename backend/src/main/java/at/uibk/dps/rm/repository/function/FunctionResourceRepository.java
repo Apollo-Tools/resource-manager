@@ -15,6 +15,9 @@ public class FunctionResourceRepository extends Repository<FunctionResource> {
     public CompletionStage<FunctionResource> findByFunctionAndResource(long functionId, long resourceId) {
         return this.sessionFactory.withSession(session ->
             session.createQuery("from FunctionResource fr " +
+                        "left join fetch fr.resource r " +
+                        "left join fetch r.region reg " +
+                        "left join fetch reg.resourceProvider " +
                         "where fr.function.functionId=:functionId and fr.resource.resourceId=:resourceId",
                     entityClass)
                 .setParameter("functionId", functionId)

@@ -18,6 +18,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 public class ReservationHandler extends ValidationHandler {
@@ -76,20 +77,9 @@ public class ReservationHandler extends ValidationHandler {
                 .asJsonObject()
                 .mapTo(ReserveResourcesRequest.class);
         long accountId = rc.user().principal().getLong("account_id");
-        // TODO: change to check if all necessary credentials exist
-        return credentialsChecker.checkExistsAtLeastOne(accountId)
-            .flatMap(result -> checkFindFunctionResources(requestDTO.getFunctionResources()).toList())
-            .flatMap(functionResources -> {
-                Reservation reservation = new Reservation();
-                reservation.setIsActive(true);
-                Account account = new Account();
-                account.setAccountId(accountId);
-                reservation.setCreatedBy(account);
-                return entityChecker.submitCreate(JsonObject.mapFrom(reservation))
-                    .flatMap(reservationJson -> statusChecker.checkFindOneByStatusValue("NEW")
-                        .flatMap(status -> createResourceReservationList(reservationJson, functionResources,
-                            status.mapTo(ResourceReservationStatus.class))));
-            })
+        return checkFindFunctionResources(requestDTO.getFunctionResources()).toList()
+            .flatMap(result -> checkCredentialsForResources(accountId, result))
+            .flatMap(functionResources -> submitCreateReservation(accountId, functionResources))
             // TODO: if resource is self managed copy trigger url to resource reservation (or ignore self managed resources)
             .flatMap(resourceReservations -> resourceReservationChecker
                 .submitCreateAll(Json.encodeToBuffer(resourceReservations).toJsonArray())
@@ -103,6 +93,33 @@ public class ReservationHandler extends ValidationHandler {
                     return result;
                 })
             );
+    }
+
+    private Single<List<ResourceReservation>> submitCreateReservation(long accountId, List<JsonObject> functionResources) {
+        Reservation reservation = new Reservation();
+        reservation.setIsActive(true);
+        Account account = new Account();
+        account.setAccountId(accountId);
+        reservation.setCreatedBy(account);
+        return entityChecker.submitCreate(JsonObject.mapFrom(reservation))
+            .flatMap(reservationJson -> statusChecker.checkFindOneByStatusValue("NEW")
+                .flatMap(status -> createResourceReservationList(reservationJson, functionResources,
+                    status.mapTo(ResourceReservationStatus.class))));
+    }
+
+    private Single<List<JsonObject>> checkCredentialsForResources(long accountId, List<JsonObject> result) {
+        List<Completable> completables = new ArrayList<>();
+        HashSet<Long> resourceProviderIds = new HashSet<>();
+        for (JsonObject jsonObject: result) {
+            Region region = jsonObject.mapTo(FunctionResource.class).getResource().getRegion();
+            long providerId = region.getResourceProvider().getProviderId();
+            if (!resourceProviderIds.contains(providerId) && !region.getName().equals("edge")) {
+                completables.add(credentialsChecker.checkExistsOneByProviderId(accountId, providerId));
+                resourceProviderIds.add(providerId);
+            }
+        }
+        return Completable.merge(completables)
+            .toSingle(() -> result);
     }
 
     // TODO: terminate resources

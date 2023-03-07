@@ -24,4 +24,6 @@ public interface CredentialsService extends ServiceInterface {
     Future<JsonArray> findAllByAccountId(long accountId);
 
     Future<Boolean> existsAtLeastOneByAccount(long accountId);
+
+    Future<Boolean> existsOnyByAccountIdAndProviderId(long accountId, long providerId);
 }

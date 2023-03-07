@@ -30,4 +30,15 @@ public class CredentialsRepository  extends Repository<Credentials> {
                 .getResultList()
         );
     }
+
+    public CompletionStage<Credentials> findByAccountIdAndProviderId(long accountId, long providerId) {
+        return sessionFactory.withSession(session ->
+            session.createQuery("select ac.credentials from AccountCredentials ac " +
+                "where ac.account.accountId=:accountId and ac.credentials.resourceProvider.providerId=:providerId",
+                    entityClass)
+                .setParameter("accountId", accountId)
+                .setParameter("providerId", providerId)
+                .getSingleResultOrNull()
+        );
+    }
 }

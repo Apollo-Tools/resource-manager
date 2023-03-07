@@ -76,4 +76,14 @@ public class ErrorHandler {
                 return result;
             });
     }
+
+    public static Single<Boolean> handleCredentialsExist(Single<Boolean> handler) {
+        return handler
+            .map(result -> {
+                if (!result) {
+                    throw new UnauthorizedException();
+                }
+                return result;
+            });
+    }
 }
