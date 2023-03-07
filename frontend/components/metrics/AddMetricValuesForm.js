@@ -51,7 +51,6 @@ const AddMetricValuesForm = ({
                     .filter((metric) => !excludeMetricIds
                         .includes(metric.metric.metric_id));
               }
-              console.log(filteredMetrics);
               return filteredMetrics
                   .map((metric) => {
                     return {metric: metric.metric, required: metric.required, isSelected: false};
@@ -67,15 +66,9 @@ const AddMetricValuesForm = ({
         .length === 0);
   }, [metrics]);
 
-  useEffect(() => {
-    console.log(requiredSelected);
-  }, [requiredSelected]);
-
   const onFinish = async (values) => {
-    console.log(values);
     if (checkTokenExpired()) return;
     const requestBody = values.metricValues.map((metricValue) => {
-      console.log(metricValue);
       const metric = metrics.find((metric) =>
         metric.metric.metric_id === metricValue.metric).metric;
       if (metric.is_monitored) {

@@ -17,6 +17,16 @@ const ProviderIcon = ({provider, className}) => {
     case 'google':
       icon = <GoogleOutlined />;
       break;
+    case 'edge':
+      icon = <span className="relative top-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="1.4em" height="1.4em" fill="none"
+        stroke="currentColor" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round"
+        className="text-black">
+        <circle cx="60" cy="60" r="50"/>
+        <text x="50%" y="55%" dominantBaseline="middle" textAnchor="middle" fontSize="70" fontWeight="100">E</text>
+      </svg></span>;
+
+
+      break;
     default:
       icon = <QuestionOutlined />;
       break;
