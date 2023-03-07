@@ -1,6 +1,5 @@
 package at.uibk.dps.rm.handler.metric;
 
-import at.uibk.dps.rm.entity.dto.GetResourceTypeMetricsResponse;
 import at.uibk.dps.rm.entity.dto.metric.ResourceTypeMetric;
 import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.handler.ValidationHandler;
@@ -11,6 +10,9 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ResourceTypeMetricHandler extends ValidationHandler {
 
@@ -24,8 +26,9 @@ public class ResourceTypeMetricHandler extends ValidationHandler {
         regionChecker = new RegionChecker(serviceProxyProvider.getRegionService());
     }
 
-    protected Single<JsonObject> getAllMetrics(RoutingContext rc) {
-        GetResourceTypeMetricsResponse response = new GetResourceTypeMetricsResponse();
+    @Override
+    protected Single<JsonArray> getAll(RoutingContext rc) {
+        List<ResourceTypeMetric> response = new ArrayList<>();
         return HttpHelper.getLongPathParam(rc, "id")
             .flatMap(id -> regionChecker.checkFindOne(id)
                 .map(res -> id))
@@ -37,19 +40,26 @@ public class ResourceTypeMetricHandler extends ValidationHandler {
                     })
                     .map(optionalMetrics -> {
                         mapResourceTypeMetricsToResponse(optionalMetrics, response, false);
-                        return JsonObject.mapFrom(response);
+                        return response;
+                    })
+                    .map(res ->{
+                        JsonArray result = new JsonArray();
+                        for (ResourceTypeMetric entity : res) {
+                            result.add(JsonObject.mapFrom(entity));
+                        }
+                        return result;
                     })
             );
     }
 
-    private void mapResourceTypeMetricsToResponse(JsonArray metrics, GetResourceTypeMetricsResponse response,
+    private void mapResourceTypeMetricsToResponse(JsonArray metrics, List<ResourceTypeMetric> response,
                                                   boolean required) {
         for (Object entity: metrics.getList()) {
             Metric metric = ((JsonObject) entity).mapTo(Metric.class);
             ResourceTypeMetric resourceTypeMetric = new ResourceTypeMetric();
             resourceTypeMetric.setMetric(metric);
             resourceTypeMetric.setRequired(required);
-            response.getResourceTypeMetrics().add(resourceTypeMetric);
+            response.add(resourceTypeMetric);
         }
     }
 }

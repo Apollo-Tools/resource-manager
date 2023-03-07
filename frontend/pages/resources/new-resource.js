@@ -36,7 +36,7 @@ const NewResource = () => {
                       extra={<Button type="primary" onClick={onClickRestart}>Restart</Button>}
                     />:
                     (newResource ?
-                    <AddMetricValuesForm resource={newResource} setFinished={setFinished} isSkipable />:
+                    <AddMetricValuesForm resource={newResource} setFinished={setFinished} />:
                     <NewResourceForm setNewResource={setNewResource} />)
         }
       </div>

@@ -69,6 +69,8 @@ VALUES (1, 1, false);
 INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
 VALUES (1, 2, false);
 INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
+VALUES (1, 3, false);
+INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
 VALUES (1, 6, true);
 INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
 VALUES (1, 7, true);
@@ -77,6 +79,8 @@ INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
 VALUES (2, 1, false);
 INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
 VALUES (2, 2, false);
+INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
+VALUES (2, 3, false);
 INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
 VALUES (2, 6, true);
 INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
@@ -94,6 +98,10 @@ INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
 VALUES (3, 2, false);
 INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
 VALUES (3, 4, true);
+INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
+VALUES (3, 6, false);
+INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
+VALUES (3, 7, false);
 INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
 VALUES (3, 8, true);
 INSERT INTO resource_type_metric (resource_type_id, metric_id, required)
@@ -182,7 +190,7 @@ VALUES (50, 20, 3, 2);
 
 -- online
 INSERT INTO metric_value (count, value_bool, resource_id, metric_id)
-VALUES (10, true, 1, 3);
+VALUES (10, false, 1, 3);
 INSERT INTO metric_value (count, value_bool, resource_id, metric_id)
 VALUES (10, false, 2, 3);
 INSERT INTO metric_value (count, value_bool, resource_id, metric_id)
@@ -193,10 +201,6 @@ INSERT INTO metric_value (count, value_bool, resource_id, metric_id)
 VALUES (10, true, 3, 4);
 
 -- cpu
-INSERT INTO metric_value (value_number, resource_id, metric_id)
-VALUES (8, 1, 5);
-INSERT INTO metric_value (value_number, resource_id, metric_id)
-VALUES (4, 2, 5);
 INSERT INTO metric_value (value_number, resource_id, metric_id)
 VALUES (16, 3, 5);
 

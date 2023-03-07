@@ -1631,7 +1631,7 @@ paths:
   /resource-types/{id}/metrics:
     get:
       description: Returns all metrics that are available for the selected resource type
-      operationId: getResourceTypeMetrics
+      operationId: listResourceTypeMetrics
       security:
         - bearerAuth: []
       tags:

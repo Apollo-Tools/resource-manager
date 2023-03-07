@@ -2,7 +2,7 @@ import {Button, Checkbox, Form, Select, Input, Space, InputNumber} from 'antd';
 import {MinusCircleOutlined, PlusOutlined} from '@ant-design/icons';
 import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
-import {listMetrics} from '../../lib/MetricService';
+import {listResourceTypeMetrics} from '../../lib/ResourceTypeMetricService';
 import {addResourceMetrics} from '../../lib/ResourceService';
 import PropTypes from 'prop-types';
 
@@ -32,34 +32,44 @@ const AddMetricValuesForm = ({
   resource,
   excludeMetricIds,
   setFinished,
-  isSkipable,
 }) => {
   const [form] = Form.useForm();
   const {token, checkTokenExpired} = useAuth();
   const [metrics, setMetrics] = useState([]);
   const [error, setError] = useState(false);
+  const [requiredSelected, setRequiredSelected] = useState(false);
   Form.useWatch('basic', form);
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listMetrics(token, setMetrics, setError)
+      listResourceTypeMetrics(token, resource.resource_type.type_id, setMetrics, setError)
           .then(() => {
             setMetrics((prevMetrics) => {
               let filteredMetrics = prevMetrics;
               if (excludeMetricIds != null) {
                 filteredMetrics = prevMetrics
                     .filter((metric) => !excludeMetricIds
-                        .includes(metric.metric_id));
+                        .includes(metric.metric.metric_id));
               }
               console.log(filteredMetrics);
               return filteredMetrics
                   .map((metric) => {
-                    return {metric: metric, isSelected: false};
+                    return {metric: metric.metric, required: metric.required, isSelected: false};
                   });
             });
           });
     }
   }, [excludeMetricIds]);
+
+  useEffect(() => {
+    setRequiredSelected(metrics
+        .filter((metric) => metric.required && !metric.isSelected)
+        .length === 0);
+  }, [metrics]);
+
+  useEffect(() => {
+    console.log(requiredSelected);
+  }, [requiredSelected]);
 
   const onFinish = async (values) => {
     console.log(values);
@@ -97,7 +107,7 @@ const AddMetricValuesForm = ({
     setMetrics((prevMetrics) => {
       return prevMetrics.map((metric) => {
         const isSelected = selectedMetrics.includes(metric.metric.metric_id);
-        return {metric: metric.metric, isSelected: isSelected};
+        return {metric: metric.metric, required: metric.required, isSelected: isSelected};
       });
     });
   };
@@ -105,10 +115,6 @@ const AddMetricValuesForm = ({
   const onRemoveMetricValue = (remove, name) => {
     remove(name);
     onChangeMetric();
-  };
-
-  const onClickSkip = () => {
-    setFinished(true);
   };
 
   if (metrics.length === 0) {
@@ -150,7 +156,7 @@ const AddMetricValuesForm = ({
                             value={metric.metric.metric_id}
                             key={metric.metric.metric_id}
                           >
-                            {metric.metric.metric}
+                            {metric.required ? metric.metric.metric + ' *' : metric.metric.metric}
                           </Select.Option>
                         );
                       })}
@@ -201,16 +207,12 @@ const AddMetricValuesForm = ({
           <Form.Item>
             <Button type="primary" htmlType="submit"
               disabled={form.getFieldValue('metricValues') == null ||
-                                    form.getFieldValue('metricValues')?.length <= 0}>
+                        form.getFieldValue('metricValues')?.length <= 0 ||
+                        !requiredSelected}>
               Create
             </Button>
           </Form.Item>
           <div className="flex-1"/>
-          <Form.Item hidden={!isSkipable}>
-            <Button type="default" onClick={onClickSkip}>
-                            Skip
-            </Button>
-          </Form.Item>
         </div>
       </Form>
     </>
@@ -221,7 +223,6 @@ AddMetricValuesForm.propTypes = {
   resource: PropTypes.object.isRequired,
   excludeMetricIds: PropTypes.arrayOf(PropTypes.number.isRequired),
   setFinished: PropTypes.func.isRequired,
-  isSkipable: PropTypes.bool,
 };
 
 export default AddMetricValuesForm;
