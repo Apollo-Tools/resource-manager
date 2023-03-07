@@ -8,6 +8,7 @@ import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricService;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 public class MetricChecker extends EntityChecker {
@@ -32,6 +33,11 @@ public class MetricChecker extends EntityChecker {
                 .andThen(Single.just(entity));
         }
         return Single.just(entity);
+    }
+
+    public Single<JsonArray> checkFindAllByResourceTypeId(long resourceTypeId, boolean required) {
+        Single<JsonArray> findAllByResourceTypeId = metricService.findAllByResourceTypeId(resourceTypeId, required);
+        return ErrorHandler.handleFindAll(findAllByResourceTypeId);
     }
 
     public Single<JsonObject> checkFindOneByMetric(String metric) {

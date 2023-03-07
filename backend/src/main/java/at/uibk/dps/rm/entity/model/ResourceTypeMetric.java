@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.entity.model;
 
 import at.uibk.dps.rm.annotations.Generated;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,7 +17,6 @@ public class ResourceTypeMetric {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long resourceTypeMetricId;
 
-    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resource_type_id")
     private ResourceType resourceType;

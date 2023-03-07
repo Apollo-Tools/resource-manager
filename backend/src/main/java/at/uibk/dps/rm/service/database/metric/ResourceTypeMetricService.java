@@ -1,0 +1,21 @@
+package at.uibk.dps.rm.service.database.metric;
+
+import at.uibk.dps.rm.repository.metric.ResourceTypeMetricRepository;
+import at.uibk.dps.rm.service.database.ServiceInterface;
+import io.vertx.codegen.annotations.GenIgnore;
+import io.vertx.codegen.annotations.ProxyGen;
+import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Vertx;
+
+@ProxyGen
+@VertxGen
+public interface ResourceTypeMetricService extends ServiceInterface {
+    @GenIgnore
+    static ResourceTypeMetricService create(ResourceTypeMetricRepository repository) {
+        return new ResourceTypeMetricServiceImpl(repository);
+    }
+
+    static ResourceTypeMetricService createProxy(Vertx vertx, String address) {
+        return new ResourceTypeMetricServiceVertxEBProxy(vertx, address);
+    }
+}

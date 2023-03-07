@@ -1628,6 +1628,39 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
+  /resource-types/{id}/metrics:
+    get:
+      description: Returns all metrics that are available for the selected resource type
+      operationId: getResourceTypeMetrics
+      security:
+        - bearerAuth: []
+      tags:
+        - resourceTypes
+        - metrics
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of all metrics for the selected resource type
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    metric:
+                      $ref: "#/components/schemas/Metric"
+                    required:
+                      type: boolean
+                      example: true
+        400:
+          $ref: "#/components/responses/400"
+        500:
+          $ref: "#/components/responses/500"
+
+
+
   /metrics/{id}:
     get:
       description: Return details about a metric managed by the resource manager

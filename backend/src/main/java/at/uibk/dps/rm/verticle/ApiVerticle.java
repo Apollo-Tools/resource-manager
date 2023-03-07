@@ -1,6 +1,20 @@
 package at.uibk.dps.rm.verticle;
 
-import at.uibk.dps.rm.router.*;
+import at.uibk.dps.rm.router.account.AccountRoute;
+import at.uibk.dps.rm.router.account.CredentialsRoute;
+import at.uibk.dps.rm.router.function.FunctionResourceRoute;
+import at.uibk.dps.rm.router.function.FunctionRoute;
+import at.uibk.dps.rm.router.function.RuntimeRoute;
+import at.uibk.dps.rm.router.metric.MetricRoute;
+import at.uibk.dps.rm.router.metric.ResourceMetricRoute;
+import at.uibk.dps.rm.router.metric.ResourceTypeMetricRoute;
+import at.uibk.dps.rm.router.reservation.ReservationRoute;
+import at.uibk.dps.rm.router.resource.ResourceDeploymentRoute;
+import at.uibk.dps.rm.router.resource.ResourceRoute;
+import at.uibk.dps.rm.router.resource.ResourceTypeRoute;
+import at.uibk.dps.rm.router.resourceprovider.RegionRoute;
+import at.uibk.dps.rm.router.resourceprovider.ResourceProviderRegionRoute;
+import at.uibk.dps.rm.router.resourceprovider.ResourceProviderRoute;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.util.JWTAuthProvider;
 import io.reactivex.rxjava3.core.Completable;
@@ -66,6 +80,7 @@ public class ApiVerticle extends AbstractVerticle {
         FunctionResourceRoute.init(routerBuilder, serviceProxyProvider);
         ResourceDeploymentRoute.init(routerBuilder, serviceProxyProvider);
         ReservationRoute.init(routerBuilder, serviceProxyProvider);
+        ResourceTypeMetricRoute.init(routerBuilder, serviceProxyProvider);
     }
 
     private void setupSecurityHandler(RouterBuilder routerBuilder) {

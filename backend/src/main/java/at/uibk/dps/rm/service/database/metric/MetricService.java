@@ -7,6 +7,7 @@ import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 @ProxyGen
@@ -20,6 +21,8 @@ public interface MetricService extends ServiceInterface {
     static MetricService createProxy(Vertx vertx, String address) {
         return new MetricServiceVertxEBProxy(vertx, address);
     }
+
+    Future<JsonArray> findAllByResourceTypeId(long resourceTypeId, boolean required);
 
     Future<JsonObject> findOneByMetric(String metric);
 
