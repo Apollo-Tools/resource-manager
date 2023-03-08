@@ -11,6 +11,7 @@ import at.uibk.dps.rm.repository.log.ReservationLogRepository;
 import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.metric.MetricTypeRepository;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
+import at.uibk.dps.rm.repository.metric.ResourceTypeMetricRepository;
 import at.uibk.dps.rm.repository.reservation.ReservationRepository;
 import at.uibk.dps.rm.repository.reservation.ResourceReservationRepository;
 import at.uibk.dps.rm.repository.reservation.ResourceReservationStatusRepository;
@@ -67,6 +68,7 @@ public class DatabaseVerticle extends AbstractVerticle {
     private ResourceReservationRepository resourceReservationRepository;
     private ResourceReservationStatusRepository resourceReservationStatusRepository;
     private ResourceTypeRepository resourceTypeRepository;
+    private ResourceTypeMetricRepository resourceTypeMetricRepository;
     private RuntimeRepository runtimeRepository;
     private VPCRepository vpcRepository;
 
@@ -115,6 +117,7 @@ public class DatabaseVerticle extends AbstractVerticle {
             resourceReservationRepository = new ResourceReservationRepository(sessionFactory);
             resourceReservationStatusRepository = new ResourceReservationStatusRepository(sessionFactory);
             resourceTypeRepository = new ResourceTypeRepository(sessionFactory);
+            resourceTypeMetricRepository = new ResourceTypeMetricRepository(sessionFactory);
             runtimeRepository = new RuntimeRepository(sessionFactory);
             vpcRepository = new VPCRepository(sessionFactory);
             emitter.onComplete();
@@ -217,6 +220,12 @@ public class DatabaseVerticle extends AbstractVerticle {
             serviceBinder
                 .setAddress("resource-type-service-address")
                 .register(ResourceTypeService.class, resourceTypeService);
+
+            ResourceTypeMetricService resourceTypeMetricService =
+                new ResourceTypeMetricServiceImpl(resourceTypeMetricRepository);
+            serviceBinder
+                .setAddress("resource-type-metric-service-address")
+                .register(ResourceTypeMetricService.class, resourceTypeMetricService);
 
             RuntimeService runtimeService = new RuntimeServiceImpl(runtimeRepository);
             serviceBinder

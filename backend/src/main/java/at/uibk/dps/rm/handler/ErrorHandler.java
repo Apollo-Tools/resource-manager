@@ -83,7 +83,17 @@ public class ErrorHandler {
                 if (!result) {
                     throw new UnauthorizedException();
                 }
-                return result;
+                return true;
+            });
+    }
+
+    public static Single<Boolean> handleMissingRequiredMetrics(Single<Boolean> handler) {
+        return handler
+            .map(result -> {
+                if (result) {
+                    throw new NotFoundException();
+                }
+                return false;
             });
     }
 }

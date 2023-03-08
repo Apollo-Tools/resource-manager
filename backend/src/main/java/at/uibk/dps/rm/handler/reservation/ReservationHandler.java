@@ -7,6 +7,7 @@ import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.handler.account.CredentialsChecker;
 import at.uibk.dps.rm.handler.deployment.DeploymentHandler;
 import at.uibk.dps.rm.handler.function.FunctionResourceChecker;
+import at.uibk.dps.rm.handler.metric.ResourceTypeMetricChecker;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.util.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
@@ -33,6 +34,8 @@ public class ReservationHandler extends ValidationHandler {
 
     private final ResourceReservationStatusChecker statusChecker;
 
+    private final ResourceTypeMetricChecker resourceTypeMetricChecker;
+
     private final DeploymentHandler deploymentHandler;
 
     public ReservationHandler(ServiceProxyProvider serviceProxyProvider, DeploymentHandler deploymentHandler) {
@@ -45,6 +48,8 @@ public class ReservationHandler extends ValidationHandler {
         this.credentialsChecker = new CredentialsChecker(serviceProxyProvider.getCredentialsService());
         this.statusChecker = new ResourceReservationStatusChecker(serviceProxyProvider
             .getResourceReservationStatusService());
+        this.resourceTypeMetricChecker = new ResourceTypeMetricChecker(serviceProxyProvider
+            .getResourceTypeMetricService());
     }
 
     @Override
@@ -78,14 +83,16 @@ public class ReservationHandler extends ValidationHandler {
                 .mapTo(ReserveResourcesRequest.class);
         long accountId = rc.user().principal().getLong("account_id");
         return checkFindFunctionResources(requestDTO.getFunctionResources()).toList()
-            .flatMap(result -> checkCredentialsForResources(accountId, result))
+            .flatMap(functionResources -> checkCredentialsForResources(accountId, functionResources)
+                .andThen(checkMissingRequiredMetrics(functionResources))
+                .toSingle(() -> functionResources))
             .flatMap(functionResources -> submitCreateReservation(accountId, functionResources))
-            // TODO: if resource is self managed copy trigger url to resource reservation (or ignore self managed resources)
+            /* TODO: if resource is self managed copy trigger url to resource reservation (or ignore self managed resources)
+             maybe remove self managed state (use edge instead of self managed vm) */
             .flatMap(resourceReservations -> resourceReservationChecker
                 .submitCreateAll(Json.encodeToBuffer(resourceReservations).toJsonArray())
                 .andThen(Single.just(JsonObject.mapFrom(resourceReservations.get(0).getReservation())))
                 .map(result -> {
-                    // TODO: fix
                     deploymentHandler
                         .deployResources(result.getLong("reservation_id"), accountId,
                             requestDTO.getDockerCredentials())
@@ -93,6 +100,20 @@ public class ReservationHandler extends ValidationHandler {
                     return result;
                 })
             );
+    }
+
+    private Completable checkMissingRequiredMetrics(List<JsonObject> functionResources) {
+        List<Completable> completables = new ArrayList<>();
+        HashSet<Long> resourceIds = new HashSet<>();
+        for (JsonObject functionResource : functionResources) {
+            Resource resource = functionResource.mapTo(FunctionResource.class).getResource();
+            if (!resourceIds.contains(resource.getResourceId())) {
+                completables.add(resourceTypeMetricChecker
+                    .checkMissingRequiredResourceTypeMetrics(resource.getResourceId()));
+                resourceIds.add(resource.getResourceId());
+            }
+        }
+        return Completable.merge(completables);
     }
 
     private Single<List<ResourceReservation>> submitCreateReservation(long accountId, List<JsonObject> functionResources) {
@@ -107,10 +128,10 @@ public class ReservationHandler extends ValidationHandler {
                     status.mapTo(ResourceReservationStatus.class))));
     }
 
-    private Single<List<JsonObject>> checkCredentialsForResources(long accountId, List<JsonObject> result) {
+    private Completable checkCredentialsForResources(long accountId, List<JsonObject> functionResources) {
         List<Completable> completables = new ArrayList<>();
         HashSet<Long> resourceProviderIds = new HashSet<>();
-        for (JsonObject jsonObject: result) {
+        for (JsonObject jsonObject: functionResources) {
             Region region = jsonObject.mapTo(FunctionResource.class).getResource().getRegion();
             long providerId = region.getResourceProvider().getProviderId();
             if (!resourceProviderIds.contains(providerId) && !region.getName().equals("edge")) {
@@ -118,8 +139,7 @@ public class ReservationHandler extends ValidationHandler {
                 resourceProviderIds.add(providerId);
             }
         }
-        return Completable.merge(completables)
-            .toSingle(() -> result);
+        return Completable.merge(completables);
     }
 
     // TODO: terminate resources

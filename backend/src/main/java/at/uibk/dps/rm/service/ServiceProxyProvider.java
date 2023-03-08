@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.service;
 
 import at.uibk.dps.rm.service.rxjava3.database.log.ReservationLogService;
+import at.uibk.dps.rm.service.rxjava3.database.metric.ResourceTypeMetricService;
 import at.uibk.dps.rm.service.rxjava3.database.reservation.ResourceReservationStatusService;
 import at.uibk.dps.rm.service.rxjava3.database.account.AccountCredentialsService;
 import at.uibk.dps.rm.service.rxjava3.database.account.AccountService;
@@ -43,6 +44,7 @@ public class ServiceProxyProvider {
     private final ResourceReservationService resourceReservationService;
     private final ResourceReservationStatusService resourceReservationStatusService;
     private final ResourceTypeService resourceTypeService;
+    private final ResourceTypeMetricService resourceTypeMetricService;
     private final RuntimeService runtimeService;
     private final VPCService vpcService;
     private final DeploymentService deploymentService;
@@ -71,6 +73,8 @@ public class ServiceProxyProvider {
         resourceReservationStatusService = ResourceReservationStatusService
             .createProxy(vertx, "resource-reservation-status-service-address");
         resourceTypeService = ResourceTypeService.createProxy(vertx,"resource-type-service-address");
+        resourceTypeMetricService = ResourceTypeMetricService
+            .createProxy(vertx, "resource-type-metric-service-address");
         runtimeService = RuntimeService.createProxy(vertx, "runtime-service-address");
         vpcService = VPCService.createProxy(vertx, "vpc-service-address");
         deploymentService = DeploymentService.createProxy(vertx, "deployment-service-address");
