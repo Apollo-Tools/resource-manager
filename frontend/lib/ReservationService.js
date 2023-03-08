@@ -17,7 +17,7 @@ export async function listMyReservations(token, setReservations, setError) {
 }
 
 export async function reserveResources(
-    resourceIds,
+    requestBody,
     token,
     setNewReservation,
     setError,
@@ -29,9 +29,7 @@ export async function reserveResources(
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        function_resources: resourceIds,
-      }),
+      body: JSON.stringify(requestBody),
     });
     const data = await response.json();
     setNewReservation(() => data);

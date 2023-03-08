@@ -1,5 +1,5 @@
 import DateFormatter from '../misc/DateFormatter';
-import { Button, Modal, Space, Table } from 'antd';
+import {Button, Modal, Space, Table} from 'antd';
 import Link from 'next/link';
 import {DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined} from '@ant-design/icons';
 import {useAuth} from '../../lib/AuthenticationProvider';
@@ -7,15 +7,17 @@ import {useEffect, useState} from 'react';
 import {deleteFunction, listFunctions} from '../../lib/FunctionService';
 import {getFunctionResources} from '../../lib/FunctionResourceService';
 import ResourceTable from '../resources/ResourceTable';
+import PropTypes from 'prop-types';
 
 const {Column} = Table;
 const {confirm} = Modal;
 
-const FunctionTable = ({hideDelete, isExpandable, selectedResourceIds, setSelectedResourceIds}) => {
+const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable}) => {
   const {token, checkTokenExpired} = useAuth();
   const [error, setError] = useState(false);
   const [expandedKeys, setExpandedKeys] = useState([]);
   const [functions, setFunctions] = useState([]);
+  const [selectedResourceIds, setSelectedResourceIds] = useState(new Map());
 
   useEffect(() => {
     if (!checkTokenExpired()) {
@@ -30,6 +32,10 @@ const FunctionTable = ({hideDelete, isExpandable, selectedResourceIds, setSelect
       setError(false);
     }
   }, [error]);
+
+  useEffect(() => {
+    onChange?.({selectedResourceIds, ...value, ...{selectedResourceIds}});
+  }, [selectedResourceIds]);
 
   const onClickDelete = (id) => {
     if (!checkTokenExpired()) {
@@ -59,14 +65,14 @@ const FunctionTable = ({hideDelete, isExpandable, selectedResourceIds, setSelect
   const updatedSelectedResourceIds = (functionId, newSelectedResourceIds) => {
     setSelectedResourceIds((prevValues) => {
       if (newSelectedResourceIds.length > 0) {
-        return new Map(prevValues.set(functionId, newSelectedResourceIds))
+        return new Map(prevValues.set(functionId, newSelectedResourceIds));
       } else if (prevValues.has(functionId)) {
-        const newMap = new Map(prevValues)
-        newMap.delete(functionId)
-        return newMap
+        const newMap = new Map(prevValues);
+        newMap.delete(functionId);
+        return newMap;
       }
-    })
-  }
+    });
+  };
 
   const onExpandRow = async (expanded, record) => {
     const keys = [];
@@ -96,7 +102,7 @@ const FunctionTable = ({hideDelete, isExpandable, selectedResourceIds, setSelect
       expandable={{
         expandedRowRender: (func) => {
           if (Object.hasOwn(func, 'function_resources') && func.function_resources.length > 0) {
-            return (<ResourceTable resources={func.function_resources} hasActions rowSelection={func.rowSelection}/>)
+            return (<ResourceTable resources={func.function_resources} hasActions rowSelection={func.rowSelection}/>);
           }
           return <p>No resources</p>;
         },
@@ -134,6 +140,13 @@ const FunctionTable = ({hideDelete, isExpandable, selectedResourceIds, setSelect
       />
     </Table>
   );
+};
+
+FunctionTable.propTypes = {
+  value: PropTypes.object,
+  onChange: PropTypes.func,
+  hideDelete: PropTypes.bool,
+  isExpandable: PropTypes.bool,
 };
 
 export default FunctionTable;

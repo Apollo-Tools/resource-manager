@@ -1,17 +1,13 @@
-import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import Head from 'next/head';
 import {siteTitle} from '../../components/misc/Sidebar';
-import { Button, message, Result, Space, Typography } from 'antd';
-import {reserveResources} from '../../lib/ReservationService';
-import FunctionTable from '../../components/functions/FunctionTable';
-import { SmileOutlined } from '@ant-design/icons';
+import {Button, message, Result, Space, Typography} from 'antd';
+import {SmileOutlined} from '@ant-design/icons';
 import Link from 'next/link';
+import NewReservationForm from '../../components/reservations/NewReservationForm';
 
 const NewReservation = () => {
-  const {token, checkTokenExpired} = useAuth();
   const [error, setError] = useState(false);
-  const [selectedResourceIds, setSelectedResourceIds] = useState(new Map());
   const [newReservation, setNewReservation] = useState();
   const [messageApi, contextHolder] = message.useMessage();
 
@@ -32,25 +28,9 @@ const NewReservation = () => {
     }
   }, [error]);
 
-  const onClickReserve = async () => {
-    if (!checkTokenExpired()) {
-      let requestBody = [];
-      selectedResourceIds.forEach((resources, functionId) => {
-        resources.forEach((resourceId) => {
-          requestBody.push({
-            function_id: functionId,
-            resource_id: resourceId
-          })
-        });
-      });
-      await reserveResources(requestBody, token, setNewReservation, setError);
-    }
-  };
-
   const onClickRestart = () => {
     setNewReservation(null);
-    setSelectedResourceIds(new Map());
-  }
+  };
 
   return (
     <>
@@ -62,21 +42,18 @@ const NewReservation = () => {
         <Typography.Title level={2}>New Reservation</Typography.Title>
         {newReservation ?
           <Result
-              icon={<SmileOutlined />}
-              title="The reservation has been created!"
-              extra={(<Space size={100}>
-                  <Link href={ `/reservations/${ newReservation.reservation_id }` }>
-                    <Button type="primary">Show</Button>
-                  </Link>
-                    <Button type="default" onClick={onClickRestart}>Restart</Button>
-                </Space>
-              )}
-          />
-          :
+            icon={<SmileOutlined />}
+            title="The reservation has been created!"
+            extra={(<Space size={100}>
+              <Link href={ `/reservations/${ newReservation.reservation_id }` }>
+                <Button type="primary">Show</Button>
+              </Link>
+              <Button type="default" onClick={onClickRestart}>Restart</Button>
+            </Space>
+            )}
+          /> :
           <>
-            <FunctionTable hideDelete isExpandable selectedResourceIds={selectedResourceIds}
-                           setSelectedResourceIds={setSelectedResourceIds}/>
-            <Button disabled={selectedResourceIds.size <= 0 } type="primary" onClick={onClickReserve}>Reserve</Button>
+            <NewReservationForm setNewReservation={setNewReservation} />
           </>
         }
       </div>

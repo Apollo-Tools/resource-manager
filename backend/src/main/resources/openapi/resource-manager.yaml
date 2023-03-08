@@ -982,6 +982,7 @@ paths:
               type: object
               required:
                 - function_resources
+                - docker_credentials
               additionalProperties: false
               properties:
                 function_resources:
