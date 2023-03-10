@@ -13,7 +13,7 @@ const NewReservationForm = ({setNewReservation}) => {
   const {token, checkTokenExpired} = useAuth();
   const [resources, setResources] = useState();
   const [error, setError] = useState(false);
-  const [vmSelected, setVMSelected] = useState(false);
+  const [vmOrEdgeSelected, setVmOrEdgeSelected] = useState(false);
   const [functionResourceSelected, setFunctionResourceSelected] = useState(false);
 
   useEffect(() => {
@@ -43,7 +43,7 @@ const NewReservationForm = ({setNewReservation}) => {
           });
         });
       });
-      if (vmSelected && Object.hasOwn(values, 'dockerUsername') && Object.hasOwn(values, 'dockerAccessToken')) {
+      if (vmOrEdgeSelected && Object.hasOwn(values, 'dockerUsername') && Object.hasOwn(values, 'dockerAccessToken')) {
         requestBody.docker_credentials = {
           username: values.dockerUsername,
           access_token: values.dockerAccessToken,
@@ -65,21 +65,21 @@ const NewReservationForm = ({setNewReservation}) => {
 
   const onChangeFunctionResources = (values) => {
     const selectedFunctionResources = values.selectedResourceIds.values();
-    let includingVM = false;
+    let includingVMOrEdge = false;
     console.log(selectedFunctionResources);
     for (const selectedFunctionResource of selectedFunctionResources) {
       for (const selectedResource of selectedFunctionResource) {
         const resource = resources.filter((resource) => resource.resource_id === selectedResource)[0];
-        if (resource.resource_type.resource_type === 'vm') {
-          includingVM = true;
+        if (resource.resource_type.resource_type === 'vm' || resource.resource_type.resource_type === 'edge') {
+          includingVMOrEdge = true;
           break;
         }
       }
-      if (includingVM) {
+      if (includingVMOrEdge) {
         break;
       }
     }
-    setVMSelected(includingVM);
+    setVmOrEdgeSelected(includingVMOrEdge);
     setFunctionResourceSelected(values.selectedResourceIds.size > 0);
   };
 
@@ -99,7 +99,7 @@ const NewReservationForm = ({setNewReservation}) => {
         <Form.Item
           label="Docker Username"
           name="dockerUsername"
-          hidden={!vmSelected}
+          hidden={!vmOrEdgeSelected}
           rules={[
             {
               required: true,
@@ -113,7 +113,7 @@ const NewReservationForm = ({setNewReservation}) => {
         <Form.Item
           label="Docker Access Token"
           name="dockerAccessToken"
-          hidden={!vmSelected}
+          hidden={!vmOrEdgeSelected}
           rules={[
             {
               required: true,
