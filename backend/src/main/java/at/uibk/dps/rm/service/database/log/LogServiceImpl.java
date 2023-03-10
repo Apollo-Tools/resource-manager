@@ -18,9 +18,10 @@ public class LogServiceImpl extends ServiceProxy<Log> implements LogService {
         this.logRepository = logRepository;
     }
 
-    public Future<JsonArray> findAllByReservationId(long reservationId) {
+    @Override
+    public Future<JsonArray> findAllByReservationIdAndAccountId(long reservationId, long accountId) {
         return Future
-            .fromCompletionStage(logRepository.findAllByReservationId(reservationId))
+            .fromCompletionStage(logRepository.findAllByReservationIdAndAccountId(reservationId, accountId))
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Log entity: result) {

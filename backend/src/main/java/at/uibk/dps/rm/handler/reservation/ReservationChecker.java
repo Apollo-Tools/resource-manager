@@ -22,6 +22,7 @@ public class ReservationChecker  extends EntityChecker {
         return ErrorHandler.handleFindAll(reservationService.findAllByAccountId(accountId));
     }
 
+    // TODO: check for account
     public Completable submitCancelReservation( JsonObject entity) {
         return reservationService.cancelReservationById(entity.getLong("reservation_id"));
     }

@@ -1056,6 +1056,32 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
+
+  /reservations/{id}/logs:
+    get:
+      description: Return all logs linked to a reservation
+      operationId: listReservationLogs
+      security:
+        - bearerAuth: []
+      tags:
+        - reservations
+        - logs
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of all logs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Log"
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
   /reservations/{id}/cancel:
     patch:
       description: Free the reserved resources
@@ -2012,8 +2038,29 @@ components:
         subnet_id_value:
           type: string
           example: subnet-ave2412
+        created_at:
+          type: string
+          format: date-time
+          #example: 2017-07-21T17:32:28Z
         region:
           $ref: "#/components/schemas/Region"
+    Log:
+      type: object
+      properties:
+        log_id:
+          type: integer
+          format: int64
+          example: 1
+        log_value:
+          type: string
+          example: resource was deployed
+        subnet_id_value:
+          type: string
+          example: subnet-ave2412
+        created_at:
+          type: string
+          format: date-time
+          #example: 2017-07-21T17:32:28Z
     Url:
       type: string
       minLength: 1

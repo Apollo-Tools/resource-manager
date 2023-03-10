@@ -12,12 +12,14 @@ public class LogRepository extends Repository<Log> {
         super(sessionFactory, Log.class);
     }
 
-    public CompletionStage<List<Log>> findAllByReservationId(long reservationId) {
+    public CompletionStage<List<Log>> findAllByReservationIdAndAccountId(long reservationId, long accountId) {
         return sessionFactory.withSession(session ->
             session.createQuery("select distinct l from ReservationLog rl " +
-                    "left join fetch rl.log l " +
-                    "where rl.reservation.reservationId=:reservationId", entityClass)
+                    "left join rl.log l " +
+                    "where rl.reservation.reservationId=:reservationId " +
+                    "and rl.reservation.createdBy.accountId=:accountId", entityClass)
                 .setParameter("reservationId", reservationId)
+                .setParameter("accountId", accountId)
                 .getResultList()
         );
     }

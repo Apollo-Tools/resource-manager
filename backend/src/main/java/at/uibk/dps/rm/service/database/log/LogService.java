@@ -21,5 +21,5 @@ public interface LogService extends ServiceInterface {
         return new LogServiceVertxEBProxy(vertx, address);
     }
 
-    Future<JsonArray> findAllByReservationId(long reservationId);
+    Future<JsonArray> findAllByReservationIdAndAccountId(long reservationId, long accountId);
 }
