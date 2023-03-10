@@ -4,16 +4,17 @@ import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.model.FunctionResource;
 import at.uibk.dps.rm.entity.model.ResourceProvider;
+import at.uibk.dps.rm.entity.model.VPC;
 import at.uibk.dps.rm.handler.account.CredentialsChecker;
 import at.uibk.dps.rm.handler.function.FunctionResourceChecker;
-import at.uibk.dps.rm.service.rxjava3.database.account.CredentialsService;
-import at.uibk.dps.rm.service.rxjava3.database.function.FunctionResourceService;
-import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentService;
+import at.uibk.dps.rm.service.ServiceProxyProvider;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.DatabindCodec;
+
+import java.util.List;
 
 public class DeploymentHandler {
 
@@ -23,17 +24,18 @@ public class DeploymentHandler {
 
     private final FunctionResourceChecker functionResourceChecker;
 
-    public DeploymentHandler(DeploymentService deploymentService, CredentialsService credentialsService,
-                             FunctionResourceService functionResourceService) {
-        this.deploymentChecker = new DeploymentChecker(deploymentService);
-        this.credentialsChecker = new CredentialsChecker(credentialsService);
-        this.functionResourceChecker = new FunctionResourceChecker(functionResourceService);
+    public DeploymentHandler(ServiceProxyProvider serviceProxyProvider) {
+        this.deploymentChecker = new DeploymentChecker(serviceProxyProvider.getDeploymentService());
+        this.credentialsChecker = new CredentialsChecker(serviceProxyProvider.getCredentialsService());
+        this.functionResourceChecker = new FunctionResourceChecker(serviceProxyProvider.getFunctionResourceService());
     }
 
-    public Completable deployResources(long reservationId, long accountId, DockerCredentials dockerCredentials) {
+    public Completable deployResources(long reservationId, long accountId, DockerCredentials dockerCredentials,
+                                       List<VPC> vpcList) {
         DeployResourcesRequest request = new DeployResourcesRequest();
         request.setReservationId(reservationId);
         request.setDockerCredentials(dockerCredentials);
+        request.setVpcList(vpcList);
         ObjectMapper mapper = DatabindCodec.mapper();
         return credentialsChecker.checkFindAll(accountId)
             .map(credentials -> {

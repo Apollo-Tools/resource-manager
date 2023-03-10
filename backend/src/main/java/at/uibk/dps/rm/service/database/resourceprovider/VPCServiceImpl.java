@@ -14,13 +14,13 @@ public class VPCServiceImpl extends ServiceProxy<VPC> implements VPCService {
         this.vpcRepository = vpcRepository;
     }
 
+    @Override
     public Future<JsonObject> findOneByRegionIdAndAccountId(long regionId, long accountId) {
         return Future
             .fromCompletionStage(vpcRepository.findByRegionIdAndAccountId(regionId, accountId))
             .map(result -> {
                 if (result != null) {
                     result.setCreatedBy(null);
-                    result.setRegion(null);
                 }
                 return JsonObject.mapFrom(result);
             });

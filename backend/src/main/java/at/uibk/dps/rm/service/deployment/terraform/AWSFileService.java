@@ -10,14 +10,12 @@ public class AWSFileService extends ModuleFileService {
 
     private final Path functionsDir;
 
-    private final String region;
+    private final Region region;
 
     private final String awsRole;
     private final List<FunctionResource> functionResources;
 
     private final long reservationId;
-
-    private final Map<String, String> defaultValues = setDefaultValues();
 
     private final Set<Long> faasFunctionIds = new HashSet<>();
 
@@ -27,9 +25,11 @@ public class AWSFileService extends ModuleFileService {
 
     private final String dockerUserName;
 
-    public AWSFileService(Path rootFolder, Path functionsDir, String region, String awsRole,
+    private final  VPC vpc;
+
+    public AWSFileService(Path rootFolder, Path functionsDir, Region region, String awsRole,
                           List<FunctionResource> functionResources, long reservationId, TerraformModule module,
-                          String dockerUserName) {
+                          String dockerUserName, VPC vpc) {
         super(rootFolder, module);
         this.functionsDir = functionsDir;
         this.region = region;
@@ -37,6 +37,7 @@ public class AWSFileService extends ModuleFileService {
         this.functionResources = functionResources;
         this.reservationId = reservationId;
         this.dockerUserName = dockerUserName;
+        this.vpc = vpc;
     }
 
 
@@ -48,7 +49,7 @@ public class AWSFileService extends ModuleFileService {
                 "  secret_key = var.secret_access_key\n" +
                 "  token = var.session_token\n" +
                 "  region = \"%s\"\n" +
-                "}\n", region);
+                "}\n", region.getName());
     }
 
     // TODO: rework access to metric values
@@ -83,10 +84,8 @@ public class AWSFileService extends ModuleFileService {
                 .stream()
                 .collect(Collectors.toMap(metricValue -> metricValue.getMetric().getMetric(),
                     metricValue -> metricValue));
-            functionTimeouts.append(metricValues.containsKey("timeout") ? metricValues.get("timeout").getValueNumber() :
-                                    defaultValues.get("timeout")).append(",");
-            functionMemorySizes.append(metricValues.containsKey("memory-size") ? metricValues.get("memory-size")
-                                        .getValueNumber() : defaultValues.get("memory-size")).append(",");
+            functionTimeouts.append(metricValues.get("timeout").getValueNumber()).append(",");
+            functionMemorySizes.append(metricValues.get("memory-size").getValueNumber()).append(",");
             functionLayers.append("[],");
             functionRuntimes.append("\"").append(runtime).append("\",");
         }
@@ -124,9 +123,14 @@ public class AWSFileService extends ModuleFileService {
             Resource resource = functionResource.getResource();
             Function function = functionResource.getFunction();
             String resourceName = "resource_" + resource.getResourceId();
+            Map<String, MetricValue> metricValues = resource.getMetricValues()
+                .stream()
+                .collect(Collectors.toMap(metricValue -> metricValue.getMetric().getMetric(),
+                    metricValue -> metricValue));
             if (checkMustDeployVM(resource)) {
                 resourceNamesString.append("\"").append(resourceName).append("\",");
-                instanceTypesString.append("\"").append(defaultValues.get("instance-type")).append("\",");
+                instanceTypesString.append("\"").append(metricValues.get("instance-type").getValueString())
+                    .append("\",");
                 vmResourceIds.add(resource.getResourceId());
             }
             if (resource.getResourceType().getResourceType().equals("vm") && !resource.getIsSelfManaged()) {
@@ -160,8 +164,8 @@ public class AWSFileService extends ModuleFileService {
                     "  instance_types = [%s]\n" +
                     "  vpc_id         = \"%s\"\n" +
                     "  subnet_id      = \"%s\"\n" +
-                    "}\n", reservationId, resourceNamesString, instanceTypesString, defaultValues.get("vpc-id"),
-                defaultValues.get("subnet-id")));
+                    "}\n", reservationId, resourceNamesString, instanceTypesString,
+            vpc.getVpcIdValue(), vpc.getSubnetIdValue()));
         vmString.append(
             "resource \"time_sleep\" \"sleep\" {\n" +
             "  depends_on = [module.vm]\n" +
@@ -171,20 +175,6 @@ public class AWSFileService extends ModuleFileService {
 
         // TODO: get vpc from persisted values
         return vmString.toString();
-    }
-
-    // TODO: Enforce different resource types to have specific properties set (e.g. code, function-type, region)
-    // TODO: Persist default values
-    private Map<String, String> setDefaultValues() {
-        Map<String, String> defaultValues = new HashMap<>();
-        defaultValues.put("awsrole", "LabRole");
-        defaultValues.put("timeout", "300.0");
-        defaultValues.put("memory-size", "256.0");
-        defaultValues.put("layers", "");
-        defaultValues.put("vpc-id", "vpc-03e37d94124ae821c");
-        defaultValues.put("subnet-id", "subnet-02109321bd7f82080");
-        defaultValues.put("instance-type", "t2.micro");
-        return defaultValues;
     }
 
     @Override

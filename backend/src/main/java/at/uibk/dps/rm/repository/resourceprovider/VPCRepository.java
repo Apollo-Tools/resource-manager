@@ -13,7 +13,9 @@ public class VPCRepository extends Repository<VPC> {
 
     public CompletionStage<VPC> findByRegionIdAndAccountId(long regionId, long accountId) {
         return sessionFactory.withSession(session ->
-            session.createQuery("select vpc from VPC vpc " +
+            session.createQuery("from VPC vpc " +
+                    "left join fetch vpc.region " +
+                    "left join fetch vpc.region.resourceProvider " +
                     "where vpc.region.regionId=:regionId and vpc.createdBy.accountId=:accountId", entityClass)
                 .setParameter("regionId", regionId)
                 .setParameter("accountId", accountId)

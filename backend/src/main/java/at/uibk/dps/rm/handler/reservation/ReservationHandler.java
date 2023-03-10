@@ -8,6 +8,7 @@ import at.uibk.dps.rm.handler.account.CredentialsChecker;
 import at.uibk.dps.rm.handler.deployment.DeploymentHandler;
 import at.uibk.dps.rm.handler.function.FunctionResourceChecker;
 import at.uibk.dps.rm.handler.metric.ResourceTypeMetricChecker;
+import at.uibk.dps.rm.handler.resourceprovider.VPCChecker;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.util.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
@@ -19,8 +20,10 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ReservationHandler extends ValidationHandler {
 
@@ -38,6 +41,8 @@ public class ReservationHandler extends ValidationHandler {
 
     private final DeploymentHandler deploymentHandler;
 
+    private final VPCChecker vpcChecker;
+
     public ReservationHandler(ServiceProxyProvider serviceProxyProvider, DeploymentHandler deploymentHandler) {
         super(new ReservationChecker(serviceProxyProvider.getReservationService()));
         this.reservationChecker = (ReservationChecker) super.entityChecker;
@@ -50,6 +55,7 @@ public class ReservationHandler extends ValidationHandler {
             .getResourceReservationStatusService());
         this.resourceTypeMetricChecker = new ResourceTypeMetricChecker(serviceProxyProvider
             .getResourceTypeMetricService());
+        this.vpcChecker = new VPCChecker(serviceProxyProvider.getVpcService());
     }
 
     @Override
@@ -82,9 +88,16 @@ public class ReservationHandler extends ValidationHandler {
                 .asJsonObject()
                 .mapTo(ReserveResourcesRequest.class);
         long accountId = rc.user().principal().getLong("account_id");
+        List<VPC> vpcList = new ArrayList<>();
         return checkFindFunctionResources(requestDTO.getFunctionResources()).toList()
             .flatMap(functionResources -> checkCredentialsForResources(accountId, functionResources)
                 .andThen(checkMissingRequiredMetrics(functionResources))
+                .andThen(checkVPCForResources(accountId, functionResources)
+                    .map(vpcs -> {
+                        vpcList.addAll(vpcs.stream().map(vpc -> vpc.mapTo(VPC.class)).collect(Collectors.toList()));
+                        return vpcList;
+                    }).ignoreElement()
+                )
                 .toSingle(() -> functionResources))
             .flatMap(functionResources -> submitCreateReservation(accountId, functionResources))
             /* TODO: if resource is self managed copy trigger url to resource reservation (or ignore self managed resources)
@@ -95,7 +108,7 @@ public class ReservationHandler extends ValidationHandler {
                 .map(result -> {
                     deploymentHandler
                         .deployResources(result.getLong("reservation_id"), accountId,
-                            requestDTO.getDockerCredentials())
+                            requestDTO.getDockerCredentials(), vpcList)
                         .subscribe();
                     return result;
                 })
@@ -140,6 +153,21 @@ public class ReservationHandler extends ValidationHandler {
             }
         }
         return Completable.merge(completables);
+    }
+
+    private Single<List<JsonObject>> checkVPCForResources(long accountId, List<JsonObject> functionResources) {
+        List<Single<JsonObject>> singles = new ArrayList<>();
+        HashSet<Long> regionIds = new HashSet<>();
+        for (JsonObject jsonObject: functionResources) {
+            Region region = jsonObject.mapTo(FunctionResource.class).getResource().getRegion();
+            long regionId = region.getRegionId();
+            if (!regionIds.contains(regionId) && !region.getName().equals("edge")) {
+                singles.add(vpcChecker.checkFindOneByRegionIdAndAccountId(regionId, accountId));
+                regionIds.add(regionId);
+            }
+        }
+        return Single.zip(singles, objects -> Arrays.stream(objects).map(object -> (JsonObject) object)
+            .collect(Collectors.toList()));
     }
 
     // TODO: terminate resources

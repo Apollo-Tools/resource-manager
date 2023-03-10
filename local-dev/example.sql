@@ -133,7 +133,7 @@ INSERT INTO resource (resource_type, is_self_managed, region_id)
 VALUES (1, false, 3);
 -- edge
 INSERT INTO resource(resource_type, is_self_managed, region_id)
-VALUES (2, true, 2);
+VALUES (2, true, 4);
 -- vm
 INSERT INTO resource(resource_type, is_self_managed, region_id)
 VALUES (3, false, 3);
