@@ -12,10 +12,13 @@ import java.util.*;
 
 public class TerraformExecutor {
 
-    private final List<Credentials> credentils;
+    private final List<Credentials> credentials;
 
-    public TerraformExecutor(List<Credentials> credentils) {
-        this.credentils = credentils;
+    private final String edgeLogin;
+
+    public TerraformExecutor(List<Credentials> credentials, String edgeLogin) {
+        this.credentials = credentials;
+        this.edgeLogin = edgeLogin;
     }
 
     // TODO: test if this works on linux as well
@@ -36,10 +39,12 @@ public class TerraformExecutor {
         return processExecutor.executeCli();
     }
 
-    public int apply(Path folder) throws IOException, InterruptedException {
+    public int apply(Path folder)
+        throws IOException, InterruptedException {
         List<String> variables = getCredentialsCommands();
         List<String> commands = new ArrayList<>(List.of("terraform", "apply", "-auto-approve"));
         commands.addAll(variables);
+        commands.add(getEdgeLoginCommand());
         ProcessExecutor processExecutor = new ProcessExecutor(folder, commands);
         return processExecutor.executeCli();
     }
@@ -51,12 +56,19 @@ public class TerraformExecutor {
     
     private List<String> getCredentialsCommands() {
         List<String> variables = new ArrayList<>();
-        for (Credentials entry : credentils) {
+        for (Credentials entry : credentials) {
             String prefix = entry.getResourceProvider().getProvider().toLowerCase();
             variables.add("-var=\"" + prefix + "_access_key=" + entry.getAccessKey() + "\"");
             variables.add("-var=\"" + prefix + "_secret_access_key=" + entry.getSecretAccessKey() + "\"");
             variables.add("-var=\"" + prefix + "_session_token=" + entry.getSessionToken() + "\"");
         }
         return variables;
+    }
+
+    private String getEdgeLoginCommand() {
+        if (edgeLogin.isBlank()) {
+            return "";
+        }
+        return "-var=\"" + edgeLogin + "\"";
     }
 }

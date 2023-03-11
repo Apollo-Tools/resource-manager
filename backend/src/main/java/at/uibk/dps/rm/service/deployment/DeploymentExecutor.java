@@ -2,9 +2,7 @@ package at.uibk.dps.rm.service.deployment;
 
 import at.uibk.dps.rm.entity.deployment.CloudProvider;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
-import at.uibk.dps.rm.entity.model.FunctionResource;
-import at.uibk.dps.rm.entity.model.Region;
-import at.uibk.dps.rm.entity.model.VPC;
+import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.service.deployment.terraform.AWSFileService;
 import at.uibk.dps.rm.service.deployment.terraform.EdgeFileService;
 import at.uibk.dps.rm.service.deployment.terraform.MainFileService;
@@ -16,9 +14,7 @@ import io.vertx.core.json.JsonObject;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class DeploymentExecutor {
@@ -39,23 +35,41 @@ public class DeploymentExecutor {
         Map<Region, VPC> regionVPCMap = deployResourcesRequest.getVpcList()
             .stream()
             .collect(Collectors.toMap(VPC::getRegion, vpc -> vpc, (vpc1, vpc2) -> vpc1));
-        TerraformExecutor terraformExecutor = new TerraformExecutor(deployResourcesRequest.getCredentialsList());
         try {
             List<TerraformModule> modules = new ArrayList<>();
-            terraformExecutor.setPluginCacheFolder(Paths.get("temp\\plugin_cache").toAbsolutePath());
             Path rootFolder = Paths.get("temp\\reservation_" + deployResourcesRequest.getReservationId());
             Path functionsDir = Path.of(rootFolder.toString(), "functions");
             // TF: create all deployment files
+            StringBuilder edgeLoginData = new StringBuilder();
+            Set<Credentials> necessaryCredentials = new HashSet<>();
             for (Region region: functionResources.keySet()) {
                 List<FunctionResource> regionFunctionResources = functionResources.get(region);
                 TerraformModule module;
                 if (region.getName().equals("edge")) {
                     // TF: Edge resources
-                    module = edgeDeployment(deployResourcesRequest, rootFolder);
+                    module = edgeDeployment(deployResourcesRequest, regionFunctionResources, rootFolder);
+                    // Create edge login data
+                    edgeLoginData.append("edge_login_data=[");
+                    for (FunctionResource functionResource : regionFunctionResources) {
+                        Resource resource = functionResource.getResource();
+                        Map<String, MetricValue> metricValues = resource.getMetricValues()
+                            .stream()
+                            .collect(Collectors.toMap(metricValue -> metricValue.getMetric().getMetric(),
+                                metricValue -> metricValue));
+                        edgeLoginData.append("{auth_user=\\\"")
+                            .append(metricValues.get("openfaas-user").getValueString())
+                            .append("\\\",auth_pw=\\\"")
+                            .append(metricValues.get("openfaas-pw").getValueString())
+                            .append("\\\"},");
+                    }
+                    edgeLoginData.append("]");
                 } else {
                     // TF: Cloud resources
                     module = cloudDeployment(deployResourcesRequest, rootFolder, functionsDir,
                         region, regionFunctionResources, regionVPCMap);
+                    necessaryCredentials.add(deployResourcesRequest.getCredentialsList().stream()
+                        .filter(credentials -> credentials.getResourceProvider().equals(region.getResourceProvider()))
+                        .findFirst().get());
                 }
                 modules.add(module);
             }
@@ -67,11 +81,13 @@ public class DeploymentExecutor {
             FunctionFileService functionFileService = new FunctionFileService(deployResourcesRequest.getFunctionResources(),
                 functionsDir, deployResourcesRequest.getDockerCredentials());
             functionFileService.packageCode();
-            //
             // Run terraform
             // TODO: make non blocking
-            //System.out.println("Return value: " + terraformExecutor.init(rootFolder));
-            //System.out.println("Return value: " + terraformExecutor.apply(rootFolder));
+            TerraformExecutor terraformExecutor = new TerraformExecutor(new ArrayList<>(necessaryCredentials),
+                edgeLoginData.toString());
+            terraformExecutor.setPluginCacheFolder(Paths.get("temp\\plugin_cache").toAbsolutePath());
+            System.out.println("Return value: " + terraformExecutor.init(rootFolder));
+            System.out.println("Return value: " + terraformExecutor.apply(rootFolder));
         } catch (IOException e) {
             System.out.println("An error occurred.");
             e.printStackTrace();
@@ -100,10 +116,11 @@ public class DeploymentExecutor {
         return module;
     }
 
-    protected TerraformModule edgeDeployment(DeployResourcesRequest deployResourcesRequest, Path rootFolder) throws IOException {
+    protected TerraformModule edgeDeployment(DeployResourcesRequest deployResourcesRequest,
+                                             List<FunctionResource> functionResources, Path rootFolder) throws IOException {
         TerraformModule module = new TerraformModule(CloudProvider.EDGE, "edge");
         Path edgeFolder = Paths.get(rootFolder.toString(), module.getModuleName());
-        EdgeFileService edgeService = new EdgeFileService(edgeFolder, deployResourcesRequest.getFunctionResources(),
+        EdgeFileService edgeService = new EdgeFileService(edgeFolder, functionResources,
             deployResourcesRequest.getReservationId(), deployResourcesRequest.getDockerCredentials().getUsername());
         edgeService.setUpDirectory();
         return module;

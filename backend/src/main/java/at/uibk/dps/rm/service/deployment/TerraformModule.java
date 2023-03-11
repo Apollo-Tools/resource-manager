@@ -2,13 +2,11 @@ package at.uibk.dps.rm.service.deployment;
 
 import at.uibk.dps.rm.entity.deployment.CloudProvider;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.util.Objects;
 
 @Getter()
-@RequiredArgsConstructor
 public class TerraformModule {
     private final CloudProvider cloudProvider;
     private final String moduleName;
@@ -20,8 +18,13 @@ public class TerraformModule {
     private boolean hasVM = false;
 
     @Setter
-    private boolean hasEdge = false;
+    private boolean hasEdge;
 
+    public TerraformModule(CloudProvider cloudProvider, String moduleName) {
+        this.cloudProvider = cloudProvider;
+        this.moduleName = moduleName;
+        hasEdge = cloudProvider.equals(CloudProvider.EDGE);
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -52,7 +55,7 @@ public class TerraformModule {
 
     public String getEdgeString() {
         if (this.hasEdge) {
-            return String.format("module.%s.edge_data,", this.moduleName);
+            return "module.edge.edge_urls";
         }
         return "";
     }

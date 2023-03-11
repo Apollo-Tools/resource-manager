@@ -44,6 +44,18 @@ public class MainFileService extends TerraformFileService {
             } else {
                 cloudProviders.add(cloudProvider);
             }
+            if (cloudProvider.equals(CloudProvider.EDGE)) {
+                variables.append(
+                "variable \"edge_login_data\" {\n" +
+                "  type = list(object({\n" +
+                "    auth_user = string\n" +
+                "    auth_pw = string\n" +
+                "  }))\n" +
+                "}\n"
+                );
+                continue;
+            }
+
             String preFix = cloudProvider.toString().toLowerCase();
             variables.append(String.format(
                 "variable \"%s_access_key\" {\n" +
@@ -65,28 +77,37 @@ public class MainFileService extends TerraformFileService {
     public String getLocalModulesString() {
         StringBuilder moduleString = new StringBuilder();
         for (TerraformModule module : modules) {
-            String moduleName = module.getModuleName();
-            String prefix = module.getCloudProvider().toString().toLowerCase();
-            moduleString.append(String.format(
-                "module \"%s\" {\n" +
-                "  source = \"./%s\"\n" +
-                "  access_key = var.%s_access_key\n" +
-                "  secret_access_key = var.%s_secret_access_key\n" +
-                "  session_token = var.%s_session_token\n" +
-                "}\n", moduleName, moduleName, prefix, prefix, prefix));
+            if (module.getCloudProvider().equals(CloudProvider.EDGE)) {
+                moduleString.append(
+                    "module \"edge\" {\n" +
+                    "  source = \"./edge\"\n" +
+                    "  login_data = var.edge_login_data\n" +
+                    "}\n");
+            } else {
+                String moduleName = module.getModuleName();
+                String prefix = module.getCloudProvider().toString().toLowerCase();
+                moduleString.append(String.format(
+                    "module \"%s\" {\n" +
+                    "  source = \"./%s\"\n" +
+                    "  access_key = var.%s_access_key\n" +
+                    "  secret_access_key = var.%s_secret_access_key\n" +
+                    "  session_token = var.%s_session_token\n" +
+                    "}\n", moduleName, moduleName, prefix, prefix, prefix));
+            }
         }
         return moduleString.toString();
     }
 
-    // TODO: add edge output
     @Override
     public String getOutputString() {
-        StringBuilder functionsOutput = new StringBuilder(), vmOutput = new StringBuilder(),
-            edgeOutput = new StringBuilder();
+        StringBuilder functionsOutput = new StringBuilder(), vmOutput = new StringBuilder();
+        String edgeOutput = "";
         for (TerraformModule module : modules) {
             functionsOutput.append(module.getFunctionsString());
             vmOutput.append(module.getVMString());
-            edgeOutput.append(module.getEdgeString());
+            if (module.getHasEdge()) {
+                edgeOutput = module.getEdgeString();
+            }
         }
         return String.format(
             "output \"function_urls\" {\n" +
@@ -94,7 +115,10 @@ public class MainFileService extends TerraformFileService {
             "}\n" +
             "output \"vm_urls\" {\n" +
             "  value = merge(%s)\n" +
-            "}\n", functionsOutput, vmOutput
+            "}\n" +
+            "output \"edge\" {\n" +
+            "  value = %s\n" +
+            "}\n", functionsOutput, vmOutput, edgeOutput
         );
     }
 

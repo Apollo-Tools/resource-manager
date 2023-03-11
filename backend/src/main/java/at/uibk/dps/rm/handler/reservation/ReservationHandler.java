@@ -166,6 +166,9 @@ public class ReservationHandler extends ValidationHandler {
                 regionIds.add(regionId);
             }
         }
+        if (singles.isEmpty()) {
+            return Single.just(new ArrayList<>());
+        }
         return Single.zip(singles, objects -> Arrays.stream(objects).map(object -> (JsonObject) object)
             .collect(Collectors.toList()));
     }
