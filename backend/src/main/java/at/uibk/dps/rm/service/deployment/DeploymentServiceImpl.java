@@ -2,6 +2,7 @@ package at.uibk.dps.rm.service.deployment;
 
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
+import io.vertx.rxjava3.core.Vertx;
 
 public class DeploymentServiceImpl  implements DeploymentService {
 
@@ -9,7 +10,8 @@ public class DeploymentServiceImpl  implements DeploymentService {
 
     @Override
     public Future<Integer> deploy(JsonObject data) {
-        return Future.fromCompletionStage(deploymentExecutor.deploy(data).toCompletionStage());
+        return Future.fromCompletionStage(deploymentExecutor.deploy(Vertx.currentContext().owner().fileSystem(), data)
+            .toCompletionStage());
     }
 
     @Override

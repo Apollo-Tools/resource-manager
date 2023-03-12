@@ -2,6 +2,8 @@ package at.uibk.dps.rm.service.deployment.terraform;
 
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.service.deployment.TerraformModule;
+import io.vertx.rxjava3.core.file.FileSystem;
+
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -27,10 +29,10 @@ public class AWSFileService extends ModuleFileService {
 
     private final  VPC vpc;
 
-    public AWSFileService(Path rootFolder, Path functionsDir, Region region, String awsRole,
+    public AWSFileService(FileSystem fs, Path rootFolder, Path functionsDir, Region region, String awsRole,
                           List<FunctionResource> functionResources, long reservationId, TerraformModule module,
                           String dockerUserName, VPC vpc) {
-        super(rootFolder, module);
+        super(fs, rootFolder, module);
         this.functionsDir = functionsDir;
         this.region = region;
         this.awsRole = awsRole;

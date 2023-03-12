@@ -62,6 +62,6 @@ public class DeploymentHandler {
                         return deployRequest;
                     }
                 ))
-                .map(deploymentChecker::deployResources).ignoreElement();
+                .flatMapCompletable(deploymentChecker::deployResources);
     }
 }

@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.entity.model.FunctionResource;
 import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.entity.model.Resource;
+import io.vertx.rxjava3.core.file.FileSystem;
 
 import java.nio.file.Path;
 import java.util.*;
@@ -18,9 +19,9 @@ public class EdgeFileService extends TerraformFileService {
 
     private final String dockerUserName;
 
-    public EdgeFileService(Path rootFolder, List<FunctionResource> functionResources,
+    public EdgeFileService(FileSystem fileSystem, Path rootFolder, List<FunctionResource> functionResources,
                            long reservationId, String dockerUsername) {
-        super(rootFolder);
+        super(fileSystem, rootFolder);
         this.functionResources = functionResources;
         this.reservationId = reservationId;
         this.dockerUserName = dockerUsername;

@@ -2,6 +2,7 @@ package at.uibk.dps.rm.service.deployment.terraform;
 
 import at.uibk.dps.rm.entity.deployment.CloudProvider;
 import at.uibk.dps.rm.service.deployment.TerraformModule;
+import io.vertx.rxjava3.core.file.FileSystem;
 
 import java.nio.file.Path;
 import java.util.HashSet;
@@ -11,8 +12,8 @@ public class MainFileService extends TerraformFileService {
 
     private final List<TerraformModule> modules;
 
-    public MainFileService(Path rootFolder, List<TerraformModule> modules) {
-        super(rootFolder);
+    public MainFileService(FileSystem fs, Path rootFolder, List<TerraformModule> modules) {
+        super(fs, rootFolder);
         this.modules = modules;
     }
 

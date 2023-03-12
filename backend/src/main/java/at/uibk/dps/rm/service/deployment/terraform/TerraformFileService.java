@@ -1,23 +1,25 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
+import io.reactivex.rxjava3.core.Completable;
+import io.vertx.rxjava3.core.buffer.Buffer;
+import io.vertx.rxjava3.core.file.FileSystem;
 import lombok.AllArgsConstructor;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.List;
 
 @AllArgsConstructor
 public abstract class TerraformFileService {
+
+    private FileSystem fileSystem;
 
     private Path rootFolder;
 
     /*** main.tf ***/
     protected abstract String getProviderString();
 
-    protected abstract String getMainFileContent() throws IOException;
+    protected abstract String getMainFileContent();
 
     /*** variables.tf ***/
     protected abstract String getCredentialVariablesString();
@@ -31,22 +33,28 @@ public abstract class TerraformFileService {
 
 
     /*** setup directory ***/
-    public void setUpDirectory() throws IOException {
-        Files.createDirectories(rootFolder);
-
-        String mainContent = this.getMainFileContent();
-        createTerraformFile("main.tf", mainContent);
-
-        String variableContent = this.getVariablesFileContent();
-        createTerraformFile("variables.tf", variableContent);
-
-        String outputContent = this.getOutputsFileContent();
-        createTerraformFile("outputs.tf", outputContent);
+    public Completable setUpDirectory() {
+        return fileSystem.mkdirs(rootFolder.toString())
+            .andThen(createTerraformFiles());
     }
 
-    private void createTerraformFile(String fileName, String fileContent) throws IOException {
+    private Completable createTerraformFiles() {
+        List<Completable> completables = new ArrayList<>();
+
+        String mainContent = this.getMainFileContent();
+        completables.add(createTerraformFile("main.tf", mainContent));
+
+        String variableContent = this.getVariablesFileContent();
+        completables.add(createTerraformFile("variables.tf", variableContent));
+
+        String outputContent = this.getOutputsFileContent();
+        completables.add(createTerraformFile("outputs.tf", outputContent));
+        return Completable.merge(completables);
+    }
+
+    private Completable createTerraformFile(String fileName, String fileContent) {
         Path filePath = Paths.get(rootFolder + "\\" + fileName);
-        Files.writeString(filePath, fileContent, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
+        return fileSystem.writeFile(filePath.toString(), Buffer.buffer(fileContent));
     }
 
     /*** Getter ***/

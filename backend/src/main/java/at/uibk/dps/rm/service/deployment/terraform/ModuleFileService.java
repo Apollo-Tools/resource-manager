@@ -2,6 +2,7 @@ package at.uibk.dps.rm.service.deployment.terraform;
 
 import at.uibk.dps.rm.entity.model.FunctionResource;
 import at.uibk.dps.rm.service.deployment.TerraformModule;
+import io.vertx.rxjava3.core.file.FileSystem;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -11,8 +12,8 @@ public abstract class ModuleFileService extends TerraformFileService {
 
     private final TerraformModule module;
 
-    public ModuleFileService(Path rootFolder, TerraformModule module) {
-        super(rootFolder);
+    public ModuleFileService(FileSystem fs, Path rootFolder, TerraformModule module) {
+        super(fs, rootFolder);
         this.module = module;
     }
 
