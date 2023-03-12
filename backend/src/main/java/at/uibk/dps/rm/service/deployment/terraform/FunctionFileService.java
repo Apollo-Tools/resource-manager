@@ -6,6 +6,7 @@ import at.uibk.dps.rm.entity.model.FunctionResource;
 import at.uibk.dps.rm.service.deployment.ProcessExecutor;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackagePythonCode;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackageSourceCode;
+import io.reactivex.rxjava3.core.Single;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -35,7 +36,7 @@ public class FunctionFileService {
         this.dockerCredentials = dockerCredentials;
     }
 
-    public void packageCode() throws IOException, InterruptedException {
+    public Single<Integer> packageCode() throws IOException, InterruptedException {
         PackageSourceCode packageSourceCode;
         StringBuilder functionsString = new StringBuilder();
         for (FunctionResource fr : functionResources) {
@@ -63,13 +64,15 @@ public class FunctionFileService {
             functionIdentifiers.add(functionIdentifier);
         }
         // TODO: add check if this is necessary (=no changes since last push)
-        buildAndPushDockerImages(functionsString.toString());
+        if (dockerFunctions.isEmpty()) {
+            return Single.just(0);
+        }
+
+        return buildAndPushDockerImages(functionsString.toString())
+            .map(Process::exitValue);
     }
 
-    private void buildAndPushDockerImages(String functionsString) throws IOException, InterruptedException {
-        if (dockerFunctions.isEmpty()) {
-            return;
-        }
+    private Single<Process> buildAndPushDockerImages(String functionsString) throws IOException {
         String stackFile = String.format(
             "version: 1.0\n" +
                 "provider:\n" +
@@ -81,8 +84,8 @@ public class FunctionFileService {
                 "%s\n", functionsString);
         createStackFile(functionsDir, stackFile);
 
-        buildFunctionsDockerFiles(functionsDir);
-        pushDockerImages(functionsDir);
+        return buildFunctionsDockerFiles(functionsDir)
+            .flatMap(res -> pushDockerImages(functionsDir));
     }
 
     private void createStackFile(Path rootFolder, String fileContent) throws IOException {
@@ -90,13 +93,13 @@ public class FunctionFileService {
         Files.writeString(filePath, fileContent, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
     }
 
-    private int buildFunctionsDockerFiles(Path rootFolder) throws IOException, InterruptedException {
+    private Single<Process> buildFunctionsDockerFiles(Path rootFolder) throws IOException {
         ProcessExecutor processExecutor = new ProcessExecutor(rootFolder,"faas-cli", "build", "-f",
             "stack.yml", "--shrinkwrap");
         return processExecutor.executeCli();
     }
 
-    private int pushDockerImages(Path rootFolder) throws IOException, InterruptedException {
+    private Single<Process> pushDockerImages(Path rootFolder) throws IOException {
         List<String> dockerCommands = new java.util.ArrayList<>(List.of("docker", "run", "-v",
             "\"/var/run/docker.sock:/var/run/docker.sock\"", "--privileged", "--rm", "-v",
             rootFolder.toAbsolutePath() + "\\build:/build", "docker:latest", "sh", "-c"));

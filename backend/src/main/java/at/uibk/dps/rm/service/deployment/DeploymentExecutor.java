@@ -27,7 +27,7 @@ public class DeploymentExecutor {
     deploymentExecutor.deploy(request).subscribe();
     }
 
-    public Single<Long> deploy(JsonObject jsonObject) {
+    public Single<Integer> deploy(JsonObject jsonObject) {
         DeployResourcesRequest deployResourcesRequest = jsonObject.mapTo(DeployResourcesRequest.class);
         Map<Region, List<FunctionResource>> functionResources = deployResourcesRequest.getFunctionResources()
             .stream()
@@ -35,6 +35,7 @@ public class DeploymentExecutor {
         Map<Region, VPC> regionVPCMap = deployResourcesRequest.getVpcList()
             .stream()
             .collect(Collectors.toMap(VPC::getRegion, vpc -> vpc, (vpc1, vpc2) -> vpc1));
+        Single<Integer> result = Single.just(-1);
         try {
             List<TerraformModule> modules = new ArrayList<>();
             Path rootFolder = Paths.get("temp\\reservation_" + deployResourcesRequest.getReservationId());
@@ -80,14 +81,17 @@ public class DeploymentExecutor {
             // Build functions
             FunctionFileService functionFileService = new FunctionFileService(deployResourcesRequest.getFunctionResources(),
                 functionsDir, deployResourcesRequest.getDockerCredentials());
-            functionFileService.packageCode();
+            result = functionFileService.packageCode();
             // Run terraform
             // TODO: make non blocking
             TerraformExecutor terraformExecutor = new TerraformExecutor(new ArrayList<>(necessaryCredentials),
                 edgeLoginData.toString());
             terraformExecutor.setPluginCacheFolder(Paths.get("temp\\plugin_cache").toAbsolutePath());
-            System.out.println("Return value: " + terraformExecutor.init(rootFolder));
-            System.out.println("Return value: " + terraformExecutor.apply(rootFolder));
+            result = result
+                .flatMap(prevRes -> terraformExecutor.init(rootFolder))
+                .map(Process::exitValue)
+                .flatMap(res -> terraformExecutor.apply(rootFolder))
+                .map(Process::exitValue);
         } catch (IOException e) {
             System.out.println("An error occurred.");
             e.printStackTrace();
@@ -95,7 +99,7 @@ public class DeploymentExecutor {
             e.printStackTrace();
         }
 
-        return Single.just(1L);
+        return result;
     }
 
     // TODO: Rework for other cloud providers

@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.service.deployment;
 
 import at.uibk.dps.rm.entity.model.Credentials;
+import io.reactivex.rxjava3.core.Single;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -34,12 +35,12 @@ public class TerraformExecutor {
         Files.writeString(tfConfigPath, tfConfigContent, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
     }
 
-    public int init(Path folder) throws IOException, InterruptedException {
+    public Single<Process> init(Path folder) throws IOException, InterruptedException {
         ProcessExecutor processExecutor = new ProcessExecutor(folder, "terraform",  "init");
         return processExecutor.executeCli();
     }
 
-    public int apply(Path folder)
+    public Single<Process> apply(Path folder)
         throws IOException, InterruptedException {
         List<String> variables = getCredentialsCommands();
         List<String> commands = new ArrayList<>(List.of("terraform", "apply", "-auto-approve"));

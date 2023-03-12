@@ -8,7 +8,7 @@ public class DeploymentServiceImpl  implements DeploymentService {
     private final DeploymentExecutor deploymentExecutor = new DeploymentExecutor();
 
     @Override
-    public Future<Long> deploy(JsonObject data) {
+    public Future<Integer> deploy(JsonObject data) {
         return Future.fromCompletionStage(deploymentExecutor.deploy(data).toCompletionStage());
     }
 

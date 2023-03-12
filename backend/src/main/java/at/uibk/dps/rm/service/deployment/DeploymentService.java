@@ -19,7 +19,7 @@ public interface DeploymentService {
         return new DeploymentServiceVertxEBProxy(vertx, address);
     }
 
-    Future<Long> deploy(JsonObject data);
+    Future<Integer> deploy(JsonObject data);
 
     Future<Void> terminate(long resourceId);
 }

@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.deployment;
 
+import io.reactivex.rxjava3.core.Single;
 import lombok.AllArgsConstructor;
 
 import java.io.BufferedReader;
@@ -20,22 +21,18 @@ public class ProcessExecutor {
         this.commands = List.of(commands);
     }
 
-    public int executeCli() throws IOException, InterruptedException {
-        ProcessBuilder processBuilder = new ProcessBuilder(commands);
-        processBuilder.directory(workingDirectory.toFile());
-        processBuilder.redirectErrorStream(true);
-        final Process process = processBuilder.start();
-        Thread thread = printOutput(process);
-        thread.start();
-        process.waitFor();
-        process.destroy();
-        return process.exitValue();
+    public Single<Process> executeCli() throws IOException {
+        final Process process = new ProcessBuilder(commands)
+            .directory(workingDirectory.toFile())
+            .inheritIO()
+            .redirectErrorStream(true)
+            .start();
+        //printOutput(process);
+        return Single.fromCompletionStage(process.onExit().minimalCompletionStage());
     }
 
-    private Thread printOutput(Process process) {
-        return new Thread(() -> {
-            BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            input.lines().forEach(System.out::println);
-        });
+    private void printOutput(Process process) {
+        BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        input.lines().forEach(System.out::println);
     }
 }
