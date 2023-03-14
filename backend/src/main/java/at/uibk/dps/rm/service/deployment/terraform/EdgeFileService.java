@@ -100,7 +100,7 @@ public class EdgeFileService extends TerraformFileService {
             String functionIdentifier = "r" + resource.getResourceId() + "_" + function.getName().toLowerCase() +
                 "_" + runtime.replace(".", "");
             functionNames.append(String.format("\"%s\",", functionIdentifier));
-            functionModuleOutputs.append(String.format("\"module.%s.function_url\",", functionIdentifier));
+            functionModuleOutputs.append(String.format("module.%s.function_url,", functionIdentifier));
         }
         return String.format("output \"edge_urls\" {\n" +
             "  value = zipmap([%s], [%s])\n" +

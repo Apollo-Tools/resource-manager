@@ -43,7 +43,7 @@ public class FunctionFileService {
         this.dockerCredentials = dockerCredentials;
     }
 
-    public Single<Integer> packageCode() throws IOException {
+    public Single<Integer> packageCode() {
         PackageSourceCode packageSourceCode;
         StringBuilder functionsString = new StringBuilder();
         List<Completable> completables = new ArrayList<>();

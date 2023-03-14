@@ -36,6 +36,7 @@ resource "aws_security_group" "vm" {
   vpc_id      = var.vpc_id
 
   ingress {
+    description = "OpenFaaS"
     cidr_blocks = [
       "0.0.0.0/0"
     ]
@@ -80,4 +81,15 @@ resource "aws_eip_association" "vm" {
   count         = length(var.names)
   instance_id   = aws_instance.vm[count.index].id
   allocation_id = aws_eip.vm[count.index].id
+}
+
+data "http-wait" "check_vm" {
+  count = length(var.names)
+  provider = http
+  url = format("http://%s:8080", aws_eip.vm[count.index].public_ip)
+  max_elapsed_time = 999
+  initial_interval = 10000
+  multiplier       = "1.0"
+  max_interval     = 10000
+  randomization_factor = 3
 }

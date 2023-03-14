@@ -12,7 +12,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.file.FileSystem;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -77,25 +76,21 @@ public class DeploymentExecutor {
         TerraformExecutor terraformExecutor = new TerraformExecutor(new ArrayList<>(necessaryCredentials),
             edgeLoginData.toString());
 
-        try {
-            return terraformExecutor.setPluginCacheFolder(vertx.fileSystem(),
-                    Paths.get("temp\\plugin_cache").toAbsolutePath())
-                .andThen(functionFileService.packageCode())
-                .flatMap(res -> Single.zip(singles, objects -> Arrays.stream(objects).map(object -> (TerraformModule) object)
-                    .collect(Collectors.toList())))
-                .flatMapCompletable(tfModules -> {
-                    // TF: main files
-                    MainFileService mainFileService = new MainFileService(vertx.fileSystem(), rootFolder, tfModules);
-                    return mainFileService.setUpDirectory();
-                })
-                .andThen(Single.fromCallable(() -> terraformExecutor.init(rootFolder)))
-                .flatMap(res -> res)
-                .map(Process::exitValue)
-                .flatMap(res -> terraformExecutor.apply(rootFolder))
-                .map(Process::exitValue);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return terraformExecutor.setPluginCacheFolder(vertx.fileSystem(),
+                Paths.get("temp\\plugin_cache").toAbsolutePath())
+            .andThen(functionFileService.packageCode())
+            .flatMap(res -> Single.zip(singles, objects -> Arrays.stream(objects).map(object -> (TerraformModule) object)
+                .collect(Collectors.toList())))
+            .flatMapCompletable(tfModules -> {
+                // TF: main files
+                MainFileService mainFileService = new MainFileService(vertx.fileSystem(), rootFolder, tfModules);
+                return mainFileService.setUpDirectory();
+            })
+            .andThen(Single.fromCallable(() -> terraformExecutor.init(rootFolder)))
+            .flatMap(res -> res)
+            .map(Process::exitValue)
+            .flatMap(res -> terraformExecutor.apply(rootFolder))
+            .map(Process::exitValue);
     }
 
     // TODO: Rework for other cloud providers
