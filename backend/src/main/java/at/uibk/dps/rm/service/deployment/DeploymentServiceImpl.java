@@ -6,11 +6,12 @@ import io.vertx.rxjava3.core.Vertx;
 
 public class DeploymentServiceImpl  implements DeploymentService {
 
-    private final DeploymentExecutor deploymentExecutor = new DeploymentExecutor();
+    private final DeploymentExecutor deploymentExecutor = new DeploymentExecutor(Vertx.currentContext().owner());
 
     @Override
     public Future<Integer> deploy(JsonObject data) {
-        return Future.fromCompletionStage(deploymentExecutor.deploy(Vertx.currentContext().owner().fileSystem(), data)
+        return Future.fromCompletionStage(deploymentExecutor.deploy(data)
+            .doOnError(Throwable::printStackTrace)
             .toCompletionStage());
     }
 

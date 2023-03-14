@@ -6,16 +6,21 @@ import at.uibk.dps.rm.entity.model.FunctionResource;
 import at.uibk.dps.rm.service.deployment.ProcessExecutor;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackagePythonCode;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackageSourceCode;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.rxjava3.core.Vertx;
+import io.vertx.rxjava3.core.buffer.Buffer;
+import io.vertx.rxjava3.core.file.FileSystem;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 public class FunctionFileService {
+
+    private final Vertx vertx;
+
+    private final FileSystem fileSystem;
 
     private final List<FunctionResource> functionResources;
 
@@ -29,16 +34,19 @@ public class FunctionFileService {
 
     private final Set<Long> dockerFunctions = new HashSet<>();
 
-    public FunctionFileService(List<FunctionResource> functionResources, Path functionsDir,
+    public FunctionFileService(Vertx vertx, List<FunctionResource> functionResources, Path functionsDir,
                                DockerCredentials dockerCredentials) {
+        this.vertx = vertx;
+        this.fileSystem = vertx.fileSystem();
         this.functionResources = functionResources;
         this.functionsDir = functionsDir;
         this.dockerCredentials = dockerCredentials;
     }
 
-    public Single<Integer> packageCode() throws IOException, InterruptedException {
+    public Single<Integer> packageCode() throws IOException {
         PackageSourceCode packageSourceCode;
         StringBuilder functionsString = new StringBuilder();
+        List<Completable> completables = new ArrayList<>();
         for (FunctionResource fr : functionResources) {
             Function function = fr.getFunction();
             if (functionIds.contains(function.getFunctionId())) {
@@ -48,8 +56,9 @@ public class FunctionFileService {
             String functionIdentifier =  function.getName().toLowerCase() +
                 "_" + runtime.replace(".", "");
             if (runtime.startsWith("python")) {
-                packageSourceCode = new PackagePythonCode();
-                packageSourceCode.composeSourceCode(functionsDir, functionIdentifier, function.getCode());
+                packageSourceCode = new PackagePythonCode(vertx, fileSystem);
+                completables.add(packageSourceCode.composeSourceCode(functionsDir, functionIdentifier,
+                    function.getCode()));
                 if (deployFunctionOnVMOrEdge(function, functionResources)) {
                     functionsString.append(String.format(
                         "  %s:\n" +
@@ -68,7 +77,10 @@ public class FunctionFileService {
             return Single.just(0);
         }
 
-        return buildAndPushDockerImages(functionsString.toString())
+        return Completable.merge(completables)
+            // See for more information: https://github.com/ReactiveX/RxJava#deferred-dependent
+            .andThen(Single.fromCallable(() -> buildAndPushDockerImages(functionsString.toString())))
+            .flatMap(res -> res)
             .map(Process::exitValue);
     }
 
@@ -82,15 +94,15 @@ public class FunctionFileService {
                 "    - name: python3-flask-debian\n" +
                 "functions:\n" +
                 "%s\n", functionsString);
-        createStackFile(functionsDir, stackFile);
 
-        return buildFunctionsDockerFiles(functionsDir)
+        return createStackFile(functionsDir, stackFile)
+            .andThen(buildFunctionsDockerFiles(functionsDir))
             .flatMap(res -> pushDockerImages(functionsDir));
     }
 
-    private void createStackFile(Path rootFolder, String fileContent) throws IOException {
+    private Completable createStackFile(Path rootFolder, String fileContent) {
         Path filePath = Path.of(rootFolder.toString(), "stack.yml");
-        Files.writeString(filePath, fileContent, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
+        return fileSystem.writeFile(filePath.toString(), Buffer.buffer(fileContent));
     }
 
     private Single<Process> buildFunctionsDockerFiles(Path rootFolder) throws IOException {

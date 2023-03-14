@@ -1,14 +1,14 @@
 package at.uibk.dps.rm.service.deployment;
 
 import at.uibk.dps.rm.entity.model.Credentials;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.rxjava3.core.buffer.Buffer;
+import io.vertx.rxjava3.core.file.FileSystem;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 public class TerraformExecutor {
@@ -23,8 +23,7 @@ public class TerraformExecutor {
     }
 
     // TODO: test if this works on linux as well
-    public void setPluginCacheFolder(Path folder) throws IOException, InterruptedException {
-        Files.createDirectories(folder);
+    public Completable setPluginCacheFolder(FileSystem fileSystem, Path folder) {
         String tfConfigContent = "plugin_cache_dir   = \"" + folder.toString().replace("\\", "/") + "\"";
         Path tfConfigPath;
         if (System.getProperty("os.name").toLowerCase().contains("windows")) {
@@ -32,7 +31,8 @@ public class TerraformExecutor {
         } else {
             tfConfigPath = Paths.get(System.getenv("user.home") + "\\.terraformrc");
         }
-        Files.writeString(tfConfigPath, tfConfigContent, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
+        return fileSystem.mkdirs(folder.toString())
+            .andThen(fileSystem.writeFile(tfConfigPath.toString(), Buffer.buffer(tfConfigContent)));
     }
 
     public Single<Process> init(Path folder) throws IOException, InterruptedException {
@@ -41,7 +41,7 @@ public class TerraformExecutor {
     }
 
     public Single<Process> apply(Path folder)
-        throws IOException, InterruptedException {
+        throws IOException {
         List<String> variables = getCredentialsCommands();
         List<String> commands = new ArrayList<>(List.of("terraform", "apply", "-auto-approve"));
         commands.addAll(variables);
