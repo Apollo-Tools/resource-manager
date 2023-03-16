@@ -141,7 +141,7 @@ public class AWSFileService extends ModuleFileService {
                     "_" + runtime.replace(".", "");
                 functionsString.append(String.format(
                     "module \"r%s_%s\" {\n" +
-                        "  openfaas_depends_on = time_sleep.sleep\n" +
+                        "  openfaas_depends_on = module.vm\n" +
                         "  source = \"../../../terraform/openfaas\"\n" +
                         "  name = \"r%s_%s_%s\"\n" +
                         "  image = \"%s/%s\"\n" +
@@ -168,11 +168,6 @@ public class AWSFileService extends ModuleFileService {
                     "  subnet_id      = \"%s\"\n" +
                     "}\n", reservationId, resourceNamesString, instanceTypesString,
             vpc.getVpcIdValue(), vpc.getSubnetIdValue()));
-        vmString.append(
-            "resource \"time_sleep\" \"sleep\" {\n" +
-            "  depends_on = [module.vm]\n" +
-            "  create_duration = \"120s\"\n" +
-            "}\n");
         vmString.append(functionsString);
 
         // TODO: get vpc from persisted values

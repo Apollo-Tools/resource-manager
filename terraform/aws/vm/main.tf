@@ -84,6 +84,7 @@ resource "aws_eip_association" "vm" {
 }
 
 data "http-wait" "check_vm" {
+  depends_on = [aws_eip_association.vm]
   count = length(var.names)
   provider = http
   url = format("http://%s:8080", aws_eip.vm[count.index].public_ip)

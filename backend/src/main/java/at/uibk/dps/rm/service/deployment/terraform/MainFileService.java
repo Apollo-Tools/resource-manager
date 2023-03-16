@@ -25,10 +25,6 @@ public class MainFileService extends TerraformFileService {
             "      source  = \"hashicorp/aws\"\n" +
             "      version = \"~> 4.16\"\n" +
             "    }\n" +
-            "    time = {\n" +
-            "      source = \"hashicorp/time\"\n" +
-            "      version = \"0.9.1\"\n" +
-            "    }\n" +
             "  }\n" +
             "  required_version = \">= 1.2.0\"\n" +
             "}\n";
@@ -110,6 +106,10 @@ public class MainFileService extends TerraformFileService {
                 edgeOutput = module.getEdgeString();
             }
         }
+        if (edgeOutput.isBlank()) {
+            edgeOutput = "\"\"";
+        }
+
         return String.format(
             "output \"function_urls\" {\n" +
             "   value = merge(%s)\n" +
@@ -117,7 +117,7 @@ public class MainFileService extends TerraformFileService {
             "output \"vm_urls\" {\n" +
             "  value = merge(%s)\n" +
             "}\n" +
-            "output \"edge\" {\n" +
+            "output \"edge_urls\" {\n" +
             "  value = %s\n" +
             "}\n", functionsOutput, vmOutput, edgeOutput
         );

@@ -67,7 +67,7 @@ public class TerraformExecutor {
     }
 
     private String getEdgeLoginCommand() {
-        if (edgeLogin.isBlank()) {
+        if (edgeLogin == null || edgeLogin.isBlank()) {
             return "";
         }
         return "-var=\"" + edgeLogin + "\"";

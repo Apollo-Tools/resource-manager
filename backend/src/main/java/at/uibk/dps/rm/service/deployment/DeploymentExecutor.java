@@ -54,9 +54,9 @@ public class DeploymentExecutor {
                 return mainFileService.setUpDirectory();
             })
             // Terraform execution
-            .andThen(terraformExecutor.setPluginCacheFolder(vertx.fileSystem(), deploymentPath.getTFCacheFolder()))
-            .andThen(Single.fromCallable(() -> terraformExecutor.init(deploymentPath.getRootFolder())))
-            .flatMap(res -> res)
+            .andThen(Single.fromCallable(() -> terraformExecutor.setPluginCacheFolder(vertx.fileSystem(),
+                deploymentPath.getTFCacheFolder())))
+            .flatMap(res -> terraformExecutor.init(deploymentPath.getRootFolder()))
             .map(Process::exitValue)
             .flatMap(res -> terraformExecutor.apply(deploymentPath.getRootFolder()))
             .map(Process::exitValue);
