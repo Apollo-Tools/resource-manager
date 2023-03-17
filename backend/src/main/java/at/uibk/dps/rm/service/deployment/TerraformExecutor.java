@@ -3,6 +3,7 @@ package at.uibk.dps.rm.service.deployment;
 import at.uibk.dps.rm.entity.model.Credentials;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.file.FileSystem;
 
@@ -13,11 +14,14 @@ import java.util.*;
 
 public class TerraformExecutor {
 
+    private final Vertx vertx;
+
     private final List<Credentials> credentials;
 
     private final String edgeLogin;
 
-    public TerraformExecutor(List<Credentials> credentials, String edgeLogin) {
+    public TerraformExecutor(Vertx vertx, List<Credentials> credentials, String edgeLogin) {
+        this.vertx = vertx;
         this.credentials = credentials;
         this.edgeLogin = edgeLogin;
     }
@@ -35,18 +39,17 @@ public class TerraformExecutor {
             .andThen(fileSystem.writeFile(tfConfigPath.toString(), Buffer.buffer(tfConfigContent)));
     }
 
-    public Single<Process> init(Path folder) throws IOException, InterruptedException {
-        ProcessExecutor processExecutor = new ProcessExecutor(folder, "terraform",  "init");
+    public Single<Integer> init(Path folder) throws IOException, InterruptedException {
+        ProcessExecutor processExecutor = new ProcessExecutor(vertx, folder, "terraform",  "init");
         return processExecutor.executeCli();
     }
 
-    public Single<Process> apply(Path folder)
-        throws IOException {
+    public Single<Integer> apply(Path folder) {
         List<String> variables = getCredentialsCommands();
         List<String> commands = new ArrayList<>(List.of("terraform", "apply", "-auto-approve"));
         commands.addAll(variables);
         commands.add(getEdgeLoginCommand());
-        ProcessExecutor processExecutor = new ProcessExecutor(folder, commands);
+        ProcessExecutor processExecutor = new ProcessExecutor(vertx, folder, commands);
         return processExecutor.executeCli();
     }
 

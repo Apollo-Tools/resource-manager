@@ -38,7 +38,7 @@ public class DeploymentExecutor {
         FunctionFileService functionFileService = new FunctionFileService(vertx, deployRequest.getFunctionResources(),
             deploymentPath.getFunctionsFolder(), deployRequest.getDockerCredentials());
         List<Single<TerraformModule>> singles = setUpRegionTFDirs(necessaryCredentials);
-        TerraformExecutor terraformExecutor = new TerraformExecutor(new ArrayList<>(necessaryCredentials),
+        TerraformExecutor terraformExecutor = new TerraformExecutor(vertx, new ArrayList<>(necessaryCredentials),
             edgeLoginData);
 
         return
@@ -57,9 +57,7 @@ public class DeploymentExecutor {
             .andThen(Single.fromCallable(() -> terraformExecutor.setPluginCacheFolder(vertx.fileSystem(),
                 deploymentPath.getTFCacheFolder())))
             .flatMap(res -> terraformExecutor.init(deploymentPath.getRootFolder()))
-            .map(Process::exitValue)
-            .flatMap(res -> terraformExecutor.apply(deploymentPath.getRootFolder()))
-            .map(Process::exitValue);
+            .flatMap(res -> terraformExecutor.apply(deploymentPath.getRootFolder()));
     }
 
     private List<Single<TerraformModule>> setUpRegionTFDirs(Set<Credentials> necessaryCredentials) {

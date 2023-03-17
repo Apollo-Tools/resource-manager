@@ -12,7 +12,6 @@ import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.file.FileSystem;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -80,11 +79,10 @@ public class FunctionFileService {
         return Completable.merge(completables)
             // See for more information: https://github.com/ReactiveX/RxJava#deferred-dependent
             .andThen(Single.fromCallable(() -> buildAndPushDockerImages(functionsString.toString())))
-            .flatMap(res -> res)
-            .map(Process::exitValue);
+            .flatMap(res -> res);
     }
 
-    private Single<Process> buildAndPushDockerImages(String functionsString) throws IOException {
+    private Single<Integer> buildAndPushDockerImages(String functionsString) {
         String stackFile = String.format(
             "version: 1.0\n" +
                 "provider:\n" +
@@ -105,13 +103,13 @@ public class FunctionFileService {
         return fileSystem.writeFile(filePath.toString(), Buffer.buffer(fileContent));
     }
 
-    private Single<Process> buildFunctionsDockerFiles(Path rootFolder) throws IOException {
-        ProcessExecutor processExecutor = new ProcessExecutor(rootFolder,"faas-cli", "build", "-f",
+    private Single<Integer> buildFunctionsDockerFiles(Path rootFolder) {
+        ProcessExecutor processExecutor = new ProcessExecutor(vertx, rootFolder,"faas-cli", "build", "-f",
             "stack.yml", "--shrinkwrap");
         return processExecutor.executeCli();
     }
 
-    private Single<Process> pushDockerImages(Path rootFolder) throws IOException {
+    private Single<Integer> pushDockerImages(Path rootFolder) {
         List<String> dockerCommands = new java.util.ArrayList<>(List.of("docker", "run", "-v",
             "\"/var/run/docker.sock:/var/run/docker.sock\"", "--privileged", "--rm", "-v",
             rootFolder.toAbsolutePath() + "\\build:/build", "docker:latest", "sh", "-c"));
@@ -125,7 +123,7 @@ public class FunctionFileService {
         }
         dockerInteractiveCommands.append("\"");
         dockerCommands.add(dockerInteractiveCommands.toString());
-        ProcessExecutor processExecutor = new ProcessExecutor(rootFolder, dockerCommands);
+        ProcessExecutor processExecutor = new ProcessExecutor(vertx, rootFolder, dockerCommands);
         return processExecutor.executeCli();
     }
 
