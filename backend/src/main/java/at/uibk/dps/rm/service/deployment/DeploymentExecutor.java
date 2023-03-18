@@ -9,7 +9,6 @@ import at.uibk.dps.rm.service.deployment.terraform.MainFileService;
 import at.uibk.dps.rm.service.deployment.terraform.FunctionFileService;
 import at.uibk.dps.rm.util.DeploymentPath;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
 
 import java.nio.file.Path;
@@ -26,9 +25,9 @@ public class DeploymentExecutor {
 
     private final DeploymentPath deploymentPath;
 
-    public DeploymentExecutor (Vertx vertx, JsonObject jsonObject) {
+    public DeploymentExecutor (Vertx vertx, DeployResourcesRequest deployRequest) {
         this.vertx = vertx;
-        this.deployRequest = jsonObject.mapTo(DeployResourcesRequest.class);
+        this.deployRequest = deployRequest;
         this.deploymentPath = new DeploymentPath(deployRequest.getReservationId());
     }
 

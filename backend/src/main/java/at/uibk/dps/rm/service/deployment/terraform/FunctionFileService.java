@@ -1,15 +1,14 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
+import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.entity.model.FunctionResource;
-import at.uibk.dps.rm.service.deployment.ProcessExecutor;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackagePythonCode;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackageSourceCode;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.core.Vertx;
-import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.file.FileSystem;
 
 import java.nio.file.Path;
@@ -29,7 +28,7 @@ public class FunctionFileService {
 
     private final Set<Long> functionIds = new HashSet<>();
 
-    private final List<String> functionIdentifiers = new ArrayList<>();
+    private FunctionsToDeploy functionsToDeploy = new FunctionsToDeploy();
 
     private final Set<Long> dockerFunctions = new HashSet<>();
 
@@ -42,9 +41,10 @@ public class FunctionFileService {
         this.dockerCredentials = dockerCredentials;
     }
 
-    public Single<Integer> packageCode() {
+    public Single<FunctionsToDeploy> packageCode() {
+        functionsToDeploy = new FunctionsToDeploy();
         PackageSourceCode packageSourceCode;
-        StringBuilder functionsString = new StringBuilder();
+        StringBuilder functionsString = functionsToDeploy.getFunctionsString();
         List<Completable> completables = new ArrayList<>();
         for (FunctionResource fr : functionResources) {
             Function function = fr.getFunction();
@@ -69,62 +69,15 @@ public class FunctionFileService {
                 }
             }
             functionIds.add(function.getFunctionId());
-            functionIdentifiers.add(functionIdentifier);
+            functionsToDeploy.getFunctionIdentifiers().add(functionIdentifier);
         }
         // TODO: add check if this is necessary (=no changes since last push)
         if (dockerFunctions.isEmpty()) {
-            return Single.just(0);
+            return Single.just(functionsToDeploy);
         }
 
         return Completable.merge(completables)
-            // See for more information: https://github.com/ReactiveX/RxJava#deferred-dependent
-            .andThen(Single.fromCallable(() -> buildAndPushDockerImages(functionsString.toString())))
-            .flatMap(res -> res);
-    }
-
-    private Single<Integer> buildAndPushDockerImages(String functionsString) {
-        String stackFile = String.format(
-            "version: 1.0\n" +
-                "provider:\n" +
-                "  name: openfaas\n" +
-                "configuration:\n" +
-                "  templates:\n" +
-                "    - name: python3-flask-debian\n" +
-                "functions:\n" +
-                "%s\n", functionsString);
-
-        return createStackFile(functionsDir, stackFile)
-            .andThen(buildFunctionsDockerFiles(functionsDir))
-            .flatMap(res -> pushDockerImages(functionsDir));
-    }
-
-    private Completable createStackFile(Path rootFolder, String fileContent) {
-        Path filePath = Path.of(rootFolder.toString(), "stack.yml");
-        return fileSystem.writeFile(filePath.toString(), Buffer.buffer(fileContent));
-    }
-
-    private Single<Integer> buildFunctionsDockerFiles(Path rootFolder) {
-        ProcessExecutor processExecutor = new ProcessExecutor(vertx, rootFolder,"faas-cli", "build", "-f",
-            "stack.yml", "--shrinkwrap");
-        return processExecutor.executeCli();
-    }
-
-    private Single<Integer> pushDockerImages(Path rootFolder) {
-        List<String> dockerCommands = new java.util.ArrayList<>(List.of("docker", "run", "-v",
-            "\"/var/run/docker.sock:/var/run/docker.sock\"", "--privileged", "--rm", "-v",
-            rootFolder.toAbsolutePath() + "\\build:/build", "docker:latest", "sh", "-c"));
-        StringBuilder dockerInteractiveCommands = new StringBuilder("\"cd ./build && docker login -u " +
-            dockerCredentials.getUsername() + " -p " + dockerCredentials.getAccessToken() + " && docker buildx create " +
-            "--name multiarch --driver docker-container --bootstrap --use");
-        for (String functionIdentifier : functionIdentifiers) {
-            dockerInteractiveCommands.append(String.format(" && docker buildx build -t %s/%s ./%s --platform " +
-                    "linux/arm/v7,linux/amd64 --push",
-                dockerCredentials.getUsername(), functionIdentifier, functionIdentifier));
-        }
-        dockerInteractiveCommands.append("\"");
-        dockerCommands.add(dockerInteractiveCommands.toString());
-        ProcessExecutor processExecutor = new ProcessExecutor(vertx, rootFolder, dockerCommands);
-        return processExecutor.executeCli();
+            .andThen(Single.fromCallable(() -> functionsToDeploy));
     }
 
     private boolean deployFunctionOnVMOrEdge(Function function, List<FunctionResource> functionResources) {

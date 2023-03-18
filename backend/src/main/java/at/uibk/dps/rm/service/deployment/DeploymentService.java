@@ -1,11 +1,12 @@
 package at.uibk.dps.rm.service.deployment;
 
+import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
+import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
 
 @ProxyGen
 @VertxGen
@@ -19,7 +20,9 @@ public interface DeploymentService {
         return new DeploymentServiceVertxEBProxy(vertx, address);
     }
 
-    Future<Integer> deploy(JsonObject data);
+    Future<FunctionsToDeploy> packageFunctionsCode(DeployResourcesRequest deployRequest);
+
+    Future<Integer> deploy(DeployResourcesRequest deployRequest);
 
     Future<Void> terminate(long resourceId);
 }
