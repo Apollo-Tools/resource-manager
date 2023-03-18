@@ -17,7 +17,6 @@ repositories {
 }
 
 val vertxVersion = "4.3.2"
-val mutinyVersion = "2.22.0"
 val flywayVersion = "8.5.12"
 val junitJupiterVersion = "5.7.0"
 val postgresVersion = "42.3.6"
