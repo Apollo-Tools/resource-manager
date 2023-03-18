@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.service.deployment.docker;
 
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
-import at.uibk.dps.rm.service.deployment.ProcessExecutor;
+import at.uibk.dps.rm.service.deployment.executor.ProcessExecutor;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.core.Vertx;

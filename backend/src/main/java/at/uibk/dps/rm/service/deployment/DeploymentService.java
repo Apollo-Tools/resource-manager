@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.deployment;
 
+import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -21,6 +22,8 @@ public interface DeploymentService {
     }
 
     Future<FunctionsToDeploy> packageFunctionsCode(DeployResourcesRequest deployRequest);
+
+    Future<DeploymentCredentials> setUpTFModules(DeployResourcesRequest deployRequest);
 
     Future<Integer> deploy(DeployResourcesRequest deployRequest);
 

@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class Credentials {
+public class TFCloudCredentials {
     private String accessKey;
     private String secretAccessKey;
     private String sessionToken;

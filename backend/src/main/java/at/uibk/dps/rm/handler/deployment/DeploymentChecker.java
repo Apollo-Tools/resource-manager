@@ -23,6 +23,7 @@ public class DeploymentChecker {
                     new DeploymentPath(request.getReservationId()).getFunctionsFolder());
                 return dockerImageService.buildAndPushDockerImages(functionsToDeploy.getFunctionsString().toString());
             })
+            .flatMap(res -> deploymentService.setUpTFModules(request))
             .ignoreElement();
         //return deploymentService.deploy(request).ignoreElement();
     }
