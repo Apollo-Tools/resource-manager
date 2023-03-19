@@ -1,6 +1,5 @@
-package at.uibk.dps.rm.util;
+package at.uibk.dps.rm.entity.deployment;
 
-import at.uibk.dps.rm.service.deployment.TerraformModule;
 import lombok.Getter;
 
 import java.nio.file.Path;

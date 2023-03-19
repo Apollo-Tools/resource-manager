@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
 import at.uibk.dps.rm.entity.model.FunctionResource;
-import at.uibk.dps.rm.service.deployment.TerraformModule;
+import at.uibk.dps.rm.entity.deployment.TerraformModule;
 import io.vertx.rxjava3.core.file.FileSystem;
 
 import java.io.IOException;

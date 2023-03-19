@@ -25,7 +25,5 @@ public interface DeploymentService {
 
     Future<DeploymentCredentials> setUpTFModules(DeployResourcesRequest deployRequest);
 
-    Future<Integer> deploy(DeployResourcesRequest deployRequest);
-
     Future<Void> terminate(long resourceId);
 }

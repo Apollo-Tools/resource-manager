@@ -2,11 +2,12 @@ package at.uibk.dps.rm.service.deployment;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
+import at.uibk.dps.rm.entity.deployment.TerraformModule;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.service.deployment.terraform.FunctionFileService;
 import at.uibk.dps.rm.service.deployment.terraform.MainFileService;
 import at.uibk.dps.rm.service.deployment.terraform.TerraformSetupService;
-import at.uibk.dps.rm.util.DeploymentPath;
+import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.Future;
 import io.vertx.rxjava3.SingleHelper;
@@ -45,14 +46,6 @@ public class DeploymentServiceImpl  implements DeploymentService {
             })
             .andThen(Single.fromCallable(() -> credentials));
         return SingleHelper.toFuture(createTFDirs);
-    }
-
-    @Override
-    public Future<Integer> deploy(DeployResourcesRequest deployRequest) {
-        DeploymentExecutor deploymentExecutor = new DeploymentExecutor(vertx, deployRequest);
-        return Future.fromCompletionStage(deploymentExecutor.deploy()
-            .doOnError(Throwable::printStackTrace)
-            .toCompletionStage());
     }
 
     @Override

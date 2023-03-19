@@ -1,11 +1,11 @@
 package at.uibk.dps.rm.service.deployment.executor;
 
+import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.model.Credentials;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.buffer.Buffer;
-import io.vertx.rxjava3.core.file.FileSystem;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -16,18 +16,16 @@ public class TerraformExecutor {
 
     private final Vertx vertx;
 
-    private final List<Credentials> credentials;
+    private final DeploymentCredentials credentials;
 
-    private final String edgeLogin;
-
-    public TerraformExecutor(Vertx vertx, List<Credentials> credentials, String edgeLogin) {
+    public TerraformExecutor(Vertx vertx, DeploymentCredentials deploymentCredentials) {
         this.vertx = vertx;
-        this.credentials = credentials;
-        this.edgeLogin = edgeLogin;
+        this.credentials = deploymentCredentials;
     }
 
+
     // TODO: test if this works on linux as well
-    public Completable setPluginCacheFolder(FileSystem fileSystem, Path folder) {
+    public Completable setPluginCacheFolder(Path folder) {
         String tfConfigContent = "plugin_cache_dir   = \"" + folder.toString().replace("\\", "/") + "\"";
         Path tfConfigPath;
         if (System.getProperty("os.name").toLowerCase().contains("windows")) {
@@ -35,8 +33,8 @@ public class TerraformExecutor {
         } else {
             tfConfigPath = Paths.get(System.getenv("user.home") + "\\.terraformrc");
         }
-        return fileSystem.mkdirs(folder.toString())
-            .andThen(fileSystem.writeFile(tfConfigPath.toString(), Buffer.buffer(tfConfigContent)));
+        return vertx.fileSystem().mkdirs(folder.toString())
+            .andThen(vertx.fileSystem().writeFile(tfConfigPath.toString(), Buffer.buffer(tfConfigContent)));
     }
 
     public Single<Integer> init(Path folder) throws IOException, InterruptedException {
@@ -54,13 +52,13 @@ public class TerraformExecutor {
     }
 
     public int destroy(Path folder) {
-        // TODO: implemnt
+        // TODO: implement
         return -1;
     }
     
     private List<String> getCredentialsCommands() {
         List<String> variables = new ArrayList<>();
-        for (Credentials entry : credentials) {
+        for (Credentials entry : credentials.getCloudCredentials()) {
             String prefix = entry.getResourceProvider().getProvider().toLowerCase();
             variables.add("-var=\"" + prefix + "_access_key=" + entry.getAccessKey() + "\"");
             variables.add("-var=\"" + prefix + "_secret_access_key=" + entry.getSecretAccessKey() + "\"");
@@ -70,7 +68,8 @@ public class TerraformExecutor {
     }
 
     private String getEdgeLoginCommand() {
-        if (edgeLogin == null || edgeLogin.isBlank()) {
+        String edgeLogin = credentials.getEdgeLoginCredentials().toString();
+        if (edgeLogin.isBlank()) {
             return "";
         }
         return "-var=\"" + edgeLogin + "\"";

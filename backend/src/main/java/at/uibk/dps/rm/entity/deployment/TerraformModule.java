@@ -1,6 +1,5 @@
-package at.uibk.dps.rm.service.deployment;
+package at.uibk.dps.rm.entity.deployment;
 
-import at.uibk.dps.rm.entity.deployment.CloudProvider;
 import lombok.Getter;
 import lombok.Setter;
 
