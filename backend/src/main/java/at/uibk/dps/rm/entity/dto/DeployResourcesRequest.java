@@ -3,6 +3,7 @@ package at.uibk.dps.rm.entity.dto;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.model.Credentials;
 import at.uibk.dps.rm.entity.model.FunctionResource;
+import at.uibk.dps.rm.entity.model.Reservation;
 import at.uibk.dps.rm.entity.model.VPC;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
@@ -22,11 +23,11 @@ public class DeployResourcesRequest {
         this.setFunctionResources(request.getFunctionResources());
         this.setCredentialsList(request.getCredentialsList());
         this.setDockerCredentials(request.getDockerCredentials());
-        this.setReservationId(request.getReservationId());
+        this.setReservation(request.getReservation());
         this.setVpcList(request.getVpcList());
     }
 
-    private long reservationId;
+    private Reservation reservation;
 
     private List<Credentials> credentialsList;
 

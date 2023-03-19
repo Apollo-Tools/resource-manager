@@ -15,7 +15,7 @@ public class LogChecker extends EntityChecker {
         this.logService = logService;
     }
 
-    public Single<JsonArray> checkFindAllByReservationId(long accountId, long reservationId) {
+    public Single<JsonArray> checkFindAllByReservationId(long reservationId, long accountId) {
         Single<JsonArray> findAllByReservationId = logService
             .findAllByReservationIdAndAccountId(reservationId, accountId);
         return ErrorHandler.handleFindAll(findAllByReservationId);

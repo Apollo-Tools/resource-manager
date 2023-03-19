@@ -107,7 +107,7 @@ public class ReservationHandler extends ValidationHandler {
                 .andThen(Single.just(JsonObject.mapFrom(resourceReservations.get(0).getReservation())))
                 .map(result -> {
                     deploymentHandler
-                        .deployResources(result.getLong("reservation_id"), accountId,
+                        .deployResources(result.mapTo(Reservation.class), accountId,
                             requestDTO.getDockerCredentials(), vpcList)
                         .subscribe();
                     return result;

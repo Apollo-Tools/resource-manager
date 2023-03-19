@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.deployment.executor;
 
+import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.core.Vertx;
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 public class ProcessExecutor {
@@ -26,27 +28,32 @@ public class ProcessExecutor {
         this.commands = List.of(commands);
     }
 
-    public Single<Integer> executeCli() {
-        Maybe<Process> result = vertx.executeBlocking(fut -> {
-            final Process process;
+    public Single<ProcessOutput> executeCli() {
+        Maybe<ProcessOutput> result = vertx.executeBlocking(fut -> {
+            ProcessOutput processOutput = new ProcessOutput();
             try {
+                final Process process;
                 process = new ProcessBuilder(commands)
                     .directory(workingDirectory.toFile())
-                    .inheritIO()
                     .redirectErrorStream(true)
                     .start();
+                processOutput.setProcess(process);
+                processOutput.setProcessOutput(getProcessOutput(process));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            fut.complete(process);
+            fut.complete(processOutput);
         });
-        return result.flatMapSingle(process -> Single.fromCompletionStage(process.onExit().minimalCompletionStage()))
-            .map(Process::exitValue)
+        return result.flatMapSingle(processOutput ->
+                Single.fromCompletionStage(processOutput.getProcess().onExit().minimalCompletionStage())
+                    .map(process -> processOutput))
             .toSingle();
     }
 
-    private void printOutput(Process process) {
-        BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        input.lines().forEach(System.out::println);
+    private String getProcessOutput(Process process) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String result = reader.lines().collect(Collectors.joining("\n"));
+        reader.close();
+        return result;
     }
 }

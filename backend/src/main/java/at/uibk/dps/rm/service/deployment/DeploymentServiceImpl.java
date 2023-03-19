@@ -23,7 +23,7 @@ public class DeploymentServiceImpl  implements DeploymentService {
 
     @Override
     public Future<FunctionsToDeploy> packageFunctionsCode(DeployResourcesRequest deployRequest) {
-        DeploymentPath deploymentPath = new DeploymentPath(deployRequest.getReservationId());
+        DeploymentPath deploymentPath = new DeploymentPath(deployRequest.getReservation().getReservationId());
         FunctionFileService functionFileService = new FunctionFileService(vertx,
             deployRequest.getFunctionResources(), deploymentPath.getFunctionsFolder(), deployRequest.getDockerCredentials());
         return SingleHelper.toFuture(functionFileService.packageCode());
@@ -32,7 +32,7 @@ public class DeploymentServiceImpl  implements DeploymentService {
     @Override
     public Future<DeploymentCredentials> setUpTFModules(DeployResourcesRequest deployRequest) {
         DeploymentCredentials credentials = new DeploymentCredentials();
-        DeploymentPath deploymentPath = new DeploymentPath(deployRequest.getReservationId());
+        DeploymentPath deploymentPath = new DeploymentPath(deployRequest.getReservation().getReservationId());
         TerraformSetupService tfSetupService = new TerraformSetupService(vertx, deployRequest,
             deploymentPath, credentials);
         List<Single<TerraformModule>> singles = tfSetupService.setUpTFModuleDirs();

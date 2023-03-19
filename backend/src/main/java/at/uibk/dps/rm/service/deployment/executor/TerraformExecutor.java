@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.service.deployment.executor;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
+import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.model.Credentials;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -37,12 +38,12 @@ public class TerraformExecutor {
             .andThen(vertx.fileSystem().writeFile(tfConfigPath.toString(), Buffer.buffer(tfConfigContent)));
     }
 
-    public Single<Integer> init(Path folder) throws IOException, InterruptedException {
+    public Single<ProcessOutput> init(Path folder) throws IOException, InterruptedException {
         ProcessExecutor processExecutor = new ProcessExecutor(vertx, folder, "terraform",  "init");
         return processExecutor.executeCli();
     }
 
-    public Single<Integer> apply(Path folder) {
+    public Single<ProcessOutput> apply(Path folder) {
         List<String> variables = getCredentialsCommands();
         List<String> commands = new ArrayList<>(List.of("terraform", "apply", "-auto-approve"));
         commands.addAll(variables);

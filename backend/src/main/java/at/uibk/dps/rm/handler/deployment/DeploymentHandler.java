@@ -3,6 +3,7 @@ package at.uibk.dps.rm.handler.deployment;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.model.FunctionResource;
+import at.uibk.dps.rm.entity.model.Reservation;
 import at.uibk.dps.rm.entity.model.ResourceProvider;
 import at.uibk.dps.rm.entity.model.VPC;
 import at.uibk.dps.rm.handler.account.CredentialsChecker;
@@ -25,15 +26,16 @@ public class DeploymentHandler {
     private final FunctionResourceChecker functionResourceChecker;
 
     public DeploymentHandler(ServiceProxyProvider serviceProxyProvider) {
-        this.deploymentChecker = new DeploymentChecker(serviceProxyProvider.getDeploymentService());
+        this.deploymentChecker = new DeploymentChecker(serviceProxyProvider.getDeploymentService(),
+            serviceProxyProvider.getLogService(), serviceProxyProvider.getReservationLogService());
         this.credentialsChecker = new CredentialsChecker(serviceProxyProvider.getCredentialsService());
         this.functionResourceChecker = new FunctionResourceChecker(serviceProxyProvider.getFunctionResourceService());
     }
 
-    public Completable deployResources(long reservationId, long accountId, DockerCredentials dockerCredentials,
+    public Completable deployResources(Reservation reservation, long accountId, DockerCredentials dockerCredentials,
                                        List<VPC> vpcList) {
         DeployResourcesRequest request = new DeployResourcesRequest();
-        request.setReservationId(reservationId);
+        request.setReservation(reservation);
         request.setDockerCredentials(dockerCredentials);
         request.setVpcList(vpcList);
         ObjectMapper mapper = DatabindCodec.mapper();
@@ -43,7 +45,7 @@ public class DeploymentHandler {
                 return request;
             })
             .flatMap(deployRequest ->
-                functionResourceChecker.checkFindAllByReservationId(reservationId)
+                functionResourceChecker.checkFindAllByReservationId(reservation.getReservationId())
                     .map(functionResources -> {
                         deployRequest.setFunctionResources(mapper.readValue(functionResources.toString(),
                             new TypeReference<>() {}));

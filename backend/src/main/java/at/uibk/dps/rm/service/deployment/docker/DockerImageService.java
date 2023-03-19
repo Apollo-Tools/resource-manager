@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.deployment.docker;
 
+import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.service.deployment.executor.ProcessExecutor;
 import io.reactivex.rxjava3.core.Completable;
@@ -29,7 +30,7 @@ public class DockerImageService {
         this.functionsDir = functionsDir;
     }
 
-    public Single<Integer> buildAndPushDockerImages(String functionsString) {
+    public Single<ProcessOutput> buildAndPushDockerImages(String functionsString) {
         String stackFile = String.format(
             "version: 1.0\n" +
                 "provider:\n" +
@@ -42,7 +43,15 @@ public class DockerImageService {
 
         return createStackFile(functionsDir, stackFile)
             .andThen(buildFunctionsDockerFiles(functionsDir))
-            .flatMap(res -> pushDockerImages(functionsDir));
+            .flatMap(buildOutput -> {
+                if (buildOutput.getProcess().exitValue() != 0) {
+                    return Single.just(buildOutput);
+                }
+                return pushDockerImages(functionsDir).map(pushOutput -> {
+                  pushOutput.setProcessOutput(buildOutput.getProcessOutput() + pushOutput.getProcessOutput());
+                  return pushOutput;
+                });
+            });
     }
 
     private Completable createStackFile(Path rootFolder, String fileContent) {
@@ -50,13 +59,13 @@ public class DockerImageService {
         return vertx.fileSystem().writeFile(filePath.toString(), Buffer.buffer(fileContent));
     }
 
-    private Single<Integer> buildFunctionsDockerFiles(Path rootFolder) {
+    private Single<ProcessOutput> buildFunctionsDockerFiles(Path rootFolder) {
         ProcessExecutor processExecutor = new ProcessExecutor(vertx, rootFolder,"faas-cli", "build", "-f",
             "stack.yml", "--shrinkwrap");
         return processExecutor.executeCli();
     }
 
-    private Single<Integer> pushDockerImages(Path rootFolder) {
+    private Single<ProcessOutput> pushDockerImages(Path rootFolder) {
         List<String> dockerCommands = new java.util.ArrayList<>(List.of("docker", "run", "-v",
             "\"/var/run/docker.sock:/var/run/docker.sock\"", "--privileged", "--rm", "-v",
             rootFolder.toAbsolutePath() + "\\build:/build", "docker:latest", "sh", "-c"));

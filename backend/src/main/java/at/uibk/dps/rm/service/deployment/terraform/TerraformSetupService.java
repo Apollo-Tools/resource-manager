@@ -71,17 +71,17 @@ public class TerraformSetupService {
         credentials.getEdgeLoginCredentials().append("]");
     }
 
-    // TODO: Rework for other cloud providers
+    //TODO: Rework for other cloud providers
     private Single<TerraformModule> cloudDeployment(Region region, List<FunctionResource> regionFunctionResources,
                                                     Map<Region, VPC> regionVPCMap) {
-        // TODO: get rid of these
+        //TODO: get rid of these
         String awsRole = "LabRole";
         String provider = region.getResourceProvider().getProvider();
         TerraformModule module = new TerraformModule(CloudProvider.AWS, provider + "_" +
             region.getName().replace("-", "_"));
         Path awsFolder = deploymentPath.getModuleFolder(module);
         AWSFileService fileService = new AWSFileService(vertx.fileSystem(), awsFolder, deploymentPath.getFunctionsFolder(),
-            region, awsRole, regionFunctionResources, deployRequest.getReservationId(), module,
+            region, awsRole, regionFunctionResources, deployRequest.getReservation().getReservationId(), module,
             deployRequest.getDockerCredentials().getUsername(), regionVPCMap.get(region));
         return fileService.setUpDirectory()
             .toSingle(() -> module);
@@ -91,7 +91,7 @@ public class TerraformSetupService {
         TerraformModule module = new TerraformModule(CloudProvider.EDGE, "edge");
         Path edgeFolder = deploymentPath.getModuleFolder(module);
         EdgeFileService edgeService = new EdgeFileService(vertx.fileSystem(), edgeFolder, edgeFunctionResources,
-            deployRequest.getReservationId(), deployRequest.getDockerCredentials().getUsername());
+            deployRequest.getReservation().getReservationId(), deployRequest.getDockerCredentials().getUsername());
         return edgeService.setUpDirectory()
             .toSingle(() -> module);
     }
