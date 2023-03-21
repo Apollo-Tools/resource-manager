@@ -12,6 +12,7 @@ import at.uibk.dps.rm.service.rxjava3.database.log.LogService;
 import at.uibk.dps.rm.service.rxjava3.database.log.ReservationLogService;
 import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentService;
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
+import at.uibk.dps.rm.util.ConsoleOutputUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
@@ -62,7 +63,9 @@ public class DeploymentChecker {
         }
 
         Log log = new Log();
-        log.setLogValue(processOutput.getProcessOutput());
+        String output = processOutput.getProcessOutput();
+        output = ConsoleOutputUtility.escapeConsoleOutput(output);
+        log.setLogValue(output);
         return logService.save(JsonObject.mapFrom(log))
             .map(logResult -> {
                 Log logStored = logResult.mapTo(Log.class);
