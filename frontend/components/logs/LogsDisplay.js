@@ -1,4 +1,4 @@
-import {Collapse, Typography} from 'antd';
+import {Collapse} from 'antd';
 import DateFormatter from '../misc/DateFormatter';
 import PropTypes from 'prop-types';
 const {Panel} = Collapse;
@@ -6,13 +6,15 @@ const {Panel} = Collapse;
 
 const LogsDisplay = ({logs}) => {
   if (logs.length === 0) {
-    return <Typography.Title level={4}>Currently there are no logs...</Typography.Title>;
+    return <>Currently there are no logs...</>;
   }
 
-  return <Collapse accordion style={{whiteSpace: 'pre-wrap'}}>
+  return <Collapse accordion style={{whiteSpace: 'pre-wrap'}} size="small">
     {logs.map((log) =>
-      (<Panel header={<DateFormatter dateTimestamp={log.created_at} includeTime/>} key={log.log_id}>
-        {log.log_value}
+      (<Panel header={<DateFormatter dateTimestamp={log.created_at} includeTime/>} key={log.log_id} className="p-0">
+        <div className="max-h-56 overflow-auto m-[-16px] p-2">
+          {log.log_value}
+        </div>
       </Panel>))
     }
   </Collapse>;

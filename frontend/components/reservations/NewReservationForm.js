@@ -102,7 +102,7 @@ const NewReservationForm = ({setNewReservation}) => {
           hidden={!vmOrEdgeSelected}
           rules={[
             {
-              required: true,
+              required: vmOrEdgeSelected,
               message: 'Please input your docker username!',
             },
           ]}
@@ -116,7 +116,7 @@ const NewReservationForm = ({setNewReservation}) => {
           hidden={!vmOrEdgeSelected}
           rules={[
             {
-              required: true,
+              required: vmOrEdgeSelected,
               message: 'Please input a valid docker access token with write permissions!',
             },
           ]}
