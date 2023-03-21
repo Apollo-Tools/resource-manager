@@ -39,7 +39,7 @@ public class TerraformExecutor {
     }
 
     public Single<ProcessOutput> init(Path folder) throws IOException, InterruptedException {
-        ProcessExecutor processExecutor = new ProcessExecutor(vertx, folder, "terraform",  "init");
+        ProcessExecutor processExecutor = new ProcessExecutor(folder, "terraform",  "init");
         return processExecutor.executeCli();
     }
 
@@ -48,7 +48,7 @@ public class TerraformExecutor {
         List<String> commands = new ArrayList<>(List.of("terraform", "apply", "-auto-approve"));
         commands.addAll(variables);
         commands.add(getEdgeLoginCommand());
-        ProcessExecutor processExecutor = new ProcessExecutor(vertx, folder, commands);
+        ProcessExecutor processExecutor = new ProcessExecutor(folder, commands);
         return processExecutor.executeCli();
     }
 

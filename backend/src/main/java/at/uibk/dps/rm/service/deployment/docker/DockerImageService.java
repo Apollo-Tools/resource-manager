@@ -63,7 +63,7 @@ public class DockerImageService {
     }
 
     private Single<ProcessOutput> buildFunctionsDockerFiles(Path rootFolder) {
-        ProcessExecutor processExecutor = new ProcessExecutor(vertx, rootFolder,"faas-cli", "build", "-f",
+        ProcessExecutor processExecutor = new ProcessExecutor(rootFolder,"faas-cli", "build", "-f",
             "stack.yml", "--shrinkwrap");
         return processExecutor.executeCli();
     }
@@ -82,7 +82,7 @@ public class DockerImageService {
         }
         dockerInteractiveCommands.append("\"");
         dockerCommands.add(dockerInteractiveCommands.toString());
-        ProcessExecutor processExecutor = new ProcessExecutor(vertx, rootFolder, dockerCommands);
+        ProcessExecutor processExecutor = new ProcessExecutor(rootFolder, dockerCommands);
         return processExecutor.executeCli();
     }
 }

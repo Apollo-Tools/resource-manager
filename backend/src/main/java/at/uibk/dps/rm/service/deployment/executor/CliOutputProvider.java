@@ -29,9 +29,6 @@ public class CliOutputProvider implements Callable<ProcessOutput> {
 
     private String getProcessOutput(Process process) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        new String(process.getInputStream().readAllBytes());
-        String result = reader.lines().collect(Collectors.joining("\n"));
-        reader.close();
-        return result;
+        return reader.lines().collect(Collectors.joining("\n"));
     }
 }
