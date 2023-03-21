@@ -57,9 +57,10 @@ public class DeploymentChecker {
     }
 
     private Completable persistLogs(ProcessOutput processOutput, Reservation reservation) {
-        if (processOutput.getProcess().exitValue() != 0) {
-            throw new DeploymentFailedException();
+        if (processOutput.getProcess() == null) {
+            return Completable.complete();
         }
+
         Log log = new Log();
         log.setLogValue(processOutput.getProcessOutput());
         return logService.save(JsonObject.mapFrom(log))
@@ -69,6 +70,12 @@ public class DeploymentChecker {
                 reservationLog.setReservation(reservation);
                 reservationLog.setLog(logStored);
                 return reservationLogService.save(JsonObject.mapFrom(reservationLog));
-            }).ignoreElement();
+            })
+            .flatMapCompletable(res -> {
+                if (processOutput.getProcess().exitValue() != 0) {
+                    return Completable.error(new DeploymentFailedException());
+                }
+                return Completable.complete();
+            });
     }
 }

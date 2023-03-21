@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
@@ -29,6 +31,19 @@ public class ProcessExecutor {
     }
 
     public Single<ProcessOutput> executeCli() {
+        ExecutorService pool = Executors.newSingleThreadExecutor();
+        ProcessBuilder processBuilder = new ProcessBuilder(commands)
+            .directory(workingDirectory.toFile())
+            .inheritIO()
+            .redirectErrorStream(true);
+        return Single.fromFuture(pool.submit(new CliOutputProvider(processBuilder)))
+            .flatMap(processOutput ->
+                Single.fromCompletionStage(processOutput.getProcess().onExit().minimalCompletionStage())
+                    .map(process -> processOutput));
+            //.subscribeOn(Schedulers.io());
+    }
+
+    public Single<ProcessOutput> executeCliDep() {
         Maybe<ProcessOutput> result = vertx.executeBlocking(fut -> {
             ProcessOutput processOutput = new ProcessOutput();
             try {

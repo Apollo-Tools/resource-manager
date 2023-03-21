@@ -64,6 +64,7 @@ public class DeploymentHandler {
                         return deployRequest;
                     }
                 ))
+            //TODO: add error handling (destroy everything that was created up to the error)
                 .flatMapCompletable(deploymentChecker::deployResources);
     }
 }
