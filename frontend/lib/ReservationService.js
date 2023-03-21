@@ -16,6 +16,22 @@ export async function listMyReservations(token, setReservations, setError) {
   }
 }
 
+export async function listReservationLogs(reservationId, token, setReservationLogs, setError) {
+  try {
+    const response = await fetch(`${API_ROUTE}/${reservationId}/logs`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await response.json();
+    setReservationLogs(() => data);
+  } catch (error) {
+    setError(true);
+    console.log(error);
+  }
+}
+
 export async function reserveResources(
     requestBody,
     token,
