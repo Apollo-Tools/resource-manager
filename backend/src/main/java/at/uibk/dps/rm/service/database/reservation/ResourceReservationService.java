@@ -22,4 +22,6 @@ public interface ResourceReservationService extends ServiceInterface {
     }
 
     Future<JsonArray> findAllByReservationId(long id);
+
+    Future<Void> updateTriggerUrl(long functionResourceId, long reservationId, String triggerUrl);
 }

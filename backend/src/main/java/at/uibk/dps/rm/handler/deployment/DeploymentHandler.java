@@ -27,7 +27,8 @@ public class DeploymentHandler {
 
     public DeploymentHandler(ServiceProxyProvider serviceProxyProvider) {
         this.deploymentChecker = new DeploymentChecker(serviceProxyProvider.getDeploymentService(),
-            serviceProxyProvider.getLogService(), serviceProxyProvider.getReservationLogService());
+            serviceProxyProvider.getLogService(), serviceProxyProvider.getReservationLogService(),
+            serviceProxyProvider.getResourceReservationService());
         this.credentialsChecker = new CredentialsChecker(serviceProxyProvider.getCredentialsService());
         this.functionResourceChecker = new FunctionResourceChecker(serviceProxyProvider.getFunctionResourceService());
     }

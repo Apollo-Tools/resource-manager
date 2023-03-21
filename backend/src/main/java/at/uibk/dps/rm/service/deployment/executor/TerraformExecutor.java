@@ -52,6 +52,12 @@ public class TerraformExecutor {
         return processExecutor.executeCli();
     }
 
+    public Single<ProcessOutput> getOutput(Path folder) {
+        List<String> commands = new ArrayList<>(List.of("terraform", "output", "--json"));
+        ProcessExecutor processExecutor = new ProcessExecutor(folder, commands);
+        return processExecutor.executeCli();
+    }
+
     public int destroy(Path folder) {
         // TODO: implement
         return -1;

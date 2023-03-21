@@ -24,4 +24,17 @@ public class ResourceReservationRepository extends Repository<ResourceReservatio
                         .getResultList()
         );
     }
+
+    public CompletionStage<Integer> updateTriggerUrl(long functionResourceId, long reservationId, String triggerUrl) {
+        return sessionFactory.withSession(session ->
+            session.createQuery("update ResourceReservation rr " +
+                "set triggerUrl=:triggerUrl, isDeployed=true " +
+                "where rr.functionResource.functionResourceId=:functionResourceId and " +
+                "rr.reservation.reservationId=:reservationId")
+                .setParameter("triggerUrl", triggerUrl)
+                .setParameter("functionResourceId", functionResourceId)
+                .setParameter("reservationId", reservationId)
+                .executeUpdate()
+        );
+    }
 }

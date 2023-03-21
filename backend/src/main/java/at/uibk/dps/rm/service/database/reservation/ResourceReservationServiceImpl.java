@@ -18,6 +18,7 @@ public class ResourceReservationServiceImpl extends ServiceProxy<ResourceReserva
         this.resourceReservationRepository = resourceReservationRepository;
     }
 
+    @Override
     public Future<JsonArray> findAllByReservationId(long id) {
         return Future
                 .fromCompletionStage(resourceReservationRepository.findAllByReservationId(id))
@@ -34,5 +35,13 @@ public class ResourceReservationServiceImpl extends ServiceProxy<ResourceReserva
                     }
                     return new JsonArray(objects);
                 });
+    }
+
+    @Override
+    public Future<Void> updateTriggerUrl(long functionResourceId, long reservationId, String triggerUrl) {
+        return Future
+            .fromCompletionStage(resourceReservationRepository.updateTriggerUrl(functionResourceId, reservationId,
+                    triggerUrl))
+            .mapEmpty();
     }
 }

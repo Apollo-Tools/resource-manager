@@ -107,7 +107,7 @@ public class MainFileService extends TerraformFileService {
             }
         }
         if (edgeOutput.isBlank()) {
-            edgeOutput = "\"\"";
+            edgeOutput = "{}";
         }
 
         return String.format(
