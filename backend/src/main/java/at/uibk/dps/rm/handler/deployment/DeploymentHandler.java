@@ -87,6 +87,7 @@ public class DeploymentHandler {
                         return terminateRequest;
                     })
             )
-            .flatMapCompletable(deploymentChecker::terminateResources);
+            .flatMapCompletable(deploymentChecker::terminateResources)
+            .concatWith(Completable.defer(() -> deploymentChecker.deleteTFDirs(reservation.getReservationId())));
     }
 }

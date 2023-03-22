@@ -148,4 +148,8 @@ public class DeploymentChecker {
             .flatMap(terraformExecutor -> terraformExecutor.destroy(deploymentPath.getRootFolder()))
             .flatMapCompletable(terminateOutput -> persistLogs(terminateOutput, request.getReservation()));
     }
+
+    public Completable deleteTFDirs(long reservationId) {
+        return deploymentService.deleteTFDirs(reservationId);
+    }
 }

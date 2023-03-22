@@ -28,5 +28,5 @@ public interface DeploymentService {
 
     Future<DeploymentCredentials> getNecessaryCredentials(TerminateResourcesRequest terminateRequest);
 
-    Future<Void> terminate(long resourceId);
+    Future<Void> deleteTFDirs(long reservationId);
 }

@@ -7,11 +7,13 @@ import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.dto.TerminateResourcesRequest;
 import at.uibk.dps.rm.service.deployment.terraform.FunctionFileService;
 import at.uibk.dps.rm.service.deployment.terraform.MainFileService;
+import at.uibk.dps.rm.service.deployment.terraform.TerraformFileService;
 import at.uibk.dps.rm.service.deployment.terraform.TerraformSetupService;
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.rxjava3.CompletableHelper;
 import io.vertx.rxjava3.SingleHelper;
 import io.vertx.rxjava3.core.Vertx;
 
@@ -63,7 +65,9 @@ public class DeploymentServiceImpl  implements DeploymentService {
     }
 
     @Override
-    public Future<Void> terminate(long resourceId) {
-        return null;
+    public Future<Void> deleteTFDirs(long reservationId) {
+        DeploymentPath deploymentPath = new DeploymentPath(reservationId);
+        return CompletableHelper.toFuture(TerraformFileService
+            .deleteAllDirs(vertx.fileSystem(), deploymentPath.getRootFolder()));
     }
 }
