@@ -96,4 +96,14 @@ public class ErrorHandler {
                 return false;
             });
     }
+
+    public static Single<String> handleTemplateHasContent(Single<String> handler) {
+        return handler
+            .map(result -> {
+                if (result == null || result.isBlank()) {
+                    throw new NotFoundException();
+                }
+                return result;
+            });
+    }
 }

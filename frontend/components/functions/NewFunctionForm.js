@@ -2,7 +2,7 @@ import {Button, Form, Input, Select} from 'antd';
 import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import PropTypes from 'prop-types';
-import {listRuntimes} from '../../lib/RuntimeService';
+import {getRuntimeTemplate, listRuntimes} from '../../lib/RuntimeService';
 import {createFunction} from '../../lib/FunctionService';
 import CodeMirror from '@uiw/react-codemirror';
 import {getEditorExtension} from '../../lib/CodeEditorService';
@@ -14,12 +14,19 @@ const NewFunctionFrom = ({setNewFunction}) => {
   const [error, setError] = useState();
   const [runtimes, setRuntimes] = useState([]);
   const [editorExtensions, setEditorExtensions] = useState([]);
+  const [functionTemplate, setFunctionTemplate] = useState('');
 
   useEffect(() => {
     if (!checkTokenExpired()) {
       listRuntimes(token, setRuntimes, setError);
     }
   }, []);
+
+  useEffect(() => {
+    if (functionTemplate != null) {
+      form.setFieldValue('code', functionTemplate);
+    }
+  }, [functionTemplate]);
 
   // TODO: improve error handling
   useEffect(() => {
@@ -45,8 +52,13 @@ const NewFunctionFrom = ({setNewFunction}) => {
   };
 
   const onChangeRuntime = () => {
-    const extension = getEditorExtension(getCurrentRuntime().name);
+    const currentRuntime = getCurrentRuntime();
+    console.log(currentRuntime);
+    const extension = getEditorExtension(currentRuntime.name);
     setEditorExtensions(extension != null ? [extension] : []);
+    if (!checkTokenExpired()) {
+      getRuntimeTemplate(currentRuntime.runtime_id, token, setFunctionTemplate, setError);
+    }
   };
 
   return (
@@ -103,7 +115,7 @@ const NewFunctionFrom = ({setNewFunction}) => {
             },
           ]}
         >
-          <CodeMirror height="200px" extensions={editorExtensions} />
+          <CodeMirror height="500px" extensions={editorExtensions}/>
         </Form.Item>)}
 
         <Form.Item>

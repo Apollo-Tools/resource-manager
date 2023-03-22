@@ -19,4 +19,6 @@ public interface FilePathService {
     }
 
     Future<Boolean> templatePathExists(String templatePath);
+
+    Future<String> getRuntimeTemplate(String templatePath);
 }

@@ -18,4 +18,9 @@ public class FileSystemChecker {
         Single<Boolean> existsTemplatePath = filePathService.templatePathExists(templatePath);
         return ErrorHandler.handleExistsOne(existsTemplatePath).ignoreElement();
     }
+
+    public Single<String> checkGetFileTemplate(String templatePath) {
+        Single<String> getFileTemplate = filePathService.getRuntimeTemplate(templatePath);
+        return ErrorHandler.handleTemplateHasContent(getFileTemplate);
+    }
 }

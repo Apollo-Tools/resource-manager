@@ -612,6 +612,42 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
+  /runtimes/{id}/template:
+    get:
+      description: Return the template code for a selected runtime
+      operationId: getRuntimeTemplate
+      security:
+        - bearerAuth: []
+      tags:
+        - runtimes
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of a runtime template
+          content:
+            application/json:
+              schema:
+                type: object
+                minProperties: 1
+                additionalProperties: false
+                properties:
+                  template:
+                    type: string
+                    example: |
+                      def main(json_input):
+                        input1 = json_input["input1"]
+                        res = {
+                            "input1": input1
+                        }
+                        return res
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
   /runtimes:
     get:
       description: Return details about all runtimes managed by the resource manager
