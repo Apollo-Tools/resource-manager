@@ -30,8 +30,6 @@ public class FunctionFileService {
 
     private FunctionsToDeploy functionsToDeploy = new FunctionsToDeploy();
 
-    private final Set<Long> dockerFunctions = new HashSet<>();
-
     public FunctionFileService(Vertx vertx, List<FunctionResource> functionResources, Path functionsDir,
                                DockerCredentials dockerCredentials) {
         this.vertx = vertx;
@@ -65,14 +63,13 @@ public class FunctionFileService {
                             "    handler: ./%s\n" +
                             "    image: %s/%s:latest\n", functionIdentifier, functionIdentifier,
                         dockerCredentials.getUsername(), functionIdentifier));
-                    dockerFunctions.add(function.getFunctionId());
                 }
             }
             functionIds.add(function.getFunctionId());
             functionsToDeploy.getFunctionIdentifiers().add(functionIdentifier);
         }
         // TODO: add check if this is necessary (=no changes since last push)
-        if (dockerFunctions.isEmpty()) {
+        if (completables.isEmpty()) {
             return Single.just(functionsToDeploy);
         }
 
