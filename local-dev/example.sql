@@ -130,13 +130,13 @@ VALUES ('vpc-03e37d94124ae821c', 'subnet-02109321bd7f82080', 3, 1);
 -- resource
 -- faas
 INSERT INTO resource (resource_type, is_self_managed, region_id)
-VALUES (1, false, 3);
+VALUES (1, false, 2);
 -- edge
 INSERT INTO resource(resource_type, is_self_managed, region_id)
 VALUES (2, true, 4);
 -- vm
 INSERT INTO resource(resource_type, is_self_managed, region_id)
-VALUES (3, false, 3);
+VALUES (3, false, 2);
 
 -- runtime
 INSERT INTO runtime (name, template_path)
@@ -250,5 +250,7 @@ INSERT INTO resource_reservation_status (status_value)
 VALUES ('ERROR');
 INSERT INTO resource_reservation_status (status_value)
 VALUES ('DEPLOYED');
+INSERT INTO resource_reservation_status (status_value)
+VALUES ('TERMINATING');
 INSERT INTO resource_reservation_status (status_value)
 VALUES ('TERMINATED');
