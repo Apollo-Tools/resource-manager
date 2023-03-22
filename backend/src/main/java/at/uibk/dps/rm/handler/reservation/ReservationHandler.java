@@ -176,9 +176,16 @@ public class ReservationHandler extends ValidationHandler {
     // TODO: terminate resources
     @Override
     protected Completable updateOne(RoutingContext rc) {
+        long accountId = rc.user().principal().getLong("account_id");
         return HttpHelper.getLongPathParam(rc, "id")
-                .flatMap(id -> reservationChecker.checkFindOne(id, rc.user().principal().getLong("account_id")))
-                .flatMapCompletable(reservationChecker::submitCancelReservation);
+            .flatMap(id -> reservationChecker.checkFindOne(id, rc.user().principal().getLong("account_id")))
+            //.flatMapCompletable(reservationChecker::submitCancelReservation);
+            .flatMapCompletable(reservation -> {
+                deploymentHandler.terminateResources(reservation.mapTo(Reservation.class), accountId)
+                    .andThen(reservationChecker.submitCancelReservation(reservation))
+                    .subscribe();
+                return Completable.complete();
+            });
     }
 
     private Observable<JsonObject> checkFindFunctionResources(List<FunctionResourceIds> functionResourceIds) {

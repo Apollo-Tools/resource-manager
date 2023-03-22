@@ -169,8 +169,6 @@ public class AWSFileService extends ModuleFileService {
                     "}\n", reservationId, resourceNamesString, instanceTypesString,
             vpc.getVpcIdValue(), vpc.getSubnetIdValue()));
         vmString.append(functionsString);
-
-        // TODO: get vpc from persisted values
         return vmString.toString();
     }
 
@@ -190,7 +188,6 @@ public class AWSFileService extends ModuleFileService {
             "}\n";
     }
 
-    // TODO: rework for vms
     @Override
     protected String getOutputString() {
         StringBuilder outputString = new StringBuilder();

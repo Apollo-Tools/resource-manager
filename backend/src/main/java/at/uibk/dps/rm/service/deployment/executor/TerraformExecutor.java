@@ -58,9 +58,13 @@ public class TerraformExecutor {
         return processExecutor.executeCli();
     }
 
-    public int destroy(Path folder) {
-        // TODO: implement
-        return -1;
+    public Single<ProcessOutput> destroy(Path folder) {
+        List<String> variables = getCredentialsCommands();
+        List<String> commands = new ArrayList<>(List.of("terraform", "destroy", "-auto-approve"));
+        commands.addAll(variables);
+        commands.add(getEdgeLoginCommand());
+        ProcessExecutor processExecutor = new ProcessExecutor(folder, commands);
+        return processExecutor.executeCli();
     }
     
     private List<String> getCredentialsCommands() {

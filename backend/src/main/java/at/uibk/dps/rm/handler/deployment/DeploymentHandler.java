@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler.deployment;
 
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
+import at.uibk.dps.rm.entity.dto.TerminateResourcesRequest;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.model.FunctionResource;
 import at.uibk.dps.rm.entity.model.Reservation;
@@ -67,5 +68,25 @@ public class DeploymentHandler {
                 ))
             //TODO: add error handling (destroy everything that was created up to the error)
                 .flatMapCompletable(deploymentChecker::deployResources);
+    }
+
+    public Completable terminateResources(Reservation reservation, long accountId) {
+        TerminateResourcesRequest request = new TerminateResourcesRequest();
+        request.setReservation(reservation);
+        ObjectMapper mapper = DatabindCodec.mapper();
+        return credentialsChecker.checkFindAll(accountId)
+            .map(credentials -> {
+                request.setCredentialsList(mapper.readValue(credentials.toString(), new TypeReference<>() {}));
+                return request;
+            })
+            .flatMap(terminateRequest ->
+                functionResourceChecker.checkFindAllByReservationId(reservation.getReservationId())
+                    .map(functionResources -> {
+                        terminateRequest.setFunctionResources(mapper.readValue(functionResources.toString(),
+                            new TypeReference<>() {}));
+                        return terminateRequest;
+                    })
+            )
+            .flatMapCompletable(deploymentChecker::terminateResources);
     }
 }

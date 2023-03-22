@@ -3,12 +3,13 @@ package at.uibk.dps.rm.service.deployment.terraform;
 import at.uibk.dps.rm.entity.deployment.CloudProvider;
 import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
+import at.uibk.dps.rm.entity.dto.TerminateResourcesRequest;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.deployment.TerraformModule;
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
+import at.uibk.dps.rm.util.RegionMapper;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.core.Vertx;
-import lombok.AllArgsConstructor;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -16,24 +17,41 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@AllArgsConstructor
 public class TerraformSetupService {
 
     private final Vertx vertx;
 
-    private final DeployResourcesRequest deployRequest;
+    private DeployResourcesRequest deployRequest;
+
+    private TerminateResourcesRequest terminateRequest;
 
     private final DeploymentPath deploymentPath;
 
     private final DeploymentCredentials credentials;
 
+    public TerraformSetupService(Vertx vertx, DeployResourcesRequest deployRequest, DeploymentPath deploymentPath,
+                                 DeploymentCredentials credentials) {
+        this.vertx = vertx;
+        this.deployRequest = deployRequest;
+        this.deploymentPath = deploymentPath;
+        this.credentials = credentials;
+    }
+
+    public TerraformSetupService(Vertx vertx, TerminateResourcesRequest terminateRequest, DeploymentPath deploymentPath,
+                                 DeploymentCredentials credentials) {
+        this.vertx = vertx;
+        this.terminateRequest = terminateRequest;
+        this.deploymentPath = deploymentPath;
+        this.credentials = credentials;
+    }
+
     public List<Single<TerraformModule>> setUpTFModuleDirs() {
-        Map<Region, List<FunctionResource>> functionResources = deployRequest.getFunctionResources()
-            .stream()
-            .collect(Collectors.groupingBy(functionResource -> functionResource.getResource().getRegion()));
-        Map<Region, VPC> regionVPCMap = deployRequest.getVpcList()
-            .stream()
-            .collect(Collectors.toMap(VPC::getRegion, vpc -> vpc, (vpc1, vpc2) -> vpc1));
+        if (deployRequest == null) {
+            throw new IllegalStateException("deployRequest must not be null");
+        }
+        Map<Region, List<FunctionResource>> functionResources = RegionMapper
+            .mapFunctionResources(deployRequest.getFunctionResources());
+        Map<Region, VPC> regionVPCMap = RegionMapper.mapVPCs(deployRequest.getVpcList());
         List<Single<TerraformModule>> singles = new ArrayList<>();
         for (Region region: functionResources.keySet()) {
             List<FunctionResource> regionFunctionResources = functionResources.get(region);
@@ -45,12 +63,28 @@ public class TerraformSetupService {
             } else {
                 // TF: Cloud resources
                 singles.add(cloudDeployment(region, regionFunctionResources, regionVPCMap));
-                credentials.getCloudCredentials().add(deployRequest.getCredentialsList().stream()
-                    .filter(credentials -> credentials.getResourceProvider().equals(region.getResourceProvider()))
-                    .findFirst().get());
+                composeCloudLoginData(deployRequest.getCredentialsList(), region);
             }
         }
         return singles;
+    }
+
+    public DeploymentCredentials getDeploymentCredentials() {
+        if (terminateRequest == null) {
+            throw new IllegalStateException("terminateRequest must not be null");
+        }
+        Map<Region, List<FunctionResource>> functionResources = RegionMapper
+            .mapFunctionResources(terminateRequest.getFunctionResources());
+        for (Region region: functionResources.keySet()) {
+            List<FunctionResource> regionFunctionResources = functionResources.get(region);
+            if (region.getName().equals("edge")) {
+                // Get edge login data
+                composeEdgeLoginData(regionFunctionResources);
+            } else {
+                composeCloudLoginData(terminateRequest.getCredentialsList(), region);
+            }
+        }
+        return this.credentials;
     }
 
     private void composeEdgeLoginData(List<FunctionResource> regionFunctionResources) {
@@ -69,6 +103,13 @@ public class TerraformSetupService {
                 .append("\\\"},");
         }
         credentials.getEdgeLoginCredentials().append("]");
+    }
+
+    private void composeCloudLoginData(List<Credentials> credentialsList, Region region) {
+        credentialsList.stream()
+            .filter(filterCredentials -> filterCredentials.getResourceProvider().equals(region.getResourceProvider()))
+            .findFirst()
+            .ifPresent(foundCredentials -> credentials.getCloudCredentials().add(foundCredentials));
     }
 
     //TODO: Rework for other cloud providers

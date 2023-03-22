@@ -3,6 +3,7 @@ package at.uibk.dps.rm.handler.deployment;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
+import at.uibk.dps.rm.entity.dto.TerminateResourcesRequest;
 import at.uibk.dps.rm.entity.model.FunctionResource;
 import at.uibk.dps.rm.entity.model.Log;
 import at.uibk.dps.rm.entity.model.Reservation;
@@ -137,5 +138,14 @@ public class DeploymentChecker {
     private static boolean matchesFunctionResource(long resourceId, String functionName, FunctionResource functionResource) {
         return functionResource.getResource().getResourceId() == resourceId &&
             functionResource.getFunction().getName().equals(functionName);
+    }
+
+    public Completable terminateResources(TerminateResourcesRequest request) {
+        DeploymentPath deploymentPath = new DeploymentPath(request.getReservation().getReservationId());
+        Vertx vertx = Vertx.currentContext().owner();
+        return deploymentService.getNecessaryCredentials(request)
+            .map(deploymentCredentials -> new TerraformExecutor(vertx, deploymentCredentials))
+            .flatMap(terraformExecutor -> terraformExecutor.destroy(deploymentPath.getRootFolder()))
+            .flatMapCompletable(terminateOutput -> persistLogs(terminateOutput, request.getReservation()));
     }
 }

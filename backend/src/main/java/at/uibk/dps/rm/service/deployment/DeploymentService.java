@@ -3,6 +3,7 @@ package at.uibk.dps.rm.service.deployment;
 import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
+import at.uibk.dps.rm.entity.dto.TerminateResourcesRequest;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
@@ -24,6 +25,8 @@ public interface DeploymentService {
     Future<FunctionsToDeploy> packageFunctionsCode(DeployResourcesRequest deployRequest);
 
     Future<DeploymentCredentials> setUpTFModules(DeployResourcesRequest deployRequest);
+
+    Future<DeploymentCredentials> getNecessaryCredentials(TerminateResourcesRequest terminateRequest);
 
     Future<Void> terminate(long resourceId);
 }
