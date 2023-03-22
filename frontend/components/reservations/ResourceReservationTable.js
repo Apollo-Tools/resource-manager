@@ -4,7 +4,7 @@ import DateFormatter from '../misc/DateFormatter';
 import Link from 'next/link';
 import PropTypes from 'prop-types';
 
-const Column = Table;
+const {Column} = Table;
 
 const ResourceReservationTable = ({resourceReservations}) => {
   return (
