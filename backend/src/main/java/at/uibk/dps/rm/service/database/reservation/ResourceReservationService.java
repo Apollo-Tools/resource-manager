@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.database.reservation;
 
+import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
 import at.uibk.dps.rm.repository.reservation.ResourceReservationRepository;
 import at.uibk.dps.rm.service.database.ServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -24,4 +25,6 @@ public interface ResourceReservationService extends ServiceInterface {
     Future<JsonArray> findAllByReservationId(long id);
 
     Future<Void> updateTriggerUrl(long functionResourceId, long reservationId, String triggerUrl);
+
+    Future<Void> updateSetStatusByReservationId(long reservationId, ReservationStatusValue reservationStatusValue);
 }

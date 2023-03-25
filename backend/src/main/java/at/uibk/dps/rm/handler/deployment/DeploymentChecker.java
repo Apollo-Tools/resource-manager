@@ -1,6 +1,8 @@
 package at.uibk.dps.rm.handler.deployment;
 
+import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
+import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
 import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.dto.TerminateResourcesRequest;
@@ -51,11 +53,7 @@ public class DeploymentChecker {
         Vertx vertx = Vertx.currentContext().owner();
 
         return deploymentService.packageFunctionsCode(request)
-            .flatMap(functionsToDeploy -> {
-                DockerImageService dockerImageService = new DockerImageService(vertx, request.getDockerCredentials(),
-                    functionsToDeploy.getFunctionIdentifiers(), deploymentPath.getFunctionsFolder());
-                return dockerImageService.buildAndPushDockerImages(functionsToDeploy.getFunctionsString().toString());
-            })
+            .flatMap(functionsToDeploy -> buildAndPushDockerImages(vertx, request, functionsToDeploy, deploymentPath))
             .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, request.getReservation()))
             .andThen(deploymentService.setUpTFModules(request))
             .flatMap(deploymentCredentials -> {
@@ -72,6 +70,13 @@ public class DeploymentChecker {
             .flatMap(terraformExecutor -> terraformExecutor.getOutput(deploymentPath.getRootFolder()))
             .flatMapCompletable(tfOutput -> persistLogs(tfOutput, request.getReservation())
                 .andThen(storeOutputToFunctionResources(tfOutput, request)));
+    }
+
+    private Single<ProcessOutput> buildAndPushDockerImages(Vertx vertx, DeployResourcesRequest request,
+                                                           FunctionsToDeploy functionsToDeploy, DeploymentPath deploymentPath) {
+        DockerImageService dockerImageService = new DockerImageService(vertx, request.getDockerCredentials(),
+            functionsToDeploy.getFunctionIdentifiers(), deploymentPath.getFunctionsFolder());
+        return dockerImageService.buildAndPushDockerImages(functionsToDeploy.getFunctionsString().toString());
     }
 
     private Completable persistLogs(ProcessOutput processOutput, Reservation reservation) {
@@ -93,7 +98,9 @@ public class DeploymentChecker {
             })
             .flatMapCompletable(res -> {
                 if (processOutput.getProcess().exitValue() != 0) {
-                    return Completable.error(new DeploymentFailedException());
+                    return resourceReservationService
+                        .updateSetStatusByReservationId(reservation.getReservationId(), ReservationStatusValue.ERROR)
+                        .andThen(Completable.defer(() -> Completable.error(new DeploymentFailedException())));
                 }
                 return Completable.complete();
             });

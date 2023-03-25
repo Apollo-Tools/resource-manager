@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.database.reservation;
 
+import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
 import at.uibk.dps.rm.entity.model.ResourceReservation;
 import at.uibk.dps.rm.repository.reservation.ResourceReservationRepository;
 import at.uibk.dps.rm.service.database.ServiceProxy;
@@ -42,6 +43,14 @@ public class ResourceReservationServiceImpl extends ServiceProxy<ResourceReserva
         return Future
             .fromCompletionStage(resourceReservationRepository.updateTriggerUrl(functionResourceId, reservationId,
                     triggerUrl))
+            .mapEmpty();
+    }
+
+    @Override
+    public Future<Void> updateSetStatusByReservationId(long reservationId, ReservationStatusValue reservationStatusValue) {
+        return Future
+            .fromCompletionStage(resourceReservationRepository
+                .updateReservationStatusByReservationId(reservationId, reservationStatusValue))
             .mapEmpty();
     }
 }

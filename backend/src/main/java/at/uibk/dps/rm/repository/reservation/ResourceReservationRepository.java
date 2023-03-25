@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.repository.reservation;
 
+import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
 import at.uibk.dps.rm.entity.model.ResourceReservation;
 import at.uibk.dps.rm.repository.Repository;
 import org.hibernate.reactive.stage.Stage;
@@ -34,6 +35,19 @@ public class ResourceReservationRepository extends Repository<ResourceReservatio
                 .setParameter("triggerUrl", triggerUrl)
                 .setParameter("functionResourceId", functionResourceId)
                 .setParameter("reservationId", reservationId)
+                .executeUpdate()
+        );
+    }
+
+    public CompletionStage<Integer> updateReservationStatusByReservationId(long reservationId,
+                                                                        ReservationStatusValue statusValue) {
+        return sessionFactory.withSession(session ->
+            session.createQuery("update ResourceReservation rr " +
+                "set status.statusId=" +
+                "(select rrs.statusId from ResourceReservationStatus rrs where rrs.statusValue=:statusValue)" +
+                "where rr.reservation.reservationId=:reservationId")
+                .setParameter("reservationId", reservationId)
+                .setParameter("statusValue", statusValue.toString())
                 .executeUpdate()
         );
     }
