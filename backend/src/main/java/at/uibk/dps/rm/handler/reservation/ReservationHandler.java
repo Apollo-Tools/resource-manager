@@ -1,10 +1,12 @@
 package at.uibk.dps.rm.handler.reservation;
 
+import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
 import at.uibk.dps.rm.entity.dto.ReserveResourcesRequest;
 import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.handler.account.CredentialsChecker;
+import at.uibk.dps.rm.handler.deployment.DeploymentChecker;
 import at.uibk.dps.rm.handler.deployment.DeploymentHandler;
 import at.uibk.dps.rm.handler.function.FunctionResourceChecker;
 import at.uibk.dps.rm.handler.metric.ResourceTypeMetricChecker;
@@ -14,6 +16,8 @@ import at.uibk.dps.rm.util.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -26,6 +30,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class ReservationHandler extends ValidationHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(DeploymentChecker.class);
 
     private final ReservationChecker reservationChecker;
 
@@ -106,9 +112,15 @@ public class ReservationHandler extends ValidationHandler {
                 .submitCreateAll(Json.encodeToBuffer(resourceReservations).toJsonArray())
                 .andThen(Single.just(JsonObject.mapFrom(resourceReservations.get(0).getReservation())))
                 .map(result -> {
+                    Reservation reservation = result.mapTo(Reservation.class);
                     deploymentHandler
-                        .deployResources(result.mapTo(Reservation.class), accountId,
-                            requestDTO.getDockerCredentials(), vpcList)
+                        .deployResources(reservation, accountId, requestDTO.getDockerCredentials(), vpcList)
+                        .andThen(Completable.defer(() ->
+                            resourceReservationChecker.submitUpdateStatus(reservation.getReservationId(),
+                                ReservationStatusValue.DEPLOYED)))
+                        .doOnError(throwable -> logger.error(throwable.getMessage()))
+                        .onErrorResumeNext(throwable -> resourceReservationChecker
+                            .submitUpdateStatus(reservation.getReservationId(), ReservationStatusValue.ERROR))
                         .subscribe();
                     return result;
                 })
@@ -136,7 +148,7 @@ public class ReservationHandler extends ValidationHandler {
         account.setAccountId(accountId);
         reservation.setCreatedBy(account);
         return entityChecker.submitCreate(JsonObject.mapFrom(reservation))
-            .flatMap(reservationJson -> statusChecker.checkFindOneByStatusValue("NEW")
+            .flatMap(reservationJson -> statusChecker.checkFindOneByStatusValue(ReservationStatusValue.NEW.name())
                 .flatMap(status -> createResourceReservationList(reservationJson, functionResources,
                     status.mapTo(ResourceReservationStatus.class))));
     }
@@ -179,10 +191,19 @@ public class ReservationHandler extends ValidationHandler {
         long accountId = rc.user().principal().getLong("account_id");
         return HttpHelper.getLongPathParam(rc, "id")
             .flatMap(id -> reservationChecker.checkFindOne(id, rc.user().principal().getLong("account_id")))
-            //.flatMapCompletable(reservationChecker::submitCancelReservation);
-            .flatMapCompletable(reservation -> {
-                deploymentHandler.terminateResources(reservation.mapTo(Reservation.class), accountId)
-                    .andThen(reservationChecker.submitCancelReservation(reservation))
+            .flatMap(reservationJson ->
+                resourceReservationChecker.submitUpdateStatus(reservationJson.getLong("reservation_id"),
+                    ReservationStatusValue.TERMINATING)
+                    .andThen(Single.just(reservationJson)))
+            .flatMapCompletable(reservationJson -> {
+                Reservation reservation = reservationJson.mapTo(Reservation.class);
+                deploymentHandler.terminateResources(reservation, accountId)
+                    .andThen(Completable.defer(() ->
+                        resourceReservationChecker.submitUpdateStatus(reservation.getReservationId(),
+                            ReservationStatusValue.TERMINATED)))
+                    .doOnError(throwable -> logger.error(throwable.getMessage()))
+                    .onErrorResumeNext(throwable -> resourceReservationChecker
+                        .submitUpdateStatus(reservation.getReservationId(), ReservationStatusValue.ERROR))
                     .subscribe();
                 return Completable.complete();
             });

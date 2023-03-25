@@ -47,7 +47,7 @@ public class ResourceReservationRepository extends Repository<ResourceReservatio
                 "(select rrs.statusId from ResourceReservationStatus rrs where rrs.statusValue=:statusValue)" +
                 "where rr.reservation.reservationId=:reservationId")
                 .setParameter("reservationId", reservationId)
-                .setParameter("statusValue", statusValue.toString())
+                .setParameter("statusValue", statusValue.name())
                 .executeUpdate()
         );
     }

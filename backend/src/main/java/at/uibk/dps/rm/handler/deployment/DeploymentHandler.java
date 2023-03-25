@@ -9,6 +9,7 @@ import at.uibk.dps.rm.entity.model.ResourceProvider;
 import at.uibk.dps.rm.entity.model.VPC;
 import at.uibk.dps.rm.handler.account.CredentialsChecker;
 import at.uibk.dps.rm.handler.function.FunctionResourceChecker;
+import at.uibk.dps.rm.handler.reservation.ResourceReservationChecker;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,12 +27,15 @@ public class DeploymentHandler {
 
     private final FunctionResourceChecker functionResourceChecker;
 
+    private final ResourceReservationChecker resourceReservationChecker;
+
     public DeploymentHandler(ServiceProxyProvider serviceProxyProvider) {
         this.deploymentChecker = new DeploymentChecker(serviceProxyProvider.getDeploymentService(),
-            serviceProxyProvider.getLogService(), serviceProxyProvider.getReservationLogService(),
-            serviceProxyProvider.getResourceReservationService());
+            serviceProxyProvider.getLogService(), serviceProxyProvider.getReservationLogService());
         this.credentialsChecker = new CredentialsChecker(serviceProxyProvider.getCredentialsService());
         this.functionResourceChecker = new FunctionResourceChecker(serviceProxyProvider.getFunctionResourceService());
+        this.resourceReservationChecker = new ResourceReservationChecker(serviceProxyProvider
+            .getResourceReservationService());
     }
 
     public Completable deployResources(Reservation reservation, long accountId, DockerCredentials dockerCredentials,
@@ -67,7 +71,9 @@ public class DeploymentHandler {
                     }
                 ))
             //TODO: add error handling (destroy everything that was created up to the error)
-                .flatMapCompletable(deploymentChecker::deployResources);
+                .flatMap(deploymentChecker::deployResources)
+            .flatMapCompletable(tfOutput -> resourceReservationChecker
+                .storeOutputToFunctionResources(tfOutput, request));
     }
 
     public Completable terminateResources(Reservation reservation, long accountId) {
