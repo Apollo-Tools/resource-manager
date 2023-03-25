@@ -69,7 +69,11 @@ public class DeploymentChecker {
                 .andThen(Single.just(terraformExecutor)))
             .flatMap(terraformExecutor -> terraformExecutor.getOutput(deploymentPath.getRootFolder()))
             .flatMapCompletable(tfOutput -> persistLogs(tfOutput, request.getReservation())
-                .andThen(storeOutputToFunctionResources(tfOutput, request)));
+                .andThen(storeOutputToFunctionResources(tfOutput, request)))
+            // TODO: maybe add logging output
+            .onErrorResumeWith(resourceReservationService
+                .updateSetStatusByReservationId(request.getReservation().getReservationId(),
+                    ReservationStatusValue.ERROR));
     }
 
     private Single<ProcessOutput> buildAndPushDockerImages(Vertx vertx, DeployResourcesRequest request,
@@ -98,9 +102,7 @@ public class DeploymentChecker {
             })
             .flatMapCompletable(res -> {
                 if (processOutput.getProcess().exitValue() != 0) {
-                    return resourceReservationService
-                        .updateSetStatusByReservationId(reservation.getReservationId(), ReservationStatusValue.ERROR)
-                        .andThen(Completable.defer(() -> Completable.error(new DeploymentFailedException())));
+                    return Completable.error(new DeploymentFailedException());
                 }
                 return Completable.complete();
             });
@@ -153,7 +155,10 @@ public class DeploymentChecker {
         return deploymentService.getNecessaryCredentials(request)
             .map(deploymentCredentials -> new TerraformExecutor(vertx, deploymentCredentials))
             .flatMap(terraformExecutor -> terraformExecutor.destroy(deploymentPath.getRootFolder()))
-            .flatMapCompletable(terminateOutput -> persistLogs(terminateOutput, request.getReservation()));
+            .flatMapCompletable(terminateOutput -> persistLogs(terminateOutput, request.getReservation()))
+            .onErrorResumeWith(resourceReservationService
+                .updateSetStatusByReservationId(request.getReservation().getReservationId(),
+                    ReservationStatusValue.ERROR));
     }
 
     public Completable deleteTFDirs(long reservationId) {
