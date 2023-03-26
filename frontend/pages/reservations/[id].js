@@ -4,6 +4,7 @@ import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {cancelReservation, getReservation, listReservationLogs} from '../../lib/ReservationService';
 import ResourceReservationTable from '../../components/reservations/ResourceReservationTable';
+import ReservationStatusCircle from '../../components/reservations/ReservationStatusCircle';
 import {useInterval} from '../../lib/hooks/useInterval';
 import LogsDisplay from '../../components/logs/LogsDisplay';
 import {DisconnectOutlined, ExclamationCircleFilled} from '@ant-design/icons';
@@ -16,6 +17,13 @@ const ReservationDetails = () => {
   const [reservation, setReservation] = useState();
   const [logs, setLogs] = useState([]);
   const [pollingDelay, setPollingDelay] = useState();
+  const [reservationStatus, setReservationStatus] = useState({
+    isNew: false,
+    isDeployed: false,
+    isTerminating: false,
+    isTerminated: false,
+    isError: false,
+  });
   const router = useRouter();
   const {id} = router.query;
 
@@ -25,9 +33,21 @@ const ReservationDetails = () => {
     }
   }, [id]);
 
-  useInterval(() => {
+  useEffect(() => {
+    if (reservation != null) {
+      checkReservationStatus();
+    }
+  }, [reservation]);
+
+  useEffect(() => {
+    if (reservation == null || reservationStatus.isNew || reservationStatus.isTerminating) {
+      setPollingDelay(process.env.NEXT_PUBLIC_POLLING_DELAY);
+    }
+  }, [reservationStatus]);
+
+  useInterval(async () => {
     if (!checkTokenExpired() && reservation != null) {
-      refreshReservation();
+      await refreshReservation();
     }
   }, pollingDelay);
 
@@ -35,28 +55,39 @@ const ReservationDetails = () => {
     setPollingDelay(null);
     await getReservation(id, token, setReservation, setError);
     await listReservationLogs(id, token, setLogs, setError);
-    if (reservation == null || (reservation.is_active && !checkAllDeployed())) {
-      setPollingDelay(process.env.NEXT_PUBLIC_POLLING_DELAY);
-    }
   };
 
-  const checkAllDeployed = () => {
+  const checkReservationStatus = () => {
     if (!Object.hasOwn(reservation, 'resource_reservations')) {
-      return true;
+      return;
     }
 
-    return reservation.resource_reservations.filter((status) => {
-      return !status.is_deployed;
-    }).length === 0;
+    const resourceReservations = reservation.resource_reservations;
+    setReservationStatus(() => {
+      return {
+        isNew: existResourceReservationsByStatusValue(resourceReservations, 'NEW'),
+        isDeployed: existResourceReservationsByStatusValue(resourceReservations, 'DEPLOYED'),
+        isTerminating: existResourceReservationsByStatusValue(resourceReservations, 'TERMINATING'),
+        isTerminated: existResourceReservationsByStatusValue(resourceReservations, 'TERMINATED'),
+        isError: existResourceReservationsByStatusValue(resourceReservations, 'ERROR'),
+      };
+    });
+  };
+
+  const existResourceReservationsByStatusValue = (resourceReservations, statusValue) => {
+    return resourceReservations.filter((reservation) => {
+      return reservation.status.status_value === statusValue;
+    }).length !== 0;
   };
 
   const onClickCancel = async (id) => {
     if (!checkTokenExpired()) {
-      await cancelReservation(id, token, setError);
+      await cancelReservation(id, token, setError)
+          .then(() => refreshReservation());
     }
   };
 
-  const showCancelConfirom = (id) => {
+  const showCancelConfirm = (id) => {
     confirm({
       title: 'Confirmation',
       icon: <ExclamationCircleFilled/>,
@@ -77,11 +108,15 @@ const ReservationDetails = () => {
   return (
     <div className="card container w-full md:w-11/12 w-11/12 max-w-7xl mt-2 mb-2">
       <Typography.Title level={ 2 }>
-        <span className={'inline-block w-5 h-5 rounded-full mr-1 ' +
-          (!reservation.is_active ? 'bg-red-400' : (checkAllDeployed() ? 'bg-green-400' : 'bg-orange-400'))} />
+        <ReservationStatusCircle isNew={reservationStatus.isNew}
+          isDeployed={reservationStatus.isDeployed}
+          isTerminating={reservationStatus.isTerminating}
+          isTerminated={reservationStatus.isTerminated}
+          isError={reservationStatus.isError}
+        />
         Reservation Details ({ id })
-        {checkAllDeployed() &&
-          <Button disabled={!reservation.is_active} onClick={ () => showCancelConfirom(id) }
+        {reservationStatus.isDeployed &&
+          <Button disabled={!reservation.is_active} onClick={ () => showCancelConfirm(id) }
             icon={ <DisconnectOutlined/> } className="ml-5"/>
         }
       </Typography.Title>

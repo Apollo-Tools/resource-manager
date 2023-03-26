@@ -32,7 +32,6 @@ const NewReservationForm = ({setNewReservation}) => {
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
-      console.log(values);
       const requestBody = {};
       const functionResources = [];
       values.functionResources.selectedResourceIds.forEach((resources, functionId) => {
@@ -66,7 +65,6 @@ const NewReservationForm = ({setNewReservation}) => {
   const onChangeFunctionResources = (values) => {
     const selectedFunctionResources = values.selectedResourceIds.values();
     let includingVMOrEdge = false;
-    console.log(selectedFunctionResources);
     for (const selectedFunctionResource of selectedFunctionResources) {
       for (const selectedResource of selectedFunctionResource) {
         const resource = resources.filter((resource) => resource.resource_id === selectedResource)[0];

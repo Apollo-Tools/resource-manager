@@ -1,8 +1,9 @@
 import {Button, Table} from 'antd';
-import {CheckCircleTwoTone, CloseCircleTwoTone, CopyOutlined} from '@ant-design/icons';
+import {CopyOutlined} from '@ant-design/icons';
 import DateFormatter from '../misc/DateFormatter';
 import Link from 'next/link';
 import PropTypes from 'prop-types';
+import ResourceReservationStatusBadge from './ResourceReservationStatusBadge';
 
 const {Column} = Table;
 
@@ -35,20 +36,18 @@ const ResourceReservationTable = ({resourceReservations}) => {
                 await navigator.clipboard.writeText(triggerUrl);
               }}/></span>;
           } else {
-            return <></>;
+            return <>Not available ...</>;
           }
         }
         }
       />
-      <Column title="Is deployed" dataIndex="is_deployed" key="is_deployed"
-        render={ (isDeployed) => isDeployed ? <CheckCircleTwoTone twoToneColor="#00ff00" className="text-lg"/> :
-                <CloseCircleTwoTone twoToneColor="#ff0000" className="text-lg"/> }
-        sorter={ (a, b) => {
-          if (a.is_deployed && b.is_deployed) return 0;
-          else if (a.is_deployed) return -1;
-          else if (b.is_deployed) return 1;
-        }}
-        defaultSortOrder="ascend"
+      <Column title="Status" dataIndex="status" key="status"
+        render={(status) =>
+          <ResourceReservationStatusBadge status={status.status_value}>
+            {status.status_value}
+          </ResourceReservationStatusBadge>
+        }
+        sorter={ (a, b) => a.status_value - b.status_value }
       />
       <Column title="Created at" dataIndex="created_at" key="created_at"
         render={ (createdAt) => <DateFormatter dateTimestamp={ createdAt }/> }
