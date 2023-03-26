@@ -24,7 +24,5 @@ public interface ReservationService extends ServiceInterface {
 
     Future<JsonArray> findAllByAccountId(long accountId);
 
-    Future<Void> cancelReservationById(long id);
-
     Future<JsonObject> findOneByIdAndAccountId(long id, long accountId);
 }

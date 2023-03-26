@@ -32,13 +32,6 @@ public class ReservationServiceImpl extends ServiceProxy<Reservation> implements
     }
 
     @Override
-    public Future<Void> cancelReservationById(long id) {
-        return Future
-                .fromCompletionStage(reservationRepository.cancelReservation(id))
-                .mapEmpty();
-    }
-
-    @Override
     public Future<JsonObject> findOneByIdAndAccountId(long id, long accountId) {
         return Future
             .fromCompletionStage(reservationRepository.findByIdAndAccountId(id, accountId))

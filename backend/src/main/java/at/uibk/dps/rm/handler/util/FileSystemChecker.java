@@ -23,4 +23,8 @@ public class FileSystemChecker {
         Single<String> getFileTemplate = filePathService.getRuntimeTemplate(templatePath);
         return ErrorHandler.handleTemplateHasContent(getFileTemplate);
     }
+
+    public Single<Boolean> checkTFLockFileExists(String tfPath) {
+        return filePathService.tfLocFileExists(tfPath);
+    }
 }

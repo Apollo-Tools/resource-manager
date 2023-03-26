@@ -54,7 +54,6 @@ public class AWSFileService extends ModuleFileService {
                 "}\n", region.getName());
     }
 
-    // TODO: rework access to metric values
     @Override
     protected String getFunctionsModulString(List<FunctionResource> functionResources, long reservationId,
                                              Path rootFolder) {

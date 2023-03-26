@@ -21,4 +21,6 @@ public interface FilePathService {
     Future<Boolean> templatePathExists(String templatePath);
 
     Future<String> getRuntimeTemplate(String templatePath);
+
+    Future<Boolean> tfLocFileExists(String tfPath);
 }

@@ -1,9 +1,6 @@
 package at.uibk.dps.rm.entity.dto;
 
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
-import at.uibk.dps.rm.entity.model.Credentials;
-import at.uibk.dps.rm.entity.model.FunctionResource;
-import at.uibk.dps.rm.entity.model.Reservation;
 import at.uibk.dps.rm.entity.model.VPC;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
@@ -16,7 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @DataObject
-public class DeployResourcesRequest {
+public class DeployResourcesRequest extends DeployTerminateRequest {
 
     public DeployResourcesRequest(JsonObject jsonObject) {
         DeployResourcesRequest request = jsonObject.mapTo(DeployResourcesRequest.class);
@@ -27,17 +24,7 @@ public class DeployResourcesRequest {
         this.setVpcList(request.getVpcList());
     }
 
-    private Reservation reservation;
-
-    private List<Credentials> credentialsList;
-
-    private List<FunctionResource> functionResources;
-
     private DockerCredentials dockerCredentials;
 
     private List<VPC> vpcList;
-
-    public JsonObject toJson() {
-        return JsonObject.mapFrom(this);
-    }
 }

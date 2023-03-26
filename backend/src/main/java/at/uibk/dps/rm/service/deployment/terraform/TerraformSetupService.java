@@ -115,7 +115,7 @@ public class TerraformSetupService {
     //TODO: Rework for other cloud providers
     private Single<TerraformModule> cloudDeployment(Region region, List<FunctionResource> regionFunctionResources,
                                                     Map<Region, VPC> regionVPCMap) {
-        //TODO: get rid of these
+        //TODO: get rid of hard coded labRole
         String awsRole = "LabRole";
         String provider = region.getResourceProvider().getProvider();
         TerraformModule module = new TerraformModule(CloudProvider.AWS, provider + "_" +

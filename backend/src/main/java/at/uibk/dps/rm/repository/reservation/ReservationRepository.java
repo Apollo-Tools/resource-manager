@@ -12,21 +12,6 @@ public class ReservationRepository extends Repository<Reservation> {
         super(sessionFactory, Reservation.class);
     }
 
-    public CompletionStage<Reservation> cancelReservation(long id) {
-        return this.sessionFactory.withTransaction(session ->
-                session.createQuery("from Reservation r " +
-                                "where r.reservationId=:id", entityClass)
-                        .setParameter("id", id)
-                        .getSingleResultOrNull()
-                        .thenApply(reservation -> {
-                                if (reservation != null) {
-                                    reservation.setIsActive(false);
-                                }
-                                return reservation;
-                            })
-                        );
-    }
-
     public CompletionStage<List<Reservation>> findAllByAccountId(long accountId) {
         return sessionFactory.withSession(session ->
             session.createQuery("select distinct r from Reservation r " +

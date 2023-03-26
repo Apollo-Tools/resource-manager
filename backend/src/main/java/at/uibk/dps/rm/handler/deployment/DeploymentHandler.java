@@ -1,20 +1,20 @@
 package at.uibk.dps.rm.handler.deployment;
 
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
+import at.uibk.dps.rm.entity.dto.DeployTerminateRequest;
 import at.uibk.dps.rm.entity.dto.TerminateResourcesRequest;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
-import at.uibk.dps.rm.entity.model.FunctionResource;
-import at.uibk.dps.rm.entity.model.Reservation;
-import at.uibk.dps.rm.entity.model.ResourceProvider;
-import at.uibk.dps.rm.entity.model.VPC;
+import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.handler.account.CredentialsChecker;
 import at.uibk.dps.rm.handler.function.FunctionResourceChecker;
 import at.uibk.dps.rm.handler.reservation.ResourceReservationChecker;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.reactivex.rxjava3.core.Completable;
-import io.vertx.core.json.JsonObject;
+import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.jackson.DatabindCodec;
 
 import java.util.List;
@@ -44,34 +44,9 @@ public class DeploymentHandler {
         request.setReservation(reservation);
         request.setDockerCredentials(dockerCredentials);
         request.setVpcList(vpcList);
-        ObjectMapper mapper = DatabindCodec.mapper();
         return credentialsChecker.checkFindAll(accountId)
-            .map(credentials -> {
-                request.setCredentialsList(mapper.readValue(credentials.toString(), new TypeReference<>() {}));
-                return request;
-            })
-            .flatMap(deployRequest ->
-                functionResourceChecker.checkFindAllByReservationId(reservation.getReservationId())
-                    .map(functionResources -> {
-                        deployRequest.setFunctionResources(mapper.readValue(functionResources.toString(),
-                            new TypeReference<>() {}));
-                        for (Object fr : functionResources.getList()) {
-                            FunctionResource functionResource = ((JsonObject) fr).mapTo(FunctionResource.class);
-                            ResourceProvider resourceProvider = functionResource.getResource().getRegion()
-                                .getResourceProvider();
-                            if (request.getCredentialsList()
-                                .stream().noneMatch(credentials -> credentials.getResourceProvider()
-                                    .getProvider()
-                                    .equals(resourceProvider.getProvider()))) {
-                                // TODO: set status of reservation to failed
-                                break;
-                            }
-                        }
-                        return deployRequest;
-                    }
-                ))
-            //TODO: add error handling (destroy everything that was created up to the error)
-                .flatMap(deploymentChecker::deployResources)
+            .flatMap(credentials -> mapCredentialsAndFunctionResourcesToRequest(request, credentials))
+            .flatMap(res -> deploymentChecker.deployResources(request))
             .flatMapCompletable(tfOutput -> resourceReservationChecker
                 .storeOutputToFunctionResources(tfOutput, request));
     }
@@ -79,21 +54,21 @@ public class DeploymentHandler {
     public Completable terminateResources(Reservation reservation, long accountId) {
         TerminateResourcesRequest request = new TerminateResourcesRequest();
         request.setReservation(reservation);
-        ObjectMapper mapper = DatabindCodec.mapper();
         return credentialsChecker.checkFindAll(accountId)
-            .map(credentials -> {
-                request.setCredentialsList(mapper.readValue(credentials.toString(), new TypeReference<>() {}));
-                return request;
-            })
-            .flatMap(terminateRequest ->
-                functionResourceChecker.checkFindAllByReservationId(reservation.getReservationId())
-                    .map(functionResources -> {
-                        terminateRequest.setFunctionResources(mapper.readValue(functionResources.toString(),
-                            new TypeReference<>() {}));
-                        return terminateRequest;
-                    })
-            )
-            .flatMapCompletable(deploymentChecker::terminateResources)
+            .flatMap(credentials -> mapCredentialsAndFunctionResourcesToRequest(request, credentials))
+            .flatMapCompletable(res -> deploymentChecker.terminateResources(request))
             .concatWith(Completable.defer(() -> deploymentChecker.deleteTFDirs(reservation.getReservationId())));
+    }
+
+    private Single<DeployTerminateRequest> mapCredentialsAndFunctionResourcesToRequest(DeployTerminateRequest request,
+                                                                                          JsonArray credentials) throws JsonProcessingException {
+        ObjectMapper mapper = DatabindCodec.mapper();
+        request.setCredentialsList(mapper.readValue(credentials.toString(), new TypeReference<>() {}));
+        return functionResourceChecker.checkFindAllByReservationId(request.getReservation().getReservationId())
+            .map(functionResources -> {
+                request.setFunctionResources(mapper.readValue(functionResources.toString(),
+                    new TypeReference<>() {}));
+                return request;
+            });
     }
 }

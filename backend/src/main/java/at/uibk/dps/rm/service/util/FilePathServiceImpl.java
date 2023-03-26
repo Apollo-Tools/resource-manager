@@ -3,6 +3,8 @@ package at.uibk.dps.rm.service.util;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 
+import java.nio.file.Path;
+
 public class FilePathServiceImpl implements FilePathService{
 
     private final Vertx vertx;
@@ -16,6 +18,12 @@ public class FilePathServiceImpl implements FilePathService{
     public Future<Boolean> templatePathExists(String templatePath) {
         return vertx.fileSystem().exists(templatePath)
             .map(result -> result || templatePath.equals(""));
+    }
+
+    @Override
+    public Future<Boolean> tfLocFileExists(String tfPath) {
+        Path lockFilePath = Path.of(tfPath, ".terraform.lock.hcl");
+        return vertx.fileSystem().exists(lockFilePath.toString());
     }
 
     @Override

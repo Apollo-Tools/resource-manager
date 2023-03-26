@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.handler.reservation;
 
+import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
 import at.uibk.dps.rm.entity.dto.ReserveResourcesRequest;
 import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
@@ -10,8 +11,11 @@ import at.uibk.dps.rm.handler.account.CredentialsChecker;
 import at.uibk.dps.rm.handler.deployment.DeploymentChecker;
 import at.uibk.dps.rm.handler.deployment.DeploymentHandler;
 import at.uibk.dps.rm.handler.function.FunctionResourceChecker;
+import at.uibk.dps.rm.handler.log.LogChecker;
+import at.uibk.dps.rm.handler.log.ReservationLogChecker;
 import at.uibk.dps.rm.handler.metric.ResourceTypeMetricChecker;
 import at.uibk.dps.rm.handler.resourceprovider.VPCChecker;
+import at.uibk.dps.rm.handler.util.FileSystemChecker;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.util.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
@@ -46,9 +50,15 @@ public class ReservationHandler extends ValidationHandler {
 
     private final ResourceTypeMetricChecker resourceTypeMetricChecker;
 
+    private final LogChecker logChecker;
+
+    private final ReservationLogChecker reservationLogChecker;
+
     private final DeploymentHandler deploymentHandler;
 
     private final VPCChecker vpcChecker;
+
+    private final FileSystemChecker fileSystemChecker;
 
     public ReservationHandler(ServiceProxyProvider serviceProxyProvider, DeploymentHandler deploymentHandler) {
         super(new ReservationChecker(serviceProxyProvider.getReservationService()));
@@ -63,6 +73,9 @@ public class ReservationHandler extends ValidationHandler {
         this.resourceTypeMetricChecker = new ResourceTypeMetricChecker(serviceProxyProvider
             .getResourceTypeMetricService());
         this.vpcChecker = new VPCChecker(serviceProxyProvider.getVpcService());
+        this.logChecker = new LogChecker(serviceProxyProvider.getLogService());
+        this.reservationLogChecker = new ReservationLogChecker(serviceProxyProvider.getReservationLogService());
+        this.fileSystemChecker = new FileSystemChecker(serviceProxyProvider.getFilePathService());
     }
 
     @Override
@@ -106,7 +119,6 @@ public class ReservationHandler extends ValidationHandler {
             .map(JsonArray::new);
     }
 
-    // TODO: deploy resources
     @Override
     public Single<JsonObject> postOne(RoutingContext rc) {
         ReserveResourcesRequest requestDTO = rc.body()
@@ -125,8 +137,7 @@ public class ReservationHandler extends ValidationHandler {
                 )
                 .toSingle(() -> functionResources))
             .flatMap(functionResources -> submitCreateReservation(accountId, functionResources))
-            /* TODO: if resource is self managed copy trigger url to resource reservation (or ignore self managed resources)
-             maybe remove self managed state (use edge instead of self managed vm) */
+            // TODO: remove self managed state (use edge instead of self managed vm) */
             .flatMap(resourceReservations -> resourceReservationChecker
                 .submitCreateAll(Json.encodeToBuffer(resourceReservations).toJsonArray())
                 .andThen(Single.just(JsonObject.mapFrom(resourceReservations.get(0).getReservation())))
@@ -138,8 +149,12 @@ public class ReservationHandler extends ValidationHandler {
                             resourceReservationChecker.submitUpdateStatus(reservation.getReservationId(),
                                 ReservationStatusValue.DEPLOYED)))
                         .doOnError(throwable -> logger.error(throwable.getMessage()))
-                        .onErrorResumeNext(throwable -> resourceReservationChecker
-                            .submitUpdateStatus(reservation.getReservationId(), ReservationStatusValue.ERROR))
+                        .onErrorResumeNext(throwable -> handleError(reservation, throwable)
+                            .andThen(fileSystemChecker
+                                .checkTFLockFileExists(new DeploymentPath(reservation.getReservationId())
+                                    .getRootFolder().toString()))
+                            .flatMapCompletable(tfLockFileExists -> deploymentHandler
+                                .terminateResources(reservation, accountId)))
                         .subscribe();
                     return result;
                 })
@@ -204,7 +219,6 @@ public class ReservationHandler extends ValidationHandler {
             .collect(Collectors.toList()));
     }
 
-    // TODO: terminate resources
     @Override
     protected Completable updateOne(RoutingContext rc) {
         long accountId = rc.user().principal().getLong("account_id");
@@ -221,8 +235,7 @@ public class ReservationHandler extends ValidationHandler {
                         resourceReservationChecker.submitUpdateStatus(reservation.getReservationId(),
                             ReservationStatusValue.TERMINATED)))
                     .doOnError(throwable -> logger.error(throwable.getMessage()))
-                    .onErrorResumeNext(throwable -> resourceReservationChecker
-                        .submitUpdateStatus(reservation.getReservationId(), ReservationStatusValue.ERROR))
+                    .onErrorResumeNext(throwable -> handleError(reservation, throwable))
                     .subscribe();
                 return Completable.complete();
             });
@@ -255,5 +268,24 @@ public class ReservationHandler extends ValidationHandler {
         resourceReservation.setFunctionResource(functionResource);
         resourceReservation.setStatus(status);
         return resourceReservation;
+    }
+
+    private Completable handleError(Reservation reservation, Throwable throwable) {
+        return resourceReservationChecker
+            .submitUpdateStatus(reservation.getReservationId(), ReservationStatusValue.ERROR)
+            .toSingle(() -> {
+                Log log = new Log();
+                log.setLogValue(throwable.getMessage());
+                return logChecker.submitCreate(JsonObject.mapFrom(log));
+            })
+            .flatMap(res -> res)
+            .flatMap(logResult -> {
+                Log logStored = logResult.mapTo(Log.class);
+                ReservationLog reservationLog = new ReservationLog();
+                reservationLog.setReservation(reservation);
+                reservationLog.setLog(logStored);
+                return reservationLogChecker.submitCreate(JsonObject.mapFrom(reservationLog));
+            })
+            .ignoreElement();
     }
 }
