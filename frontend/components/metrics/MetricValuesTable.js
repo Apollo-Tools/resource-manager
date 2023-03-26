@@ -47,7 +47,7 @@ const MetricValuesTable = ({resourceId, metricValues, setMetricValues}) => {
   };
 
   return (
-    <Table dataSource={metricValues} rowKey={(mv) => mv.metric_id}>
+    <Table dataSource={metricValues} rowKey={(mv) => mv.metric_value_id}>
       <Column title="Metric" dataIndex={['metric', 'metric']} key="metric"
         sorter={(a, b) =>
           a.metric.metric.localeCompare(b.metric.metric)}
@@ -75,7 +75,7 @@ const MetricValuesTable = ({resourceId, metricValues, setMetricValues}) => {
 };
 
 MetricValuesTable.propTypes = {
-  resourceId: PropTypes.number,
+  resourceId: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   metricValues: PropTypes.arrayOf(PropTypes.object),
   setMetricValues: PropTypes.func,
 };
