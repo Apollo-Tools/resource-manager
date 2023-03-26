@@ -3,6 +3,7 @@ package at.uibk.dps.rm.handler.reservation;
 import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
 import at.uibk.dps.rm.entity.dto.ReserveResourcesRequest;
 import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
+import at.uibk.dps.rm.entity.dto.reservation.ReservationResponse;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.handler.account.CredentialsChecker;
@@ -84,7 +85,25 @@ public class ReservationHandler extends ValidationHandler {
     @Override
     protected Single<JsonArray> getAll(RoutingContext rc) {
         long accountId = rc.user().principal().getLong("account_id");
-        return reservationChecker.checkFindAll(accountId);
+        return reservationChecker.checkFindAll(accountId)
+            .flatMap(result -> {
+                List<Single<JsonObject>> singles = new ArrayList<>();
+                for (Object object : result.getList()) {
+                    JsonObject reservation = (JsonObject) object;
+                    ((JsonObject) object).remove("is_active");
+                    ((JsonObject) object).remove("created_by");
+                    ReservationResponse reservationResponse = reservation.mapTo(ReservationResponse.class);
+                    singles.add(resourceReservationChecker.checkFindAllByReservationId(reservationResponse.getReservationId())
+                        .map(resourceReservationChecker::checkCrucialResourceReservationStatus)
+                        .map(status -> {
+                            reservationResponse.setReservationStatusValue(status);
+                            return JsonObject.mapFrom(reservationResponse);
+                        }));
+                }
+                return Single.zip(singles, objects -> Arrays.stream(objects).map(object -> (JsonObject) object)
+                    .collect(Collectors.toList()));
+            })
+            .map(JsonArray::new);
     }
 
     // TODO: deploy resources

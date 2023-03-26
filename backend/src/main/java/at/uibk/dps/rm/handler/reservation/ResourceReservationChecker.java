@@ -74,6 +74,35 @@ public class ResourceReservationChecker extends EntityChecker {
             );
     }
 
+    public ReservationStatusValue checkCrucialResourceReservationStatus(JsonArray resourceReservations) {
+        if (matchAnyResourceReservationsStatus(resourceReservations,
+            ReservationStatusValue.ERROR)) {
+            return ReservationStatusValue.ERROR;
+        }
+        if (matchAnyResourceReservationsStatus(resourceReservations, ReservationStatusValue.NEW)) {
+            return ReservationStatusValue.NEW;
+        }
+
+        if (matchAnyResourceReservationsStatus(resourceReservations,
+            ReservationStatusValue.TERMINATING)) {
+            return ReservationStatusValue.TERMINATING;
+        }
+
+        if (matchAnyResourceReservationsStatus(resourceReservations,
+            ReservationStatusValue.DEPLOYED)) {
+            return ReservationStatusValue.DEPLOYED;
+        }
+        return ReservationStatusValue.TERMINATED;
+    }
+
+    private boolean matchAnyResourceReservationsStatus(JsonArray resourceReservations, ReservationStatusValue statusValue) {
+        return resourceReservations.stream()
+            .map(rr -> (JsonObject) rr)
+            .anyMatch(rr -> rr.getJsonObject("status")
+                .getString("status_value").equals(statusValue.name())
+            );
+    }
+
     private static boolean matchesFunctionResource(long resourceId, String functionName, FunctionResource functionResource) {
         return functionResource.getResource().getResourceId() == resourceId &&
             functionResource.getFunction().getName().equals(functionName);

@@ -29,7 +29,7 @@ public class ReservationRepository extends Repository<Reservation> {
 
     public CompletionStage<List<Reservation>> findAllByAccountId(long accountId) {
         return sessionFactory.withSession(session ->
-            session.createQuery("from Reservation r " +
+            session.createQuery("select distinct r from Reservation r " +
                     "where r.createdBy.accountId=:accountId " +
                     "order by r.id", entityClass)
                 .setParameter("accountId", accountId)
