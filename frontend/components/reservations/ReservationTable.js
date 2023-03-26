@@ -1,6 +1,4 @@
 import {
-  CheckCircleTwoTone,
-  CloseCircleTwoTone,
   InfoCircleOutlined,
 } from '@ant-design/icons';
 import DateFormatter from '../misc/DateFormatter';
@@ -9,12 +7,14 @@ import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import {listMyReservations} from '../../lib/ReservationService';
 import Link from 'next/link';
+import ReservationStatusBadge from './ReservationStatusBadge';
 
 const {Column} = Table;
 
 const ReservationTable = () => {
   const {token, checkTokenExpired} = useAuth();
   const [reservations, setReservations] = useState([]);
+  const [statusFilter, setStatusFilter] = useState([]);
   const [error, setError] = useState(false);
 
   useEffect(() => {
@@ -22,6 +22,14 @@ const ReservationTable = () => {
       listMyReservations(token, setReservations, setError);
     }
   }, []);
+
+  useEffect(() => {
+    setStatusFilter(() =>
+      [...new Set(reservations.map((reservation) => reservation.status_value))]
+          .map((item) => {
+            return {text: item, value: item};
+          }));
+  }, [reservations]);
 
   // TODO: improve error handling
   useEffect(() => {
@@ -36,16 +44,12 @@ const ReservationTable = () => {
       <Column title="Id" dataIndex="reservation_id" key="id"
         sorter={ (a, b) => a.reservation_id - b.reservation_id }
       />
-      <Column title="Is Active" dataIndex="is_active" key="is_active"
-        render={ (isActive) => isActive ? <CheckCircleTwoTone twoToneColor="#00ff00" className="text-lg"/> :
-                <CloseCircleTwoTone twoToneColor="#ff0000" className="text-lg"/> }
-        sorter={ (a, b) => {
-          if (a.is_active && b.is_active) return 0;
-          else if (a.is_active) return -1;
-          else if (b.is_active) return 1;
-        }
-        }
-        defaultSortOrder="ascend"
+      <Column title="Status" dataIndex="status_value" key="status_value"
+        render={ (statusValue) => <ReservationStatusBadge status={statusValue}>{statusValue}</ReservationStatusBadge> }
+        sorter={(a, b) =>
+          a.status_value.localeCompare(b.status_value)}
+        filters={statusFilter}
+        onFilter={(value, record) => record.status_value.indexOf(value) === 0}
       />
       <Column title="Created at" dataIndex="created_at" key="created_at"
         render={ (createdAt) => <DateFormatter dateTimestamp={ createdAt }/> }

@@ -1,7 +1,7 @@
 // Inspired by: https://flowbite.com/docs/components/badge/
 import PropTypes from 'prop-types';
 
-const ResourceReservationStatusBadge = ({status, children}) => {
+const ReservationStatusBadge = ({status, children}) => {
   let color;
   switch (status) {
     case 'NEW':
@@ -25,9 +25,9 @@ const ResourceReservationStatusBadge = ({status, children}) => {
   return <span className={className}>{ children }</span>;
 };
 
-ResourceReservationStatusBadge.propTypes = {
+ReservationStatusBadge.propTypes = {
   status: PropTypes.oneOf(['NEW', 'DEPLOYED', 'TERMINATING', 'TERMINATED', 'ERROR']),
   children: PropTypes.node.isRequired,
 };
 
-export default ResourceReservationStatusBadge;
+export default ReservationStatusBadge;

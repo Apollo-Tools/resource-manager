@@ -3,7 +3,7 @@ import {CopyOutlined} from '@ant-design/icons';
 import DateFormatter from '../misc/DateFormatter';
 import Link from 'next/link';
 import PropTypes from 'prop-types';
-import ResourceReservationStatusBadge from './ResourceReservationStatusBadge';
+import ReservationStatusBadge from './ReservationStatusBadge';
 
 const {Column} = Table;
 
@@ -43,9 +43,9 @@ const ResourceReservationTable = ({resourceReservations}) => {
       />
       <Column title="Status" dataIndex="status" key="status"
         render={(status) =>
-          <ResourceReservationStatusBadge status={status.status_value}>
+          <ReservationStatusBadge status={status.status_value}>
             {status.status_value}
-          </ResourceReservationStatusBadge>
+          </ReservationStatusBadge>
         }
         sorter={ (a, b) => a.status_value - b.status_value }
       />

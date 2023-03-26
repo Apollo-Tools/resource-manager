@@ -96,7 +96,7 @@ public class ReservationHandler extends ValidationHandler {
                     singles.add(resourceReservationChecker.checkFindAllByReservationId(reservationResponse.getReservationId())
                         .map(resourceReservationChecker::checkCrucialResourceReservationStatus)
                         .map(status -> {
-                            reservationResponse.setReservationStatusValue(status);
+                            reservationResponse.setStatusValue(status);
                             return JsonObject.mapFrom(reservationResponse);
                         }));
                 }

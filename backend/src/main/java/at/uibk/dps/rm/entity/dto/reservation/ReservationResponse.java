@@ -10,7 +10,7 @@ public class ReservationResponse {
 
     public long reservationId;
 
-    public ReservationStatusValue reservationStatusValue;
+    public ReservationStatusValue statusValue;
 
     private Timestamp createdAt;
 }
