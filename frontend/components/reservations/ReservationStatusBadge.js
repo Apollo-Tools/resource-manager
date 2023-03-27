@@ -2,26 +2,35 @@
 import PropTypes from 'prop-types';
 
 const ReservationStatusBadge = ({status, children}) => {
-  let color;
+  let bgColor;
+  let textColor;
+  // bgColor and textColor have to be set this way because tailwind generates the necessary css classes only if it can
+  // detect them in the code (https://stackoverflow.com/questions/71063619/react-and-tailwind-css-dynamically-generated-classes-are-not-being-applied)
   switch (status) {
     case 'NEW':
-      color='blue';
+      bgColor='bg-blue-100';
+      textColor = 'text-blue-500';
       break;
     case 'DEPLOYED':
-      color='green';
+      bgColor='bg-green-100';
+      textColor = 'text-green-500';
       break;
     case 'TERMINATING':
-      color='orange';
+      bgColor='bg-orange-100';
+      textColor = 'text-orange-500';
       break;
     case 'ERROR':
-      color='red';
+      bgColor='bg-red-100';
+      textColor = 'text-red-500';
       break;
-    case 'TERMINATED':
+    case 'bg-TERMINATED-100':
     default:
-      color='gray';
+      bgColor='bg-gray-100';
+      textColor = 'text-gray-500';
   }
-  const className = `bg-${color}-100 text-${color}-500 text-xs font-medium mr-2 px-2.5 py-0.5 rounded border 
+  const className = `${bgColor} ${textColor} text-xs font-medium mr-2 px-2.5 py-0.5 rounded border 
    border-solid`;
+
   return <span className={className}>{ children }</span>;
 };
 

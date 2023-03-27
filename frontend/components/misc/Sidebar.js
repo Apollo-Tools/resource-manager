@@ -20,7 +20,7 @@ export const siteTitle = 'Apollo Tools - Resource Manager';
 const Sidebar = ({children}) => {
   const {logout} = useAuth();
   const [collapsed, setCollapsed] = useState(false);
-  const [selectedKey, setSelectedKey] = useState('0');
+  const [selectedKey, setSelectedKey] = useState();
 
   const onClickLogout = () => {
     logout();
