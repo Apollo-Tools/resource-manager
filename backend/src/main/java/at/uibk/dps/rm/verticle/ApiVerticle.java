@@ -2,16 +2,12 @@ package at.uibk.dps.rm.verticle;
 
 import at.uibk.dps.rm.router.account.AccountRoute;
 import at.uibk.dps.rm.router.account.CredentialsRoute;
-import at.uibk.dps.rm.router.function.FunctionResourceRoute;
-import at.uibk.dps.rm.router.function.FunctionRoute;
-import at.uibk.dps.rm.router.function.RuntimeRoute;
-import at.uibk.dps.rm.router.function.RuntimeTemplateRoute;
+import at.uibk.dps.rm.router.function.*;
 import at.uibk.dps.rm.router.log.ReservationLogRoute;
 import at.uibk.dps.rm.router.metric.MetricRoute;
 import at.uibk.dps.rm.router.metric.ResourceMetricRoute;
 import at.uibk.dps.rm.router.metric.ResourceTypeMetricRoute;
 import at.uibk.dps.rm.router.reservation.ReservationRoute;
-import at.uibk.dps.rm.router.resource.ResourceDeploymentRoute;
 import at.uibk.dps.rm.router.resource.ResourceRoute;
 import at.uibk.dps.rm.router.resource.ResourceTypeRoute;
 import at.uibk.dps.rm.router.resourceprovider.RegionRoute;
@@ -81,7 +77,7 @@ public class ApiVerticle extends AbstractVerticle {
         RuntimeTemplateRoute.init(routerBuilder, serviceProxyProvider);
         FunctionRoute.init(routerBuilder, serviceProxyProvider);
         FunctionResourceRoute.init(routerBuilder, serviceProxyProvider);
-        ResourceDeploymentRoute.init(routerBuilder, serviceProxyProvider);
+        FunctionResourceSLORoute.init(routerBuilder, serviceProxyProvider);
         ReservationRoute.init(routerBuilder, serviceProxyProvider);
         ReservationLogRoute.init(routerBuilder, serviceProxyProvider);
         ResourceTypeMetricRoute.init(routerBuilder, serviceProxyProvider);

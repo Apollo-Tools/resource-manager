@@ -23,15 +23,10 @@ public class ResourceChecker extends EntityChecker {
         return ErrorHandler.handleFindAll(findAllUnreserved);
     }
 
-    public Single<JsonArray> checkFindAllByMultipleMetrics(List<String> metrics) {
-        Single<JsonArray> findAllByMultipleMetrics = resourceService.findAllByMultipleMetrics(metrics);
+    public Single<JsonArray> checkFindAllByMultipleMetrics(long functionId, List<String> metrics) {
+        Single<JsonArray> findAllByMultipleMetrics = resourceService.findAllByFunctionAndMultipleMetrics(functionId,
+            metrics);
         return ErrorHandler.handleFindAll(findAllByMultipleMetrics);
-    }
-
-    // Set error for reservation (maybe add status field)
-    public Single<JsonArray> checkFindAllByReservationId(long reservationId) {
-        Single<JsonArray> findAllByReservationId  = resourceService.findAllByReservationId(reservationId);
-        return ErrorHandler.handleFindAll(findAllByReservationId);
     }
 
     public Single<JsonArray> checkFindAllByFunction(long id) {
@@ -42,10 +37,5 @@ public class ResourceChecker extends EntityChecker {
     public Completable checkOneUsedByResourceType(long resourceTypeId) {
         Single<Boolean> existsOneByResourceType = resourceService.existsOneByResourceType(resourceTypeId);
         return ErrorHandler.handleUsedByOtherEntity(existsOneByResourceType).ignoreElement();
-    }
-
-    public Completable checkExistsOneAndIsNotReserved(long resourceId) {
-        Single<Boolean> checkExistsOneAndIsNotReserved = resourceService.existsOneAndNotReserved(resourceId);
-        return ErrorHandler.handleExistsOne(checkExistsOneAndIsNotReserved).ignoreElement();
     }
 }

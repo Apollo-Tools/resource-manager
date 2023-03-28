@@ -9,7 +9,6 @@ import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class ResourceServiceImpl extends ServiceProxy<Resource> implements ResourceService {
 
@@ -41,20 +40,12 @@ public class ResourceServiceImpl extends ServiceProxy<Resource> implements Resou
     }
 
     @Override
-    public Future<Boolean> existsOneAndNotReserved(long id) {
-        return Future
-            .fromCompletionStage(resourceRepository.findByIdAndNotReserved(id))
-            .map(Objects::nonNull);
-    }
-
-    @Override
     public Future<JsonArray> findAll() {
         return Future
             .fromCompletionStage(resourceRepository.findAllAndFetch())
             .map(this::encodeResourceList);
     }
 
-    // TODO: remove
     @Deprecated
     @Override
     public Future<JsonArray> findAllUnreserved() {
@@ -65,17 +56,10 @@ public class ResourceServiceImpl extends ServiceProxy<Resource> implements Resou
 
 
     @Override
-    public Future<JsonArray> findAllByMultipleMetrics(List<String> metrics) {
+    public Future<JsonArray> findAllByFunctionAndMultipleMetrics(long functionId, List<String> metrics) {
         return Future
-                .fromCompletionStage(resourceRepository.findByMultipleMetricsAndFetch(metrics))
+                .fromCompletionStage(resourceRepository.findByFunctionAndMultipleMetricsAndFetch(functionId, metrics))
                 .map(this::encodeResourceList);
-    }
-
-    @Override
-    public Future<JsonArray> findAllByReservationId(long reservationId) {
-        return Future
-            .fromCompletionStage(resourceRepository.findAllByReservationIdAndFetch(reservationId))
-            .map(this::encodeResourceList);
     }
 
     @Override

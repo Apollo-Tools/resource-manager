@@ -237,12 +237,6 @@ paths:
         - bearerAuth: []
       tags:
         - resources
-      parameters:
-        - in: query
-          name: excludeReserved
-          schema:
-            type: boolean
-          description: Wether to exclude reserved resources in the result list
       responses:
         200:
           description: Successful pull of all resources
@@ -470,14 +464,16 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /resources/slo:
+  /functions/{id}/resources/slo:
     post:
-      description: Return all resources that conform to the given service level objectives
-      operationId: getResourcesBySLOs
+      description: Return all resources that conform to the given service level objectives and are linked to the function
+      operationId: getFunctionResourcesBySLOs
       security:
         - bearerAuth: []
       tags:
         - resourcesBySLOs
+      parameters:
+        - $ref: "#/components/parameters/idParam"
       requestBody:
         required: true
         content:
@@ -1897,9 +1893,9 @@ components:
           type: boolean
           example: true
         created_at:
-          type: string
-          format: date-time
-          #example: 2017-07-21T17:32:28Z
+          type: integer
+          format: int64
+          example: 1679496667103
     ResourceProvider:
       type: object
       properties:
@@ -1911,9 +1907,9 @@ components:
           type: string
           example: aws
         created_at:
-          type: string
-          format: date-time
-          #example: 2017-07-21T17:32:28Z
+          type: integer
+          format: int64
+          example: 1679496667103
     Region:
       type: object
       properties:
@@ -1927,9 +1923,9 @@ components:
         resource_provider:
           $ref: "#/components/schemas/Runtime"
         created_at:
-          type: string
-          format: date-time
-          #example: 2017-07-21T17:32:28Z
+          type: integer
+          format: int64
+          example: 1679496667103
     Resource:
       type: object
       properties:
@@ -1945,13 +1941,13 @@ components:
         region:
           $ref: "#/components/schemas/Region"
         created_at:
-          type: string
-          format: date-time
-          #example: 2017-07-21T17:32:28Z
+          type: integer
+          format: int64
+          example: 1679496667103
         updated_at:
-          type: string
-          format: date-time
-          #example: 2017-07-21T17:32:28Z
+          type: integer
+          format: int64
+          example: 1679496667103
     ResourceType:
       type: object
       properties:
@@ -1964,9 +1960,9 @@ components:
           maxLength: 8
           example: faas
         created_at:
-          type: string
-          format: date-time
-          #example: 2017-07-21T17:32:28Z
+          type: integer
+          format: int64
+          example: 1679496667103
     Metric:
       type: object
       properties:
@@ -1994,9 +1990,9 @@ components:
           type: string
           example: the availability of a resource
         created_at:
-          type: string
-          format: date-time
-          #example: 2017-07-21T17:32:28Z
+          type: integer
+          format: int64
+          example: 1679496667103
     Reservation:
       type: object
       properties:
@@ -2012,9 +2008,9 @@ components:
           items:
             $ref: "#/components/schemas/ResourceReservation"
         created_at:
-          type: string
-          format: date-time
-          #example: 2017-07-21T17:32:28Z
+          type: integer
+          format: int64
+          example: 1679496667103
     ResourceReservation:
       type: object
       properties:
@@ -2030,9 +2026,9 @@ components:
           type: boolean
           example: true
         created_at:
-          type: string
-          format: date-time
-          #example: 2017-07-21T17:32:28Z
+          type: integer
+          format: int64
+          example: 1679496667103
     Function:
       type: object
       properties:
@@ -2043,9 +2039,9 @@ components:
         runtime:
           $ref: "#/components/schemas/Runtime"
         created_at:
-          type: string
-          format: date-time
-          #example: 2017-07-21T17:32:28Z
+          type: integer
+          format: int64
+          example: 1679496667103
     Runtime:
       type: object
       properties:
@@ -2058,9 +2054,9 @@ components:
         template_path:
           type: string
         created_at:
-          type: string
-          format: date-time
-          #example: 2017-07-21T17:32:28Z
+          type: integer
+          format: int64
+          example: 1679496667103
     VPC:
       type: object
       properties:
@@ -2075,9 +2071,9 @@ components:
           type: string
           example: subnet-ave2412
         created_at:
-          type: string
-          format: date-time
-          #example: 2017-07-21T17:32:28Z
+          type: integer
+          format: int64
+          example: 1679496667103
         region:
           $ref: "#/components/schemas/Region"
     Log:
@@ -2094,9 +2090,9 @@ components:
           type: string
           example: subnet-ave2412
         created_at:
-          type: string
-          format: date-time
-          #example: 2017-07-21T17:32:28Z
+          type: integer
+          format: int64
+          example: 1679496667103
     Url:
       type: string
       minLength: 1

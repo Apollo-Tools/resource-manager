@@ -113,4 +113,10 @@ public class MetricChecker extends EntityChecker {
                 metricValue.setValueBool(false);
         }
     }
+
+    public Completable checkServiceLevelObjectives(ServiceLevelObjective slo) {
+        return checkFindOneByMetric(slo.getName())
+            .flatMap(metric -> checkEqualValueTypes(slo, metric))
+            .ignoreElement();
+    }
 }
