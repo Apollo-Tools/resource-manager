@@ -16,4 +16,19 @@ public class ServiceLevelObjective {
     private ExpressionType expression;
 
     private List<SLOValue> value;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ServiceLevelObjective that = (ServiceLevelObjective) o;
+
+        return name.equals(that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return name.hashCode();
+    }
 }

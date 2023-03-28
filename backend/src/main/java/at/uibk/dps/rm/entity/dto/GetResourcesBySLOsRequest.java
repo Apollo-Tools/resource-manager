@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -15,7 +16,13 @@ public class GetResourcesBySLOsRequest {
     private final @Getter(value = AccessLevel.NONE) @Setter(value = AccessLevel.NONE) int DEFAULT_LIMIT = 10000;
 
     @JsonProperty("slo")
-    private List<ServiceLevelObjective> serviceLevelObjectives;
+    private List<ServiceLevelObjective> serviceLevelObjectives =new ArrayList<>();
+
+    private List<String> regions = new ArrayList<>();
+
+    private List<Long> providers = new ArrayList<>();
+
+    private List<Long> resourceTypes = new ArrayList<>();
 
     private int limit = DEFAULT_LIMIT;
 }

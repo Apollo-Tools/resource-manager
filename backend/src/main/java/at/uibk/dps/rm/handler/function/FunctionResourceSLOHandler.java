@@ -54,8 +54,8 @@ public class FunctionResourceSLOHandler {
             .flatMap(function -> Observable.fromStream(serviceLevelObjectives.stream())
                 .map(ServiceLevelObjective::getName)
                 .toList()
-                .flatMap(metrics -> resourceChecker.checkFindAllByMultipleMetrics(function.getLong("function_id"),
-                    metrics)))
+                .flatMap(metrics -> resourceChecker.checkFindAllBySLOs(function.getLong("function_id"),
+                    metrics, requestDTO.getRegions(), requestDTO.getProviders(), requestDTO.getResourceTypes())))
             .flatMap(this::mapMetricValuesToResources)
             .map(this::mapJsonListToResourceList)
             .map(resources -> filterAndSortResultList(resources, serviceLevelObjectives, requestDTO.getLimit()));

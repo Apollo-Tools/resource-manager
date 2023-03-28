@@ -467,7 +467,7 @@ paths:
   /functions/{id}/resources/slo:
     post:
       description: Return all resources that conform to the given service level objectives and are linked to the function
-      operationId: getFunctionResourcesBySLOs
+      operationId: listFunctionResourcesBySLOs
       security:
         - bearerAuth: []
       tags:
@@ -480,11 +480,10 @@ paths:
           application/json:
             schema:
               type: object
-              required:
-                - slo
               additionalProperties: false
               properties:
                 slo:
+                  description: Filters all resources by the given Service Level Objectives
                   type: array
                   minItems: 1
                   items:
@@ -501,6 +500,7 @@ paths:
                         maxLength: 256
                         example: "availability"
                       expression:
+                        description: Valid expressions are >, <, ==
                         type: string
                         minLength: 1
                         maxLength: 50
@@ -510,8 +510,33 @@ paths:
                           - $ref: '#/components/schemas/stringValues'
                           - $ref: '#/components/schemas/numberValues'
                           - $ref: '#/components/schemas/boolValues'
+                regions:
+                  description: Filters all resources by regions that contain any of the given strings. If this value is not given, all regions are used
+                  type: array
+                  minItems: 1
+                  items:
+                    type: string
+                    example: US
+                providers:
+                  description: Filters all resources by the given resource providers. If this value is not given, all providers are used
+                  type: array
+                  minItems: 1
+                  items:
+                    type: integer
+                    format: int64
+                    example: 1
+                resource_types:
+                  description: Filters all resources by the given resource types. If this value is not given, all resource types are used
+                  type: array
+                  minItems: 1
+                  items:
+                    type: integer
+                    format: int64
+                    example: 1
                 limit:
-                  type: number
+                  description: Limits the result to the given value
+                  type: integer
+                  format: int64
                   minimum: 1
                   maxLength: 10000
       responses:

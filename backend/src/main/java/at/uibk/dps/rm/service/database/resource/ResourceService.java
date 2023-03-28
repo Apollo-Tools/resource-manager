@@ -25,7 +25,9 @@ public interface ResourceService extends ServiceInterface {
 
     Future<JsonArray> findAllUnreserved();
 
-    Future<JsonArray> findAllByFunctionAndMultipleMetrics(long functionId, List<String> metrics);
+    Future<JsonArray> checkFindAllBySLOs(long functionId, List<String> metrics,
+                                                          List<String> regions, List<Long> providerIds,
+                                                          List<Long> resourceTypeIds);
 
     Future<JsonArray> findAllByFunctionId(long functionId);
 

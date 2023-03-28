@@ -11,7 +11,7 @@ public class FunctionResourceSLORoute {
         FunctionResourceSLOHandler sloHandler = new FunctionResourceSLOHandler(serviceProxyProvider);
 
         router
-            .operation("getFunctionResourcesBySLOs")
+            .operation("listFunctionResourcesBySLOs")
             .handler(SLOInputHandler::validateGetResourcesBySLOsRequest)
             .handler(rc -> ResultHandler.handleGetAllRequest(rc, sloHandler.getFunctionResourceBySLOs(rc)));
     }

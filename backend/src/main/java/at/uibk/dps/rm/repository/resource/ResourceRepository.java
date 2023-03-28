@@ -6,6 +6,7 @@ import org.hibernate.reactive.stage.Stage;
 
 import java.util.List;
 import java.util.concurrent.CompletionStage;
+import java.util.stream.Collectors;
 
 public class ResourceRepository extends Repository<Resource> {
 
@@ -37,18 +38,44 @@ public class ResourceRepository extends Repository<Resource> {
             );
     }
 
-    public CompletionStage<List<Resource>> findByFunctionAndMultipleMetricsAndFetch(long functionId, List<String> metrics) {
+    public CompletionStage<List<Resource>> checkFindAllBySLOs(long functionId, List<String> metrics,
+                                                              List<String> regions, List<Long> providerIds,
+                                                              List<Long> resourceTypeIds) {
+        String regionsCondition = "";
+        if (!regions.isEmpty()) {
+            regionsCondition = " and (" + regions.stream()
+                .map(region -> "UPPER(reg.name) like UPPER('%" + region + "%')")
+                .collect(Collectors.joining("or ")) + ") ";
+        }
+        String providerCondition = "";
+        if (!providerIds.isEmpty()) {
+            providerCondition = " and reg.resourceProvider.providerId in (" +
+                providerIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ") ";
+        }
+        String resourceTypeCondition = "";
+        if (!resourceTypeIds.isEmpty()) {
+            resourceTypeCondition = " and rt in (" +
+                resourceTypeIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ") ";
+        }
+        String metricsCondition = "";
+        if (!metrics.isEmpty()) {
+            metricsCondition = " and m.metric in (" +
+                metrics.stream().map(metric -> "'" + metric + "'").collect(Collectors.joining(",")) + ") ";
+        }
+
+        String query = "select distinct r from FunctionResource fr " +
+            "left join fr.resource r " +
+            "left join fetch r.metricValues mv " +
+            "left join fetch r.resourceType rt " +
+            "left join fetch r.region reg " +
+            "left join fetch reg.resourceProvider " +
+            "left join fetch mv.metric m " +
+            "where fr.function.functionId=:functionId " + regionsCondition + providerCondition + resourceTypeCondition +
+            metricsCondition;
+
         return this.sessionFactory.withSession(session ->
-            session.createQuery("select distinct r from FunctionResource fr " +
-                    "left join fr.resource r " +
-                    "left join fetch r.metricValues mv " +
-                    "left join fetch r.resourceType " +
-                    "left join fetch r.region reg " +
-                    "left join fetch reg.resourceProvider " +
-                    "left join fetch mv.metric m " +
-                    "where fr.function.functionId=:functionId and m.metric in :metrics", Resource.class)
+            session.createQuery(query, Resource.class)
                 .setParameter("functionId", functionId)
-                .setParameter("metrics", metrics)
                 .getResultList()
         );
     }

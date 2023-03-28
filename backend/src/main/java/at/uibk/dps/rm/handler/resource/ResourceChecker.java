@@ -23,9 +23,10 @@ public class ResourceChecker extends EntityChecker {
         return ErrorHandler.handleFindAll(findAllUnreserved);
     }
 
-    public Single<JsonArray> checkFindAllByMultipleMetrics(long functionId, List<String> metrics) {
-        Single<JsonArray> findAllByMultipleMetrics = resourceService.findAllByFunctionAndMultipleMetrics(functionId,
-            metrics);
+    public Single<JsonArray> checkFindAllBySLOs(long functionId, List<String> metrics, List<String> regions,
+                                                List<Long> providerIds, List<Long> resourceTypeIds) {
+        Single<JsonArray> findAllByMultipleMetrics = resourceService.checkFindAllBySLOs(functionId,
+            metrics, regions, providerIds, resourceTypeIds);
         return ErrorHandler.handleFindAll(findAllByMultipleMetrics);
     }
 
