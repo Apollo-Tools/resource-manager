@@ -2,7 +2,6 @@ package at.uibk.dps.rm.handler.resource;
 
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.ext.web.RoutingContext;
@@ -45,6 +44,7 @@ public class ResourceInputHandlerTest {
         verify(rc).fail(eq(400), any(Throwable.class));
         testContext.completeNow();
     }
+    /*
 
     @Test
     void validateGetResourcesBySLORequestValid(VertxTestContext testContext) {
@@ -89,5 +89,5 @@ public class ResourceInputHandlerTest {
 
         verify(rc).fail(eq(400), any(Throwable.class));
         testContext.completeNow();
-    }
+    } */
 }

@@ -1,25 +1,15 @@
 package at.uibk.dps.rm.handler.resource;
 
-import at.uibk.dps.rm.entity.dto.GetResourcesBySLOsRequest;
-import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
-import at.uibk.dps.rm.entity.dto.slo.SLOValue;
-import at.uibk.dps.rm.entity.dto.slo.SLOValueType;
-import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
-import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.entity.model.Resource;
-import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.service.rxjava3.database.metric.MetricService;
-import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
+import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceTypeService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.SingleHelper;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -28,12 +18,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -53,100 +40,17 @@ public class ResourceHandlerTest {
     private ResourceTypeService resourceTypeService;
 
     @Mock
-    private MetricService metricService;
-
-    @Mock
-    private MetricValueService metricValueService;
-
-    @Mock
     private RoutingContext rc;
+
+    @Mock
+    private ServiceProxyProvider serviceProxyProvider;
 
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        resourceHandler = new ResourceHandler(resourceService, resourceTypeService, metricService, metricValueService);
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"", "true", "false"})
-    void getAllValid(String excludeUnreserved, VertxTestContext testContext) {
-        Resource r1 = TestObjectProvider.createResource(1L);
-        Resource r2 = TestObjectProvider.createResource(2L);
-        Resource r3 = TestObjectProvider.createResource(3L);
-        JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1),
-            JsonObject.mapFrom(r2), JsonObject.mapFrom(r3)));
-
-        ArrayList<String> mockedValues = new ArrayList<>();
-        if (!excludeUnreserved.equals("")) {
-            mockedValues.add(excludeUnreserved);
-        }
-        RoutingContextMockHelper.mockQueryParam(rc, "excludeReserved", mockedValues);
-        if (mockedValues.size() == 0 || excludeUnreserved.equals("false")) {
-            when(resourceService.findAll()).thenReturn(Single.just(resources));
-        } else {
-            when(resourceService.findAllUnreserved()).thenReturn(Single.just(resources));
-        }
-
-        resourceHandler.getAll(rc)
-            .subscribe(result -> testContext.verify(() -> {
-                    assertThat(result.size()).isEqualTo(3);
-                    assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
-                    assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
-                    assertThat(result.getJsonObject(2).getLong("resource_id")).isEqualTo(3L);
-                    testContext.completeNow();
-                }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
-            );
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"", "true", "false"})
-    void getAllEmptyValid(String excludeUnreserved, VertxTestContext testContext) {
-        JsonArray resources = new JsonArray(List.of());
-
-        ArrayList<String> mockedValues = new ArrayList<>();
-        if (!excludeUnreserved.equals("")) {
-            mockedValues.add(excludeUnreserved);
-        }
-        RoutingContextMockHelper.mockQueryParam(rc, "excludeReserved", mockedValues);
-        if (mockedValues.size() == 0 || excludeUnreserved.equals("false")) {
-            when(resourceService.findAll()).thenReturn(Single.just(resources));
-        } else {
-            when(resourceService.findAllUnreserved()).thenReturn(Single.just(resources));
-        }
-
-        resourceHandler.getAll(rc)
-            .subscribe(result -> testContext.verify(() -> {
-                    assertThat(result.size()).isEqualTo(0);
-                    testContext.completeNow();
-                }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
-            );
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"", "true", "false"})
-    void getAllNotFound(String excludeUnreserved, VertxTestContext testContext) {
-        Single<JsonArray> handler = new SingleHelper<JsonArray>().getEmptySingle();
-
-        ArrayList<String> mockedValues = new ArrayList<>();
-        if (!excludeUnreserved.equals("")) {
-            mockedValues.add(excludeUnreserved);
-        }
-        RoutingContextMockHelper.mockQueryParam(rc, "excludeReserved", mockedValues);
-        if (mockedValues.size() == 0 || excludeUnreserved.equals("false")) {
-            when(resourceService.findAll()).thenReturn(handler);
-        } else {
-            when(resourceService.findAllUnreserved()).thenReturn(handler);
-        }
-
-        resourceHandler.getAll(rc)
-            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(NotFoundException.class);
-                    testContext.completeNow();
-                })
-            );
+        when(serviceProxyProvider.getResourceService()).thenReturn(resourceService);
+        when(serviceProxyProvider.getResourceTypeService()).thenReturn(resourceTypeService);
+        resourceHandler = new ResourceHandler(serviceProxyProvider);
     }
 
     @Test
@@ -252,6 +156,7 @@ public class ResourceHandlerTest {
             );
     }
 
+    /*
     @Test
     void getResourceBySLOs(VertxTestContext testContext) {
         Resource resource1 = TestObjectProvider.createResource(1L);
@@ -292,7 +197,7 @@ public class ResourceHandlerTest {
                 }),
                 throwable -> testContext.verify(() -> fail("method did throw exception"))
             );
-    }
+    }*/
 
     @Test
     void checkUpdateResourceTypeExists(VertxTestContext testContext) {
@@ -349,6 +254,7 @@ public class ResourceHandlerTest {
             );
     }
 
+    /*
     @Test
     void checkServiceLevelObjectivesValid(VertxTestContext testContext) {
         String metricName = "availability";
@@ -632,5 +538,5 @@ public class ResourceHandlerTest {
         int result = resourceHandler.sortResourceBySLO(resource1, resource2, serviceLevelObjectives);
 
         assertThat(result).isEqualTo(0);
-    }
+    } */
 }

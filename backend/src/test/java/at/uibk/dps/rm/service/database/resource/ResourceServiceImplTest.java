@@ -13,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 
@@ -99,36 +100,6 @@ public class ResourceServiceImplTest {
     }
 
     @Test
-    void checkEntityExistsAndNotReserved(VertxTestContext testContext) {
-        long resourceId = 1L;
-        CompletionStage<Long> completionStage = CompletionStages.completedFuture(1L);
-
-        doReturn(completionStage).when(resourceRepository).findByIdAndNotReserved(resourceId);
-
-        resourceService.existsOneAndNotReserved(resourceId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result).isEqualTo(true);
-                verify(resourceRepository).findByIdAndNotReserved(resourceId);
-                testContext.completeNow();
-        })));
-    }
-
-    @Test
-    void checkEntityNotExistsOrReserved(VertxTestContext testContext) {
-        long resourceId = 1L;
-        CompletionStage<Long> completionStage = CompletionStages.completedFuture(null);
-
-        doReturn(completionStage).when(resourceRepository).findByIdAndNotReserved(resourceId);
-
-        resourceService.existsOneAndNotReserved(resourceId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result).isEqualTo(false);
-                verify(resourceRepository).findByIdAndNotReserved(1L);
-                testContext.completeNow();
-        })));
-    }
-
-    @Test
     void findAll(VertxTestContext testContext) {
         Resource r1 = TestObjectProvider.createResource(1L);
         Resource r2 = TestObjectProvider.createResource(2L);
@@ -146,40 +117,27 @@ public class ResourceServiceImplTest {
                 })));
     }
 
+    // TODO: refine
     @Test
-    void findAllByMultipleMetrics(VertxTestContext testContext) {
+    void findAllBySLOs(VertxTestContext testContext) {
+        long functionId = 1L;
         List<String> metrics = List.of("availability");
         Resource entity1 = TestObjectProvider.createResource(1L);
         CompletionStage<List<Resource>> completionStage = CompletionStages.completedFuture(List.of(entity1));
+        List<String> regions = new ArrayList<>();
+        List<Long> resourceProviders = new ArrayList<>();
+        List<Long> resourceTypes = new ArrayList<>();
 
-        doReturn(completionStage).when(resourceRepository).findByMultipleMetricsAndFetch(metrics);
 
-        resourceService.findAllByMultipleMetrics(metrics)
+        doReturn(completionStage).when(resourceRepository).findAllBySLOs(functionId, metrics, regions, resourceProviders,
+            resourceTypes);
+
+        resourceService.findAllBySLOs(functionId, metrics, regions, resourceProviders, resourceTypes)
                 .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(1);
                     assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
-                    verify(resourceRepository).findByMultipleMetricsAndFetch(metrics);
                     testContext.completeNow();
                 })));
-    }
-
-    @Test
-    void findAllByReservationId(VertxTestContext testContext) {
-        long reservationId = 1L;
-        Resource r1 = TestObjectProvider.createResource(1L);
-        Resource r2 = TestObjectProvider.createResource(2L);
-        CompletionStage<List<Resource>> completionStage = CompletionStages.completedFuture(List.of(r1, r2));
-
-        doReturn(completionStage).when(resourceRepository).findAllByReservationIdAndFetch(reservationId);
-
-        resourceService.findAllByReservationId(reservationId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result.size()).isEqualTo(2);
-                assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
-                assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
-                verify(resourceRepository).findAllByReservationIdAndFetch(reservationId);
-                testContext.completeNow();
-            })));
     }
 
     @Test

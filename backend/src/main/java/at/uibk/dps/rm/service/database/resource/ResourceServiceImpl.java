@@ -56,11 +56,11 @@ public class ResourceServiceImpl extends ServiceProxy<Resource> implements Resou
 
 
     @Override
-    public Future<JsonArray> checkFindAllBySLOs(long functionId, List<String> metrics,
+    public Future<JsonArray> findAllBySLOs(long functionId, List<String> metrics,
                                                                  List<String> regions, List<Long> providerIds,
                                                                  List<Long> resourceTypeIds) {
         return Future
-                .fromCompletionStage(resourceRepository.checkFindAllBySLOs(functionId, metrics,
+                .fromCompletionStage(resourceRepository.findAllBySLOs(functionId, metrics,
                     regions, providerIds, resourceTypeIds))
                 .map(this::encodeResourceList);
     }

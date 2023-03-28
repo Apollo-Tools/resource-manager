@@ -330,4 +330,14 @@ public class TestObjectProvider {
         region.setResourceProvider(resourceProvider);
         return region;
     }
+
+    public static VPC createVPC(long id, Region region, String vpcIdValue, String subnetIdValue, Account createdBy) {
+        VPC vpc = new VPC();
+        vpc.setVpcId(id);
+        vpc.setRegion(region);
+        vpc.setVpcIdValue(vpcIdValue);
+        vpc.setSubnetIdValue(subnetIdValue);
+        vpc.setCreatedBy(createdBy);
+        return vpc;
+    }
 }

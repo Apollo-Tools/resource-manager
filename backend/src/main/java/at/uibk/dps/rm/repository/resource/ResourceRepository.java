@@ -38,7 +38,7 @@ public class ResourceRepository extends Repository<Resource> {
             );
     }
 
-    public CompletionStage<List<Resource>> checkFindAllBySLOs(long functionId, List<String> metrics,
+    public CompletionStage<List<Resource>> findAllBySLOs(long functionId, List<String> metrics,
                                                               List<String> regions, List<Long> providerIds,
                                                               List<Long> resourceTypeIds) {
         String regionsCondition = "";

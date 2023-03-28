@@ -243,6 +243,9 @@ public class ReservationHandlerTest {
         DockerCredentials dockerCredentials = new DockerCredentials();
         dockerCredentials.setUsername("testuser");
         dockerCredentials.setAccessToken("abcdef12234");
+        Region region = TestObjectProvider.createRegion(1L, "us-eats-1");
+        VPC vpc1 = TestObjectProvider.createVPC(1L, region, "vpc-id", "subnet-id", account);
+
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         RoutingContextMockHelper.mockBody(rc, requestBody);
@@ -257,7 +260,8 @@ public class ReservationHandlerTest {
             .thenReturn(Single.just(JsonObject.mapFrom(ids4)));
         when(reservationService.save(any())).thenReturn(Single.just(reservationJson));
         when(resourceReservationService.saveAll(any())).thenReturn(Completable.complete());
-        when(deploymentHandler.deployResources(1L, 1L, dockerCredentials)).thenReturn(Completable.complete());
+        when(deploymentHandler.deployResources(reservation, 1L, dockerCredentials, List.of(vpc1)))
+            .thenReturn(Completable.complete());
 
         reservationHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> {
@@ -337,14 +341,12 @@ public class ReservationHandlerTest {
         when(rc.pathParam("id")).thenReturn(String.valueOf(reservationId));
         when(reservationService.findOneByIdAndAccountId(reservationId, account.getAccountId()))
             .thenReturn(Single.just(reservationJson));
-        when(reservationService.cancelReservationById(reservationId)).thenReturn(Completable.complete());
 
         reservationHandler.updateOne(rc)
             .blockingSubscribe(() -> {},
                 throwable -> testContext.verify(() -> fail("method did throw exception"))
             );
 
-        verify(reservationService).cancelReservationById(reservationId);
         testContext.completeNow();
     }
 

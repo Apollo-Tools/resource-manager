@@ -56,21 +56,6 @@ public class ReservationServiceImplTest {
             })));
     }
 
-
-    @Test
-    void cancelReservationById(VertxTestContext testContext) {
-        long reservationId = 1L;
-        CompletionStage<Reservation> completionStage = CompletionStages.completedFuture(null);
-        doReturn(completionStage).when(reservationRepository).cancelReservation(reservationId);
-
-        reservationService.cancelReservationById(reservationId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result).isNull();
-                verify(reservationRepository).cancelReservation(reservationId);
-                testContext.completeNow();
-        })));
-    }
-
     @Test
     void findOneByIdAndAccountExists(VertxTestContext testContext) {
         long reservationId = 1L;

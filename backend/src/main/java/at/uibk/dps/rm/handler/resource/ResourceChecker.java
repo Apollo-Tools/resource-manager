@@ -25,7 +25,7 @@ public class ResourceChecker extends EntityChecker {
 
     public Single<JsonArray> checkFindAllBySLOs(long functionId, List<String> metrics, List<String> regions,
                                                 List<Long> providerIds, List<Long> resourceTypeIds) {
-        Single<JsonArray> findAllByMultipleMetrics = resourceService.checkFindAllBySLOs(functionId,
+        Single<JsonArray> findAllByMultipleMetrics = resourceService.findAllBySLOs(functionId,
             metrics, regions, providerIds, resourceTypeIds);
         return ErrorHandler.handleFindAll(findAllByMultipleMetrics);
     }
