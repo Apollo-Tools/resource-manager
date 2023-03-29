@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.handler.resource;
 
 import at.uibk.dps.rm.handler.*;
-import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.util.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -12,9 +11,9 @@ public class ResourceHandler extends ValidationHandler {
 
     private final ResourceTypeChecker resourceTypeChecker;
 
-    public ResourceHandler(ServiceProxyProvider serviceProxyProvider) {
-        super(new ResourceChecker(serviceProxyProvider.getResourceService()));
-        resourceTypeChecker = new ResourceTypeChecker(serviceProxyProvider.getResourceTypeService());
+    public ResourceHandler(ResourceChecker resourceChecker, ResourceTypeChecker resourceTypeChecker) {
+        super(resourceChecker);
+        this.resourceTypeChecker = resourceTypeChecker;
     }
 
     // TODO: delete check if resource has metric values

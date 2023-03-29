@@ -1,12 +1,10 @@
 package at.uibk.dps.rm.handler.resource;
 
 import at.uibk.dps.rm.entity.model.Resource;
+import at.uibk.dps.rm.entity.model.ResourceType;
 import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.service.ServiceProxyProvider;
-import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
-import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceTypeService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
-import at.uibk.dps.rm.testutil.SingleHelper;
+import at.uibk.dps.rm.testutil.TestObjectProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -22,9 +20,10 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Arrays;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(VertxExtension.class)
@@ -34,39 +33,35 @@ public class ResourceHandlerTest {
     private ResourceHandler resourceHandler;
 
     @Mock
-    private ResourceService resourceService;
+    private ResourceChecker resourceChecker;
 
     @Mock
-    private ResourceTypeService resourceTypeService;
+    private ResourceTypeChecker resourceTypeChecker;
 
     @Mock
     private RoutingContext rc;
 
-    @Mock
-    private ServiceProxyProvider serviceProxyProvider;
-
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        when(serviceProxyProvider.getResourceService()).thenReturn(resourceService);
-        when(serviceProxyProvider.getResourceTypeService()).thenReturn(resourceTypeService);
-        resourceHandler = new ResourceHandler(serviceProxyProvider);
+        resourceHandler = new ResourceHandler(resourceChecker, resourceTypeChecker);
     }
 
     @Test
     void postOneValid(VertxTestContext testContext) {
-        JsonObject jsonObject = new JsonObject("{\"resource_type\": {\"type_id\": 1}, \"is_self_managed\": false}");
+        ResourceType rt = TestObjectProvider.createResourceType(1L, "vm");
+        Resource resource = TestObjectProvider.createResource(1L, rt);
+        JsonObject requestBody = JsonObject.mapFrom(resource);
+        requestBody.remove("resource_id");
 
-        RoutingContextMockHelper.mockBody(rc, jsonObject);
-        when(resourceTypeService.existsOneById(1L)).thenReturn(Single.just(true));
-        when(resourceService.save(jsonObject)).thenReturn(Single.just(jsonObject));
+        RoutingContextMockHelper.mockBody(rc, requestBody);
+        when(resourceTypeChecker.checkExistsOne(1L)).thenReturn(Completable.complete());
+        when(resourceChecker.submitCreate(requestBody)).thenReturn(Single.just(JsonObject.mapFrom(resource)));
 
         resourceHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.getJsonObject("resource_type").getLong("type_id")).isEqualTo(1L);
                     assertThat(result.getBoolean("is_self_managed")).isEqualTo(false);
-                    verify(resourceTypeService).existsOneById(1L);
-                    verify(resourceService).save(jsonObject);
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method did throw exception"))
@@ -78,7 +73,7 @@ public class ResourceHandlerTest {
         JsonObject jsonObject = new JsonObject("{\"resource_type\": {\"type_id\": 1}, \"is_self_managed\": false}");
 
         RoutingContextMockHelper.mockBody(rc, jsonObject);
-        when(resourceTypeService.existsOneById(1L)).thenReturn(Single.just(false));
+        when(resourceTypeChecker.checkExistsOne(1L)).thenReturn(Completable.error(NotFoundException::new));
 
         resourceHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> fail("method did throw exception")),
@@ -95,38 +90,32 @@ public class ResourceHandlerTest {
         "{\"is_self_managed\": false}"})
     void updateOneValid(String jsonInput, VertxTestContext testContext) {
         long entityId = 1L;
-        JsonObject jsonObject = new JsonObject(jsonInput);
+        JsonObject r1 = JsonObject.mapFrom(TestObjectProvider.createResource(1L));
+        JsonObject requestBody = new JsonObject(jsonInput);
 
-        RoutingContextMockHelper.mockBody(rc, jsonObject);
+        RoutingContextMockHelper.mockBody(rc, requestBody);
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
-        when(resourceService.findOne(entityId)).thenReturn(Single.just(jsonObject));
-        if (jsonObject.containsKey("resource_type")) {
-            when(resourceTypeService.existsOneById(1L)).thenReturn(Single.just(true));
+        when(resourceChecker.checkFindOne(entityId)).thenReturn(Single.just(r1));
+        if (requestBody.containsKey("resource_type")) {
+            when(resourceTypeChecker.checkExistsOne(1L)).thenReturn(Completable.complete());
         }
-        when(resourceService.update(jsonObject)).thenReturn(Completable.complete());
+        when(resourceChecker.submitUpdate(requestBody, r1)).thenReturn(Completable.complete());
 
         resourceHandler.updateOne(rc)
             .blockingSubscribe(() -> {},
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail(Arrays.toString(throwable.getStackTrace())))
             );
-
-        verify(resourceService).findOne(entityId);
-        if (jsonObject.containsKey("resource_type")) {
-            verify(resourceTypeService).existsOneById(1L);
-        }
-        verify(resourceService).update(jsonObject);
         testContext.completeNow();
     }
 
     @Test
     void updateOneEntityNotFound(VertxTestContext testContext) {
         long entityId = 1L;
-        Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
-        JsonObject jsonObject = new JsonObject("{\"resource_type\": {\"type_id\": 1}, \"is_self_managed\": false}");
+        JsonObject requestBody = new JsonObject("{\"resource_type\": {\"type_id\": 1}, \"is_self_managed\": false}");
 
-        RoutingContextMockHelper.mockBody(rc, jsonObject);
+        RoutingContextMockHelper.mockBody(rc, requestBody);
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
-        when(resourceService.findOne(entityId)).thenReturn(handler);
+        when(resourceChecker.checkFindOne(entityId)).thenReturn(Single.error(NotFoundException::new));
 
         resourceHandler.updateOne(rc)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
@@ -140,12 +129,13 @@ public class ResourceHandlerTest {
     @Test
     void updateOneResourceTypeNotFound(VertxTestContext testContext) {
         long entityId = 1L;
-        JsonObject jsonObject = new JsonObject("{\"resource_type\": {\"type_id\": 1}, \"is_self_managed\": false}");
+        JsonObject r1 = JsonObject.mapFrom(TestObjectProvider.createResource(1L));
+        JsonObject requestBody = new JsonObject("{\"resource_type\": {\"type_id\": 1}, \"is_self_managed\": false}");
 
-        RoutingContextMockHelper.mockBody(rc, jsonObject);
+        RoutingContextMockHelper.mockBody(rc, requestBody);
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
-        when(resourceService.findOne(entityId)).thenReturn(Single.just(jsonObject));
-        when(resourceTypeService.existsOneById(1L)).thenReturn(Single.just(false));
+        when(resourceChecker.checkFindOne(entityId)).thenReturn(Single.just(r1));
+        when(resourceTypeChecker.checkExistsOne(1L)).thenReturn(Completable.error(NotFoundException::new));
 
         resourceHandler.updateOne(rc)
            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
@@ -202,17 +192,16 @@ public class ResourceHandlerTest {
     @Test
     void checkUpdateResourceTypeExists(VertxTestContext testContext) {
         long typeId = 1L;
-        Resource entity = new Resource();
-        entity.setResourceId(1L);
-        JsonObject entityJson = JsonObject.mapFrom(entity);
+        ResourceType rt = TestObjectProvider.createResourceType(typeId, "vm");
+        Resource r1 = TestObjectProvider.createResource(1L, rt);
+        JsonObject r1Json = JsonObject.mapFrom(r1);
         JsonObject requestBody = new JsonObject("{\"resource_type\": {\"type_id\": " + typeId + "}}");
 
-        when(resourceTypeService.existsOneById(typeId)).thenReturn(Single.just(true));
+        when(resourceTypeChecker.checkExistsOne(typeId)).thenReturn(Completable.complete());
 
-        resourceHandler.checkUpdateResourceTypeExists(requestBody, entityJson)
+        resourceHandler.checkUpdateResourceTypeExists(requestBody, r1Json)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.getLong("resource_id")).isEqualTo(1L);
-                    verify(resourceTypeService).existsOneById(typeId);
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method did throw exception"))
@@ -222,14 +211,14 @@ public class ResourceHandlerTest {
     @Test
     void checkUpdateResourceTypeNotExists(VertxTestContext testContext) {
         long typeId = 1L;
-        Resource entity = new Resource();
-        entity.setResourceId(1L);
-        JsonObject entityJson = JsonObject.mapFrom(entity);
+        ResourceType rt = TestObjectProvider.createResourceType(typeId, "vm");
+        Resource r1 = TestObjectProvider.createResource(1L, rt);
+        JsonObject r1Json = JsonObject.mapFrom(r1);
         JsonObject requestBody = new JsonObject("{\"resource_type\": {\"type_id\": " + typeId + "}}");
 
-        when(resourceTypeService.existsOneById(typeId)).thenReturn(Single.just(false));
+        when(resourceTypeChecker.checkExistsOne(typeId)).thenReturn(Completable.error(NotFoundException::new));
 
-        resourceHandler.checkUpdateResourceTypeExists(requestBody, entityJson)
+        resourceHandler.checkUpdateResourceTypeExists(requestBody, r1Json)
             .subscribe(result -> testContext.verify(() -> fail("method did throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
@@ -240,12 +229,13 @@ public class ResourceHandlerTest {
 
     @Test
     void checkUpdateResourceTypeNotInRequestBody(VertxTestContext testContext) {
-        Resource entity = new Resource();
-        entity.setResourceId(1L);
-        JsonObject entityJson = JsonObject.mapFrom(entity);
+        long typeId = 1L;
+        ResourceType rt = TestObjectProvider.createResourceType(typeId, "vm");
+        Resource r1 = TestObjectProvider.createResource(1L, rt);
+        JsonObject r1Json = JsonObject.mapFrom(r1);
         JsonObject requestBody = new JsonObject("{\"is_managed\": true}");
 
-        resourceHandler.checkUpdateResourceTypeExists(requestBody, entityJson)
+        resourceHandler.checkUpdateResourceTypeExists(requestBody, r1Json)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.getLong("resource_id")).isEqualTo(1L);
                     testContext.completeNow();

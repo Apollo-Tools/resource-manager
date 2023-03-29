@@ -77,15 +77,15 @@ public class TestObjectProvider {
         return resource;
     }
 
-    public static Resource createResource(long id, ResourceType resourceType, boolean selfManaged) {
+    public static Resource createResource(long id, ResourceType resourceType) {
         ResourceProvider resourceProvider = createResourceProvider(1L);
         Region region = createRegion(1L, "us-east-1", resourceProvider);
-        return createResource(id, resourceType, region, selfManaged);
+        return createResource(id, resourceType, region, false);
     }
 
     public static Resource createResource(long resourceId) {
         ResourceType resourceType = createResourceType(1L, "cloud");
-        return createResource(resourceId, resourceType, true);
+        return createResource(resourceId, resourceType);
     }
 
     public static ResourceType createResourceType(long resourceTypeId, String resourceTypeLabel) {
