@@ -45,9 +45,9 @@ public class ResourceReservationServiceImplTest {
         FunctionResource functionResource = TestObjectProvider
             .createFunctionResource(functionResourceId, function, resource, false);
         ResourceReservation entity1 = TestObjectProvider
-            .createResourceReservation(4L, functionResource, new Reservation(), false);
+            .createResourceReservation(4L, functionResource, new Reservation(), new ResourceReservationStatus());
         ResourceReservation entity2 = TestObjectProvider
-            .createResourceReservation(5L, functionResource, new Reservation(), false);
+            .createResourceReservation(5L, functionResource, new Reservation(), new ResourceReservationStatus());
         List<ResourceReservation> resultList = new ArrayList<>();
         resultList.add(entity1);
         resultList.add(entity2);

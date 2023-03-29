@@ -49,11 +49,11 @@ public class ResourceReservationCheckerTest {
         FunctionResource functionResource2 = TestObjectProvider.createFunctionResource(2L);
         FunctionResource functionResource3 = TestObjectProvider.createFunctionResource(3L);
         ResourceReservation resourceReservation1 = TestObjectProvider.createResourceReservation(1L, functionResource1,
-            reservation, false);
+            reservation, new ResourceReservationStatus());
         ResourceReservation resourceReservation2 = TestObjectProvider.createResourceReservation(2L, functionResource2,
-            reservation, true);
+            reservation, new ResourceReservationStatus());
         ResourceReservation resourceReservation3 = TestObjectProvider.createResourceReservation(3L, functionResource3,
-            reservation, true);
+            reservation, new ResourceReservationStatus());
         JsonArray resourceReservations = new JsonArray(List.of(JsonObject.mapFrom(resourceReservation1),
             JsonObject.mapFrom(resourceReservation2), JsonObject.mapFrom(resourceReservation3)));
 

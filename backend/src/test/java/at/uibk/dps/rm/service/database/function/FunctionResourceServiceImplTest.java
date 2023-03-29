@@ -45,7 +45,8 @@ public class FunctionResourceServiceImplTest {
         functionResourceService.findOneByFunctionAndResource(functionId, resourceId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getJsonObject("function")).isNull();
-                assertThat(result.getJsonObject("resource")).isNull();
+                assertThat(result.getJsonObject("resource").getJsonObject("resource_type")).isNull();
+                assertThat(result.getJsonObject("resource").getJsonObject("metric_values")).isNull();
                 testContext.completeNow();
             })));
     }

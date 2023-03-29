@@ -1,7 +1,9 @@
 package at.uibk.dps.rm.testutil;
 
+import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
 import at.uibk.dps.rm.entity.dto.GetResourcesBySLOsRequest;
 import at.uibk.dps.rm.entity.dto.ReserveResourcesRequest;
+import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.SLOValue;
@@ -12,7 +14,6 @@ import at.uibk.dps.rm.entity.model.Runtime;
 import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 public class TestObjectProvider {
@@ -67,21 +68,24 @@ public class TestObjectProvider {
         return accountCredentials;
     }
 
-    public static Resource createResource(long resourceId, ResourceType resourceType, boolean selfManaged) {
+    public static Resource createResource(long id, ResourceType resourceType, Region region, boolean selfManaged) {
         Resource resource = new Resource();
-        resource.setResourceId(resourceId);
+        resource.setResourceId(id);
         resource.setResourceType(resourceType);
+        resource.setRegion(region);
         resource.setIsSelfManaged(selfManaged);
         return resource;
     }
 
+    public static Resource createResource(long id, ResourceType resourceType, boolean selfManaged) {
+        ResourceProvider resourceProvider = createResourceProvider(1L);
+        Region region = createRegion(1L, "us-east-1", resourceProvider);
+        return createResource(id, resourceType, region, selfManaged);
+    }
+
     public static Resource createResource(long resourceId) {
-        Resource resource = new Resource();
-        resource.setResourceId(resourceId);
-        resource.setResourceType(createResourceType(1L, "cloud"));
-        resource.setIsSelfManaged(false);
-        resource.setMetricValues(new HashSet<>());
-        return resource;
+        ResourceType resourceType = createResourceType(1L, "cloud");
+        return createResource(resourceId, resourceType, true);
     }
 
     public static ResourceType createResourceType(long resourceTypeId, String resourceTypeLabel) {
@@ -217,12 +221,12 @@ public class TestObjectProvider {
     }
 
     public static ResourceReservation createResourceReservation(long id, FunctionResource functionResource, Reservation reservation,
-                                                                boolean isDeployed) {
+                                                                ResourceReservationStatus resourceReservationStatus) {
         ResourceReservation resourceReservation = new ResourceReservation();
         resourceReservation.setResourceReservationId(id);
         resourceReservation.setFunctionResource(functionResource);
         resourceReservation.setReservation(reservation);
-        resourceReservation.setIsDeployed(isDeployed);
+        resourceReservation.setStatus(resourceReservationStatus);
         return resourceReservation;
     }
 
@@ -241,10 +245,21 @@ public class TestObjectProvider {
         return ids;
     }
 
-    public static ReserveResourcesRequest createReserveResourcesRequest(List<FunctionResourceIds> functionResources) {
+    public static FunctionResourceIds createFunctionResourceIds(FunctionResource functionResource) {
+        return createFunctionResourceIds(functionResource.getFunction().getFunctionId(),
+            functionResource.getResource().getResourceId());
+    }
+
+    public static ReserveResourcesRequest createReserveResourcesRequest(List<FunctionResourceIds> functionResources,
+                                                                        DockerCredentials dockerCredentials) {
         ReserveResourcesRequest request = new ReserveResourcesRequest();
         request.setFunctionResources(functionResources);
+        request.setDockerCredentials(dockerCredentials);
         return request;
+    }
+
+    public static ReserveResourcesRequest createReserveResourcesRequest(List<FunctionResourceIds> functionResources) {
+        return createReserveResourcesRequest(functionResources, createDockerCredentials());
     }
 
     public static List<JsonObject> createResourceReservationsJson(Reservation reservation) {
@@ -253,11 +268,11 @@ public class TestObjectProvider {
         FunctionResource functionResource3 = TestObjectProvider.createFunctionResource(3L);
 
         ResourceReservation resourceReservation1 = TestObjectProvider.createResourceReservation(1L, functionResource1,
-            reservation, false);
+            reservation, new ResourceReservationStatus());
         ResourceReservation resourceReservation2 = TestObjectProvider.createResourceReservation(2L, functionResource2,
-            reservation, true);
+            reservation, new ResourceReservationStatus());
         ResourceReservation resourceReservation3 = TestObjectProvider.createResourceReservation(3L, functionResource3,
-            reservation, true);
+            reservation, new ResourceReservationStatus());
         return List.of(JsonObject.mapFrom(resourceReservation1), JsonObject.mapFrom(resourceReservation2),
             JsonObject.mapFrom(resourceReservation3));
     }
@@ -270,24 +285,31 @@ public class TestObjectProvider {
         return runtime;
     }
 
-    public static Function createFunction(long functionId, String name, String code) {
+    public static Runtime createRuntime(long runtimeId) {
+        return createRuntime(runtimeId, "python3.9");
+    }
+
+    public static Function createFunction(long functionId, String name, String code, Runtime runtime) {
         Function function = new Function();
         function.setFunctionId(functionId);
         function.setName(name);
-        Runtime runtime = createRuntime(11L, "python3.9");
         function.setRuntime(runtime);
         function.setCode(code);
         return function;
     }
 
     public static Function createFunction(long functionId, String name, String code, long runtimeId) {
-        Function function = new Function();
-        function.setFunctionId(functionId);
-        function.setName(name);
-        Runtime runtime = createRuntime(runtimeId, "python3.9");
-        function.setRuntime(runtime);
-        function.setCode(code);
-        return function;
+        Runtime runtime = createRuntime(runtimeId);
+        return createFunction(functionId, name, code, runtime);
+    }
+
+    public static Function createFunction(long id, String name, String code) {
+        Runtime runtime = createRuntime(1L);
+        return createFunction(id, name, code, runtime);
+    }
+
+    public static Function createFunction(long id) {
+        return createFunction(id, "foo", "false");
     }
 
     public static FunctionResource createFunctionResource(long id) {
@@ -319,6 +341,10 @@ public class TestObjectProvider {
         return functionResource;
     }
 
+    public static FunctionResource createFunctionResource(long id, Function function, Resource resource) {
+        return createFunctionResource(id, function, resource, false);
+    }
+
     public static Region createRegion(long id, String name) {
         return createRegion(id, name, new ResourceProvider());
     }
@@ -339,5 +365,51 @@ public class TestObjectProvider {
         vpc.setSubnetIdValue(subnetIdValue);
         vpc.setCreatedBy(createdBy);
         return vpc;
+    }
+
+    public static VPC createVPC(long id, Account createdBy) {
+        ResourceProvider resourceProvider = new ResourceProvider();
+        resourceProvider.setProviderId(1L);
+        resourceProvider.setProvider("aws");
+        Region region = createRegion(1L, "us-east-1", resourceProvider);
+        return createVPC(id, region, "vpc-id", "subnet-id", createdBy);
+    }
+
+    public static VPC createVPC(long id, Region region, Account createdBy) {
+        return createVPC(id, region, "vpc-id", "subnet-id", createdBy);
+    }
+
+    public static ResourceReservationStatus createResourceReservationStatus(long id, ReservationStatusValue status) {
+        ResourceReservationStatus rrs = new ResourceReservationStatus();
+        rrs.setStatusId(id);
+        rrs.setStatusValue(status.name());
+        return rrs;
+    }
+
+    public static ResourceReservationStatus createResourceReservationStatusNew() {
+        return createResourceReservationStatus(1L, ReservationStatusValue.NEW);
+    }
+
+    public static ResourceReservationStatus createResourceReservationStatusError() {
+        return createResourceReservationStatus(2L, ReservationStatusValue.ERROR);
+    }
+
+    public static ResourceReservationStatus createResourceReservationStatusDeployed() {
+        return createResourceReservationStatus(3L, ReservationStatusValue.DEPLOYED);
+    }
+
+    public static ResourceReservationStatus createResourceReservationStatusTerminating() {
+        return createResourceReservationStatus(4L, ReservationStatusValue.TERMINATING);
+    }
+
+    public static ResourceReservationStatus createResourceReservationStatusTerminated() {
+        return createResourceReservationStatus(5L, ReservationStatusValue.TERMINATED);
+    }
+
+    public static DockerCredentials createDockerCredentials() {
+        DockerCredentials dockerCredentials = new DockerCredentials();
+        dockerCredentials.setUsername("testuser");
+        dockerCredentials.setAccessToken("abcdef12234");
+        return dockerCredentials;
     }
 }
