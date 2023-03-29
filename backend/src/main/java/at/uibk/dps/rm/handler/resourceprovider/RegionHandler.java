@@ -1,8 +1,6 @@
 package at.uibk.dps.rm.handler.resourceprovider;
 
 import at.uibk.dps.rm.handler.ValidationHandler;
-import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.RegionService;
-import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.ResourceProviderService;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
@@ -11,9 +9,9 @@ public class RegionHandler extends ValidationHandler {
 
     private final ResourceProviderChecker providerChecker;
 
-    public RegionHandler(RegionService regionService, ResourceProviderService providerService) {
-        super(new RegionChecker(regionService));
-        providerChecker = new ResourceProviderChecker(providerService);
+    public RegionHandler(RegionChecker regionChecker, ResourceProviderChecker providerChecker) {
+        super(regionChecker);
+        this.providerChecker = providerChecker;
     }
 
     @Override

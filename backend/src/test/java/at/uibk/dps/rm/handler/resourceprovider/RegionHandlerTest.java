@@ -3,10 +3,9 @@ package at.uibk.dps.rm.handler.resourceprovider;
 
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.RegionService;
-import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.ResourceProviderService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.util.JsonMapperConfig;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -29,10 +28,10 @@ public class RegionHandlerTest {
     private RegionHandler regionHandler;
 
     @Mock
-    private RegionService regionService;
+    private RegionChecker regionChecker;
 
     @Mock
-    private ResourceProviderService providerService;
+    private ResourceProviderChecker providerChecker;
 
     @Mock
     private RoutingContext rc;
@@ -40,17 +39,17 @@ public class RegionHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        regionHandler = new RegionHandler(regionService, providerService);
+        regionHandler = new RegionHandler(regionChecker, providerChecker);
     }
 
     @Test
     void postOneValid(VertxTestContext testContext) {
-        JsonObject jsonObject = new JsonObject("{\"name\": \"us-east\", \"resource_provider\": {\"provider_id\": 1}}");
+        JsonObject requestBody = new JsonObject("{\"name\": \"us-east\", \"resource_provider\": {\"provider_id\": 1}}");
 
-        RoutingContextMockHelper.mockBody(rc, jsonObject);
-        when(providerService.existsOneById(1L)).thenReturn(Single.just(true));
-        when(regionService.existsOneByNameAndProviderId("us-east", 1L)).thenReturn(Single.just(false));
-        when(regionService.save(jsonObject)).thenReturn(Single.just(jsonObject));
+        RoutingContextMockHelper.mockBody(rc, requestBody);
+        when(providerChecker.checkExistsOne(1L)).thenReturn(Completable.complete());
+        when(regionChecker.checkForDuplicateEntity(requestBody)).thenReturn(Completable.complete());
+        when(regionChecker.submitCreate(requestBody)).thenReturn(Single.just(requestBody));
 
         regionHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> {
@@ -65,11 +64,11 @@ public class RegionHandlerTest {
 
     @Test
     void postOneRegionNotFound(VertxTestContext testContext) {
-        JsonObject jsonObject = new JsonObject("{\"name\": \"us-east\", \"resource_provider\": {\"provider_id\": 1}}");
+        JsonObject requestBody = new JsonObject("{\"name\": \"us-east\", \"resource_provider\": {\"provider_id\": 1}}");
 
-        RoutingContextMockHelper.mockBody(rc, jsonObject);
-        when(providerService.existsOneById(1L)).thenReturn(Single.just(false));
-        when(regionService.existsOneByNameAndProviderId("us-east", 1L)).thenReturn(Single.just(false));
+        RoutingContextMockHelper.mockBody(rc, requestBody);
+        when(providerChecker.checkExistsOne(1L)).thenReturn(Completable.error(NotFoundException::new));
+        when(regionChecker.checkForDuplicateEntity(requestBody)).thenReturn(Completable.complete());
 
         regionHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> fail("method did throw exception")),
@@ -82,11 +81,12 @@ public class RegionHandlerTest {
 
     @Test
     void postOneRegionAlreadyExists(VertxTestContext testContext) {
-        JsonObject jsonObject = new JsonObject("{\"name\": \"us-east\", \"resource_provider\": {\"provider_id\": 1}}");
+        JsonObject requestBody = new JsonObject("{\"name\": \"us-east\", \"resource_provider\": {\"provider_id\": 1}}");
 
-        RoutingContextMockHelper.mockBody(rc, jsonObject);
-        when(providerService.existsOneById(1L)).thenReturn(Single.just(true));
-        when(regionService.existsOneByNameAndProviderId("us-east", 1L)).thenReturn(Single.just(true));
+        RoutingContextMockHelper.mockBody(rc, requestBody);
+        when(providerChecker.checkExistsOne(1L)).thenReturn(Completable.complete());
+        when(regionChecker.checkForDuplicateEntity(requestBody))
+            .thenReturn(Completable.error(AlreadyExistsException::new));
 
         regionHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> fail("method did throw exception")),

@@ -2,8 +2,6 @@ package at.uibk.dps.rm.handler.resourceprovider;
 
 import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.RegionService;
-import at.uibk.dps.rm.testutil.SingleHelper;
 import at.uibk.dps.rm.testutil.TestObjectProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
@@ -31,7 +29,7 @@ public class ResourceProviderRegionHandlerTest {
     private ResourceProviderRegionHandler providerRegionHandler;
 
     @Mock
-    private RegionService regionService;
+    private RegionChecker regionChecker;
 
     @Mock
     private RoutingContext rc;
@@ -39,7 +37,7 @@ public class ResourceProviderRegionHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        providerRegionHandler = new ResourceProviderRegionHandler(regionService);
+        providerRegionHandler = new ResourceProviderRegionHandler(regionChecker);
     }
 
     @Test
@@ -52,7 +50,7 @@ public class ResourceProviderRegionHandlerTest {
             JsonObject.mapFrom(region3)));
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(providerId));
-        when(regionService.findAllByProviderId(providerId)).thenReturn(Single.just(regionJson));
+        when(regionChecker.checkFindAllByProvider(providerId)).thenReturn(Single.just(regionJson));
 
         providerRegionHandler.getAll(rc)
             .subscribe(result -> testContext.verify(() -> {
@@ -72,7 +70,7 @@ public class ResourceProviderRegionHandlerTest {
         JsonArray regionJson = new JsonArray(List.of());
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(providerId));
-        when(regionService.findAllByProviderId(providerId)).thenReturn(Single.just(regionJson));
+        when(regionChecker.checkFindAllByProvider(providerId)).thenReturn(Single.just(regionJson));
 
         providerRegionHandler.getAll(rc)
             .subscribe(result -> testContext.verify(() -> {
@@ -86,10 +84,9 @@ public class ResourceProviderRegionHandlerTest {
     @Test
     void checkFindAllByProviderNotFound(VertxTestContext testContext) {
         long providerId = 1L;
-        Single<JsonArray> handler = new SingleHelper<JsonArray>().getEmptySingle();
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(providerId));
-        when(regionService.findAllByProviderId(providerId)).thenReturn(handler);
+        when(regionChecker.checkFindAllByProvider(providerId)).thenReturn(Single.error(NotFoundException::new));
 
         providerRegionHandler.getAll(rc)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
