@@ -2,6 +2,7 @@ package at.uibk.dps.rm.handler.account;
 
 import at.uibk.dps.rm.entity.model.Credentials;
 import at.uibk.dps.rm.entity.model.ResourceProvider;
+import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.service.rxjava3.database.account.CredentialsService;
 import at.uibk.dps.rm.testutil.TestObjectProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
@@ -75,6 +76,36 @@ public class CredentialsCheckerTest {
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method did throw exception"))
+            );
+    }
+
+    @Test
+    void checkExistsOneByProviderIdTrue(VertxTestContext testContext) {
+        long accountId = 1L, providerId = 2L;
+
+        when(credentialsService.existsOnyByAccountIdAndProviderId(accountId, providerId))
+            .thenReturn(Single.just(true));
+
+        credentialsChecker.checkExistsOneByProviderId(accountId, providerId)
+            .blockingSubscribe(() -> {},
+                throwable -> testContext.verify(() -> fail("method did throw exception"))
+            );
+        testContext.completeNow();
+    }
+
+    @Test
+    void checkExistsOneByProviderIdFalse(VertxTestContext testContext) {
+        long accountId = 1L, providerId = 2L;
+
+        when(credentialsService.existsOnyByAccountIdAndProviderId(accountId, providerId))
+            .thenReturn(Single.just(false));
+
+        credentialsChecker.checkExistsOneByProviderId(accountId, providerId)
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(UnauthorizedException.class);
+                    testContext.completeNow();
+                })
             );
     }
 }

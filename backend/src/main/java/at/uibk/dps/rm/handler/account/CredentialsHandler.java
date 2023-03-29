@@ -2,9 +2,6 @@ package at.uibk.dps.rm.handler.account;
 
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.handler.resourceprovider.ResourceProviderChecker;
-import at.uibk.dps.rm.service.rxjava3.database.account.AccountCredentialsService;
-import at.uibk.dps.rm.service.rxjava3.database.account.CredentialsService;
-import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.ResourceProviderService;
 import at.uibk.dps.rm.util.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -20,12 +17,12 @@ public class CredentialsHandler extends ValidationHandler {
 
     private final ResourceProviderChecker resourceProviderChecker;
 
-    public CredentialsHandler(CredentialsService credentialsService, AccountCredentialsService accountCredentialsService,
-                              ResourceProviderService resourceProviderService) {
-        super(new CredentialsChecker(credentialsService));
-        this.credentialsChecker = (CredentialsChecker) super.entityChecker;
-        this.accountCredentialsChecker = new AccountCredentialsChecker(accountCredentialsService);
-        this.resourceProviderChecker = new ResourceProviderChecker(resourceProviderService);
+    public CredentialsHandler(CredentialsChecker credentialsChecker, AccountCredentialsChecker accountCredentialsChecker,
+                              ResourceProviderChecker resourceProviderChecker) {
+        super(credentialsChecker);
+        this.credentialsChecker = credentialsChecker;
+        this.accountCredentialsChecker = accountCredentialsChecker;
+        this.resourceProviderChecker = resourceProviderChecker;
     }
 
     @Override
