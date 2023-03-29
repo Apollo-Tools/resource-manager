@@ -26,7 +26,6 @@ public class SLOInputHandler {
         if (slos == null) {
             return Completable.complete();
         }
-
         return Maybe.just(slos)
             .mapOptional(items -> {
                 for (int i = 0; i < items.size(); i++) {

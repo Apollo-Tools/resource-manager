@@ -71,7 +71,7 @@ public class FunctionResourceSLOHandler {
             .toList();
     }
 
-    protected Single<JsonObject> findMetricValuesForResource(JsonObject jsonResource) {
+    private Single<JsonObject> findMetricValuesForResource(JsonObject jsonResource) {
         //noinspection unchecked
         return Observable
             .fromIterable((List<JsonObject>) jsonResource
@@ -85,7 +85,7 @@ public class FunctionResourceSLOHandler {
             });
     }
 
-    protected List<Resource> mapJsonListToResourceList(List<JsonObject> jsonObjectList) {
+    private List<Resource> mapJsonListToResourceList(List<JsonObject> jsonObjectList) {
         List<Resource> resourceList = new ArrayList<>();
         for (JsonObject resource : jsonObjectList) {
             resourceList.add(resource.mapTo(Resource.class));

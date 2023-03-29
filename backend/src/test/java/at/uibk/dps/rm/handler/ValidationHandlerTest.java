@@ -4,9 +4,7 @@ import at.uibk.dps.rm.entity.model.ResourceType;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.handler.resource.ResourceTypeChecker;
-import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceTypeService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
-import at.uibk.dps.rm.testutil.SingleHelper;
 import at.uibk.dps.rm.testutil.TestObjectProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
@@ -27,7 +25,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(VertxExtension.class)

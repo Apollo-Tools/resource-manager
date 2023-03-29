@@ -148,6 +148,13 @@ public class TestObjectProvider {
         return metricValue;
     }
 
+    public static MetricValue createMetricValue(long metricValueId, long metricId, String metric, String value) {
+        MetricValue metricValue = new MetricValue();
+        initMetricValue(metricValue, metricValueId, metricId, metric);
+        metricValue.setValueString(value);
+        return metricValue;
+    }
+
     public static MetricValue createMetricValue(long metricValueId, Metric metric, String value) {
         MetricValue metricValue = new MetricValue();
         initMetricValue(metricValue, metricValueId, metric);
@@ -223,11 +230,16 @@ public class TestObjectProvider {
         return new ServiceLevelObjective(metricName, expressionType, sloValues);
     }
 
-    public static GetResourcesBySLOsRequest createResourceBySLOsRequest(List<ServiceLevelObjective> slos,
-                                                                        int limit) {
+    public static GetResourcesBySLOsRequest createResourceBySLOsRequest(List<ServiceLevelObjective> slos, int limit,
+                                                                        List<Long> providers,
+                                                                        List<Long> resourceTypes,
+                                                                        List<String> regions) {
         GetResourcesBySLOsRequest request = new GetResourcesBySLOsRequest();
         request.setServiceLevelObjectives(slos);
         request.setLimit(limit);
+        request.setProviders(providers);
+        request.setRegions(regions);
+        request.setResourceTypes(resourceTypes);
         return request;
     }
 
@@ -288,12 +300,16 @@ public class TestObjectProvider {
             JsonObject.mapFrom(resourceReservation3));
     }
 
-    public static Runtime createRuntime(long runtimeId, String name) {
+    public static Runtime createRuntime(long runtimeId, String name, String templatePath) {
         Runtime runtime = new Runtime();
         runtime.setRuntimeId(runtimeId);
         runtime.setName(name);
-        runtime.setTemplatePath("");
+        runtime.setTemplatePath(templatePath);
         return runtime;
+    }
+
+    public static Runtime createRuntime(long runtimeId, String name) {
+        return createRuntime(runtimeId, name, "");
     }
 
     public static Runtime createRuntime(long runtimeId) {
