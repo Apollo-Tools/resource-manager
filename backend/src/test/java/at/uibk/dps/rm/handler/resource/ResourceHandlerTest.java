@@ -20,8 +20,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.when;
@@ -103,7 +101,7 @@ public class ResourceHandlerTest {
 
         resourceHandler.updateOne(rc)
             .blockingSubscribe(() -> {},
-                throwable -> testContext.verify(() -> fail(Arrays.toString(throwable.getStackTrace())))
+                throwable -> testContext.verify(() -> fail("method did throw exception"))
             );
         testContext.completeNow();
     }

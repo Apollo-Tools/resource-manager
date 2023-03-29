@@ -336,7 +336,7 @@ public class ReservationHandlerTest {
                     assertThat(result.getBoolean("is_active")).isTrue();
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception" + " " + throwable.getMessage()))
+                throwable -> testContext.verify(() -> fail("method did throw exception"))
             );
     }
 

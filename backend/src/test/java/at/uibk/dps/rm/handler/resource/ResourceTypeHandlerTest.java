@@ -2,9 +2,9 @@ package at.uibk.dps.rm.handler.resource;
 
 import at.uibk.dps.rm.entity.model.ResourceType;
 import at.uibk.dps.rm.exception.UsedByOtherEntityException;
-import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
-import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceTypeService;
-import io.reactivex.rxjava3.core.Single;
+import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.util.JsonMapperConfig;
+import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -14,9 +14,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Arrays;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(VertxExtension.class)
@@ -26,42 +27,38 @@ public class ResourceTypeHandlerTest {
     private ResourceTypeHandler resourceTypeHandler;
 
     @Mock
-    private ResourceTypeService resourceTypeService;
+    private ResourceTypeChecker resourceTypeChecker;
 
     @Mock
-    private ResourceService resourceService;
+    private ResourceChecker resourceChecker;
 
     @BeforeEach
     void initTest() {
-        resourceTypeHandler = new ResourceTypeHandler(resourceTypeService, resourceService);
+        JsonMapperConfig.configJsonMapper();
+        resourceTypeHandler = new ResourceTypeHandler(resourceTypeChecker, resourceChecker);
     }
 
     @Test
     void checkDeleteEntityIsUsedFalse(VertxTestContext testContext) {
         long entityId = 1L;
-        ResourceType entity = new ResourceType();
-        entity.setTypeId(entityId);
-        entity.setResourceType("cloud");
+        ResourceType entity = TestObjectProvider.createResourceType(entityId, "vm");
 
-        when(resourceService.existsOneByResourceType(entityId)).thenReturn(Single.just(false));
+        when(resourceChecker.checkOneUsedByResourceType(entityId)).thenReturn(Completable.complete());
 
         resourceTypeHandler.checkDeleteEntityIsUsed(JsonObject.mapFrom((entity)))
             .blockingSubscribe(() -> {},
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail(Arrays.toString(throwable.getStackTrace())))
             );
-
-        verify(resourceService).existsOneByResourceType(entityId);
         testContext.completeNow();
     }
 
     @Test
     void checkDeleteEntityIsUsedTrue(VertxTestContext testContext) {
         long entityId = 1L;
-        ResourceType entity = new ResourceType();
-        entity.setTypeId(entityId);
-        entity.setResourceType("cloud");
+        ResourceType entity = TestObjectProvider.createResourceType(entityId, "vm");
 
-        when(resourceService.existsOneByResourceType(entityId)).thenReturn(Single.just(true));
+        when(resourceChecker.checkOneUsedByResourceType(entityId))
+            .thenReturn(Completable.error(UsedByOtherEntityException::new));
 
         resourceTypeHandler.checkDeleteEntityIsUsed(JsonObject.mapFrom((entity)))
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
