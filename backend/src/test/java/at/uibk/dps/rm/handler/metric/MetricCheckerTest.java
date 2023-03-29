@@ -13,6 +13,7 @@ import at.uibk.dps.rm.testutil.SingleHelper;
 import at.uibk.dps.rm.testutil.TestObjectProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -24,6 +25,8 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -135,7 +138,46 @@ public class MetricCheckerTest {
     }
 
     @Test
-    void checkFinOneByMetricExists(VertxTestContext testContext) {
+    void checkFindAllByResourceTypeId(VertxTestContext testContext) {
+        long resourceTypeId = 1L;
+        boolean required = false;
+        JsonObject m1 = JsonObject.mapFrom(TestObjectProvider.createMetric(1L, "cpu"));
+        JsonObject m2 = JsonObject.mapFrom(TestObjectProvider.createMetric(2L, "memory"));
+        JsonArray metrics = new JsonArray(List.of(m1, m2));
+
+        when(metricService.findAllByResourceTypeId(resourceTypeId, required)).thenReturn(Single.just(metrics));
+
+        metricChecker.checkFindAllByResourceTypeId(resourceTypeId, required)
+            .subscribe(result -> testContext.verify(() -> {
+                assertThat(result.size()).isEqualTo(2);
+                assertThat(result.getJsonObject(0).getLong("metric_id")).isEqualTo(1L);
+                assertThat(result.getJsonObject(1).getLong("metric_id")).isEqualTo(2L);
+                testContext.completeNow();
+            }),
+            throwable -> testContext.verify(() -> fail("method has thrown exception"))
+        );
+    }
+
+
+    @Test
+    void checkFindAllByResourceTypeIdNotFound(VertxTestContext testContext) {
+        long resourceTypeId = 1L;
+        boolean required = false;
+
+        when(metricService.findAllByResourceTypeId(resourceTypeId, required))
+            .thenReturn(Single.error(NotFoundException::new));
+
+        metricChecker.checkFindAllByResourceTypeId(resourceTypeId, required)
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(NotFoundException.class);
+                    testContext.completeNow();
+                })
+            );
+    }
+
+    @Test
+    void checkFindOneByMetricExists(VertxTestContext testContext) {
         String metricName = "region";
         Metric metric = TestObjectProvider.createMetric(1L, metricName);
         JsonObject entity = JsonObject.mapFrom(metric);
@@ -154,7 +196,7 @@ public class MetricCheckerTest {
     }
 
     @Test
-    void checkFinOneByMetricNotExists(VertxTestContext testContext) {
+    void checkFindOneByMetricNotExists(VertxTestContext testContext) {
         String metricName = "region";
         Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
 
@@ -419,6 +461,102 @@ public class MetricCheckerTest {
         when(metricService.findOne(metricId)).thenReturn(Single.just(JsonObject.mapFrom(metric)));
 
         metricChecker.checkUpdateMetricValueSetCorrectly(requestBody, metricId)
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(BadInputException.class);
+                    testContext.completeNow();
+                })
+            );
+    }
+
+    @Test
+    void checkServiceLevelObjectivesNumberValid(VertxTestContext testContext) {
+        Metric m1 = TestObjectProvider
+            .createMetric(1L, "cpu", 1L, "number", false);
+        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("cpu", ExpressionType.EQ, 4);
+
+        when(metricService.findOneByMetric("cpu")).thenReturn(Single.just(JsonObject.mapFrom(m1)));
+
+        metricChecker.checkServiceLevelObjectives(slo)
+            .blockingSubscribe(() -> {},
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
+            );
+        testContext.completeNow();
+    }
+
+    @Test
+    void checkServiceLevelObjectivesNumberInvalid(VertxTestContext testContext) {
+        Metric m1 = TestObjectProvider
+            .createMetric(1L, "cpu", 1L, "string", false);
+        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("cpu", ExpressionType.EQ, 4);
+
+        when(metricService.findOneByMetric("cpu")).thenReturn(Single.just(JsonObject.mapFrom(m1)));
+
+        metricChecker.checkServiceLevelObjectives(slo)
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(BadInputException.class);
+                    testContext.completeNow();
+                })
+            );
+    }
+
+    @Test
+    void checkServiceLevelObjectivesStringValid(VertxTestContext testContext) {
+        Metric m1 = TestObjectProvider
+            .createMetric(1L, "cpu", 1L, "string", false);
+        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("cpu", ExpressionType.EQ, "four");
+
+        when(metricService.findOneByMetric("cpu")).thenReturn(Single.just(JsonObject.mapFrom(m1)));
+
+        metricChecker.checkServiceLevelObjectives(slo)
+            .blockingSubscribe(() -> {},
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
+            );
+        testContext.completeNow();
+    }
+
+    @Test
+    void checkServiceLevelObjectivesStringInvalid(VertxTestContext testContext) {
+        Metric m1 = TestObjectProvider
+            .createMetric(1L, "cpu", 1L, "number", false);
+        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("cpu", ExpressionType.EQ, "four");
+
+        when(metricService.findOneByMetric("cpu")).thenReturn(Single.just(JsonObject.mapFrom(m1)));
+
+        metricChecker.checkServiceLevelObjectives(slo)
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(BadInputException.class);
+                    testContext.completeNow();
+                })
+            );
+    }
+
+    @Test
+    void checkServiceLevelObjectivesBoolValid(VertxTestContext testContext) {
+        Metric m1 = TestObjectProvider
+            .createMetric(1L, "cpu", 1L, "boolean", false);
+        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("cpu", ExpressionType.EQ, true);
+
+        when(metricService.findOneByMetric("cpu")).thenReturn(Single.just(JsonObject.mapFrom(m1)));
+
+        metricChecker.checkServiceLevelObjectives(slo)
+            .blockingSubscribe(() -> {},
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
+            );
+        testContext.completeNow();
+    }
+
+    @Test
+    void checkServiceLevelObjectivesBoolInvalid(VertxTestContext testContext) {
+        Metric m1 = TestObjectProvider
+            .createMetric(1L, "cpu", 1L, "number", false);
+        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("cpu", ExpressionType.EQ, false);
+
+        when(metricService.findOneByMetric("cpu")).thenReturn(Single.just(JsonObject.mapFrom(m1)));
+
+        metricChecker.checkServiceLevelObjectives(slo)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(BadInputException.class);
