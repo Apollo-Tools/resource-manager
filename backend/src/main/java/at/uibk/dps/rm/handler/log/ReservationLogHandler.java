@@ -2,7 +2,6 @@ package at.uibk.dps.rm.handler.log;
 
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.handler.reservation.ReservationChecker;
-import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.util.HttpHelper;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
@@ -14,10 +13,11 @@ public class ReservationLogHandler extends ValidationHandler {
 
     private final ReservationChecker reservationChecker;
 
-    public ReservationLogHandler(ServiceProxyProvider serviceProxyProvider) {
-        super(new ReservationLogChecker(serviceProxyProvider.getReservationLogService()));
-        this.logChecker = new LogChecker(serviceProxyProvider.getLogService());
-        this.reservationChecker = new ReservationChecker(serviceProxyProvider.getReservationService());
+    public ReservationLogHandler(ReservationLogChecker reservationLogChecker, LogChecker logChecker,
+                                 ReservationChecker reservationChecker) {
+        super(reservationLogChecker);
+        this.logChecker = logChecker;
+        this.reservationChecker = reservationChecker;
     }
 
     @Override

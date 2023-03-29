@@ -3,8 +3,7 @@ package at.uibk.dps.rm.handler.metric;
 import at.uibk.dps.rm.entity.dto.metric.ResourceTypeMetric;
 import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.handler.ValidationHandler;
-import at.uibk.dps.rm.handler.resourceprovider.RegionChecker;
-import at.uibk.dps.rm.service.ServiceProxyProvider;
+import at.uibk.dps.rm.handler.resource.ResourceTypeChecker;
 import at.uibk.dps.rm.util.HttpHelper;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
@@ -18,19 +17,19 @@ public class ResourceTypeMetricHandler extends ValidationHandler {
 
     private final MetricChecker metricChecker;
 
-    private final RegionChecker regionChecker;
+    private final ResourceTypeChecker resourceTypeChecker;
 
-    public ResourceTypeMetricHandler(ServiceProxyProvider serviceProxyProvider) {
-        super(new MetricChecker(serviceProxyProvider.getMetricService()));
-        metricChecker = (MetricChecker) super.entityChecker;
-        regionChecker = new RegionChecker(serviceProxyProvider.getRegionService());
+    public ResourceTypeMetricHandler(MetricChecker metricChecker, ResourceTypeChecker resourceTypeChecker) {
+        super(metricChecker);
+        this.metricChecker = metricChecker;
+        this.resourceTypeChecker = resourceTypeChecker;
     }
 
     @Override
     protected Single<JsonArray> getAll(RoutingContext rc) {
         List<ResourceTypeMetric> response = new ArrayList<>();
         return HttpHelper.getLongPathParam(rc, "id")
-            .flatMap(id -> regionChecker.checkFindOne(id)
+            .flatMap(id -> resourceTypeChecker.checkFindOne(id)
                 .map(res -> id))
             .flatMap(id ->
                 metricChecker.checkFindAllByResourceTypeId(id, true)

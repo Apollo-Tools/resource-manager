@@ -6,9 +6,6 @@ import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.entity.model.Resource;
-import at.uibk.dps.rm.service.rxjava3.database.metric.MetricService;
-import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
-import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
 import at.uibk.dps.rm.util.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -29,12 +26,12 @@ public class MetricValueHandler extends ValidationHandler {
 
     private final ResourceChecker resourceChecker;
 
-    public MetricValueHandler(MetricValueService metricValueService,
-                              MetricService metricService, ResourceService resourceService) {
-        super(new MetricValueChecker(metricValueService));
-        metricValueChecker = (MetricValueChecker) super.entityChecker;
-        metricChecker = new MetricChecker(metricService);
-        resourceChecker = new ResourceChecker(resourceService);
+    public MetricValueHandler(MetricValueChecker metricValueChecker, MetricChecker metricChecker,
+                              ResourceChecker resourceChecker) {
+        super(metricValueChecker);
+        this.metricValueChecker = metricValueChecker;
+        this.metricChecker = metricChecker;
+        this.resourceChecker = resourceChecker;
     }
 
     @Override
@@ -91,7 +88,7 @@ public class MetricValueHandler extends ValidationHandler {
             .flatMapCompletable(ids -> metricValueChecker.submitDeleteMetricValue(ids.get("resourceId"), ids.get("metricId")));
     }
 
-    protected Single<List<MetricValue>> checkAddMetricsResourceExists(JsonArray requestBody, long resourceId) {
+    private Single<List<MetricValue>> checkAddMetricsResourceExists(JsonArray requestBody, long resourceId) {
         List<MetricValue> metricValues = new ArrayList<>();
         List<Completable> completables = checkAddMetricList(requestBody, resourceId, metricValues);
         return Completable.merge(completables)
@@ -112,20 +109,19 @@ public class MetricValueHandler extends ValidationHandler {
             metricValue.setMetric(metric);
             metricValues.add(metricValue);
             completables.add(metricChecker.checkAddMetricValueSetCorrectly(jsonMetric, metricId, metricValue));
-            completables.add(metricChecker.checkExistsOne(metricId));
             completables.add(metricValueChecker.checkForDuplicateByResourceAndMetric(resourceId, metricId));
         });
         return completables;
     }
 
-    protected Completable checkUpdateDeleteMetricValueExists(long resourceId, long metricId) {
+    private Completable checkUpdateDeleteMetricValueExists(long resourceId, long metricId) {
         return Completable.mergeArray(
             resourceChecker.checkExistsOne(resourceId),
             metricChecker.checkExistsOne(metricId),
             metricValueChecker.checkMetricValueExistsByResourceAndMetric(resourceId, metricId));
     }
 
-    protected Completable submitUpdateByValue(JsonObject requestBody, Map<String, Long> ids) {
+    private Completable submitUpdateByValue(JsonObject requestBody, Map<String, Long> ids) {
         Object value = requestBody.getValue("value");
         long resourceId = ids.get("resourceId");
         long metricId = ids.get("metricId");

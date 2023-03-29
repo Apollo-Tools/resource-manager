@@ -2,9 +2,8 @@ package at.uibk.dps.rm.handler.metric;
 
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.service.rxjava3.database.metric.MetricService;
-import at.uibk.dps.rm.service.rxjava3.database.metric.MetricTypeService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -18,7 +17,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(VertxExtension.class)
@@ -28,17 +26,17 @@ public class MetricHandlerTest {
     private MetricHandler metricHandler;
 
     @Mock
-    private MetricService metricService;
+    private MetricChecker metricChecker;
 
     @Mock
-    private MetricTypeService metricTypeService;
+    private MetricTypeChecker metricTypeChecker;
 
     @Mock
     private RoutingContext rc;
 
     @BeforeEach
     void initTest() {
-        metricHandler = new MetricHandler(metricService, metricTypeService);
+        metricHandler = new MetricHandler(metricChecker, metricTypeChecker);
     }
 
     @Test
@@ -48,17 +46,14 @@ public class MetricHandlerTest {
             "\"metric_type\": {\"metric_type_id\": 1}}");
 
         RoutingContextMockHelper.mockBody(rc, jsonObject);
-        when(metricService.existsOneByMetric("availability")).thenReturn(Single.just(false));
-        when(metricTypeService.existsOneById(1L)).thenReturn(Single.just(true));
-        when(metricService.save(jsonObject)).thenReturn(Single.just(jsonObject));
+        when(metricChecker.checkForDuplicateEntity(jsonObject)).thenReturn(Completable.complete());
+        when(metricTypeChecker.checkExistsOne(1L)).thenReturn(Completable.complete());
+        when(metricChecker.submitCreate(jsonObject)).thenReturn(Single.just(jsonObject));
 
         metricHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.getString("metric")).isEqualTo("availability");
                     assertThat(result.getBoolean("is_monitored")).isEqualTo(true);
-                    verify(metricService).existsOneByMetric("availability");
-                    verify(metricTypeService).existsOneById(1L);
-                    verify(metricService).save(jsonObject);
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method did throw exception"))
@@ -72,8 +67,9 @@ public class MetricHandlerTest {
             "\"metric_type\": {\"metric_type_id\": 1}}");
 
         RoutingContextMockHelper.mockBody(rc, jsonObject);
-        when(metricService.existsOneByMetric("availability")).thenReturn(Single.just(true));
-        when(metricTypeService.existsOneById(1L)).thenReturn(Single.just(true));
+        when(metricChecker.checkForDuplicateEntity(jsonObject))
+            .thenReturn(Completable.error(AlreadyExistsException::new));
+        when(metricTypeChecker.checkExistsOne(1L)).thenReturn(Completable.complete());
 
         metricHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> fail("method did throw exception")),
@@ -91,8 +87,8 @@ public class MetricHandlerTest {
             "\"metric_type\": {\"metric_type_id\": 1}}");
 
         RoutingContextMockHelper.mockBody(rc, jsonObject);
-        when(metricService.existsOneByMetric("availability")).thenReturn(Single.just(false));
-        when(metricTypeService.existsOneById(1L)).thenReturn(Single.just(false));
+        when(metricChecker.checkForDuplicateEntity(jsonObject)).thenReturn(Completable.complete());
+        when(metricTypeChecker.checkExistsOne(1L)).thenReturn(Completable.error(NotFoundException::new));
 
         metricHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> fail("method did throw exception")),
