@@ -60,7 +60,7 @@ public class RegionCheckerTest {
                     assertThat(result.getJsonObject(2).getLong("region_id")).isEqualTo(3L);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception " + throwable.getMessage()))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -76,7 +76,7 @@ public class RegionCheckerTest {
                     assertThat(result.size()).isEqualTo(0);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception " + throwable.getMessage()))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -108,7 +108,7 @@ public class RegionCheckerTest {
         regionChecker.checkForDuplicateEntity(JsonObject.mapFrom(region))
             .blockingSubscribe(() -> {
                 },
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
 
         verify(regionService).existsOneByNameAndProviderId(name, providerId);

@@ -51,7 +51,7 @@ public class FunctionResourceCheckerTest {
         functionResourceChecker.checkForDuplicateByFunctionAndResource(functionId, resourceId)
             .blockingSubscribe(() -> {
                 },
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
 
         verify(functionResourceService).existsOneByFunctionAndResource(functionId, resourceId);
@@ -140,7 +140,7 @@ public class FunctionResourceCheckerTest {
                         .getLong("function_resource_id")).isEqualTo(3L);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -156,7 +156,7 @@ public class FunctionResourceCheckerTest {
                     assertThat(result.size()).isEqualTo(0);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -186,7 +186,7 @@ public class FunctionResourceCheckerTest {
         functionResourceChecker.checkExistsByFunctionAndResource(functionId, resourceId)
             .blockingSubscribe(() -> {
                 },
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
 
         verify(functionResourceService).existsOneByFunctionAndResource(functionId, resourceId);

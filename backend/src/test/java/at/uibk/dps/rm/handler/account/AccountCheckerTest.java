@@ -52,7 +52,7 @@ public class AccountCheckerTest {
                     assertThat(result.getString("username")).isEqualTo(username);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -83,7 +83,7 @@ public class AccountCheckerTest {
         accountChecker.checkForDuplicateEntity(JsonObject.mapFrom(account))
             .blockingSubscribe(() -> {
                 },
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
 
         verify(accountService).existsOneByUsername(username, false);

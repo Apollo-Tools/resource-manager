@@ -26,7 +26,7 @@ public class ErrorHandlerTest {
                             assertThat(result.getInteger("id")).isEqualTo(10);
                             testContext.completeNow();
                         }),
-                        throwable -> testContext.verify(() -> fail("method throw exception")));
+                        throwable -> testContext.verify(() -> fail("method has thrown exception")));
     }
 
     @Test

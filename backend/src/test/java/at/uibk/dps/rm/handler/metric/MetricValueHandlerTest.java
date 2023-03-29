@@ -76,7 +76,7 @@ public class MetricValueHandlerTest {
                     assertThat(result.getJsonObject(2).getLong("metric_value_id")).isEqualTo(3L);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -113,7 +113,7 @@ public class MetricValueHandlerTest {
                     assertThat(result.size()).isEqualTo(0);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -156,7 +156,7 @@ public class MetricValueHandlerTest {
 
         metricValueHandler.postAll(rc)
             .blockingSubscribe(() -> {},
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
         testContext.completeNow();
     }
@@ -172,7 +172,7 @@ public class MetricValueHandlerTest {
         when(resourceChecker.checkExistsOne(resourceId)).thenReturn(Completable.error(NotFoundException::new));
 
         metricValueHandler.postAll(rc)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did throw exception")),
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
@@ -195,7 +195,7 @@ public class MetricValueHandlerTest {
             .thenReturn(Completable.complete());
 
         metricValueHandler.postAll(rc)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did throw exception")),
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(BadInputException.class);
                     testContext.completeNow();
@@ -218,7 +218,7 @@ public class MetricValueHandlerTest {
             .thenReturn(Completable.error(AlreadyExistsException::new));
 
         metricValueHandler.postAll(rc)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did throw exception")),
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
                     testContext.completeNow();
@@ -261,7 +261,7 @@ public class MetricValueHandlerTest {
 
         metricValueHandler.updateOne(rc)
             .blockingSubscribe(() -> {},
-                throwable -> testContext.verify(throwable::printStackTrace)
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
         testContext.completeNow();
     }
@@ -283,7 +283,7 @@ public class MetricValueHandlerTest {
             .thenReturn(Completable.complete());
 
         metricValueHandler.updateOne(rc)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did throw exception")),
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
@@ -308,7 +308,7 @@ public class MetricValueHandlerTest {
             .thenReturn(Completable.complete());
 
         metricValueHandler.updateOne(rc)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did throw exception")),
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
@@ -333,7 +333,7 @@ public class MetricValueHandlerTest {
             .thenReturn(Completable.complete());
 
         metricValueHandler.updateOne(rc)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did throw exception")),
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
@@ -358,7 +358,7 @@ public class MetricValueHandlerTest {
             .thenReturn(Completable.error(BadInputException::new));
 
         metricValueHandler.updateOne(rc)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did throw exception")),
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(BadInputException.class);
                     testContext.completeNow();
@@ -381,7 +381,7 @@ public class MetricValueHandlerTest {
 
         metricValueHandler.deleteOne(rc)
             .blockingSubscribe(() -> {},
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
         testContext.completeNow();
     }
@@ -399,7 +399,7 @@ public class MetricValueHandlerTest {
             .thenReturn(Completable.complete());
 
         metricValueHandler.deleteOne(rc)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did throw exception")),
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
@@ -420,7 +420,7 @@ public class MetricValueHandlerTest {
             .thenReturn(Completable.complete());
 
         metricValueHandler.deleteOne(rc)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did throw exception")),
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
@@ -441,7 +441,7 @@ public class MetricValueHandlerTest {
             .thenReturn(Completable.error(NotFoundException::new));
 
         metricValueHandler.deleteOne(rc)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did throw exception")),
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();

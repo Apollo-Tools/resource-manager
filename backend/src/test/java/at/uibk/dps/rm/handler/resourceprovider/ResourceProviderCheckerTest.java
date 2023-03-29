@@ -48,7 +48,7 @@ public class ResourceProviderCheckerTest {
         resourceProviderChecker.checkForDuplicateEntity(JsonObject.mapFrom(resourceProvider))
             .blockingSubscribe(() -> {
                 },
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
 
         verify(resourceProviderService).existsOneByProvider(provider);

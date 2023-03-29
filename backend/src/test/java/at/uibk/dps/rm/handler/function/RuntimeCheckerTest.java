@@ -48,7 +48,7 @@ public class RuntimeCheckerTest {
         runtimeChecker.checkForDuplicateEntity(JsonObject.mapFrom(runtime))
             .blockingSubscribe(() -> {
                 },
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
 
         verify(runtimeService).existsOneByName(name);

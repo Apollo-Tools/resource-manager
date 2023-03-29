@@ -75,7 +75,7 @@ public class AccountHandlerTest {
                     assertThat(result.containsKey("password")).isEqualTo(false);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -113,7 +113,7 @@ public class AccountHandlerTest {
                     assertThat(result.containsKey("password")).isEqualTo(false);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -127,7 +127,7 @@ public class AccountHandlerTest {
             .thenReturn(Completable.error(AlreadyExistsException::new));
 
         accountHandler.postOne(rc)
-            .subscribe(result -> testContext.verify(() -> fail("method did throw exception")),
+            .subscribe(result -> testContext.verify(() -> fail("method has thrown exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
                     testContext.completeNow();
@@ -157,7 +157,7 @@ public class AccountHandlerTest {
 
         accountHandler.updateOne(rc)
             .blockingSubscribe(() -> {},
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
         testContext.completeNow();
     }
@@ -242,7 +242,7 @@ public class AccountHandlerTest {
                 assertThat(user.principal().getString("username")).isEqualTo(username);
                 testContext.completeNow();
             }),
-            throwable -> testContext.verify(() -> fail("method did throw exception")));
+            throwable -> testContext.verify(() -> fail("method has thrown exception")));
     }
 
 

@@ -51,7 +51,7 @@ public class AccountCredentialsCheckerTest {
 
         accountCredentialsChecker.checkForDuplicateEntity(JsonObject.mapFrom(credentials), accountId)
             .blockingSubscribe(() -> {},
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
 
         verify(accountCredentialsService).existsOneByAccountAndProvider(accountId, providerId);
@@ -98,7 +98,7 @@ public class AccountCredentialsCheckerTest {
                         .isEqualTo(credentialsId);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 

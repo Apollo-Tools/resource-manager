@@ -61,7 +61,7 @@ public class ResourceCheckerTest {
                     verify(resourceService).findAllUnreserved();
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception " + throwable.getMessage()))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -77,7 +77,7 @@ public class ResourceCheckerTest {
                     verify(resourceService).findAllUnreserved();
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception " + throwable.getMessage()))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -121,7 +121,7 @@ public class ResourceCheckerTest {
                 assertThat(result.getJsonObject(2).getLong("resource_id")).isEqualTo(3L);
                 testContext.completeNow();
             }),
-            throwable -> testContext.verify(() -> fail("method did throw exception " + throwable.getMessage()))
+            throwable -> testContext.verify(() -> fail("method has thrown exception"))
         );
     }
 
@@ -142,7 +142,7 @@ public class ResourceCheckerTest {
                     assertThat(result.size()).isEqualTo(0);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception " + throwable.getMessage()))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -187,7 +187,7 @@ public class ResourceCheckerTest {
                     verify(resourceService).findAllByFunctionId(functionId);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception " + throwable.getMessage()))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -204,7 +204,7 @@ public class ResourceCheckerTest {
                     verify(resourceService).findAllByFunctionId(functionId);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception " + throwable.getMessage()))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -233,7 +233,7 @@ public class ResourceCheckerTest {
         resourceChecker.checkOneUsedByResourceType(resourceTyeId)
             .blockingSubscribe(() -> {
                 },
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
 
         verify(resourceService).existsOneByResourceType(resourceTyeId);

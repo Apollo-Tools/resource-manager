@@ -119,7 +119,7 @@ public class ReservationHandlerTest {
                     assertThat(functionResourceJson3.getLong("function_resource_id")).isEqualTo(3L);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -142,7 +142,7 @@ public class ReservationHandlerTest {
                     assertThat(result.getJsonArray("resource_reservations").size()).isEqualTo(0);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -162,7 +162,7 @@ public class ReservationHandlerTest {
                     assertThat(result.containsKey("resource_reservations")).isFalse();
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -227,7 +227,7 @@ public class ReservationHandlerTest {
                     assertThat(result.getJsonObject(2).getString("status_value")).isEqualTo("DEPLOYED");
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -244,7 +244,7 @@ public class ReservationHandlerTest {
                     assertThat(result.size()).isEqualTo(0);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -257,7 +257,7 @@ public class ReservationHandlerTest {
         when(reservationService.findAllByAccountId(account.getAccountId())).thenReturn(handler);
 
         reservationHandler.getAll(rc)
-            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+            .subscribe(result -> testContext.verify(() -> fail("method has thrown exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
@@ -336,7 +336,7 @@ public class ReservationHandlerTest {
                     assertThat(result.getBoolean("is_active")).isTrue();
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -414,7 +414,7 @@ public class ReservationHandlerTest {
 
         reservationHandler.updateOne(rc)
             .blockingSubscribe(() -> {},
-                throwable -> testContext.verify(() -> fail("method did throw an exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
 
         testContext.completeNow();

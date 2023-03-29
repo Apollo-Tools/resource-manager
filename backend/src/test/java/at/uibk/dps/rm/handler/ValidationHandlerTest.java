@@ -7,6 +7,7 @@ import at.uibk.dps.rm.handler.resource.ResourceTypeChecker;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceTypeService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.SingleHelper;
+import at.uibk.dps.rm.testutil.TestObjectProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -42,7 +43,7 @@ public class ValidationHandlerTest {
     private ConcreteValidationHandler testClass;
 
     @Mock
-    private ResourceTypeService resourceTypeService;
+    private ResourceTypeChecker resourceTypeChecker;
 
     @Mock
     RoutingContext rc;
@@ -50,8 +51,7 @@ public class ValidationHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        ResourceTypeChecker entityChecker = new ResourceTypeChecker(resourceTypeService);
-        testClass = new ConcreteValidationHandler(entityChecker);
+        testClass = new ConcreteValidationHandler(resourceTypeChecker);
     }
 
     @Test
@@ -62,25 +62,22 @@ public class ValidationHandlerTest {
         entity.setResourceType("cloud");
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
-        when(resourceTypeService.findOne(entityId)).thenReturn(Single.just(JsonObject.mapFrom(entity)));
-        when(resourceTypeService.delete(entityId)).thenReturn(Completable.complete());
+        when(resourceTypeChecker.checkFindOne(entityId)).thenReturn(Single.just(JsonObject.mapFrom(entity)));
+        when(resourceTypeChecker.submitDelete(entityId)).thenReturn(Completable.complete());
 
         testClass.deleteOne(rc)
             .blockingSubscribe(() -> {},
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
-
-        verify(resourceTypeService).findOne(entityId);
-        verify(resourceTypeService).delete(entityId);
         testContext.completeNow();
     }
 
     @Test
     void deleteOneNotFound(VertxTestContext testContext) {
         long entityId = 1L;
-        Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
+
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
-        when(resourceTypeService.findOne(entityId)).thenReturn(handler);
+        when(resourceTypeChecker.checkFindOne(entityId)).thenReturn(Single.error(NotFoundException::new));
 
         testClass.deleteOne(rc)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
@@ -99,7 +96,7 @@ public class ValidationHandlerTest {
         entity.setResourceType("cloud");
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
-        when(resourceTypeService.findOne(entityId)).thenReturn(Single.just(JsonObject.mapFrom(entity)));
+        when(resourceTypeChecker.checkFindOne(entityId)).thenReturn(Single.just(JsonObject.mapFrom(entity)));
 
         testClass.getOne(rc)
             .subscribe(result -> testContext.verify(() -> {
@@ -107,17 +104,16 @@ public class ValidationHandlerTest {
                     assertThat(result.getString("resource_type")).isEqualTo("cloud");
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
     @Test
     void getOneNotFound(VertxTestContext testContext) {
         long entityId = 1L;
-        Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
-        when(resourceTypeService.findOne(entityId)).thenReturn(handler);
+        when(resourceTypeChecker.checkFindOne(entityId)).thenReturn(Single.error(NotFoundException::new));
 
         testClass.getOne(rc)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
@@ -130,16 +126,14 @@ public class ValidationHandlerTest {
 
     @Test
     void getAll(VertxTestContext testContext) {
-        ResourceType entity1 = new ResourceType();
-        entity1.setTypeId(1L);
-        ResourceType entity2 = new ResourceType();
-        entity2.setTypeId(2L);
+        ResourceType entity1 = TestObjectProvider.createResourceType(1L, "faas");
+        ResourceType entity2 = TestObjectProvider.createResourceType(2L, "vm");
         List<JsonObject> entities = new ArrayList<>();
         entities.add(JsonObject.mapFrom(entity1));
         entities.add(JsonObject.mapFrom(entity2));
         JsonArray resultJson = new JsonArray(entities);
 
-        when(resourceTypeService.findAll()).thenReturn(Single.just(resultJson));
+        when(resourceTypeChecker.checkFindAll()).thenReturn(Single.just(resultJson));
 
         testClass.getAll(rc)
             .subscribe(result -> testContext.verify(() -> {
@@ -148,7 +142,7 @@ public class ValidationHandlerTest {
                     assertThat(result.getJsonObject(1).getLong("type_id")).isEqualTo(2L);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -157,47 +151,42 @@ public class ValidationHandlerTest {
         List<JsonObject> entities = new ArrayList<>();
         JsonArray resultJson = new JsonArray(entities);
 
-        when(resourceTypeService.findAll()).thenReturn(Single.just(resultJson));
+        when(resourceTypeChecker.checkFindAll()).thenReturn(Single.just(resultJson));
 
         testClass.getAll(rc)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(0);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
     @Test
     void postOne(VertxTestContext testContext) {
-        ResourceType entity = new ResourceType();
-        entity.setTypeId(1L);
-        entity.setResourceType("cloud");
-        JsonObject jsonObject = JsonObject.mapFrom(entity);
+        JsonObject requestBody = JsonObject.mapFrom(TestObjectProvider.createResourceType(1L, "vm"));
 
-        RoutingContextMockHelper.mockBody(rc, jsonObject);
-        when(resourceTypeService.existsOneByResourceType("cloud")).thenReturn(Single.just(false));
-        when(resourceTypeService.save(jsonObject)).thenReturn(Single.just(jsonObject));
+        RoutingContextMockHelper.mockBody(rc, requestBody);
+        when(resourceTypeChecker.checkForDuplicateEntity(requestBody)).thenReturn(Completable.complete());
+        when(resourceTypeChecker.submitCreate(requestBody)).thenReturn(Single.just(requestBody));
 
         testClass.postOne(rc)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.getLong("type_id")).isEqualTo(1L);
-                    assertThat(result.getString("resource_type")).isEqualTo("cloud");
-                    verify(resourceTypeService).save(jsonObject);
+                    assertThat(result.getString("resource_type")).isEqualTo("vm");
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
     @Test
     void postOneAlreadyExists(VertxTestContext testContext) {
-        ResourceType entity = new ResourceType();
-        entity.setResourceType("cloud");
-        JsonObject jsonObject = JsonObject.mapFrom(entity);
+        JsonObject requestBody = JsonObject.mapFrom(TestObjectProvider.createResourceType(1L, "vm"));
 
-        RoutingContextMockHelper.mockBody(rc, jsonObject);
-        when(resourceTypeService.existsOneByResourceType("cloud")).thenReturn(Single.just(true));
+        RoutingContextMockHelper.mockBody(rc, requestBody);
+        when(resourceTypeChecker.checkForDuplicateEntity(requestBody))
+            .thenReturn(Completable.error(AlreadyExistsException::new));
 
         testClass.postOne(rc)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
@@ -218,54 +207,43 @@ public class ValidationHandlerTest {
         JsonArray resultJson = new JsonArray(entities);
 
         RoutingContextMockHelper.mockBody(rc, resultJson);
-        when(resourceTypeService.saveAll(resultJson)).thenReturn(Completable.complete());
+        when(resourceTypeChecker.submitCreateAll(resultJson)).thenReturn(Completable.complete());
 
         testClass.postAll(rc)
             .blockingSubscribe(() -> {},
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
-
-        verify(resourceTypeService).saveAll(resultJson);
         testContext.completeNow();
     }
 
     @Test
     void updateOneExists(VertxTestContext testContext) {
         long entityId = 1L;
-        ResourceType entity = new ResourceType();
-        entity.setTypeId(entityId);
-        entity.setResourceType("cloud");
-        JsonObject jsonObject = JsonObject.mapFrom(entity);
+        JsonObject requestBody = JsonObject.mapFrom(TestObjectProvider.createResourceType(1L, "vm"));
+        JsonObject result = JsonObject.mapFrom(TestObjectProvider.createResourceType(1L, "edge"));
 
-        RoutingContextMockHelper.mockBody(rc, jsonObject);
+        RoutingContextMockHelper.mockBody(rc, requestBody);
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
-        when(resourceTypeService.findOne(entityId)).thenReturn(Single.just(jsonObject));
-        when(resourceTypeService.existsOneByResourceType("cloud")).thenReturn(Single.just(false));
-        when(resourceTypeService.update(jsonObject)).thenReturn(Completable.complete());
+        when(resourceTypeChecker.checkFindOne(entityId)).thenReturn(Single.just(result));
+        when(resourceTypeChecker.checkUpdateNoDuplicate(requestBody, result)).thenReturn(Single.just(result));
+        when(resourceTypeChecker.submitUpdate(requestBody, result)).thenReturn(Completable.complete());
 
         testClass.updateOne(rc)
             .blockingSubscribe(() -> {},
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
-
-        verify(resourceTypeService).findOne(entityId);
-        verify(resourceTypeService).existsOneByResourceType("cloud");
-        verify(resourceTypeService).update(jsonObject);
         testContext.completeNow();
     }
 
     @Test
     void updateOneNotFound(VertxTestContext testContext) {
         long entityId = 1L;
-        Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
-        ResourceType entity = new ResourceType();
-        entity.setTypeId(entityId);
-        entity.setResourceType("cloud");
-        JsonObject jsonObject = JsonObject.mapFrom(entity);
+        JsonObject requestBody = JsonObject.mapFrom(TestObjectProvider.createResourceType(1L, "vm"));
 
-        RoutingContextMockHelper.mockBody(rc, jsonObject);
+
+        RoutingContextMockHelper.mockBody(rc, requestBody);
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
-        when(resourceTypeService.findOne(entityId)).thenReturn(handler);
+        when(resourceTypeChecker.checkFindOne(entityId)).thenReturn(Single.error(NotFoundException::new));
 
         testClass.updateOne(rc)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
@@ -279,15 +257,14 @@ public class ValidationHandlerTest {
     @Test
     void updateOneAlreadyExists(VertxTestContext testContext) {
         long entityId = 1L;
-        ResourceType entity = new ResourceType();
-        entity.setTypeId(entityId);
-        entity.setResourceType("cloud");
-        JsonObject jsonObject = JsonObject.mapFrom(entity);
+        JsonObject requestBody = JsonObject.mapFrom(TestObjectProvider.createResourceType(1L, "vm"));
+        JsonObject result = JsonObject.mapFrom(TestObjectProvider.createResourceType(1L, "edge"));
 
-        RoutingContextMockHelper.mockBody(rc, jsonObject);
+        RoutingContextMockHelper.mockBody(rc, requestBody);
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
-        when(resourceTypeService.findOne(entityId)).thenReturn(Single.just(jsonObject));
-        when(resourceTypeService.existsOneByResourceType("cloud")).thenReturn(Single.just(true));
+        when(resourceTypeChecker.checkFindOne(entityId)).thenReturn(Single.just(result));
+        when(resourceTypeChecker.checkUpdateNoDuplicate(requestBody, result))
+            .thenReturn(Single.error(AlreadyExistsException::new));
 
         testClass.updateOne(rc)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),

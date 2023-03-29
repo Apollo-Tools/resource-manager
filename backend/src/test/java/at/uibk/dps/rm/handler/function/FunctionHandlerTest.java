@@ -63,7 +63,7 @@ public class FunctionHandlerTest {
                     assertThat(result.getString("code")).isEqualTo("x = 10");
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -79,7 +79,7 @@ public class FunctionHandlerTest {
         when(functionChecker.checkForDuplicateEntity(requestBody)).thenReturn(Completable.complete());
 
         functionHandler.postOne(rc)
-            .subscribe(result -> testContext.verify(() -> fail("method did throw exception")),
+            .subscribe(result -> testContext.verify(() -> fail("method has thrown exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
@@ -100,7 +100,7 @@ public class FunctionHandlerTest {
             .thenReturn(Completable.error(AlreadyExistsException::new));
 
         functionHandler.postOne(rc)
-            .subscribe(result -> testContext.verify(() -> fail("method did throw exception")),
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
                     testContext.completeNow();
@@ -129,7 +129,7 @@ public class FunctionHandlerTest {
 
         functionHandler.updateOne(rc)
             .blockingSubscribe(() -> {},
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
 
         testContext.completeNow();
@@ -210,7 +210,7 @@ public class FunctionHandlerTest {
                     assertThat(result.getLong("function_id")).isEqualTo(1L);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -225,7 +225,7 @@ public class FunctionHandlerTest {
         when(runtimeChecker.checkExistsOne(runtimeId)).thenReturn(Completable.error(NotFoundException::new));
 
         functionHandler.checkUpdateRuntimeExists(requestBody, entityJson)
-            .subscribe(result -> testContext.verify(() -> fail("method did throw exception")),
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
@@ -245,7 +245,7 @@ public class FunctionHandlerTest {
                     assertThat(result.getLong("function_id")).isEqualTo(1L);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method did not throw exception"))
             );
     }
 }

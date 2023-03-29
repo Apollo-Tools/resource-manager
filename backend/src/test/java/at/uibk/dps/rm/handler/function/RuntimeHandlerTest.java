@@ -61,7 +61,7 @@ public class RuntimeHandlerTest {
                     assertThat(result.getString("template_path")).isEqualTo(templatePath);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -78,7 +78,7 @@ public class RuntimeHandlerTest {
             .thenReturn(Completable.error(NotFoundException::new));
 
         runtimeHandler.postOne(rc)
-            .subscribe(result -> testContext.verify(() -> fail("method did throw exception")),
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
@@ -99,7 +99,7 @@ public class RuntimeHandlerTest {
         when(fileSystemChecker.checkTemplatePathExists(templatePath)).thenReturn(Completable.complete());
 
         runtimeHandler.postOne(rc)
-            .subscribe(result -> testContext.verify(() -> fail("method did throw exception")),
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
                     testContext.completeNow();
@@ -122,7 +122,7 @@ public class RuntimeHandlerTest {
 
         runtimeHandler.updateOne(rc)
             .blockingSubscribe(() -> {},
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
         testContext.completeNow();
     }
@@ -180,7 +180,7 @@ public class RuntimeHandlerTest {
         runtimeHandler.checkTemplatePathExists(requestBody)
             .blockingSubscribe(() -> {
                 },
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
         testContext.completeNow();
     }
@@ -212,7 +212,7 @@ public class RuntimeHandlerTest {
         runtimeHandler.checkTemplatePathExists(requestBody)
             .blockingSubscribe(() -> {
                 },
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
         testContext.completeNow();
     }

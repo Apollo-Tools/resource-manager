@@ -73,7 +73,7 @@ public class CredentialsHandlerTest {
                     assertThat(result.getJsonObject(1).getLong("credentials_id")).isEqualTo(2L);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -91,7 +91,7 @@ public class CredentialsHandlerTest {
                     assertThat(result.size()).isEqualTo(0);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -131,7 +131,7 @@ public class CredentialsHandlerTest {
                         .isEqualTo(credentialsId);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -200,7 +200,7 @@ public class CredentialsHandlerTest {
 
         credentialsHandler.deleteOne(rc)
             .blockingSubscribe(() -> {},
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
         testContext.completeNow();
     }

@@ -39,7 +39,7 @@ public class FileSystemCheckerTest {
         fileSystemChecker.checkTemplatePathExists(templatePath)
             .blockingSubscribe(() -> {
                 },
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
 
         verify(filePathService).templatePathExists(templatePath);

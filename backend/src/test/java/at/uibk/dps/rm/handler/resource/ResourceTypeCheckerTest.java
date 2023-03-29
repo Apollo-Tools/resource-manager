@@ -44,7 +44,7 @@ public class ResourceTypeCheckerTest {
         resourceTypeChecker.checkForDuplicateEntity(entity)
             .blockingSubscribe(() -> {
                 },
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
 
         verify(resourceTypeService).existsOneByResourceType(resourceTypeName);
@@ -83,7 +83,7 @@ public class ResourceTypeCheckerTest {
                     verify(resourceTypeService).existsOneByResourceType(resourceTypeName);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception " + throwable.getMessage()))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -118,7 +118,7 @@ public class ResourceTypeCheckerTest {
                     assertThat(result.getString("resource_type")).isEqualTo(resourceTypeName);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception " + throwable.getMessage()))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 

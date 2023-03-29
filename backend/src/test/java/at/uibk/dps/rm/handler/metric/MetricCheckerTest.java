@@ -56,7 +56,7 @@ public class MetricCheckerTest {
         metricChecker.checkForDuplicateEntity(entity)
             .blockingSubscribe(() -> {
                 },
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("mmethod has thrown exception"))
             );
 
         verify(metricService).existsOneByMetric(metricName);
@@ -95,7 +95,7 @@ public class MetricCheckerTest {
                     verify(metricService).existsOneByMetric(metricName);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception " + throwable.getMessage()))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -130,7 +130,7 @@ public class MetricCheckerTest {
                     assertThat(result.getString("metric")).isEqualTo(metricName);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception " + throwable.getMessage()))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -149,7 +149,7 @@ public class MetricCheckerTest {
                 verify(metricService).findOneByMetric(metricName);
                 testContext.completeNow();
             },
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -183,7 +183,7 @@ public class MetricCheckerTest {
                     assertThat(result).isEqualTo(true);
                     testContext.completeNow();
             },
-            throwable -> testContext.verify(() -> fail("method did throw exception"))
+            throwable -> testContext.verify(() -> fail("method has thrown exception"))
         );
     }
 
@@ -220,7 +220,7 @@ public class MetricCheckerTest {
                     assertThat(result).isEqualTo(true);
                     testContext.completeNow();
                 },
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -257,7 +257,7 @@ public class MetricCheckerTest {
                     assertThat(result).isEqualTo(true);
                     testContext.completeNow();
                 },
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -296,7 +296,7 @@ public class MetricCheckerTest {
 
         metricChecker.checkAddMetricValueSetCorrectly(requestBody, metricId, metricValue)
             .blockingSubscribe(() -> {},
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
 
         assertThat(metricValue.getValueNumber().doubleValue()).isEqualTo(result);
@@ -319,7 +319,7 @@ public class MetricCheckerTest {
 
         metricChecker.checkAddMetricValueSetCorrectly(requestBody, metricId, metricValue)
             .blockingSubscribe(() -> {},
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
 
         assertThat(metricValue.getValueString()).isEqualTo(result);
@@ -342,7 +342,7 @@ public class MetricCheckerTest {
 
         metricChecker.checkAddMetricValueSetCorrectly(requestBody, metricId, metricValue)
             .blockingSubscribe(() -> {},
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
 
         assertThat(metricValue.getValueBool()).isEqualTo(result);
@@ -392,7 +392,7 @@ public class MetricCheckerTest {
 
         metricChecker.checkUpdateMetricValueSetCorrectly(requestBody, metricId)
             .blockingSubscribe(() -> {},
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
 
         verify(metricService).findOne(metricId);

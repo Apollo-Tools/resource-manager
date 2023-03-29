@@ -75,7 +75,7 @@ public class FunctionResourceHandlerTest {
                     assertThat(result.getJsonObject(2).getLong("function_resource_id")).isEqualTo(3L);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -109,7 +109,7 @@ public class FunctionResourceHandlerTest {
                     assertThat(result.size()).isEqualTo(0);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -150,7 +150,7 @@ public class FunctionResourceHandlerTest {
 
         functionResourceHandler.postAll(rc)
             .blockingSubscribe(() -> {},
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
         testContext.completeNow();
     }
@@ -167,7 +167,7 @@ public class FunctionResourceHandlerTest {
         when(functionChecker.checkExistsOne(functionId)).thenReturn(Completable.error(NotFoundException::new));
 
         functionResourceHandler.postAll(rc)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did throw exception")),
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
@@ -189,7 +189,7 @@ public class FunctionResourceHandlerTest {
             .thenReturn(Completable.complete());
 
         functionResourceHandler.postAll(rc)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did throw exception")),
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
@@ -212,7 +212,7 @@ public class FunctionResourceHandlerTest {
 
 
         functionResourceHandler.postAll(rc)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did throw exception")),
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
                     testContext.completeNow();
@@ -236,7 +236,7 @@ public class FunctionResourceHandlerTest {
 
         functionResourceHandler.deleteOne(rc)
             .blockingSubscribe(() -> {},
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
         testContext.completeNow();
     }
@@ -254,7 +254,7 @@ public class FunctionResourceHandlerTest {
             .thenReturn(Completable.complete());
 
         functionResourceHandler.deleteOne(rc)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did throw exception")),
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
@@ -275,7 +275,7 @@ public class FunctionResourceHandlerTest {
             .thenReturn(Completable.complete());
 
         functionResourceHandler.deleteOne(rc)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did throw exception")),
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
@@ -296,7 +296,7 @@ public class FunctionResourceHandlerTest {
             .thenReturn(Completable.error(NotFoundException::new));
 
         functionResourceHandler.deleteOne(rc)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did throw exception")),
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
@@ -324,7 +324,7 @@ public class FunctionResourceHandlerTest {
                     assertThat(result.get(2).getResource().getResourceId()).isEqualTo(3L);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -378,7 +378,7 @@ public class FunctionResourceHandlerTest {
 
         functionResourceHandler.checkDeleteFunctionResourceExists(functionId, resourceId)
             .blockingSubscribe(() -> {},
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
         testContext.completeNow();
     }
@@ -394,7 +394,7 @@ public class FunctionResourceHandlerTest {
             .thenReturn(Completable.complete());
 
         functionResourceHandler.checkDeleteFunctionResourceExists(functionId, resourceId)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did throw exception")),
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
@@ -413,7 +413,7 @@ public class FunctionResourceHandlerTest {
             .thenReturn(Completable.complete());
 
         functionResourceHandler.checkDeleteFunctionResourceExists(functionId, resourceId)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did throw exception")),
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
@@ -432,7 +432,7 @@ public class FunctionResourceHandlerTest {
             .thenReturn(Completable.error(NotFoundException::new));
 
         functionResourceHandler.checkDeleteFunctionResourceExists(functionId, resourceId)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did throw exception")),
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();

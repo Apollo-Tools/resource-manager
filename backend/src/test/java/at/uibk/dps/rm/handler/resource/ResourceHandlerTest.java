@@ -62,7 +62,7 @@ public class ResourceHandlerTest {
                     assertThat(result.getBoolean("is_self_managed")).isEqualTo(false);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -74,7 +74,7 @@ public class ResourceHandlerTest {
         when(resourceTypeChecker.checkExistsOne(1L)).thenReturn(Completable.error(NotFoundException::new));
 
         resourceHandler.postOne(rc)
-            .subscribe(result -> testContext.verify(() -> fail("method did throw exception")),
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
@@ -101,7 +101,7 @@ public class ResourceHandlerTest {
 
         resourceHandler.updateOne(rc)
             .blockingSubscribe(() -> {},
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
         testContext.completeNow();
     }
@@ -202,7 +202,7 @@ public class ResourceHandlerTest {
                     assertThat(result.getLong("resource_id")).isEqualTo(1L);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -217,7 +217,7 @@ public class ResourceHandlerTest {
         when(resourceTypeChecker.checkExistsOne(typeId)).thenReturn(Completable.error(NotFoundException::new));
 
         resourceHandler.checkUpdateResourceTypeExists(requestBody, r1Json)
-            .subscribe(result -> testContext.verify(() -> fail("method did throw exception")),
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
@@ -238,7 +238,7 @@ public class ResourceHandlerTest {
                     assertThat(result.getLong("resource_id")).isEqualTo(1L);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 

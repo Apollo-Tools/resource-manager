@@ -58,7 +58,7 @@ public class RegionHandlerTest {
                         .isEqualTo(1L);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -71,7 +71,7 @@ public class RegionHandlerTest {
         when(regionChecker.checkForDuplicateEntity(requestBody)).thenReturn(Completable.complete());
 
         regionHandler.postOne(rc)
-            .subscribe(result -> testContext.verify(() -> fail("method did throw exception")),
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
@@ -89,7 +89,7 @@ public class RegionHandlerTest {
             .thenReturn(Completable.error(AlreadyExistsException::new));
 
         regionHandler.postOne(rc)
-            .subscribe(result -> testContext.verify(() -> fail("method did throw exception")),
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
                     testContext.completeNow();

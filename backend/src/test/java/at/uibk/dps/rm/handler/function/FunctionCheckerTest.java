@@ -50,7 +50,7 @@ public class FunctionCheckerTest {
         functionChecker.checkForDuplicateEntity(JsonObject.mapFrom(function))
             .blockingSubscribe(() -> {
                 },
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
 
         verify(functionService).existsOneByNameAndRuntimeId(name, runtimeId);
@@ -90,7 +90,7 @@ public class FunctionCheckerTest {
                     assertThat(result.getString("name")).isEqualTo(name);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception " + throwable.getMessage()))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -128,7 +128,7 @@ public class FunctionCheckerTest {
                     assertThat(result.getString("name")).isEqualTo(name);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception " + throwable.getMessage()))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -147,7 +147,7 @@ public class FunctionCheckerTest {
                     assertThat(result.getString("name")).isEqualTo(name);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception " + throwable.getMessage()))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 }

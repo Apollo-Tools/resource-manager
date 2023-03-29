@@ -60,7 +60,7 @@ public class MetricValueCheckerTest {
                     verify(metricValueService).findAllByResource(resourceId, true);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception " + throwable.getMessage()))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -77,7 +77,7 @@ public class MetricValueCheckerTest {
                     verify(metricValueService).findAllByResource(resourceId, true);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method did throw exception " + throwable.getMessage()))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -89,7 +89,7 @@ public class MetricValueCheckerTest {
         when(metricValueService.findAllByResource(resourceId, true)).thenReturn(handler);
 
         metricValueChecker.checkFindAllByResource(resourceId, true)
-            .subscribe(result -> testContext.verify(() -> fail("method did throw exception")),
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
@@ -107,7 +107,7 @@ public class MetricValueCheckerTest {
         metricValueChecker.checkForDuplicateByResourceAndMetric(resourceId, metricId)
             .blockingSubscribe(() -> {
                 },
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
 
         verify(metricValueService).existsOneByResourceAndMetric(resourceId, metricId);
@@ -140,7 +140,7 @@ public class MetricValueCheckerTest {
         metricValueChecker.checkMetricValueExistsByResourceAndMetric(resourceId, metricId)
             .blockingSubscribe(() -> {
                 },
-                throwable -> testContext.verify(() -> fail("method did throw exception"))
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
 
         verify(metricValueService).existsOneByResourceAndMetric(resourceId, metricId);
