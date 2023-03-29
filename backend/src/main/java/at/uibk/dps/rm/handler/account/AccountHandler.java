@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.handler.account;
 
 import at.uibk.dps.rm.handler.ValidationHandler;
-import at.uibk.dps.rm.service.rxjava3.database.account.AccountService;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
@@ -14,9 +13,9 @@ public class AccountHandler extends ValidationHandler {
 
     private final JWTAuth jwtAuth;
 
-    public AccountHandler(AccountService accountService, JWTAuth jwtAuth) {
-        super(new AccountChecker(accountService));
-        accountChecker = (AccountChecker) super.entityChecker;
+    public AccountHandler(AccountChecker accountChecker, JWTAuth jwtAuth) {
+        super(accountChecker);
+        this.accountChecker = accountChecker;
         this.jwtAuth = jwtAuth;
     }
 

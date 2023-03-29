@@ -4,9 +4,7 @@ import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
-import at.uibk.dps.rm.service.rxjava3.database.account.AccountService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
-import at.uibk.dps.rm.testutil.SingleHelper;
 import at.uibk.dps.rm.testutil.TestObjectProvider;
 import at.uibk.dps.rm.util.JWTAuthProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
@@ -29,8 +27,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(VertxExtension.class)
@@ -44,7 +40,7 @@ public class AccountHandlerTest {
     private JWTAuthProvider jwtAuthProvider;
 
     @Mock
-    private AccountService accountService;
+    private AccountChecker accountChecker;
 
     @Mock
     private RoutingContext rc;
@@ -61,7 +57,7 @@ public class AccountHandlerTest {
         JsonObject config = retriever.getConfig().blockingGet();
         jwtAuthProvider = new JWTAuthProvider(vertx, config.getString("jwt_algorithm"),
             config.getString("jwt_secret"), config.getInteger("token_minutes_valid"));
-        accountHandler = new AccountHandler(accountService, jwtAuthProvider.getJwtAuth());
+        accountHandler = new AccountHandler(accountChecker, jwtAuthProvider.getJwtAuth());
     }
 
     @Test
@@ -70,7 +66,7 @@ public class AccountHandlerTest {
         Account entity = TestObjectProvider.createAccount(1L, "user", "password");
 
         RoutingContextMockHelper.mockUserPrincipal(rc, entity);
-        when(accountService.findOne(accountId)).thenReturn(Single.just(JsonObject.mapFrom(entity)));
+        when(accountChecker.checkFindOne(accountId)).thenReturn(Single.just(JsonObject.mapFrom(entity)));
 
         accountHandler.getOne(rc)
             .subscribe(result -> testContext.verify(() -> {
@@ -87,10 +83,9 @@ public class AccountHandlerTest {
     void getOneNotFound(VertxTestContext testContext) {
         long accountId = 1L;
         Account account = TestObjectProvider.createAccount(1L, "user", "password");
-        Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
-        when(accountService.findOne(accountId)).thenReturn(handler);
+        when(accountChecker.checkFindOne(accountId)).thenReturn(Single.error(NotFoundException::new));
 
         accountHandler.getOne(rc)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
@@ -104,12 +99,12 @@ public class AccountHandlerTest {
     @Test
     void postOne(VertxTestContext testContext) {
         Account entity = TestObjectProvider.createAccount(1L, "user", "password");
-        JsonObject jsonObject = JsonObject.mapFrom(entity);
+        JsonObject requestBody = JsonObject.mapFrom(entity);
 
-        RoutingContextMockHelper.mockBody(rc, jsonObject);
-        when(accountService.existsOneByUsername(entity.getUsername(), false))
-            .thenReturn(Single.just(false));
-        when(accountService.save(jsonObject)).thenReturn(Single.just(jsonObject));
+        RoutingContextMockHelper.mockBody(rc, requestBody);
+        when(accountChecker.checkForDuplicateEntity(requestBody)).thenReturn(Completable.complete());
+        when(accountChecker.hashAccountPassword(requestBody)).thenReturn(requestBody);
+        when(accountChecker.submitCreate(requestBody)).thenReturn(Single.just(requestBody));
 
         accountHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> {
@@ -125,11 +120,11 @@ public class AccountHandlerTest {
     @Test
     void postOneAlreadyExists(VertxTestContext testContext) {
         Account entity = TestObjectProvider.createAccount(1L, "user", "password");
-        JsonObject jsonObject = JsonObject.mapFrom(entity);
+        JsonObject requestBody = JsonObject.mapFrom(entity);
 
-        RoutingContextMockHelper.mockBody(rc, jsonObject);
-        when(accountService.existsOneByUsername(entity.getUsername(), false))
-            .thenReturn(Single.just(true));
+        RoutingContextMockHelper.mockBody(rc, requestBody);
+        when(accountChecker.checkForDuplicateEntity(requestBody))
+            .thenReturn(Completable.error(AlreadyExistsException::new));
 
         accountHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> fail("method did throw exception")),
@@ -155,23 +150,21 @@ public class AccountHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, entity);
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountService.findOneByUsername(entity.getUsername())).thenReturn(Single.just(entityJson));
-        when(accountService.update(any(JsonObject.class))).thenReturn(Completable.complete());
+        when(accountChecker.checkFindLoginAccount(entity.getUsername())).thenReturn(Single.just(entityJson));
+        when(accountChecker.checkComparePasswords(entityJson, oldPassword.toCharArray())).thenReturn(entityJson);
+        when(accountChecker.hashAccountPassword(entityJson)).thenReturn(entityJson);
+        when(accountChecker.submitUpdate(entityJson)).thenReturn(Completable.complete());
 
         accountHandler.updateOne(rc)
             .blockingSubscribe(() -> {},
                 throwable -> testContext.verify(() -> fail("method did throw exception"))
             );
-
-        verify(accountService).findOneByUsername(entity.getUsername());
-        verify(accountService).update(any(JsonObject.class));
         testContext.completeNow();
     }
 
     @Test
     void updateOneNotFound(VertxTestContext testContext) {
         long entityId = 1L;
-        Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
         String oldPassword = "oldpassword";
         String newPassword = "newpassword";
         Account entity = TestObjectProvider.createAccount(entityId, "user",
@@ -183,7 +176,8 @@ public class AccountHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, entity);
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountService.findOneByUsername(entity.getUsername())).thenReturn(handler);
+        when(accountChecker.checkFindLoginAccount(entity.getUsername()))
+            .thenReturn(Single.error(UnauthorizedException::new));
 
         accountHandler.updateOne(rc)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
@@ -209,7 +203,9 @@ public class AccountHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, entity);
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountService.findOneByUsername(entity.getUsername())).thenReturn(Single.just(entityJson));
+        when(accountChecker.checkFindLoginAccount(entity.getUsername())).thenReturn(Single.just(entityJson));
+        when(accountChecker.checkComparePasswords(entityJson, requestBody.getString("old_password").toCharArray()))
+            .thenThrow(new UnauthorizedException());
 
         accountHandler.updateOne(rc)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
@@ -227,14 +223,17 @@ public class AccountHandlerTest {
         String password = "password";
         Account entity = TestObjectProvider.createAccount(accountId, username,
             passwordUtility.hashPassword(password.toCharArray()));
+        JsonObject entityJson = JsonObject.mapFrom(entity);
         JsonObject requestBody = new JsonObject("{\n" +
             "\"username\": \"" + username + "\",\n" +
             "\"password\": \"" + password + "\"\n" +
             "}");
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountService.findOneByUsername(entity.getUsername()))
-            .thenReturn(Single.just(JsonObject.mapFrom(entity)));
+        when(accountChecker.checkFindLoginAccount(entity.getUsername()))
+            .thenReturn(Single.just(entityJson));
+        when(accountChecker.checkComparePasswords(entityJson, requestBody.getString("password").toCharArray()))
+            .thenReturn(entityJson);
 
         accountHandler.login(rc)
             .flatMap(result -> jwtAuthProvider.getJwtAuth().authenticate(result))
@@ -253,7 +252,6 @@ public class AccountHandlerTest {
         long accountId = 1L;
         String username = "user";
         String password = "password";
-        Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
         Account entity = TestObjectProvider.createAccount(accountId, username,
             passwordUtility.hashPassword(password.toCharArray()));
         JsonObject requestBody = new JsonObject("{\n" +
@@ -262,7 +260,8 @@ public class AccountHandlerTest {
             "}");
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountService.findOneByUsername(entity.getUsername())).thenReturn(handler);
+        when(accountChecker.checkFindLoginAccount(entity.getUsername()))
+            .thenReturn(Single.error(UnauthorizedException::new));
 
         accountHandler.login(rc)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
@@ -280,14 +279,17 @@ public class AccountHandlerTest {
         String password = "password";
         Account entity = TestObjectProvider.createAccount(accountId, username,
             passwordUtility.hashPassword(password.toCharArray()));
+        JsonObject entityJson = JsonObject.mapFrom(entity);
         JsonObject requestBody = new JsonObject("{\n" +
             "\"username\": \"" + username + "\",\n" +
             "\"password\": \"" + password + 1234 + "\"\n" +
             "}");
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountService.findOneByUsername(entity.getUsername()))
-            .thenReturn(Single.just(JsonObject.mapFrom(entity)));
+        when(accountChecker.checkFindLoginAccount(entity.getUsername()))
+            .thenReturn(Single.just(entityJson));
+        when(accountChecker.checkComparePasswords(entityJson, requestBody.getString("password").toCharArray()))
+            .thenThrow(new UnauthorizedException());
 
         accountHandler.login(rc)
             .flatMap(result -> jwtAuthProvider.getJwtAuth().authenticate(result))
