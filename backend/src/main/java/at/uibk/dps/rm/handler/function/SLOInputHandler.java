@@ -22,8 +22,6 @@ public class SLOInputHandler {
             .dispose();
     }
 
-
-
     private static Completable checkExpressionAreValid(JsonArray slos) {
         if (slos == null) {
             return Completable.complete();

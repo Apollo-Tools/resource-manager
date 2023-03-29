@@ -3,9 +3,6 @@ package at.uibk.dps.rm.handler.function;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.handler.resource.ResourceChecker;
-import at.uibk.dps.rm.service.rxjava3.database.function.FunctionResourceService;
-import at.uibk.dps.rm.service.rxjava3.database.function.FunctionService;
-import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
 import at.uibk.dps.rm.util.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -26,12 +23,12 @@ public class FunctionResourceHandler extends ValidationHandler {
 
     private final ResourceChecker resourceChecker;
 
-    public FunctionResourceHandler(FunctionResourceService functionResourceService, FunctionService functionService,
-                                   ResourceService resourceService) {
-        super(new FunctionResourceChecker(functionResourceService));
-        functionResourceChecker = (FunctionResourceChecker) super.entityChecker;
-        functionChecker = new FunctionChecker(functionService);
-        resourceChecker = new ResourceChecker(resourceService);
+    public FunctionResourceHandler(FunctionResourceChecker functionResourceChecker, FunctionChecker functionChecker,
+                                   ResourceChecker resourceChecker) {
+        super(functionResourceChecker);
+        this.functionResourceChecker = functionResourceChecker;
+        this.functionChecker = functionChecker;
+        this.resourceChecker = resourceChecker;
     }
 
     @Override

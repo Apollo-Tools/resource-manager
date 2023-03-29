@@ -3,11 +3,8 @@ package at.uibk.dps.rm.handler.function;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.service.rxjava3.database.function.FunctionResourceService;
-import at.uibk.dps.rm.service.rxjava3.database.function.FunctionService;
-import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
+import at.uibk.dps.rm.handler.resource.ResourceChecker;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
-import at.uibk.dps.rm.testutil.SingleHelper;
 import at.uibk.dps.rm.testutil.TestObjectProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
@@ -20,8 +17,6 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -31,7 +26,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(VertxExtension.class)
@@ -41,13 +35,13 @@ public class FunctionResourceHandlerTest {
     private FunctionResourceHandler functionResourceHandler;
 
     @Mock
-    private FunctionResourceService functionResourceService;
+    private FunctionResourceChecker functionResourceChecker;
 
     @Mock
-    private FunctionService functionService;
+    private FunctionChecker functionChecker;
 
     @Mock
-    private ResourceService resourceService;
+    private ResourceChecker resourceChecker;
 
     @Mock
     private RoutingContext rc;
@@ -55,7 +49,8 @@ public class FunctionResourceHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        functionResourceHandler = new FunctionResourceHandler(functionResourceService, functionService, resourceService);
+        functionResourceHandler = new FunctionResourceHandler(functionResourceChecker, functionChecker,
+            resourceChecker);
     }
 
     @Test
@@ -69,8 +64,8 @@ public class FunctionResourceHandlerTest {
             JsonObject.mapFrom(fr2), JsonObject.mapFrom(fr3)));
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(functionId));
-        when(functionService.existsOneById(functionId)).thenReturn(Single.just(true));
-        when(resourceService.findAllByFunctionId(functionId)).thenReturn(Single.just(functionResources));
+        when(functionChecker.checkExistsOne(functionId)).thenReturn(Completable.complete());
+        when(resourceChecker.checkFindAllByFunction(functionId)).thenReturn(Single.just(functionResources));
 
         functionResourceHandler.getAll(rc)
             .subscribe(result -> testContext.verify(() -> {
@@ -89,7 +84,7 @@ public class FunctionResourceHandlerTest {
         long functionId = 1L;
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(functionId));
-        when(functionService.existsOneById(functionId)).thenReturn(Single.just(false));
+        when(functionChecker.checkExistsOne(functionId)).thenReturn(Completable.error(NotFoundException::new));
 
         functionResourceHandler.getAll(rc)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
@@ -106,8 +101,8 @@ public class FunctionResourceHandlerTest {
         JsonArray functionResources = new JsonArray();
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(functionId));
-        when(functionService.existsOneById(functionId)).thenReturn(Single.just(true));
-        when(resourceService.findAllByFunctionId(functionId)).thenReturn(Single.just(functionResources));
+        when(functionChecker.checkExistsOne(functionId)).thenReturn(Completable.complete());
+        when(resourceChecker.checkFindAllByFunction(functionId)).thenReturn(Single.just(functionResources));
 
         functionResourceHandler.getAll(rc)
             .subscribe(result -> testContext.verify(() -> {
@@ -121,11 +116,10 @@ public class FunctionResourceHandlerTest {
     @Test
     void getAllFunctionResourcesNotFound(VertxTestContext testContext) {
         long functionId = 1L;
-        Single<JsonArray> handler = new SingleHelper<JsonArray>().getEmptySingle();
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(functionId));
-        when(functionService.existsOneById(functionId)).thenReturn(Single.just(true));
-        when(resourceService.findAllByFunctionId(functionId)).thenReturn(handler);
+        when(functionChecker.checkExistsOne(functionId)).thenReturn(Completable.complete());
+        when(resourceChecker.checkFindAllByFunction(functionId)).thenReturn(Single.error(NotFoundException::new));
 
         functionResourceHandler.getAll(rc)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
@@ -146,19 +140,18 @@ public class FunctionResourceHandlerTest {
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
         when(rc.pathParam("id")).thenReturn(String.valueOf(functionId));
-        when(functionService.existsOneById(functionId)).thenReturn(Single.just(true));
-        when(resourceService.existsOneById(anyLong())).thenReturn(Single.just(true));
-        when(functionResourceService.existsOneByFunctionAndResource(eq(functionId), anyLong()))
-            .thenReturn(Single.just(false));
+        when(rc.pathParam("id")).thenReturn(String.valueOf(functionId));
+        when(functionChecker.checkExistsOne(functionId)).thenReturn(Completable.complete());
+        when(resourceChecker.checkExistsOne(anyLong())).thenReturn(Completable.complete());
+        when(functionResourceChecker.checkForDuplicateByFunctionAndResource(eq(functionId), anyLong()))
+            .thenReturn(Completable.complete());
 
-        when(functionResourceService.saveAll(any(JsonArray.class))).thenReturn(Completable.complete());
+        when(functionResourceChecker.submitCreateAll(any(JsonArray.class))).thenReturn(Completable.complete());
 
         functionResourceHandler.postAll(rc)
             .blockingSubscribe(() -> {},
                 throwable -> testContext.verify(() -> fail("method did throw exception"))
             );
-
-        verify(functionResourceService).saveAll(any(JsonArray.class));
         testContext.completeNow();
     }
 
@@ -171,7 +164,7 @@ public class FunctionResourceHandlerTest {
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
         when(rc.pathParam("id")).thenReturn(String.valueOf(functionId));
-        when(functionService.existsOneById(functionId)).thenReturn(Single.just(false));
+        when(functionChecker.checkExistsOne(functionId)).thenReturn(Completable.error(NotFoundException::new));
 
         functionResourceHandler.postAll(rc)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did throw exception")),
@@ -190,10 +183,10 @@ public class FunctionResourceHandlerTest {
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
         when(rc.pathParam("id")).thenReturn(String.valueOf(functionId));
-        when(functionService.existsOneById(functionId)).thenReturn(Single.just(true));
-        when(resourceService.existsOneById(anyLong())).thenReturn(Single.just(false));
-        when(functionResourceService.existsOneByFunctionAndResource(eq(functionId), anyLong()))
-            .thenReturn(Single.just(false));
+        when(functionChecker.checkExistsOne(functionId)).thenReturn(Completable.complete());
+        when(resourceChecker.checkExistsOne(anyLong())).thenReturn(Completable.error(NotFoundException::new));
+        when(functionResourceChecker.checkForDuplicateByFunctionAndResource(eq(functionId), anyLong()))
+            .thenReturn(Completable.complete());
 
         functionResourceHandler.postAll(rc)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did throw exception")),
@@ -212,10 +205,11 @@ public class FunctionResourceHandlerTest {
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
         when(rc.pathParam("id")).thenReturn(String.valueOf(functionId));
-        when(functionService.existsOneById(functionId)).thenReturn(Single.just(true));
-        when(resourceService.existsOneById(anyLong())).thenReturn(Single.just(true));
-        when(functionResourceService.existsOneByFunctionAndResource(eq(functionId), anyLong()))
-            .thenReturn(Single.just(true));
+        when(functionChecker.checkExistsOne(functionId)).thenReturn(Completable.complete());
+        when(resourceChecker.checkExistsOne(anyLong())).thenReturn(Completable.complete());
+        when(functionResourceChecker.checkForDuplicateByFunctionAndResource(eq(functionId), anyLong()))
+            .thenReturn(Completable.error(AlreadyExistsException::new));
+
 
         functionResourceHandler.postAll(rc)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did throw exception")),
@@ -233,19 +227,17 @@ public class FunctionResourceHandlerTest {
 
         when(rc.pathParam("functionId")).thenReturn(String.valueOf(functionId));
         when(rc.pathParam("resourceId")).thenReturn(String.valueOf(resourceId));
-        when(resourceService.existsOneById(resourceId)).thenReturn(Single.just(true));
-        when(functionService.existsOneById(functionId)).thenReturn(Single.just(true));
-        when(functionResourceService.existsOneByFunctionAndResource(functionId, resourceId))
-            .thenReturn(Single.just(true));
-        when(functionResourceService.deleteByFunctionAndResource(functionId, resourceId))
+        when(resourceChecker.checkExistsOne(resourceId)).thenReturn(Completable.complete());
+        when(functionChecker.checkExistsOne(functionId)).thenReturn(Completable.complete());
+        when(functionResourceChecker.checkExistsByFunctionAndResource(functionId, resourceId))
+            .thenReturn(Completable.complete());
+        when(functionResourceChecker.submitDeleteFunctionResource(functionId, resourceId))
             .thenReturn(Completable.complete());
 
         functionResourceHandler.deleteOne(rc)
             .blockingSubscribe(() -> {},
                 throwable -> testContext.verify(() -> fail("method did throw exception"))
             );
-
-        verify(functionResourceService).deleteByFunctionAndResource(functionId, resourceId);
         testContext.completeNow();
     }
 
@@ -256,10 +248,10 @@ public class FunctionResourceHandlerTest {
 
         when(rc.pathParam("functionId")).thenReturn(String.valueOf(functionId));
         when(rc.pathParam("resourceId")).thenReturn(String.valueOf(resourceId));
-        when(resourceService.existsOneById(resourceId)).thenReturn(Single.just(false));
-        when(functionService.existsOneById(functionId)).thenReturn(Single.just(true));
-        when(functionResourceService.existsOneByFunctionAndResource(functionId, resourceId))
-            .thenReturn(Single.just(true));
+        when(resourceChecker.checkExistsOne(resourceId)).thenReturn(Completable.error(NotFoundException::new));
+        when(functionChecker.checkExistsOne(functionId)).thenReturn(Completable.complete());
+        when(functionResourceChecker.checkExistsByFunctionAndResource(functionId, resourceId))
+            .thenReturn(Completable.complete());
 
         functionResourceHandler.deleteOne(rc)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did throw exception")),
@@ -277,10 +269,10 @@ public class FunctionResourceHandlerTest {
 
         when(rc.pathParam("functionId")).thenReturn(String.valueOf(functionId));
         when(rc.pathParam("resourceId")).thenReturn(String.valueOf(resourceId));
-        when(resourceService.existsOneById(resourceId)).thenReturn(Single.just(true));
-        when(functionService.existsOneById(functionId)).thenReturn(Single.just(false));
-        when(functionResourceService.existsOneByFunctionAndResource(functionId, resourceId))
-            .thenReturn(Single.just(true));
+        when(resourceChecker.checkExistsOne(resourceId)).thenReturn(Completable.complete());
+        when(functionChecker.checkExistsOne(functionId)).thenReturn(Completable.error(NotFoundException::new));
+        when(functionResourceChecker.checkExistsByFunctionAndResource(functionId, resourceId))
+            .thenReturn(Completable.complete());
 
         functionResourceHandler.deleteOne(rc)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did throw exception")),
@@ -298,10 +290,10 @@ public class FunctionResourceHandlerTest {
 
         when(rc.pathParam("functionId")).thenReturn(String.valueOf(functionId));
         when(rc.pathParam("resourceId")).thenReturn(String.valueOf(resourceId));
-        when(resourceService.existsOneById(resourceId)).thenReturn(Single.just(true));
-        when(functionService.existsOneById(functionId)).thenReturn(Single.just(false));
-        when(functionResourceService.existsOneByFunctionAndResource(functionId, resourceId))
-            .thenReturn(Single.just(false));
+        when(resourceChecker.checkExistsOne(resourceId)).thenReturn(Completable.complete());
+        when(functionChecker.checkExistsOne(functionId)).thenReturn(Completable.complete());
+        when(functionResourceChecker.checkExistsByFunctionAndResource(functionId, resourceId))
+            .thenReturn(Completable.error(NotFoundException::new));
 
         functionResourceHandler.deleteOne(rc)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did throw exception")),
@@ -320,9 +312,9 @@ public class FunctionResourceHandlerTest {
         JsonObject value3 = new JsonObject("{\"resource_id\": 3}");
         JsonArray requestBody = new JsonArray(List.of(value1, value2, value3));
 
-        when(resourceService.existsOneById(anyLong())).thenReturn(Single.just(true));
-        when(functionResourceService.existsOneByFunctionAndResource(eq(functionId), anyLong()))
-            .thenReturn(Single.just(false));
+        when(resourceChecker.checkExistsOne(anyLong())).thenReturn(Completable.complete());
+        when(functionResourceChecker.checkForDuplicateByFunctionAndResource(eq(functionId), anyLong()))
+            .thenReturn(Completable.complete());
 
         functionResourceHandler.checkAddResourcesExist(requestBody, functionId)
             .subscribe(result -> testContext.verify(() -> {
@@ -342,9 +334,9 @@ public class FunctionResourceHandlerTest {
         JsonObject value = new JsonObject("{\"resource_id\": 1}");
         JsonArray requestBody = new JsonArray(List.of(value));
 
-        when(resourceService.existsOneById(anyLong())).thenReturn(Single.just(false));
-        when(functionResourceService.existsOneByFunctionAndResource(eq(functionId), anyLong()))
-            .thenReturn(Single.just(false));
+        when(resourceChecker.checkExistsOne(anyLong())).thenReturn(Completable.error(NotFoundException::new));
+        when(functionResourceChecker.checkForDuplicateByFunctionAndResource(eq(functionId), anyLong()))
+            .thenReturn(Completable.complete());
 
         functionResourceHandler.checkAddResourcesExist(requestBody, functionId)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
@@ -361,9 +353,9 @@ public class FunctionResourceHandlerTest {
         JsonObject value = new JsonObject("{\"resource_id\": 1}");
         JsonArray requestBody = new JsonArray(List.of(value));
 
-        when(resourceService.existsOneById(anyLong())).thenReturn(Single.just(true));
-        when(functionResourceService.existsOneByFunctionAndResource(eq(functionId), anyLong()))
-            .thenReturn(Single.just(true));
+        when(resourceChecker.checkExistsOne(anyLong())).thenReturn(Completable.complete());
+        when(functionResourceChecker.checkForDuplicateByFunctionAndResource(eq(functionId), anyLong()))
+            .thenReturn(Completable.error(AlreadyExistsException::new));
 
         functionResourceHandler.checkAddResourcesExist(requestBody, functionId)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
@@ -379,37 +371,65 @@ public class FunctionResourceHandlerTest {
         long functionId = 1L;
         long resourceId = 1L;
 
-        when(resourceService.existsOneById(resourceId)).thenReturn(Single.just(true));
-        when(functionService.existsOneById(functionId)).thenReturn(Single.just(true));
-        when(functionResourceService.existsOneByFunctionAndResource(functionId, resourceId))
-            .thenReturn(Single.just(true));
+        when(resourceChecker.checkExistsOne(resourceId)).thenReturn(Completable.complete());
+        when(functionChecker.checkExistsOne(functionId)).thenReturn(Completable.complete());
+        when(functionResourceChecker.checkExistsByFunctionAndResource(functionId, resourceId))
+            .thenReturn(Completable.complete());
 
         functionResourceHandler.checkDeleteFunctionResourceExists(functionId, resourceId)
             .blockingSubscribe(() -> {},
                 throwable -> testContext.verify(() -> fail("method did throw exception"))
             );
-
-        verify(resourceService).existsOneById(resourceId);
-        verify(functionService).existsOneById(functionId);
-        verify(functionResourceService).existsOneByFunctionAndResource(functionId, resourceId);
         testContext.completeNow();
     }
 
-    @ParameterizedTest
-    @CsvSource({
-        "false, true, true",
-        "true, false, true",
-        "true, true, false"
-    })
-    void checkDeleteFunctionResourceExistsNotExists(boolean functionExists, boolean resourceExists,
-                                                   boolean functionResourceExists, VertxTestContext testContext) {
+    @Test
+    void checkDeleteFunctionResourceExistsResourceNotExists(VertxTestContext testContext) {
         long functionId = 1L;
         long resourceId = 1L;
 
-        when(resourceService.existsOneById(resourceId)).thenReturn(Single.just(resourceExists));
-        when(functionService.existsOneById(functionId)).thenReturn(Single.just(functionExists));
-        when(functionResourceService.existsOneByFunctionAndResource(functionId, resourceId))
-            .thenReturn(Single.just(functionResourceExists));
+        when(resourceChecker.checkExistsOne(resourceId)).thenReturn(Completable.error(NotFoundException::new));
+        when(functionChecker.checkExistsOne(functionId)).thenReturn(Completable.complete());
+        when(functionResourceChecker.checkExistsByFunctionAndResource(functionId, resourceId))
+            .thenReturn(Completable.complete());
+
+        functionResourceHandler.checkDeleteFunctionResourceExists(functionId, resourceId)
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(NotFoundException.class);
+                    testContext.completeNow();
+                })
+            );
+    }
+
+    @Test
+    void checkDeleteFunctionResourceExistsFunctionNotExists(VertxTestContext testContext) {
+        long functionId = 1L;
+        long resourceId = 1L;
+
+        when(resourceChecker.checkExistsOne(resourceId)).thenReturn(Completable.complete());
+        when(functionChecker.checkExistsOne(functionId)).thenReturn(Completable.error(NotFoundException::new));
+        when(functionResourceChecker.checkExistsByFunctionAndResource(functionId, resourceId))
+            .thenReturn(Completable.complete());
+
+        functionResourceHandler.checkDeleteFunctionResourceExists(functionId, resourceId)
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(NotFoundException.class);
+                    testContext.completeNow();
+                })
+            );
+    }
+
+    @Test
+    void checkDeleteFunctionResourceExistsFunctionResourceNotExists(VertxTestContext testContext) {
+        long functionId = 1L;
+        long resourceId = 1L;
+
+        when(resourceChecker.checkExistsOne(resourceId)).thenReturn(Completable.complete());
+        when(functionChecker.checkExistsOne(functionId)).thenReturn(Completable.complete());
+        when(functionResourceChecker.checkExistsByFunctionAndResource(functionId, resourceId))
+            .thenReturn(Completable.error(NotFoundException::new));
 
         functionResourceHandler.checkDeleteFunctionResourceExists(functionId, resourceId)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did throw exception")),

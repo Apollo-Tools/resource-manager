@@ -2,7 +2,6 @@ package at.uibk.dps.rm.handler.function;
 
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.handler.util.FileSystemChecker;
-import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.util.HttpHelper;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
@@ -12,9 +11,9 @@ public class RuntimeTemplateHandler extends ValidationHandler {
 
     private final FileSystemChecker fileSystemChecker;
 
-    public RuntimeTemplateHandler(ServiceProxyProvider serviceProxyProvider) {
-        super(new RuntimeChecker(serviceProxyProvider.getRuntimeService()));
-        this.fileSystemChecker = new FileSystemChecker(serviceProxyProvider.getFilePathService());
+    public RuntimeTemplateHandler(RuntimeChecker runtimeChecker, FileSystemChecker fileSystemChecker) {
+        super(runtimeChecker);
+        this.fileSystemChecker = fileSystemChecker;
     }
 
     @Override

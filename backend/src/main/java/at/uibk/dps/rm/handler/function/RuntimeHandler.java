@@ -2,8 +2,6 @@ package at.uibk.dps.rm.handler.function;
 
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.handler.util.FileSystemChecker;
-import at.uibk.dps.rm.service.rxjava3.database.function.RuntimeService;
-import at.uibk.dps.rm.service.rxjava3.util.FilePathService;
 import at.uibk.dps.rm.util.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -14,9 +12,9 @@ public class RuntimeHandler extends ValidationHandler {
 
     private final FileSystemChecker fileSystemChecker;
 
-    public RuntimeHandler(RuntimeService runtimeService, FilePathService filePathService) {
-        super(new RuntimeChecker(runtimeService));
-        this.fileSystemChecker = new FileSystemChecker(filePathService);
+    public RuntimeHandler(RuntimeChecker runtimeChecker, FileSystemChecker fileSystemChecker) {
+        super(runtimeChecker);
+        this.fileSystemChecker = fileSystemChecker;
     }
 
     @Override

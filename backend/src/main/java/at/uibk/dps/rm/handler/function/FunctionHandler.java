@@ -1,8 +1,6 @@
 package at.uibk.dps.rm.handler.function;
 
 import at.uibk.dps.rm.handler.ValidationHandler;
-import at.uibk.dps.rm.service.rxjava3.database.function.FunctionService;
-import at.uibk.dps.rm.service.rxjava3.database.function.RuntimeService;
 import at.uibk.dps.rm.util.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -15,10 +13,10 @@ public class FunctionHandler extends ValidationHandler {
 
     private final RuntimeChecker runtimeChecker;
 
-    public FunctionHandler(FunctionService functionService, RuntimeService runtimeService) {
-        super(new FunctionChecker(functionService));
-        functionChecker = (FunctionChecker) super.entityChecker;
-        runtimeChecker = new RuntimeChecker(runtimeService);
+    public FunctionHandler(FunctionChecker functionChecker, RuntimeChecker runtimeChecker) {
+        super(functionChecker);
+        this.functionChecker = functionChecker;
+        this.runtimeChecker = runtimeChecker;
     }
 
     @Override

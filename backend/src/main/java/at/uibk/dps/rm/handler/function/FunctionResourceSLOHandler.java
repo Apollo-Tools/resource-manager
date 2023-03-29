@@ -10,7 +10,6 @@ import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.handler.metric.MetricChecker;
 import at.uibk.dps.rm.handler.metric.MetricValueChecker;
 import at.uibk.dps.rm.handler.resource.ResourceChecker;
-import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.util.HttpHelper;
 import at.uibk.dps.rm.util.SLOCompareUtility;
 import io.reactivex.rxjava3.core.Completable;
@@ -34,11 +33,12 @@ public class FunctionResourceSLOHandler {
 
     private final MetricValueChecker metricValueChecker;
 
-    public FunctionResourceSLOHandler(ServiceProxyProvider serviceProxyProvider) {
-        this.functionChecker = new FunctionChecker(serviceProxyProvider.getFunctionService());
-        this.resourceChecker = new ResourceChecker(serviceProxyProvider.getResourceService());
-        this.metricChecker = new MetricChecker(serviceProxyProvider.getMetricService());
-        this.metricValueChecker = new MetricValueChecker(serviceProxyProvider.getMetricValueService());
+    public FunctionResourceSLOHandler(FunctionChecker functionChecker, ResourceChecker resourceChecker,
+                                      MetricChecker metricChecker, MetricValueChecker metricValueChecker) {
+        this.functionChecker = functionChecker;
+        this.resourceChecker = resourceChecker;
+        this.metricChecker = metricChecker;
+        this.metricValueChecker = metricValueChecker;
     }
 
     public Single<JsonArray> getFunctionResourceBySLOs(RoutingContext rc) {
