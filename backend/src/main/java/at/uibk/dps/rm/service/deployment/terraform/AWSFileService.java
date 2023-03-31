@@ -2,6 +2,8 @@ package at.uibk.dps.rm.service.deployment.terraform;
 
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.deployment.TerraformModule;
+import at.uibk.dps.rm.exception.RuntimeNotSupportedException;
+import at.uibk.dps.rm.util.MetricValueMapper;
 import io.vertx.rxjava3.core.file.FileSystem;
 
 import java.nio.file.Path;
@@ -55,8 +57,7 @@ public class AWSFileService extends ModuleFileService {
     }
 
     @Override
-    protected String getFunctionsModulString(List<FunctionResource> functionResources, long reservationId,
-                                             Path rootFolder) {
+    protected String getFunctionsModulString() {
         StringBuilder functionNames = new StringBuilder(), functionPaths = new StringBuilder(),
             functionRuntimes = new StringBuilder(), functionTimeouts = new StringBuilder(),
             functionMemorySizes = new StringBuilder(), functionHandlers = new StringBuilder(),
@@ -80,11 +81,10 @@ public class AWSFileService extends ModuleFileService {
             if (runtime.startsWith("python")) {
                 functionHandlers.append("\"main.handler\",");
                 faasFunctionIds.add(function.getFunctionId());
+            } else {
+                throw new RuntimeNotSupportedException();
             }
-            Map<String, MetricValue> metricValues = resource.getMetricValues()
-                .stream()
-                .collect(Collectors.toMap(metricValue -> metricValue.getMetric().getMetric(),
-                    metricValue -> metricValue));
+            Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
             functionTimeouts.append(metricValues.get("timeout").getValueNumber()).append(",");
             functionMemorySizes.append(metricValues.get("memory-size").getValueNumber()).append(",");
             functionLayers.append("[],");
@@ -110,48 +110,45 @@ public class AWSFileService extends ModuleFileService {
         );
     }
 
-    private boolean checkMustDeployVM(Resource resource) {
-        return resource.getResourceType().getResourceType().equals("vm") &&
-            !resource.getIsSelfManaged() && !vmResourceIds.contains(resource.getResourceId());
-    }
-
     @Override
-    protected String getVmModulesString(List<FunctionResource> functionResources) {
+    protected String getVmModulesString() {
         StringBuilder resourceNamesString = new StringBuilder(), instanceTypesString = new StringBuilder(),
             functionsString = new StringBuilder(), vmString = new StringBuilder();
 
         for (FunctionResource functionResource: functionResources) {
             Resource resource = functionResource.getResource();
             Function function = functionResource.getFunction();
+            if (!resource.getResourceType().getResourceType().equals("vm")) {
+                continue;
+            }
             String resourceName = "resource_" + resource.getResourceId();
             Map<String, MetricValue> metricValues = resource.getMetricValues()
                 .stream()
                 .collect(Collectors.toMap(metricValue -> metricValue.getMetric().getMetric(),
                     metricValue -> metricValue));
+            // TODO: swap with check, if vm is already deployed
             if (checkMustDeployVM(resource)) {
                 resourceNamesString.append("\"").append(resourceName).append("\",");
                 instanceTypesString.append("\"").append(metricValues.get("instance-type").getValueString())
                     .append("\",");
                 vmResourceIds.add(resource.getResourceId());
             }
-            if (resource.getResourceType().getResourceType().equals("vm") && !resource.getIsSelfManaged()) {
-                String runtime = function.getRuntime().getName().toLowerCase();
-                String functionIdentifier =  function.getName().toLowerCase() +
-                    "_" + runtime.replace(".", "");
-                functionsString.append(String.format(
-                    "module \"r%s_%s\" {\n" +
-                        "  openfaas_depends_on = module.vm\n" +
-                        "  source = \"../../../terraform/openfaas\"\n" +
-                        "  name = \"r%s_%s_%s\"\n" +
-                        "  image = \"%s/%s\"\n" +
-                        "  basic_auth_user = \"admin\"\n" +
-                        "  vm_props = module.vm.vm_props[\"%s\"]\n" +
-                        "}\n", resource.getResourceId(), functionIdentifier, resource.getResourceId(),
-                    functionIdentifier, reservationId, dockerUserName,
-                    functionIdentifier, resourceName
-                ));
-                vmFunctionIds.add(function.getFunctionId());
-            }
+            String runtime = function.getRuntime().getName().toLowerCase();
+            String functionIdentifier =  function.getName().toLowerCase() +
+                "_" + runtime.replace(".", "");
+            functionsString.append(String.format(
+                "module \"r%s_%s\" {\n" +
+                    "  openfaas_depends_on = module.vm\n" +
+                    "  source = \"../../../terraform/openfaas\"\n" +
+                    "  name = \"r%s_%s_%s\"\n" +
+                    "  image = \"%s/%s\"\n" +
+                    "  basic_auth_user = \"admin\"\n" +
+                    "  vm_props = module.vm.vm_props[\"%s\"]\n" +
+                    "}\n", resource.getResourceId(), functionIdentifier, resource.getResourceId(),
+                functionIdentifier, reservationId, dockerUserName,
+                functionIdentifier, resourceName
+            ));
+            vmFunctionIds.add(function.getFunctionId());
         }
 
         if (vmResourceIds.isEmpty()) {
@@ -159,16 +156,20 @@ public class AWSFileService extends ModuleFileService {
         }
         vmString.append(String.format(
                 "module \"vm\" {\n" +
-                    "  source         = \"../../../terraform/aws/vm\"\n" +
-                    "  reservation    = \"%s\"\n" +
-                    "  names          = [%s]\n" +
-                    "  instance_types = [%s]\n" +
-                    "  vpc_id         = \"%s\"\n" +
-                    "  subnet_id      = \"%s\"\n" +
-                    "}\n", reservationId, resourceNamesString, instanceTypesString,
+                "  source         = \"../../../terraform/aws/vm\"\n" +
+                "  reservation    = \"%s\"\n" +
+                "  names          = [%s]\n" +
+                "  instance_types = [%s]\n" +
+                "  vpc_id         = \"%s\"\n" +
+                "  subnet_id      = \"%s\"\n" +
+                "}\n", reservationId, resourceNamesString, instanceTypesString,
             vpc.getVpcIdValue(), vpc.getSubnetIdValue()));
         vmString.append(functionsString);
         return vmString.toString();
+    }
+
+    private boolean checkMustDeployVM(Resource resource) {
+        return !vmResourceIds.contains(resource.getResourceId());
     }
 
     @Override
@@ -240,8 +241,8 @@ public class AWSFileService extends ModuleFileService {
     @Override
     protected String getMainFileContent() {
         return this.getProviderString() +
-            this.getFunctionsModulString(functionResources, reservationId, getRootFolder()) +
-            this.getVmModulesString(functionResources);
+            this.getFunctionsModulString() +
+            this.getVmModulesString();
     }
 
     @Override

@@ -41,11 +41,27 @@ public class TestResourceProvider {
         return resource;
     }
 
-    public static Resource createResourceVM(long id, Region region, Double timeout, Double memorySize) {
+    public static Resource createResourceVM(long id, Region region, String instanceType) {
         Resource resource = new Resource();
         resource.setResourceId(id);
         ResourceType rt = createResourceType(2L, "vm");
         resource.setResourceType(rt);
+        resource.setRegion(region);
+        resource.setIsSelfManaged(false);
+        MetricType mt = TestMetricProvider.createMetricType(1L, "string");
+        Metric m1 = TestMetricProvider.createMetric(1L, "instance-type", mt, false);
+        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, m1, instanceType);
+        resource.setMetricValues(Set.of(mv1));
+        return resource;
+    }
+
+    public static Resource createResourceEdge(long id, Double timeout, Double memorySize) {
+        Resource resource = new Resource();
+        resource.setResourceId(id);
+        ResourceType rt = createResourceType(2L, "edge");
+        resource.setResourceType(rt);
+        ResourceProvider provider = TestResourceProviderProvider.createResourceProvider(1L, "edge");
+        Region region = TestResourceProviderProvider.createRegion(2L, "edge", provider);
         resource.setRegion(region);
         resource.setIsSelfManaged(false);
         MetricType mt = TestMetricProvider.createMetricType(1L, "number");
