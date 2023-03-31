@@ -4,7 +4,7 @@ import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.handler.util.FileSystemChecker;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -110,7 +110,7 @@ public class RuntimeHandlerTest {
     @Test
     void updateOneValid(VertxTestContext testContext) {
         long entityId = 1L;
-        JsonObject runtime = JsonObject.mapFrom(TestObjectProvider.createRuntime(entityId));
+        JsonObject runtime = JsonObject.mapFrom(TestFunctionProvider.createRuntime(entityId));
         String templatePath = "./filepathtest/filepathtest.py";
         JsonObject jsonObject = new JsonObject("{\"template_path\":  \"" + templatePath + "\"}");
 
@@ -149,7 +149,7 @@ public class RuntimeHandlerTest {
     @Test
     void updateFilePathNotFound(VertxTestContext testContext) {
         long entityId = 1L;
-        JsonObject runtime = JsonObject.mapFrom(TestObjectProvider.createRuntime(entityId));
+        JsonObject runtime = JsonObject.mapFrom(TestFunctionProvider.createRuntime(entityId));
         String templatePath = "./filepathtest/filepathtest.py";
         JsonObject jsonObject = new JsonObject("{\"template_path\":  \"" + templatePath + "\"}");
 

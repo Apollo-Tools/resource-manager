@@ -4,7 +4,7 @@ import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.entity.model.ResourceType;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestMetricProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -44,8 +44,8 @@ public class MetricValueServiceImplTest {
     @Test
     void testSaveAll(VertxTestContext testContext) {
         CompletionStage<Void> completionStage = CompletionStages.voidFuture();
-        MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "availability", 0.99);
-        MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "latency", 40);
+        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, 1L, "availability", 0.99);
+        MetricValue mv2 = TestMetricProvider.createMetricValue(2L, 2L, "latency", 40);
         List<JsonObject> metricValues = List.of(JsonObject.mapFrom(mv1), JsonObject.mapFrom(mv2));
         metricValues.forEach(entry -> entry.put("resource", new JsonObject("{\"resource_id\": 1}")));
 

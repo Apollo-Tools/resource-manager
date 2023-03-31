@@ -5,7 +5,8 @@ import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.handler.resourceprovider.ResourceProviderChecker;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -55,9 +56,9 @@ public class CredentialsHandlerTest {
 
     @Test
     void getAll(VertxTestContext testContext) {
-        Account account = TestObjectProvider.createAccount(1L);
-        Credentials entity1 = TestObjectProvider.createCredentials(1L, new ResourceProvider());
-        Credentials entity2 = TestObjectProvider.createCredentials(2L, new ResourceProvider());
+        Account account = TestAccountProvider.createAccount(1L);
+        Credentials entity1 = TestAccountProvider.createCredentials(1L, new ResourceProvider());
+        Credentials entity2 = TestAccountProvider.createCredentials(2L, new ResourceProvider());
         List<JsonObject> entities = new ArrayList<>();
         entities.add(JsonObject.mapFrom(entity1));
         entities.add(JsonObject.mapFrom(entity2));
@@ -79,7 +80,7 @@ public class CredentialsHandlerTest {
 
     @Test
     void getAllEmpty(VertxTestContext testContext) {
-        Account account = TestObjectProvider.createAccount(1L);
+        Account account = TestAccountProvider.createAccount(1L);
         List<JsonObject> entities = new ArrayList<>();
         JsonArray resultJson = new JsonArray(entities);
 
@@ -98,10 +99,10 @@ public class CredentialsHandlerTest {
     @Test
     void postOne(VertxTestContext testContext) {
         long accountId = 1L, providerId = 2L, credentialsId = 3L, accountCredentialsId = 4L;
-        Account account = TestObjectProvider.createAccount(accountId);
-        ResourceProvider resourceProvider = TestObjectProvider.createResourceProvider(providerId);
-        Credentials credentials = TestObjectProvider.createCredentials(credentialsId, resourceProvider);
-        AccountCredentials accountCredentials = TestObjectProvider
+        Account account = TestAccountProvider.createAccount(accountId);
+        ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(providerId);
+        Credentials credentials = TestAccountProvider.createCredentials(credentialsId, resourceProvider);
+        AccountCredentials accountCredentials = TestAccountProvider
             .createAccountCredentials(accountCredentialsId, account, credentials);
         JsonObject requestBody = JsonObject.mapFrom(credentials);
         JsonObject accountCredentialsJson = new JsonObject("{" +
@@ -138,9 +139,9 @@ public class CredentialsHandlerTest {
     @Test
     void postOneProviderNotFound(VertxTestContext testContext) {
         long accountId = 1L, providerId = 2L, credentialsId = 3L;
-        Account account = TestObjectProvider.createAccount(accountId);
-        ResourceProvider resourceProvider = TestObjectProvider.createResourceProvider(providerId);
-        Credentials credentials = TestObjectProvider.createCredentials(credentialsId, resourceProvider);
+        Account account = TestAccountProvider.createAccount(accountId);
+        ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(providerId);
+        Credentials credentials = TestAccountProvider.createCredentials(credentialsId, resourceProvider);
         JsonObject requestBody = JsonObject.mapFrom(credentials);
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
@@ -161,9 +162,9 @@ public class CredentialsHandlerTest {
     @Test
     void postOneAlreadyExists(VertxTestContext testContext) {
         long accountId = 1L, providerId = 2L, credentialsId = 3L;
-        Account account = TestObjectProvider.createAccount(accountId);
-        ResourceProvider resourceProvider = TestObjectProvider.createResourceProvider(providerId);
-        Credentials credentials = TestObjectProvider.createCredentials(credentialsId, resourceProvider);
+        Account account = TestAccountProvider.createAccount(accountId);
+        ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(providerId);
+        Credentials credentials = TestAccountProvider.createCredentials(credentialsId, resourceProvider);
         JsonObject requestBody = JsonObject.mapFrom(credentials);
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
@@ -184,10 +185,10 @@ public class CredentialsHandlerTest {
     @Test
     void deleteOneExists(VertxTestContext testContext) {
         long accountId = 1L, providerId = 2L, credentialsId = 3L, accountCredentialsId = 4L;
-        Account account = TestObjectProvider.createAccount(accountId);
-        ResourceProvider resourceProvider = TestObjectProvider.createResourceProvider(providerId);
-        Credentials credentials = TestObjectProvider.createCredentials(credentialsId, resourceProvider);
-        AccountCredentials accountCredentials = TestObjectProvider
+        Account account = TestAccountProvider.createAccount(accountId);
+        ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(providerId);
+        Credentials credentials = TestAccountProvider.createCredentials(credentialsId, resourceProvider);
+        AccountCredentials accountCredentials = TestAccountProvider
             .createAccountCredentials(accountCredentialsId, account, credentials);
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
@@ -208,9 +209,9 @@ public class CredentialsHandlerTest {
     @Test
     void deleteOneAccountCredentialsNotExist(VertxTestContext testContext) {
         long accountId = 1L, providerId = 2L, credentialsId = 3L;
-        Account account = TestObjectProvider.createAccount(accountId);
-        ResourceProvider resourceProvider = TestObjectProvider.createResourceProvider(providerId);
-        Credentials credentials = TestObjectProvider.createCredentials(credentialsId, resourceProvider);
+        Account account = TestAccountProvider.createAccount(accountId);
+        ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(providerId);
+        Credentials credentials = TestAccountProvider.createCredentials(credentialsId, resourceProvider);
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(credentialsId));
@@ -230,7 +231,7 @@ public class CredentialsHandlerTest {
     @Test
     void deleteOneCredentialsNotExist(VertxTestContext testContext) {
         long accountId = 1L, credentialsId = 3L;
-        Account account = TestObjectProvider.createAccount(accountId);
+        Account account = TestAccountProvider.createAccount(accountId);
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(credentialsId));

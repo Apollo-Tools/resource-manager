@@ -2,7 +2,7 @@ package at.uibk.dps.rm.service.database.resource;
 
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -39,7 +39,7 @@ public class ResourceServiceImplTest {
     @Test
     void findEntityExists(VertxTestContext testContext) {
         long resourceId = 1L;
-        Resource entity = TestObjectProvider.createResource(resourceId);
+        Resource entity = TestResourceProvider.createResource(resourceId);
         CompletionStage<Resource> completionStage = CompletionStages.completedFuture(entity);
 
         doReturn(completionStage).when(resourceRepository).findByIdAndFetch(resourceId);
@@ -101,8 +101,8 @@ public class ResourceServiceImplTest {
 
     @Test
     void findAll(VertxTestContext testContext) {
-        Resource r1 = TestObjectProvider.createResource(1L);
-        Resource r2 = TestObjectProvider.createResource(2L);
+        Resource r1 = TestResourceProvider.createResource(1L);
+        Resource r2 = TestResourceProvider.createResource(2L);
         CompletionStage<List<Resource>> completionStage = CompletionStages.completedFuture(List.of(r1, r2));
 
         doReturn(completionStage).when(resourceRepository).findAllAndFetch();
@@ -122,7 +122,7 @@ public class ResourceServiceImplTest {
     void findAllBySLOs(VertxTestContext testContext) {
         long functionId = 1L;
         List<String> metrics = List.of("availability");
-        Resource entity1 = TestObjectProvider.createResource(1L);
+        Resource entity1 = TestResourceProvider.createResource(1L);
         CompletionStage<List<Resource>> completionStage = CompletionStages.completedFuture(List.of(entity1));
         List<String> regions = new ArrayList<>();
         List<Long> resourceProviders = new ArrayList<>();
@@ -143,8 +143,8 @@ public class ResourceServiceImplTest {
     @Test
     void findAllByFunctionId(VertxTestContext testContext) {
         long functionId = 1L;
-        Resource r1 = TestObjectProvider.createResource(1L);
-        Resource r2 = TestObjectProvider.createResource(2L);
+        Resource r1 = TestResourceProvider.createResource(1L);
+        Resource r2 = TestResourceProvider.createResource(2L);
         CompletionStage<List<Resource>> completionStage = CompletionStages.completedFuture(List.of(r1, r2));
 
         doReturn(completionStage).when(resourceRepository).findAllByFunctionIdAndFetch(functionId);

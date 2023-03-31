@@ -4,7 +4,7 @@ import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.model.ResourceType;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -47,8 +47,8 @@ public class ResourceHandlerTest {
 
     @Test
     void postOneValid(VertxTestContext testContext) {
-        ResourceType rt = TestObjectProvider.createResourceType(1L, "vm");
-        Resource resource = TestObjectProvider.createResource(1L, rt);
+        ResourceType rt = TestResourceProvider.createResourceType(1L, "vm");
+        Resource resource = TestResourceProvider.createResource(1L, rt);
         JsonObject requestBody = JsonObject.mapFrom(resource);
         requestBody.remove("resource_id");
 
@@ -88,7 +88,7 @@ public class ResourceHandlerTest {
         "{\"is_self_managed\": false}"})
     void updateOneValid(String jsonInput, VertxTestContext testContext) {
         long entityId = 1L;
-        JsonObject r1 = JsonObject.mapFrom(TestObjectProvider.createResource(1L));
+        JsonObject r1 = JsonObject.mapFrom(TestResourceProvider.createResource(1L));
         JsonObject requestBody = new JsonObject(jsonInput);
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
@@ -127,7 +127,7 @@ public class ResourceHandlerTest {
     @Test
     void updateOneResourceTypeNotFound(VertxTestContext testContext) {
         long entityId = 1L;
-        JsonObject r1 = JsonObject.mapFrom(TestObjectProvider.createResource(1L));
+        JsonObject r1 = JsonObject.mapFrom(TestResourceProvider.createResource(1L));
         JsonObject requestBody = new JsonObject("{\"resource_type\": {\"type_id\": 1}, \"is_self_managed\": false}");
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
@@ -147,8 +147,8 @@ public class ResourceHandlerTest {
     @Test
     void checkUpdateResourceTypeExists(VertxTestContext testContext) {
         long typeId = 1L;
-        ResourceType rt = TestObjectProvider.createResourceType(typeId, "vm");
-        Resource r1 = TestObjectProvider.createResource(1L, rt);
+        ResourceType rt = TestResourceProvider.createResourceType(typeId, "vm");
+        Resource r1 = TestResourceProvider.createResource(1L, rt);
         JsonObject r1Json = JsonObject.mapFrom(r1);
         JsonObject requestBody = new JsonObject("{\"resource_type\": {\"type_id\": " + typeId + "}}");
 
@@ -166,8 +166,8 @@ public class ResourceHandlerTest {
     @Test
     void checkUpdateResourceTypeNotExists(VertxTestContext testContext) {
         long typeId = 1L;
-        ResourceType rt = TestObjectProvider.createResourceType(typeId, "vm");
-        Resource r1 = TestObjectProvider.createResource(1L, rt);
+        ResourceType rt = TestResourceProvider.createResourceType(typeId, "vm");
+        Resource r1 = TestResourceProvider.createResource(1L, rt);
         JsonObject r1Json = JsonObject.mapFrom(r1);
         JsonObject requestBody = new JsonObject("{\"resource_type\": {\"type_id\": " + typeId + "}}");
 
@@ -185,8 +185,8 @@ public class ResourceHandlerTest {
     @Test
     void checkUpdateResourceTypeNotInRequestBody(VertxTestContext testContext) {
         long typeId = 1L;
-        ResourceType rt = TestObjectProvider.createResourceType(typeId, "vm");
-        Resource r1 = TestObjectProvider.createResource(1L, rt);
+        ResourceType rt = TestResourceProvider.createResourceType(typeId, "vm");
+        Resource r1 = TestResourceProvider.createResource(1L, rt);
         JsonObject r1Json = JsonObject.mapFrom(r1);
         JsonObject requestBody = new JsonObject("{\"is_managed\": true}");
 

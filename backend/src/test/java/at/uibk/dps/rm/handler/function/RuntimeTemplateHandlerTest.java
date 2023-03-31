@@ -2,7 +2,7 @@ package at.uibk.dps.rm.handler.function;
 
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.handler.util.FileSystemChecker;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -46,7 +46,7 @@ public class RuntimeTemplateHandlerTest {
         long runtimeId = 1L;
         String templatePath = "path/to/template";
         String templateContent = "def main():\n\treturn -1";
-        JsonObject runtime = JsonObject.mapFrom(TestObjectProvider.createRuntime(1L, "python3.9",
+        JsonObject runtime = JsonObject.mapFrom(TestFunctionProvider.createRuntime(1L, "python3.9",
             templatePath));
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(runtimeId));
@@ -85,7 +85,7 @@ public class RuntimeTemplateHandlerTest {
     void getOneTemplatePathNotExists(VertxTestContext testContext) {
         long runtimeId = 1L;
         String templatePath = "path/to/template";
-        JsonObject runtime = JsonObject.mapFrom(TestObjectProvider.createRuntime(1L, "python3.9",
+        JsonObject runtime = JsonObject.mapFrom(TestFunctionProvider.createRuntime(1L, "python3.9",
             templatePath));
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(runtimeId));
@@ -106,7 +106,7 @@ public class RuntimeTemplateHandlerTest {
     void getOneTemplateIsBlank(VertxTestContext testContext) {
         long runtimeId = 1L;
         String templatePath = "path/to/template";
-        JsonObject runtime = JsonObject.mapFrom(TestObjectProvider.createRuntime(1L, "python3.9",
+        JsonObject runtime = JsonObject.mapFrom(TestFunctionProvider.createRuntime(1L, "python3.9",
             templatePath));
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(runtimeId));

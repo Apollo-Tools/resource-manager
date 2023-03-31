@@ -2,7 +2,8 @@ package at.uibk.dps.rm.service.database.reservation;
 
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.repository.reservation.ReservationRepository;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -37,10 +38,10 @@ public class ReservationServiceImplTest {
     @Test
     void findAllByAccountId(VertxTestContext testContext) {
         long accountId = 1L;
-        Account account = TestObjectProvider.createAccount(accountId);
-        Reservation r1 = TestObjectProvider.createReservation(1L, true, account);
-        Reservation r2 = TestObjectProvider.createReservation(2L, true, account);
-        Reservation r3 = TestObjectProvider.createReservation(3L, true, account);
+        Account account = TestAccountProvider.createAccount(accountId);
+        Reservation r1 = TestReservationProvider.createReservation(1L, true, account);
+        Reservation r2 = TestReservationProvider.createReservation(2L, true, account);
+        Reservation r3 = TestReservationProvider.createReservation(3L, true, account);
         CompletionStage<List<Reservation>> completionStage = CompletionStages.completedFuture(List.of(r1, r2, r3));
 
         when(reservationRepository.findAllByAccountId(accountId)).thenReturn(completionStage);
@@ -60,8 +61,8 @@ public class ReservationServiceImplTest {
     void findOneByIdAndAccountExists(VertxTestContext testContext) {
         long reservationId = 1L;
         long accountId = 2L;
-        Account account = TestObjectProvider.createAccount(accountId);
-        Reservation entity = TestObjectProvider.createReservation(reservationId, true, account);
+        Account account = TestAccountProvider.createAccount(accountId);
+        Reservation entity = TestReservationProvider.createReservation(reservationId, true, account);
 
         CompletionStage<Reservation> completionStage = CompletionStages.completedFuture(entity);
         when(reservationRepository.findByIdAndAccountId(reservationId, accountId)).thenReturn(completionStage);

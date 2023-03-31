@@ -2,7 +2,7 @@ package at.uibk.dps.rm.service.database.account;
 
 import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.repository.account.AccountRepository;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -36,7 +36,7 @@ public class AccountServiceImplTest {
     @Test
     void findEntityByUsernameExists(VertxTestContext testContext) {
         String username = "user1";
-        Account entity = TestObjectProvider.createAccount(1L, "user1", "password");
+        Account entity = TestAccountProvider.createAccount(1L, "user1", "password");
         CompletionStage<Account> completionStage = CompletionStages.completedFuture(entity);
         doReturn(completionStage).when(accountRepository).findByUsername(username);
 
@@ -64,7 +64,7 @@ public class AccountServiceImplTest {
     @Test
     void checkEntityByUsernameExists(VertxTestContext testContext) {
         String username = "user1";
-        Account entity = TestObjectProvider.createAccount(1L, "user1", "password");
+        Account entity = TestAccountProvider.createAccount(1L, "user1", "password");
         CompletionStage<Account> completionStage = CompletionStages.completedFuture(entity);
         doReturn(completionStage).when(accountRepository).findByUsername(username, true);
 

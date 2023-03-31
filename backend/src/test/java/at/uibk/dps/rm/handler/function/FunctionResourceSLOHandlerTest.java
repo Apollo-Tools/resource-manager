@@ -12,7 +12,7 @@ import at.uibk.dps.rm.handler.metric.MetricChecker;
 import at.uibk.dps.rm.handler.metric.MetricValueChecker;
 import at.uibk.dps.rm.handler.resource.ResourceChecker;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.*;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -69,23 +69,23 @@ public class FunctionResourceSLOHandlerTest {
     @Test
     void getResourceBySLOs(VertxTestContext testContext) {
         long functionId = 1L;
-        Function f1 = TestObjectProvider.createFunction(1L);
-        Resource resource1 = TestObjectProvider.createResource(1L);
-        MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", 25.0);
-        MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", 0.995);
-        Resource resource2 = TestObjectProvider.createResource(2L);
-        MetricValue mv3 = TestObjectProvider.createMetricValue(3L, 2L, "availability", 0.8);
-        Resource resource3 = TestObjectProvider.createResource(3L);
-        MetricValue mv4 = TestObjectProvider.createMetricValue(4L, 3L, "bandwidth", 1000);
-        MetricValue mv5 = TestObjectProvider.createMetricValue(5L, 2L, "availability", 0.999);
+        Function f1 = TestFunctionProvider.createFunction(1L);
+        Resource resource1 = TestResourceProvider.createResource(1L);
+        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, 1L, "latency", 25.0);
+        MetricValue mv2 = TestMetricProvider.createMetricValue(2L, 2L, "availability", 0.995);
+        Resource resource2 = TestResourceProvider.createResource(2L);
+        MetricValue mv3 = TestMetricProvider.createMetricValue(3L, 2L, "availability", 0.8);
+        Resource resource3 = TestResourceProvider.createResource(3L);
+        MetricValue mv4 = TestMetricProvider.createMetricValue(4L, 3L, "bandwidth", 1000);
+        MetricValue mv5 = TestMetricProvider.createMetricValue(5L, 2L, "availability", 0.999);
         JsonArray resourcesJson = new JsonArray(List.of(JsonObject.mapFrom(resource1), JsonObject.mapFrom(resource2),
             JsonObject.mapFrom(resource3)));
         resourcesJson.getJsonObject(0).put("metric_values", new JsonArray(List.of(JsonObject.mapFrom(mv1), JsonObject.mapFrom(mv2))));
         resourcesJson.getJsonObject(1).put("metric_values", new JsonArray(List.of(JsonObject.mapFrom(mv3))));
         resourcesJson.getJsonObject(2).put("metric_values", new JsonArray(List.of(JsonObject.mapFrom(mv4), JsonObject.mapFrom(mv5))));
-        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("availability", ExpressionType.GT, 0.80);
+        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("availability", ExpressionType.GT, 0.80);
         List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
-        GetResourcesBySLOsRequest request = TestObjectProvider.createResourceBySLOsRequest(serviceLevelObjectives, 2,
+        GetResourcesBySLOsRequest request = TestRequestProvider.createResourceBySLOsRequest(serviceLevelObjectives, 2,
             List.of(1L, 2L), List.of(2L, 3L), List.of("US", "EU"));
         JsonObject body = JsonObject.mapFrom(request);
 
@@ -117,15 +117,15 @@ public class FunctionResourceSLOHandlerTest {
     @Test
     void getResourceBySLOsMetricValueNotExists(VertxTestContext testContext) {
         long functionId = 1L;
-        Function f1 = TestObjectProvider.createFunction(1L);
-        Resource resource1 = TestObjectProvider.createResource(1L);
-        MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", 25.0);
-        MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", 0.995);
+        Function f1 = TestFunctionProvider.createFunction(1L);
+        Resource resource1 = TestResourceProvider.createResource(1L);
+        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, 1L, "latency", 25.0);
+        MetricValue mv2 = TestMetricProvider.createMetricValue(2L, 2L, "availability", 0.995);
         JsonArray resourcesJson = new JsonArray(List.of(JsonObject.mapFrom(resource1)));
         resourcesJson.getJsonObject(0).put("metric_values", new JsonArray(List.of(JsonObject.mapFrom(mv1), JsonObject.mapFrom(mv2))));
-        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("availability", ExpressionType.GT, 0.80);
+        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("availability", ExpressionType.GT, 0.80);
         List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
-        GetResourcesBySLOsRequest request = TestObjectProvider.createResourceBySLOsRequest(serviceLevelObjectives, 2,
+        GetResourcesBySLOsRequest request = TestRequestProvider.createResourceBySLOsRequest(serviceLevelObjectives, 2,
             List.of(1L, 2L), List.of(2L, 3L), List.of("US", "EU"));
         JsonObject body = JsonObject.mapFrom(request);
 
@@ -151,10 +151,10 @@ public class FunctionResourceSLOHandlerTest {
     @Test
     void getResourceBySLOsResourcesNotExists(VertxTestContext testContext) {
         long functionId = 1L;
-        Function f1 = TestObjectProvider.createFunction(1L);
-        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("availability", ExpressionType.GT, 0.80);
+        Function f1 = TestFunctionProvider.createFunction(1L);
+        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("availability", ExpressionType.GT, 0.80);
         List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
-        GetResourcesBySLOsRequest request = TestObjectProvider.createResourceBySLOsRequest(serviceLevelObjectives, 2,
+        GetResourcesBySLOsRequest request = TestRequestProvider.createResourceBySLOsRequest(serviceLevelObjectives, 2,
             List.of(1L, 2L), List.of(2L, 3L), List.of("US", "EU"));
         JsonObject body = JsonObject.mapFrom(request);
 
@@ -179,9 +179,9 @@ public class FunctionResourceSLOHandlerTest {
     @Test
     void getResourceBySLOsFunctionNotExists(VertxTestContext testContext) {
         long functionId = 1L;
-        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("availability", ExpressionType.GT, 0.80);
+        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("availability", ExpressionType.GT, 0.80);
         List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
-        GetResourcesBySLOsRequest request = TestObjectProvider.createResourceBySLOsRequest(serviceLevelObjectives, 2,
+        GetResourcesBySLOsRequest request = TestRequestProvider.createResourceBySLOsRequest(serviceLevelObjectives, 2,
             List.of(1L, 2L), List.of(2L, 3L), List.of("US", "EU"));
         JsonObject body = JsonObject.mapFrom(request);
 
@@ -203,9 +203,9 @@ public class FunctionResourceSLOHandlerTest {
     @Test
     void getResourceBySLOsSLOsNotValid(VertxTestContext testContext) {
         long functionId = 1L;
-        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("availability", ExpressionType.GT, 0.80);
+        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("availability", ExpressionType.GT, 0.80);
         List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
-        GetResourcesBySLOsRequest request = TestObjectProvider.createResourceBySLOsRequest(serviceLevelObjectives, 2,
+        GetResourcesBySLOsRequest request = TestRequestProvider.createResourceBySLOsRequest(serviceLevelObjectives, 2,
             List.of(1L, 2L), List.of(2L, 3L), List.of("US", "EU"));
         JsonObject body = JsonObject.mapFrom(request);
 
@@ -303,20 +303,20 @@ public class FunctionResourceSLOHandlerTest {
 
     @Test
     void filterAndSortResultList() {
-        Resource resource1 = TestObjectProvider.createResource(1L);
-        MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", 25.0);
-        MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", 0.995);
+        Resource resource1 = TestResourceProvider.createResource(1L);
+        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, 1L, "latency", 25.0);
+        MetricValue mv2 = TestMetricProvider.createMetricValue(2L, 2L, "availability", 0.995);
         resource1.setMetricValues(Set.of(mv1, mv2));
-        Resource resource2 = TestObjectProvider.createResource(2L);
-        MetricValue mv3 = TestObjectProvider.createMetricValue(3L, 2L, "availability", 0.8);
+        Resource resource2 = TestResourceProvider.createResource(2L);
+        MetricValue mv3 = TestMetricProvider.createMetricValue(3L, 2L, "availability", 0.8);
         Set<MetricValue> metricValues = Set.of(mv3);
         resource2.setMetricValues(metricValues);
-        Resource resource3 = TestObjectProvider.createResource(3L);
-        MetricValue mv4 = TestObjectProvider.createMetricValue(4L, 3L, "bandwidth", 1000);
-        MetricValue mv5 = TestObjectProvider.createMetricValue(5L, 2L, "availability", 0.999);
+        Resource resource3 = TestResourceProvider.createResource(3L);
+        MetricValue mv4 = TestMetricProvider.createMetricValue(4L, 3L, "bandwidth", 1000);
+        MetricValue mv5 = TestMetricProvider.createMetricValue(5L, 2L, "availability", 0.999);
         resource3.setMetricValues(Set.of(mv4, mv5));
         List<Resource> resources = List.of(resource1, resource2, resource3);
-        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("availability", ExpressionType.GT, 0.80);
+        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("availability", ExpressionType.GT, 0.80);
         List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
         int limit = 2;
 
@@ -329,12 +329,12 @@ public class FunctionResourceSLOHandlerTest {
 
     @Test
     void filterAndSortResultListNoMatch() {
-        Resource resource1 = TestObjectProvider.createResource(1L);
-        MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", 25.0);
-        MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", 0.995);
+        Resource resource1 = TestResourceProvider.createResource(1L);
+        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, 1L, "latency", 25.0);
+        MetricValue mv2 = TestMetricProvider.createMetricValue(2L, 2L, "availability", 0.995);
         resource1.setMetricValues(Set.of(mv1, mv2));
         List<Resource> resources = List.of(resource1);
-        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("availability", ExpressionType.GT, 0.999);
+        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("availability", ExpressionType.GT, 0.999);
         List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
         int limit = 2;
 
@@ -345,12 +345,12 @@ public class FunctionResourceSLOHandlerTest {
 
     @Test
     void resourceFilterBySLOValueTypeValid() {
-        Resource resource = TestObjectProvider.createResource(1L);
-        MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", 25.0);
-        MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", "high");
+        Resource resource = TestResourceProvider.createResource(1L);
+        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, 1L, "latency", 25.0);
+        MetricValue mv2 = TestMetricProvider.createMetricValue(2L, 2L, "availability", "high");
         Set<MetricValue> metricValues = Set.of(mv1, mv2);
         resource.setMetricValues(metricValues);
-        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("availability", ExpressionType.EQ, "high");
+        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("availability", ExpressionType.EQ, "high");
         List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
 
         boolean result = handler.resourceFilterBySLOValueType(resource, serviceLevelObjectives);
@@ -360,12 +360,12 @@ public class FunctionResourceSLOHandlerTest {
 
     @Test
     void resourceFilterBySLOValueTypeNoValueTypeMatch() {
-        Resource resource = TestObjectProvider.createResource(1L);
-        MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", 25.0);
-        MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", 0.995);
+        Resource resource = TestResourceProvider.createResource(1L);
+        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, 1L, "latency", 25.0);
+        MetricValue mv2 = TestMetricProvider.createMetricValue(2L, 2L, "availability", 0.995);
         Set<MetricValue> metricValues = Set.of(mv1, mv2);
         resource.setMetricValues(metricValues);
-        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("availability", ExpressionType.EQ, "high");
+        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("availability", ExpressionType.EQ, "high");
         List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
 
         boolean result = handler.resourceFilterBySLOValueType(resource, serviceLevelObjectives);
@@ -375,12 +375,12 @@ public class FunctionResourceSLOHandlerTest {
 
     @Test
     void resourceFilterBySLOValueTypeNoNameMatch() {
-        Resource resource = TestObjectProvider.createResource(1L);
-        MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", 25.0);
-        MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", 0.995);
+        Resource resource = TestResourceProvider.createResource(1L);
+        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, 1L, "latency", 25.0);
+        MetricValue mv2 = TestMetricProvider.createMetricValue(2L, 2L, "availability", 0.995);
         Set<MetricValue> metricValues = Set.of(mv1, mv2);
         resource.setMetricValues(metricValues);
-        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("bandwidth", ExpressionType.EQ, "high");
+        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("bandwidth", ExpressionType.EQ, "high");
         List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
 
         boolean result = handler.resourceFilterBySLOValueType(resource, serviceLevelObjectives);
@@ -402,18 +402,18 @@ public class FunctionResourceSLOHandlerTest {
         "0, 2, 2, 0, <, 0",
     })
     void sortResourceBySLONumberSLOs(double v1, double v2, double v3, double v4, String symbol, int expectedResult) {
-        Resource resource1 = TestObjectProvider.createResource(1L);
-        MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", v1);
-        MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", v2);
+        Resource resource1 = TestResourceProvider.createResource(1L);
+        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, 1L, "latency", v1);
+        MetricValue mv2 = TestMetricProvider.createMetricValue(2L, 2L, "availability", v2);
         resource1.setMetricValues(Set.of(mv1, mv2));
-        Resource resource2 = TestObjectProvider.createResource(2L);
-        MetricValue mv3 = TestObjectProvider.createMetricValue(3L, 2L, "availability", v3);
-        MetricValue mv4 = TestObjectProvider.createMetricValue(4L, 1L, "latency", v4);
+        Resource resource2 = TestResourceProvider.createResource(2L);
+        MetricValue mv3 = TestMetricProvider.createMetricValue(3L, 2L, "availability", v3);
+        MetricValue mv4 = TestMetricProvider.createMetricValue(4L, 1L, "latency", v4);
         Set<MetricValue> metricValues = Set.of(mv3, mv4);
         resource2.setMetricValues(metricValues);
-        ServiceLevelObjective slo1 = TestObjectProvider.createServiceLevelObjective("availability",
+        ServiceLevelObjective slo1 = TestDTOProvider.createServiceLevelObjective("availability",
             ExpressionType.fromString(symbol), 0.80);
-        ServiceLevelObjective slo2 = TestObjectProvider.createServiceLevelObjective("latency",
+        ServiceLevelObjective slo2 = TestDTOProvider.createServiceLevelObjective("latency",
             ExpressionType.fromString(symbol), 0.80);
         List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo1, slo2);
 
@@ -424,15 +424,15 @@ public class FunctionResourceSLOHandlerTest {
 
     @Test
     void sortResourceBySLONonNumberSLO() {
-        Resource resource1 = TestObjectProvider.createResource(1L);
-        MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "region", "eu-west");
-        MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", 0.99);
+        Resource resource1 = TestResourceProvider.createResource(1L);
+        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, 1L, "region", "eu-west");
+        MetricValue mv2 = TestMetricProvider.createMetricValue(2L, 2L, "availability", 0.99);
         resource1.setMetricValues(Set.of(mv1, mv2));
-        Resource resource2 = TestObjectProvider.createResource(2L);
-        MetricValue mv3 = TestObjectProvider.createMetricValue(3L, 2L, "region", "eu-west");
+        Resource resource2 = TestResourceProvider.createResource(2L);
+        MetricValue mv3 = TestMetricProvider.createMetricValue(3L, 2L, "region", "eu-west");
         Set<MetricValue> metricValues = Set.of(mv3);
         resource2.setMetricValues(metricValues);
-        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("region",
+        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("region",
             ExpressionType.EQ, "eu-west");
         List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
 

@@ -3,7 +3,7 @@ package at.uibk.dps.rm.handler.resourceprovider;
 import at.uibk.dps.rm.entity.model.ResourceProvider;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.ResourceProviderService;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
@@ -39,7 +39,7 @@ public class ResourceProviderCheckerTest {
     void checkForDuplicateEntityFalse(VertxTestContext testContext) {
         long providerId = 1L;
         String provider = "ibm";
-        ResourceProvider resourceProvider = TestObjectProvider
+        ResourceProvider resourceProvider = TestResourceProviderProvider
             .createResourceProvider(providerId, provider);
 
         when(resourceProviderService.existsOneByProvider(provider))
@@ -59,7 +59,7 @@ public class ResourceProviderCheckerTest {
     void checkForDuplicateEntityTrue(VertxTestContext testContext) {
         long providerId = 1L;
         String provider = "ibm";
-        ResourceProvider resourceProvider = TestObjectProvider
+        ResourceProvider resourceProvider = TestResourceProviderProvider
             .createResourceProvider(providerId, provider);
 
         when(resourceProviderService.existsOneByProvider(provider))

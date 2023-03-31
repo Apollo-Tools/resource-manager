@@ -4,7 +4,7 @@ package at.uibk.dps.rm.handler.function;
 import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.service.rxjava3.database.function.FunctionService;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
@@ -43,7 +43,7 @@ public class FunctionCheckerTest {
     void checkForDuplicateEntityFalse(VertxTestContext testContext) {
         String name = "func";
         long runtimeId = 1L;
-        Function function = TestObjectProvider.createFunction(1L, name, "true", runtimeId);
+        Function function = TestFunctionProvider.createFunction(1L, name, "true", runtimeId);
 
         when(functionService.existsOneByNameAndRuntimeId(name, runtimeId)).thenReturn(Single.just(false));
 
@@ -61,7 +61,7 @@ public class FunctionCheckerTest {
     void checkForDuplicateEntityTrue(VertxTestContext testContext) {
         String name = "func";
         long runtimeId = 1L;
-        Function function = TestObjectProvider.createFunction(1L, name, "true", runtimeId);
+        Function function = TestFunctionProvider.createFunction(1L, name, "true", runtimeId);
 
         when(functionService.existsOneByNameAndRuntimeId(name, runtimeId)).thenReturn(Single.just(true));
 
@@ -78,7 +78,7 @@ public class FunctionCheckerTest {
     void checkUpdateNoDuplicateWithKeysNotExists(VertxTestContext testContext) {
         String name = "func";
         long functionId = 1L, runtimeId = 2L;
-        Function function = TestObjectProvider.createFunction(functionId, name, "true", runtimeId);
+        Function function = TestFunctionProvider.createFunction(functionId, name, "true", runtimeId);
         JsonObject entity = JsonObject.mapFrom(function);
 
         when(functionService.existsOneByNameAndRuntimeIdExcludeEntity(functionId, name, runtimeId))
@@ -98,7 +98,7 @@ public class FunctionCheckerTest {
     void checkUpdateNoDuplicateWithKeysExists(VertxTestContext testContext) {
         String name = "func";
         long functionId = 1L, runtimeId = 2L;
-        Function function = TestObjectProvider.createFunction(functionId, name, "true", runtimeId);
+        Function function = TestFunctionProvider.createFunction(functionId, name, "true", runtimeId);
         JsonObject entity = JsonObject.mapFrom(function);
 
         when(functionService.existsOneByNameAndRuntimeIdExcludeEntity(functionId, name, runtimeId))
@@ -117,7 +117,7 @@ public class FunctionCheckerTest {
     void checkUpdateNoDuplicateWithoutName(VertxTestContext testContext) {
         String name = "func";
         long functionId = 1L, runtimeId = 2L;
-        Function function = TestObjectProvider.createFunction(functionId, name, "true", runtimeId);
+        Function function = TestFunctionProvider.createFunction(functionId, name, "true", runtimeId);
         JsonObject entity = JsonObject.mapFrom(function);
         JsonObject body = JsonObject.mapFrom(function);
         body.remove("name");
@@ -136,7 +136,7 @@ public class FunctionCheckerTest {
     void checkUpdateNoDuplicateWithoutRuntime(VertxTestContext testContext) {
         String name = "func";
         long functionId = 1L, runtimeId = 2L;
-        Function function = TestObjectProvider.createFunction(functionId, name, "true", runtimeId);
+        Function function = TestFunctionProvider.createFunction(functionId, name, "true", runtimeId);
         JsonObject entity = JsonObject.mapFrom(function);
         JsonObject body = JsonObject.mapFrom(function);
         body.remove("runtime");

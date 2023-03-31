@@ -2,7 +2,9 @@ package at.uibk.dps.rm.service.database.reservation;
 
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.repository.reservation.ResourceReservationRepository;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -40,13 +42,13 @@ public class ResourceReservationServiceImplTest {
     @Test
     void findAllByResourceId(VertxTestContext testContext) {
         long reservationId = 1L, functionResourceId = 3L;
-        Resource resource = TestObjectProvider.createResource(1L);
-        Function function = TestObjectProvider.createFunction(2L, "func", "false");
-        FunctionResource functionResource = TestObjectProvider
+        Resource resource = TestResourceProvider.createResource(1L);
+        Function function = TestFunctionProvider.createFunction(2L, "func", "false");
+        FunctionResource functionResource = TestFunctionProvider
             .createFunctionResource(functionResourceId, function, resource, false);
-        ResourceReservation entity1 = TestObjectProvider
+        ResourceReservation entity1 = TestReservationProvider
             .createResourceReservation(4L, functionResource, new Reservation(), new ResourceReservationStatus());
-        ResourceReservation entity2 = TestObjectProvider
+        ResourceReservation entity2 = TestReservationProvider
             .createResourceReservation(5L, functionResource, new Reservation(), new ResourceReservationStatus());
         List<ResourceReservation> resultList = new ArrayList<>();
         resultList.add(entity1);

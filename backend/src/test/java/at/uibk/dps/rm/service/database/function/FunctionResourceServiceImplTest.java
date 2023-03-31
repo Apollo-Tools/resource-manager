@@ -2,7 +2,8 @@ package at.uibk.dps.rm.service.database.function;
 
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.repository.function.FunctionResourceRepository;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -37,7 +38,7 @@ public class FunctionResourceServiceImplTest {
     @Test
     void findByFunctionAndResourceExists(VertxTestContext testContext) {
         long functionId = 2L, resourceId = 3L;
-        FunctionResource entity = TestObjectProvider.createFunctionResource(1L);
+        FunctionResource entity = TestFunctionProvider.createFunctionResource(1L);
         CompletionStage<FunctionResource> completionStage = CompletionStages.completedFuture(entity);
 
         when(functionResourceRepository.findByFunctionAndResource(functionId, resourceId)).thenReturn(completionStage);
@@ -68,11 +69,11 @@ public class FunctionResourceServiceImplTest {
     @Test
     void findAllByReservationId(VertxTestContext testContext) {
         long reservationId = 1L;
-        Function f1 = TestObjectProvider.createFunction(22L, "func1", "false");
-        Resource r1 = TestObjectProvider.createResource(33L);
-        FunctionResource fr1 = TestObjectProvider.createFunctionResource(1L, f1, r1, false);
-        Resource r2 = TestObjectProvider.createResource(44L);
-        FunctionResource fr2 = TestObjectProvider.createFunctionResource(2L, f1, r2, false);
+        Function f1 = TestFunctionProvider.createFunction(22L, "func1", "false");
+        Resource r1 = TestResourceProvider.createResource(33L);
+        FunctionResource fr1 = TestFunctionProvider.createFunctionResource(1L, f1, r1, false);
+        Resource r2 = TestResourceProvider.createResource(44L);
+        FunctionResource fr2 = TestFunctionProvider.createFunctionResource(2L, f1, r2, false);
         CompletionStage<List<FunctionResource>> completionStage = CompletionStages.completedFuture(List.of(fr1, fr2));
 
         when(functionResourceRepository.findAllByReservationIdAndFetch(reservationId)).thenReturn(completionStage);
@@ -98,9 +99,9 @@ public class FunctionResourceServiceImplTest {
     @Test
     void existsOneFunctionAndResourceTrue(VertxTestContext testContext) {
         long functionResourceId = 1L, functionId = 2L, resourceId = 2L;
-        Function function = TestObjectProvider.createFunction(functionId, "test", "false");
-        Resource resource = TestObjectProvider.createResource(resourceId);
-        FunctionResource entity = TestObjectProvider
+        Function function = TestFunctionProvider.createFunction(functionId, "test", "false");
+        Resource resource = TestResourceProvider.createResource(resourceId);
+        FunctionResource entity = TestFunctionProvider
             .createFunctionResource(functionResourceId, function, resource, false);
         CompletionStage<FunctionResource> completionStage = CompletionStages.completedFuture(entity);
 

@@ -2,7 +2,8 @@ package at.uibk.dps.rm.service.database.account;
 
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.repository.account.AccountCredentialsRepository;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -37,9 +38,9 @@ public class AccountCredentialsImplTest {
     void findEntityByCredentialsAndAccountExists(VertxTestContext testContext) {
         long credentialsId = 1L;
         long accountId = 2L;
-        Account account = TestObjectProvider.createAccount(accountId);
-        Credentials credentials = TestObjectProvider.createCredentials(credentialsId, new ResourceProvider());
-        AccountCredentials entity = TestObjectProvider
+        Account account = TestAccountProvider.createAccount(accountId);
+        Credentials credentials = TestAccountProvider.createCredentials(credentialsId, new ResourceProvider());
+        AccountCredentials entity = TestAccountProvider
             .createAccountCredentials(1L, account, credentials);
         CompletionStage<AccountCredentials> completionStage = CompletionStages.completedFuture(entity);
         doReturn(completionStage).when(accountCredentialsRepository)
@@ -75,10 +76,10 @@ public class AccountCredentialsImplTest {
     void checkEntityByAccountAndProviderExists(VertxTestContext testContext) {
         long accountId = 1L;
         long providerId = 2L;
-        Account account = TestObjectProvider.createAccount(accountId);
-        ResourceProvider resourceProvider = TestObjectProvider.createResourceProvider(providerId);
-        Credentials credentials = TestObjectProvider.createCredentials(1L, resourceProvider);
-        AccountCredentials entity = TestObjectProvider
+        Account account = TestAccountProvider.createAccount(accountId);
+        ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(providerId);
+        Credentials credentials = TestAccountProvider.createCredentials(1L, resourceProvider);
+        AccountCredentials entity = TestAccountProvider
             .createAccountCredentials(1L, account, credentials);
         CompletionStage<AccountCredentials> completionStage = CompletionStages.completedFuture(entity);
         doReturn(completionStage).when(accountCredentialsRepository).findByAccountAndProvider(accountId, providerId);

@@ -4,7 +4,8 @@ import at.uibk.dps.rm.entity.model.Credentials;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.model.ResourceProvider;
 import at.uibk.dps.rm.repository.account.CredentialsRepository;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -39,8 +40,8 @@ public class CredentialsServiceImplTest {
     @Test
     void findEntityExists(VertxTestContext testContext) {
         long credentialsId = 1L;
-        ResourceProvider resourceProvider = TestObjectProvider.createResourceProvider(1L);
-        Credentials entity = TestObjectProvider.createCredentials(credentialsId, resourceProvider);
+        ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L);
+        Credentials entity = TestAccountProvider.createCredentials(credentialsId, resourceProvider);
         CompletionStage<Credentials> completionStage = CompletionStages.completedFuture(entity);
         doReturn(completionStage).when(credentialsRepository).findByIdAndFetch(credentialsId);
 
@@ -69,8 +70,8 @@ public class CredentialsServiceImplTest {
     @Test
     void findAllByAccount(VertxTestContext testContext) {
         long accountId = 1L;
-        Credentials entity1 = TestObjectProvider.createCredentials(1L, new ResourceProvider());
-        Credentials entity2 = TestObjectProvider.createCredentials(2L, new ResourceProvider());
+        Credentials entity1 = TestAccountProvider.createCredentials(1L, new ResourceProvider());
+        Credentials entity2 = TestAccountProvider.createCredentials(2L, new ResourceProvider());
         List<Credentials> resultList = List.of(entity1, entity2);
         CompletionStage<List<Credentials>> completionStage = CompletionStages.completedFuture(resultList);
         doReturn(completionStage).when(credentialsRepository).findAllByAccountId(accountId);

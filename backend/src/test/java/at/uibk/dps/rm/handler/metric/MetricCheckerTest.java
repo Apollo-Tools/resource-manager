@@ -10,7 +10,8 @@ import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricService;
 import at.uibk.dps.rm.testutil.SingleHelper;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestMetricProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
@@ -51,7 +52,7 @@ public class MetricCheckerTest {
     @Test
     void checkForDuplicateEntityNotExists(VertxTestContext testContext) {
         String metricName = "region";
-        Metric metric = TestObjectProvider.createMetric(1L, metricName);
+        Metric metric = TestMetricProvider.createMetric(1L, metricName);
         JsonObject entity = JsonObject.mapFrom(metric);
 
         when(metricService.existsOneByMetric(metricName)).thenReturn(Single.just(false));
@@ -69,7 +70,7 @@ public class MetricCheckerTest {
     @Test
     void checkForDuplicateEntityExists(VertxTestContext testContext) {
         String metricName = "region";
-        Metric metric = TestObjectProvider.createMetric(1L, metricName);
+        Metric metric = TestMetricProvider.createMetric(1L, metricName);
         JsonObject entity = JsonObject.mapFrom(metric);
 
         when(metricService.existsOneByMetric(metricName)).thenReturn(Single.just(true));
@@ -86,7 +87,7 @@ public class MetricCheckerTest {
     @Test
     void checkUpdateNoDuplicateWithMetricNotExists(VertxTestContext testContext) {
         String metricName = "region";
-        Metric metric = TestObjectProvider.createMetric(1L, metricName);
+        Metric metric = TestMetricProvider.createMetric(1L, metricName);
         JsonObject entity = JsonObject.mapFrom(metric);
 
         when(metricService.existsOneByMetric(metricName)).thenReturn(Single.just(false));
@@ -105,7 +106,7 @@ public class MetricCheckerTest {
     @Test
     void checkUpdateNoDuplicateWithMetricExists(VertxTestContext testContext) {
         String metricName = "region";
-        Metric metric = TestObjectProvider.createMetric(1L, metricName);
+        Metric metric = TestMetricProvider.createMetric(1L, metricName);
         JsonObject entity = JsonObject.mapFrom(metric);
 
         when(metricService.existsOneByMetric(metricName)).thenReturn(Single.just(true));
@@ -122,7 +123,7 @@ public class MetricCheckerTest {
     @Test
     void checkUpdateNoDuplicateWithoutMetric(VertxTestContext testContext) {
         String metricName = "region";
-        Metric metric = TestObjectProvider.createMetric(1L, metricName);
+        Metric metric = TestMetricProvider.createMetric(1L, metricName);
         JsonObject body = JsonObject.mapFrom(metric);
         body.remove("metric");
         JsonObject entity = JsonObject.mapFrom(metric);
@@ -141,8 +142,8 @@ public class MetricCheckerTest {
     void checkFindAllByResourceTypeId(VertxTestContext testContext) {
         long resourceTypeId = 1L;
         boolean required = false;
-        JsonObject m1 = JsonObject.mapFrom(TestObjectProvider.createMetric(1L, "cpu"));
-        JsonObject m2 = JsonObject.mapFrom(TestObjectProvider.createMetric(2L, "memory"));
+        JsonObject m1 = JsonObject.mapFrom(TestMetricProvider.createMetric(1L, "cpu"));
+        JsonObject m2 = JsonObject.mapFrom(TestMetricProvider.createMetric(2L, "memory"));
         JsonArray metrics = new JsonArray(List.of(m1, m2));
 
         when(metricService.findAllByResourceTypeId(resourceTypeId, required)).thenReturn(Single.just(metrics));
@@ -179,7 +180,7 @@ public class MetricCheckerTest {
     @Test
     void checkFindOneByMetricExists(VertxTestContext testContext) {
         String metricName = "region";
-        Metric metric = TestObjectProvider.createMetric(1L, metricName);
+        Metric metric = TestMetricProvider.createMetric(1L, metricName);
         JsonObject entity = JsonObject.mapFrom(metric);
 
         when(metricService.findOneByMetric(metricName)).thenReturn(Single.just(entity));
@@ -214,10 +215,10 @@ public class MetricCheckerTest {
     @Test
     void checkEqualValueTypesNumberTrue(VertxTestContext testContext) {
         String metricName = "region";
-        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective(metricName, ExpressionType.GT,
+        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective(metricName, ExpressionType.GT,
             1.0, 2.0, 3.0);
-        MetricType metricType = TestObjectProvider.createMetricType(1L, "number");
-        Metric metric = TestObjectProvider.createMetric(1L, metricName, metricType, false);
+        MetricType metricType = TestMetricProvider.createMetricType(1L, "number");
+        Metric metric = TestMetricProvider.createMetric(1L, metricName, metricType, false);
         JsonObject entity = JsonObject.mapFrom(metric);
 
         metricChecker.checkEqualValueTypes(slo, entity)
@@ -233,10 +234,10 @@ public class MetricCheckerTest {
     @ValueSource(strings = {"string", "boolean"})
     void checkEqualValueTypesNumberFalse(String metricTypeName, VertxTestContext testContext) {
         String metricName = "region";
-        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective(metricName, ExpressionType.GT,
+        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective(metricName, ExpressionType.GT,
             1.0, 2.0, 3.0);
-        MetricType metricType = TestObjectProvider.createMetricType(1L, metricTypeName);
-        Metric metric = TestObjectProvider.createMetric(1L, metricName, metricType, false);
+        MetricType metricType = TestMetricProvider.createMetricType(1L, metricTypeName);
+        Metric metric = TestMetricProvider.createMetric(1L, metricName, metricType, false);
         JsonObject entity = JsonObject.mapFrom(metric);
 
         metricChecker.checkEqualValueTypes(slo, entity)
@@ -251,10 +252,10 @@ public class MetricCheckerTest {
     @Test
     void checkEqualValueTypesStringTrue(VertxTestContext testContext) {
         String metricName = "region";
-        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective(metricName, ExpressionType.GT,
+        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective(metricName, ExpressionType.GT,
             "eu-west", "eu-east");
-        MetricType metricType = TestObjectProvider.createMetricType(1L, "string");
-        Metric metric = TestObjectProvider.createMetric(1L, metricName, metricType, false);
+        MetricType metricType = TestMetricProvider.createMetricType(1L, "string");
+        Metric metric = TestMetricProvider.createMetric(1L, metricName, metricType, false);
         JsonObject entity = JsonObject.mapFrom(metric);
 
         metricChecker.checkEqualValueTypes(slo, entity)
@@ -270,10 +271,10 @@ public class MetricCheckerTest {
     @ValueSource(strings = {"number", "boolean"})
     void checkEqualValueTypesStringFalse(String metricTypeName, VertxTestContext testContext) {
         String metricName = "region";
-        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective(metricName, ExpressionType.GT,
+        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective(metricName, ExpressionType.GT,
             "eu-west", "eu-east");
-        MetricType metricType = TestObjectProvider.createMetricType(1L, metricTypeName);
-        Metric metric = TestObjectProvider.createMetric(1L, metricName, metricType, false);
+        MetricType metricType = TestMetricProvider.createMetricType(1L, metricTypeName);
+        Metric metric = TestMetricProvider.createMetric(1L, metricName, metricType, false);
         JsonObject entity = JsonObject.mapFrom(metric);
 
         metricChecker.checkEqualValueTypes(slo, entity)
@@ -288,10 +289,10 @@ public class MetricCheckerTest {
     @Test
     void checkEqualValueTypesBooleanTrue(VertxTestContext testContext) {
         String metricName = "region";
-        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective(metricName, ExpressionType.GT,
+        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective(metricName, ExpressionType.GT,
             true, false, false);
-        MetricType metricType = TestObjectProvider.createMetricType(1L, "boolean");
-        Metric metric = TestObjectProvider.createMetric(1L, metricName, metricType, false);
+        MetricType metricType = TestMetricProvider.createMetricType(1L, "boolean");
+        Metric metric = TestMetricProvider.createMetric(1L, metricName, metricType, false);
         JsonObject entity = JsonObject.mapFrom(metric);
 
         metricChecker.checkEqualValueTypes(slo, entity)
@@ -307,10 +308,10 @@ public class MetricCheckerTest {
     @ValueSource(strings = {"number", "string"})
     void checkEqualValueTypesBooleanFalse(String metricTypeName, VertxTestContext testContext) {
         String metricName = "region";
-        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective(metricName, ExpressionType.GT,
+        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective(metricName, ExpressionType.GT,
             true, false, false);
-        MetricType metricType = TestObjectProvider.createMetricType(1L, metricTypeName);
-        Metric metric = TestObjectProvider.createMetric(1L, metricName, metricType, false);
+        MetricType metricType = TestMetricProvider.createMetricType(1L, metricTypeName);
+        Metric metric = TestMetricProvider.createMetric(1L, metricName, metricType, false);
         JsonObject entity = JsonObject.mapFrom(metric);
 
         metricChecker.checkEqualValueTypes(slo, entity)
@@ -329,8 +330,8 @@ public class MetricCheckerTest {
     })
     void checkAddMetricValueSetCorrectlyNumber(boolean isMonitored, double result, VertxTestContext testContext) {
         long metricId = 1;
-        MetricType metricType = TestObjectProvider.createMetricType(1L, "number");
-        Metric metric = TestObjectProvider.createMetric(metricId, "availability", metricType, isMonitored);
+        MetricType metricType = TestMetricProvider.createMetricType(1L, "number");
+        Metric metric = TestMetricProvider.createMetric(metricId, "availability", metricType, isMonitored);
         JsonObject requestBody = new JsonObject("{\"metricId\": 1, \"value\": 4}");
         MetricValue metricValue = new MetricValue();
 
@@ -352,8 +353,8 @@ public class MetricCheckerTest {
     })
     void checkAddMetricValueSetCorrectlyString(boolean isMonitored, String result, VertxTestContext testContext) {
         long metricId = 1;
-        MetricType metricType = TestObjectProvider.createMetricType(1L, "string");
-        Metric metric = TestObjectProvider.createMetric(metricId, "availability", metricType, isMonitored);
+        MetricType metricType = TestMetricProvider.createMetricType(1L, "string");
+        Metric metric = TestMetricProvider.createMetric(metricId, "availability", metricType, isMonitored);
         JsonObject requestBody = new JsonObject("{\"metricId\": 1, \"value\": \"four\"}");
         MetricValue metricValue = new MetricValue();
 
@@ -375,8 +376,8 @@ public class MetricCheckerTest {
     })
     void checkAddMetricValueSetCorrectlyBoolean(boolean isMonitored, boolean result, VertxTestContext testContext) {
         long metricId = 1;
-        MetricType metricType = TestObjectProvider.createMetricType(1L, "boolean");
-        Metric metric = TestObjectProvider.createMetric(metricId, "availability", metricType, isMonitored);
+        MetricType metricType = TestMetricProvider.createMetricType(1L, "boolean");
+        Metric metric = TestMetricProvider.createMetric(metricId, "availability", metricType, isMonitored);
         JsonObject requestBody = new JsonObject("{\"metricId\": 1, \"value\": true}");
         MetricValue metricValue = new MetricValue();
 
@@ -402,8 +403,8 @@ public class MetricCheckerTest {
     })
     void checkAddMetricValueSetCorrectlyFalse(String metricTypeValue, String value, VertxTestContext testContext) {
         long metricId = 1;
-        MetricType metricType = TestObjectProvider.createMetricType(1L, metricTypeValue);
-        Metric metric = TestObjectProvider.createMetric(metricId, "availability", metricType, false);
+        MetricType metricType = TestMetricProvider.createMetricType(1L, metricTypeValue);
+        Metric metric = TestMetricProvider.createMetric(metricId, "availability", metricType, false);
         JsonObject requestBody = new JsonObject("{\"metricId\": 1, \"value\": " + value + "}");
         MetricValue metricValue = new MetricValue();
 
@@ -426,8 +427,8 @@ public class MetricCheckerTest {
     })
     void checkUpdateMetricValueSetCorrectlyTrue(String metricTypeName, String value, VertxTestContext testContext) {
         long metricId = 1;
-        MetricType metricType = TestObjectProvider.createMetricType(1L, metricTypeName);
-        Metric metric = TestObjectProvider.createMetric(metricId, "availability", metricType, false);
+        MetricType metricType = TestMetricProvider.createMetricType(1L, metricTypeName);
+        Metric metric = TestMetricProvider.createMetric(metricId, "availability", metricType, false);
         JsonObject requestBody = new JsonObject("{\"value\": " + value + "}");
 
         when(metricService.findOne(metricId)).thenReturn(Single.just(JsonObject.mapFrom(metric)));
@@ -454,8 +455,8 @@ public class MetricCheckerTest {
     void checkUpdateMetricValueSetCorrectlyFalse(String metricTypeName, String value, Boolean isMonitored,
                                                  VertxTestContext testContext) {
         long metricId = 1;
-        MetricType metricType = TestObjectProvider.createMetricType(1L, metricTypeName);
-        Metric metric = TestObjectProvider.createMetric(metricId, "availability", metricType, isMonitored);
+        MetricType metricType = TestMetricProvider.createMetricType(1L, metricTypeName);
+        Metric metric = TestMetricProvider.createMetric(metricId, "availability", metricType, isMonitored);
         JsonObject requestBody = new JsonObject("{\"value\": " + value + "}");
 
         when(metricService.findOne(metricId)).thenReturn(Single.just(JsonObject.mapFrom(metric)));
@@ -471,9 +472,9 @@ public class MetricCheckerTest {
 
     @Test
     void checkServiceLevelObjectivesNumberValid(VertxTestContext testContext) {
-        Metric m1 = TestObjectProvider
+        Metric m1 = TestMetricProvider
             .createMetric(1L, "cpu", 1L, "number", false);
-        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("cpu", ExpressionType.EQ, 4);
+        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("cpu", ExpressionType.EQ, 4);
 
         when(metricService.findOneByMetric("cpu")).thenReturn(Single.just(JsonObject.mapFrom(m1)));
 
@@ -486,9 +487,9 @@ public class MetricCheckerTest {
 
     @Test
     void checkServiceLevelObjectivesNumberInvalid(VertxTestContext testContext) {
-        Metric m1 = TestObjectProvider
+        Metric m1 = TestMetricProvider
             .createMetric(1L, "cpu", 1L, "string", false);
-        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("cpu", ExpressionType.EQ, 4);
+        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("cpu", ExpressionType.EQ, 4);
 
         when(metricService.findOneByMetric("cpu")).thenReturn(Single.just(JsonObject.mapFrom(m1)));
 
@@ -503,9 +504,9 @@ public class MetricCheckerTest {
 
     @Test
     void checkServiceLevelObjectivesStringValid(VertxTestContext testContext) {
-        Metric m1 = TestObjectProvider
+        Metric m1 = TestMetricProvider
             .createMetric(1L, "cpu", 1L, "string", false);
-        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("cpu", ExpressionType.EQ, "four");
+        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("cpu", ExpressionType.EQ, "four");
 
         when(metricService.findOneByMetric("cpu")).thenReturn(Single.just(JsonObject.mapFrom(m1)));
 
@@ -518,9 +519,9 @@ public class MetricCheckerTest {
 
     @Test
     void checkServiceLevelObjectivesStringInvalid(VertxTestContext testContext) {
-        Metric m1 = TestObjectProvider
+        Metric m1 = TestMetricProvider
             .createMetric(1L, "cpu", 1L, "number", false);
-        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("cpu", ExpressionType.EQ, "four");
+        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("cpu", ExpressionType.EQ, "four");
 
         when(metricService.findOneByMetric("cpu")).thenReturn(Single.just(JsonObject.mapFrom(m1)));
 
@@ -535,9 +536,9 @@ public class MetricCheckerTest {
 
     @Test
     void checkServiceLevelObjectivesBoolValid(VertxTestContext testContext) {
-        Metric m1 = TestObjectProvider
+        Metric m1 = TestMetricProvider
             .createMetric(1L, "cpu", 1L, "boolean", false);
-        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("cpu", ExpressionType.EQ, true);
+        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("cpu", ExpressionType.EQ, true);
 
         when(metricService.findOneByMetric("cpu")).thenReturn(Single.just(JsonObject.mapFrom(m1)));
 
@@ -550,9 +551,9 @@ public class MetricCheckerTest {
 
     @Test
     void checkServiceLevelObjectivesBoolInvalid(VertxTestContext testContext) {
-        Metric m1 = TestObjectProvider
+        Metric m1 = TestMetricProvider
             .createMetric(1L, "cpu", 1L, "number", false);
-        ServiceLevelObjective slo = TestObjectProvider.createServiceLevelObjective("cpu", ExpressionType.EQ, false);
+        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("cpu", ExpressionType.EQ, false);
 
         when(metricService.findOneByMetric("cpu")).thenReturn(Single.just(JsonObject.mapFrom(m1)));
 

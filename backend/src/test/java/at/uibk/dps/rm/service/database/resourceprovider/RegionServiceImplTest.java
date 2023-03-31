@@ -3,7 +3,7 @@ package at.uibk.dps.rm.service.database.resourceprovider;
 import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.entity.model.ResourceProvider;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -38,7 +38,7 @@ public class RegionServiceImplTest {
     @Test
     void findEntityExists(VertxTestContext testContext) {
         long regionId = 1L;
-        Region entity = TestObjectProvider.createRegion(regionId, "us-east");
+        Region entity = TestResourceProviderProvider.createRegion(regionId, "us-east");
         CompletionStage<Region> completionStage = CompletionStages.completedFuture(entity);
 
         when(regionRepository.findByIdAndFetch(regionId)).thenReturn(completionStage);
@@ -67,8 +67,8 @@ public class RegionServiceImplTest {
 
     @Test
     void findAll(VertxTestContext testContext) {
-        Region r1 = TestObjectProvider.createRegion(1L, "us-east");
-        Region r2 = TestObjectProvider.createRegion(2L, "us-west");
+        Region r1 = TestResourceProviderProvider.createRegion(1L, "us-east");
+        Region r2 = TestResourceProviderProvider.createRegion(2L, "us-west");
         CompletionStage<List<Region>> completionStage = CompletionStages.completedFuture(List.of(r1, r2));
 
         when(regionRepository.findAllAndFetch()).thenReturn(completionStage);
@@ -87,9 +87,9 @@ public class RegionServiceImplTest {
     @Test
     void findAllByProviderId(VertxTestContext testContext) {
         long providerId = 3L;
-        ResourceProvider resourceProvider = TestObjectProvider.createResourceProvider(providerId);
-        Region r1 = TestObjectProvider.createRegion(1L, "us-east", resourceProvider);
-        Region r2 = TestObjectProvider.createRegion(2L, "us-west", resourceProvider);
+        ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(providerId);
+        Region r1 = TestResourceProviderProvider.createRegion(1L, "us-east", resourceProvider);
+        Region r2 = TestResourceProviderProvider.createRegion(2L, "us-west", resourceProvider);
         CompletionStage<List<Region>> completionStage = CompletionStages.completedFuture(List.of(r1, r2));
 
         when(regionRepository.findAllByProviderId(providerId)).thenReturn(completionStage);

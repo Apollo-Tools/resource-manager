@@ -5,7 +5,7 @@ import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.rxjava3.database.function.FunctionResourceService;
 import at.uibk.dps.rm.testutil.SingleHelper;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.*;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
@@ -77,9 +77,9 @@ public class FunctionResourceCheckerTest {
     @Test
     void findOneByFunctionAndResourceExists(VertxTestContext testContext) {
         long functionId = 2L, resourceId = 3L;
-        Function function = TestObjectProvider.createFunction(functionId, "multiply", "false");
-        Resource resource = TestObjectProvider.createResource(resourceId);
-        FunctionResource functionResource = TestObjectProvider.createFunctionResource(1L, function, resource, false);
+        Function function = TestFunctionProvider.createFunction(functionId, "multiply", "false");
+        Resource resource = TestResourceProvider.createResource(resourceId);
+        FunctionResource functionResource = TestFunctionProvider.createFunctionResource(1L, function, resource, false);
 
         when(functionResourceService.findOneByFunctionAndResource(functionId, resourceId))
             .thenReturn(Single.just(JsonObject.mapFrom(functionResource)));
@@ -113,16 +113,16 @@ public class FunctionResourceCheckerTest {
     @Test
     void checkFindAllByReservationIdValid(VertxTestContext testContext) {
         long reservationId = 1L;
-        Account account = TestObjectProvider.createAccount(1L);
-        Reservation reservation = TestObjectProvider.createReservation(reservationId, false, account);
-        FunctionResource functionResource1 = TestObjectProvider.createFunctionResource(1L);
-        FunctionResource functionResource2 = TestObjectProvider.createFunctionResource(2L);
-        FunctionResource functionResource3 = TestObjectProvider.createFunctionResource(3L);
-        ResourceReservation resourceReservation1 = TestObjectProvider.createResourceReservation(1L, functionResource1,
+        Account account = TestAccountProvider.createAccount(1L);
+        Reservation reservation = TestReservationProvider.createReservation(reservationId, false, account);
+        FunctionResource functionResource1 = TestFunctionProvider.createFunctionResource(1L);
+        FunctionResource functionResource2 = TestFunctionProvider.createFunctionResource(2L);
+        FunctionResource functionResource3 = TestFunctionProvider.createFunctionResource(3L);
+        ResourceReservation resourceReservation1 = TestReservationProvider.createResourceReservation(1L, functionResource1,
             reservation, new ResourceReservationStatus());
-        ResourceReservation resourceReservation2 = TestObjectProvider.createResourceReservation(2L, functionResource2,
+        ResourceReservation resourceReservation2 = TestReservationProvider.createResourceReservation(2L, functionResource2,
             reservation, new ResourceReservationStatus());
-        ResourceReservation resourceReservation3 = TestObjectProvider.createResourceReservation(3L, functionResource3,
+        ResourceReservation resourceReservation3 = TestReservationProvider.createResourceReservation(3L, functionResource3,
             reservation, new ResourceReservationStatus());
         JsonArray resourceReservations = new JsonArray(List.of(JsonObject.mapFrom(resourceReservation1),
             JsonObject.mapFrom(resourceReservation2), JsonObject.mapFrom(resourceReservation3)));

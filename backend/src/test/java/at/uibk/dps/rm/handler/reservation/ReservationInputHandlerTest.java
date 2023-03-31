@@ -3,7 +3,8 @@ package at.uibk.dps.rm.handler.reservation;
 import at.uibk.dps.rm.entity.dto.ReserveResourcesRequest;
 import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestRequestProvider;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -30,12 +31,12 @@ public class ReservationInputHandlerTest {
 
     @Test
     void validateResourceArrayHasNoDuplicatesNoDuplicates(VertxTestContext testContext) {
-        FunctionResourceIds ids1 = TestObjectProvider.createFunctionResourceIds(1L, 1L);
-        FunctionResourceIds ids2 = TestObjectProvider.createFunctionResourceIds(2L, 6L);
-        FunctionResourceIds ids3 = TestObjectProvider.createFunctionResourceIds(3L, 2L);
-        FunctionResourceIds ids4 = TestObjectProvider.createFunctionResourceIds(4L, 1L);
+        FunctionResourceIds ids1 = TestFunctionProvider.createFunctionResourceIds(1L, 1L);
+        FunctionResourceIds ids2 = TestFunctionProvider.createFunctionResourceIds(2L, 6L);
+        FunctionResourceIds ids3 = TestFunctionProvider.createFunctionResourceIds(3L, 2L);
+        FunctionResourceIds ids4 = TestFunctionProvider.createFunctionResourceIds(4L, 1L);
         List<FunctionResourceIds> functionResourceIds = List.of(ids1, ids2, ids3, ids4);
-        ReserveResourcesRequest request = TestObjectProvider.createReserveResourcesRequest(functionResourceIds);
+        ReserveResourcesRequest request = TestRequestProvider.createReserveResourcesRequest(functionResourceIds);
         JsonObject requestBody = JsonObject.mapFrom(request);
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
@@ -55,12 +56,12 @@ public class ReservationInputHandlerTest {
     })
     void validateResourceArrayHasNoDuplicatesDuplicate(long f1, long f2, long f3, long f4, long r1, long r2, long r3,
                                                        long r4, VertxTestContext testContext) {
-        FunctionResourceIds ids1 = TestObjectProvider.createFunctionResourceIds(f1, r1);
-        FunctionResourceIds ids2 = TestObjectProvider.createFunctionResourceIds(f2, r2);
-        FunctionResourceIds ids3 = TestObjectProvider.createFunctionResourceIds(f3, r3);
-        FunctionResourceIds ids4 = TestObjectProvider.createFunctionResourceIds(f4, r4);
+        FunctionResourceIds ids1 = TestFunctionProvider.createFunctionResourceIds(f1, r1);
+        FunctionResourceIds ids2 = TestFunctionProvider.createFunctionResourceIds(f2, r2);
+        FunctionResourceIds ids3 = TestFunctionProvider.createFunctionResourceIds(f3, r3);
+        FunctionResourceIds ids4 = TestFunctionProvider.createFunctionResourceIds(f4, r4);
         List<FunctionResourceIds> functionResourceIds = List.of(ids1, ids2, ids3, ids4);
-        ReserveResourcesRequest request = TestObjectProvider.createReserveResourcesRequest(functionResourceIds);
+        ReserveResourcesRequest request = TestRequestProvider.createReserveResourcesRequest(functionResourceIds);
         JsonObject requestBody = JsonObject.mapFrom(request);
 
         RoutingContextMockHelper.mockBody(rc, requestBody);

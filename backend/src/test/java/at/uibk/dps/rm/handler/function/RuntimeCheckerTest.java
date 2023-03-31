@@ -3,7 +3,7 @@ package at.uibk.dps.rm.handler.function;
 import at.uibk.dps.rm.entity.model.Runtime;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.service.rxjava3.database.function.RuntimeService;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
@@ -41,7 +41,7 @@ public class RuntimeCheckerTest {
     void checkForDuplicateEntityFalse(VertxTestContext testContext) {
         long runtimeId = 1L;
         String name = "python3.9";
-        Runtime runtime = TestObjectProvider.createRuntime(runtimeId, name);
+        Runtime runtime = TestFunctionProvider.createRuntime(runtimeId, name);
 
         when(runtimeService.existsOneByName(name)).thenReturn(Single.just(false));
 
@@ -59,7 +59,7 @@ public class RuntimeCheckerTest {
     void checkForDuplicateEntityTrue(VertxTestContext testContext) {
         long runtimeId = 1L;
         String name = "python3.9";
-        Runtime runtime = TestObjectProvider.createRuntime(runtimeId, name);
+        Runtime runtime = TestFunctionProvider.createRuntime(runtimeId, name);
 
         when(runtimeService.existsOneByName(name)).thenReturn(Single.just(true));
 

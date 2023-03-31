@@ -5,7 +5,7 @@ import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
 import at.uibk.dps.rm.testutil.SingleHelper;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestMetricProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
@@ -43,9 +43,9 @@ public class MetricValueCheckerTest {
     @Test
     void checkFindAllByResource(VertxTestContext testContext) {
         long resourceId = 1L;
-        MetricValue mv1 = TestObjectProvider.createMetricValue(1L, 1L, "latency", 25.0);
-        MetricValue mv2 = TestObjectProvider.createMetricValue(2L, 2L, "availability", 0.995);
-        MetricValue mv3 = TestObjectProvider.createMetricValue(3L, 3L, "bandwidth", 1000);
+        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, 1L, "latency", 25.0);
+        MetricValue mv2 = TestMetricProvider.createMetricValue(2L, 2L, "availability", 0.995);
+        MetricValue mv3 = TestMetricProvider.createMetricValue(3L, 3L, "bandwidth", 1000);
         JsonArray metricValues = new JsonArray(List.of(JsonObject.mapFrom(mv1),
             JsonObject.mapFrom(mv2), JsonObject.mapFrom(mv3)));
 

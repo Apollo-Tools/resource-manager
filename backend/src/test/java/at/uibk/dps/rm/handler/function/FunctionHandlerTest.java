@@ -4,7 +4,7 @@ import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -114,7 +114,7 @@ public class FunctionHandlerTest {
         "{\"code\": \"x = 10\"}"})
     void updateOneValid(String jsonInput, VertxTestContext testContext) {
         long entityId = 1L;
-        JsonObject f1 = JsonObject.mapFrom(TestObjectProvider.createFunction(1L));
+        JsonObject f1 = JsonObject.mapFrom(TestFunctionProvider.createFunction(1L));
         JsonObject requestBody = new JsonObject(jsonInput);
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
@@ -156,7 +156,7 @@ public class FunctionHandlerTest {
     @Test
     void updateOneRuntimeNotFound(VertxTestContext testContext) {
         long entityId = 1L;
-        JsonObject f1 = JsonObject.mapFrom(TestObjectProvider.createFunction(1L));
+        JsonObject f1 = JsonObject.mapFrom(TestFunctionProvider.createFunction(1L));
         JsonObject requestBody = new JsonObject("{\"runtime\": {\"runtime_id\": 1}, \"code\": \"x = 10\"}");
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
@@ -176,7 +176,7 @@ public class FunctionHandlerTest {
     @Test
     void updateOneDuplicateExists(VertxTestContext testContext) {
         long entityId = 1L;
-        JsonObject f1 = JsonObject.mapFrom(TestObjectProvider.createFunction(1L));
+        JsonObject f1 = JsonObject.mapFrom(TestFunctionProvider.createFunction(1L));
         JsonObject requestBody = new JsonObject("{\"runtime\": {\"runtime_id\": 1}, \"code\": \"x = 10\"}");
 
         RoutingContextMockHelper.mockBody(rc, requestBody);

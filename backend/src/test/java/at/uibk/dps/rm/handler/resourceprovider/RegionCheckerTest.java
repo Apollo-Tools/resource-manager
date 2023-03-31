@@ -6,7 +6,7 @@ import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.RegionService;
 import at.uibk.dps.rm.testutil.SingleHelper;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
@@ -44,9 +44,9 @@ public class RegionCheckerTest {
     @Test
     void checkFindAllByProviderFound(VertxTestContext testContext) {
         long providerId = 1L;
-        Region region1 = TestObjectProvider.createRegion(1L, "us-east");
-        Region region2 = TestObjectProvider.createRegion(2L, "us-west");
-        Region region3 = TestObjectProvider.createRegion(3L, "eu-west");
+        Region region1 = TestResourceProviderProvider.createRegion(1L, "us-east");
+        Region region2 = TestResourceProviderProvider.createRegion(2L, "us-west");
+        Region region3 = TestResourceProviderProvider.createRegion(3L, "eu-west");
         JsonArray regionJson = new JsonArray(List.of(JsonObject.mapFrom(region1), JsonObject.mapFrom(region2),
             JsonObject.mapFrom(region3)));
 
@@ -100,8 +100,8 @@ public class RegionCheckerTest {
     void checkForDuplicateEntityFalse(VertxTestContext testContext) {
         long providerId = 2L;
         String name = "eu-west";
-        ResourceProvider resourceProvider = TestObjectProvider.createResourceProvider(providerId);
-        Region region = TestObjectProvider.createRegion(1L, name, resourceProvider);
+        ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(providerId);
+        Region region = TestResourceProviderProvider.createRegion(1L, name, resourceProvider);
 
         when(regionService.existsOneByNameAndProviderId(name, providerId)).thenReturn(Single.just(false));
 
@@ -119,8 +119,8 @@ public class RegionCheckerTest {
     void checkForDuplicateEntityTrue(VertxTestContext testContext) {
         long providerId = 2L;
         String name = "eu-west";
-        ResourceProvider resourceProvider = TestObjectProvider.createResourceProvider(providerId);
-        Region region = TestObjectProvider.createRegion(1L, name, resourceProvider);
+        ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(providerId);
+        Region region = TestResourceProviderProvider.createRegion(1L, name, resourceProvider);
 
         when(regionService.existsOneByNameAndProviderId(name, providerId)).thenReturn(Single.just(true));
 

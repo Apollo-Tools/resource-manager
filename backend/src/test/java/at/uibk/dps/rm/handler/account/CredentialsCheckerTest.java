@@ -4,7 +4,7 @@ import at.uibk.dps.rm.entity.model.Credentials;
 import at.uibk.dps.rm.entity.model.ResourceProvider;
 import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.service.rxjava3.database.account.CredentialsService;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
@@ -42,8 +42,8 @@ public class CredentialsCheckerTest {
     @Test
     void getAll(VertxTestContext testContext) {
         long accountId = 1L;
-        Credentials entity1 = TestObjectProvider.createCredentials(1L, new ResourceProvider());
-        Credentials entity2 = TestObjectProvider.createCredentials(2L, new ResourceProvider());
+        Credentials entity1 = TestAccountProvider.createCredentials(1L, new ResourceProvider());
+        Credentials entity2 = TestAccountProvider.createCredentials(2L, new ResourceProvider());
         List<JsonObject> entities = new ArrayList<>();
         entities.add(JsonObject.mapFrom(entity1));
         entities.add(JsonObject.mapFrom(entity2));

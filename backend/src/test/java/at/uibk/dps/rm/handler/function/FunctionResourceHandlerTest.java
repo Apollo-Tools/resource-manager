@@ -5,7 +5,7 @@ import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.handler.resource.ResourceChecker;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -56,10 +56,10 @@ public class FunctionResourceHandlerTest {
     @Test
     void getAllValid(VertxTestContext testContext) {
         long functionId = 1L;
-        Function function = TestObjectProvider.createFunction(functionId, "func","true");
-        FunctionResource fr1 = TestObjectProvider.createFunctionResource(1L, function, true);
-        FunctionResource fr2 = TestObjectProvider.createFunctionResource(2L, function, true);
-        FunctionResource fr3 = TestObjectProvider.createFunctionResource(3L, function, false);
+        Function function = TestFunctionProvider.createFunction(functionId, "func","true");
+        FunctionResource fr1 = TestFunctionProvider.createFunctionResource(1L, function, true);
+        FunctionResource fr2 = TestFunctionProvider.createFunctionResource(2L, function, true);
+        FunctionResource fr3 = TestFunctionProvider.createFunctionResource(3L, function, false);
         JsonArray functionResources = new JsonArray(List.of(JsonObject.mapFrom(fr1),
             JsonObject.mapFrom(fr2), JsonObject.mapFrom(fr3)));
 

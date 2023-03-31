@@ -5,7 +5,7 @@ import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.service.rxjava3.database.account.AccountService;
 import at.uibk.dps.rm.testutil.SingleHelper;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import at.uibk.dps.rm.util.PasswordUtility;
 import io.reactivex.rxjava3.core.Single;
@@ -41,7 +41,7 @@ public class AccountCheckerTest {
     @Test
     void checkFindLoginAccountExists(VertxTestContext testContext) {
         String username = "user";
-        Account account = TestObjectProvider.createAccount(1L, username, "password");
+        Account account = TestAccountProvider.createAccount(1L, username, "password");
 
         when(accountService.findOneByUsername(username))
             .thenReturn(Single.just(JsonObject.mapFrom(account)));
@@ -75,7 +75,7 @@ public class AccountCheckerTest {
     @Test
     void checkForDuplicateEntityFalse(VertxTestContext testContext) {
         String username = "user";
-        Account account = TestObjectProvider.createAccount(1L, username, "password");
+        Account account = TestAccountProvider.createAccount(1L, username, "password");
 
         when(accountService.existsOneByUsername(username, false))
             .thenReturn(Single.just(false));
@@ -93,7 +93,7 @@ public class AccountCheckerTest {
     @Test
     void checkForDuplicateEntityTrue(VertxTestContext testContext) {
         String username = "user";
-        Account account = TestObjectProvider.createAccount(1L, username, "password");
+        Account account = TestAccountProvider.createAccount(1L, username, "password");
 
         when(accountService.existsOneByUsername(username, false))
             .thenReturn(Single.just(true));
@@ -112,7 +112,7 @@ public class AccountCheckerTest {
         String givenPassword = "password";
         PasswordUtility passwordUtility = new PasswordUtility();
         String hashPassword = passwordUtility.hashPassword(givenPassword.toCharArray());
-        Account account = TestObjectProvider.createAccount(1L, "user", hashPassword);
+        Account account = TestAccountProvider.createAccount(1L, "user", hashPassword);
 
         assertThatNoException().isThrownBy(() -> accountChecker
             .checkComparePasswords(JsonObject.mapFrom(account), givenPassword.toCharArray()));
@@ -123,7 +123,7 @@ public class AccountCheckerTest {
         String givenPassword = "password";
         PasswordUtility passwordUtility = new PasswordUtility();
         String hashPassword = passwordUtility.hashPassword(givenPassword.toCharArray());
-        Account account = TestObjectProvider.createAccount(1L, "user", hashPassword);
+        Account account = TestAccountProvider.createAccount(1L, "user", hashPassword);
 
         assertThrows(UnauthorizedException.class, () -> accountChecker
             .checkComparePasswords(JsonObject.mapFrom(account), (givenPassword + 1).toCharArray()));
@@ -133,7 +133,7 @@ public class AccountCheckerTest {
     void hashAccountPassword() {
         PasswordUtility passwordUtility = new PasswordUtility();
         String givenPassword = "password";
-        Account account = TestObjectProvider.createAccount(1L, "user", givenPassword);
+        Account account = TestAccountProvider.createAccount(1L, "user", givenPassword);
 
         JsonObject result = accountChecker.hashAccountPassword(JsonObject.mapFrom(account));
 

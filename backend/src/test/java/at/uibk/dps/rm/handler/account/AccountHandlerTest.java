@@ -5,7 +5,7 @@ import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.util.JWTAuthProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import at.uibk.dps.rm.util.PasswordUtility;
@@ -63,7 +63,7 @@ public class AccountHandlerTest {
     @Test
     void getOneExists(VertxTestContext testContext) {
         long accountId = 1L;
-        Account entity = TestObjectProvider.createAccount(1L, "user", "password");
+        Account entity = TestAccountProvider.createAccount(1L, "user", "password");
 
         RoutingContextMockHelper.mockUserPrincipal(rc, entity);
         when(accountChecker.checkFindOne(accountId)).thenReturn(Single.just(JsonObject.mapFrom(entity)));
@@ -82,7 +82,7 @@ public class AccountHandlerTest {
     @Test
     void getOneNotFound(VertxTestContext testContext) {
         long accountId = 1L;
-        Account account = TestObjectProvider.createAccount(1L, "user", "password");
+        Account account = TestAccountProvider.createAccount(1L, "user", "password");
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(accountChecker.checkFindOne(accountId)).thenReturn(Single.error(NotFoundException::new));
@@ -98,7 +98,7 @@ public class AccountHandlerTest {
 
     @Test
     void postOne(VertxTestContext testContext) {
-        Account entity = TestObjectProvider.createAccount(1L, "user", "password");
+        Account entity = TestAccountProvider.createAccount(1L, "user", "password");
         JsonObject requestBody = JsonObject.mapFrom(entity);
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
@@ -119,7 +119,7 @@ public class AccountHandlerTest {
 
     @Test
     void postOneAlreadyExists(VertxTestContext testContext) {
-        Account entity = TestObjectProvider.createAccount(1L, "user", "password");
+        Account entity = TestAccountProvider.createAccount(1L, "user", "password");
         JsonObject requestBody = JsonObject.mapFrom(entity);
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
@@ -140,7 +140,7 @@ public class AccountHandlerTest {
         long entityId = 1L;
         String oldPassword = "oldpassword";
         String newPassword = "newpassword";
-        Account entity = TestObjectProvider.createAccount(entityId, "user",
+        Account entity = TestAccountProvider.createAccount(entityId, "user",
             passwordUtility.hashPassword(oldPassword.toCharArray()));
         JsonObject entityJson = JsonObject.mapFrom(entity);
         JsonObject requestBody = new JsonObject("{\n" +
@@ -167,7 +167,7 @@ public class AccountHandlerTest {
         long entityId = 1L;
         String oldPassword = "oldpassword";
         String newPassword = "newpassword";
-        Account entity = TestObjectProvider.createAccount(entityId, "user",
+        Account entity = TestAccountProvider.createAccount(entityId, "user",
             passwordUtility.hashPassword(oldPassword.toCharArray()));
         JsonObject requestBody = new JsonObject("{\n" +
             "\"old_password\": \"" + oldPassword + "\",\n" +
@@ -193,7 +193,7 @@ public class AccountHandlerTest {
         long entityId = 1L;
         String oldPassword = "oldpassword";
         String newPassword = "newpassword";
-        Account entity = TestObjectProvider.createAccount(entityId, "user",
+        Account entity = TestAccountProvider.createAccount(entityId, "user",
             passwordUtility.hashPassword(oldPassword.toCharArray()));
         JsonObject entityJson = JsonObject.mapFrom(entity);
         JsonObject requestBody = new JsonObject("{\n" +
@@ -221,7 +221,7 @@ public class AccountHandlerTest {
         long accountId = 1L;
         String username = "user";
         String password = "password";
-        Account entity = TestObjectProvider.createAccount(accountId, username,
+        Account entity = TestAccountProvider.createAccount(accountId, username,
             passwordUtility.hashPassword(password.toCharArray()));
         JsonObject entityJson = JsonObject.mapFrom(entity);
         JsonObject requestBody = new JsonObject("{\n" +
@@ -252,7 +252,7 @@ public class AccountHandlerTest {
         long accountId = 1L;
         String username = "user";
         String password = "password";
-        Account entity = TestObjectProvider.createAccount(accountId, username,
+        Account entity = TestAccountProvider.createAccount(accountId, username,
             passwordUtility.hashPassword(password.toCharArray()));
         JsonObject requestBody = new JsonObject("{\n" +
             "\"username\": \"" + username + "\",\n" +
@@ -277,7 +277,7 @@ public class AccountHandlerTest {
         long accountId = 1L;
         String username = "user";
         String password = "password";
-        Account entity = TestObjectProvider.createAccount(accountId, username,
+        Account entity = TestAccountProvider.createAccount(accountId, username,
             passwordUtility.hashPassword(password.toCharArray()));
         JsonObject entityJson = JsonObject.mapFrom(entity);
         JsonObject requestBody = new JsonObject("{\n" +

@@ -3,7 +3,7 @@ package at.uibk.dps.rm.handler.resource;
 import at.uibk.dps.rm.entity.model.ResourceType;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceTypeService;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -36,7 +36,7 @@ public class ResourceTypeCheckerTest {
     @Test
     void checkForDuplicateEntityNotExists(VertxTestContext testContext) {
         String resourceTypeName = "cloud";
-        ResourceType resourceType = TestObjectProvider.createResourceType(1L, resourceTypeName);
+        ResourceType resourceType = TestResourceProvider.createResourceType(1L, resourceTypeName);
         JsonObject entity = JsonObject.mapFrom(resourceType);
 
         when(resourceTypeService.existsOneByResourceType(resourceTypeName)).thenReturn(Single.just(false));
@@ -54,7 +54,7 @@ public class ResourceTypeCheckerTest {
     @Test
     void checkForDuplicateEntityExists(VertxTestContext testContext) {
         String resourceTypeName = "cloud";
-        ResourceType resourceType = TestObjectProvider.createResourceType(1L, resourceTypeName);
+        ResourceType resourceType = TestResourceProvider.createResourceType(1L, resourceTypeName);
         JsonObject entity = JsonObject.mapFrom(resourceType);
 
         when(resourceTypeService.existsOneByResourceType(resourceTypeName)).thenReturn(Single.just(true));
@@ -71,7 +71,7 @@ public class ResourceTypeCheckerTest {
     @Test
     void checkUpdateNoDuplicateWithResourceTypeNotExists(VertxTestContext testContext) {
         String resourceTypeName = "cloud";
-        ResourceType resourceType = TestObjectProvider.createResourceType(1L, resourceTypeName);
+        ResourceType resourceType = TestResourceProvider.createResourceType(1L, resourceTypeName);
         JsonObject entity = JsonObject.mapFrom(resourceType);
 
         when(resourceTypeService.existsOneByResourceType(resourceTypeName)).thenReturn(Single.just(false));
@@ -90,7 +90,7 @@ public class ResourceTypeCheckerTest {
     @Test
     void checkUpdateNoDuplicateWithResourceTypeExists(VertxTestContext testContext) {
         String resourceTypeName = "cloud";
-        ResourceType resourceType = TestObjectProvider.createResourceType(1L, resourceTypeName);
+        ResourceType resourceType = TestResourceProvider.createResourceType(1L, resourceTypeName);
         JsonObject entity = JsonObject.mapFrom(resourceType);
 
         when(resourceTypeService.existsOneByResourceType(resourceTypeName)).thenReturn(Single.just(true));
@@ -107,7 +107,7 @@ public class ResourceTypeCheckerTest {
     @Test
     void checkUpdateNoDuplicateWithoutResource(VertxTestContext testContext) {
         String resourceTypeName = "cloud";
-        ResourceType resourceType = TestObjectProvider.createResourceType(1L, resourceTypeName);
+        ResourceType resourceType = TestResourceProvider.createResourceType(1L, resourceTypeName);
         JsonObject body = JsonObject.mapFrom(resourceType);
         body.remove("resource_type");
         JsonObject entity = JsonObject.mapFrom(resourceType);

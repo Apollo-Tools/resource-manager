@@ -2,7 +2,7 @@ package at.uibk.dps.rm.handler.resourceprovider;
 
 import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
@@ -43,9 +43,9 @@ public class ResourceProviderRegionHandlerTest {
     @Test
     void checkFindAllByProviderFound(VertxTestContext testContext) {
         long providerId = 1L;
-        Region region1 = TestObjectProvider.createRegion(1L, "us-east");
-        Region region2 = TestObjectProvider.createRegion(2L, "us-west");
-        Region region3 = TestObjectProvider.createRegion(3L, "eu-west");
+        Region region1 = TestResourceProviderProvider.createRegion(1L, "us-east");
+        Region region2 = TestResourceProviderProvider.createRegion(2L, "us-west");
+        Region region3 = TestResourceProviderProvider.createRegion(3L, "eu-west");
         JsonArray regionJson = new JsonArray(List.of(JsonObject.mapFrom(region1), JsonObject.mapFrom(region2),
             JsonObject.mapFrom(region3)));
 

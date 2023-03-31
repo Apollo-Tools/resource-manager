@@ -17,7 +17,7 @@ public class ArrayValidator<T> {
 
                 for (T t : collection) {
                     if (!uniques.add(t)) {
-                        throw new Throwable("slo array contains duplicates");
+                        throw new Throwable("duplicated input");
                     }
                 }
                 return Optional.empty();

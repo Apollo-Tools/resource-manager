@@ -2,7 +2,7 @@ package at.uibk.dps.rm.handler.resource;
 
 import at.uibk.dps.rm.entity.model.ResourceType;
 import at.uibk.dps.rm.exception.UsedByOtherEntityException;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.json.JsonObject;
@@ -41,7 +41,7 @@ public class ResourceTypeHandlerTest {
     @Test
     void checkDeleteEntityIsUsedFalse(VertxTestContext testContext) {
         long entityId = 1L;
-        ResourceType entity = TestObjectProvider.createResourceType(entityId, "vm");
+        ResourceType entity = TestResourceProvider.createResourceType(entityId, "vm");
 
         when(resourceChecker.checkOneUsedByResourceType(entityId)).thenReturn(Completable.complete());
 
@@ -55,7 +55,7 @@ public class ResourceTypeHandlerTest {
     @Test
     void checkDeleteEntityIsUsedTrue(VertxTestContext testContext) {
         long entityId = 1L;
-        ResourceType entity = TestObjectProvider.createResourceType(entityId, "vm");
+        ResourceType entity = TestResourceProvider.createResourceType(entityId, "vm");
 
         when(resourceChecker.checkOneUsedByResourceType(entityId))
             .thenReturn(Completable.error(UsedByOtherEntityException::new));

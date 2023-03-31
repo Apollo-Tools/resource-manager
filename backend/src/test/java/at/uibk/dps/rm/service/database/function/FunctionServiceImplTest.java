@@ -2,7 +2,7 @@ package at.uibk.dps.rm.service.database.function;
 
 import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.repository.function.FunctionRepository;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -37,7 +37,7 @@ public class FunctionServiceImplTest {
     @Test
     void findEntityExists(VertxTestContext testContext) {
         long functionId = 1L;
-        Function entity = TestObjectProvider.createFunction(functionId, "func","true");
+        Function entity = TestFunctionProvider.createFunction(functionId, "func","true");
         CompletionStage<Function> completionStage = CompletionStages.completedFuture(entity);
 
         when(functionRepository.findByIdAndFetch(functionId)).thenReturn(completionStage);
@@ -66,8 +66,8 @@ public class FunctionServiceImplTest {
 
     @Test
     void findAll(VertxTestContext testContext) {
-        Function f1 = TestObjectProvider.createFunction(1L, "func1", "true");
-        Function f2 = TestObjectProvider.createFunction(2L, "func2", "false");
+        Function f1 = TestFunctionProvider.createFunction(1L, "func1", "true");
+        Function f2 = TestFunctionProvider.createFunction(2L, "func2", "false");
         CompletionStage<List<Function>> completionStage = CompletionStages.completedFuture(List.of(f1, f2));
 
         when(functionRepository.findAllAndFetch()).thenReturn(completionStage);
@@ -86,7 +86,7 @@ public class FunctionServiceImplTest {
         long functionId = 1L;
         String name = "func";
         long runtimeId = 2L;
-        Function entity = TestObjectProvider.createFunction(functionId, name, "true");
+        Function entity = TestFunctionProvider.createFunction(functionId, name, "true");
         CompletionStage<Function> completionStage = CompletionStages.completedFuture(entity);
         when(functionRepository.findOneByNameAndRuntimeId(functionId, name, runtimeId)).thenReturn(completionStage);
 
@@ -116,7 +116,7 @@ public class FunctionServiceImplTest {
     void existsOneByNameAndRuntimeTrue(VertxTestContext testContext) {
         String name = "func";
         long runtimeId = 2L;
-        Function entity = TestObjectProvider.createFunction(1L, name, "true");
+        Function entity = TestFunctionProvider.createFunction(1L, name, "true");
         CompletionStage<Function> completionStage = CompletionStages.completedFuture(entity);
         when(functionRepository.findOneByNameAndRuntimeId(name, runtimeId)).thenReturn(completionStage);
 

@@ -8,7 +8,8 @@ import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.rxjava3.database.account.AccountCredentialsService;
 import at.uibk.dps.rm.testutil.SingleHelper;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
@@ -43,8 +44,8 @@ public class AccountCredentialsCheckerTest {
     @Test
     void checkForDuplicateEntityFalse(VertxTestContext testContext) {
         long accountId = 1L, providerId = 2L;
-        ResourceProvider resourceProvider = TestObjectProvider.createResourceProvider(providerId);
-        Credentials credentials = TestObjectProvider.createCredentials(1L, resourceProvider);
+        ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(providerId);
+        Credentials credentials = TestAccountProvider.createCredentials(1L, resourceProvider);
 
         when(accountCredentialsService.existsOneByAccountAndProvider(accountId, providerId))
             .thenReturn(Single.just(false));
@@ -61,8 +62,8 @@ public class AccountCredentialsCheckerTest {
     @Test
     void checkForDuplicateEntityTrue(VertxTestContext testContext) {
         long accountId = 1L, providerId = 2L;
-        ResourceProvider resourceProvider = TestObjectProvider.createResourceProvider(providerId);
-        Credentials credentials = TestObjectProvider.createCredentials(1L, resourceProvider);
+        ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(providerId);
+        Credentials credentials = TestAccountProvider.createCredentials(1L, resourceProvider);
 
         when(accountCredentialsService.existsOneByAccountAndProvider(accountId, providerId))
             .thenReturn(Single.just(true));
@@ -79,10 +80,10 @@ public class AccountCredentialsCheckerTest {
     @Test
     void checkFindOneByCredentialsAndAccountExists(VertxTestContext testContext) {
         long accountId = 1L, credentialsId = 2L, accountCredentialsId = 3L;
-        ResourceProvider resourceProvider = TestObjectProvider.createResourceProvider(1L);
-        Credentials credentials = TestObjectProvider.createCredentials(credentialsId, resourceProvider);
-        Account account = TestObjectProvider.createAccount(accountId);
-        AccountCredentials accountCredentials = TestObjectProvider
+        ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L);
+        Credentials credentials = TestAccountProvider.createCredentials(credentialsId, resourceProvider);
+        Account account = TestAccountProvider.createAccount(accountId);
+        AccountCredentials accountCredentials = TestAccountProvider
             .createAccountCredentials(accountCredentialsId, account, credentials);
 
         when(accountCredentialsService.findOneByCredentialsAndAccount(credentialsId, accountId))

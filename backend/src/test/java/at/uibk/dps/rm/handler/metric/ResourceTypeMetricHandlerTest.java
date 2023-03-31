@@ -3,7 +3,8 @@ package at.uibk.dps.rm.handler.metric;
 
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.handler.resource.ResourceTypeChecker;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestMetricProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
@@ -47,10 +48,10 @@ public class ResourceTypeMetricHandlerTest {
     @Test
     void getAllValid(VertxTestContext testContext) {
         long typeId = 1L;
-        JsonObject rt1 = JsonObject.mapFrom(TestObjectProvider.createResourceType(typeId, "vm"));
-        JsonObject m1 = JsonObject.mapFrom(TestObjectProvider.createMetric(1L, "cpu"));
-        JsonObject m2 = JsonObject.mapFrom(TestObjectProvider.createMetric(2L, "memory"));
-        JsonObject m3 = JsonObject.mapFrom(TestObjectProvider.createMetric(3L, "storage"));
+        JsonObject rt1 = JsonObject.mapFrom(TestResourceProvider.createResourceType(typeId, "vm"));
+        JsonObject m1 = JsonObject.mapFrom(TestMetricProvider.createMetric(1L, "cpu"));
+        JsonObject m2 = JsonObject.mapFrom(TestMetricProvider.createMetric(2L, "memory"));
+        JsonObject m3 = JsonObject.mapFrom(TestMetricProvider.createMetric(3L, "storage"));
         JsonArray required = new JsonArray(List.of(m1, m2));
         JsonArray optional = new JsonArray(List.of(m3));
 
@@ -77,9 +78,9 @@ public class ResourceTypeMetricHandlerTest {
     @Test
     void getAllOptionalNotFound(VertxTestContext testContext) {
         long typeId = 1L;
-        JsonObject rt1 = JsonObject.mapFrom(TestObjectProvider.createResourceType(typeId, "vm"));
-        JsonObject m1 = JsonObject.mapFrom(TestObjectProvider.createMetric(1L, "cpu"));
-        JsonObject m2 = JsonObject.mapFrom(TestObjectProvider.createMetric(2L, "memory"));
+        JsonObject rt1 = JsonObject.mapFrom(TestResourceProvider.createResourceType(typeId, "vm"));
+        JsonObject m1 = JsonObject.mapFrom(TestMetricProvider.createMetric(1L, "cpu"));
+        JsonObject m2 = JsonObject.mapFrom(TestMetricProvider.createMetric(2L, "memory"));
         JsonArray required = new JsonArray(List.of(m1, m2));
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(typeId));
@@ -99,7 +100,7 @@ public class ResourceTypeMetricHandlerTest {
     @Test
     void getAllRequiredNotFound(VertxTestContext testContext) {
         long typeId = 1L;
-        JsonObject rt1 = JsonObject.mapFrom(TestObjectProvider.createResourceType(typeId, "vm"));
+        JsonObject rt1 = JsonObject.mapFrom(TestResourceProvider.createResourceType(typeId, "vm"));
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(typeId));
         when(resourceTypeChecker.checkFindOne(typeId)).thenReturn(Single.just(rt1));

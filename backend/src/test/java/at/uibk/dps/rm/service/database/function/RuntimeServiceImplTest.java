@@ -2,7 +2,7 @@ package at.uibk.dps.rm.service.database.function;
 
 import at.uibk.dps.rm.entity.model.Runtime;
 import at.uibk.dps.rm.repository.function.RuntimeRepository;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -37,7 +37,7 @@ public class RuntimeServiceImplTest {
     void existsOneByNameTrue(VertxTestContext testContext) {
         String name = "python";
         long runtimeId = 1L;
-        Runtime entity = TestObjectProvider.createRuntime(runtimeId, name);
+        Runtime entity = TestFunctionProvider.createRuntime(runtimeId, name);
         CompletionStage<Runtime> completionStage = CompletionStages.completedFuture(entity);
         when(runtimeRepository.findByName(name)).thenReturn(completionStage);
 

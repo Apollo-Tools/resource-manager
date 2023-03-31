@@ -18,7 +18,7 @@ import at.uibk.dps.rm.service.rxjava3.database.reservation.ResourceReservationSt
 import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.VPCService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.SingleHelper;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.*;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -94,9 +94,9 @@ public class ReservationHandlerTest {
     @Test
     void getOneExistsAndIsActive(VertxTestContext testContext) {
         long reservationId = 1L;
-        Account account = TestObjectProvider.createAccount(1L);
-        Reservation reservation = TestObjectProvider.createReservation(1L, true, account);
-        JsonArray resourceReservations = new JsonArray(TestObjectProvider.createResourceReservationsJson(reservation));
+        Account account = TestAccountProvider.createAccount(1L);
+        Reservation reservation = TestReservationProvider.createReservation(1L, true, account);
+        JsonArray resourceReservations = new JsonArray(TestReservationProvider.createResourceReservationsJson(reservation));
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(reservationId));
@@ -126,8 +126,8 @@ public class ReservationHandlerTest {
     @Test
     void getOneExistsResourceReservationEmpty(VertxTestContext testContext) {
         long reservationId = 1L;
-        Account account = TestObjectProvider.createAccount(1L);
-        Reservation reservation = TestObjectProvider.createReservation(1L, true, account);
+        Account account = TestAccountProvider.createAccount(1L);
+        Reservation reservation = TestReservationProvider.createReservation(1L, true, account);
         JsonArray resourceReservations = new JsonArray(new ArrayList<JsonObject>());
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
@@ -149,8 +149,8 @@ public class ReservationHandlerTest {
     @Test
     void getOneExistsNotActive(VertxTestContext testContext) {
         long reservationId = 1L;
-        Account account = TestObjectProvider.createAccount(1L);
-        Reservation reservation = TestObjectProvider.createReservation(1L, false, account);
+        Account account = TestAccountProvider.createAccount(1L);
+        Reservation reservation = TestReservationProvider.createReservation(1L, false, account);
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(reservationId));
@@ -172,7 +172,7 @@ public class ReservationHandlerTest {
     void getOneNotFound(VertxTestContext testContext) {
         long reservationId = 1L;
         Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
-        Account account = TestObjectProvider.createAccount(1L);
+        Account account = TestAccountProvider.createAccount(1L);
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(reservationId));
@@ -189,21 +189,21 @@ public class ReservationHandlerTest {
 
     @Test
     void getAllValid(VertxTestContext testContext) {
-        Account account = TestObjectProvider.createAccount(1L);
-        Reservation r1 = TestObjectProvider.createReservation(1L, true, account);
-        Reservation r2 = TestObjectProvider.createReservation(2L, true, account);
-        Reservation r3 = TestObjectProvider.createReservation(3L, true, account);
-        ResourceReservationStatus rrsNew = TestObjectProvider.createResourceReservationStatusNew();
-        ResourceReservationStatus rrsError = TestObjectProvider.createResourceReservationStatusError();
-        ResourceReservationStatus rrsDeployed = TestObjectProvider.createResourceReservationStatusDeployed();
-        FunctionResource fr1 = TestObjectProvider.createFunctionResource(1L);
-        FunctionResource fr2 = TestObjectProvider.createFunctionResource(2L);
-        ResourceReservation rr1 = TestObjectProvider.createResourceReservation(1L, fr1, r1, rrsNew);
-        ResourceReservation rr2 = TestObjectProvider.createResourceReservation(2L, fr2, r1, rrsNew);
-        FunctionResource fr3 = TestObjectProvider.createFunctionResource(3L);
-        ResourceReservation rr3 = TestObjectProvider.createResourceReservation(3L, fr3, r2, rrsError);
-        FunctionResource fr4 = TestObjectProvider.createFunctionResource(4L);
-        ResourceReservation rr4 = TestObjectProvider.createResourceReservation(4L, fr4, r3, rrsDeployed);
+        Account account = TestAccountProvider.createAccount(1L);
+        Reservation r1 = TestReservationProvider.createReservation(1L, true, account);
+        Reservation r2 = TestReservationProvider.createReservation(2L, true, account);
+        Reservation r3 = TestReservationProvider.createReservation(3L, true, account);
+        ResourceReservationStatus rrsNew = TestReservationProvider.createResourceReservationStatusNew();
+        ResourceReservationStatus rrsError = TestReservationProvider.createResourceReservationStatusError();
+        ResourceReservationStatus rrsDeployed = TestReservationProvider.createResourceReservationStatusDeployed();
+        FunctionResource fr1 = TestFunctionProvider.createFunctionResource(1L);
+        FunctionResource fr2 = TestFunctionProvider.createFunctionResource(2L);
+        ResourceReservation rr1 = TestReservationProvider.createResourceReservation(1L, fr1, r1, rrsNew);
+        ResourceReservation rr2 = TestReservationProvider.createResourceReservation(2L, fr2, r1, rrsNew);
+        FunctionResource fr3 = TestFunctionProvider.createFunctionResource(3L);
+        ResourceReservation rr3 = TestReservationProvider.createResourceReservation(3L, fr3, r2, rrsError);
+        FunctionResource fr4 = TestFunctionProvider.createFunctionResource(4L);
+        ResourceReservation rr4 = TestReservationProvider.createResourceReservation(4L, fr4, r3, rrsDeployed);
         JsonArray reservations = new JsonArray(List.of(JsonObject.mapFrom(r1),
             JsonObject.mapFrom(r2), JsonObject.mapFrom(r3)));
 
@@ -233,7 +233,7 @@ public class ReservationHandlerTest {
 
     @Test
     void getAllEmptyValid(VertxTestContext testContext) {
-        Account account = TestObjectProvider.createAccount(1L);
+        Account account = TestAccountProvider.createAccount(1L);
         JsonArray reservations = new JsonArray(List.of());
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
@@ -250,7 +250,7 @@ public class ReservationHandlerTest {
 
     @Test
     void getAllNotFound(VertxTestContext testContext) {
-        Account account = TestObjectProvider.createAccount(1L);
+        Account account = TestAccountProvider.createAccount(1L);
         Single<JsonArray> handler = new SingleHelper<JsonArray>().getEmptySingle();
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
@@ -267,38 +267,38 @@ public class ReservationHandlerTest {
 
     @Test
     void postOneValid(VertxTestContext testContext) {
-        ResourceProvider aws = TestObjectProvider.createResourceProvider(1L, "aws");
-        ResourceProvider edge = TestObjectProvider.createResourceProvider(2L, "edge");
-        Region reg1 = TestObjectProvider.createRegion(1L, "us-east-1", aws);
-        Region reg2 = TestObjectProvider.createRegion(2L, "us-west-1", aws);
-        Region reg3 = TestObjectProvider.createRegion(3L, "edge", edge);
-        ResourceType rtFaas = TestObjectProvider.createResourceType(1L, "faas");
-        ResourceType rtVm = TestObjectProvider.createResourceType(2L, "vm");
-        ResourceType rtEdge = TestObjectProvider.createResourceType(3L, "edge");
+        ResourceProvider aws = TestResourceProviderProvider.createResourceProvider(1L, "aws");
+        ResourceProvider edge = TestResourceProviderProvider.createResourceProvider(2L, "edge");
+        Region reg1 = TestResourceProviderProvider.createRegion(1L, "us-east-1", aws);
+        Region reg2 = TestResourceProviderProvider.createRegion(2L, "us-west-1", aws);
+        Region reg3 = TestResourceProviderProvider.createRegion(3L, "edge", edge);
+        ResourceType rtFaas = TestResourceProvider.createResourceType(1L, "faas");
+        ResourceType rtVm = TestResourceProvider.createResourceType(2L, "vm");
+        ResourceType rtEdge = TestResourceProvider.createResourceType(3L, "edge");
 
-        Resource r1 = TestObjectProvider.createResource(1L, rtFaas, reg1, false);
-        Resource r2 = TestObjectProvider.createResource(2L, rtVm, reg2, false);
-        Resource r3 = TestObjectProvider.createResource(3L, rtEdge, reg3, true);
-        Function f1 = TestObjectProvider.createFunction(1L);
-        Function f2 = TestObjectProvider.createFunction(2L);
-        FunctionResource fr1 = TestObjectProvider.createFunctionResource(1L, f1, r1);
-        FunctionResource fr2 = TestObjectProvider.createFunctionResource(2L, f1, r2);
-        FunctionResource fr3 = TestObjectProvider.createFunctionResource(3L, f2, r2);
-        FunctionResource fr4 = TestObjectProvider.createFunctionResource(4L, f2, r3);
-        FunctionResourceIds ids1 = TestObjectProvider.createFunctionResourceIds(fr1);
-        FunctionResourceIds ids2 = TestObjectProvider.createFunctionResourceIds(fr2);
-        FunctionResourceIds ids3 = TestObjectProvider.createFunctionResourceIds(fr3);
-        FunctionResourceIds ids4 = TestObjectProvider.createFunctionResourceIds(fr4);
+        Resource r1 = TestResourceProvider.createResource(1L, rtFaas, reg1, false);
+        Resource r2 = TestResourceProvider.createResource(2L, rtVm, reg2, false);
+        Resource r3 = TestResourceProvider.createResource(3L, rtEdge, reg3, true);
+        Function f1 = TestFunctionProvider.createFunction(1L);
+        Function f2 = TestFunctionProvider.createFunction(2L);
+        FunctionResource fr1 = TestFunctionProvider.createFunctionResource(1L, f1, r1);
+        FunctionResource fr2 = TestFunctionProvider.createFunctionResource(2L, f1, r2);
+        FunctionResource fr3 = TestFunctionProvider.createFunctionResource(3L, f2, r2);
+        FunctionResource fr4 = TestFunctionProvider.createFunctionResource(4L, f2, r3);
+        FunctionResourceIds ids1 = TestFunctionProvider.createFunctionResourceIds(fr1);
+        FunctionResourceIds ids2 = TestFunctionProvider.createFunctionResourceIds(fr2);
+        FunctionResourceIds ids3 = TestFunctionProvider.createFunctionResourceIds(fr3);
+        FunctionResourceIds ids4 = TestFunctionProvider.createFunctionResourceIds(fr4);
         List<FunctionResourceIds> ids = List.of(ids1, ids2, ids3, ids4);
-        DockerCredentials dockerCredentials = TestObjectProvider.createDockerCredentials();
-        ReserveResourcesRequest request = TestObjectProvider.createReserveResourcesRequest(ids, dockerCredentials);
+        DockerCredentials dockerCredentials = TestDTOProvider.createDockerCredentials();
+        ReserveResourcesRequest request = TestRequestProvider.createReserveResourcesRequest(ids, dockerCredentials);
         JsonObject requestBody = JsonObject.mapFrom(request);
-        Account account = TestObjectProvider.createAccount(1L);
-        Reservation reservation = TestObjectProvider.createReservation(1L, true, account);
+        Account account = TestAccountProvider.createAccount(1L);
+        Reservation reservation = TestReservationProvider.createReservation(1L, true, account);
         JsonObject reservationJson = JsonObject.mapFrom(reservation);
-        VPC vpc1 = TestObjectProvider.createVPC(1L, reg1, account);
-        VPC vpc2 = TestObjectProvider.createVPC(2L, reg2, account);
-        ResourceReservationStatus statusNew = TestObjectProvider.createResourceReservationStatusNew();
+        VPC vpc1 = TestResourceProviderProvider.createVPC(1L, reg1, account);
+        VPC vpc2 = TestResourceProviderProvider.createVPC(2L, reg2, account);
+        ResourceReservationStatus statusNew = TestReservationProvider.createResourceReservationStatusNew();
 
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
@@ -342,13 +342,13 @@ public class ReservationHandlerTest {
 
     @Test
     void postOneNoCredentialsExist(VertxTestContext testContext) {
-        Account account = TestObjectProvider.createAccount(1L);
-        FunctionResource functionResource = TestObjectProvider.createFunctionResource(1L);
-        VPC vpc = TestObjectProvider.createVPC(1L, account);
-        FunctionResourceIds ids = TestObjectProvider.createFunctionResourceIds(1L,
+        Account account = TestAccountProvider.createAccount(1L);
+        FunctionResource functionResource = TestFunctionProvider.createFunctionResource(1L);
+        VPC vpc = TestResourceProviderProvider.createVPC(1L, account);
+        FunctionResourceIds ids = TestFunctionProvider.createFunctionResourceIds(1L,
             functionResource.getResource().getResourceId());
         List<FunctionResourceIds> functionResourceIds = List.of(ids);
-        ReserveResourcesRequest request = TestObjectProvider.createReserveResourcesRequest(functionResourceIds);
+        ReserveResourcesRequest request = TestRequestProvider.createReserveResourcesRequest(functionResourceIds);
         JsonObject requestBody = JsonObject.mapFrom(request);
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
@@ -373,10 +373,10 @@ public class ReservationHandlerTest {
 
     @Test
     void postOneFunctionResourceNotExists(VertxTestContext testContext) {
-        Account account = TestObjectProvider.createAccount(1L);
-        FunctionResourceIds ids = TestObjectProvider.createFunctionResourceIds(1L, 2L);
+        Account account = TestAccountProvider.createAccount(1L);
+        FunctionResourceIds ids = TestFunctionProvider.createFunctionResourceIds(1L, 2L);
         List<FunctionResourceIds> functionResourceIds = List.of(ids);
-        ReserveResourcesRequest request = TestObjectProvider.createReserveResourcesRequest(functionResourceIds);
+        ReserveResourcesRequest request = TestRequestProvider.createReserveResourcesRequest(functionResourceIds);
         JsonObject requestBody = JsonObject.mapFrom(request);
         Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
 
@@ -397,8 +397,8 @@ public class ReservationHandlerTest {
     @Test
     void updateOneValid(VertxTestContext testContext) {
         long reservationId = 1L;
-        Account account = TestObjectProvider.createAccount(1L);
-        Reservation reservation = TestObjectProvider.createReservation(1L, true, account);
+        Account account = TestAccountProvider.createAccount(1L);
+        Reservation reservation = TestReservationProvider.createReservation(1L, true, account);
         JsonObject reservationJson = JsonObject.mapFrom(reservation);
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
@@ -423,7 +423,7 @@ public class ReservationHandlerTest {
     @Test
     void updateOneNotFound(VertxTestContext testContext) {
         long reservationId = 1L;
-        Account account = TestObjectProvider.createAccount(1L);
+        Account account = TestAccountProvider.createAccount(1L);
         Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);

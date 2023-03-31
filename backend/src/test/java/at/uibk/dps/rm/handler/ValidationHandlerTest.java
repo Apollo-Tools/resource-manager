@@ -5,7 +5,7 @@ import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.handler.resource.ResourceTypeChecker;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -123,8 +123,8 @@ public class ValidationHandlerTest {
 
     @Test
     void getAll(VertxTestContext testContext) {
-        ResourceType entity1 = TestObjectProvider.createResourceType(1L, "faas");
-        ResourceType entity2 = TestObjectProvider.createResourceType(2L, "vm");
+        ResourceType entity1 = TestResourceProvider.createResourceType(1L, "faas");
+        ResourceType entity2 = TestResourceProvider.createResourceType(2L, "vm");
         List<JsonObject> entities = new ArrayList<>();
         entities.add(JsonObject.mapFrom(entity1));
         entities.add(JsonObject.mapFrom(entity2));
@@ -161,7 +161,7 @@ public class ValidationHandlerTest {
 
     @Test
     void postOne(VertxTestContext testContext) {
-        JsonObject requestBody = JsonObject.mapFrom(TestObjectProvider.createResourceType(1L, "vm"));
+        JsonObject requestBody = JsonObject.mapFrom(TestResourceProvider.createResourceType(1L, "vm"));
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
         when(resourceTypeChecker.checkForDuplicateEntity(requestBody)).thenReturn(Completable.complete());
@@ -179,7 +179,7 @@ public class ValidationHandlerTest {
 
     @Test
     void postOneAlreadyExists(VertxTestContext testContext) {
-        JsonObject requestBody = JsonObject.mapFrom(TestObjectProvider.createResourceType(1L, "vm"));
+        JsonObject requestBody = JsonObject.mapFrom(TestResourceProvider.createResourceType(1L, "vm"));
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
         when(resourceTypeChecker.checkForDuplicateEntity(requestBody))
@@ -216,8 +216,8 @@ public class ValidationHandlerTest {
     @Test
     void updateOneExists(VertxTestContext testContext) {
         long entityId = 1L;
-        JsonObject requestBody = JsonObject.mapFrom(TestObjectProvider.createResourceType(1L, "vm"));
-        JsonObject result = JsonObject.mapFrom(TestObjectProvider.createResourceType(1L, "edge"));
+        JsonObject requestBody = JsonObject.mapFrom(TestResourceProvider.createResourceType(1L, "vm"));
+        JsonObject result = JsonObject.mapFrom(TestResourceProvider.createResourceType(1L, "edge"));
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
@@ -235,7 +235,7 @@ public class ValidationHandlerTest {
     @Test
     void updateOneNotFound(VertxTestContext testContext) {
         long entityId = 1L;
-        JsonObject requestBody = JsonObject.mapFrom(TestObjectProvider.createResourceType(1L, "vm"));
+        JsonObject requestBody = JsonObject.mapFrom(TestResourceProvider.createResourceType(1L, "vm"));
 
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
@@ -254,8 +254,8 @@ public class ValidationHandlerTest {
     @Test
     void updateOneAlreadyExists(VertxTestContext testContext) {
         long entityId = 1L;
-        JsonObject requestBody = JsonObject.mapFrom(TestObjectProvider.createResourceType(1L, "vm"));
-        JsonObject result = JsonObject.mapFrom(TestObjectProvider.createResourceType(1L, "edge"));
+        JsonObject requestBody = JsonObject.mapFrom(TestResourceProvider.createResourceType(1L, "vm"));
+        JsonObject result = JsonObject.mapFrom(TestResourceProvider.createResourceType(1L, "edge"));
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));

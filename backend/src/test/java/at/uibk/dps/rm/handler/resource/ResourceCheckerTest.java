@@ -6,7 +6,8 @@ import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UsedByOtherEntityException;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
 import at.uibk.dps.rm.testutil.SingleHelper;
-import at.uibk.dps.rm.testutil.TestObjectProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
@@ -44,9 +45,9 @@ public class ResourceCheckerTest {
 
     @Test
     void checkFindAllUnreservedFound(VertxTestContext testContext) {
-        Resource resource1 = TestObjectProvider.createResource(1L);
-        Resource resource2 = TestObjectProvider.createResource(2L);
-        Resource resource3 = TestObjectProvider.createResource(3L);
+        Resource resource1 = TestResourceProvider.createResource(1L);
+        Resource resource2 = TestResourceProvider.createResource(2L);
+        Resource resource3 = TestResourceProvider.createResource(3L);
         JsonArray resourcesJson = new JsonArray(List.of(JsonObject.mapFrom(resource1), JsonObject.mapFrom(resource2),
             JsonObject.mapFrom(resource3)));
 
@@ -99,10 +100,10 @@ public class ResourceCheckerTest {
     // TODO: refine
     @Test
     void checkFindAllBySLOs(VertxTestContext testContext) {
-        Function function = TestObjectProvider.createFunction(1L, "foo", "true");
-        Resource resource1 = TestObjectProvider.createResource(1L);
-        Resource resource2 = TestObjectProvider.createResource(2L);
-        Resource resource3 = TestObjectProvider.createResource(3L);
+        Function function = TestFunctionProvider.createFunction(1L, "foo", "true");
+        Resource resource1 = TestResourceProvider.createResource(1L);
+        Resource resource2 = TestResourceProvider.createResource(2L);
+        Resource resource3 = TestResourceProvider.createResource(3L);
         JsonArray resourcesJson = new JsonArray(List.of(JsonObject.mapFrom(resource1), JsonObject.mapFrom(resource2),
             JsonObject.mapFrom(resource3)));
         List<String> metrics = List.of("availability", "bandwidth");
@@ -127,7 +128,7 @@ public class ResourceCheckerTest {
 
     @Test
     void checkFindAllBySLOsEmpty(VertxTestContext testContext) {
-        Function function = TestObjectProvider.createFunction(1L, "foo", "true");
+        Function function = TestFunctionProvider.createFunction(1L, "foo", "true");
         JsonArray resourcesJson = new JsonArray(List.of());
         List<String> metrics = List.of("availability", "bandwidth");
         List<String> regions = new ArrayList<>();
@@ -148,7 +149,7 @@ public class ResourceCheckerTest {
 
     @Test
     void checkFindAllBySLOsNotFound(VertxTestContext testContext) {
-        Function function = TestObjectProvider.createFunction(1L, "foo", "true");
+        Function function = TestFunctionProvider.createFunction(1L, "foo", "true");
         List<String> metrics = List.of("availability", "bandwidth");
         List<String> regions = new ArrayList<>();
         List<Long> resourceProviders = new ArrayList<>();
@@ -170,9 +171,9 @@ public class ResourceCheckerTest {
     @Test
     void checkFindAllByFunctionIdFound(VertxTestContext testContext) {
         long functionId = 1L;
-        Resource resource1 = TestObjectProvider.createResource(1L);
-        Resource resource2 = TestObjectProvider.createResource(2L);
-        Resource resource3 = TestObjectProvider.createResource(3L);
+        Resource resource1 = TestResourceProvider.createResource(1L);
+        Resource resource2 = TestResourceProvider.createResource(2L);
+        Resource resource3 = TestResourceProvider.createResource(3L);
         JsonArray resourcesJson = new JsonArray(List.of(JsonObject.mapFrom(resource1), JsonObject.mapFrom(resource2),
             JsonObject.mapFrom(resource3)));
 
