@@ -4,11 +4,11 @@ import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.entity.model.FunctionResource;
 import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.entity.model.Resource;
+import at.uibk.dps.rm.util.MetricValueMapper;
 import io.vertx.rxjava3.core.file.FileSystem;
 
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class EdgeFileService extends TerraformFileService {
     private final List<FunctionResource> functionResources;
@@ -29,7 +29,7 @@ public class EdgeFileService extends TerraformFileService {
 
     @Override
     protected String getProviderString() {
-        return null;
+        return "";
     }
 
     @Override
@@ -45,10 +45,7 @@ public class EdgeFileService extends TerraformFileService {
             if (!resource.getResourceType().getResourceType().equals("edge")) {
                 continue;
             }
-            Map<String, MetricValue> metricValues = resource.getMetricValues()
-                .stream()
-                .collect(Collectors.toMap(metricValue -> metricValue.getMetric().getMetric(),
-                    metricValue -> metricValue));
+            Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
             String runtime = function.getRuntime().getName().toLowerCase();
             String functionIdentifier =  function.getName().toLowerCase() +
                 "_" + runtime.replace(".", "");
@@ -74,7 +71,7 @@ public class EdgeFileService extends TerraformFileService {
 
     @Override
     protected String getCredentialVariablesString() {
-        return null;
+        return "";
     }
 
     @Override
@@ -90,21 +87,27 @@ public class EdgeFileService extends TerraformFileService {
     @Override
     protected String getOutputString() {
         StringBuilder functionNames = new StringBuilder(), functionModuleOutputs = new StringBuilder();
+        int edgeCount = 0;
         for (FunctionResource functionResource : functionResources) {
             Resource resource = functionResource.getResource();
             Function function = functionResource.getFunction();
             if (!resource.getResourceType().getResourceType().equals("edge")) {
                 continue;
             }
+            edgeCount ++;
             String runtime = function.getRuntime().getName().toLowerCase();
             String functionIdentifier = "r" + resource.getResourceId() + "_" + function.getName().toLowerCase() +
                 "_" + runtime.replace(".", "");
             functionNames.append(String.format("\"%s\",", functionIdentifier));
             functionModuleOutputs.append(String.format("module.%s.function_url,", functionIdentifier));
         }
+        if (edgeCount == 0) {
+            return "";
+        }
+
         return String.format("output \"edge_urls\" {\n" +
             "  value = zipmap([%s], [%s])\n" +
-            "}", functionNames, functionModuleOutputs);
+            "}\n", functionNames, functionModuleOutputs);
     }
 
     @Override

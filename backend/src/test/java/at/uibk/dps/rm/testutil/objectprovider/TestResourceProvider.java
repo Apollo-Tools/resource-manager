@@ -55,7 +55,7 @@ public class TestResourceProvider {
         return resource;
     }
 
-    public static Resource createResourceEdge(long id, Double timeout, Double memorySize) {
+    public static Resource createResourceEdge(long id, String gatewayUrl, String openFaasUser, String openfaasPw) {
         Resource resource = new Resource();
         resource.setResourceId(id);
         ResourceType rt = createResourceType(2L, "edge");
@@ -64,12 +64,14 @@ public class TestResourceProvider {
         Region region = TestResourceProviderProvider.createRegion(2L, "edge", provider);
         resource.setRegion(region);
         resource.setIsSelfManaged(false);
-        MetricType mt = TestMetricProvider.createMetricType(1L, "number");
-        Metric m1 = TestMetricProvider.createMetric(1L, "timeout", mt, false);
-        Metric m2 = TestMetricProvider.createMetric(2L, "memory-size", mt, false);
-        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, m1, timeout);
-        MetricValue mv2 = TestMetricProvider.createMetricValue(2L, m2, memorySize);
-        resource.setMetricValues(Set.of(mv1, mv2));
+        MetricType mt = TestMetricProvider.createMetricType(1L, "string");
+        Metric m1 = TestMetricProvider.createMetric(1L, "gateway-url", mt, false);
+        Metric m2 = TestMetricProvider.createMetric(2L, "openfaas-user", mt, false);
+        Metric m3 = TestMetricProvider.createMetric(3L, "openfaas-pw", mt, false);
+        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, m1, gatewayUrl);
+        MetricValue mv2 = TestMetricProvider.createMetricValue(2L, m2, openFaasUser);
+        MetricValue mv3 = TestMetricProvider.createMetricValue(3L, m3, openfaasPw);
+        resource.setMetricValues(Set.of(mv1, mv2, mv3));
         return resource;
     }
 
