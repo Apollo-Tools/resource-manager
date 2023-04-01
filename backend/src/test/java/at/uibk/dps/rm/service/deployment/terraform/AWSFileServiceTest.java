@@ -4,10 +4,8 @@ import at.uibk.dps.rm.entity.model.Runtime;
 import at.uibk.dps.rm.exception.RuntimeNotSupportedException;
 import at.uibk.dps.rm.testutil.objectprovider.TestFileServiceProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
-import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.rxjava3.core.Vertx;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -20,11 +18,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
 public class AWSFileServiceTest {
-
-    @BeforeEach
-    void initTest() {
-        JsonMapperConfig.configJsonMapper();
-    }
 
     @Test
     void getProviderString(Vertx vertx) {

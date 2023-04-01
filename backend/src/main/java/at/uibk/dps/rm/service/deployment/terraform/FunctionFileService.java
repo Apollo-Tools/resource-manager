@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.entity.model.FunctionResource;
+import at.uibk.dps.rm.exception.RuntimeNotSupportedException;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackagePythonCode;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackageSourceCode;
 import io.reactivex.rxjava3.core.Completable;
@@ -64,6 +65,8 @@ public class FunctionFileService {
                             "    image: %s/%s:latest\n", functionIdentifier, functionIdentifier,
                         dockerCredentials.getUsername(), functionIdentifier));
                 }
+            } else {
+                return Single.error(RuntimeNotSupportedException::new);
             }
             functionIds.add(function.getFunctionId());
             functionsToDeploy.getFunctionIdentifiers().add(functionIdentifier);

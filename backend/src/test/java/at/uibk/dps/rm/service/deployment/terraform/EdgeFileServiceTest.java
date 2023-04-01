@@ -1,10 +1,8 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
 import at.uibk.dps.rm.testutil.objectprovider.TestFileServiceProvider;
-import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.rxjava3.core.Vertx;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -14,12 +12,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
 public class EdgeFileServiceTest {
-
-    @BeforeEach
-    void initTest() {
-        JsonMapperConfig.configJsonMapper();
-    }
-
     @Test
     void getProviderString(Vertx vertx) {
         EdgeFileService service = TestFileServiceProvider.createEdgeFileServiceEdge(vertx.fileSystem());

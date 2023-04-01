@@ -57,11 +57,6 @@ public abstract class TerraformFileService {
         return fileSystem.writeFile(filePath.toString(), Buffer.buffer(fileContent));
     }
 
-    /*** Getter ***/
-    protected Path getRootFolder() {
-        return this.rootFolder;
-    }
-
     public static Completable deleteAllDirs(FileSystem fileSystem, Path rootFolder) {
         return fileSystem.deleteRecursive(rootFolder.toString(), true);
     }

@@ -2,14 +2,18 @@ package at.uibk.dps.rm.testutil.objectprovider;
 
 import at.uibk.dps.rm.entity.deployment.CloudProvider;
 import at.uibk.dps.rm.entity.deployment.TerraformModule;
+import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.model.Runtime;
 import at.uibk.dps.rm.service.deployment.terraform.AWSFileService;
 import at.uibk.dps.rm.service.deployment.terraform.EdgeFileService;
+import at.uibk.dps.rm.service.deployment.terraform.FunctionFileService;
+import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.file.FileSystem;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 public class TestFileServiceProvider {
@@ -109,5 +113,72 @@ public class TestFileServiceProvider {
         Resource r2 = TestResourceProvider.createResourceVM(2L, region, "t2.micro");
         Resource r3 = TestResourceProvider.createResourceVM(3L, region, "t2.large");
         return createEdgeFileService(fileSystem, r1, r2, r3, runtime);
+    }
+
+    public static FunctionFileService createFunctionFileService(Vertx vertx, Resource r1, Resource r2, Function f1,
+                                                                Function f2) {
+        FunctionResource fr1 = TestFunctionProvider.createFunctionResource(1L, f1, r1);
+        FunctionResource fr2 = TestFunctionProvider.createFunctionResource(2L, f2, r2);
+        List<FunctionResource> functionResources = List.of(fr1, fr2);
+        DockerCredentials credentials = new DockerCredentials();
+        credentials.setUsername("user");
+        credentials.setAccessToken("access-token");
+        Path functionsDir = Paths.get("temp\\test\\functions");
+        return new FunctionFileService(vertx, functionResources, functionsDir, credentials);
+    }
+
+    public static FunctionFileService createFunctionFileServiceNoFunctions(Vertx vertx) {
+        List<FunctionResource> functionResources = new ArrayList<>();
+        DockerCredentials credentials = new DockerCredentials();
+        credentials.setUsername("user");
+        credentials.setAccessToken("access-token");
+        Path functionsDir = Paths.get("temp\\test\\functions");
+        return new FunctionFileService(vertx, functionResources, functionsDir, credentials);
+    }
+
+    public static FunctionFileService createFunctionFileServiceFaasVMPython(Vertx vertx) {
+        ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
+        Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
+        Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");
+        Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime);
+        Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime);
+        Resource r1 = TestResourceProvider.createResourceFaaS(1L, region, 250.0, 512.0);
+        Resource r2 = TestResourceProvider.createResourceVM(2L, region, "t2.micro");
+        return createFunctionFileService(vertx, r1, r2, f1, f2);
+    }
+
+    public static FunctionFileService createFunctionFileServiceVMEdgePython(Vertx vertx) {
+        ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
+        Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
+        Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");
+        Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime);
+        Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime);
+        Resource r1 = TestResourceProvider.createResourceEdge(1L, "http://localhost:8081", "user1",
+            "pw1");
+        Resource r2 = TestResourceProvider.createResourceVM(2L, region, "t2.micro");
+        return createFunctionFileService(vertx, r1, r2, f1, f2);
+    }
+
+    public static FunctionFileService createFunctionFileServiceVMEdgeInvalidRuntime(Vertx vertx) {
+        ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
+        Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
+        Runtime runtime = TestFunctionProvider.createRuntime(1L, "invalid");
+        Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime);
+        Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime);
+        Resource r1 = TestResourceProvider.createResourceEdge(1L, "http://localhost:8081", "user1",
+            "pw1");
+        Resource r2 = TestResourceProvider.createResourceVM(2L, region, "t2.micro");
+        return createFunctionFileService(vertx, r1, r2, f1, f2);
+    }
+
+    public static FunctionFileService createFunctionFileServiceFunctionTwicePython(Vertx vertx) {
+        ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
+        Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
+        Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");
+        Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime);
+        Resource r1 = TestResourceProvider.createResourceEdge(1L, "http://localhost:8081", "user1",
+            "pw1");
+        Resource r2 = TestResourceProvider.createResourceVM(2L, region, "t2.micro");
+        return createFunctionFileService(vertx, r1, r2, f1, f1);
     }
 }

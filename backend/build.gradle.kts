@@ -65,7 +65,7 @@ dependencies {
   testImplementation("io.vertx:vertx-junit5-rx-java3:$vertxVersion")
   testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
   testImplementation("org.assertj:assertj-core:3.23.1")
-  testImplementation("org.mockito:mockito-core:3.+")
+  testImplementation("org.mockito:mockito-inline:3.+")
   testImplementation("org.mockito:mockito-junit-jupiter:4.8.0")
 }
 
