@@ -8,6 +8,7 @@ import at.uibk.dps.rm.entity.model.Runtime;
 import at.uibk.dps.rm.service.deployment.terraform.AWSFileService;
 import at.uibk.dps.rm.service.deployment.terraform.EdgeFileService;
 import at.uibk.dps.rm.service.deployment.terraform.FunctionFileService;
+import at.uibk.dps.rm.service.deployment.terraform.MainFileService;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.file.FileSystem;
 
@@ -180,5 +181,10 @@ public class TestFileServiceProvider {
             "pw1");
         Resource r2 = TestResourceProvider.createResourceVM(2L, region, "t2.micro");
         return createFunctionFileService(vertx, r1, r2, f1, f1);
+    }
+
+    public static MainFileService createMainFileService(FileSystem fileSystem, List<TerraformModule> terraformModules) {
+        Path rootFolder = Paths.get("temp\\test");
+        return new MainFileService(fileSystem, rootFolder, terraformModules);
     }
 }

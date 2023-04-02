@@ -36,10 +36,8 @@ public class MainFileService extends TerraformFileService {
         StringBuilder variables = new StringBuilder();
         for (TerraformModule module : modules) {
             CloudProvider cloudProvider = module.getCloudProvider();
-            if (cloudProviders.contains(cloudProvider)) {
+            if (!cloudProviders.add(cloudProvider)) {
                 continue;
-            } else {
-                cloudProviders.add(cloudProvider);
             }
             if (cloudProvider.equals(CloudProvider.EDGE)) {
                 variables.append(
@@ -102,9 +100,7 @@ public class MainFileService extends TerraformFileService {
         for (TerraformModule module : modules) {
             functionsOutput.append(module.getFunctionsString());
             vmOutput.append(module.getVMString());
-            if (module.getHasEdge()) {
-                edgeOutput = module.getEdgeString();
-            }
+            edgeOutput = module.getEdgeString();
         }
         if (edgeOutput.isBlank()) {
             edgeOutput = "{}";
