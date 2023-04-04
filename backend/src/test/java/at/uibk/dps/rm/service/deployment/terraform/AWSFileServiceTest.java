@@ -41,6 +41,8 @@ public class AWSFileServiceTest {
         String r1f1 = "r1_" + f1 + "_1";
         String functionsPath = Paths.get("temp\\test\\functions\\").toAbsolutePath().toString();
         String r1f1Path = (functionsPath + "\\" + f1 + ".zip").replace("\\", "/");
+        System.out.println(r1f1Path);
+        System.out.println(result);
         assertThat(result).isEqualTo(String.format("module \"faas\" {\n" +
             "  source = \"../../../terraform/aws/faas\"\n" +
             "  names = [\"%s\",]\n" +
@@ -194,8 +196,11 @@ public class AWSFileServiceTest {
 
     @Test
     void getMainFileContent(Vertx vertx) {
+        String rootFolder = Paths.get("temp\\test").toAbsolutePath().toString().replace("\\", "/");
         AWSFileService service = TestFileServiceProvider.createAWSFileServiceFaasVMEdge(vertx.fileSystem());
         String result = service.getMainFileContent();
+        System.out.println(rootFolder);
+        System.out.println(result);
 
         assertThat(result).isEqualTo(
             "provider \"aws\" {\n" +
@@ -207,7 +212,7 @@ public class AWSFileServiceTest {
             "module \"faas\" {\n" +
             "  source = \"../../../terraform/aws/faas\"\n" +
             "  names = [\"r1_foo1_python39_1\",]\n" +
-            "  paths = [\"C:/Users/matthiasga/Documents/resource-manager/backend/temp/test/functions/foo1_python39.zip\",]\n" +
+            "  paths = [\"" + rootFolder + "/functions/foo1_python39.zip\",]\n" +
             "  handlers = [\"main.handler\",]\n" +
             "  timeouts = [250.0,]\n" +
             "  memory_sizes = [512.0,]\n" +
