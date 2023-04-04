@@ -13,6 +13,7 @@ import io.vertx.rxjava3.core.Vertx;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -45,9 +46,9 @@ public class TerraformSetupService {
         this.credentials = credentials;
     }
 
-    public List<Single<TerraformModule>> setUpTFModuleDirs() {
+    public Single<List<TerraformModule>> setUpTFModuleDirs() {
         if (deployRequest == null) {
-            throw new IllegalStateException("deployRequest must not be null");
+            return Single.error(new IllegalStateException("deployRequest must not be null"));
         }
         Map<Region, List<FunctionResource>> functionResources = RegionMapper
             .mapFunctionResources(deployRequest.getFunctionResources());
@@ -66,7 +67,9 @@ public class TerraformSetupService {
                 composeCloudLoginData(deployRequest.getCredentialsList(), region);
             }
         }
-        return singles;
+
+        return Single.zip(singles, objects -> Arrays.stream(objects).map(object -> (TerraformModule) object)
+            .collect(Collectors.toList()));
     }
 
     public DeploymentCredentials getDeploymentCredentials() {

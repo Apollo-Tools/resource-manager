@@ -20,7 +20,8 @@ public class TestResourceProviderProvider {
     }
 
     public static Region createRegion(long id, String name) {
-        return createRegion(id, name, new ResourceProvider());
+        ResourceProvider rp = createResourceProvider(1L, "aws");
+        return createRegion(id, name, rp);
     }
 
     public static Region createRegion(long id, String name, ResourceProvider resourceProvider) {

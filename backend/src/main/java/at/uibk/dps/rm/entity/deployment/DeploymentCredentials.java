@@ -11,7 +11,7 @@ import java.util.List;
 
 @Data
 @NoArgsConstructor
-@DataObject(generateConverter = true, publicConverter = false)
+@DataObject
 public class DeploymentCredentials {
 
     public DeploymentCredentials(JsonObject jsonObject) {

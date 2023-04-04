@@ -2,7 +2,6 @@ package at.uibk.dps.rm.service.deployment;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
-import at.uibk.dps.rm.entity.deployment.TerraformModule;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.dto.TerminateResourcesRequest;
 import at.uibk.dps.rm.service.deployment.terraform.FunctionFileService;
@@ -16,10 +15,6 @@ import io.vertx.core.Promise;
 import io.vertx.rxjava3.CompletableHelper;
 import io.vertx.rxjava3.SingleHelper;
 import io.vertx.rxjava3.core.Vertx;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class DeploymentServiceImpl  implements DeploymentService {
 
@@ -39,9 +34,8 @@ public class DeploymentServiceImpl  implements DeploymentService {
         DeploymentPath deploymentPath = new DeploymentPath(deployRequest.getReservation().getReservationId());
         TerraformSetupService tfSetupService = new TerraformSetupService(vertx, deployRequest,
             deploymentPath, credentials);
-        List<Single<TerraformModule>> singles = tfSetupService.setUpTFModuleDirs();
-        Single<DeploymentCredentials> createTFDirs = Single.zip(singles, objects -> Arrays.stream(objects).map(object -> (TerraformModule) object)
-            .collect(Collectors.toList()))
+        Single<DeploymentCredentials> createTFDirs = tfSetupService
+            .setUpTFModuleDirs()
             .flatMapCompletable(tfModules -> {
                 // TF: main files
                 MainFileService mainFileService = new MainFileService(vertx.fileSystem(), deploymentPath.getRootFolder()

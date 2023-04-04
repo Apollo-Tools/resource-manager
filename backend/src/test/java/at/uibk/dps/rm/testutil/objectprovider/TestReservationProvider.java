@@ -25,6 +25,11 @@ public class TestReservationProvider {
         return  reservation;
     }
 
+    public static Reservation createReservation(long id) {
+        Account account = TestAccountProvider.createAccount(1L);
+        return createReservation(id, true, account);
+    }
+
     public static ResourceReservationStatus createResourceReservationStatus(long id, ReservationStatusValue status) {
         ResourceReservationStatus rrs = new ResourceReservationStatus();
         rrs.setStatusId(id);
