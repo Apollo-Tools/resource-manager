@@ -44,7 +44,7 @@ public class AWSFileServiceTest {
 
         String f1 = "foo1_python39";
         String r1f1 = "r1_" + f1 + "_1";
-        String functionsPath = Paths.get("temp\\test\\functions\\").toAbsolutePath().toString();
+        String functionsPath = Paths.get("temp\\test\\functions").toAbsolutePath().toString();
         String r1f1Path = (functionsPath + "\\" + f1 + ".zip").replace("\\", "/");
         System.out.println(r1f1Path);
         System.out.println(result);
