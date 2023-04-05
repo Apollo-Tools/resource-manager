@@ -8,7 +8,6 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.buffer.Buffer;
 
-import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -27,7 +26,8 @@ public class TerraformExecutor {
 
     // TODO: test if this works on linux as well
     public Completable setPluginCacheFolder(Path folder) {
-        String tfConfigContent = "plugin_cache_dir   = \"" + folder.toString().replace("\\", "/") + "\"";
+        String tfConfigContent = "plugin_cache_dir = \"" + folder.toString().replace("\\", "/") +
+            "\"";
         Path tfConfigPath;
         if (System.getProperty("os.name").toLowerCase().contains("windows")) {
             tfConfigPath = Paths.get(System.getenv("APPDATA") + "\\terraform.rc");
@@ -38,7 +38,7 @@ public class TerraformExecutor {
             .andThen(vertx.fileSystem().writeFile(tfConfigPath.toString(), Buffer.buffer(tfConfigContent)));
     }
 
-    public Single<ProcessOutput> init(Path folder) throws IOException, InterruptedException {
+    public Single<ProcessOutput> init(Path folder) {
         ProcessExecutor processExecutor = new ProcessExecutor(folder, "terraform",  "init");
         return processExecutor.executeCli();
     }
@@ -67,7 +67,7 @@ public class TerraformExecutor {
         return processExecutor.executeCli();
     }
     
-    private List<String> getCredentialsCommands() {
+    protected List<String> getCredentialsCommands() {
         List<String> variables = new ArrayList<>();
         for (Credentials entry : credentials.getCloudCredentials()) {
             String prefix = entry.getResourceProvider().getProvider().toLowerCase();
@@ -78,7 +78,7 @@ public class TerraformExecutor {
         return variables;
     }
 
-    private String getEdgeLoginCommand() {
+    protected String getEdgeLoginCommand() {
         String edgeLogin = credentials.getEdgeLoginCredentials().toString();
         if (edgeLogin.isBlank()) {
             return "";

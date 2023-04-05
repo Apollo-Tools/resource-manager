@@ -82,11 +82,19 @@ public class TestDTOProvider {
         return functionsToDeploy;
     }
 
-    public static DeploymentCredentials createDeploymentCredentials() {
+    public static DeploymentCredentials createDeploymentCredentialsAWSEdge() {
         ResourceProvider rp = TestResourceProviderProvider.createResourceProvider(1L);
         DeploymentCredentials deploymentCredentials = new DeploymentCredentials();
         deploymentCredentials.getEdgeLoginCredentials()
             .append("edge_login_data=[{auth_user=\\\"user\\\",auth_pw=\\\"pw\\\"},]");
+        deploymentCredentials.getCloudCredentials().add(TestAccountProvider.createCredentials(1L, rp));
+        return deploymentCredentials;
+    }
+
+
+    public static DeploymentCredentials createDeploymentCredentialsAWS() {
+        ResourceProvider rp = TestResourceProviderProvider.createResourceProvider(1L);
+        DeploymentCredentials deploymentCredentials = new DeploymentCredentials();
         deploymentCredentials.getCloudCredentials().add(TestAccountProvider.createCredentials(1L, rp));
         return deploymentCredentials;
     }

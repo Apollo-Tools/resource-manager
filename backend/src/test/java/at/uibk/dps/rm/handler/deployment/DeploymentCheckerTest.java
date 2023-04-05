@@ -76,7 +76,7 @@ public class DeploymentCheckerTest {
         DeployResourcesRequest deployRequest = TestRequestProvider.createDeployRequest();
         FunctionsToDeploy functionsToDeploy = TestDTOProvider.createFunctionsToDeploy();
         JsonObject log = JsonObject.mapFrom(TestLogProvider.createLog(1L));
-        DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentials();
+        DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWSEdge();
         DeploymentPath deploymentPath = new DeploymentPath(deployRequest.getReservation().getReservationId());
         ProcessOutput poDocker = TestDTOProvider.createProcessOutput(processSuccess, "docker");
         ProcessOutput poInit = TestDTOProvider.createProcessOutput(processSuccess, "init");
@@ -117,7 +117,7 @@ public class DeploymentCheckerTest {
         DeployResourcesRequest deployRequest = TestRequestProvider.createDeployRequest();
         FunctionsToDeploy functionsToDeploy = TestDTOProvider.createFunctionsToDeploy();
         JsonObject log = JsonObject.mapFrom(TestLogProvider.createLog(1L));
-        DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentials();
+        DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWSEdge();
         DeploymentPath deploymentPath = new DeploymentPath(deployRequest.getReservation().getReservationId());
         ProcessOutput poDocker = TestDTOProvider.createProcessOutput(processSuccess, "docker");
         ProcessOutput poInit = TestDTOProvider.createProcessOutput(processSuccess, "init");
@@ -157,7 +157,7 @@ public class DeploymentCheckerTest {
         DeployResourcesRequest deployRequest = TestRequestProvider.createDeployRequest();
         FunctionsToDeploy functionsToDeploy = TestDTOProvider.createFunctionsToDeploy();
         JsonObject log = JsonObject.mapFrom(TestLogProvider.createLog(1L));
-        DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentials();
+        DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWSEdge();
         DeploymentPath deploymentPath = new DeploymentPath(deployRequest.getReservation().getReservationId());
         ProcessOutput poDocker = TestDTOProvider.createProcessOutput(processSuccess, "docker");
         ProcessOutput poInit = TestDTOProvider.createProcessOutput(processSuccess, "init");
@@ -195,7 +195,7 @@ public class DeploymentCheckerTest {
         DeployResourcesRequest deployRequest = TestRequestProvider.createDeployRequest();
         FunctionsToDeploy functionsToDeploy = TestDTOProvider.createFunctionsToDeploy();
         JsonObject log = JsonObject.mapFrom(TestLogProvider.createLog(1L));
-        DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentials();
+        DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWSEdge();
         DeploymentPath deploymentPath = new DeploymentPath(deployRequest.getReservation().getReservationId());
         ProcessOutput poDocker = TestDTOProvider.createProcessOutput(processSuccess, "docker");
         ProcessOutput poInit = TestDTOProvider.createProcessOutput(processFailed, "init");
@@ -255,7 +255,7 @@ public class DeploymentCheckerTest {
     void deployResourcesBuildDockerImageAndPushDockerImageFailed(VertxTestContext testContext) {
         DeployResourcesRequest deployRequest = TestRequestProvider.createDeployRequest();
         FunctionsToDeploy functionsToDeploy = TestDTOProvider.createFunctionsToDeploy();
-        DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentials();
+        DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWSEdge();
         JsonObject log = JsonObject.mapFrom(TestLogProvider.createLog(1L));
         ProcessOutput poDocker = TestDTOProvider.createProcessOutput(processFailed, "docker");
 
@@ -280,7 +280,7 @@ public class DeploymentCheckerTest {
     @Test
     void deployResourcesPackageFunctionsCodeFailed(VertxTestContext testContext) {
         DeployResourcesRequest deployRequest = TestRequestProvider.createDeployRequest();
-        DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentials();
+        DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWSEdge();
 
         when(deploymentService.packageFunctionsCode(deployRequest)).thenReturn(Single.error(IOException::new));
         when(deploymentService.setUpTFModules(deployRequest)).thenReturn(Single.just(deploymentCredentials));
@@ -297,7 +297,7 @@ public class DeploymentCheckerTest {
     void terminateResource(VertxTestContext testContext) {
         TerminateResourcesRequest terminateRequest = TestRequestProvider.createTerminateRequest();
         DeploymentPath deploymentPath = new DeploymentPath(terminateRequest.getReservation().getReservationId());
-        DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentials();
+        DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWSEdge();
         JsonObject log = JsonObject.mapFrom(TestLogProvider.createLog(1L));
         ProcessOutput poDestroy = TestDTOProvider.createProcessOutput(processSuccess, "destroy");
 
@@ -324,7 +324,7 @@ public class DeploymentCheckerTest {
     void terminateResourceDestroyFailed(VertxTestContext testContext) {
         TerminateResourcesRequest terminateRequest = TestRequestProvider.createTerminateRequest();
         DeploymentPath deploymentPath = new DeploymentPath(terminateRequest.getReservation().getReservationId());
-        DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentials();
+        DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWSEdge();
         JsonObject log = JsonObject.mapFrom(TestLogProvider.createLog(1L));
         ProcessOutput poDestroy = TestDTOProvider.createProcessOutput(processFailed, "destroy");
 
@@ -368,7 +368,7 @@ public class DeploymentCheckerTest {
     void persistLogsEmptyProcessOutput(VertxTestContext testContext) {
         TerminateResourcesRequest terminateRequest = TestRequestProvider.createTerminateRequest();
         DeploymentPath deploymentPath = new DeploymentPath(terminateRequest.getReservation().getReservationId());
-        DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentials();
+        DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWSEdge();
         ProcessOutput poDestroy = TestDTOProvider.createProcessOutput(null, "destroy");
 
         when(deploymentService.getNecessaryCredentials(terminateRequest)).thenReturn(Single.just(deploymentCredentials));
