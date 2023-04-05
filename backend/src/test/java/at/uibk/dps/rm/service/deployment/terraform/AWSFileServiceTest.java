@@ -4,9 +4,6 @@ import at.uibk.dps.rm.entity.model.Runtime;
 import at.uibk.dps.rm.exception.RuntimeNotSupportedException;
 import at.uibk.dps.rm.testutil.objectprovider.TestFileServiceProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
-import at.uibk.dps.rm.verticle.DatabaseVerticle;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.rxjava3.core.Vertx;
 import org.junit.jupiter.api.Test;
@@ -21,8 +18,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
 public class AWSFileServiceTest {
-
-    private static final Logger logger = LoggerFactory.getLogger(DatabaseVerticle.class);
 
     @Test
     void getProviderString(Vertx vertx) {
@@ -46,10 +41,6 @@ public class AWSFileServiceTest {
         String r1f1 = "r1_" + f1 + "_1";
         String functionsPath = Paths.get("temp\\test\\functions").toAbsolutePath().toString();
         String r1f1Path = (functionsPath + "\\" + f1 + ".zip").replace("\\", "/");
-        System.out.println(r1f1Path);
-        System.out.println(result);
-        logger.info(r1f1Path);
-        logger.info(result);
         assertThat(result).isEqualTo(String.format("module \"faas\" {\n" +
             "  source = \"../../../terraform/aws/faas\"\n" +
             "  names = [\"%s\",]\n" +
@@ -206,8 +197,6 @@ public class AWSFileServiceTest {
         String rootFolder = Paths.get("temp\\test").toAbsolutePath().toString().replace("\\", "/");
         AWSFileService service = TestFileServiceProvider.createAWSFileServiceFaasVMEdge(vertx.fileSystem());
         String result = service.getMainFileContent();
-        logger.info(rootFolder);
-        logger.info(result);
         assertThat(result).isEqualTo(
             "provider \"aws\" {\n" +
             "  access_key = var.access_key\n" +
