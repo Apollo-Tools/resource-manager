@@ -8,7 +8,7 @@ import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.handler.deployment.DeploymentHandler;
-import at.uibk.dps.rm.service.ServiceProxyProvider;
+import at.uibk.dps.rm.service.database.reservation.ReservationPreconditionChecker;
 import at.uibk.dps.rm.service.rxjava3.database.account.CredentialsService;
 import at.uibk.dps.rm.service.rxjava3.database.function.FunctionResourceService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.ResourceTypeMetricService;
@@ -49,6 +49,27 @@ public class ReservationHandlerTest {
     private  ReservationHandler reservationHandler;
 
     @Mock
+    private ReservationChecker reservationChecker;
+
+    @Mock
+    private ResourceReservationChecker resourceReservationChecker;
+
+    @Mock
+    private ResourceReservationStatusChecker statusChecker;
+
+    @Mock
+    private DeploymentHandler deploymentHandler;
+
+    @Mock
+    private ReservationErrorHandler reservationErrorHandler;
+
+    @Mock
+    private ReservationPreconditionChecker preconditionChecker;
+
+    @Mock
+    private RoutingContext rc;
+
+    @Mock
     private ReservationService reservationService;
 
     @Mock
@@ -69,26 +90,11 @@ public class ReservationHandlerTest {
     @Mock
     private VPCService vpcService;
 
-    @Mock
-    private RoutingContext rc;
-
-    @Mock
-    private ServiceProxyProvider serviceProxyProvider;
-
-    @Mock
-    private DeploymentHandler deploymentHandler;
-
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        when(serviceProxyProvider.getReservationService()).thenReturn(reservationService);
-        when(serviceProxyProvider.getResourceReservationService()).thenReturn(resourceReservationService);
-        when(serviceProxyProvider.getFunctionResourceService()).thenReturn(functionResourceService);
-        when(serviceProxyProvider.getCredentialsService()).thenReturn(credentialsService);
-        when(serviceProxyProvider.getResourceTypeMetricService()).thenReturn(resourceTypeMetricService);
-        when(serviceProxyProvider.getVpcService()).thenReturn(vpcService);
-        when(serviceProxyProvider.getResourceReservationStatusService()).thenReturn(resourceReservationStatusService);
-        reservationHandler = new ReservationHandler(serviceProxyProvider, deploymentHandler);
+        reservationHandler = new ReservationHandler(reservationChecker, resourceReservationChecker,
+            statusChecker, deploymentHandler, reservationErrorHandler, preconditionChecker);
     }
 
     @Test

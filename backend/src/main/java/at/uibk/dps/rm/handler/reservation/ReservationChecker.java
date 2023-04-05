@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.handler.reservation;
 
+import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.reservation.ReservationService;
@@ -24,5 +25,14 @@ public class ReservationChecker  extends EntityChecker {
     public Single<JsonObject> checkFindOne(long id, long accountId) {
         Single<JsonObject> findOneById = reservationService.findOneByIdAndAccountId(id, accountId);
         return ErrorHandler.handleFindOne(findOneById);
+    }
+
+    public Single<JsonObject> submitCreateReservation(long accountId) {
+        Reservation reservation = new Reservation();
+        reservation.setIsActive(true);
+        Account account = new Account();
+        account.setAccountId(accountId);
+        reservation.setCreatedBy(account);
+        return this.submitCreate(JsonObject.mapFrom(reservation));
     }
 }

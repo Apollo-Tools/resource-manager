@@ -1,25 +1,15 @@
 package at.uibk.dps.rm.handler.reservation;
 
-import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
 import at.uibk.dps.rm.entity.dto.ReserveResourcesRequest;
-import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
 import at.uibk.dps.rm.entity.dto.reservation.ReservationResponse;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.handler.ValidationHandler;
-import at.uibk.dps.rm.handler.account.CredentialsChecker;
 import at.uibk.dps.rm.handler.deployment.DeploymentChecker;
 import at.uibk.dps.rm.handler.deployment.DeploymentHandler;
-import at.uibk.dps.rm.handler.function.FunctionResourceChecker;
-import at.uibk.dps.rm.handler.log.LogChecker;
-import at.uibk.dps.rm.handler.log.ReservationLogChecker;
-import at.uibk.dps.rm.handler.metric.ResourceTypeMetricChecker;
-import at.uibk.dps.rm.handler.resourceprovider.VPCChecker;
-import at.uibk.dps.rm.handler.util.FileSystemChecker;
-import at.uibk.dps.rm.service.ServiceProxyProvider;
+import at.uibk.dps.rm.service.database.reservation.ReservationPreconditionChecker;
 import at.uibk.dps.rm.util.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
@@ -30,7 +20,6 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,42 +29,26 @@ public class ReservationHandler extends ValidationHandler {
 
     private final ReservationChecker reservationChecker;
 
-    private final FunctionResourceChecker functionResourceChecker;
-
     private final ResourceReservationChecker resourceReservationChecker;
-
-    private final CredentialsChecker credentialsChecker;
 
     private final ResourceReservationStatusChecker statusChecker;
 
-    private final ResourceTypeMetricChecker resourceTypeMetricChecker;
-
-    private final LogChecker logChecker;
-
-    private final ReservationLogChecker reservationLogChecker;
-
     private final DeploymentHandler deploymentHandler;
 
-    private final VPCChecker vpcChecker;
+    private final ReservationErrorHandler reservationErrorHandler;
 
-    private final FileSystemChecker fileSystemChecker;
+    private final ReservationPreconditionChecker preconditionChecker;
 
-    public ReservationHandler(ServiceProxyProvider serviceProxyProvider, DeploymentHandler deploymentHandler) {
-        super(new ReservationChecker(serviceProxyProvider.getReservationService()));
-        this.reservationChecker = (ReservationChecker) super.entityChecker;
-        this.resourceReservationChecker = new ResourceReservationChecker(serviceProxyProvider
-            .getResourceReservationService());
-        this.functionResourceChecker = new FunctionResourceChecker(serviceProxyProvider.getFunctionResourceService());
+    public ReservationHandler(ReservationChecker reservationChecker, ResourceReservationChecker resourceReservationChecker,
+                              ResourceReservationStatusChecker statusChecker, DeploymentHandler deploymentHandler,
+                              ReservationErrorHandler reservationErrorHandler, ReservationPreconditionChecker preconditionChecker) {
+        super(reservationChecker);
+        this.reservationChecker = reservationChecker;
+        this.resourceReservationChecker = resourceReservationChecker;
+        this.statusChecker = statusChecker;
         this.deploymentHandler = deploymentHandler;
-        this.credentialsChecker = new CredentialsChecker(serviceProxyProvider.getCredentialsService());
-        this.statusChecker = new ResourceReservationStatusChecker(serviceProxyProvider
-            .getResourceReservationStatusService());
-        this.resourceTypeMetricChecker = new ResourceTypeMetricChecker(serviceProxyProvider
-            .getResourceTypeMetricService());
-        this.vpcChecker = new VPCChecker(serviceProxyProvider.getVpcService());
-        this.logChecker = new LogChecker(serviceProxyProvider.getLogService());
-        this.reservationLogChecker = new ReservationLogChecker(serviceProxyProvider.getReservationLogService());
-        this.fileSystemChecker = new FileSystemChecker(serviceProxyProvider.getFilePathService());
+        this.reservationErrorHandler = reservationErrorHandler;
+        this.preconditionChecker = preconditionChecker;
     }
 
     @Override
@@ -130,17 +103,15 @@ public class ReservationHandler extends ValidationHandler {
                 .mapTo(ReserveResourcesRequest.class);
         long accountId = rc.user().principal().getLong("account_id");
         List<VPC> vpcList = new ArrayList<>();
-        return checkFindFunctionResources(requestDTO.getFunctionResources()).toList()
-            .flatMap(functionResources -> checkCredentialsForResources(accountId, functionResources)
-                .andThen(checkMissingRequiredMetrics(functionResources))
-                .andThen(checkVPCForResources(accountId, functionResources)
-                    .map(vpcs -> {
-                        vpcList.addAll(vpcs.stream().map(vpc -> vpc.mapTo(VPC.class)).collect(Collectors.toList()));
-                        return vpcList;
-                    }).ignoreElement()
+        return preconditionChecker.checkReservationIsValid(requestDTO, accountId, vpcList)
+            .flatMap(functionResources -> reservationChecker.submitCreateReservation(accountId)
+                .flatMap(reservationJson ->
+                    statusChecker.checkFindOneByStatusValue(ReservationStatusValue.NEW.name())
+                        .map(statusNew -> statusNew.mapTo(ResourceReservationStatus.class))
+                        .flatMap(statusNew -> createResourceReservationList(reservationJson, functionResources,
+                            statusNew))
                 )
-                .toSingle(() -> functionResources))
-            .flatMap(functionResources -> submitCreateReservation(accountId, functionResources))
+            )
             // TODO: remove self managed state (use edge instead of self managed vm) */
             .flatMap(resourceReservations -> resourceReservationChecker
                 .submitCreateAll(Json.encodeToBuffer(resourceReservations).toJsonArray())
@@ -153,74 +124,12 @@ public class ReservationHandler extends ValidationHandler {
                             resourceReservationChecker.submitUpdateStatus(reservation.getReservationId(),
                                 ReservationStatusValue.DEPLOYED)))
                         .doOnError(throwable -> logger.error(throwable.getMessage()))
-                        .onErrorResumeNext(throwable -> handleError(reservation, throwable)
-                            .andThen(fileSystemChecker
-                                .checkTFLockFileExists(new DeploymentPath(reservation.getReservationId())
-                                    .getRootFolder().toString()))
-                            .flatMapCompletable(tfLockFileExists -> deploymentHandler
-                                .terminateResources(reservation, accountId)))
+                        .onErrorResumeNext(throwable -> reservationErrorHandler.onDeploymentError(accountId,
+                            reservation, throwable))
                         .subscribe();
                     return result;
                 })
             );
-    }
-
-    private Completable checkMissingRequiredMetrics(List<JsonObject> functionResources) {
-        List<Completable> completables = new ArrayList<>();
-        HashSet<Long> resourceIds = new HashSet<>();
-        for (JsonObject functionResource : functionResources) {
-            Resource resource = functionResource.mapTo(FunctionResource.class).getResource();
-            if (!resourceIds.contains(resource.getResourceId())) {
-                completables.add(resourceTypeMetricChecker
-                    .checkMissingRequiredResourceTypeMetrics(resource.getResourceId()));
-                resourceIds.add(resource.getResourceId());
-            }
-        }
-        return Completable.merge(completables);
-    }
-
-    private Single<List<ResourceReservation>> submitCreateReservation(long accountId, List<JsonObject> functionResources) {
-        Reservation reservation = new Reservation();
-        reservation.setIsActive(true);
-        Account account = new Account();
-        account.setAccountId(accountId);
-        reservation.setCreatedBy(account);
-        return entityChecker.submitCreate(JsonObject.mapFrom(reservation))
-            .flatMap(reservationJson -> statusChecker.checkFindOneByStatusValue(ReservationStatusValue.NEW.name())
-                .flatMap(status -> createResourceReservationList(reservationJson, functionResources,
-                    status.mapTo(ResourceReservationStatus.class))));
-    }
-
-    private Completable checkCredentialsForResources(long accountId, List<JsonObject> functionResources) {
-        List<Completable> completables = new ArrayList<>();
-        HashSet<Long> resourceProviderIds = new HashSet<>();
-        for (JsonObject jsonObject: functionResources) {
-            Region region = jsonObject.mapTo(FunctionResource.class).getResource().getRegion();
-            long providerId = region.getResourceProvider().getProviderId();
-            if (!resourceProviderIds.contains(providerId) && !region.getName().equals("edge")) {
-                completables.add(credentialsChecker.checkExistsOneByProviderId(accountId, providerId));
-                resourceProviderIds.add(providerId);
-            }
-        }
-        return Completable.merge(completables);
-    }
-
-    private Single<List<JsonObject>> checkVPCForResources(long accountId, List<JsonObject> functionResources) {
-        List<Single<JsonObject>> singles = new ArrayList<>();
-        HashSet<Long> regionIds = new HashSet<>();
-        for (JsonObject jsonObject: functionResources) {
-            Region region = jsonObject.mapTo(FunctionResource.class).getResource().getRegion();
-            long regionId = region.getRegionId();
-            if (!regionIds.contains(regionId) && !region.getName().equals("edge")) {
-                singles.add(vpcChecker.checkFindOneByRegionIdAndAccountId(regionId, accountId));
-                regionIds.add(regionId);
-            }
-        }
-        if (singles.isEmpty()) {
-            return Single.just(new ArrayList<>());
-        }
-        return Single.zip(singles, objects -> Arrays.stream(objects).map(object -> (JsonObject) object)
-            .collect(Collectors.toList()));
     }
 
     @Override
@@ -239,17 +148,10 @@ public class ReservationHandler extends ValidationHandler {
                         resourceReservationChecker.submitUpdateStatus(reservation.getReservationId(),
                             ReservationStatusValue.TERMINATED)))
                     .doOnError(throwable -> logger.error(throwable.getMessage()))
-                    .onErrorResumeNext(throwable -> handleError(reservation, throwable))
+                    .onErrorResumeNext(throwable -> reservationErrorHandler.onTerminationError(reservation, throwable))
                     .subscribe();
                 return Completable.complete();
             });
-    }
-
-    private Observable<JsonObject> checkFindFunctionResources(List<FunctionResourceIds> functionResourceIds) {
-        return Observable.fromIterable(functionResourceIds)
-            .flatMapSingle(ids -> functionResourceChecker
-                .checkFindOneByFunctionAndResource(ids.getFunctionId(), ids.getResourceId())
-            );
     }
 
     private Single<List<ResourceReservation>> createResourceReservationList(JsonObject reservationJson,
@@ -272,24 +174,5 @@ public class ReservationHandler extends ValidationHandler {
         resourceReservation.setFunctionResource(functionResource);
         resourceReservation.setStatus(status);
         return resourceReservation;
-    }
-
-    private Completable handleError(Reservation reservation, Throwable throwable) {
-        return resourceReservationChecker
-            .submitUpdateStatus(reservation.getReservationId(), ReservationStatusValue.ERROR)
-            .toSingle(() -> {
-                Log log = new Log();
-                log.setLogValue(throwable.getMessage());
-                return logChecker.submitCreate(JsonObject.mapFrom(log));
-            })
-            .flatMap(res -> res)
-            .flatMap(logResult -> {
-                Log logStored = logResult.mapTo(Log.class);
-                ReservationLog reservationLog = new ReservationLog();
-                reservationLog.setReservation(reservation);
-                reservationLog.setLog(logStored);
-                return reservationLogChecker.submitCreate(JsonObject.mapFrom(reservationLog));
-            })
-            .ignoreElement();
     }
 }

@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.entity.deployment;
 
+import at.uibk.dps.rm.annotations.Generated;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -26,6 +27,7 @@ public class TerraformModule {
     }
 
     @Override
+    @Generated
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -34,6 +36,7 @@ public class TerraformModule {
     }
 
     @Override
+    @Generated
     public int hashCode() {
         return Objects.hash(moduleName);
     }

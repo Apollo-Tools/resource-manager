@@ -5,15 +5,20 @@ import at.uibk.dps.rm.handler.account.CredentialsChecker;
 import at.uibk.dps.rm.handler.deployment.DeploymentChecker;
 import at.uibk.dps.rm.handler.deployment.DeploymentHandler;
 import at.uibk.dps.rm.handler.function.FunctionResourceChecker;
-import at.uibk.dps.rm.handler.reservation.ReservationHandler;
-import at.uibk.dps.rm.handler.reservation.ReservationInputHandler;
-import at.uibk.dps.rm.handler.reservation.ResourceReservationChecker;
+import at.uibk.dps.rm.handler.log.LogChecker;
+import at.uibk.dps.rm.handler.log.ReservationLogChecker;
+import at.uibk.dps.rm.handler.metric.ResourceTypeMetricChecker;
+import at.uibk.dps.rm.handler.reservation.*;
+import at.uibk.dps.rm.handler.resourceprovider.VPCChecker;
+import at.uibk.dps.rm.handler.util.FileSystemChecker;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
+import at.uibk.dps.rm.service.database.reservation.ReservationPreconditionChecker;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 public class ReservationRoute {
 
     public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
+        /* Checker initialization */
         DeploymentChecker deploymentChecker = new DeploymentChecker(serviceProxyProvider.getDeploymentService(),
             serviceProxyProvider.getLogService(), serviceProxyProvider.getReservationLogService());
         CredentialsChecker credentialsChecker = new CredentialsChecker(serviceProxyProvider.getCredentialsService());
@@ -21,9 +26,25 @@ public class ReservationRoute {
             new FunctionResourceChecker(serviceProxyProvider.getFunctionResourceService());
         ResourceReservationChecker resourceReservationChecker = new ResourceReservationChecker(serviceProxyProvider
             .getResourceReservationService());
+        LogChecker logChecker = new LogChecker(serviceProxyProvider.getLogService());
+        ReservationLogChecker reservationLogChecker = new ReservationLogChecker(serviceProxyProvider
+            .getReservationLogService());
+        FileSystemChecker fileSystemChecker = new FileSystemChecker(serviceProxyProvider.getFilePathService());
+        ReservationChecker reservationChecker = new ReservationChecker(serviceProxyProvider.getReservationService());
+        ResourceReservationStatusChecker statusChecker = new ResourceReservationStatusChecker(serviceProxyProvider
+            .getResourceReservationStatusService());
+        ResourceTypeMetricChecker resourceTypeMetricChecker = new ResourceTypeMetricChecker(serviceProxyProvider
+            .getResourceTypeMetricService());
+        VPCChecker vpcChecker = new VPCChecker(serviceProxyProvider.getVpcService());
+        ReservationPreconditionChecker preconditionChecker = new ReservationPreconditionChecker(functionResourceChecker,
+            resourceTypeMetricChecker, vpcChecker, credentialsChecker);
+        /* Handler initialization */
         DeploymentHandler deploymentHandler = new DeploymentHandler(deploymentChecker, credentialsChecker,
             functionResourceChecker, resourceReservationChecker);
-        ReservationHandler reservationHandler = new ReservationHandler(serviceProxyProvider, deploymentHandler);
+        ReservationErrorHandler reservationErrorHandler = new ReservationErrorHandler(resourceReservationChecker, logChecker,
+            reservationLogChecker, fileSystemChecker, deploymentHandler);
+        ReservationHandler reservationHandler = new ReservationHandler(reservationChecker, resourceReservationChecker,
+            statusChecker, deploymentHandler, reservationErrorHandler, preconditionChecker);
         RequestHandler reservationRequestHandler = new RequestHandler(reservationHandler);
 
         router
