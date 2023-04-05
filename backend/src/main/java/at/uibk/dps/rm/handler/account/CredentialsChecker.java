@@ -17,7 +17,7 @@ public class CredentialsChecker extends EntityChecker {
     }
 
     public Single<JsonArray> checkFindAll(long accountId) {
-        return credentialsService.findAllByAccountId(accountId);
+        return ErrorHandler.handleFindAll(credentialsService.findAllByAccountId(accountId));
     }
 
     public Completable checkExistsOneByProviderId(long accountId, long providerId) {

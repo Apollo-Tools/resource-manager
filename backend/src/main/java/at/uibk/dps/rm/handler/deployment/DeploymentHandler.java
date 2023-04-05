@@ -8,7 +8,6 @@ import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.handler.account.CredentialsChecker;
 import at.uibk.dps.rm.handler.function.FunctionResourceChecker;
 import at.uibk.dps.rm.handler.reservation.ResourceReservationChecker;
-import at.uibk.dps.rm.service.ServiceProxyProvider;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,13 +28,13 @@ public class DeploymentHandler {
 
     private final ResourceReservationChecker resourceReservationChecker;
 
-    public DeploymentHandler(ServiceProxyProvider serviceProxyProvider) {
-        this.deploymentChecker = new DeploymentChecker(serviceProxyProvider.getDeploymentService(),
-            serviceProxyProvider.getLogService(), serviceProxyProvider.getReservationLogService());
-        this.credentialsChecker = new CredentialsChecker(serviceProxyProvider.getCredentialsService());
-        this.functionResourceChecker = new FunctionResourceChecker(serviceProxyProvider.getFunctionResourceService());
-        this.resourceReservationChecker = new ResourceReservationChecker(serviceProxyProvider
-            .getResourceReservationService());
+    public DeploymentHandler(DeploymentChecker deploymentChecker, CredentialsChecker credentialsChecker,
+                             FunctionResourceChecker functionResourceChecker,
+                             ResourceReservationChecker resourceReservationChecker) {
+        this.deploymentChecker = deploymentChecker;
+        this.credentialsChecker = credentialsChecker;
+        this.functionResourceChecker = functionResourceChecker;
+        this.resourceReservationChecker = resourceReservationChecker;
     }
 
     public Completable deployResources(Reservation reservation, long accountId, DockerCredentials dockerCredentials,
