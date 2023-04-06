@@ -55,17 +55,12 @@ public class ReservationHandler extends ValidationHandler {
     protected Single<JsonObject> getOne(RoutingContext rc) {
         return HttpHelper.getLongPathParam(rc, "id")
             .flatMap(id -> reservationChecker.checkFindOne(id, rc.user().principal().getLong("account_id")))
-            .flatMap(reservation -> {
-                if (!reservation.getBoolean("is_active")) {
-                    return Single.just(reservation);
-                }
-                return resourceReservationChecker
-                        .checkFindAllByReservationId(reservation.getLong("reservation_id"))
-                        .map(resourceReservations -> {
-                            reservation.put("resource_reservations", resourceReservations);
-                            return reservation;
-                        });
-            });
+            .flatMap(reservation -> resourceReservationChecker
+                    .checkFindAllByReservationId(reservation.getLong("reservation_id"))
+                    .map(resourceReservations -> {
+                        reservation.put("resource_reservations", resourceReservations);
+                        return reservation;
+                    }));
     }
 
     @Override
@@ -118,15 +113,7 @@ public class ReservationHandler extends ValidationHandler {
                 .andThen(Single.just(JsonObject.mapFrom(resourceReservations.get(0).getReservation())))
                 .map(result -> {
                     Reservation reservation = result.mapTo(Reservation.class);
-                    deploymentHandler
-                        .deployResources(reservation, accountId, requestDTO.getDockerCredentials(), vpcList)
-                        .andThen(Completable.defer(() ->
-                            resourceReservationChecker.submitUpdateStatus(reservation.getReservationId(),
-                                ReservationStatusValue.DEPLOYED)))
-                        .doOnError(throwable -> logger.error(throwable.getMessage()))
-                        .onErrorResumeNext(throwable -> reservationErrorHandler.onDeploymentError(accountId,
-                            reservation, throwable))
-                        .subscribe();
+                    initiateDeployment(reservation, accountId, requestDTO, vpcList);
                     return result;
                 })
             );
@@ -143,13 +130,7 @@ public class ReservationHandler extends ValidationHandler {
                     .andThen(Single.just(reservationJson)))
             .flatMapCompletable(reservationJson -> {
                 Reservation reservation = reservationJson.mapTo(Reservation.class);
-                deploymentHandler.terminateResources(reservation, accountId)
-                    .andThen(Completable.defer(() ->
-                        resourceReservationChecker.submitUpdateStatus(reservation.getReservationId(),
-                            ReservationStatusValue.TERMINATED)))
-                    .doOnError(throwable -> logger.error(throwable.getMessage()))
-                    .onErrorResumeNext(throwable -> reservationErrorHandler.onTerminationError(reservation, throwable))
-                    .subscribe();
+                initiateTermination(reservation, accountId);
                 return Completable.complete();
             });
     }
@@ -174,5 +155,28 @@ public class ReservationHandler extends ValidationHandler {
         resourceReservation.setFunctionResource(functionResource);
         resourceReservation.setStatus(status);
         return resourceReservation;
+    }
+
+    private void initiateDeployment(Reservation reservation, long accountId, ReserveResourcesRequest requestDTO,
+                                    List<VPC> vpcList) {
+        deploymentHandler
+            .deployResources(reservation, accountId, requestDTO.getDockerCredentials(), vpcList)
+            .andThen(Completable.defer(() ->
+                resourceReservationChecker.submitUpdateStatus(reservation.getReservationId(),
+                    ReservationStatusValue.DEPLOYED)))
+            .doOnError(throwable -> logger.error(throwable.getMessage()))
+            .onErrorResumeNext(throwable -> reservationErrorHandler.onDeploymentError(accountId,
+                reservation, throwable))
+            .subscribe();
+    }
+
+    private void initiateTermination(Reservation reservation, long accountId) {
+        deploymentHandler.terminateResources(reservation, accountId)
+            .andThen(Completable.defer(() ->
+                resourceReservationChecker.submitUpdateStatus(reservation.getReservationId(),
+                    ReservationStatusValue.TERMINATED)))
+            .doOnError(throwable -> logger.error(throwable.getMessage()))
+            .onErrorResumeNext(throwable -> reservationErrorHandler.onTerminationError(reservation, throwable))
+            .subscribe();
     }
 }

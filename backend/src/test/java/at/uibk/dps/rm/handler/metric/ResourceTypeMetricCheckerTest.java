@@ -39,7 +39,7 @@ public class ResourceTypeMetricCheckerTest {
         when(service.missingRequiredResourceTypeMetricsByResourceId(resourceId))
             .thenReturn(Single.just(false));
 
-        checker.checkMissingRequiredResourceTypeMetrics(resourceId)
+        checker.checkMissingRequiredResourceTypeMetricsByResource(resourceId)
             .blockingSubscribe(() -> {},
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
@@ -53,7 +53,7 @@ public class ResourceTypeMetricCheckerTest {
         when(service.missingRequiredResourceTypeMetricsByResourceId(resourceId))
             .thenReturn(Single.just(true));
 
-        checker.checkMissingRequiredResourceTypeMetrics(resourceId)
+        checker.checkMissingRequiredResourceTypeMetricsByResource(resourceId)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);

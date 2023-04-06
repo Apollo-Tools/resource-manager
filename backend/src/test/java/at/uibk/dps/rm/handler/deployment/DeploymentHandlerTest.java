@@ -3,7 +3,7 @@ package at.uibk.dps.rm.handler.deployment;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.model.*;
-import at.uibk.dps.rm.exception.DeploymentFailedException;
+import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.handler.account.CredentialsChecker;
 import at.uibk.dps.rm.handler.function.FunctionResourceChecker;
@@ -97,12 +97,12 @@ public class DeploymentHandlerTest {
         when(credentialsChecker.checkFindAll(accountId)).thenReturn(Single.just(new JsonArray(List.of(credentials))));
         when(functionResourceChecker.checkFindAllByReservationId(reservation.getReservationId()))
             .thenReturn(Single.just(functionResources));
-        when(deploymentChecker.deployResources(any())).thenReturn(Single.error(DeploymentFailedException::new));
+        when(deploymentChecker.deployResources(any())).thenReturn(Single.error(DeploymentTerminationFailedException::new));
 
         deploymentHandler.deployResources(reservation, accountId, dockerCredentials, List.of(vpc))
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(DeploymentFailedException.class);
+                    assertThat(throwable).isInstanceOf(DeploymentTerminationFailedException.class);
                     testContext.completeNow();
                 })
             );
@@ -188,12 +188,12 @@ public class DeploymentHandlerTest {
         when(credentialsChecker.checkFindAll(accountId)).thenReturn(Single.just(new JsonArray(List.of(credentials))));
         when(functionResourceChecker.checkFindAllByReservationId(reservation.getReservationId()))
             .thenReturn(Single.just(functionResources));
-        when(deploymentChecker.terminateResources(any())).thenReturn(Completable.error(DeploymentFailedException::new));
+        when(deploymentChecker.terminateResources(any())).thenReturn(Completable.error(DeploymentTerminationFailedException::new));
 
         deploymentHandler.terminateResources(reservation, accountId)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(DeploymentFailedException.class);
+                    assertThat(throwable).isInstanceOf(DeploymentTerminationFailedException.class);
                     testContext.completeNow();
                 })
             );

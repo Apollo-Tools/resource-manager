@@ -7,7 +7,7 @@ import at.uibk.dps.rm.entity.dto.TerminateResourcesRequest;
 import at.uibk.dps.rm.entity.model.Log;
 import at.uibk.dps.rm.entity.model.Reservation;
 import at.uibk.dps.rm.entity.model.ReservationLog;
-import at.uibk.dps.rm.exception.DeploymentFailedException;
+import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
 import at.uibk.dps.rm.service.deployment.docker.DockerImageService;
 import at.uibk.dps.rm.service.deployment.executor.TerraformExecutor;
 import at.uibk.dps.rm.service.rxjava3.database.log.LogService;
@@ -86,7 +86,7 @@ public class DeploymentChecker {
             })
             .flatMapCompletable(res -> {
                 if (processOutput.getProcess().exitValue() != 0) {
-                    return Completable.error(new DeploymentFailedException());
+                    return Completable.error(new DeploymentTerminationFailedException());
                 }
                 return Completable.complete();
             });

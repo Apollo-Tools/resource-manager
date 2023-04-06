@@ -6,7 +6,7 @@ import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.dto.TerminateResourcesRequest;
-import at.uibk.dps.rm.exception.DeploymentFailedException;
+import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.deployment.docker.DockerImageService;
 import at.uibk.dps.rm.service.deployment.executor.TerraformExecutor;
@@ -145,7 +145,7 @@ public class DeploymentCheckerTest {
                 deploymentChecker.deployResources(deployRequest)
                     .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                         throwable -> testContext.verify(() -> {
-                            assertThat(throwable).isInstanceOf(DeploymentFailedException.class);
+                            assertThat(throwable).isInstanceOf(DeploymentTerminationFailedException.class);
                             testContext.completeNow();
                         }));
             }
@@ -183,7 +183,7 @@ public class DeploymentCheckerTest {
                 deploymentChecker.deployResources(deployRequest)
                     .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                         throwable -> testContext.verify(() -> {
-                            assertThat(throwable).isInstanceOf(DeploymentFailedException.class);
+                            assertThat(throwable).isInstanceOf(DeploymentTerminationFailedException.class);
                             testContext.completeNow();
                         }));
             }
@@ -219,7 +219,7 @@ public class DeploymentCheckerTest {
                 deploymentChecker.deployResources(deployRequest)
                     .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                         throwable -> testContext.verify(() -> {
-                            assertThat(throwable).isInstanceOf(DeploymentFailedException.class);
+                            assertThat(throwable).isInstanceOf(DeploymentTerminationFailedException.class);
                             testContext.completeNow();
                         }));
             }
@@ -271,7 +271,7 @@ public class DeploymentCheckerTest {
             deploymentChecker.deployResources(deployRequest)
                 .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                     throwable -> testContext.verify(() -> {
-                        assertThat(throwable).isInstanceOf(DeploymentFailedException.class);
+                        assertThat(throwable).isInstanceOf(DeploymentTerminationFailedException.class);
                         testContext.completeNow();
                     }));
         }
@@ -342,7 +342,7 @@ public class DeploymentCheckerTest {
             deploymentChecker.terminateResources(terminateRequest)
                 .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                     throwable -> testContext.verify(() -> {
-                        assertThat(throwable).isInstanceOf(DeploymentFailedException.class);
+                        assertThat(throwable).isInstanceOf(DeploymentTerminationFailedException.class);
                         testContext.completeNow();
                     })
                 );
