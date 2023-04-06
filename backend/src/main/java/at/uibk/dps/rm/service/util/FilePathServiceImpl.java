@@ -29,6 +29,6 @@ public class FilePathServiceImpl implements FilePathService{
     @Override
     public Future<String> getRuntimeTemplate(String templatePath) {
         return vertx.fileSystem().readFile(templatePath)
-            .map(buffer -> buffer.getString(0, buffer.length() - 1));
+            .map(buffer -> buffer.getString(0, buffer.length()));
     }
 }
