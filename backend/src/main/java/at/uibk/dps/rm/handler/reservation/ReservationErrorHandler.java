@@ -39,8 +39,13 @@ public class ReservationErrorHandler {
             .andThen(fileSystemChecker
                 .checkTFLockFileExists(new DeploymentPath(reservation.getReservationId())
                     .getRootFolder().toString()))
-            .flatMapCompletable(tfLockFileExists -> deploymentHandler
-                .terminateResources(reservation, accountId));
+            .flatMapCompletable(tfLockFileExists -> {
+                if (tfLockFileExists) {
+                    return deploymentHandler.terminateResources(reservation, accountId);
+                } else {
+                    return Completable.complete();
+                }
+            });
     }
 
     public Completable onTerminationError(Reservation reservation, Throwable throwable) {
