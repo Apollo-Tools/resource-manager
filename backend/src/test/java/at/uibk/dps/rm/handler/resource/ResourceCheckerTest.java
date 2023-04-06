@@ -43,60 +43,6 @@ public class ResourceCheckerTest {
         resourceChecker = new ResourceChecker(resourceService);
     }
 
-    @Test
-    void checkFindAllUnreservedFound(VertxTestContext testContext) {
-        Resource resource1 = TestResourceProvider.createResource(1L);
-        Resource resource2 = TestResourceProvider.createResource(2L);
-        Resource resource3 = TestResourceProvider.createResource(3L);
-        JsonArray resourcesJson = new JsonArray(List.of(JsonObject.mapFrom(resource1), JsonObject.mapFrom(resource2),
-            JsonObject.mapFrom(resource3)));
-
-        when(resourceService.findAllUnreserved()).thenReturn(Single.just(resourcesJson));
-
-        resourceChecker.checkFindAllUnreserved()
-            .subscribe(result -> testContext.verify(() -> {
-                    assertThat(result.size()).isEqualTo(3);
-                    assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
-                    assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
-                    assertThat(result.getJsonObject(2).getLong("resource_id")).isEqualTo(3L);
-                    verify(resourceService).findAllUnreserved();
-                    testContext.completeNow();
-                }),
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-    }
-
-    @Test
-    void checkFindAllUnreservedEmpty(VertxTestContext testContext) {
-        JsonArray resourcesJson = new JsonArray(List.of());
-
-        when(resourceService.findAllUnreserved()).thenReturn(Single.just(resourcesJson));
-
-        resourceChecker.checkFindAllUnreserved()
-            .subscribe(result -> testContext.verify(() -> {
-                    assertThat(result.size()).isEqualTo(0);
-                    verify(resourceService).findAllUnreserved();
-                    testContext.completeNow();
-                }),
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-    }
-
-    @Test
-    void checkFindAllUnreservedNotFound(VertxTestContext testContext) {
-        Single<JsonArray> handler = new SingleHelper<JsonArray>().getEmptySingle();
-
-        when(resourceService.findAllUnreserved()).thenReturn(handler);
-
-        resourceChecker.checkFindAllUnreserved()
-            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(NotFoundException.class);
-                    testContext.completeNow();
-                })
-            );
-    }
-
     // TODO: refine
     @Test
     void checkFindAllBySLOs(VertxTestContext testContext) {
