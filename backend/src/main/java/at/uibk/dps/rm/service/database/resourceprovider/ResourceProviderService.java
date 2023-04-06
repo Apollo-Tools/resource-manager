@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.database.resourceprovider;
 
+import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.service.database.ServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -11,11 +12,14 @@ import io.vertx.core.Vertx;
 @ProxyGen
 @VertxGen
 public interface ResourceProviderService extends ServiceInterface {
+
+    @Generated
     @GenIgnore
     static ResourceProviderService create(ResourceProviderRepository resourceProviderRepository) {
         return new ResourceProviderServiceImpl(resourceProviderRepository);
     }
 
+    @Generated
     static ResourceProviderService createProxy(Vertx vertx, String address) {
         return new ResourceProviderServiceVertxEBProxy(vertx, address);
     }

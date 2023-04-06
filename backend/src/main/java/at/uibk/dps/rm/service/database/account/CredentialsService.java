@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.database.account;
 
+import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.repository.account.CredentialsRepository;
 import at.uibk.dps.rm.service.database.ServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -12,11 +13,14 @@ import io.vertx.core.json.JsonArray;
 @ProxyGen
 @VertxGen
 public interface CredentialsService extends ServiceInterface {
+
+    @Generated
     @GenIgnore
     static CredentialsService create(CredentialsRepository credentialsRepository) {
         return new CredentialsServiceImpl(credentialsRepository);
     }
 
+    @Generated
     static CredentialsService createProxy(Vertx vertx, String address) {
         return new CredentialsServiceVertxEBProxy(vertx, address);
     }

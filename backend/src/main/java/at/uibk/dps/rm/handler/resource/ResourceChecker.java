@@ -18,11 +18,6 @@ public class ResourceChecker extends EntityChecker {
         this.resourceService = resourceService;
     }
 
-    public Single<JsonArray> checkFindAllUnreserved() {
-        Single<JsonArray> findAllUnreserved = resourceService.findAllUnreserved();
-        return ErrorHandler.handleFindAll(findAllUnreserved);
-    }
-
     public Single<JsonArray> checkFindAllBySLOs(long functionId, List<String> metrics, List<String> regions,
                                                 List<Long> providerIds, List<Long> resourceTypeIds) {
         Single<JsonArray> findAllByMultipleMetrics = resourceService.findAllBySLOs(functionId,

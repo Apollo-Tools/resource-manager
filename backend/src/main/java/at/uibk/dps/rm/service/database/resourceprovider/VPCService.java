@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.database.resourceprovider;
 
+import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
 import at.uibk.dps.rm.service.database.ServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -12,11 +13,14 @@ import io.vertx.core.json.JsonObject;
 @ProxyGen
 @VertxGen
 public interface VPCService extends ServiceInterface {
+
+    @Generated
     @GenIgnore
     static VPCService create(VPCRepository vpcRepository) {
         return new VPCServiceImpl(vpcRepository);
     }
 
+    @Generated
     static VPCService createProxy(Vertx vertx, String address) {
         return new VPCServiceVertxEBProxy(vertx, address);
     }

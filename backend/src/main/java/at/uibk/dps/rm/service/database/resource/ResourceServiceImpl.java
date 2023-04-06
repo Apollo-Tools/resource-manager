@@ -46,15 +46,6 @@ public class ResourceServiceImpl extends ServiceProxy<Resource> implements Resou
             .map(this::encodeResourceList);
     }
 
-    @Deprecated
-    @Override
-    public Future<JsonArray> findAllUnreserved() {
-        return Future
-            .fromCompletionStage(resourceRepository.findAllAndFetch())
-            .map(this::encodeResourceList);
-    }
-
-
     @Override
     public Future<JsonArray> findAllBySLOs(long functionId, List<String> metrics,
                                                                  List<String> regions, List<Long> providerIds,

@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.database.reservation;
 
+import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
 import at.uibk.dps.rm.repository.reservation.ResourceReservationRepository;
 import at.uibk.dps.rm.service.database.ServiceInterface;
@@ -13,11 +14,14 @@ import io.vertx.core.json.JsonArray;
 @ProxyGen
 @VertxGen
 public interface ResourceReservationService extends ServiceInterface {
+
+    @Generated
     @GenIgnore
     static ResourceReservationService create(ResourceReservationRepository resourceReservationRepository) {
         return new ResourceReservationServiceImpl(resourceReservationRepository);
     }
 
+    @Generated
     static ResourceReservationService createProxy(Vertx vertx, String address) {
         return new ResourceReservationServiceVertxEBProxy(vertx, address);
     }

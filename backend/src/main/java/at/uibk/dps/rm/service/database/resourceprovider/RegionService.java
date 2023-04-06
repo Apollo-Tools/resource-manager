@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.database.resourceprovider;
 
+import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.service.database.ServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -13,11 +14,13 @@ import io.vertx.core.json.JsonArray;
 @VertxGen
 public interface RegionService extends ServiceInterface {
 
+    @Generated
     @GenIgnore
     static RegionService create(RegionRepository regionRepository) {
         return new RegionServiceImpl(regionRepository);
     }
 
+    @Generated
     static RegionService createProxy(Vertx vertx, String address) {
         return new RegionServiceVertxEBProxy(vertx, address);
     }

@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.service.database.function;
 
 
+import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.repository.function.FunctionResourceRepository;
 import at.uibk.dps.rm.service.database.ServiceInterface;
 
@@ -15,11 +16,14 @@ import io.vertx.core.json.JsonObject;
 @ProxyGen
 @VertxGen
 public interface FunctionResourceService extends ServiceInterface {
+
+    @Generated
     @GenIgnore
     static FunctionResourceService create(FunctionResourceRepository functionResourceRepository) {
         return new FunctionResourceServiceImpl(functionResourceRepository);
     }
 
+    @Generated
     static FunctionResourceService createProxy(Vertx vertx, String address) {
         return new FunctionResourceServiceVertxEBProxy(vertx, address);
     }

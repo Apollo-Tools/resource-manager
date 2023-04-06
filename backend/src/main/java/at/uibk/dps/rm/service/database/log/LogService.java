@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.database.log;
 
+import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.repository.log.LogRepository;
 import at.uibk.dps.rm.service.database.ServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -12,11 +13,14 @@ import io.vertx.core.json.JsonArray;
 @ProxyGen
 @VertxGen
 public interface LogService extends ServiceInterface {
+
+    @Generated
     @GenIgnore
     static LogService create(LogRepository logRepository) {
         return new LogServiceImpl(logRepository);
     }
 
+    @Generated
     static LogService createProxy(Vertx vertx, String address) {
         return new LogServiceVertxEBProxy(vertx, address);
     }

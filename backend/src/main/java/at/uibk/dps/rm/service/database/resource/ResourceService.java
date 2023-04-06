@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.database.resource;
 
+import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.service.database.ServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -14,16 +15,17 @@ import java.util.List;
 @ProxyGen
 @VertxGen
 public interface ResourceService extends ServiceInterface {
+
+    @Generated
     @GenIgnore
     static ResourceService create(ResourceRepository resourceRepository) {
         return new ResourceServiceImpl(resourceRepository);
     }
 
+    @Generated
     static ResourceService createProxy(Vertx vertx, String address) {
         return new ResourceServiceVertxEBProxy(vertx, address);
     }
-
-    Future<JsonArray> findAllUnreserved();
 
     Future<JsonArray> findAllBySLOs(long functionId, List<String> metrics,
                                                           List<String> regions, List<Long> providerIds,
