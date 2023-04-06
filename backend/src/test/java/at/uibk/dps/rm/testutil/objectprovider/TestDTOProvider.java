@@ -3,6 +3,8 @@ package at.uibk.dps.rm.testutil.objectprovider;
 import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
+import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
+import at.uibk.dps.rm.entity.deployment.output.TFOutput;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.SLOValue;
@@ -11,7 +13,9 @@ import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.ResourceProvider;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class TestDTOProvider {
     public static SLOValue createSLOValue(double value) {
@@ -104,5 +108,38 @@ public class TestDTOProvider {
         processOutput.setProcess(process);
         processOutput.setProcessOutput(output);
         return processOutput;
+    }
+
+    public static TFOutput createTFOutputFaas() {
+        TFOutput tfOutput = new TFOutput();
+        Map<String, String> valueMap = new HashMap<>();
+        valueMap.put("r1_foo1", "http://localhostfaas1");
+        tfOutput.setValue(valueMap);
+        return tfOutput;
+    }
+
+    public static TFOutput createTFOutputVM() {
+        TFOutput tfOutput = new TFOutput();
+        Map<String, String> valueMap = new HashMap<>();
+        valueMap.put("r2_foo1", "http://localhostvm1");
+        valueMap.put("r2_foo2", "http://localhostvm2");
+        tfOutput.setValue(valueMap);
+        return tfOutput;
+    }
+
+    public static TFOutput createTFOutputEdge() {
+        TFOutput tfOutput = new TFOutput();
+        Map<String, String> valueMap = new HashMap<>();
+        valueMap.put("r3_foo1", "http://localhostedge1");
+        tfOutput.setValue(valueMap);
+        return tfOutput;
+    }
+
+    public static DeploymentOutput createDeploymentOutput() {
+        DeploymentOutput deploymentOutput = new DeploymentOutput();
+        deploymentOutput.setEdgeUrls(createTFOutputEdge());
+        deploymentOutput.setVmUrls(createTFOutputVM());
+        deploymentOutput.setFunctionUrls(createTFOutputFaas());
+        return deploymentOutput;
     }
 }

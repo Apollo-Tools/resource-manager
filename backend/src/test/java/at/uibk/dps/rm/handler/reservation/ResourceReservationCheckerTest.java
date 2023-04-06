@@ -1,13 +1,16 @@
 package at.uibk.dps.rm.handler.reservation;
 
+import at.uibk.dps.rm.entity.deployment.ProcessOutput;
+import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
+import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
+import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.rxjava3.database.reservation.ResourceReservationService;
 import at.uibk.dps.rm.testutil.SingleHelper;
-import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
-import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
-import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
+import at.uibk.dps.rm.testutil.objectprovider.*;
 import at.uibk.dps.rm.util.JsonMapperConfig;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -16,11 +19,15 @@ import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -31,10 +38,13 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class ResourceReservationCheckerTest {
 
-    ResourceReservationChecker resourceReservationChecker;
+    private ResourceReservationChecker resourceReservationChecker;
 
     @Mock
     ResourceReservationService resourceReservationService;
+
+    @Mock
+    ProcessOutput processOutput;
 
     @BeforeEach
     void initTest() {
@@ -108,5 +118,63 @@ public class ResourceReservationCheckerTest {
                     testContext.completeNow();
                 })
             );
+    }
+
+    @Test
+    void storeOutputToFunctionResources(VertxTestContext testContext) {
+        DeployResourcesRequest request = TestRequestProvider.createDeployRequest();
+        long reservationId = request.getReservation().getReservationId();
+        DeploymentOutput deploymentOutput = TestDTOProvider.createDeploymentOutput();
+
+        when(processOutput.getProcessOutput()).thenReturn(JsonObject.mapFrom(deploymentOutput).encode());
+        when(resourceReservationService.updateTriggerUrl(1L, reservationId,
+            "http://localhostfaas1")).thenReturn(Completable.complete());
+        when(resourceReservationService.updateTriggerUrl(2L, reservationId,
+            "http://localhostvm1")).thenReturn(Completable.complete());
+        when(resourceReservationService.updateTriggerUrl(3L, reservationId,
+            "http://localhostvm2")).thenReturn(Completable.complete());
+        when(resourceReservationService.updateTriggerUrl(4L, reservationId,
+            "http://localhostedge1")).thenReturn(Completable.complete());
+
+        resourceReservationChecker.storeOutputToFunctionResources(processOutput, request)
+            .blockingSubscribe(() -> {},
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
+            );
+        testContext.completeNow();
+    }
+
+    private static Stream<Arguments> provideStatusValue() {
+        final ResourceReservationStatus statusNew = TestReservationProvider.createResourceReservationStatusNew();
+        final ResourceReservationStatus statusDeployed = TestReservationProvider
+            .createResourceReservationStatusDeployed();
+        final ResourceReservationStatus statusTerminating = TestReservationProvider
+            .createResourceReservationStatusTerminating();
+        final ResourceReservationStatus statusTerminated = TestReservationProvider
+            .createResourceReservationStatusTerminated();
+        final ResourceReservationStatus statusError = TestReservationProvider
+            .createResourceReservationStatusError();
+        return Stream.of(
+            Arguments.of(statusNew),
+            Arguments.of(statusDeployed),
+            Arguments.of(statusTerminating),
+            Arguments.of(statusTerminated),
+            Arguments.of(statusError)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideStatusValue")
+    void checkCrucialReservationStatus(ResourceReservationStatus expectedStatus) {
+        Reservation reservation = TestReservationProvider.createReservation(1L);
+        ResourceReservation rr1 = TestReservationProvider.createResourceReservation(1L, new FunctionResource(),
+            reservation, TestReservationProvider.createResourceReservationStatusTerminated());
+        ResourceReservation rr2 = TestReservationProvider.createResourceReservation(2L, new FunctionResource(),
+            reservation, expectedStatus);
+        JsonArray resourceReservations = new JsonArray(List.of(JsonObject.mapFrom(rr1), JsonObject.mapFrom(rr2)));
+
+        ReservationStatusValue result = resourceReservationChecker
+            .checkCrucialResourceReservationStatus(resourceReservations);
+
+        assertThat(result.name()).isEqualTo(expectedStatus.getStatusValue());
     }
 }
