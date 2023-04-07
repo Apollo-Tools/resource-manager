@@ -14,6 +14,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.nio.file.Paths;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -66,7 +68,8 @@ public class FilePathServiceImplTest {
     @ValueSource(booleans = {true, false})
     void tfLocFileExists(boolean exists, VertxTestContext testContext) {
         String tfPath = ".\\tfDir";
-        when(fileSystem.exists(tfPath + "\\.terraform.lock.hcl")).thenReturn(Future.succeededFuture(exists));
+        when(fileSystem.exists(Paths.get(tfPath, ".terraform.lock.hcl").toString()))
+            .thenReturn(Future.succeededFuture(exists));
 
         filePathService.tfLocFileExists(tfPath)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
