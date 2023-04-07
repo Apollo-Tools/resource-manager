@@ -32,6 +32,14 @@ public class TestResourceProviderProvider {
         return region;
     }
 
+    public static Region createRegionEdge(long id) {
+        Region region = new Region();
+        region.setRegionId(id);
+        region.setName("edge");
+        region.setResourceProvider(createResourceProvider(33L, "edge"));
+        return region;
+    }
+
     public static VPC createVPC(long id, Region region, String vpcIdValue, String subnetIdValue, Account createdBy) {
         VPC vpc = new VPC();
         vpc.setVpcId(id);
@@ -40,14 +48,6 @@ public class TestResourceProviderProvider {
         vpc.setSubnetIdValue(subnetIdValue);
         vpc.setCreatedBy(createdBy);
         return vpc;
-    }
-
-    public static VPC createVPC(long id, Account createdBy) {
-        ResourceProvider resourceProvider = new ResourceProvider();
-        resourceProvider.setProviderId(1L);
-        resourceProvider.setProvider("aws");
-        Region region = createRegion(1L, "us-east-1", resourceProvider);
-        return createVPC(id, region, "vpc-id", "subnet-id", createdBy);
     }
 
     public static VPC createVPC(long id, Region region) {

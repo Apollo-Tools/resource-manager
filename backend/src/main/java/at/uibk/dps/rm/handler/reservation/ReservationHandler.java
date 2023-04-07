@@ -7,7 +7,6 @@ import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.handler.deployment.DeploymentChecker;
 import at.uibk.dps.rm.handler.deployment.DeploymentHandler;
-import at.uibk.dps.rm.service.database.reservation.ReservationPreconditionChecker;
 import at.uibk.dps.rm.util.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -37,18 +36,19 @@ public class ReservationHandler extends ValidationHandler {
 
     private final ReservationErrorHandler reservationErrorHandler;
 
-    private final ReservationPreconditionChecker preconditionChecker;
+    private final ReservationPreconditionHandler preconditionHandler;
 
     public ReservationHandler(ReservationChecker reservationChecker, ResourceReservationChecker resourceReservationChecker,
                               ResourceReservationStatusChecker statusChecker, DeploymentHandler deploymentHandler,
-                              ReservationErrorHandler reservationErrorHandler, ReservationPreconditionChecker preconditionChecker) {
+                              ReservationErrorHandler reservationErrorHandler,
+                              ReservationPreconditionHandler preconditionHandler) {
         super(reservationChecker);
         this.reservationChecker = reservationChecker;
         this.resourceReservationChecker = resourceReservationChecker;
         this.statusChecker = statusChecker;
         this.deploymentHandler = deploymentHandler;
         this.reservationErrorHandler = reservationErrorHandler;
-        this.preconditionChecker = preconditionChecker;
+        this.preconditionHandler = preconditionHandler;
     }
 
     @Override
@@ -98,7 +98,7 @@ public class ReservationHandler extends ValidationHandler {
                 .mapTo(ReserveResourcesRequest.class);
         long accountId = rc.user().principal().getLong("account_id");
         List<VPC> vpcList = new ArrayList<>();
-        return preconditionChecker.checkReservationIsValid(requestDTO, accountId, vpcList)
+        return preconditionHandler.checkReservationIsValid(requestDTO, accountId, vpcList)
             .flatMap(functionResources -> reservationChecker.submitCreateReservation(accountId)
                 .flatMap(reservationJson ->
                     statusChecker.checkFindOneByStatusValue(ReservationStatusValue.NEW.name())

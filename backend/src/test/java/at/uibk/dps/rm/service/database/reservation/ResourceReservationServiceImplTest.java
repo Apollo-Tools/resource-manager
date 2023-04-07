@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.database.reservation;
 
+import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.repository.reservation.ResourceReservationRepository;
 import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
@@ -21,8 +22,7 @@ import java.util.List;
 import java.util.concurrent.CompletionStage;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
@@ -54,7 +54,7 @@ public class ResourceReservationServiceImplTest {
         resultList.add(entity1);
         resultList.add(entity2);
         CompletionStage<List<ResourceReservation>> completionStage = CompletionStages.completedFuture(resultList);
-        doReturn(completionStage).when(resourceReservationRepository).findAllByReservationId(reservationId);
+        when(resourceReservationRepository.findAllByReservationId(reservationId)).thenReturn(completionStage);
 
         resourceReservationService.findAllByReservationId(reservationId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -82,7 +82,7 @@ public class ResourceReservationServiceImplTest {
         long resourceId = 1L;
         List<ResourceReservation> resultList = new ArrayList<>();
         CompletionStage<List<ResourceReservation>> completionStage = CompletionStages.completedFuture(resultList);
-        doReturn(completionStage).when(resourceReservationRepository).findAllByReservationId(resourceId);
+        when(resourceReservationRepository.findAllByReservationId(resourceId)).thenReturn(completionStage);
 
         resourceReservationService.findAllByReservationId(resourceId)
                 .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -90,5 +90,37 @@ public class ResourceReservationServiceImplTest {
                     verify(resourceReservationRepository).findAllByReservationId(resourceId);
                     testContext.completeNow();
                 })));
+    }
+
+    @Test
+    void updateTriggerUrl(VertxTestContext testContext) {
+        long functionResourceId = 1L, reservationId = 2L;
+        String triggerUrl = "url";
+        CompletionStage<Integer> completionStage = CompletionStages.completedFuture(1);
+
+        when(resourceReservationRepository.updateTriggerUrl(functionResourceId, reservationId, triggerUrl))
+            .thenReturn(completionStage);
+
+        resourceReservationService.updateTriggerUrl(functionResourceId, reservationId, triggerUrl)
+            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result).isNull();
+                testContext.completeNow();
+            })));
+    }
+
+    @Test
+    void updateSetStatusByReservationId(VertxTestContext testContext) {
+        long reservationId = 1L;
+        ReservationStatusValue statusValue = ReservationStatusValue.NEW;
+        CompletionStage<Integer> completionStage = CompletionStages.completedFuture(1);
+
+        when(resourceReservationRepository.updateReservationStatusByReservationId(reservationId, statusValue))
+            .thenReturn(completionStage);
+
+        resourceReservationService.updateSetStatusByReservationId(reservationId, statusValue)
+            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result).isNull();
+                testContext.completeNow();
+            })));
     }
 }

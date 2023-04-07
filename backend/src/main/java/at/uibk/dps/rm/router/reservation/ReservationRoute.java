@@ -12,7 +12,7 @@ import at.uibk.dps.rm.handler.reservation.*;
 import at.uibk.dps.rm.handler.resourceprovider.VPCChecker;
 import at.uibk.dps.rm.handler.util.FileSystemChecker;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
-import at.uibk.dps.rm.service.database.reservation.ReservationPreconditionChecker;
+import at.uibk.dps.rm.handler.reservation.ReservationPreconditionHandler;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 public class ReservationRoute {
@@ -36,7 +36,7 @@ public class ReservationRoute {
         ResourceTypeMetricChecker resourceTypeMetricChecker = new ResourceTypeMetricChecker(serviceProxyProvider
             .getResourceTypeMetricService());
         VPCChecker vpcChecker = new VPCChecker(serviceProxyProvider.getVpcService());
-        ReservationPreconditionChecker preconditionChecker = new ReservationPreconditionChecker(functionResourceChecker,
+        ReservationPreconditionHandler preconditionChecker = new ReservationPreconditionHandler(functionResourceChecker,
             resourceTypeMetricChecker, vpcChecker, credentialsChecker);
         /* Handler initialization */
         DeploymentHandler deploymentHandler = new DeploymentHandler(deploymentChecker, credentialsChecker,

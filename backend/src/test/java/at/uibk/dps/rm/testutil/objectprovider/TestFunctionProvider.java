@@ -66,6 +66,16 @@ public class TestFunctionProvider {
         return functionResource;
     }
 
+    public static FunctionResource createFunctionResource(long id, long functionId, long resourceId, Region region) {
+        FunctionResource functionResource = new FunctionResource();
+        functionResource.setFunctionResourceId(id);
+        Function function = createFunction(functionId, "func-test", "false");
+        functionResource.setFunction(function);
+        Resource resource = TestResourceProvider.createResource(resourceId, region);
+        functionResource.setResource(resource);
+        return functionResource;
+    }
+
     public static FunctionResource createFunctionResource(long id) {
         return createFunctionResource(id, 33L);
     }

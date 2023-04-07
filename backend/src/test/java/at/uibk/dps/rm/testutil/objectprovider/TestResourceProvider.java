@@ -25,6 +25,11 @@ public class TestResourceProvider {
         return createResource(resourceId, resourceType);
     }
 
+    public static Resource createResource(long resourceId, Region region) {
+        ResourceType resourceType = createResourceType(1L, "cloud");
+        return createResource(resourceId, resourceType, region, false);
+    }
+
     public static Resource createResourceFaaS(long id, Region region, Double timeout, Double memorySize) {
         Resource resource = new Resource();
         resource.setResourceId(id);

@@ -9,7 +9,6 @@ import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.handler.deployment.DeploymentHandler;
-import at.uibk.dps.rm.service.database.reservation.ReservationPreconditionChecker;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.*;
 import at.uibk.dps.rm.util.JsonMapperConfig;
@@ -56,7 +55,7 @@ public class ReservationHandlerTest {
     private ReservationErrorHandler reservationErrorHandler;
 
     @Mock
-    private ReservationPreconditionChecker preconditionChecker;
+    private ReservationPreconditionHandler preconditionChecker;
 
     @Mock
     private RoutingContext rc;

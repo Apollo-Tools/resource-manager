@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.service.database.reservation;
+package at.uibk.dps.rm.handler.reservation;
 
 import at.uibk.dps.rm.entity.dto.ReserveResourcesRequest;
 import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
@@ -19,7 +19,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class ReservationPreconditionChecker {
+public class ReservationPreconditionHandler {
 
     private final FunctionResourceChecker functionResourceChecker;
 
@@ -29,7 +29,7 @@ public class ReservationPreconditionChecker {
 
     private final CredentialsChecker credentialsChecker;
 
-    public ReservationPreconditionChecker(FunctionResourceChecker functionResourceChecker, ResourceTypeMetricChecker
+    public ReservationPreconditionHandler(FunctionResourceChecker functionResourceChecker, ResourceTypeMetricChecker
         resourceTypeMetricChecker, VPCChecker vpcChecker, CredentialsChecker credentialsChecker) {
         this.functionResourceChecker = functionResourceChecker;
         this.resourceTypeMetricChecker = resourceTypeMetricChecker;
