@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.database.metric;
 
+import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.service.database.ServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -14,11 +15,13 @@ import io.vertx.core.json.JsonObject;
 @VertxGen
 public interface MetricValueService extends ServiceInterface {
 
+    @Generated
     @GenIgnore
     static MetricValueService create(MetricValueRepository metricValueRepository) {
         return new MetricValueServiceImpl(metricValueRepository);
     }
 
+    @Generated
     static MetricValueService createProxy(Vertx vertx, String address) {
         return new MetricValueServiceVertxEBProxy(vertx, address);
     }

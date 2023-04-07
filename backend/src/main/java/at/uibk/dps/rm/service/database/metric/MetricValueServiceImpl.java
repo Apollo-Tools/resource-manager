@@ -54,6 +54,7 @@ public class MetricValueServiceImpl extends ServiceProxy<MetricValue> implements
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (MetricValue metricValue: result) {
+                    // necessary check because when no metric values are present the result list contains one null value
                     if (metricValue == null) {
                         continue;
                     }
