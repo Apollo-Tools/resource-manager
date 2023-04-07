@@ -1,9 +1,7 @@
 package at.uibk.dps.rm.testutil.objectprovider;
 
 import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
-import at.uibk.dps.rm.entity.model.Function;
-import at.uibk.dps.rm.entity.model.FunctionResource;
-import at.uibk.dps.rm.entity.model.Resource;
+import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.model.Runtime;
 
 public class TestFunctionProvider {
