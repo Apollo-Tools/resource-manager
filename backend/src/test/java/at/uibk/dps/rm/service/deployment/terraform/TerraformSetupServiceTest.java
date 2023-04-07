@@ -17,7 +17,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(VertxExtension.class)
@@ -67,34 +66,47 @@ public class TerraformSetupServiceTest {
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(IllegalStateException.class);
+                    assertThat(throwable.getMessage()).isEqualTo("deployRequest must not be null");
                     testContext.completeNow();
                 })
             );
     }
 
     @Test
-    void getDeploymentCredentials(Vertx vertx) {
+    void getDeploymentCredentials(Vertx vertx, VertxTestContext testContext) {
         TerminateResourcesRequest terminateRequest = TestRequestProvider.createTerminateRequest();
         DeploymentPath deploymentPath = new DeploymentPath(1L);
         DeploymentCredentials deploymentCredentials = new DeploymentCredentials();
         TerraformSetupService service = new TerraformSetupService(vertx, terminateRequest, deploymentPath,
             deploymentCredentials);
 
-        DeploymentCredentials result = service.getDeploymentCredentials();
-        assertThat(result.getCloudCredentials().size()).isEqualTo(1);
-        assertThat(result.getCloudCredentials().get(0).getResourceProvider().getProvider()).isEqualTo("aws");
-        assertThat(result.getEdgeLoginCredentials().toString())
-            .isEqualTo("edge_login_data=[{auth_user=\\\"user\\\",auth_pw=\\\"pw\\\"},]");
+        service.getDeploymentCredentials()
+            .subscribe(result -> testContext.verify(() -> {
+                    assertThat(result.getCloudCredentials().size()).isEqualTo(1);
+                    assertThat(result.getCloudCredentials().get(0).getResourceProvider().getProvider()).isEqualTo("aws");
+                    assertThat(result.getEdgeLoginCredentials().toString())
+                        .isEqualTo("edge_login_data=[{auth_user=\\\"user\\\",auth_pw=\\\"pw\\\"},]");
+                    testContext.completeNow();
+                }),
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
+            );
     }
 
     @Test
-    void getDeploymentCredentialsTerminateRequestNull(Vertx vertx) {
+    void getDeploymentCredentialsTerminateRequestNull(Vertx vertx, VertxTestContext testContext) {
         DeployResourcesRequest deployRequest = TestRequestProvider.createDeployRequest();
         DeploymentPath deploymentPath = new DeploymentPath(1L);
         DeploymentCredentials deploymentCredentials = new DeploymentCredentials();
         TerraformSetupService service = new TerraformSetupService(vertx, deployRequest, deploymentPath,
             deploymentCredentials);
 
-        assertThrows(IllegalStateException.class, service::getDeploymentCredentials);
+        service.getDeploymentCredentials()
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(IllegalStateException.class);
+                    assertThat(throwable.getMessage()).isEqualTo("terminateRequest must not be null");
+                    testContext.completeNow();
+                })
+            );
     }
 }

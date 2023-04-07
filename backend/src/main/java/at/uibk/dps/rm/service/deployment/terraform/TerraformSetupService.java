@@ -72,9 +72,9 @@ public class TerraformSetupService {
             .collect(Collectors.toList()));
     }
 
-    public DeploymentCredentials getDeploymentCredentials() {
+    public Single<DeploymentCredentials> getDeploymentCredentials() {
         if (terminateRequest == null) {
-            throw new IllegalStateException("terminateRequest must not be null");
+            return Single.error(new IllegalStateException("terminateRequest must not be null"));
         }
         Map<Region, List<FunctionResource>> functionResources = RegionMapper
             .mapFunctionResources(terminateRequest.getFunctionResources());
@@ -87,7 +87,7 @@ public class TerraformSetupService {
                 composeCloudLoginData(terminateRequest.getCredentialsList(), region);
             }
         }
-        return this.credentials;
+        return Single.just(this.credentials);
     }
 
     private void composeEdgeLoginData(List<FunctionResource> regionFunctionResources) {
