@@ -51,7 +51,7 @@ public class AccountHandlerTest {
         ConfigStoreOptions fileStore = new ConfigStoreOptions()
             .setType("file")
             .setFormat("json")
-            .setConfig(new JsonObject().put("path", "../conf/config.test.json"));
+            .setConfig(new JsonObject().put("path", "./conf/config.test.json"));
         ConfigRetriever retriever = ConfigRetriever.create(vertx,
             new ConfigRetrieverOptions().addStore(fileStore));
         JsonObject config = retriever.getConfig().blockingGet();

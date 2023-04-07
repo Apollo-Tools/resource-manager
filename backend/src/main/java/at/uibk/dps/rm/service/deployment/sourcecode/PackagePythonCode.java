@@ -15,8 +15,9 @@ import java.util.zip.ZipOutputStream;
 
 public class PackagePythonCode extends PackageSourceCode{
     protected final String SOURCE_CODE_NAME = "cloud_function.py";
-    private final File[] HANDLER_FILES = {new File("backend\\src\\main\\resources\\faas\\python\\main.py"),
-                                        new File("backend\\src\\main\\resources\\faas\\python\\handler.py")};
+    private final File[] HANDLER_FILES =
+        {Path.of("src", "main", "resources", "faas", "python", "main.py").toFile(),
+            Path.of("src", "main", "resources", "faas", "python", "handler.py").toFile()};
 
     public PackagePythonCode(Vertx vertx, FileSystem fileSystem) {
         super(vertx, fileSystem);

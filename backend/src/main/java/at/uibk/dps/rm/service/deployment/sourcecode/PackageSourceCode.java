@@ -45,7 +45,7 @@ public abstract class PackageSourceCode {
             .ignoreElement();
     }
 
-    protected Single<Path> createSourceCodeFile(Path root, String functionIdentifier, String code, String fileName) {
+    private Single<Path> createSourceCodeFile(Path root, String functionIdentifier, String code, String fileName) {
         Path sourceCodePath = Path.of(root.toString(), functionIdentifier, fileName);
         return fileSystem.mkdirs(sourceCodePath.getParent().toString())
                 .andThen(fileSystem.writeFile(sourceCodePath.toString(), Buffer.buffer(code)))
