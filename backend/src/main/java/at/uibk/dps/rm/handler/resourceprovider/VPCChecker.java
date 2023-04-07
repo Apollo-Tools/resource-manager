@@ -28,7 +28,7 @@ public class VPCChecker extends EntityChecker {
         return ErrorHandler.handleFindOne(findOneByRegionIdAndAccountId);
     }
 
-    public Single<List<JsonObject>> checkVPCForResources(long accountId, List<JsonObject> functionResources) {
+    public Single<List<JsonObject>> checkVPCForFunctionResources(long accountId, List<JsonObject> functionResources) {
         List<Single<JsonObject>> singles = new ArrayList<>();
         HashSet<Long> regionIds = new HashSet<>();
         for (JsonObject jsonObject: functionResources) {

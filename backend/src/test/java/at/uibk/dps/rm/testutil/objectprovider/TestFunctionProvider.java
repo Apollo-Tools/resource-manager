@@ -82,6 +82,16 @@ public class TestFunctionProvider {
         return functionResource;
     }
 
+    public static FunctionResource createFunctionResource(long id, Resource resource) {
+        FunctionResource functionResource = new FunctionResource();
+        functionResource.setFunctionResourceId(id);
+        Function function = createFunction(22L, "func-test", "false");
+        functionResource.setFunction(function);
+        functionResource.setResource(resource);
+        functionResource.setIsDeployed(true);
+        return functionResource;
+    }
+
     public static FunctionResource createFunctionResource(long id, Function function, Resource resource, boolean isDeployed) {
         FunctionResource functionResource = new FunctionResource();
         functionResource.setFunctionResourceId(id);

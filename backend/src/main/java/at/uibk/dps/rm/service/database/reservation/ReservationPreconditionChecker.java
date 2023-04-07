@@ -42,7 +42,7 @@ public class ReservationPreconditionChecker {
         return checkFindFunctionResources(requestDTO.getFunctionResources()).toList()
             .flatMap(functionResources -> checkCredentialsForResources(accountId, functionResources)
                 .andThen(resourceTypeMetricChecker.checkMissingRequiredMetricsByFunctionResources(functionResources))
-                .andThen(vpcChecker.checkVPCForResources(accountId, functionResources)
+                .andThen(vpcChecker.checkVPCForFunctionResources(accountId, functionResources)
                     .map(vpcs -> {
                         vpcList.addAll(vpcs.stream().map(vpc -> vpc.mapTo(VPC.class)).collect(Collectors.toList()));
                         return vpcList;
