@@ -17,7 +17,6 @@ public class DockerImageService {
 
     private final DockerCredentials dockerCredentials;
 
-
     private final List<String> functionIdentifiers;
 
     private final Path functionsDir;
@@ -31,6 +30,9 @@ public class DockerImageService {
     }
 
     public Single<ProcessOutput> buildAndPushDockerImages(String functionsString) {
+        if (functionsString.isBlank()) {
+            return Single.just(new ProcessOutput());
+        }
         String stackFile = String.format(
             "version: 1.0\n" +
                 "provider:\n" +
@@ -40,9 +42,6 @@ public class DockerImageService {
                 "    - name: python3-flask-debian\n" +
                 "functions:\n" +
                 "%s\n", functionsString);
-        if (functionsString.isBlank()) {
-            return Single.just(new ProcessOutput());
-        }
 
         return createStackFile(functionsDir, stackFile)
             .andThen(buildFunctionsDockerFiles(functionsDir))
