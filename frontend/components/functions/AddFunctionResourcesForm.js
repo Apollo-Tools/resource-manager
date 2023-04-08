@@ -36,6 +36,13 @@ const AddFunctionResourcesForm = ({
     }
   }, [excludeResourceIds]);
 
+  // TODO: improve error handling
+  useEffect(() => {
+    if (error) {
+      console.log('action failed');
+      setError(false);
+    }
+  }, [error]);
 
   const onClickAdd = async () => {
     if (!checkTokenExpired()) {

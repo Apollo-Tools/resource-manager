@@ -1,6 +1,6 @@
 import {siteTitle} from '../../components/misc/Sidebar';
 import Head from 'next/head';
-import { Typography} from 'antd';
+import {Typography} from 'antd';
 import ReservationTable from '../../components/reservations/ReservationTable';
 
 const Reservations = () => {

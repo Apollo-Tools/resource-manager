@@ -33,6 +33,14 @@ const ReservationDetails = () => {
     }
   }, [id]);
 
+  // TODO: improve error handling
+  useEffect(() => {
+    if (error) {
+      console.log('action failed');
+      setError(false);
+    }
+  }, [error]);
+
   useEffect(() => {
     if (reservation != null) {
       checkReservationStatus();
