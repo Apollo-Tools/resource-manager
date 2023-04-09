@@ -2,7 +2,10 @@ package at.uibk.dps.rm.verticle;
 
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.config.ConfigRetrieverOptions;
+import io.vertx.config.ConfigStoreOptions;
 import io.vertx.core.DeploymentOptions;
+import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.config.ConfigRetriever;
 import io.vertx.rxjava3.core.AbstractVerticle;
 
@@ -10,9 +13,16 @@ public class MainVerticle extends AbstractVerticle {
 
   @Override
   public Completable rxStart() {
-    ConfigRetriever retriever = ConfigRetriever.create(vertx);
+    ConfigStoreOptions storeEnv = new ConfigStoreOptions().setType("env");
+    ConfigStoreOptions storeFile = new ConfigStoreOptions()
+        .setType("file")
+        .setFormat("json")
+        .setConfig(new JsonObject().put("path", "./conf/config.json"));
+    ConfigRetriever retriever = ConfigRetriever.create(vertx, new ConfigRetrieverOptions().addStore(storeFile)
+          .addStore(storeEnv));
 
-    return retriever.rxGetConfig()
+
+    return retriever.getConfig()
             .flatMapCompletable(
               config -> {
                 Single<String> deployMigrationVerticle = vertx.rxDeployVerticle(new MigrationVerticle(), new DeploymentOptions().setConfig(config))

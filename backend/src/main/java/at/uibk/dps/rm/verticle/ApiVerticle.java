@@ -34,7 +34,7 @@ public class ApiVerticle extends AbstractVerticle {
 
     @Override
     public Completable rxStart() {
-        return RouterBuilder.rxCreate(vertx, "src/main/resources/openapi/resource-manager.yaml")
+        return RouterBuilder.rxCreate(vertx, "openapi/resource-manager.yaml")
             .flatMap(routerBuilder -> {
                 Router router = initRouter(routerBuilder);
 
