@@ -1,5 +1,5 @@
-const API_ROUTE = `${process.env.NEXT_PUBLIC_API_URL}/accounts`;
-
+import env from '@beam-australia/react-env';
+const API_ROUTE = `${env('API_URL')}/accounts`;
 export async function login(username, password, setToken, setError) {
   try {
     const response = await fetch(`${API_ROUTE}/login`, {

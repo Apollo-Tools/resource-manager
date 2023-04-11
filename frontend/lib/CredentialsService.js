@@ -1,4 +1,5 @@
-const API_ROUTE = `${process.env.NEXT_PUBLIC_API_URL}/credentials`;
+import env from '@beam-australia/react-env';
+const API_ROUTE = `${env('API_URL')}/credentials`;
 
 export async function createCredentials(providerId, accessKey, secretAccessKey, sessionToken, token,
     setCredentials, setError) {

@@ -1,4 +1,5 @@
-const API_ROUTE = `${process.env.NEXT_PUBLIC_API_URL}/reservations`;
+import env from '@beam-australia/react-env';
+const API_ROUTE = `${env('API_URL')}/reservations`;
 
 export async function listMyReservations(token, setReservations, setError) {
   try {

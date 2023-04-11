@@ -1,4 +1,5 @@
-const API_ROUTE = `${process.env.NEXT_PUBLIC_API_URL}/resource-types`;
+import env from '@beam-australia/react-env';
+const API_ROUTE = `${env('API_URL')}/resource-types`;
 
 export async function listResourceTypes(token, setResourceTypes, setError) {
   try {

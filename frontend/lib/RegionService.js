@@ -1,4 +1,5 @@
-const API_ROUTE = `${process.env.NEXT_PUBLIC_API_URL}/regions`;
+import env from '@beam-australia/react-env';
+const API_ROUTE = `${env('API_URL')}/regions`;
 
 export async function listRegions(token, setRegions, setError) {
   try {

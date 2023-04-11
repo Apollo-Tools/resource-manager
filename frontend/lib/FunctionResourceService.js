@@ -1,4 +1,5 @@
-const API_ROUTE = `${process.env.NEXT_PUBLIC_API_URL}/functions`;
+import env from '@beam-australia/react-env';
+const API_ROUTE = `${env('API_URL')}/functions`;
 
 export async function listFunctionResources(functionId, token, setFunctionResources, setError) {
   try {

@@ -1,4 +1,5 @@
-const API_ROUTE = `${process.env.NEXT_PUBLIC_API_URL}/metrics`;
+import env from '@beam-australia/react-env';
+const API_ROUTE = `${env('API_URL')}/metrics`;
 
 export async function listMetrics(token, setMetrics, setError) {
   try {

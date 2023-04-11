@@ -1,4 +1,5 @@
-const API_ROUTE = `${process.env.NEXT_PUBLIC_API_URL}/resources`;
+import env from '@beam-australia/react-env';
+const API_ROUTE = `${env('API_URL')}/resources`;
 
 export async function createResource(resourceTypeId, isSelfManaged, regionId, token, setResource, setError) {
   try {

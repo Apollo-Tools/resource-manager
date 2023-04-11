@@ -1,4 +1,5 @@
-const API_ROUTE = `${process.env.NEXT_PUBLIC_API_URL}/runtimes`;
+import env from '@beam-australia/react-env';
+const API_ROUTE = `${env('API_URL')}/runtimes`;
 
 export async function listRuntimes(token, setRuntimes, setError) {
   try {
