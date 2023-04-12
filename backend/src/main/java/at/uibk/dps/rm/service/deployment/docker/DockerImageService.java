@@ -62,16 +62,16 @@ public class DockerImageService {
     }
 
     private Single<ProcessOutput> buildFunctionsDockerFiles(Path rootFolder) {
-        ProcessExecutor processExecutor = new ProcessExecutor(rootFolder,"faas-cli", "build", "-f",
-            "stack.yml", "--shrinkwrap");
+        ProcessExecutor processExecutor = new ProcessExecutor(rootFolder.toAbsolutePath(),"faas-cli",
+            "build", "-f", "stack.yml", "--shrinkwrap");
         return processExecutor.executeCli();
     }
 
     private Single<ProcessOutput> pushDockerImages(Path rootFolder) {
         List<String> dockerCommands = new java.util.ArrayList<>(List.of("docker", "run", "-v",
-            "\"/var/run/docker.sock:/var/run/docker.sock\"", "--privileged", "--rm", "-v",
-            rootFolder.toAbsolutePath() + "\\build:/build", "docker:latest", "sh", "-c"));
-        StringBuilder dockerInteractiveCommands = new StringBuilder("\"cd ./build && docker login -u " +
+            "/var/run/docker.sock:/var/run/docker.sock", "--privileged", "--rm", "-v",
+            rootFolder.toAbsolutePath() + "/build:/build", "docker:latest", "/bin/sh", "-c"));
+        StringBuilder dockerInteractiveCommands = new StringBuilder("cd ./build && docker login -u " +
             dockerCredentials.getUsername() + " -p " + dockerCredentials.getAccessToken() + " && docker buildx create " +
             "--name multiarch --driver docker-container --bootstrap --use");
         for (String functionIdentifier : functionIdentifiers) {
@@ -79,7 +79,6 @@ public class DockerImageService {
                     "linux/arm/v7,linux/amd64 --push",
                 dockerCredentials.getUsername(), functionIdentifier, functionIdentifier));
         }
-        dockerInteractiveCommands.append("\"");
         dockerCommands.add(dockerInteractiveCommands.toString());
         ProcessExecutor processExecutor = new ProcessExecutor(rootFolder, dockerCommands);
         return processExecutor.executeCli();

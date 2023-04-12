@@ -27,7 +27,7 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 public class ApiVerticle extends AbstractVerticle {
 
-    private static final Logger logger = LoggerFactory.getLogger(DatabaseVerticle.class);
+    private static final Logger logger = LoggerFactory.getLogger(ApiVerticle.class);
     private static final String API_PREFIX = "/api/*";
 
     private JWTAuthProvider jwtAuthProvider;

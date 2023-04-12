@@ -22,8 +22,7 @@ val junitJupiterVersion = "5.7.0"
 val postgresVersion = "42.3.6"
 val hibernateVersion = "1.1.6.Final"
 
-val mainVerticleName = "at.uibk.dps.rm.verticle.MainVerticle"
-val launcherClassName = "io.vertx.core.Launcher"
+val launcherClassName = "at.uibk.dps.rm.Main"
 
 val watchForChange = "src/**/*"
 val doOnChange = "${projectDir}/gradlew classes"
@@ -79,11 +78,9 @@ jacoco {
 }
 
 tasks.withType<ShadowJar> {
-  archiveClassifier.set("fat")
   manifest {
-    attributes(mapOf("Main-Verticle" to mainVerticleName))
+    attributes["Main-Class"] = "at.uibk.dps.rm.Main"
   }
-  mergeServiceFiles()
 }
 
 tasks.withType<Test> {
@@ -91,10 +88,6 @@ tasks.withType<Test> {
   testLogging {
     events = setOf(PASSED, SKIPPED, FAILED)
   }
-}
-
-tasks.withType<JavaExec> {
-  args = listOf("run", mainVerticleName, "--redeploy=$watchForChange", "--launcher-class=$launcherClassName", "--on-redeploy=$doOnChange")
 }
 
 tasks.test {

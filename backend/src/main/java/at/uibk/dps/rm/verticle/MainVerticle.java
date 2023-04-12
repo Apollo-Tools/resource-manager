@@ -5,11 +5,15 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.config.ConfigRetrieverOptions;
 import io.vertx.config.ConfigStoreOptions;
 import io.vertx.core.DeploymentOptions;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.config.ConfigRetriever;
 import io.vertx.rxjava3.core.AbstractVerticle;
 
 public class MainVerticle extends AbstractVerticle {
+
+    private static final Logger logger = LoggerFactory.getLogger(MainVerticle.class);
 
   @Override
   public Completable rxStart() {

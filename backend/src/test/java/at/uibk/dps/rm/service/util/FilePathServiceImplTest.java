@@ -67,7 +67,7 @@ public class FilePathServiceImplTest {
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void tfLocFileExists(boolean exists, VertxTestContext testContext) {
-        String tfPath = ".\\tfDir";
+        String tfPath = "./tfDir";
         when(fileSystem.exists(Paths.get(tfPath, ".terraform.lock.hcl").toString()))
             .thenReturn(Future.succeededFuture(exists));
 

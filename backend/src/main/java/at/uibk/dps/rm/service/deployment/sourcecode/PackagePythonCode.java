@@ -16,8 +16,8 @@ import java.util.zip.ZipOutputStream;
 public class PackagePythonCode extends PackageSourceCode{
     protected final String SOURCE_CODE_NAME = "cloud_function.py";
     private final File[] HANDLER_FILES =
-        {Path.of("src", "main", "resources", "faas", "python", "main.py").toFile(),
-            Path.of("src", "main", "resources", "faas", "python", "handler.py").toFile()};
+        {Path.of("runtime", "python", "main.py").toFile(),
+            Path.of("runtime", "python", "handler.py").toFile()};
 
     public PackagePythonCode(Vertx vertx, FileSystem fileSystem) {
         super(vertx, fileSystem);
@@ -27,7 +27,7 @@ public class PackagePythonCode extends PackageSourceCode{
     @Override
     protected void zipAllFiles(Path rootFolder, Path sourceCode, String functionIdentifier) {
         try {
-            FileOutputStream fileOutputStream = new FileOutputStream(rootFolder + "\\" + functionIdentifier + ".zip");
+            FileOutputStream fileOutputStream = new FileOutputStream(rootFolder + "/" + functionIdentifier + ".zip");
             ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream);
             List<File> filesToZip = new ArrayList<>();
             filesToZip.add(sourceCode.toFile());

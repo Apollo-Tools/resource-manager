@@ -9,7 +9,6 @@ import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.buffer.Buffer;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
 public class TerraformExecutor {
@@ -30,9 +29,9 @@ public class TerraformExecutor {
             "\"";
         Path tfConfigPath;
         if (System.getProperty("os.name").toLowerCase().contains("windows")) {
-            tfConfigPath = Paths.get(System.getenv("APPDATA") + "\\terraform.rc");
+            tfConfigPath = Path.of(System.getenv("APPDATA"), "terraform.rc");
         } else {
-            tfConfigPath = Paths.get(System.getenv("user.home") + "\\.terraformrc");
+            tfConfigPath = Path.of(System.getenv("user.home"), ".terraformrc");
         }
         return vertx.fileSystem().mkdirs(folder.toString())
             .andThen(vertx.fileSystem().writeFile(tfConfigPath.toString(), Buffer.buffer(tfConfigContent)));

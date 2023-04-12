@@ -5,7 +5,6 @@ import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.file.FileSystem;
 import lombok.AllArgsConstructor;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,7 +52,7 @@ public abstract class TerraformFileService {
     }
 
     private Completable createTerraformFile(String fileName, String fileContent) {
-        Path filePath = Paths.get(rootFolder + "\\" + fileName);
+        Path filePath = Path.of(rootFolder.toString(), fileName);
         return fileSystem.writeFile(filePath.toString(), Buffer.buffer(fileContent));
     }
 
