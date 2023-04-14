@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.entity.model;
 
 import at.uibk.dps.rm.annotations.Generated;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,9 +31,7 @@ public class Function {
     @Column(insertable = false, updatable = false)
     private @Setter(value = AccessLevel.NONE) Timestamp updatedAt;
 
-    @Transient
-    private @Setter(value = AccessLevel.NONE) String functionDeploymentId;
-
+    @JsonIgnore
     public String getFunctionDeploymentId() {
         if (runtime == null) {
             return functionId.toString();
