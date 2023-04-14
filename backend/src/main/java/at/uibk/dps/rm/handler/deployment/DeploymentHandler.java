@@ -46,8 +46,8 @@ public class DeploymentHandler {
         return credentialsChecker.checkFindAll(accountId)
             .flatMap(credentials -> mapCredentialsAndFunctionResourcesToRequest(request, credentials))
             .flatMap(res -> deploymentChecker.deployResources(request))
-            .flatMapCompletable(tfOutput -> resourceReservationChecker
-                .storeOutputToFunctionResources(tfOutput, request));
+            .flatMapCompletable(tfOutput -> Completable.defer(() -> resourceReservationChecker
+                .storeOutputToFunctionResources(tfOutput, request)));
     }
 
     public Completable terminateResources(Reservation reservation, long accountId) {

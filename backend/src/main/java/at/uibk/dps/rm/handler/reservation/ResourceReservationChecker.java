@@ -56,20 +56,22 @@ public class ResourceReservationChecker extends EntityChecker {
         for (Map.Entry<String, String> entry : resourceTypeSet) {
             String[] entryInfo = entry.getKey().split("_");
             long resourceId = Long.parseLong(entryInfo[0].substring(1));
-            String functionName = entryInfo[1];
-            findFunctionResourceAndUpdateTriggerUrl(request, resourceId, functionName, entry.getValue(), completables);
+            String functionName = entryInfo[1], runtimeName = entryInfo[2];
+            findFunctionResourceAndUpdateTriggerUrl(request, resourceId, functionName, runtimeName, entry.getValue(),
+                completables);
         }
         return completables;
     }
 
     private void findFunctionResourceAndUpdateTriggerUrl(DeployResourcesRequest request, long resourceId,
-                                                         String functionName, String triggerUrl,
+                                                         String functionName, String runtimeName, String triggerUrl,
                                                          List<Completable> completables) {
         request.getFunctionResources().stream()
-            .filter(functionResource -> matchesFunctionResource(resourceId, functionName, functionResource))
+            .filter(functionResource -> matchesFunctionResource(resourceId, functionName, runtimeName,
+                functionResource))
             .findFirst()
-            .ifPresent(functionResource ->
-                completables.add(resourceReservationService.updateTriggerUrl(functionResource.getFunctionResourceId(),
+            .ifPresent(functionResource -> completables
+                .add(resourceReservationService.updateTriggerUrl(functionResource.getFunctionResourceId(),
                     request.getReservation().getReservationId(), triggerUrl))
             );
     }
@@ -103,8 +105,10 @@ public class ResourceReservationChecker extends EntityChecker {
             );
     }
 
-    private static boolean matchesFunctionResource(long resourceId, String functionName, FunctionResource functionResource) {
+    private static boolean matchesFunctionResource(long resourceId, String functionName, String runtimeName,
+                                                   FunctionResource functionResource) {
         return functionResource.getResource().getResourceId() == resourceId &&
-            functionResource.getFunction().getName().equals(functionName);
+            functionResource.getFunction().getName().equals(functionName) &&
+            functionResource.getFunction().getRuntime().getName().replace(".", "").equals(runtimeName);
     }
 }

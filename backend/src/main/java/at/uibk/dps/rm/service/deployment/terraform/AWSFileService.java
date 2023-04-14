@@ -17,6 +17,7 @@ public class AWSFileService extends ModuleFileService {
     private final Region region;
 
     private final String awsRole;
+
     private final List<FunctionResource> functionResources;
 
     private final long reservationId;
@@ -68,9 +69,8 @@ public class AWSFileService extends ModuleFileService {
                 continue;
             }
             Function function = fr.getFunction();
-            String runtime = function.getRuntime().getName().toLowerCase();
-            String functionIdentifier =  function.getName().toLowerCase() +
-                "_" + runtime.replace(".", "");
+            String runtime = function.getRuntime().getName();
+            String functionIdentifier =  function.getFunctionDeploymentId();
             functionNames.append("\"").append("r").append(resource.getResourceId())
                 .append("_").append(functionIdentifier).append("_").append(reservationId)
                 .append("\",");
@@ -133,9 +133,7 @@ public class AWSFileService extends ModuleFileService {
                     .append("\",");
                 vmResourceIds.add(resource.getResourceId());
             }
-            String runtime = function.getRuntime().getName().toLowerCase();
-            String functionIdentifier =  function.getName().toLowerCase() +
-                "_" + runtime.replace(".", "");
+            String functionIdentifier =  function.getFunctionDeploymentId();
             functionsString.append(String.format(
                 "module \"r%s_%s\" {\n" +
                     "  openfaas_depends_on = module.vm\n" +
@@ -211,9 +209,7 @@ public class AWSFileService extends ModuleFileService {
             for (FunctionResource functionResource: functionResources) {
                 Resource resource = functionResource.getResource();
                 Function function = functionResource.getFunction();
-                String runtime = function.getRuntime().getName().toLowerCase();
-                String functionIdentifier = function.getName().toLowerCase() +
-                    "_" + runtime.replace(".", "");
+                String functionIdentifier = function.getFunctionDeploymentId();
                 if (resource.getResourceType().getResourceType().equals("vm")) {
                     vmUrls.append(String.format("module.r%s_%s.function_url,",
                         resource.getResourceId(), functionIdentifier));

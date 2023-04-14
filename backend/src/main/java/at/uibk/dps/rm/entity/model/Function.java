@@ -30,6 +30,17 @@ public class Function {
     @Column(insertable = false, updatable = false)
     private @Setter(value = AccessLevel.NONE) Timestamp updatedAt;
 
+    @Transient
+    private @Setter(value = AccessLevel.NONE) String functionDeploymentId;
+
+    public String getFunctionDeploymentId() {
+        if (runtime == null) {
+            return functionId.toString();
+        }
+        String runtime = getRuntime().getName();
+        return (getName() + "_" + runtime.replace(".", "")).toLowerCase();
+    }
+
     @Override
     @Generated
     public boolean equals(Object o) {

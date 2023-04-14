@@ -46,9 +46,7 @@ public class EdgeFileService extends TerraformFileService {
                 continue;
             }
             Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
-            String runtime = function.getRuntime().getName().toLowerCase();
-            String functionIdentifier =  function.getName().toLowerCase() +
-                "_" + runtime.replace(".", "");
+            String functionIdentifier =  function.getFunctionDeploymentId();
             functionsString.append(String.format(
                 "module \"r%s_%s\" {\n" +
                     "  openfaas_depends_on = 0\n" +
@@ -95,9 +93,7 @@ public class EdgeFileService extends TerraformFileService {
                 continue;
             }
             edgeCount ++;
-            String runtime = function.getRuntime().getName().toLowerCase();
-            String functionIdentifier = "r" + resource.getResourceId() + "_" + function.getName().toLowerCase() +
-                "_" + runtime.replace(".", "");
+            String functionIdentifier = "r" + resource.getResourceId() + "_" + function.getFunctionDeploymentId();
             functionNames.append(String.format("\"%s\",", functionIdentifier));
             functionModuleOutputs.append(String.format("module.%s.function_url,", functionIdentifier));
         }

@@ -5,6 +5,8 @@ RUN gradle build --no-daemon -x test
 
 FROM docker:git
 
+USER root
+
 # Install jdk11
 RUN  apk update \
   && apk upgrade \

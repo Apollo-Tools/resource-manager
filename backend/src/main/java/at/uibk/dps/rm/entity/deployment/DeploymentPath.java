@@ -9,10 +9,13 @@ public class DeploymentPath {
 
     private final Path rootFolder;
 
+    private final Path hostRootFolder;
+
     private final Path functionsFolder;
 
     public DeploymentPath(long reservationId) {
-        this.rootFolder = Path.of("var", "lib", "docker", "apollo", "temp","reservation_" + reservationId);
+        this.rootFolder = Path.of("build", "reservation_" + reservationId);
+        this.hostRootFolder = Path.of("var", "lib", "apollo-rm");
         this.functionsFolder = Path.of(rootFolder.toString(), "functions");
     }
 

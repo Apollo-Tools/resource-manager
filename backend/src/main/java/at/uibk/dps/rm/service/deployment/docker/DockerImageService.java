@@ -70,7 +70,8 @@ public class DockerImageService {
     private Single<ProcessOutput> pushDockerImages(Path rootFolder) {
         List<String> dockerCommands = new java.util.ArrayList<>(List.of("docker", "run", "-v",
             "/var/run/docker.sock:/var/run/docker.sock", "--privileged", "--rm", "-v",
-            rootFolder.toAbsolutePath() + "/build:/build", "docker:latest", "/bin/sh", "-c"));
+            Path.of("var", "lib", "apollo-rm", rootFolder.toString()).toAbsolutePath() +
+                "/build:/build", "docker:latest", "/bin/sh", "-c"));
         StringBuilder dockerInteractiveCommands = new StringBuilder("cd ./build && docker login -u " +
             dockerCredentials.getUsername() + " -p " + dockerCredentials.getAccessToken() + " && docker buildx create " +
             "--name multiarch --driver docker-container --bootstrap --use");

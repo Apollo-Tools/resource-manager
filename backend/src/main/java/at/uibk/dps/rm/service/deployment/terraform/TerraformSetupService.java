@@ -93,17 +93,22 @@ public class TerraformSetupService {
     private void composeEdgeLoginData(List<FunctionResource> regionFunctionResources) {
         credentials.getEdgeLoginCredentials().setLength(0);
         credentials.getEdgeLoginCredentials().append("edge_login_data=[");
+        String escapeString = "\"";
+        if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+            escapeString = "\\\"";
+        }
         for (FunctionResource functionResource : regionFunctionResources) {
             Resource resource = functionResource.getResource();
             Map<String, MetricValue> metricValues = resource.getMetricValues()
                 .stream()
                 .collect(Collectors.toMap(metricValue -> metricValue.getMetric().getMetric(),
                     metricValue -> metricValue));
-            credentials.getEdgeLoginCredentials().append("{auth_user=\\\"")
+            credentials.getEdgeLoginCredentials().append("{auth_user=").append(escapeString)
                 .append(metricValues.get("openfaas-user").getValueString())
-                .append("\\\",auth_pw=\\\"")
+                .append(escapeString).append(",auth_pw=").append(escapeString)
                 .append(metricValues.get("openfaas-pw").getValueString())
-                .append("\\\"},");
+                .append(escapeString)
+                .append("},");
         }
         credentials.getEdgeLoginCredentials().append("]");
     }

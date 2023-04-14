@@ -50,10 +50,8 @@ public class FunctionFileService {
             if (functionIds.contains(function.getFunctionId())) {
                 continue;
             }
-            String runtime = function.getRuntime().getName().toLowerCase();
-            String functionIdentifier =  function.getName().toLowerCase() +
-                "_" + runtime.replace(".", "");
-            if (runtime.startsWith("python")) {
+            String functionIdentifier =  function.getFunctionDeploymentId();
+            if (function.getRuntime().getName().startsWith("python")) {
                 packageSourceCode = new PackagePythonCode(vertx, fileSystem);
                 completables.add(packageSourceCode.composeSourceCode(functionsDir, functionIdentifier,
                     function.getCode()));

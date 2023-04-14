@@ -68,11 +68,13 @@ public class TerraformExecutor {
     
     protected List<String> getCredentialsCommands() {
         List<String> variables = new ArrayList<>();
+        String separator = getOsVariableSeparator();
         for (Credentials entry : credentials.getCloudCredentials()) {
             String prefix = entry.getResourceProvider().getProvider().toLowerCase();
-            variables.add("-var=\"" + prefix + "_access_key=" + entry.getAccessKey() + "\"");
-            variables.add("-var=\"" + prefix + "_secret_access_key=" + entry.getSecretAccessKey() + "\"");
-            variables.add("-var=\"" + prefix + "_session_token=" + entry.getSessionToken() + "\"");
+            variables.add("-var="  + separator + prefix + "_access_key=" + entry.getAccessKey() + separator);
+            variables.add("-var="  + separator + prefix + "_secret_access_key=" + entry.getSecretAccessKey() +
+                separator);
+            variables.add("-var="  + separator + prefix + "_session_token=" + entry.getSessionToken() + separator);
         }
         return variables;
     }
@@ -82,6 +84,15 @@ public class TerraformExecutor {
         if (edgeLogin.isBlank()) {
             return "";
         }
-        return "-var=\"" + edgeLogin + "\"";
+        String separator = getOsVariableSeparator();
+        return "-var=" + separator + edgeLogin + separator;
+    }
+
+    private String getOsVariableSeparator() {
+        if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+            return "\"";
+        } else {
+            return "";
+        }
     }
 }
