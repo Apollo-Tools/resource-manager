@@ -1416,7 +1416,7 @@ paths:
 
   /vpcs:
     get:
-      description: Returns all virtual private networks registered for the current user account
+      description: Returns all virtual private clouds registered for the current user account
       operationId: listVPCs
       security:
         - bearerAuth: []
@@ -1498,7 +1498,7 @@ paths:
 
   /vpcs/{id}:
     get:
-      description: Return details about a virtual private network registered at the the resource manager
+      description: Return details about a virtual private clouds registered at the the resource manager
       operationId: getVPC
       security:
         - bearerAuth: []
