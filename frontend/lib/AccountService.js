@@ -55,3 +55,22 @@ export async function getAccount(token, setAccount, setError) {
     console.log(error);
   }
 }
+
+export async function signUp(username, password, setResponse, setError) {
+  try {
+    const response = await fetch(`${API_ROUTE}/signup`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: username,
+        password: password,
+      }),
+    });
+    setResponse(response);
+  } catch (error) {
+    setError(error);
+    console.log(error);
+  }
+}

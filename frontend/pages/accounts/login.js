@@ -6,6 +6,7 @@ import {useAuth} from '../../lib/AuthenticationProvider';
 import {siteTitle} from '../../components/misc/Sidebar';
 import Head from 'next/head';
 import {useRouter} from 'next/router';
+import Link from 'next/link';
 
 const {Title} = Typography;
 
@@ -43,7 +44,7 @@ const login = () => {
   };
 
   return (
-    <div className="card container md:w-1/2 max-w-xl p-10 border-2 max-h-screen">
+    <div className="card container md:w-1/2 max-w-xl pt-5 pl-10 pr-10 pb-1.5 border-2">
       <Head>
         <title>{`${siteTitle}: Login`}</title>
       </Head>
@@ -55,6 +56,7 @@ const login = () => {
       <Form
         onFinish={onFinish}
         onFinishFailed={onFinishFailed}
+        layout="vertical"
       >
         <Form.Item
           label="Username"
@@ -80,8 +82,13 @@ const login = () => {
         >
           <Input.Password prefix={<LockOutlined className="site-form-item-icon" />}/>
         </Form.Item>
-        <Form.Item className="float-right">
-          <Button type="primary" htmlType="submit">
+        <Form.Item>
+          <Link href={`/accounts/signup`} className="float-left">
+            <Button type="link">
+              Create new account
+            </Button>
+          </Link>
+          <Button type="primary" htmlType="submit" className="float-right">
             Login
           </Button>
         </Form.Item>
