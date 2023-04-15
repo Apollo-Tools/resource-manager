@@ -1,11 +1,31 @@
 import DateFormatter from '../misc/DateFormatter';
 import ResetPasswordForm from './ResetPasswordForm';
 import {Typography} from 'antd';
-import PropTypes from 'prop-types';
+import {useEffect, useState} from 'react';
+import {getAccount} from '../../lib/AccountService';
+import {useAuth} from '../../lib/AuthenticationProvider';
 
 const {Title} = Typography;
 
-const AccountInfoCard = ({account}) => {
+const AccountInfoCard = () => {
+  const {token, checkTokenExpired} = useAuth();
+  const [account, setAccount] = useState();
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (!checkTokenExpired()) {
+      getAccount(token, setAccount, setError);
+    }
+  }, []);
+
+  // TODO: improve error handling
+  useEffect(() => {
+    if (error) {
+      console.log('Unexpected error');
+      setError(false);
+    }
+  }, [error]);
+
   if (!account) {
     return;
   }
@@ -23,10 +43,6 @@ const AccountInfoCard = ({account}) => {
       </div>
     </div>
   );
-};
-
-AccountInfoCard.propTypes = {
-  account: PropTypes.object,
 };
 
 export default AccountInfoCard;
