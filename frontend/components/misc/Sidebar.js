@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {
   DesktopOutlined,
   BookOutlined,
@@ -18,9 +18,13 @@ const {Content, Footer, Sider} = Layout;
 export const siteTitle = 'Apollo Tools - Resource Manager';
 
 const Sidebar = ({children}) => {
-  const {logout} = useAuth();
+  const {logout, checkTokenExpired} = useAuth();
   const [collapsed, setCollapsed] = useState(false);
-  const [selectedKey, setSelectedKey] = useState();
+  const [authenticated, setAuthenticated] = useState(false);
+
+  useEffect(() => {
+    setAuthenticated(!checkTokenExpired());
+  }, [children]);
 
   const onClickLogout = () => {
     logout();
@@ -56,12 +60,9 @@ const Sidebar = ({children}) => {
   return (
     <Layout className="min-h-screen"
     >
-      <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
-        <Menu theme="dark" items={items} defaultSelectedKeys={[selectedKey]} mode="inline" className="mt-2"
-          onClick={(e) => setSelectedKey(e.key)}
-        />
-
-      </Sider>
+      {authenticated && <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
+        <Menu theme="dark" items={items} mode="inline" className="mt-2" selectable={false} />
+      </Sider>}
       <Layout className="site-layout">
         <div
           className="h-12 flex justify-center items-center p-0 bg-primary"
@@ -74,7 +75,7 @@ const Sidebar = ({children}) => {
         <Footer
           className="text-center"
         >
-                    Apollo Tools ©2022
+          Apollo Tools ©2022
         </Footer>
       </Layout>
     </Layout>

@@ -1,6 +1,6 @@
 import env from '@beam-australia/react-env';
 const API_ROUTE = `${env('API_URL')}/accounts`;
-export async function login(username, password, setToken, setError) {
+export async function getLogin(username, password, setToken, setError) {
   try {
     const response = await fetch(`${API_ROUTE}/login`, {
       method: 'POST',

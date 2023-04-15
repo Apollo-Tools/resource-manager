@@ -1,5 +1,5 @@
 import {createContext, useContext, useEffect, useState} from 'react';
-import LoginForm from '../components/accounts/LoginForm';
+import {useRouter} from 'next/router';
 import PropTypes from 'prop-types';
 
 const AuthContext = createContext(null);
@@ -28,6 +28,7 @@ export const AuthenticationProvider = ({children}) => {
   const [newToken, setNewToken] = useState(null);
   const [isAuthenticated, setAuthenticated] = useState(false);
   const [isInitialised, setInitialised] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     console.log('Get initial token');
@@ -76,6 +77,14 @@ export const AuthenticationProvider = ({children}) => {
     }
   }, [newToken]);
 
+  useEffect(() => {
+    if (!isAuthenticated && !router.pathname.endsWith('/login')) {
+      router.push('/accounts/login');
+    } else if (isAuthenticated) {
+      router.replace('/');
+    }
+  }, [isAuthenticated]);
+
   const logout = () => {
     setToken('');
     setAuthenticated(false);
@@ -83,7 +92,14 @@ export const AuthenticationProvider = ({children}) => {
     storeTokenToStorage('');
   };
 
+  const loginUser = (newToken) => {
+    setNewToken(newToken);
+  };
+
   const checkTokenExpired = () => {
+    if (!payload) {
+      return true;
+    }
     if (payload.exp < new Date() / 1000) {
       console.log('token expired');
       logout();
@@ -93,8 +109,8 @@ export const AuthenticationProvider = ({children}) => {
   };
 
   return (
-    <AuthContext.Provider value={ {token, isAuthenticated, setNewToken, logout, checkTokenExpired} }>
-      { isInitialised && (isAuthenticated ? children : <LoginForm/>) }
+    <AuthContext.Provider value={ {token, isAuthenticated, loginUser, logout, checkTokenExpired} }>
+      { isInitialised && children }
     </AuthContext.Provider>
   );
 };

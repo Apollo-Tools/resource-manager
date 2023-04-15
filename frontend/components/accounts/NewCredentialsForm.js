@@ -121,7 +121,7 @@ const NewCredentialsForm = ({excludeProviders, setFinished}) => {
 };
 
 NewCredentialsForm.propTypes = {
-  excludeProviders: PropTypes.bool,
+  excludeProviders: PropTypes.arrayOf(PropTypes.number),
   setFinished: PropTypes.func,
 };
 

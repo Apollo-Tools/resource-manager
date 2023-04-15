@@ -1,17 +1,28 @@
 import {useEffect, useState} from 'react';
 import {LockOutlined, UserOutlined} from '@ant-design/icons';
 import {Button, Form, Input, Typography, message} from 'antd';
-import {login} from '../../lib/AccountService';
+import {getLogin} from '../../lib/AccountService';
 import {useAuth} from '../../lib/AuthenticationProvider';
-import {siteTitle} from '../misc/Sidebar';
+import {siteTitle} from '../../components/misc/Sidebar';
 import Head from 'next/head';
+import {useRouter} from 'next/router';
 
 const {Title} = Typography;
 
-const loginForm = () => {
-  const {setNewToken} = useAuth();
+const login = () => {
+  const {isAuthenticated, loginUser} = useAuth();
   const [error, setError] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkAuthenticationState = async () => {
+      if (isAuthenticated) {
+        await router.replace('/');
+      }
+    };
+    checkAuthenticationState();
+  }, []);
 
   useEffect(() => {
     if (error) {
@@ -24,7 +35,7 @@ const loginForm = () => {
   }, [error]);
 
   const onFinish = async (values) => {
-    await login(values.username, values.password, setNewToken, setError);
+    await getLogin(values.username, values.password, loginUser, setError);
   };
 
   const onFinishFailed = (errorInfo) => {
@@ -32,7 +43,7 @@ const loginForm = () => {
   };
 
   return (
-    <div className="card container md:w-1/2 max-w-xl p-10 border-2">
+    <div className="card container md:w-1/2 max-w-xl p-10 border-2 max-h-screen">
       <Head>
         <title>{`${siteTitle}: Login`}</title>
       </Head>
@@ -71,7 +82,7 @@ const loginForm = () => {
         </Form.Item>
         <Form.Item className="float-right">
           <Button type="primary" htmlType="submit">
-                        Login
+            Login
           </Button>
         </Form.Item>
       </Form>
@@ -79,4 +90,4 @@ const loginForm = () => {
   );
 };
 
-export default loginForm;
+export default login;
