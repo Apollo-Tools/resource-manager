@@ -1414,19 +1414,17 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /regions/{id}/vpcs:
+  /vpcs:
     get:
-      description: Returns the vpc linked to the given region and current user account
-      operationId: getVPC
+      description: Returns all virtual private networks registered for the current user account
+      operationId: listVPCs
       security:
         - bearerAuth: []
       tags:
         - vpc
-      parameters:
-        - $ref: "#/components/parameters/idParam"
       responses:
         200:
-          description: Successful pull of the vpc linked to the given region and current user account
+          description: Successful pull of the vpcs registered for the current user account
           content:
             application/json:
               schema:
@@ -1444,20 +1442,44 @@ paths:
                     example: subnet-ave2412
                   region:
                     $ref: "#/components/schemas/Region"
-        404:
-          $ref: "#/components/responses/404"
         500:
           $ref: "#/components/responses/500"
 
     post:
-      description: Creates a new vpc linked to the given region and current user account
+      description: Creates a new vpc linked to a region and current user account
       operationId: createVPC
       security:
         - bearerAuth: []
       tags:
         - vpc
-      parameters:
-        - $ref: "#/components/parameters/idParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - vpc_id_value
+                - subnet_id_value
+                - region
+              additionalProperties: false
+              properties:
+                vpc_id_value:
+                  type: string
+                  example: vpc-ave2412
+                subnet_id_value:
+                  type: string
+                  example: subnet-ave2412
+                region:
+                  type: object
+                  required:
+                    - region_id
+                  additionalProperties: false
+                  properties:
+                    region_id:
+                      type: integer
+                      format: int64
+                      example: 1
       responses:
         200:
           description: Successful creation of the vpc
@@ -1471,6 +1493,30 @@ paths:
           $ref: "#/components/responses/404"
         409:
           $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+  /vpcs/{id}:
+    get:
+      description: Return details about a virtual private network registered at the the resource manager
+      operationId: getVPC
+      security:
+        - bearerAuth: []
+      tags:
+        - vpcs
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of a vpc
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VPC"
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
         500:
           $ref: "#/components/responses/500"
 

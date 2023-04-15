@@ -26,4 +26,6 @@ public interface VPCService extends ServiceInterface {
     }
 
     Future<JsonObject> findOneByRegionIdAndAccountId(long regionId, long accountId);
+
+    Future<Boolean> existsOneByRegionIdAndAccountId(long regionId, long accountId);
 }

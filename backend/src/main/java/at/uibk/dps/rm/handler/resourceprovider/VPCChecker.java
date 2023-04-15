@@ -5,6 +5,7 @@ import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.VPCService;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 
@@ -21,6 +22,12 @@ public class VPCChecker extends EntityChecker {
     public VPCChecker(VPCService vpcService) {
         super(vpcService);
         this.vpcService = vpcService;
+    }
+
+    public Completable checkForDuplicateEntity(JsonObject entity, long accountId) {
+        Single<Boolean> existsOneByResourceType = vpcService
+            .existsOneByRegionIdAndAccountId(entity.getJsonObject("region").getLong("region_id"), accountId);
+        return ErrorHandler.handleDuplicates(existsOneByResourceType).ignoreElement();
     }
 
     public Single<JsonObject> checkFindOneByRegionIdAndAccountId(long regionId, long accountId) {
