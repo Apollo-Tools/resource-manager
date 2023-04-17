@@ -14,6 +14,7 @@ import at.uibk.dps.rm.service.rxjava3.database.log.LogService;
 import at.uibk.dps.rm.service.rxjava3.database.log.ReservationLogService;
 import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentService;
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
+import at.uibk.dps.rm.util.ConfigUtility;
 import at.uibk.dps.rm.util.ConsoleOutputUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -37,27 +38,30 @@ public class DeploymentChecker {
 
     public Single<ProcessOutput> deployResources(DeployResourcesRequest request) {
         long reservationId = request.getReservation().getReservationId();
-        DeploymentPath deploymentPath = new DeploymentPath(reservationId);
         Vertx vertx = Vertx.currentContext().owner();
-
-        return deploymentService.packageFunctionsCode(request)
-            .flatMap(functionsToDeploy -> buildAndPushDockerImages(vertx, request, functionsToDeploy, deploymentPath))
-            .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, request.getReservation()))
-            .andThen(deploymentService.setUpTFModules(request))
-            .flatMap(deploymentCredentials -> {
-                TerraformExecutor terraformExecutor = new TerraformExecutor(vertx, deploymentCredentials);
-                return Single.fromCallable(() -> terraformExecutor.setPluginCacheFolder(deploymentPath.getTFCacheFolder()))
-                    .map(res -> terraformExecutor);
-            })
-            .flatMap(terraformExecutor -> terraformExecutor.init(deploymentPath.getRootFolder())
-                .flatMapCompletable(initOutput -> persistLogs(initOutput, request.getReservation()))
-                .andThen(Single.just(terraformExecutor)))
-            .flatMap(terraformExecutor -> terraformExecutor.apply(deploymentPath.getRootFolder())
-                .flatMapCompletable(applyOutput -> persistLogs(applyOutput, request.getReservation()))
-                .andThen(Single.just(terraformExecutor)))
-            .flatMap(terraformExecutor -> terraformExecutor.getOutput(deploymentPath.getRootFolder()))
-            .flatMap(tfOutput -> persistLogs(tfOutput, request.getReservation())
-                .toSingle(() -> tfOutput));
+        return new ConfigUtility(vertx).getConfig()
+            .flatMap(config -> {
+                DeploymentPath deploymentPath = new DeploymentPath(reservationId, config);
+                return deploymentService.packageFunctionsCode(request)
+                    .flatMap(functionsToDeploy -> buildAndPushDockerImages(vertx, request, functionsToDeploy, deploymentPath))
+                    .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, request.getReservation()))
+                    .andThen(deploymentService.setUpTFModules(request))
+                    .flatMap(deploymentCredentials -> {
+                        TerraformExecutor terraformExecutor = new TerraformExecutor(vertx, deploymentCredentials);
+                        return Single.fromCallable(() ->
+                                terraformExecutor.setPluginCacheFolder(deploymentPath.getTFCacheFolder()))
+                            .map(res -> terraformExecutor);
+                    })
+                    .flatMap(terraformExecutor -> terraformExecutor.init(deploymentPath.getRootFolder())
+                        .flatMapCompletable(initOutput -> persistLogs(initOutput, request.getReservation()))
+                        .andThen(Single.just(terraformExecutor)))
+                    .flatMap(terraformExecutor -> terraformExecutor.apply(deploymentPath.getRootFolder())
+                        .flatMapCompletable(applyOutput -> persistLogs(applyOutput, request.getReservation()))
+                        .andThen(Single.just(terraformExecutor)))
+                    .flatMap(terraformExecutor -> terraformExecutor.getOutput(deploymentPath.getRootFolder()))
+                    .flatMap(tfOutput -> persistLogs(tfOutput, request.getReservation())
+                        .toSingle(() -> tfOutput));
+            });
     }
 
     private Single<ProcessOutput> buildAndPushDockerImages(Vertx vertx, DeployResourcesRequest request,
@@ -94,12 +98,15 @@ public class DeploymentChecker {
 
     public Completable terminateResources(TerminateResourcesRequest request) {
         long reservationId = request.getReservation().getReservationId();
-        DeploymentPath deploymentPath = new DeploymentPath(reservationId);
         Vertx vertx = Vertx.currentContext().owner();
-        return deploymentService.getNecessaryCredentials(request)
-            .map(deploymentCredentials -> new TerraformExecutor(vertx, deploymentCredentials))
-            .flatMap(terraformExecutor -> terraformExecutor.destroy(deploymentPath.getRootFolder()))
-            .flatMapCompletable(terminateOutput -> persistLogs(terminateOutput, request.getReservation()));
+        return new ConfigUtility(vertx).getConfig()
+            .flatMapCompletable(config -> {
+                DeploymentPath deploymentPath = new DeploymentPath(reservationId, config);
+                return deploymentService.getNecessaryCredentials(request)
+                    .map(deploymentCredentials -> new TerraformExecutor(vertx, deploymentCredentials))
+                    .flatMap(terraformExecutor -> terraformExecutor.destroy(deploymentPath.getRootFolder()))
+                    .flatMapCompletable(terminateOutput -> persistLogs(terminateOutput, request.getReservation()));
+            });
     }
 
     public Completable deleteTFDirs(long reservationId) {

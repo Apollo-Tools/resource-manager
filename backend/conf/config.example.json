@@ -6,7 +6,8 @@
 
   "api_port": 8888,
 
-  "temp_folder_path": "./tmp/",
+  "build_directory": "build",
+  "dind_directory": "var/lib/apollo-rm/",
 
   "jwt_secret": "**secret**",
   "jwt_algorithm": "HS256",

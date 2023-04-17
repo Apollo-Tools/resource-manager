@@ -9,8 +9,10 @@ import at.uibk.dps.rm.handler.deployment.DeploymentHandler;
 import at.uibk.dps.rm.handler.log.LogChecker;
 import at.uibk.dps.rm.handler.log.ReservationLogChecker;
 import at.uibk.dps.rm.handler.util.FileSystemChecker;
+import at.uibk.dps.rm.util.ConfigUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.json.JsonObject;
+import io.vertx.rxjava3.core.Vertx;
 
 public class ReservationErrorHandler {
 
@@ -35,10 +37,12 @@ public class ReservationErrorHandler {
     }
 
     public Completable onDeploymentError(long accountId, Reservation reservation, Throwable throwable) {
+        Vertx vertx = Vertx.currentContext().owner();
         return handleError(reservation, throwable)
-            .andThen(fileSystemChecker
-                .checkTFLockFileExists(new DeploymentPath(reservation.getReservationId())
-                    .getRootFolder().toString()))
+            .andThen(new ConfigUtility(vertx).getConfig()
+                .flatMap(config -> fileSystemChecker
+                    .checkTFLockFileExists(new DeploymentPath(reservation.getReservationId(), config).getRootFolder()
+                        .toString())))
             .flatMapCompletable(tfLockFileExists -> {
                 if (tfLockFileExists) {
                     return deploymentHandler.terminateResources(reservation, accountId);

@@ -3,8 +3,10 @@ package at.uibk.dps.rm.service.deployment.docker;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.service.deployment.executor.ProcessExecutor;
+import at.uibk.dps.rm.util.ConfigUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.buffer.Buffer;
 
@@ -49,10 +51,12 @@ public class DockerImageService {
                 if (buildOutput.getProcess().exitValue() != 0) {
                     return Single.just(buildOutput);
                 }
-                return pushDockerImages(functionsDir).map(pushOutput -> {
-                  pushOutput.setProcessOutput(buildOutput.getProcessOutput() + pushOutput.getProcessOutput());
-                  return pushOutput;
-                });
+                return new ConfigUtility(vertx).getConfig()
+                        .flatMap(config -> pushDockerImages(functionsDir, config))
+                        .map(pushOutput -> {
+                            pushOutput.setProcessOutput(buildOutput.getProcessOutput() + pushOutput.getProcessOutput());
+                            return pushOutput;
+                        });
             });
     }
 
@@ -67,18 +71,19 @@ public class DockerImageService {
         return processExecutor.executeCli();
     }
 
-    private Single<ProcessOutput> pushDockerImages(Path rootFolder) {
+    private Single<ProcessOutput> pushDockerImages(Path rootFolder, JsonObject config) {
+        String dindDir = config.getString("dind_directory");
         List<String> dockerCommands = new java.util.ArrayList<>(List.of("docker", "run", "-v",
             "/var/run/docker.sock:/var/run/docker.sock", "--privileged", "--rm", "-v",
-            Path.of("var", "lib", "apollo-rm", rootFolder.toString()).toAbsolutePath() +
+            Path.of(dindDir, rootFolder.toString()).toAbsolutePath() +
                 "/build:/build", "docker:latest", "/bin/sh", "-c"));
         StringBuilder dockerInteractiveCommands = new StringBuilder("cd ./build && docker login -u " +
-            dockerCredentials.getUsername() + " -p " + dockerCredentials.getAccessToken() + " && docker buildx create " +
-            "--name multiarch --driver docker-container --bootstrap --use");
+            dockerCredentials.getUsername() + " -p " + dockerCredentials.getAccessToken() +
+            " && docker buildx create --name multiarch --driver docker-container --bootstrap --use");
         for (String functionIdentifier : functionIdentifiers) {
             dockerInteractiveCommands.append(String.format(" && docker buildx build -t %s/%s ./%s --platform " +
-                    "linux/arm/v7,linux/amd64 --push",
-                dockerCredentials.getUsername(), functionIdentifier, functionIdentifier));
+                    "linux/arm/v7,linux/amd64 --push", dockerCredentials.getUsername(), functionIdentifier,
+                functionIdentifier));
         }
         dockerCommands.add(dockerInteractiveCommands.toString());
         ProcessExecutor processExecutor = new ProcessExecutor(rootFolder, dockerCommands);

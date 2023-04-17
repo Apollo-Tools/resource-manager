@@ -25,14 +25,9 @@ public class TerraformExecutor {
 
     // TODO: test if this works on linux as well
     public Completable setPluginCacheFolder(Path folder) {
-        String tfConfigContent = "plugin_cache_dir = \"" + folder.toString().replace("\\", "/") +
-            "\"";
-        Path tfConfigPath;
-        if (System.getProperty("os.name").toLowerCase().contains("windows")) {
-            tfConfigPath = Path.of(System.getenv("APPDATA"), "terraform.rc");
-        } else {
-            tfConfigPath = Path.of(System.getenv("user.home"), ".terraformrc");
-        }
+        String tfConfigContent = "plugin_cache_dir = \"" + Path.of(folder.toString())
+            .toAbsolutePath().toString().replace("\\", "/") + "\"";
+        Path tfConfigPath = Path.of("terraform", "config.tfrc");
         return vertx.fileSystem().mkdirs(folder.toString())
             .andThen(vertx.fileSystem().writeFile(tfConfigPath.toString(), Buffer.buffer(tfConfigContent)));
     }

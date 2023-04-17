@@ -17,11 +17,17 @@ RUN  apk update \
   && apk add --no-cache nss \
   && rm -rf /var/cache/apk/*
 
+
 # Install openfaas
 RUN curl -sSL https://cli.openfaas.com | sh
 
 # Install terraform
 RUN apk add terraform --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community
+
+# Fix sigsev error thrown by netty see: https://github.com/micrometer-metrics/micrometer/issues/2776
+RUN apk --no-cache add gcompat
+ENV LD_PRELOAD=/lib/libgcompat.so.0
+
 
 EXPOSE 8888
 
@@ -39,7 +45,10 @@ ENV db_host=localhost
 ENV db_port=5432
 ENV db_user=root
 ENV db_password=root
-ENV jwt_secret=**secret**
+ENV build_directory=build
+ENV dind_directory="var/lib/apollo-rm/"
+ENV jwt_secret="**secret**"
 ENV token_minutes_valid=1080
+ENV TF_CLI_CONFIG_FILE="/terraform/config.tfrc"
 
 ENTRYPOINT ["java", "-jar" ,"/app/rm-api.jar"]

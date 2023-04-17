@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.entity.deployment;
 
+import io.vertx.core.json.JsonObject;
 import lombok.Getter;
 
 import java.nio.file.Path;
@@ -9,13 +10,13 @@ public class DeploymentPath {
 
     private final Path rootFolder;
 
-    private final Path hostRootFolder;
-
     private final Path functionsFolder;
 
-    public DeploymentPath(long reservationId) {
-        this.rootFolder = Path.of("build", "reservation_" + reservationId);
-        this.hostRootFolder = Path.of("var", "lib", "apollo-rm");
+    private final Path buildFolder;
+
+    public DeploymentPath(long reservationId, JsonObject config) {
+        this.buildFolder = Path.of(config.getString("build_directory"));
+        this.rootFolder = Path.of(buildFolder.toString(), "reservation_" + reservationId);
         this.functionsFolder = Path.of(rootFolder.toString(), "functions");
     }
 
@@ -24,6 +25,6 @@ public class DeploymentPath {
     }
 
     public Path getTFCacheFolder() {
-        return Path.of("data", "rm", "temp","plugin_cache").toAbsolutePath();
+        return Path.of(buildFolder.toString(), "plugin_cache").toAbsolutePath();
     }
 }
