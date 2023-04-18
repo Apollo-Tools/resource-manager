@@ -66,7 +66,7 @@ public class DatabaseVerticle extends AbstractVerticle {
     private ResourceRepository resourceRepository;
     private ResourceProviderRepository resourceProviderRepository;
     private ResourceReservationRepository resourceReservationRepository;
-    private ResourceReservationStatusRepository resourceReservationStatusRepository;
+    private ResourceReservationStatusRepository statusRepository;
     private ResourceTypeRepository resourceTypeRepository;
     private ResourceTypeMetricRepository resourceTypeMetricRepository;
     private RuntimeRepository runtimeRepository;
@@ -80,7 +80,7 @@ public class DatabaseVerticle extends AbstractVerticle {
     }
 
     private Completable setupDatabase() {
-        Maybe<Void> startDB = vertx.rxExecuteBlocking(emitter -> {
+        final Maybe<Void> startDB = vertx.rxExecuteBlocking(emitter -> {
             int dbPort = config().getInteger("db_port");
             String dbHost = config().getString("db_host");
             String dbUser = config().getString("db_user");
@@ -99,7 +99,7 @@ public class DatabaseVerticle extends AbstractVerticle {
     }
 
     private Completable initializeRepositories() {
-        Maybe<Void> setupServices = Maybe.create(emitter -> {
+        final Maybe<Void> setupServices = Maybe.create(emitter -> {
             accountRepository = new AccountRepository(sessionFactory);
             accountCredentialsRepository = new AccountCredentialsRepository(sessionFactory);
             credentialsRepository = new CredentialsRepository(sessionFactory);
@@ -115,7 +115,7 @@ public class DatabaseVerticle extends AbstractVerticle {
             resourceRepository = new ResourceRepository(sessionFactory);
             resourceProviderRepository = new ResourceProviderRepository(sessionFactory);
             resourceReservationRepository = new ResourceReservationRepository(sessionFactory);
-            resourceReservationStatusRepository = new ResourceReservationStatusRepository(sessionFactory);
+            statusRepository = new ResourceReservationStatusRepository(sessionFactory);
             resourceTypeRepository = new ResourceTypeRepository(sessionFactory);
             resourceTypeMetricRepository = new ResourceTypeMetricRepository(sessionFactory);
             runtimeRepository = new RuntimeRepository(sessionFactory);
@@ -126,7 +126,7 @@ public class DatabaseVerticle extends AbstractVerticle {
     }
 
     private Completable setupEventBus() {
-        Maybe<Void> setupEventBus = Maybe.create(emitter -> {
+        final Maybe<Void> setupEventBus = Maybe.create(emitter -> {
             ServiceBinder serviceBinder = new ServiceBinder(vertx.getDelegate());
 
             AccountService accountService = new AccountServiceImpl(accountRepository);
@@ -210,11 +210,11 @@ public class DatabaseVerticle extends AbstractVerticle {
                 .setAddress("resource-reservation-service-address")
                 .register(ResourceReservationService.class, resourceReservationService);
 
-            ResourceReservationStatusService resourceReservationStatusService =
-                new ResourceReservationStatusServiceImpl(resourceReservationStatusRepository);
+            ResourceReservationStatusService statusService =
+                new ResourceReservationStatusServiceImpl(statusRepository);
             serviceBinder
                 .setAddress("resource-reservation-status-service-address")
-                .register(ResourceReservationStatusService.class, resourceReservationStatusService);
+                .register(ResourceReservationStatusService.class, statusService);
 
             ResourceTypeService resourceTypeService = new ResourceTypeServiceImpl(resourceTypeRepository);
             serviceBinder

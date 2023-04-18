@@ -8,5 +8,5 @@ import lombok.NoArgsConstructor;
 public class ProcessOutput {
     private Process process;
 
-    private String processOutput;
+    private String output;
 }

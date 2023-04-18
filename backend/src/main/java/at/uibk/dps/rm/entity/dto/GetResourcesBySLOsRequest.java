@@ -13,7 +13,7 @@ import java.util.List;
 @Data
 public class GetResourcesBySLOsRequest {
 
-    private final @Getter(value = AccessLevel.NONE) @Setter(value = AccessLevel.NONE) int DEFAULT_LIMIT = 10000;
+    private final static @Getter(AccessLevel.NONE) @Setter(AccessLevel.NONE) int DEFAULT_LIMIT = 10_000;
 
     @JsonProperty("slo")
     private List<ServiceLevelObjective> serviceLevelObjectives =new ArrayList<>();

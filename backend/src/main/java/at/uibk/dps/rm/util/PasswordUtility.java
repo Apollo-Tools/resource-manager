@@ -11,7 +11,7 @@ public class PasswordUtility {
         this.argon2 = Argon2Factory.create();
     }
 
-    public String hashPassword(char[] password) {
+    public String hashPassword(final char[] password) {
         String hash;
         try {
             hash = argon2.hash(2, 15, 1, password);
@@ -21,7 +21,7 @@ public class PasswordUtility {
         return hash;
     }
 
-    public boolean verifyPassword(String hash, char[] password) {
+    public boolean verifyPassword(final String hash, final char[] password) {
         boolean result;
         try {
             result = argon2.verify(hash, password);

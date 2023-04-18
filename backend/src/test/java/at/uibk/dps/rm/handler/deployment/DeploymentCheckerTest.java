@@ -96,7 +96,7 @@ public class DeploymentCheckerTest {
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockito.mockConstruction(ConfigUtility.class,
             (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
             try (MockedConstruction<DockerImageService> ignoredDocker = Mockito.mockConstruction(DockerImageService.class,
-                (mock, context) -> given(mock.buildAndPushDockerImages(functionsToDeploy.getFunctionsString().toString()))
+                (mock, context) -> given(mock.buildAndPushDockerImages(functionsToDeploy.getFunctionsString()))
                     .willReturn(Single.just(poDocker)))) {
                 try (MockedConstruction<TerraformExecutor> ignoredTFE = Mockito.mockConstruction(TerraformExecutor.class,
                     (mock, context) -> {
@@ -108,7 +108,7 @@ public class DeploymentCheckerTest {
                     })) {
                     deploymentChecker.deployResources(deployRequest)
                         .subscribe(result -> testContext.verify(() -> {
-                                assertThat(result.getProcessOutput()).isEqualTo("output");
+                                assertThat(result.getOutput()).isEqualTo("output");
                                 assertThat(result.getProcess().exitValue()).isEqualTo(0);
                                 testContext.completeNow();
                             }),
@@ -141,7 +141,7 @@ public class DeploymentCheckerTest {
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockito.mockConstruction(ConfigUtility.class,
             (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
             try (MockedConstruction<DockerImageService> ignoredDocker = Mockito.mockConstruction(DockerImageService.class,
-                (mock, context) -> given(mock.buildAndPushDockerImages(functionsToDeploy.getFunctionsString().toString()))
+                (mock, context) -> given(mock.buildAndPushDockerImages(functionsToDeploy.getFunctionsString()))
                     .willReturn(Single.just(poDocker)))) {
                 try (MockedConstruction<TerraformExecutor> ignoredTFE = Mockito.mockConstruction(TerraformExecutor.class,
                     (mock, context) -> {
@@ -183,7 +183,7 @@ public class DeploymentCheckerTest {
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockito.mockConstruction(ConfigUtility.class,
             (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
             try (MockedConstruction<DockerImageService> ignoredDocker = Mockito.mockConstruction(DockerImageService.class,
-                (mock, context) -> given(mock.buildAndPushDockerImages(functionsToDeploy.getFunctionsString().toString()))
+                (mock, context) -> given(mock.buildAndPushDockerImages(functionsToDeploy.getFunctionsString()))
                     .willReturn(Single.just(poDocker)))) {
                 try (MockedConstruction<TerraformExecutor> ignoredTFE = Mockito.mockConstruction(TerraformExecutor.class,
                     (mock, context) -> {
@@ -223,7 +223,7 @@ public class DeploymentCheckerTest {
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockito.mockConstruction(ConfigUtility.class,
             (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
             try (MockedConstruction<DockerImageService> ignoredDocker = Mockito.mockConstruction(DockerImageService.class,
-                (mock, context) -> given(mock.buildAndPushDockerImages(functionsToDeploy.getFunctionsString().toString()))
+                (mock, context) -> given(mock.buildAndPushDockerImages(functionsToDeploy.getFunctionsString()))
                     .willReturn(Single.just(poDocker)))) {
                 try (MockedConstruction<TerraformExecutor> ignoredTFE = Mockito.mockConstruction(TerraformExecutor.class,
                     (mock, context) -> {
@@ -258,7 +258,7 @@ public class DeploymentCheckerTest {
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockito.mockConstruction(ConfigUtility.class,
             (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
             try (MockedConstruction<DockerImageService> ignoredDocker = Mockito.mockConstruction(DockerImageService.class,
-                (mock, context) -> given(mock.buildAndPushDockerImages(functionsToDeploy.getFunctionsString().toString()))
+                (mock, context) -> given(mock.buildAndPushDockerImages(functionsToDeploy.getFunctionsString()))
                     .willReturn(Single.just(poDocker)))) {
                 deploymentChecker.deployResources(deployRequest)
                     .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
@@ -287,7 +287,7 @@ public class DeploymentCheckerTest {
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockito.mockConstruction(ConfigUtility.class,
             (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
             try (MockedConstruction<DockerImageService> ignoredDocker = Mockito.mockConstruction(DockerImageService.class,
-                (mock, context) -> given(mock.buildAndPushDockerImages(functionsToDeploy.getFunctionsString().toString()))
+                (mock, context) -> given(mock.buildAndPushDockerImages(functionsToDeploy.getFunctionsString()))
                     .willReturn(Single.just(poDocker)))) {
                 deploymentChecker.deployResources(deployRequest)
                     .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),

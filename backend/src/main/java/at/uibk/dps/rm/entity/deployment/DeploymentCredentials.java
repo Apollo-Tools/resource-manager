@@ -14,15 +14,15 @@ import java.util.List;
 @DataObject
 public class DeploymentCredentials {
 
-    public DeploymentCredentials(JsonObject jsonObject) {
-        DeploymentCredentials credentials = jsonObject.mapTo(DeploymentCredentials.class);
-        this.edgeLoginCredentials.append(credentials.getEdgeLoginCredentials());
-        this.cloudCredentials.addAll(credentials.getCloudCredentials());
-    }
-
-    private final StringBuilder edgeLoginCredentials = new StringBuilder();
+    private String edgeLoginCredentials = "";
 
     private final List<Credentials> cloudCredentials = new ArrayList<>();
+
+    public DeploymentCredentials(final JsonObject jsonObject) {
+        final DeploymentCredentials credentials = jsonObject.mapTo(DeploymentCredentials.class);
+        this.edgeLoginCredentials = credentials.getEdgeLoginCredentials();
+        this.cloudCredentials.addAll(credentials.getCloudCredentials());
+    }
 
 
     public JsonObject toJson() {

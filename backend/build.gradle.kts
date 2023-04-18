@@ -7,6 +7,7 @@ plugins {
   id("com.github.johnrengelman.shadow") version "7.0.0"
   jacoco
   id("io.freefair.lombok") version "6.5.1"
+  pmd
 }
 
 group = "Apollo-Tools-RM"
@@ -75,6 +76,12 @@ java {
 
 jacoco {
   toolVersion = "0.8.8"
+}
+
+pmd {
+  toolVersion="6.21.0"
+  isConsoleOutput=true
+  ruleSetFiles = files("../ruleset.xml")
 }
 
 tasks.withType<ShadowJar> {

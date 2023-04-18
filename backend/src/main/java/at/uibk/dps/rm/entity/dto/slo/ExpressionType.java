@@ -9,8 +9,7 @@ public enum ExpressionType {
 
     private final String symbol;
 
-    ExpressionType(String symbol)
-    {
+    ExpressionType(final String symbol) {
         this.symbol = symbol;
     }
 
@@ -21,8 +20,8 @@ public enum ExpressionType {
     }
 
     public static Boolean symbolExists(String symbol) {
-        ExpressionType[] expressionTypes = ExpressionType.values();
-        for (ExpressionType expressionType: expressionTypes) {
+        final ExpressionType[] expressionTypes = ExpressionType.values();
+        for (final ExpressionType expressionType: expressionTypes) {
             if (expressionType.getSymbol().equals(symbol)) {
                 return true;
             }
@@ -31,35 +30,35 @@ public enum ExpressionType {
     }
 
     // ref: https://stackoverflow.com/a/45082346/13164629
-    public static ExpressionType fromString(String s) throws IllegalArgumentException {
+    public static ExpressionType fromString(String str) {
         return Arrays.stream(ExpressionType.values())
-                .filter(v -> v.symbol.equals(s))
+                .filter(value -> value.symbol.equals(str))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("unknown value: " + s));
+                .orElseThrow(() -> new IllegalArgumentException("unknown value: " + str));
     }
 
-    public static int compareValues(ExpressionType expressionType, Double v1, Double v2) {
+    public static int compareValues(ExpressionType expressionType, Double value1, Double value2) {
         switch (expressionType) {
             case GT:
-                return - v1.compareTo(v2);
+                return - value1.compareTo(value2);
             case LT:
             case EQ:
-                return v1.compareTo(v2);
+                return value1.compareTo(value2);
             default:
                 return 0;
         }
     }
 
-    public static int compareValues(ExpressionType expressionType, String v1, String v2) {
+    public static int compareValues(ExpressionType expressionType, String value1, String value2) {
         if (expressionType == ExpressionType.EQ) {
-            return v1.compareTo(v2);
+            return value1.compareTo(value2);
         }
         return -1;
     }
 
-    public static int compareValues(ExpressionType expressionType, Boolean v1, Boolean v2) {
+    public static int compareValues(ExpressionType expressionType, Boolean value1, Boolean value2) {
         if (expressionType == ExpressionType.EQ) {
-            return v1.compareTo(v2);
+            return value1.compareTo(value2);
         }
         return -1;
     }

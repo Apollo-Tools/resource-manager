@@ -69,7 +69,7 @@ public class DeploymentServiceImplTest {
                         assertThat(result.getFunctionIdentifiers().size()).isEqualTo(2);
                         assertThat(result.getFunctionIdentifiers().get(0)).isEqualTo("foo1_python39");
                         assertThat(result.getFunctionIdentifiers().get(1)).isEqualTo("foo2_python39");
-                        assertThat(result.getFunctionsString().toString()).isEqualTo("\"  foo1_python39:\\n    " +
+                        assertThat(result.getFunctionsString()).isEqualTo("\"  foo1_python39:\\n    " +
                             "lang: python3-flask-debian\\n    handler: ./foo1_python39\\n    " +
                             "image: user/foo1_python39:latest\\n  foo2_python39:\\n    lang: python3-flask-debian\\n    " +
                             "handler: ./foo2_python39\\n    image: user/foo2_python39:latest\\n\"");
@@ -94,7 +94,7 @@ public class DeploymentServiceImplTest {
                     (mock, context) -> given(mock.setUpDirectory()).willReturn(Completable.complete()))) {
                     deploymentService.setUpTFModules(deployRequest)
                         .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                            assertThat(result.getEdgeLoginCredentials().toString()).isEqualTo("");
+                            assertThat(result.getEdgeLoginCredentials()).isEqualTo("");
                             assertThat(result.getCloudCredentials().size()).isEqualTo(0);
                             testContext.completeNow();
                         })));
@@ -156,7 +156,7 @@ public class DeploymentServiceImplTest {
                          given(mock.getDeploymentCredentials()).willReturn(Single.just(deploymentCredentials)))) {
                 deploymentService.getNecessaryCredentials(terminateRequest)
                     .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                        assertThat(result.getEdgeLoginCredentials().toString())
+                        assertThat(result.getEdgeLoginCredentials())
                             .isEqualTo("edge_login_data=[{auth_user=\"user\",auth_pw=\"pw\"},]");
                         assertThat(result.getCloudCredentials().size()).isEqualTo(1);
                         assertThat(result.getCloudCredentials().get(0).getCredentialsId()).isEqualTo(1L);

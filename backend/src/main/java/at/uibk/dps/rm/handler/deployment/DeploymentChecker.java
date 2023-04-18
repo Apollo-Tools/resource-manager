@@ -68,7 +68,7 @@ public class DeploymentChecker {
                                                            FunctionsToDeploy functionsToDeploy, DeploymentPath deploymentPath) {
         DockerImageService dockerImageService = new DockerImageService(vertx, request.getDockerCredentials(),
             functionsToDeploy.getFunctionIdentifiers(), deploymentPath.getFunctionsFolder());
-        return dockerImageService.buildAndPushDockerImages(functionsToDeploy.getFunctionsString().toString());
+        return dockerImageService.buildAndPushDockerImages(functionsToDeploy.getFunctionsString());
     }
 
     private Completable persistLogs(ProcessOutput processOutput, Reservation reservation) {
@@ -77,7 +77,7 @@ public class DeploymentChecker {
         }
 
         Log log = new Log();
-        String output = processOutput.getProcessOutput();
+        String output = processOutput.getOutput();
         output = ConsoleOutputUtility.escapeConsoleOutput(output);
         log.setLogValue(output);
         return logService.save(JsonObject.mapFrom(log))

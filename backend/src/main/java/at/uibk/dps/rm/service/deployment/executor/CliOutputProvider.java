@@ -20,7 +20,7 @@ public class CliOutputProvider implements Callable<ProcessOutput> {
         try {
             final Process process = processBuilder.start();
             processOutput.setProcess(process);
-            processOutput.setProcessOutput(getProcessOutput(process));
+            processOutput.setOutput(getProcessOutput(process));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

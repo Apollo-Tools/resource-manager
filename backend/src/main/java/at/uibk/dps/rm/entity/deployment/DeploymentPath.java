@@ -14,13 +14,13 @@ public class DeploymentPath {
 
     private final Path buildFolder;
 
-    public DeploymentPath(long reservationId, JsonObject config) {
+    public DeploymentPath(final long reservationId, final JsonObject config) {
         this.buildFolder = Path.of(config.getString("build_directory"));
         this.rootFolder = Path.of(buildFolder.toString(), "reservation_" + reservationId);
         this.functionsFolder = Path.of(rootFolder.toString(), "functions");
     }
 
-    public Path getModuleFolder(TerraformModule module) {
+    public Path getModuleFolder(final TerraformModule module) {
         return Path.of(rootFolder.toString(), module.getModuleName());
     }
 

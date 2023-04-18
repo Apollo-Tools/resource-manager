@@ -23,8 +23,13 @@
   <exclude-pattern>.*/net/sourceforge/pmd/lang/java/ast/jdkversiontests/java10/LocalVariableTypeInference_varAsEnumName.java</exclude-pattern>
   <exclude-pattern>.*/net/sourceforge/pmd/lang/java/ast/jdkversiontests/java10/LocalVariableTypeInference_varAsTypeIdentifier.java</exclude-pattern>
 
+  <rule ref="category/java/errorprone.xml" >
+    <exclude name="UseLocaleWithCaseConversions" />
+  </rule>
+
   <rule ref="category/java/bestpractices.xml">
     <exclude name="AbstractClassWithoutAbstractMethod"/>
+    <exclude name="GuardLogStatement"/>
   </rule>
   <rule ref="category/java/codestyle.xml">
     <exclude name="OnlyOneReturn"/>
@@ -43,12 +48,6 @@
   <rule ref="category/java/multithreading.xml" />
   <rule ref="category/java/performance.xml" />
   <rule ref="category/java/security.xml" />
-
-  <!--  Things I have to add to the master rule set -->
-
-  <rule ref="category/java/errorprone.xml">
-    <exclude name="BeanMembersShouldSerialize"/>
-  </rule>
 
   <!--  Things I have to add to the master rule set -->
 
@@ -87,6 +86,13 @@
     <properties>
       <property name="maxLines" value="20" />
       <property name="maxLineLength" value="80" />
+    </properties>
+  </rule>
+
+  <!-- Minimum length of class names -->
+  <rule ref="category/java/codestyle.xml/ShortClassName">
+    <properties>
+      <property name="minimum" value="4" />
     </properties>
   </rule>
 

@@ -86,7 +86,7 @@ public class TerraformExecutorTest {
             })) {
             terraformExecutor.init(deploymentPath.getRootFolder())
                 .subscribe(result -> testContext.verify(() -> {
-                        assertThat(result.getProcessOutput()).isEqualTo("output");
+                        assertThat(result.getOutput()).isEqualTo("output");
                         testContext.completeNow();
                     }),
                     throwable -> testContext.verify(() -> fail("method has thrown exception"))
@@ -109,7 +109,7 @@ public class TerraformExecutorTest {
             })) {
             terraformExecutor.apply(deploymentPath.getRootFolder())
                 .subscribe(result -> testContext.verify(() -> {
-                        assertThat(result.getProcessOutput()).isEqualTo("output");
+                        assertThat(result.getOutput()).isEqualTo("output");
                         testContext.completeNow();
                     }),
                     throwable -> testContext.verify(() -> fail("method has thrown exception"))
@@ -132,7 +132,7 @@ public class TerraformExecutorTest {
             })) {
             terraformExecutor.getOutput(deploymentPath.getRootFolder())
                 .subscribe(result -> testContext.verify(() -> {
-                        assertThat(result.getProcessOutput()).isEqualTo("output");
+                        assertThat(result.getOutput()).isEqualTo("output");
                         testContext.completeNow();
                     }),
                     throwable -> testContext.verify(() -> fail("method has thrown exception"))
@@ -155,7 +155,7 @@ public class TerraformExecutorTest {
             })) {
             terraformExecutor.destroy(deploymentPath.getRootFolder())
                 .subscribe(result -> testContext.verify(() -> {
-                        assertThat(result.getProcessOutput()).isEqualTo("output");
+                        assertThat(result.getOutput()).isEqualTo("output");
                         testContext.completeNow();
                     }),
                     throwable -> testContext.verify(() -> fail("method has thrown exception"))
@@ -178,7 +178,7 @@ public class TerraformExecutorTest {
             })) {
             terraformExecutor.destroy(deploymentPath.getRootFolder())
                 .subscribe(result -> testContext.verify(() -> {
-                        assertThat(result.getProcessOutput()).isEqualTo("output");
+                        assertThat(result.getOutput()).isEqualTo("output");
                         testContext.completeNow();
                     }),
                     throwable -> testContext.verify(() -> fail("method has thrown exception"))

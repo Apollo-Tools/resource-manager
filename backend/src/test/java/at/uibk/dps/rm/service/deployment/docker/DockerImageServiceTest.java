@@ -75,8 +75,8 @@ public class DockerImageServiceTest {
         when(fileSystem.writeFile(eq(Path.of(functionsDir.toString(), "stack.yml").toString()), any(Buffer.class)))
             .thenReturn(Completable.complete());
         when(processOutput.getProcess()).thenReturn(process);
-        doCallRealMethod().when(processOutput).setProcessOutput(any());
-        when(processOutput.getProcessOutput())
+        doCallRealMethod().when(processOutput).setOutput(any());
+        when(processOutput.getOutput())
             .thenReturn("build output\n")
             .thenReturn("push output\n")
             .thenCallRealMethod();
@@ -88,7 +88,7 @@ public class DockerImageServiceTest {
                 (mock, context) -> given(mock.executeCli()).willReturn(Single.just(processOutput)))) {
                 dockerImageService.buildAndPushDockerImages(functionString)
                     .subscribe(result -> testContext.verify(() -> {
-                            assertThat(result.getProcessOutput()).isEqualTo("build output\npush output\n");
+                            assertThat(result.getOutput()).isEqualTo("build output\npush output\n");
                             assertThat(result.getProcess().exitValue()).isEqualTo(exitValue);
                             testContext.completeNow();
                         }),
@@ -106,7 +106,7 @@ public class DockerImageServiceTest {
         when(fileSystem.writeFile(eq(Path.of(functionsDir.toString(), "stack.yml").toString()), any(Buffer.class)))
             .thenReturn(Completable.complete());
         when(processOutput.getProcess()).thenReturn(process);
-        when(processOutput.getProcessOutput())
+        when(processOutput.getOutput())
             .thenReturn("build output\n");
         when(process.exitValue()).thenReturn(-1);
 
@@ -116,7 +116,7 @@ public class DockerImageServiceTest {
                 (mock, context) -> given(mock.executeCli()).willReturn(Single.just(processOutput)))) {
                 dockerImageService.buildAndPushDockerImages(functionString)
                     .subscribe(result -> testContext.verify(() -> {
-                            assertThat(result.getProcessOutput()).isEqualTo("build output\n");
+                            assertThat(result.getOutput()).isEqualTo("build output\n");
                             assertThat(result.getProcess().exitValue()).isEqualTo(-1);
                             testContext.completeNow();
                         }),
@@ -152,7 +152,7 @@ public class DockerImageServiceTest {
 
         dockerImageService.buildAndPushDockerImages(functionString)
             .subscribe(result -> testContext.verify(() -> {
-                    assertThat(result.getProcessOutput()).isNull();
+                    assertThat(result.getOutput()).isNull();
                     assertThat(result.getProcess()).isNull();
                     testContext.completeNow();
                 }),

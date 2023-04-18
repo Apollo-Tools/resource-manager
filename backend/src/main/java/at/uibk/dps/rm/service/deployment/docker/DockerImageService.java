@@ -54,7 +54,7 @@ public class DockerImageService {
                 return new ConfigUtility(vertx).getConfig()
                         .flatMap(config -> pushDockerImages(functionsDir, config))
                         .map(pushOutput -> {
-                            pushOutput.setProcessOutput(buildOutput.getProcessOutput() + pushOutput.getProcessOutput());
+                            pushOutput.setOutput(buildOutput.getOutput() + pushOutput.getOutput());
                             return pushOutput;
                         });
             });

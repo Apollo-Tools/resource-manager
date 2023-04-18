@@ -126,7 +126,7 @@ public class ResourceReservationCheckerTest {
         long reservationId = request.getReservation().getReservationId();
         DeploymentOutput deploymentOutput = TestDTOProvider.createDeploymentOutput();
 
-        when(processOutput.getProcessOutput()).thenReturn(JsonObject.mapFrom(deploymentOutput).encode());
+        when(processOutput.getOutput()).thenReturn(JsonObject.mapFrom(deploymentOutput).encode());
         when(resourceReservationService.updateTriggerUrl(1L, reservationId,
             "http://localhostfaas1")).thenReturn(Completable.complete());
         when(resourceReservationService.updateTriggerUrl(2L, reservationId,
@@ -148,7 +148,7 @@ public class ResourceReservationCheckerTest {
         DeployResourcesRequest request = TestRequestProvider.createDeployRequest();
         DeploymentOutput deploymentOutput = TestDTOProvider.createDeploymentOutputUnknownFunction();
 
-        when(processOutput.getProcessOutput()).thenReturn(JsonObject.mapFrom(deploymentOutput).encode());
+        when(processOutput.getOutput()).thenReturn(JsonObject.mapFrom(deploymentOutput).encode());
 
         resourceReservationChecker.storeOutputToFunctionResources(processOutput, request)
             .blockingSubscribe(() -> {},

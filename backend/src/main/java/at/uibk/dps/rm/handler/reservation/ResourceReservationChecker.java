@@ -39,7 +39,7 @@ public class ResourceReservationChecker extends EntityChecker {
 
 
     public Completable storeOutputToFunctionResources(ProcessOutput processOutput, DeployResourcesRequest request) {
-        DeploymentOutput deploymentOutput = DeploymentOutput.fromJson(new JsonObject(processOutput.getProcessOutput()));
+        DeploymentOutput deploymentOutput = DeploymentOutput.fromJson(new JsonObject(processOutput.getOutput()));
         List<Completable> completables = new ArrayList<>();
         completables.addAll(setTriggerUrlsByResourceTypeSet(deploymentOutput.getEdgeUrls().getValue().entrySet(),
             request));

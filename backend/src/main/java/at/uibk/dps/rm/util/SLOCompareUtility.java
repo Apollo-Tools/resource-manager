@@ -4,13 +4,15 @@ import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.SLOValue;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.MetricValue;
+import lombok.experimental.UtilityClass;
 
+@UtilityClass
 public class SLOCompareUtility {
 
-    public static Boolean compareMetricValueWithSLO(MetricValue metricValue, ServiceLevelObjective slo) {
+    public static Boolean compareMetricValueWithSLO(final MetricValue metricValue, final ServiceLevelObjective slo) {
         int compareValue = -1;
-        boolean isEqualityCheck = slo.getExpression().equals(ExpressionType.EQ);
-        for (SLOValue sloValue : slo.getValue()) {
+        final boolean isEqualityCheck = slo.getExpression().equals(ExpressionType.EQ);
+        for (final SLOValue sloValue : slo.getValue()) {
             switch (sloValue.getSloValueType()) {
                 case NUMBER:
                     if (metricValue.getValueNumber() == null) {

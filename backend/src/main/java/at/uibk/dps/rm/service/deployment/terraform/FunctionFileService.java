@@ -43,7 +43,7 @@ public class FunctionFileService {
     public Single<FunctionsToDeploy> packageCode() {
         functionsToDeploy = new FunctionsToDeploy();
         PackageSourceCode packageSourceCode;
-        StringBuilder functionsString = functionsToDeploy.getFunctionsString();
+        StringBuilder functionsString = new StringBuilder();
         List<Completable> completables = new ArrayList<>();
         for (FunctionResource fr : functionResources) {
             Function function = fr.getFunction();
@@ -69,6 +69,7 @@ public class FunctionFileService {
             functionIds.add(function.getFunctionId());
             functionsToDeploy.getFunctionIdentifiers().add(functionIdentifier);
         }
+        functionsToDeploy.setFunctionsString(functionsString.toString());
         // TODO: add check if this is necessary (=no changes since last push)
         if (completables.isEmpty()) {
             return Single.just(functionsToDeploy);

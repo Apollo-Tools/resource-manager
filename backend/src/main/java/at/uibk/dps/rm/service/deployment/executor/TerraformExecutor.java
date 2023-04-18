@@ -75,7 +75,7 @@ public class TerraformExecutor {
     }
 
     protected String getEdgeLoginCommand() {
-        String edgeLogin = credentials.getEdgeLoginCredentials().toString();
+        String edgeLogin = credentials.getEdgeLoginCredentials();
         if (edgeLogin.isBlank()) {
             return "";
         }

@@ -80,7 +80,7 @@ public class TestDTOProvider {
         FunctionsToDeploy functionsToDeploy = new FunctionsToDeploy();
         functionsToDeploy.getFunctionIdentifiers().add("foo1_python39");
         functionsToDeploy.getFunctionIdentifiers().add("foo2_python39");
-        functionsToDeploy.getFunctionsString().append("\"  foo1_python39:\\n    lang: python3-flask-debian\\n    " +
+        functionsToDeploy.setFunctionsString("\"  foo1_python39:\\n    lang: python3-flask-debian\\n    " +
             "handler: ./foo1_python39\\n    image: user/foo1_python39:latest\\n  foo2_python39:\\n    " +
             "lang: python3-flask-debian\\n    handler: ./foo2_python39\\n    image: user/foo2_python39:latest\\n\"");
         return functionsToDeploy;
@@ -90,11 +90,11 @@ public class TestDTOProvider {
         ResourceProvider rp = TestResourceProviderProvider.createResourceProvider(1L);
         DeploymentCredentials deploymentCredentials = new DeploymentCredentials();
         if (System.getProperty("os.name").toLowerCase().contains("windows")) {
-            deploymentCredentials.getEdgeLoginCredentials()
-                .append("edge_login_data=[{auth_user=\\\"user\\\",auth_pw=\\\"pw\\\"},]");
+            deploymentCredentials
+                .setEdgeLoginCredentials("edge_login_data=[{auth_user=\\\"user\\\",auth_pw=\\\"pw\\\"},]");
         } else {
-            deploymentCredentials.getEdgeLoginCredentials()
-                .append("edge_login_data=[{auth_user=\"user\",auth_pw=\"pw\"},]");
+            deploymentCredentials
+                .setEdgeLoginCredentials("edge_login_data=[{auth_user=\"user\",auth_pw=\"pw\"},]");
         }
         deploymentCredentials.getCloudCredentials().add(TestAccountProvider.createCredentials(1L, rp));
         return deploymentCredentials;
@@ -111,7 +111,7 @@ public class TestDTOProvider {
     public static ProcessOutput createProcessOutput(Process process, String output) {
         ProcessOutput processOutput = new ProcessOutput();
         processOutput.setProcess(process);
-        processOutput.setProcessOutput(output);
+        processOutput.setOutput(output);
         return processOutput;
     }
 

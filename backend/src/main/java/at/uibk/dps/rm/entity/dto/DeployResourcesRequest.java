@@ -15,7 +15,12 @@ import java.util.List;
 @DataObject
 public class DeployResourcesRequest extends DeployTerminateRequest {
 
-    public DeployResourcesRequest(JsonObject jsonObject) {
+    private DockerCredentials dockerCredentials;
+
+    private List<VPC> vpcList;
+
+    public DeployResourcesRequest(final JsonObject jsonObject) {
+        super();
         DeployResourcesRequest request = jsonObject.mapTo(DeployResourcesRequest.class);
         this.setFunctionResources(request.getFunctionResources());
         this.setCredentialsList(request.getCredentialsList());
@@ -23,8 +28,4 @@ public class DeployResourcesRequest extends DeployTerminateRequest {
         this.setReservation(request.getReservation());
         this.setVpcList(request.getVpcList());
     }
-
-    private DockerCredentials dockerCredentials;
-
-    private List<VPC> vpcList;
 }

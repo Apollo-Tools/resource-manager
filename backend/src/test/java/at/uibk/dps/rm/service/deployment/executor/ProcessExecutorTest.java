@@ -29,7 +29,7 @@ public class ProcessExecutorTest {
         processExecutor.executeCli()
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.getProcess().exitValue()).isEqualTo(0);
-                    assertThat(result.getProcessOutput()).isEqualTo("hello test");
+                    assertThat(result.getOutput()).isEqualTo("hello test");
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))

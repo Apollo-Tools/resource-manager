@@ -12,15 +12,15 @@ public class TerraformModule {
     private final String moduleName;
 
     @Setter
-    private boolean hasFaas = false;
+    private boolean hasFaas;
 
     @Setter
-    private boolean hasVM = false;
+    private boolean hasVM;
 
     @Setter
     private boolean hasEdge;
 
-    public TerraformModule(CloudProvider cloudProvider, String moduleName) {
+    public TerraformModule(final CloudProvider cloudProvider, final String moduleName) {
         this.cloudProvider = cloudProvider;
         this.moduleName = moduleName;
         hasEdge = cloudProvider.equals(CloudProvider.EDGE);
@@ -28,10 +28,14 @@ public class TerraformModule {
 
     @Override
     @Generated
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        TerraformModule module = (TerraformModule) o;
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final TerraformModule module = (TerraformModule) obj;
         return moduleName.equals(module.moduleName);
     }
 

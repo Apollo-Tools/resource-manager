@@ -51,7 +51,7 @@ public class TerraformSetupServiceTest {
                             assertThat(deploymentCredentials.getCloudCredentials().size()).isEqualTo(1);
                             assertThat(deploymentCredentials.getCloudCredentials().get(0).getResourceProvider()
                                 .getProvider()).isEqualTo("aws");
-                            assertThat(deploymentCredentials.getEdgeLoginCredentials().toString())
+                            assertThat(deploymentCredentials.getEdgeLoginCredentials())
                                 .isEqualTo("edge_login_data=[{auth_user=\"user\",auth_pw=\"pw\"},]");
                             testContext.completeNow();
                         }),
@@ -95,7 +95,7 @@ public class TerraformSetupServiceTest {
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.getCloudCredentials().size()).isEqualTo(1);
                     assertThat(result.getCloudCredentials().get(0).getResourceProvider().getProvider()).isEqualTo("aws");
-                    assertThat(result.getEdgeLoginCredentials().toString())
+                    assertThat(result.getEdgeLoginCredentials())
                         .isEqualTo(expectedEdgeOutput);
                     testContext.completeNow();
                 }),

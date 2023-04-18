@@ -14,31 +14,34 @@ import java.util.stream.StreamSupport;
 
 public class ServiceLevelObjectiveDeserializer extends StdDeserializer<ServiceLevelObjective> {
 
+    private static final long serialVersionUID = 1L;
+
     // Throws an error if this constructor is not present
     public ServiceLevelObjectiveDeserializer() {
         this(null);
     }
 
-    public ServiceLevelObjectiveDeserializer(Class<?> vc) {
-        super(vc);
+    public ServiceLevelObjectiveDeserializer(final Class<?> valueClass) {
+        super(valueClass);
     }
 
     @Override
-    public ServiceLevelObjective deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
-        JsonNode node = jp.getCodec().readTree(jp);
-        String name =  node.get("name").asText();
-        ExpressionType expressionType = ExpressionType.fromString(node.get("expression").asText());
-        List<JsonNode> values = StreamSupport.stream(node.get("value").spliterator(), false)
+    public ServiceLevelObjective deserialize(final JsonParser jsonParser, final DeserializationContext ctxt)
+        throws IOException {
+        final JsonNode node = jsonParser.getCodec().readTree(jsonParser);
+        final String name =  node.get("name").asText();
+        final ExpressionType expressionType = ExpressionType.fromString(node.get("expression").asText());
+        final List<JsonNode> values = StreamSupport.stream(node.get("value").spliterator(), false)
                 .collect(Collectors.toList());
-        List<SLOValue> sloValues = new ArrayList<>();
-        for (JsonNode value : values) {
+        final List<SLOValue> sloValues = new ArrayList<>();
+        for (final JsonNode value : values) {
             sloValues.add(deserializeSLOValue(value));
         }
 
         return new ServiceLevelObjective(name, expressionType, sloValues);
     }
 
-    private SLOValue deserializeSLOValue(JsonNode value) {
+    private SLOValue deserializeSLOValue(final JsonNode value) {
         SLOValue sloValue = new SLOValue();
         if (value.isNumber()) {
             sloValue.setSloValueType(SLOValueType.NUMBER);
@@ -60,6 +63,7 @@ public class ServiceLevelObjectiveDeserializer extends StdDeserializer<ServiceLe
                     break;
                 case BOOLEAN:
                     sloValue.setValueBool(value.get("value_bool").asBoolean());
+                    break;
             }
         }
         else {
