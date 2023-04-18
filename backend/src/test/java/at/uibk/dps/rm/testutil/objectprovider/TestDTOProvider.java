@@ -113,7 +113,7 @@ public class TestDTOProvider {
     public static TFOutput createTFOutputFaas() {
         TFOutput tfOutput = new TFOutput();
         Map<String, String> valueMap = new HashMap<>();
-        valueMap.put("r1_foo1", "http://localhostfaas1");
+        valueMap.put("r1_foo1_python39", "http://localhostfaas1");
         tfOutput.setValue(valueMap);
         return tfOutput;
     }
@@ -121,8 +121,8 @@ public class TestDTOProvider {
     public static TFOutput createTFOutputVM() {
         TFOutput tfOutput = new TFOutput();
         Map<String, String> valueMap = new HashMap<>();
-        valueMap.put("r2_foo1", "http://localhostvm1");
-        valueMap.put("r2_foo2", "http://localhostvm2");
+        valueMap.put("r2_foo1_python39", "http://localhostvm1");
+        valueMap.put("r2_foo2_python39", "http://localhostvm2");
         tfOutput.setValue(valueMap);
         return tfOutput;
     }
@@ -130,7 +130,7 @@ public class TestDTOProvider {
     public static TFOutput createTFOutputEdge() {
         TFOutput tfOutput = new TFOutput();
         Map<String, String> valueMap = new HashMap<>();
-        valueMap.put("r3_foo1", "http://localhostedge1");
+        valueMap.put("r3_foo1_python39", "http://localhostedge1");
         tfOutput.setValue(valueMap);
         return tfOutput;
     }

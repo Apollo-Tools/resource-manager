@@ -3,9 +3,12 @@ package at.uibk.dps.rm.service.deployment.docker;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.service.deployment.executor.ProcessExecutor;
+import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
+import at.uibk.dps.rm.util.ConfigUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
@@ -38,6 +41,8 @@ import static org.mockito.Mockito.when;
 public class DockerImageServiceTest {
 
     private DockerImageService dockerImageService;
+
+    private final JsonObject config = TestConfigProvider.getConfig();
 
     @Mock
     private Vertx vertx;
@@ -77,16 +82,19 @@ public class DockerImageServiceTest {
             .thenCallRealMethod();
         when(process.exitValue()).thenReturn(0).thenReturn(exitValue);
 
-        try(MockedConstruction<ProcessExecutor> ignored = Mockito.mockConstruction(ProcessExecutor.class,
-            (mock, context) -> given(mock.executeCli()).willReturn(Single.just(processOutput)))) {
-            dockerImageService.buildAndPushDockerImages(functionString)
-                .subscribe(result -> testContext.verify(() -> {
-                        assertThat(result.getProcessOutput()).isEqualTo("build output\npush output\n");
-                        assertThat(result.getProcess().exitValue()).isEqualTo(exitValue);
-                        testContext.completeNow();
-                    }),
-                    throwable -> testContext.verify(() -> fail("method has thrown exception"))
-                );
+        try (MockedConstruction<ConfigUtility> ignoredConfig = Mockito.mockConstruction(ConfigUtility.class,
+            (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
+            try (MockedConstruction<ProcessExecutor> ignored = Mockito.mockConstruction(ProcessExecutor.class,
+                (mock, context) -> given(mock.executeCli()).willReturn(Single.just(processOutput)))) {
+                dockerImageService.buildAndPushDockerImages(functionString)
+                    .subscribe(result -> testContext.verify(() -> {
+                            assertThat(result.getProcessOutput()).isEqualTo("build output\npush output\n");
+                            assertThat(result.getProcess().exitValue()).isEqualTo(exitValue);
+                            testContext.completeNow();
+                        }),
+                        throwable -> testContext.verify(() -> fail("method has thrown exception"))
+                    );
+            }
         }
     }
 
@@ -102,16 +110,19 @@ public class DockerImageServiceTest {
             .thenReturn("build output\n");
         when(process.exitValue()).thenReturn(-1);
 
-        try(MockedConstruction<ProcessExecutor> ignored = Mockito.mockConstruction(ProcessExecutor.class,
-            (mock, context) -> given(mock.executeCli()).willReturn(Single.just(processOutput)))) {
-            dockerImageService.buildAndPushDockerImages(functionString)
-                .subscribe(result -> testContext.verify(() -> {
-                        assertThat(result.getProcessOutput()).isEqualTo("build output\n");
-                        assertThat(result.getProcess().exitValue()).isEqualTo(-1);
-                        testContext.completeNow();
-                    }),
-                    throwable -> testContext.verify(() -> fail("method has thrown exception"))
-                );
+        try (MockedConstruction<ConfigUtility> ignoredConfig = Mockito.mockConstruction(ConfigUtility.class,
+            (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
+            try (MockedConstruction<ProcessExecutor> ignored = Mockito.mockConstruction(ProcessExecutor.class,
+                (mock, context) -> given(mock.executeCli()).willReturn(Single.just(processOutput)))) {
+                dockerImageService.buildAndPushDockerImages(functionString)
+                    .subscribe(result -> testContext.verify(() -> {
+                            assertThat(result.getProcessOutput()).isEqualTo("build output\n");
+                            assertThat(result.getProcess().exitValue()).isEqualTo(-1);
+                            testContext.completeNow();
+                        }),
+                        throwable -> testContext.verify(() -> fail("method has thrown exception"))
+                    );
+            }
         }
     }
 

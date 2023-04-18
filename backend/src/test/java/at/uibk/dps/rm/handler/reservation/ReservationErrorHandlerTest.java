@@ -11,28 +11,38 @@ import at.uibk.dps.rm.handler.deployment.DeploymentHandler;
 import at.uibk.dps.rm.handler.log.LogChecker;
 import at.uibk.dps.rm.handler.log.ReservationLogChecker;
 import at.uibk.dps.rm.handler.util.FileSystemChecker;
+import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestLogProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
+import at.uibk.dps.rm.util.ConfigUtility;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
+import io.vertx.junit5.RunTestOnContext;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
 public class ReservationErrorHandlerTest {
+
+    @RegisterExtension
+    private static final RunTestOnContext rtoc = new RunTestOnContext();
 
     private ReservationErrorHandler errorHandler;
 
@@ -53,6 +63,7 @@ public class ReservationErrorHandlerTest {
 
     @BeforeEach
     void initTest() {
+        rtoc.vertx();
         JsonMapperConfig.configJsonMapper();
         errorHandler = new ReservationErrorHandler(resourceReservationChecker, logChecker, reservationLogChecker,
             fileSystemChecker, deploymentHandler);
@@ -70,7 +81,8 @@ public class ReservationErrorHandlerTest {
         ReservationLog reservationLog = new ReservationLog();
         reservationLog.setReservation(reservation);
         reservationLog.setLog(persistedLog);
-        DeploymentPath deploymentPath = new DeploymentPath(reservationId);
+        JsonObject config = TestConfigProvider.getConfig();
+        DeploymentPath deploymentPath = new DeploymentPath(reservationId, config);
 
         when(resourceReservationChecker.submitUpdateStatus(reservationId, ReservationStatusValue.ERROR))
             .thenReturn(Completable.complete());
@@ -85,10 +97,14 @@ public class ReservationErrorHandlerTest {
                 .thenReturn(Completable.complete());
         }
 
-        errorHandler.onDeploymentError(accountId, reservation, exc)
-            .blockingSubscribe(() -> {},
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
+        try (MockedConstruction<ConfigUtility> ignoredConfig = Mockito.mockConstruction(ConfigUtility.class,
+            (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
+            errorHandler.onDeploymentError(accountId, reservation, exc)
+                .blockingSubscribe(() -> {
+                    },
+                    throwable -> testContext.verify(() -> fail("method has thrown exception"))
+                );
+        }
         testContext.completeNow();
     }
 

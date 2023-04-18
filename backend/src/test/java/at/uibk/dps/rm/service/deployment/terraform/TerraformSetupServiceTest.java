@@ -4,8 +4,10 @@ import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.dto.TerminateResourcesRequest;
+import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestRequestProvider;
 import io.reactivex.rxjava3.core.Completable;
+import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
@@ -23,10 +25,12 @@ import static org.mockito.BDDMockito.given;
 @ExtendWith(MockitoExtension.class)
 public class TerraformSetupServiceTest {
 
+    private final JsonObject config = TestConfigProvider.getConfig();
+
     @Test
     void setupTFModuleDirs(Vertx vertx, VertxTestContext testContext) {
         DeployResourcesRequest deployRequest = TestRequestProvider.createDeployRequest();
-        DeploymentPath deploymentPath = new DeploymentPath(1L);
+        DeploymentPath deploymentPath = new DeploymentPath(1L, config);
         DeploymentCredentials deploymentCredentials = new DeploymentCredentials();
         TerraformSetupService service = new TerraformSetupService(vertx, deployRequest, deploymentPath,
             deploymentCredentials);
@@ -57,7 +61,7 @@ public class TerraformSetupServiceTest {
     @Test
     void setupTFModuleDirsDeployRequestNull(Vertx vertx, VertxTestContext testContext) {
         TerminateResourcesRequest terminateRequest = TestRequestProvider.createTerminateRequest();
-        DeploymentPath deploymentPath = new DeploymentPath(1L);
+        DeploymentPath deploymentPath = new DeploymentPath(1L, config);
         DeploymentCredentials deploymentCredentials = new DeploymentCredentials();
         TerraformSetupService service = new TerraformSetupService(vertx, terminateRequest, deploymentPath,
             deploymentCredentials);
@@ -75,7 +79,7 @@ public class TerraformSetupServiceTest {
     @Test
     void getDeploymentCredentials(Vertx vertx, VertxTestContext testContext) {
         TerminateResourcesRequest terminateRequest = TestRequestProvider.createTerminateRequest();
-        DeploymentPath deploymentPath = new DeploymentPath(1L);
+        DeploymentPath deploymentPath = new DeploymentPath(1L, config);
         DeploymentCredentials deploymentCredentials = new DeploymentCredentials();
         TerraformSetupService service = new TerraformSetupService(vertx, terminateRequest, deploymentPath,
             deploymentCredentials);
@@ -95,7 +99,7 @@ public class TerraformSetupServiceTest {
     @Test
     void getDeploymentCredentialsTerminateRequestNull(Vertx vertx, VertxTestContext testContext) {
         DeployResourcesRequest deployRequest = TestRequestProvider.createDeployRequest();
-        DeploymentPath deploymentPath = new DeploymentPath(1L);
+        DeploymentPath deploymentPath = new DeploymentPath(1L, config);
         DeploymentCredentials deploymentCredentials = new DeploymentCredentials();
         TerraformSetupService service = new TerraformSetupService(vertx, deployRequest, deploymentPath,
             deploymentCredentials);

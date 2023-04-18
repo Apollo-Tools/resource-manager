@@ -40,9 +40,12 @@ public class ReservationErrorHandler {
         Vertx vertx = Vertx.currentContext().owner();
         return handleError(reservation, throwable)
             .andThen(new ConfigUtility(vertx).getConfig()
-                .flatMap(config -> fileSystemChecker
-                    .checkTFLockFileExists(new DeploymentPath(reservation.getReservationId(), config).getRootFolder()
-                        .toString())))
+                .flatMap(config -> {
+                    String path = new DeploymentPath(reservation.getReservationId(), config).getRootFolder()
+                        .toString();
+                    return fileSystemChecker
+                        .checkTFLockFileExists(path);
+                }))
             .flatMapCompletable(tfLockFileExists -> {
                 if (tfLockFileExists) {
                     return deploymentHandler.terminateResources(reservation, accountId);

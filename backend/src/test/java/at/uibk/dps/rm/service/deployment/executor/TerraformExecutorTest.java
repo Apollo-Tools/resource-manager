@@ -2,10 +2,12 @@ package at.uibk.dps.rm.service.deployment.executor;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
+import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestExecutorProvider;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
@@ -13,8 +15,6 @@ import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.file.FileSystem;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
@@ -33,6 +33,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class TerraformExecutorTest {
 
+    private final JsonObject config = TestConfigProvider.getConfig();
+
     @Mock
     private Vertx vertx;
 
@@ -42,18 +44,13 @@ public class TerraformExecutorTest {
     @Mock
     private Process process;
 
-    @ParameterizedTest
-    @CsvSource({
-        "Windows, APPDATA, \\terraform.rc",
-        "Linux, user.home, \\.terraformrc",
-    })
-    void setPluginCacheFolder(String os, String homePathName, String configFileName, VertxTestContext testContext) {
-        DeploymentPath deploymentPath = new DeploymentPath(1L);
+    @Test
+    void setPluginCacheFolder(VertxTestContext testContext) {
+        DeploymentPath deploymentPath = new DeploymentPath(1L, config);
         Path cacheFolderPath = deploymentPath.getTFCacheFolder();
         Buffer fileContent = Buffer.buffer("plugin_cache_dir = \"" +
             cacheFolderPath.toString().replace("\\", "/") + "\"");
-        System.setProperty("os.name", os);
-        String configPath = Paths.get(System.getenv(homePathName) + configFileName).toString();
+        String configPath = Paths.get("terraform", "config.tfrc").toString();
         TerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSEdge(vertx);
         when(vertx.fileSystem()).thenReturn(fileSystem);
         when(fileSystem.mkdirs(cacheFolderPath.toString())).thenReturn(Completable.complete());
@@ -69,7 +66,7 @@ public class TerraformExecutorTest {
 
     @Test
     void init(VertxTestContext testContext) {
-        DeploymentPath deploymentPath = new DeploymentPath(1L);
+        DeploymentPath deploymentPath = new DeploymentPath(1L, config);
         TerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSEdge(vertx);
         ProcessOutput processOutput = TestDTOProvider.createProcessOutput(process, "output");
 
@@ -91,7 +88,7 @@ public class TerraformExecutorTest {
 
     @Test
     void apply(VertxTestContext testContext) {
-        DeploymentPath deploymentPath = new DeploymentPath(1L);
+        DeploymentPath deploymentPath = new DeploymentPath(1L, config);
         TerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSEdge(vertx);
         ProcessOutput processOutput = TestDTOProvider.createProcessOutput(process, "output");
         List<String> commands = TestExecutorProvider.tfCommandsWithCredsAWSEdge("apply");
@@ -114,7 +111,7 @@ public class TerraformExecutorTest {
 
     @Test
     void getOutput(VertxTestContext testContext) {
-        DeploymentPath deploymentPath = new DeploymentPath(1L);
+        DeploymentPath deploymentPath = new DeploymentPath(1L, config);
         TerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSEdge(vertx);
         ProcessOutput processOutput = TestDTOProvider.createProcessOutput(process, "output");
         List<String> commands = List.of("terraform", "output", "--json");
@@ -137,7 +134,7 @@ public class TerraformExecutorTest {
 
     @Test
     void destroy(VertxTestContext testContext) {
-        DeploymentPath deploymentPath = new DeploymentPath(1L);
+        DeploymentPath deploymentPath = new DeploymentPath(1L, config);
         TerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSEdge(vertx);
         ProcessOutput processOutput = TestDTOProvider.createProcessOutput(process, "output");
         List<String> commands = TestExecutorProvider.tfCommandsWithCredsAWSEdge("destroy");
@@ -160,7 +157,7 @@ public class TerraformExecutorTest {
 
     @Test
     void destroyNoEdgeCredentials(VertxTestContext testContext) {
-        DeploymentPath deploymentPath = new DeploymentPath(1L);
+        DeploymentPath deploymentPath = new DeploymentPath(1L, config);
         TerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWS(vertx);
         ProcessOutput processOutput = TestDTOProvider.createProcessOutput(process, "output");
         List<String> commands = TestExecutorProvider.tfCommandsWithCredsAWS("destroy");
