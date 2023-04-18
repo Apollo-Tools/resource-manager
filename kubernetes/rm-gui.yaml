@@ -1,0 +1,46 @@
+# This file is responsible for the deployment of the RM frontend.
+# The deployment is split into a service of type LoadBalancer to enable
+# external access to the frontend and a deployment that defines the container.
+apiVersion: v1
+kind: Service
+metadata:
+  name: rm-gui
+spec:
+  type: LoadBalancer
+  selector:
+    app: rm-gui
+  ports:
+    # The external port of the frontend
+    - port: 3000
+      targetPort: 3000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rm-gui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rm-gui
+  template:
+    metadata:
+      labels:
+        app: rm-gui
+    spec:
+      containers:
+        - name: rm-gui
+          # Pull latest image
+          image: matthigas/rm-gui:latest
+          env:
+            # The external url of the api
+            - name: NEXT_PUBLIC_API_URL
+              value: http://localhost:8888/api
+          resources:
+            # The resource limits
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+          ports:
+            # The internal port of the frontend
+            - containerPort: 3000

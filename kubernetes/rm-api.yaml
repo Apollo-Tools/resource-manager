@@ -1,0 +1,84 @@
+# This file is responsible for the deployment of the RM backend.
+# The deployment is split into a service of type LoadBalancer to enable
+# external access to the api and a deployment that defines the container and volume mounts.
+apiVersion: v1
+kind: Service
+metadata:
+  name: rm-api
+spec:
+  type: LoadBalancer
+  selector:
+    app: rm-api
+  ports:
+    # The external port of the api
+    - port: 8888
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rm-api
+spec:
+  # The amount of replicas
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rm-api
+  template:
+    metadata:
+      labels:
+        app: rm-api
+    spec:
+      containers:
+        - name: rm-api
+          # Pull latest image
+          image: matthigas/rm-api:latest
+          env:
+            # The host url of the db
+            - name: db_host
+              value: rm-db-service
+            # The port of the db
+            - name: db_port
+              value: "5433"
+            # The login credentials for the db
+            - name: db_user
+              value: root
+            - name: db_pw
+              value: root
+            # The path of the build directory
+            - name: build_directory
+              value: build
+            # The path on the host to the build directory
+            - name: dind_directory
+              value: "var/lib/apollo-rm/"
+            # The secret to use for the JWT
+            - name: jwt_secret
+              value: "todo-swap-with-real-secret"
+            # The time until a newly created token expires
+            - name: token_minutes_valid
+              value: "10080"
+          resources:
+            # The resource limits
+            limits:
+              memory: "1000Mi"
+              cpu: "1.5"
+          ports:
+            # The internal port of the api
+            - containerPort: 8080
+          securityContext:
+            # Necessary for docker-in-docker
+            privileged: true
+          volumeMounts:
+            # The volume where all build data (terraform files, filed to build images) is stored
+            - name: rm-api-storage
+              mountPath: /build
+            # The path to the docker.sock used by docker-in-docker
+            - name: dind-storage
+              mountPath: /var/run/docker.sock
+      volumes:
+        - name: dind-storage
+          hostPath:
+            path: /var/run/docker.sock
+        - name: rm-api-storage
+          hostPath:
+            path: /var/lib/apollo-rm/build

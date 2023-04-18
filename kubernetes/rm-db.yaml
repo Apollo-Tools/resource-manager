@@ -1,0 +1,88 @@
+# This file is responsible for the deployment of a PostgreSQL instance.
+# The deployment is split into a service of type LoadBalancer to enable
+# external database access, a persistent volume chain to persist the data
+# and a Statefulset that defines the container and volume mounts.
+#
+# Important: The login credentials defined for the db have to be the same as
+# defined in ./rm-api.yaml. Else the credentials for the backend have to be
+# created separately by connecting to the database.
+apiVersion: v1
+kind: Service
+metadata:
+  name: rm-db-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: rm-db
+  ports:
+    # The external port of the service
+    - name: rm-db
+      port: 5433
+      targetPort: 5432
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rm-db-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # Change size to your needs
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rm-db-statefulset
+spec:
+  selector:
+    matchLabels:
+      app: rm-db
+  serviceName: rm-db-service
+  # Keep this at 1
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: rm-db
+    spec:
+      containers:
+        - name: rm-db
+          image: postgres:latest
+          env:
+            # Modify user credentials to your needs
+            - name: POSTGRES_USER
+              value: root
+            - name: POSTGRES_PASSWORD
+              value: root
+            # The name of the database
+            - name: POSTGRES_DB
+              value: resource-manager
+          ports:
+            # The internal port of the database
+            - containerPort: 5432
+              name: rm-db
+          resources:
+            # The resource limits
+            limits:
+              memory: "200Mi"
+              cpu: "200m"
+          volumeMounts:
+            # The mount ov the volume
+            - name: rm-db-persistent-storage
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: rm-db-persistent-storage
+          persistentVolumeClaim:
+            claimName: rm-db-pvc
+  volumeClaimTemplates:
+    - metadata:
+        name: rm-db-pvc
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            # Change size to your needs
+            storage: 1Gi
