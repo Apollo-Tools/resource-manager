@@ -50,6 +50,7 @@ public class DeploymentServiceImplTest {
     @BeforeEach
     void initTest() {
         rtoc.vertx();
+        System.setProperty("os.name", "Linux");
         JsonMapperConfig.configJsonMapper();
         deploymentService = new DeploymentServiceImpl();
     }
@@ -156,7 +157,7 @@ public class DeploymentServiceImplTest {
                 deploymentService.getNecessaryCredentials(terminateRequest)
                     .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                         assertThat(result.getEdgeLoginCredentials().toString())
-                            .isEqualTo("edge_login_data=[{auth_user=\\\"user\\\",auth_pw=\\\"pw\\\"},]");
+                            .isEqualTo("edge_login_data=[{auth_user=\"user\",auth_pw=\"pw\"},]");
                         assertThat(result.getCloudCredentials().size()).isEqualTo(1);
                         assertThat(result.getCloudCredentials().get(0).getCredentialsId()).isEqualTo(1L);
                         testContext.completeNow();

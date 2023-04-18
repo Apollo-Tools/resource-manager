@@ -184,7 +184,7 @@ public class TestFileServiceProvider {
     }
 
     public static MainFileService createMainFileService(FileSystem fileSystem, List<TerraformModule> terraformModules) {
-        Path rootFolder = Paths.get("temp\\test");
+        Path rootFolder = Path.of("temp","test");
         return new MainFileService(fileSystem, rootFolder, terraformModules);
     }
 }

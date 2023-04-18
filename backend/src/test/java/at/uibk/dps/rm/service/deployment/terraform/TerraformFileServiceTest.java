@@ -13,7 +13,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.fail;
@@ -32,11 +31,14 @@ public class TerraformFileServiceTest {
     void setupDirectory(VertxTestContext testContext) {
         TerraformModule m1 = new TerraformModule(CloudProvider.AWS, "m1");
         MainFileService service = TestFileServiceProvider.createMainFileService(fileSystem, List.of(m1));
-        String rootFolder = "temp\\test";
-        when(fileSystem.mkdirs(rootFolder)).thenReturn(Completable.complete());
-        when(fileSystem.writeFile(eq(rootFolder + "\\main.tf"), any())).thenReturn(Completable.complete());
-        when(fileSystem.writeFile(eq(rootFolder + "\\variables.tf"), any())).thenReturn(Completable.complete());
-        when(fileSystem.writeFile(eq(rootFolder + "\\outputs.tf"), any())).thenReturn(Completable.complete());
+        Path rootFolder = Path.of("temp", "test");
+        when(fileSystem.mkdirs(rootFolder.toString())).thenReturn(Completable.complete());
+        when(fileSystem.writeFile(eq(Path.of(rootFolder.toString(), "main.tf").toString()), any()))
+            .thenReturn(Completable.complete());
+        when(fileSystem.writeFile(eq(Path.of(rootFolder.toString(), "variables.tf").toString()), any()))
+            .thenReturn(Completable.complete());
+        when(fileSystem.writeFile(eq(Path.of(rootFolder.toString(), "outputs.tf").toString()), any()))
+            .thenReturn(Completable.complete());
 
         service.setUpDirectory()
             .blockingSubscribe(() -> {},
@@ -47,7 +49,7 @@ public class TerraformFileServiceTest {
 
     @Test
     void deleteAllDirs(VertxTestContext testContext) {
-        Path rootFolder = Paths.get("temp\\test");
+        Path rootFolder = Path.of("temp", "test");
         when(fileSystem.deleteRecursive(rootFolder.toString(), true)).thenReturn(Completable.complete());
 
         TerraformFileService.deleteAllDirs(fileSystem, rootFolder)
