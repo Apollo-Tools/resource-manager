@@ -28,16 +28,18 @@ public class ResourceTypeMetric {
     private Boolean required;
 
     @Column(insertable = false, updatable = false)
-    private @Setter(value = AccessLevel.NONE) Timestamp createdAt;
+    private @Setter(AccessLevel.NONE) Timestamp createdAt;
 
     @Override
     @Generated
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        ResourceTypeMetric rtm = (ResourceTypeMetric) o;
-
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final ResourceTypeMetric rtm = (ResourceTypeMetric) obj;
         return resourceTypeMetricId.equals(rtm.resourceTypeMetricId);
     }
 

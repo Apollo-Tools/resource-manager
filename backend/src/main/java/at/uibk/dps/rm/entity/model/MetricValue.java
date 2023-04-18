@@ -41,29 +41,29 @@ public class MetricValue {
     private Metric metric;
 
     @Column(insertable = false, updatable = false)
-    private @Setter(value = AccessLevel.NONE) Timestamp createdAt;
+    private @Setter(AccessLevel.NONE) Timestamp createdAt;
 
     @Column(insertable = false, updatable = false)
-    private @Setter(value = AccessLevel.NONE) Timestamp updatedAt;
+    private @Setter(AccessLevel.NONE) Timestamp updatedAt;
 
-    public void setValueNumber(Double value) {
-        if (value != null) {
-            this.valueNumber = BigDecimal.valueOf(value);
-        } else {
+    public void setValueNumber(final Double value) {
+        if (value == null) {
             this.valueNumber = null;
+        } else {
+            this.valueNumber = BigDecimal.valueOf(value);
         }
     }
 
     @Override
     @Generated
-    public boolean equals(Object o) {
-        if (this == o)
+    public boolean equals(final Object obj) {
+        if (this == obj) {
             return true;
-        if (o == null || getClass() != o.getClass())
+        }
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
-
-        MetricValue that = (MetricValue) o;
-
+        }
+        final MetricValue that = (MetricValue) obj;
         return metricValueId.equals(that.metricValueId);
     }
 

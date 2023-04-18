@@ -25,17 +25,19 @@ public class ReservationLog {
     private Reservation reservation;
 
     @Column(insertable = false, updatable = false)
-    private @Setter(value = AccessLevel.NONE)
+    private @Setter(AccessLevel.NONE)
     Timestamp createdAt;
 
     @Override
     @Generated
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        ReservationLog reservationLog = (ReservationLog) o;
-
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final ReservationLog reservationLog = (ReservationLog) obj;
         return reservationLogId.equals(reservationLog.reservationLogId);
     }
 

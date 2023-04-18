@@ -17,21 +17,22 @@ public class ResourceType {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long typeId;
 
+    @SuppressWarnings("PMD")
     private String resourceType;
 
     @Column(insertable = false, updatable = false)
-    private @Setter(value = AccessLevel.NONE) Timestamp createdAt;
+    private @Setter(AccessLevel.NONE) Timestamp createdAt;
 
     @Override
     @Generated
-    public boolean equals(Object o) {
-        if (this == o)
+    public boolean equals(final Object obj) {
+        if (this == obj) {
             return true;
-        if (o == null || getClass() != o.getClass())
+        }
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
-
-        ResourceType that = (ResourceType) o;
-
+        }
+        final ResourceType that = (ResourceType) obj;
         return typeId.equals(that.typeId);
     }
 

@@ -22,12 +22,14 @@ public class MetricType {
 
     @Override
     @Generated
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        MetricType that = (MetricType) o;
-
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final MetricType that = (MetricType) obj;
         return metricTypeId.equals(that.metricTypeId);
     }
 

@@ -19,17 +19,19 @@ public class ResourceProvider {
     private String provider;
 
     @Column(insertable = false, updatable = false)
-    private @Setter(value = AccessLevel.NONE)
+    private @Setter(AccessLevel.NONE)
     Timestamp createdAt;
 
     @Override
     @Generated
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        ResourceProvider resourceProvider = (ResourceProvider) o;
-
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final ResourceProvider resourceProvider = (ResourceProvider) obj;
         return providerId.equals(resourceProvider.providerId);
     }
 

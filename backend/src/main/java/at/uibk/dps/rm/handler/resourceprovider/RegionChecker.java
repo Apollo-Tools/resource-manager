@@ -24,9 +24,9 @@ public class RegionChecker extends EntityChecker {
 
     @Override
     public Completable checkForDuplicateEntity(JsonObject entity) {
-        Single<Boolean> existsOneByNameAndResourceProviderId = regionService
+        Single<Boolean> existsOneByNameAndProviderId = regionService
             .existsOneByNameAndProviderId(entity.getString("name"),
                 entity.getJsonObject("resource_provider").getLong("provider_id"));
-        return ErrorHandler.handleDuplicates(existsOneByNameAndResourceProviderId).ignoreElement();
+        return ErrorHandler.handleDuplicates(existsOneByNameAndProviderId).ignoreElement();
     }
 }

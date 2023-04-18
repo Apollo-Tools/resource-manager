@@ -21,17 +21,19 @@ public class Runtime {
     private String templatePath = "";
 
     @Column(insertable = false, updatable = false)
-    private @Setter(value = AccessLevel.NONE)
+    private @Setter(AccessLevel.NONE)
     Timestamp createdAt;
 
     @Override
     @Generated
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Runtime runtime = (Runtime) o;
-
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final Runtime runtime = (Runtime) obj;
         return runtimeId.equals(runtime.runtimeId);
     }
 

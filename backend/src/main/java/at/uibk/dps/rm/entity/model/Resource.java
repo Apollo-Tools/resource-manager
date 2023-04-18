@@ -22,10 +22,10 @@ public class Resource {
     private Boolean isSelfManaged = false;
 
     @Column(insertable = false, updatable = false)
-    private @Setter(value = AccessLevel.NONE) Timestamp createdAt;
+    private @Setter(AccessLevel.NONE) Timestamp createdAt;
 
     @Column(insertable = false, updatable = false)
-    private @Setter(value = AccessLevel.NONE) Timestamp updatedAt;
+    private @Setter(AccessLevel.NONE) Timestamp updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resource_type")
@@ -41,14 +41,14 @@ public class Resource {
 
     @Override
     @Generated
-    public boolean equals(Object o) {
-        if (this == o)
+    public boolean equals(final Object obj) {
+        if (this == obj) {
             return true;
-        if (o == null || getClass() != o.getClass())
+        }
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
-
-        Resource resource = (Resource) o;
-
+        }
+        final Resource resource = (Resource) obj;
         return resourceId.equals(resource.resourceId);
     }
 

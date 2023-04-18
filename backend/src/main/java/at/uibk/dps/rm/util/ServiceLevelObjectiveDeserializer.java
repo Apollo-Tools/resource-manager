@@ -14,7 +14,7 @@ import java.util.stream.StreamSupport;
 
 public class ServiceLevelObjectiveDeserializer extends StdDeserializer<ServiceLevelObjective> {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 4863372290944518864L;
 
     // Throws an error if this constructor is not present
     public ServiceLevelObjectiveDeserializer() {

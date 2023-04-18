@@ -17,6 +17,7 @@ public class Metric {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long metricId;
 
+    @SuppressWarnings("PMD")
     private String metric;
 
     @JsonProperty("is_monitored")
@@ -29,18 +30,18 @@ public class Metric {
     private MetricType metricType;
 
     @Column(insertable = false, updatable = false)
-    private  @Setter(value = AccessLevel.NONE) Timestamp createdAt;
+    private  @Setter(AccessLevel.NONE) Timestamp createdAt;
 
     @Override
     @Generated
-    public boolean equals(Object o) {
-        if (this == o)
+    public boolean equals(final Object obj) {
+        if (this == obj) {
             return true;
-        if (o == null || getClass() != o.getClass())
+        }
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
-
-        Metric metric = (Metric) o;
-
+        }
+        final Metric metric = (Metric) obj;
         return metricId.equals(metric.metricId);
     }
 

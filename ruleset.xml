@@ -23,31 +23,7 @@
   <exclude-pattern>.*/net/sourceforge/pmd/lang/java/ast/jdkversiontests/java10/LocalVariableTypeInference_varAsEnumName.java</exclude-pattern>
   <exclude-pattern>.*/net/sourceforge/pmd/lang/java/ast/jdkversiontests/java10/LocalVariableTypeInference_varAsTypeIdentifier.java</exclude-pattern>
 
-  <rule ref="category/java/errorprone.xml" >
-    <exclude name="UseLocaleWithCaseConversions" />
-  </rule>
 
-  <rule ref="category/java/bestpractices.xml">
-    <exclude name="AbstractClassWithoutAbstractMethod"/>
-    <exclude name="GuardLogStatement"/>
-  </rule>
-  <rule ref="category/java/codestyle.xml">
-    <exclude name="OnlyOneReturn"/>
-    <exclude name="ClassNamingConventions"/>
-    <exclude name="FieldNamingConventions"/>
-    <exclude name="AvoidProtectedMethodInFinalClassNotExtending"/>
-    <exclude name="AtLeastOneConstructor"/>
-  </rule>
-  <rule ref="category/java/design.xml">
-    <exclude name="LawOfDemeter"/>
-    <exclude name="DataClass"/>
-    <exclude name="AbstractClassWithoutAnyMethod"/>
-  </rule>
-
-  <rule ref="category/java/documentation.xml" />
-  <rule ref="category/java/multithreading.xml" />
-  <rule ref="category/java/performance.xml" />
-  <rule ref="category/java/security.xml" />
 
   <!--  Things I have to add to the master rule set -->
 
@@ -93,6 +69,13 @@
   <rule ref="category/java/codestyle.xml/ShortClassName">
     <properties>
       <property name="minimum" value="4" />
+    </properties>
+  </rule>
+
+  <!-- Minimum length of variable names to not mark id as error -->
+  <rule ref="category/java/codestyle.xml/ShortVariable">
+    <properties>
+      <property name="minimum" value="2" />
     </properties>
   </rule>
 

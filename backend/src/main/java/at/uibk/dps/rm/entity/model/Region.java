@@ -24,19 +24,19 @@ public class Region {
     private ResourceProvider resourceProvider;
 
     @Column(insertable = false, updatable = false)
-    private @Setter(value = AccessLevel.NONE) Timestamp createdAt;
+    private @Setter(AccessLevel.NONE) Timestamp createdAt;
 
 
     @Override
     @Generated
-    public boolean equals(Object o) {
-        if (this == o)
+    public boolean equals(final Object obj) {
+        if (this == obj) {
             return true;
-        if (o == null || getClass() != o.getClass())
+        }
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
-
-        Region region = (Region) o;
-
+        }
+        final Region region = (Region) obj;
         return regionId.equals(region.regionId);
     }
 

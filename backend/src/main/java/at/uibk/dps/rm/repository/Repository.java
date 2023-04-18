@@ -49,7 +49,8 @@ public abstract class Repository<E> {
     }
 
     public CompletionStage<List<E>> findAll() {
-        // `id` is used as reference for the table key, displays error because the table is dynamic
+        // `id` is used as reference for the table key
+        // displays error because the table is dynamic
         //noinspection JpaQlInspection
         return sessionFactory.withSession(session ->
                 session.createQuery("from " + entityClass.getName() + " order by id", entityClass)

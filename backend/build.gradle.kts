@@ -81,6 +81,7 @@ jacoco {
 pmd {
   toolVersion="6.21.0"
   isConsoleOutput=true
+  ruleSets = emptyList()
   ruleSetFiles = files("../ruleset.xml")
 }
 

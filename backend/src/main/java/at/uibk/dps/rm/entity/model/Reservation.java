@@ -31,12 +31,14 @@ public class Reservation {
 
     @Override
     @Generated
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Reservation that = (Reservation) o;
-
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final Reservation that = (Reservation) obj;
         return reservationId.equals(that.reservationId);
     }
 

@@ -26,28 +26,30 @@ public class Function {
     private String code;
 
     @Column(insertable = false, updatable = false)
-    private @Setter(value = AccessLevel.NONE) Timestamp createdAt;
+    private @Setter(AccessLevel.NONE) Timestamp createdAt;
 
     @Column(insertable = false, updatable = false)
-    private @Setter(value = AccessLevel.NONE) Timestamp updatedAt;
+    private @Setter(AccessLevel.NONE) Timestamp updatedAt;
 
     @JsonIgnore
     public String getFunctionDeploymentId() {
         if (runtime == null) {
             return functionId.toString();
         }
-        String runtime = getRuntime().getName();
+        final String runtime = getRuntime().getName();
         return (getName() + "_" + runtime.replace(".", "")).toLowerCase();
     }
 
     @Override
     @Generated
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Function function = (Function) o;
-
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final Function function = (Function) obj;
         return functionId.equals(function.functionId);
     }
 

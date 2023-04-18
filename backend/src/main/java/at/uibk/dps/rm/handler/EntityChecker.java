@@ -10,7 +10,7 @@ public abstract class EntityChecker {
 
     private final ServiceInterface service;
 
-    public EntityChecker(ServiceInterface service) {
+    public EntityChecker(final ServiceInterface service) {
         this.service = service;
     }
 

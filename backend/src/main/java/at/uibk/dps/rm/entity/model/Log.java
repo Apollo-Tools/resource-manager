@@ -19,17 +19,19 @@ public class Log {
     private String logValue;
 
     @Column(insertable = false, updatable = false)
-    private @Setter(value = AccessLevel.NONE)
+    private @Setter(AccessLevel.NONE)
     Timestamp createdAt;
 
     @Override
     @Generated
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Log log = (Log) o;
-
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final Log log = (Log) obj;
         return logId.equals(log.logId);
     }
 

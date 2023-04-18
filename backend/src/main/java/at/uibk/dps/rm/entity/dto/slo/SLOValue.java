@@ -12,6 +12,7 @@ public class SLOValue {
 
     private boolean valueBool;
 
+    @SuppressWarnings("PMD")
     public boolean getValueBool() {
         return valueBool;
     }

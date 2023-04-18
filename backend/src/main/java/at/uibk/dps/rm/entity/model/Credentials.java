@@ -27,16 +27,20 @@ public class Credentials {
     private ResourceProvider resourceProvider;
 
     @Column(insertable = false, updatable = false)
-    private @Setter(value = AccessLevel.NONE)
+    private @Setter(AccessLevel.NONE)
     Timestamp createdAt;
 
     @Override
     @Generated
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
 
-        Credentials that = (Credentials) o;
+        final Credentials that = (Credentials) obj;
 
         return credentialsId.equals(that.credentialsId);
     }

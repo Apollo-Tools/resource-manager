@@ -36,16 +36,18 @@ public class ResourceReservation {
     private ResourceReservationStatus status;
 
     @Column(insertable = false, updatable = false)
-    private  @Setter(value = AccessLevel.NONE) Timestamp createdAt;
+    private  @Setter(AccessLevel.NONE) Timestamp createdAt;
 
     @Override
     @Generated
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        ResourceReservation that = (ResourceReservation) o;
-
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final ResourceReservation that = (ResourceReservation) obj;
         return resourceReservationId.equals(that.resourceReservationId);
     }
 
