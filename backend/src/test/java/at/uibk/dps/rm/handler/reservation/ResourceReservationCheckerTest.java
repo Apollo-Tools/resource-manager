@@ -143,6 +143,20 @@ public class ResourceReservationCheckerTest {
         testContext.completeNow();
     }
 
+    @Test
+    void storeOutputToFunctionResourcesRuntimeNotMatching(VertxTestContext testContext) {
+        DeployResourcesRequest request = TestRequestProvider.createDeployRequest();
+        DeploymentOutput deploymentOutput = TestDTOProvider.createDeploymentOutputUnknownFunction();
+
+        when(processOutput.getProcessOutput()).thenReturn(JsonObject.mapFrom(deploymentOutput).encode());
+
+        resourceReservationChecker.storeOutputToFunctionResources(processOutput, request)
+            .blockingSubscribe(() -> {},
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
+            );
+        testContext.completeNow();
+    }
+
     private static Stream<Arguments> provideStatusValue() {
         final ResourceReservationStatus statusNew = TestReservationProvider.createResourceReservationStatusNew();
         final ResourceReservationStatus statusDeployed = TestReservationProvider

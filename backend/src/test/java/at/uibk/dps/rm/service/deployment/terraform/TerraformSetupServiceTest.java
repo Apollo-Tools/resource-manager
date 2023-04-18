@@ -13,6 +13,8 @@ import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -34,6 +36,7 @@ public class TerraformSetupServiceTest {
         DeploymentCredentials deploymentCredentials = new DeploymentCredentials();
         TerraformSetupService service = new TerraformSetupService(vertx, deployRequest, deploymentPath,
             deploymentCredentials);
+        System.setProperty("os.name", "Linux");
         try (MockedConstruction<AWSFileService> ignoredAWS = Mockito.mockConstruction(AWSFileService.class,
             (mock, context) -> given(mock.setUpDirectory())
                 .willReturn(Completable.complete()))) {
@@ -49,7 +52,7 @@ public class TerraformSetupServiceTest {
                             assertThat(deploymentCredentials.getCloudCredentials().get(0).getResourceProvider()
                                 .getProvider()).isEqualTo("aws");
                             assertThat(deploymentCredentials.getEdgeLoginCredentials().toString())
-                                .isEqualTo("edge_login_data=[{auth_user=\\\"user\\\",auth_pw=\\\"pw\\\"},]");
+                                .isEqualTo("edge_login_data=[{auth_user=\"user\",auth_pw=\"pw\"},]");
                             testContext.completeNow();
                         }),
                         throwable -> testContext.verify(() -> fail("method has thrown exception"))
@@ -76,20 +79,24 @@ public class TerraformSetupServiceTest {
             );
     }
 
-    @Test
-    void getDeploymentCredentials(Vertx vertx, VertxTestContext testContext) {
+    @ParameterizedTest
+    @ValueSource(strings = {"Windows", "Linux"})
+    void getDeploymentCredentials(String os, Vertx vertx, VertxTestContext testContext) {
         TerminateResourcesRequest terminateRequest = TestRequestProvider.createTerminateRequest();
         DeploymentPath deploymentPath = new DeploymentPath(1L, config);
         DeploymentCredentials deploymentCredentials = new DeploymentCredentials();
         TerraformSetupService service = new TerraformSetupService(vertx, terminateRequest, deploymentPath,
             deploymentCredentials);
-
+        System.setProperty("os.name", os);
+        String expectedEdgeOutput = os.equals("Windows") ? "edge_login_data=[{auth_user=\\\"user\\\"," +
+            "auth_pw=\\\"pw\\\"}," +
+            "]" : "edge_login_data=[{auth_user=\"user\",auth_pw=\"pw\"},]";
         service.getDeploymentCredentials()
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.getCloudCredentials().size()).isEqualTo(1);
                     assertThat(result.getCloudCredentials().get(0).getResourceProvider().getProvider()).isEqualTo("aws");
                     assertThat(result.getEdgeLoginCredentials().toString())
-                        .isEqualTo("edge_login_data=[{auth_user=\\\"user\\\",auth_pw=\\\"pw\\\"},]");
+                        .isEqualTo(expectedEdgeOutput);
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))

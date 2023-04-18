@@ -89,8 +89,13 @@ public class TestDTOProvider {
     public static DeploymentCredentials createDeploymentCredentialsAWSEdge() {
         ResourceProvider rp = TestResourceProviderProvider.createResourceProvider(1L);
         DeploymentCredentials deploymentCredentials = new DeploymentCredentials();
-        deploymentCredentials.getEdgeLoginCredentials()
-            .append("edge_login_data=[{auth_user=\\\"user\\\",auth_pw=\\\"pw\\\"},]");
+        if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+            deploymentCredentials.getEdgeLoginCredentials()
+                .append("edge_login_data=[{auth_user=\\\"user\\\",auth_pw=\\\"pw\\\"},]");
+        } else {
+            deploymentCredentials.getEdgeLoginCredentials()
+                .append("edge_login_data=[{auth_user=\"user\",auth_pw=\"pw\"},]");
+        }
         deploymentCredentials.getCloudCredentials().add(TestAccountProvider.createCredentials(1L, rp));
         return deploymentCredentials;
     }
@@ -110,10 +115,20 @@ public class TestDTOProvider {
         return processOutput;
     }
 
+    public static TFOutput createEmptyTFOutput() {
+        TFOutput tfOutput = new TFOutput();
+        tfOutput.setValue(new HashMap<>());
+        return  tfOutput;
+    }
+
     public static TFOutput createTFOutputFaas() {
+        return createTFOutputFaas("python39");
+    }
+
+    public static TFOutput createTFOutputFaas(String runtime) {
         TFOutput tfOutput = new TFOutput();
         Map<String, String> valueMap = new HashMap<>();
-        valueMap.put("r1_foo1_python39", "http://localhostfaas1");
+        valueMap.put("r1_foo1_" + runtime, "http://localhostfaas1");
         tfOutput.setValue(valueMap);
         return tfOutput;
     }
@@ -140,6 +155,14 @@ public class TestDTOProvider {
         deploymentOutput.setEdgeUrls(createTFOutputEdge());
         deploymentOutput.setVmUrls(createTFOutputVM());
         deploymentOutput.setFunctionUrls(createTFOutputFaas());
+        return deploymentOutput;
+    }
+
+    public static DeploymentOutput createDeploymentOutputUnknownFunction() {
+        DeploymentOutput deploymentOutput = new DeploymentOutput();
+        deploymentOutput.setFunctionUrls(createTFOutputFaas("python10"));
+        deploymentOutput.setEdgeUrls(createEmptyTFOutput());
+        deploymentOutput.setVmUrls(createEmptyTFOutput());
         return deploymentOutput;
     }
 }

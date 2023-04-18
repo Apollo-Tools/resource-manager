@@ -20,7 +20,13 @@ public class TestExecutorProvider {
 
     public static List<String> tfCommandsWithCredsAWSEdge(String mainCommand) {
         List<String> commands = tfCommandsWithCredsAWS(mainCommand);
-        commands.set(commands.size() - 1, "-var=\"edge_login_data=[{auth_user=\\\"user\\\",auth_pw=\\\"pw\\\"},]\"");
+        String varSeparator = "", stringSperator = "\"";
+        if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+            varSeparator = "\"";
+            stringSperator = "\\\"";
+        }
+        commands.set(commands.size() - 1, "-var="+ varSeparator + "edge_login_data=[{auth_user=" + stringSperator +
+            "user" + stringSperator +",auth_pw=" + stringSperator + "pw" + stringSperator + "}," + "]" + varSeparator);
         return commands;
     }
 
@@ -29,9 +35,13 @@ public class TestExecutorProvider {
         commands.add("terraform");
         commands.add(mainCommand);
         commands.add("-auto-approve");
-        commands.add("-var=\"aws_access_key=accesskey\"");
-        commands.add("-var=\"aws_secret_access_key=secretaccesskey\"");
-        commands.add("-var=\"aws_session_token=sessiontoken\"");
+        String varSeparator = "";
+        if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+            varSeparator = "\"";
+        }
+        commands.add("-var=" + varSeparator + "aws_access_key=accesskey" + varSeparator);
+        commands.add("-var=" + varSeparator + "aws_secret_access_key=secretaccesskey" + varSeparator);
+        commands.add("-var=" + varSeparator + "aws_session_token=sessiontoken" + varSeparator);
         commands.add("");
         return commands;
     }

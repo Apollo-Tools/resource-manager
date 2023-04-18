@@ -13,8 +13,11 @@ import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.file.FileSystem;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
@@ -43,6 +46,11 @@ public class TerraformExecutorTest {
 
     @Mock
     private Process process;
+
+    @BeforeEach
+    void initTest() {
+        System.setProperty("os.name", "Linux");
+    }
 
     @Test
     void setPluginCacheFolder(VertxTestContext testContext) {
@@ -176,5 +184,21 @@ public class TerraformExecutorTest {
                     throwable -> testContext.verify(() -> fail("method has thrown exception"))
                 );
         }
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "Windows, \"\"",
+        "Linux, \"\"",
+    })
+    void getEdgeLoginCommand(String os) {
+        System.setProperty("os.name", os);
+        TerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSEdge(vertx);
+        String expectedOutput = os.equals("Windows") ? "-var=\"edge_login_data=[{auth_user=\\\"user\\\"," +
+            "auth_pw=\\\"pw\\\"},]\"" : "-var=edge_login_data=[{auth_user=\"user\",auth_pw=\"pw\"},]";
+
+        String result = terraformExecutor.getEdgeLoginCommand();
+
+        assertThat(result).isEqualTo(expectedOutput);
     }
 }
