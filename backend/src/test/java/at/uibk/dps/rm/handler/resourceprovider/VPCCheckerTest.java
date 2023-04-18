@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler.resourceprovider;
 
 import at.uibk.dps.rm.entity.model.*;
+import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.VPCService;
 import at.uibk.dps.rm.testutil.SingleHelper;
@@ -38,6 +39,37 @@ public class VPCCheckerTest {
     void initTest() {
         JsonMapperConfig.configJsonMapper();
         vpcChecker = new VPCChecker(vpcService);
+    }
+
+    @Test
+    void checkForDuplicateEntity(VertxTestContext testContext) {
+        long accountId = 1L, regionId = 2L;
+        JsonObject entity = new JsonObject("{\"region\": {\"region_id\": " + regionId + "}}");
+
+        when(vpcService.existsOneByRegionIdAndAccountId(regionId, accountId))
+            .thenReturn(Single.just(false));
+
+        vpcChecker.checkForDuplicateEntity(entity, accountId)
+            .blockingSubscribe(() -> {},
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
+            );
+        testContext.completeNow();
+    }
+
+    @Test
+    void checkForDuplicateEntityExists(VertxTestContext testContext) {
+        long accountId = 1L, regionId = 2L;
+        JsonObject entity = new JsonObject("{\"region\": {\"region_id\": " + regionId + "}}");
+
+        when(vpcService.existsOneByRegionIdAndAccountId(regionId, accountId))
+            .thenReturn(Single.just(true));
+
+        vpcChecker.checkForDuplicateEntity(entity, accountId)
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
+                    testContext.completeNow();
+                }));
     }
 
     @Test
