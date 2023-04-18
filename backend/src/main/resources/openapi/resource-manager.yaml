@@ -2,7 +2,11 @@ openapi: 3.0.0
 info:
   version: "1.0.0"
   title: "Resource Manager"
-  description: "An API that allows users to manage resources"
+  description: |
+    This is the specification of the API for the Apollo Resource Manager. The api provides different routes to signup/login, manage resources and functions, get resources based
+    on Service Level Objectives (SLOs) and automatically deploy and terminate resources. Resource can be of type cloud, serverless and vm. Note: the API is not entirely fixed and may
+    be changed in the future to support additional types of resources.
+    Most routes of the API implement CRUD (Create, Read, Update, Delete) operations.
   license:
     name: TODO
 
@@ -79,11 +83,13 @@ paths:
               additionalProperties: false
               properties:
                 username:
+                  description: Only lower case letters, digits or underscore are allowed characters
                   type: string
-                  example: johndoe
+                  example: user1
                   minLength: 4
                   maxLength: 32
                 password:
+                  description: At least one digit, one lower case letter, one upper case letter, one special character have to be present. No white spaces are allowed.
                   type: string
                   example: password1234!?
                   minLength: 8
@@ -168,7 +174,7 @@ paths:
           $ref: "#/components/responses/500"
 
     patch:
-      description: Updates a resource
+      description: DEPRECATED. Updates a resource
       operationId: updateResource
       security:
         - bearerAuth: []
@@ -307,7 +313,7 @@ paths:
 
   /resources/{id}/metrics:
     get:
-      description: Return all metrics that are linked with an existing resource
+      description: Return all metrics that are linked to an existing resource identified by id
       operationId: listResourceMetrics
       security:
         - bearerAuth: []
@@ -358,6 +364,7 @@ paths:
                     format: int64
                     example: 1
                   value:
+                    description: the value type has to be equal to the type that is set for the metric
                     oneOf:
                       - type: number
                         example: 4
@@ -379,7 +386,7 @@ paths:
 
   /resources/{resourceId}/metrics/{metricId}:
     patch:
-      description: updates the value of a metric
+      description: Updates the value of a resource's metric
       operationId: updateMetricValue
       security:
         - bearerAuth: []
@@ -413,6 +420,7 @@ paths:
               additionalProperties: false
               properties:
                 value:
+                  description: the value type has to be equal to the type that is set for the metric
                   oneOf:
                     - type: number
                       example: 4
@@ -466,7 +474,7 @@ paths:
 
   /functions/{id}/resources/slo:
     post:
-      description: Return all resources that conform to the given service level objectives and are linked to the function
+      description: Return all resources that conform to the given service level objectives and are linked to the function identified by id
       operationId: listFunctionResourcesBySLOs
       security:
         - bearerAuth: []
@@ -620,7 +628,7 @@ paths:
       security:
         - bearerAuth: []
       tags:
-        - runtime
+        - runtimes
       parameters:
         - $ref: "#/components/parameters/idParam"
       responses:
@@ -695,7 +703,7 @@ paths:
       security:
         - bearerAuth: []
       tags:
-        - runtime
+        - runtimes
       requestBody:
         required: true
         content:
@@ -813,7 +821,7 @@ paths:
       security:
         - bearerAuth: []
       tags:
-        - function
+        - functions
       parameters:
         - $ref: "#/components/parameters/idParam"
       responses:
@@ -852,7 +860,7 @@ paths:
       security:
         - bearerAuth: []
       tags:
-        - function
+        - functions
       requestBody:
         required: true
         content:
@@ -906,7 +914,7 @@ paths:
 
   /functions/{id}/resources:
     get:
-      description: Return all resource that are linked with an existing function
+      description: Return all resources that are linked to an existing function
       operationId: listFunctionResources
       security:
         - bearerAuth: []
@@ -1030,7 +1038,7 @@ paths:
       security:
         - bearerAuth: []
       tags:
-        - reserveResources
+        - reservations
       requestBody:
         required: true
         content:
@@ -1068,9 +1076,11 @@ paths:
                   additionalProperties: false
                   properties:
                     username:
+                      description: the username of the docker registry
                       type: string
                       example: user1
                     access_token:
+                      description: preferrably an access token or if not available the password for the docker registry
                       type: string
                       example: abcdef1234
       responses:
@@ -1141,7 +1151,7 @@ paths:
 
   /reservations/{id}/cancel:
     patch:
-      description: Free the reserved resources
+      description: Terminates reserved resources.
       operationId: cancelReservation
       security:
         - bearerAuth: []
@@ -1186,6 +1196,7 @@ paths:
           $ref: "#/components/responses/404"
         500:
           $ref: "#/components/responses/500"
+
     delete:
       description: Deletes a resource provider
       operationId: deleteResourceProvider
@@ -1421,7 +1432,7 @@ paths:
       security:
         - bearerAuth: []
       tags:
-        - vpc
+        - vpcs
       responses:
         200:
           description: Successful pull of the vpcs registered for the current user account
@@ -1451,7 +1462,7 @@ paths:
       security:
         - bearerAuth: []
       tags:
-        - vpc
+        - vpcs
       requestBody:
         required: true
         content:
@@ -1526,7 +1537,7 @@ paths:
       security:
         - bearerAuth: []
       tags:
-        - vpc
+        - vpcs
       parameters:
         - $ref: "#/components/parameters/idParam"
       responses:
@@ -1541,7 +1552,7 @@ paths:
 
   /credentials:
     get:
-      description: Returns all credentials linked to the current user account
+      description: Returns all cloud credentials linked to the current user account
       operationId: listCredentials
       security:
         - bearerAuth: []
@@ -1549,7 +1560,7 @@ paths:
         - credentials
       responses:
         200:
-          description: Successful pull of all credentials linked to the current user account
+          description: Successful pull of all cloud credentials linked to the current user account
           content:
             application/json:
               schema:
@@ -1567,7 +1578,7 @@ paths:
           $ref: "#/components/responses/500"
 
     post:
-      description: Add new credentials the current user account
+      description: Add new cloud credentials the current user account
       operationId: addCredentials
       security:
         - bearerAuth: []
@@ -1605,7 +1616,7 @@ paths:
                       example: 1
       responses:
         201:
-          description: Successful creation of new credentials
+          description: Successful creation of new cloud credentials
           content:
             application/json:
               schema:
@@ -1920,6 +1931,7 @@ paths:
                   maxLength: 256
                   example: availability
                 is_monitored:
+                  description: Whether the values are filled by the RM or by the client
                   type: boolean
                   example: true
                 description:
