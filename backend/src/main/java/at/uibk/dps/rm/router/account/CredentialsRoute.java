@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.router.account;
 
-import at.uibk.dps.rm.handler.RequestHandler;
+import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.handler.account.AccountCredentialsChecker;
 import at.uibk.dps.rm.handler.account.CredentialsChecker;
 import at.uibk.dps.rm.handler.account.CredentialsHandler;
@@ -9,26 +9,27 @@ import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 public class CredentialsRoute {
-    public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
-        CredentialsChecker credentialsChecker = new CredentialsChecker(serviceProxyProvider.getCredentialsService());
-        AccountCredentialsChecker accountCredentialsChecker = new AccountCredentialsChecker(serviceProxyProvider
+    public static void init(final RouterBuilder router, final ServiceProxyProvider serviceProxyProvider) {
+        final CredentialsChecker credentialsChecker = new CredentialsChecker(serviceProxyProvider
+            .getCredentialsService());
+        final AccountCredentialsChecker accountCredentialsChecker = new AccountCredentialsChecker(serviceProxyProvider
             .getAccountCredentialsService());
-        ResourceProviderChecker resourceProviderChecker = new ResourceProviderChecker(serviceProxyProvider
+        final ResourceProviderChecker resourceProviderChecker = new ResourceProviderChecker(serviceProxyProvider
             .getResourceProviderService());
-        CredentialsHandler credentialsHandler = new CredentialsHandler(credentialsChecker, accountCredentialsChecker,
-            resourceProviderChecker);
-        RequestHandler requestHandler = new RequestHandler(credentialsHandler);
+        final CredentialsHandler credentialsHandler = new CredentialsHandler(credentialsChecker,
+            accountCredentialsChecker, resourceProviderChecker);
+        final ResultHandler resultHandler = new ResultHandler(credentialsHandler);
 
         router
             .operation("addCredentials")
-            .handler(requestHandler::postRequest);
+            .handler(resultHandler::handleSaveOneRequest);
 
         router
             .operation("listCredentials")
-            .handler(requestHandler::getAllRequest);
+            .handler(resultHandler::handleFindAllRequest);
 
         router
             .operation("deleteCredentials")
-            .handler(requestHandler::deleteRequest);
+            .handler(resultHandler::handleDeleteRequest);
     }
 }

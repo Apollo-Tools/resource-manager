@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.router.resource;
 
-import at.uibk.dps.rm.handler.RequestHandler;
+import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.handler.resource.ResourceChecker;
 import at.uibk.dps.rm.handler.resource.ResourceHandler;
 import at.uibk.dps.rm.handler.resource.ResourceTypeChecker;
@@ -8,30 +8,31 @@ import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 public class ResourceRoute {
-    public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
-        ResourceChecker resourceChecker = new ResourceChecker(serviceProxyProvider.getResourceService());
-        ResourceTypeChecker resourceTypeChecker = new ResourceTypeChecker(serviceProxyProvider.getResourceTypeService());
-        ResourceHandler resourceHandler = new ResourceHandler(resourceChecker, resourceTypeChecker);
-        RequestHandler resourceRequestHandler = new RequestHandler(resourceHandler);
+    public static void init(final RouterBuilder router, final ServiceProxyProvider serviceProxyProvider) {
+        final ResourceChecker resourceChecker = new ResourceChecker(serviceProxyProvider.getResourceService());
+        final ResourceTypeChecker resourceTypeChecker = new ResourceTypeChecker(serviceProxyProvider
+            .getResourceTypeService());
+        final ResourceHandler resourceHandler = new ResourceHandler(resourceChecker, resourceTypeChecker);
+        final ResultHandler resultHandler = new ResultHandler(resourceHandler);
 
         router
             .operation("createResource")
-            .handler(resourceRequestHandler::postRequest);
+            .handler(resultHandler::handleSaveOneRequest);
 
         router
             .operation("listResources")
-            .handler(resourceRequestHandler::getAllRequest);
+            .handler(resultHandler::handleFindAllRequest);
 
         router
             .operation("getResource")
-            .handler(resourceRequestHandler::getRequest);
+            .handler(resultHandler::handleFindOneRequest);
 
         router
             .operation("updateResource")
-            .handler(resourceRequestHandler::patchRequest);
+            .handler(resultHandler::handleUpdateRequest);
 
         router
             .operation("deleteResource")
-            .handler(resourceRequestHandler::deleteRequest);
+            .handler(resultHandler::handleDeleteRequest);
     }
 }

@@ -1,6 +1,5 @@
 package at.uibk.dps.rm.router.account;
 
-import at.uibk.dps.rm.handler.RequestHandler;
 import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.handler.account.AccountChecker;
 import at.uibk.dps.rm.handler.account.AccountHandler;
@@ -10,28 +9,29 @@ import at.uibk.dps.rm.util.JWTAuthProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 public class AccountRoute {
-    public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider, JWTAuthProvider jwtAuthProvider) {
-        AccountChecker accountChecker = new AccountChecker(serviceProxyProvider.getAccountService());
-        AccountHandler accountHandler = new AccountHandler(accountChecker, jwtAuthProvider.getJwtAuth());
-        RequestHandler requestHandler = new RequestHandler(accountHandler);
+    public static void init(final RouterBuilder router, final ServiceProxyProvider serviceProxyProvider,
+        final JWTAuthProvider jwtAuthProvider) {
+        final AccountChecker accountChecker = new AccountChecker(serviceProxyProvider.getAccountService());
+        final AccountHandler accountHandler = new AccountHandler(accountChecker, jwtAuthProvider.getJwtAuth());
+        final ResultHandler resultHandler = new ResultHandler(accountHandler);
 
 
         router
             .operation("getAccount")
-            .handler(requestHandler::getRequest);
+            .handler(resultHandler::handleFindOneRequest);
 
         router
             .operation("signUp")
             .handler(AccountInputHandler::validateSignupRequest)
-            .handler(requestHandler::postRequest);
+            .handler(resultHandler::handleSaveOneRequest);
 
         router
             .operation("login")
-            .handler(rc -> ResultHandler.handleGetOneRequest(rc, accountHandler.login(rc)));
+            .handler(rc -> resultHandler.handleFindOneRequest(rc, accountHandler.login(rc)));
 
         router
             .operation("changePassword")
             .handler(AccountInputHandler::validateChangePasswordRequest)
-            .handler(requestHandler::patchRequest);
+            .handler(resultHandler::handleUpdateRequest);
     }
 }
