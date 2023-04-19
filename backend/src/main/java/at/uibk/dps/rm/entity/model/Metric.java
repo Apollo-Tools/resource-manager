@@ -39,14 +39,14 @@ public class Metric {
 
     @Override
     @Generated
-    public boolean equals(final Object obj) {
+    public boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final Metric metric = (Metric) obj;
+        Metric metric = (Metric) obj;
         return metricId.equals(metric.metricId);
     }
 

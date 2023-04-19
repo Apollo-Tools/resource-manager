@@ -17,38 +17,38 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 public class ReservationRoute {
 
-    public static void init(final RouterBuilder router, final ServiceProxyProvider serviceProxyProvider) {
+    public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         /* Checker initialization */
-        final DeploymentChecker deploymentChecker = new DeploymentChecker(serviceProxyProvider.getDeploymentService(),
+        DeploymentChecker deploymentChecker = new DeploymentChecker(serviceProxyProvider.getDeploymentService(),
             serviceProxyProvider.getLogService(), serviceProxyProvider.getReservationLogService());
-        final CredentialsChecker credentialsChecker = new CredentialsChecker(serviceProxyProvider
+        CredentialsChecker credentialsChecker = new CredentialsChecker(serviceProxyProvider
             .getCredentialsService());
-        final FunctionResourceChecker functionResourceChecker =
+        FunctionResourceChecker functionResourceChecker =
             new FunctionResourceChecker(serviceProxyProvider.getFunctionResourceService());
-        final ResourceReservationChecker resourceReservationChecker =
+        ResourceReservationChecker resourceReservationChecker =
             new ResourceReservationChecker(serviceProxyProvider.getResourceReservationService());
-        final LogChecker logChecker = new LogChecker(serviceProxyProvider.getLogService());
-        final ReservationLogChecker reservationLogChecker = new ReservationLogChecker(serviceProxyProvider
+        LogChecker logChecker = new LogChecker(serviceProxyProvider.getLogService());
+        ReservationLogChecker reservationLogChecker = new ReservationLogChecker(serviceProxyProvider
             .getReservationLogService());
-        final FileSystemChecker fileSystemChecker = new FileSystemChecker(serviceProxyProvider.getFilePathService());
-        final ReservationChecker reservationChecker = new ReservationChecker(serviceProxyProvider
+        FileSystemChecker fileSystemChecker = new FileSystemChecker(serviceProxyProvider.getFilePathService());
+        ReservationChecker reservationChecker = new ReservationChecker(serviceProxyProvider
             .getReservationService());
-        final ResourceReservationStatusChecker statusChecker = new ResourceReservationStatusChecker(serviceProxyProvider
+        ResourceReservationStatusChecker statusChecker = new ResourceReservationStatusChecker(serviceProxyProvider
             .getResourceReservationStatusService());
-        final ResourceTypeMetricChecker resourceTypeMetricChecker = new ResourceTypeMetricChecker(serviceProxyProvider
+        ResourceTypeMetricChecker resourceTypeMetricChecker = new ResourceTypeMetricChecker(serviceProxyProvider
             .getResourceTypeMetricService());
-        final VPCChecker vpcChecker = new VPCChecker(serviceProxyProvider.getVpcService());
-        final ReservationPreconditionHandler preconditionChecker =
+        VPCChecker vpcChecker = new VPCChecker(serviceProxyProvider.getVpcService());
+        ReservationPreconditionHandler preconditionChecker =
             new ReservationPreconditionHandler(functionResourceChecker, resourceTypeMetricChecker, vpcChecker,
                 credentialsChecker);
         /* Handler initialization */
-        final DeploymentHandler deploymentHandler = new DeploymentHandler(deploymentChecker, credentialsChecker,
+        DeploymentHandler deploymentHandler = new DeploymentHandler(deploymentChecker, credentialsChecker,
             functionResourceChecker, resourceReservationChecker);
-        final ReservationErrorHandler reservationErrorHandler = new ReservationErrorHandler(resourceReservationChecker,
+        ReservationErrorHandler reservationErrorHandler = new ReservationErrorHandler(resourceReservationChecker,
             logChecker, reservationLogChecker, fileSystemChecker, deploymentHandler);
-        final ReservationHandler reservationHandler = new ReservationHandler(reservationChecker,
+        ReservationHandler reservationHandler = new ReservationHandler(reservationChecker,
             resourceReservationChecker, statusChecker, deploymentHandler, reservationErrorHandler, preconditionChecker);
-        final ResultHandler resultHandler = new ResultHandler(reservationHandler);
+        ResultHandler resultHandler = new ResultHandler(reservationHandler);
 
         router
             .operation("getReservation")

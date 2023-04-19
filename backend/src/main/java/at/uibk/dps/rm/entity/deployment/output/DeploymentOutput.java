@@ -25,9 +25,9 @@ public class DeploymentOutput {
      * @param jsonObject the terraform output
      * @return the new object
      */
-    public static DeploymentOutput fromJson(final JsonObject jsonObject) {
-        for (final String type : new String[]{"edge_urls", "function_urls", "vm_urls"}) {
-            final JsonObject typeUrls = jsonObject.getJsonObject(type);
+    public static DeploymentOutput fromJson(JsonObject jsonObject) {
+        for (String type : new String[]{"edge_urls", "function_urls", "vm_urls"}) {
+            JsonObject typeUrls = jsonObject.getJsonObject(type);
             typeUrls.remove("sensitive");
             typeUrls.remove("type");
             if (!typeUrls.containsKey("value") || typeUrls.fieldNames().size() > 1) {

@@ -10,11 +10,11 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 public class FunctionRoute {
 
-    public static void init(final RouterBuilder router, final ServiceProxyProvider serviceProxyProvider) {
-        final FunctionChecker functionChecker = new FunctionChecker(serviceProxyProvider.getFunctionService());
-        final RuntimeChecker runtimeChecker = new RuntimeChecker(serviceProxyProvider.getRuntimeService());
-        final FunctionHandler functionHandler = new FunctionHandler(functionChecker, runtimeChecker);
-        final ResultHandler resultHandler = new ResultHandler(functionHandler);
+    public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
+        FunctionChecker functionChecker = new FunctionChecker(serviceProxyProvider.getFunctionService());
+        RuntimeChecker runtimeChecker = new RuntimeChecker(serviceProxyProvider.getRuntimeService());
+        FunctionHandler functionHandler = new FunctionHandler(functionChecker, runtimeChecker);
+        ResultHandler resultHandler = new ResultHandler(functionHandler);
 
         router
             .operation("createFunction")

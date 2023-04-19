@@ -8,12 +8,12 @@ import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 public class ResourceTypeRoute {
-    public static void init(final RouterBuilder router, final ServiceProxyProvider serviceProxyProvider) {
-        final ResourceTypeChecker resourceTypeChecker = new ResourceTypeChecker(serviceProxyProvider
+    public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
+        ResourceTypeChecker resourceTypeChecker = new ResourceTypeChecker(serviceProxyProvider
             .getResourceTypeService());
-        final ResourceChecker resourceChecker = new ResourceChecker(serviceProxyProvider.getResourceService());
-        final ResourceTypeHandler resourceTypeHandler = new ResourceTypeHandler(resourceTypeChecker, resourceChecker);
-        final ResultHandler resultHandler = new ResultHandler(resourceTypeHandler);
+        ResourceChecker resourceChecker = new ResourceChecker(serviceProxyProvider.getResourceService());
+        ResourceTypeHandler resourceTypeHandler = new ResourceTypeHandler(resourceTypeChecker, resourceChecker);
+        ResultHandler resultHandler = new ResultHandler(resourceTypeHandler);
 
         router
             .operation("createResourceType")

@@ -18,9 +18,9 @@ public class TerminateResourcesRequest extends DeployTerminateRequest {
      *
      * @param jsonObject the JsonObject
      */
-    public TerminateResourcesRequest(final JsonObject jsonObject) {
+    public TerminateResourcesRequest(JsonObject jsonObject) {
         super();
-        final TerminateResourcesRequest request = jsonObject.mapTo(TerminateResourcesRequest.class);
+        TerminateResourcesRequest request = jsonObject.mapTo(TerminateResourcesRequest.class);
         this.setFunctionResources(request.getFunctionResources());
         this.setCredentialsList(request.getCredentialsList());
         this.setReservation(request.getReservation());

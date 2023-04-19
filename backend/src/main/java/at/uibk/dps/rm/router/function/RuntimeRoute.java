@@ -8,11 +8,11 @@ import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 public class RuntimeRoute {
-    public static void init(final RouterBuilder router, final ServiceProxyProvider serviceProxyProvider) {
-        final RuntimeChecker runtimeChecker = new RuntimeChecker(serviceProxyProvider.getRuntimeService());
-        final FileSystemChecker fileSystemChecker = new FileSystemChecker(serviceProxyProvider.getFilePathService());
-        final RuntimeHandler runtimeHandler = new RuntimeHandler(runtimeChecker, fileSystemChecker);
-        final ResultHandler resultHandler = new ResultHandler(runtimeHandler);
+    public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
+        RuntimeChecker runtimeChecker = new RuntimeChecker(serviceProxyProvider.getRuntimeService());
+        FileSystemChecker fileSystemChecker = new FileSystemChecker(serviceProxyProvider.getFilePathService());
+        RuntimeHandler runtimeHandler = new RuntimeHandler(runtimeChecker, fileSystemChecker);
+        ResultHandler resultHandler = new ResultHandler(runtimeHandler);
 
         router
             .operation("createRuntime")

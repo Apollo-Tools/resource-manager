@@ -80,7 +80,7 @@ public class DatabaseVerticle extends AbstractVerticle {
     }
 
     private Completable setupDatabase() {
-        final Maybe<Void> startDB = vertx.rxExecuteBlocking(emitter -> {
+        Maybe<Void> startDB = vertx.rxExecuteBlocking(emitter -> {
             int dbPort = config().getInteger("db_port");
             String dbHost = config().getString("db_host");
             String dbUser = config().getString("db_user");
@@ -99,7 +99,7 @@ public class DatabaseVerticle extends AbstractVerticle {
     }
 
     private Completable initializeRepositories() {
-        final Maybe<Void> setupServices = Maybe.create(emitter -> {
+        Maybe<Void> setupServices = Maybe.create(emitter -> {
             accountRepository = new AccountRepository(sessionFactory);
             accountCredentialsRepository = new AccountCredentialsRepository(sessionFactory);
             credentialsRepository = new CredentialsRepository(sessionFactory);
@@ -126,7 +126,7 @@ public class DatabaseVerticle extends AbstractVerticle {
     }
 
     private Completable setupEventBus() {
-        final Maybe<Void> setupEventBus = Maybe.create(emitter -> {
+        Maybe<Void> setupEventBus = Maybe.create(emitter -> {
             ServiceBinder serviceBinder = new ServiceBinder(vertx.getDelegate());
 
             AccountService accountService = new AccountServiceImpl(accountRepository);

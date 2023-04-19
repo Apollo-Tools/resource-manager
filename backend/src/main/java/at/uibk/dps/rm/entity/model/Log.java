@@ -29,14 +29,14 @@ public class Log {
 
     @Override
     @Generated
-    public boolean equals(final Object obj) {
+    public boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final Log log = (Log) obj;
+        Log log = (Log) obj;
         return logId.equals(log.logId);
     }
 

@@ -18,26 +18,56 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Implements methods to perform CRUD operations on the resource_reservation entity.
+ *
+ * @see EntityChecker
+ *
+ * @author matthi-g
+ */
 public class ResourceReservationChecker extends EntityChecker {
 
     private final ResourceReservationService resourceReservationService;
 
+    /**
+     * Create an instance from a resourceReservationService.
+     *
+     * @param resourceReservationService the resource reservation service
+     */
     public ResourceReservationChecker(ResourceReservationService resourceReservationService) {
         super(resourceReservationService);
         this.resourceReservationService = resourceReservationService;
     }
 
+    //TODO add accountId
+    /**
+     * Find all resource reservations by reservation.
+     *
+     * @return a Single that emits all found resource reservations as JsonArray
+     */
     public Single<JsonArray> checkFindAllByReservationId(long id) {
-        Single<JsonArray> findAllByResourceId = resourceReservationService.findAllByReservationId(id);
+        final Single<JsonArray> findAllByResourceId = resourceReservationService.findAllByReservationId(id);
         return ErrorHandler.handleFindAll(findAllByResourceId);
     }
 
+    /**
+     * Submit the update of the status of a resource reservation.
+     *
+     * @param reservationId the id of the reservation
+     * @param statusValue the new status
+     * @return a Completable
+     */
     public Completable submitUpdateStatus(long reservationId, ReservationStatusValue statusValue) {
         return resourceReservationService.updateSetStatusByReservationId(reservationId, statusValue);
     }
 
-
-
+    /**
+     * Store the trigger urls of a reservation to the resource reservations.
+     *
+     * @param processOutput the output of the terraform process
+     * @param request all data needed for the deployment process
+     * @return a Completable
+     */
     public Completable storeOutputToFunctionResources(ProcessOutput processOutput, DeployResourcesRequest request) {
         DeploymentOutput deploymentOutput = DeploymentOutput.fromJson(new JsonObject(processOutput.getOutput()));
         List<Completable> completables = new ArrayList<>();
@@ -50,6 +80,13 @@ public class ResourceReservationChecker extends EntityChecker {
         return Completable.merge(completables);
     }
 
+    /**
+     * Store all trigger urls of a reservation by resource type.
+     *
+     * @param resourceTypeSet all function resources of a certain resource type
+     * @param request all data needed for the deployment process
+     * @return a list of Completables
+     */
     private List<Completable> setTriggerUrlsByResourceTypeSet(Set<Map.Entry<String, String>> resourceTypeSet,
                                                               DeployResourcesRequest request) {
         List<Completable> completables = new ArrayList<>();
@@ -63,9 +100,18 @@ public class ResourceReservationChecker extends EntityChecker {
         return completables;
     }
 
+    /**
+     * Find the persisted function resource and update its trigger url.
+     *
+     * @param request all data needed for the deployment process
+     * @param resourceId the id of the resource
+     * @param functionName the name of the function
+     * @param runtimeName the name of the runtime
+     * @param triggerUrl the trigger url
+     * @param completables the list where to store the new completables
+     */
     private void findFunctionResourceAndUpdateTriggerUrl(DeployResourcesRequest request, long resourceId,
-                                                         String functionName, String runtimeName, String triggerUrl,
-                                                         List<Completable> completables) {
+        String functionName, String runtimeName, String triggerUrl, List<Completable> completables) {
         request.getFunctionResources().stream()
             .filter(functionResource -> matchesFunctionResource(resourceId, functionName, runtimeName,
                 functionResource))
@@ -76,6 +122,13 @@ public class ResourceReservationChecker extends EntityChecker {
             );
     }
 
+    /**
+     * Get the crucial resource reservation status based on all resource reservations of a single
+     * reservation.
+     *
+     * @param resourceReservations the resource reservations
+     * @return the crucial reservation status
+     */
     public ReservationStatusValue checkCrucialResourceReservationStatus(JsonArray resourceReservations) {
         if (matchAnyResourceReservationsStatus(resourceReservations,
             ReservationStatusValue.ERROR)) {
@@ -97,7 +150,15 @@ public class ResourceReservationChecker extends EntityChecker {
         return ReservationStatusValue.TERMINATED;
     }
 
-    private boolean matchAnyResourceReservationsStatus(JsonArray resourceReservations, ReservationStatusValue statusValue) {
+    /**
+     * Check if at least one status of resource reservation matches the given status value.
+     *
+     * @param resourceReservations the resource reservations
+     * @param statusValue the status value
+     * @return true if at least one match was found, else false
+     */
+    private boolean matchAnyResourceReservationsStatus(JsonArray resourceReservations,
+        ReservationStatusValue statusValue) {
         return resourceReservations.stream()
             .map(rr -> (JsonObject) rr)
             .anyMatch(rr -> rr.getJsonObject("status")
@@ -105,8 +166,17 @@ public class ResourceReservationChecker extends EntityChecker {
             );
     }
 
+    /**
+     * Check if the given parameters match the values of the given function resource
+     *
+     * @param resourceId the id of a reservation
+     * @param functionName the name of the function
+     * @param runtimeName the name of the runtime
+     * @param functionResource the function resource
+     * @return true if they match, else fales
+     */
     private static boolean matchesFunctionResource(long resourceId, String functionName, String runtimeName,
-                                                   FunctionResource functionResource) {
+        FunctionResource functionResource) {
         return functionResource.getResource().getResourceId() == resourceId &&
             functionResource.getFunction().getName().equals(functionName) &&
             functionResource.getFunction().getRuntime().getName().replace(".", "").equals(runtimeName);

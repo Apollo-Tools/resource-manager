@@ -7,9 +7,21 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 
+/**
+ * Implements methods to perform CRUD operations on the runtime entity.
+ *
+ * @see EntityChecker
+ *
+ * @author matthi-g
+ */
 public class RuntimeChecker extends EntityChecker {
     private final RuntimeService runtimeService;
 
+    /**
+     * Create an instance from the RuntimeService.
+     *
+     * @param runtimeService the runtime service
+     */
     public RuntimeChecker(RuntimeService runtimeService) {
         super(runtimeService);
         this.runtimeService = runtimeService;

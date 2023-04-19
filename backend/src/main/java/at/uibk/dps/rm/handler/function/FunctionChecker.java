@@ -7,9 +7,21 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 
+/**
+ * Implements methods to perform CRUD operations on the function entity.
+ *
+ * @see EntityChecker
+ *
+ * @author matthi-g
+ */
 public class FunctionChecker extends EntityChecker {
     private final FunctionService functionService;
 
+    /**
+     * Create an instance from the functionService.
+     *
+     * @param functionService the function service
+     */
     public FunctionChecker(FunctionService functionService) {
         super(functionService);
         this.functionService = functionService;
@@ -17,7 +29,7 @@ public class FunctionChecker extends EntityChecker {
 
     @Override
     public Completable checkForDuplicateEntity(JsonObject entity) {
-        Single<Boolean> existsOneByNameAndRuntimeId = functionService
+        final Single<Boolean> existsOneByNameAndRuntimeId = functionService
             .existsOneByNameAndRuntimeId(entity.getString("name"),
                 entity.getJsonObject("runtime").getLong("runtime_id"));
         return ErrorHandler.handleDuplicates(existsOneByNameAndRuntimeId).ignoreElement();

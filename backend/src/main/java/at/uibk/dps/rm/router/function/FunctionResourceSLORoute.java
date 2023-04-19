@@ -11,15 +11,15 @@ import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 public class FunctionResourceSLORoute {
-    public static void init(final RouterBuilder router, final ServiceProxyProvider serviceProxyProvider) {
-        final FunctionChecker functionChecker = new FunctionChecker(serviceProxyProvider.getFunctionService());
-        final ResourceChecker resourceChecker = new ResourceChecker(serviceProxyProvider.getResourceService());
-        final MetricChecker metricChecker = new MetricChecker(serviceProxyProvider.getMetricService());
-        final MetricValueChecker metricValueChecker = new MetricValueChecker(serviceProxyProvider
+    public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
+        FunctionChecker functionChecker = new FunctionChecker(serviceProxyProvider.getFunctionService());
+        ResourceChecker resourceChecker = new ResourceChecker(serviceProxyProvider.getResourceService());
+        MetricChecker metricChecker = new MetricChecker(serviceProxyProvider.getMetricService());
+        MetricValueChecker metricValueChecker = new MetricValueChecker(serviceProxyProvider
             .getMetricValueService());
-        final FunctionResourceSLOHandler sloHandler = new FunctionResourceSLOHandler(functionChecker, resourceChecker,
+        FunctionResourceSLOHandler sloHandler = new FunctionResourceSLOHandler(functionChecker, resourceChecker,
             metricChecker, metricValueChecker);
-        final ResultHandler resultHandler = new ResultHandler(null);
+        ResultHandler resultHandler = new ResultHandler(null);
 
         router
             .operation("listFunctionResourcesBySLOs")

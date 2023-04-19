@@ -9,17 +9,35 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 
+/**
+ * Implements methods to perform CRUD operations on the account entity.
+ *
+ * @see EntityChecker
+ *
+ * @author matthi-g
+ */
 public class AccountChecker extends EntityChecker {
     private final AccountService accountService;
 
     private final PasswordUtility passwordUtility;
 
+    /**
+     * Create an instance from the accountService.
+     *
+     * @param accountService the account service
+     */
     public AccountChecker(AccountService accountService) {
         super(accountService);
         this.accountService = accountService;
-        passwordUtility = new PasswordUtility();
+        this.passwordUtility = new PasswordUtility();
     }
 
+    /**
+     * Find account by username.
+     *
+     * @param username the username
+     * @return a Single that emits the found account as JsonObject
+     */
     public Single<JsonObject> checkFindLoginAccount(String username) {
         Single<JsonObject> findOneByUsername = accountService.findOneByUsername(username);
         return ErrorHandler.handleLoginCredentials(findOneByUsername);
@@ -31,6 +49,13 @@ public class AccountChecker extends EntityChecker {
         return ErrorHandler.handleDuplicates(existsOneByUsername).ignoreElement();
     }
 
+    /**
+     * Compare the persisted password with a given password
+     *
+     * @param account the persisted account
+     * @param givenPassword the given password
+     * @return the account if the two passwords are equal, else throw new UnauthorizedException
+     */
     public JsonObject checkComparePasswords(JsonObject account, char[] givenPassword) {
         if (passwordUtility.verifyPassword(account.getString("password"), givenPassword)) {
             return account;
@@ -38,6 +63,12 @@ public class AccountChecker extends EntityChecker {
         throw new UnauthorizedException();
     }
 
+    /**
+     * Hash a password.
+     *
+     * @param account account of whom the password has to be hashed
+     * @return the account where the original password was swapped with the hashed password
+     */
     public JsonObject hashAccountPassword(JsonObject account) {
         String hash = passwordUtility.hashPassword(account.getString("password").toCharArray());
         account.put("password", hash);

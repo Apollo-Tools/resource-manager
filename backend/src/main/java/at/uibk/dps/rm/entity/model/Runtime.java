@@ -31,14 +31,14 @@ public class Runtime {
 
     @Override
     @Generated
-    public boolean equals(final Object obj) {
+    public boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final Runtime runtime = (Runtime) obj;
+        Runtime runtime = (Runtime) obj;
         return runtimeId.equals(runtime.runtimeId);
     }
 

@@ -12,12 +12,12 @@ import java.util.stream.Collectors;
 @UtilityClass
 public class RegionMapper {
 
-    public static Map<Region, List<FunctionResource>> mapFunctionResources(final List<FunctionResource> functionResources) {
+    public static Map<Region, List<FunctionResource>> mapFunctionResources(List<FunctionResource> functionResources) {
         return functionResources.stream()
             .collect(Collectors.groupingBy(functionResource -> functionResource.getResource().getRegion()));
     }
 
-    public static Map<Region, VPC> mapVPCs(final List<VPC> vpcList) {
+    public static Map<Region, VPC> mapVPCs( List<VPC> vpcList) {
         return vpcList.stream()
             .collect(Collectors.toMap(VPC::getRegion, vpc -> vpc, (vpc1, vpc2) -> vpc1));
     }

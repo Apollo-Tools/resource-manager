@@ -11,14 +11,14 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 public class FunctionResourceRoute {
 
-    public static void init(final RouterBuilder router, final ServiceProxyProvider serviceProxyProvider) {
-        final FunctionResourceChecker functionResourceChecker = new FunctionResourceChecker(serviceProxyProvider
+    public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
+        FunctionResourceChecker functionResourceChecker = new FunctionResourceChecker(serviceProxyProvider
             .getFunctionResourceService());
-        final FunctionChecker functionChecker = new FunctionChecker(serviceProxyProvider.getFunctionService());
-        final ResourceChecker resourceChecker = new ResourceChecker(serviceProxyProvider.getResourceService());
-        final FunctionResourceHandler functionResourceHandler = new FunctionResourceHandler(functionResourceChecker,
+        FunctionChecker functionChecker = new FunctionChecker(serviceProxyProvider.getFunctionService());
+        ResourceChecker resourceChecker = new ResourceChecker(serviceProxyProvider.getResourceService());
+        FunctionResourceHandler functionResourceHandler = new FunctionResourceHandler(functionResourceChecker,
             functionChecker, resourceChecker);
-        final ResultHandler resultHandler = new ResultHandler(functionResourceHandler);
+        ResultHandler resultHandler = new ResultHandler(functionResourceHandler);
 
         router
             .operation("addFunctionResources")

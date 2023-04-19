@@ -37,16 +37,14 @@ public class Credentials {
 
     @Override
     @Generated
-    public boolean equals(final Object obj) {
+    public boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-
-        final Credentials that = (Credentials) obj;
-
+        Credentials that = (Credentials) obj;
         return credentialsId.equals(that.credentialsId);
     }
 

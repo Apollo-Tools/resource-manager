@@ -7,6 +7,13 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 
+/**
+ * Implements methods to perform CRUD operations on the resource_type entity.
+ *
+ * @see EntityChecker
+ *
+ * @author matthi-g
+ */
 public class ResourceTypeChecker extends EntityChecker {
 
     private final ResourceTypeService resourceTypeService;
@@ -18,7 +25,8 @@ public class ResourceTypeChecker extends EntityChecker {
 
     @Override
     public Completable checkForDuplicateEntity(JsonObject entity) {
-        Single<Boolean> existsOneByResourceType = resourceTypeService.existsOneByResourceType(entity.getString("resource_type"));
+        Single<Boolean> existsOneByResourceType = resourceTypeService.existsOneByResourceType(entity.getString(
+            "resource_type"));
         return ErrorHandler.handleDuplicates(existsOneByResourceType).ignoreElement();
     }
 

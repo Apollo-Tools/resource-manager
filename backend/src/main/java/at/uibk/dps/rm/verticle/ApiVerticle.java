@@ -37,8 +37,7 @@ public class ApiVerticle extends AbstractVerticle {
     public Completable rxStart() {
         return RouterBuilder.rxCreate(vertx, "openapi/resource-manager.yaml")
             .flatMap(routerBuilder -> {
-                final Router router = initRouter(routerBuilder);
-
+                Router router = initRouter(routerBuilder);
                 return vertx.createHttpServer()
                     .requestHandler(router)
                     .rxListen(config().getInteger("api_port"));
@@ -50,12 +49,12 @@ public class ApiVerticle extends AbstractVerticle {
             .ignoreElement();
     }
 
-    private Router initRouter(final RouterBuilder routerBuilder) {
-        final Router globalRouter = Router.router(vertx);
+    private Router initRouter(RouterBuilder routerBuilder) {
+        Router globalRouter = Router.router(vertx);
         setupFailureHandler(globalRouter);
         setupSecurityHandler(routerBuilder);
         setupRoutes(routerBuilder);
-        final Router apiRouter = routerBuilder
+        Router apiRouter = routerBuilder
             .createRouter();
         globalRouter.route(API_PREFIX)
             .handler(cors())
@@ -63,8 +62,8 @@ public class ApiVerticle extends AbstractVerticle {
         return globalRouter;
     }
 
-    private void setupRoutes(final RouterBuilder routerBuilder) {
-        final ServiceProxyProvider serviceProxyProvider = new ServiceProxyProvider(vertx);
+    private void setupRoutes(RouterBuilder routerBuilder) {
+        ServiceProxyProvider serviceProxyProvider = new ServiceProxyProvider(vertx);
         AccountRoute.init(routerBuilder, serviceProxyProvider, jwtAuthProvider);
         ResourceProviderRoute.init(routerBuilder, serviceProxyProvider);
         ResourceProviderRegionRoute.init(routerBuilder, serviceProxyProvider);
@@ -85,7 +84,7 @@ public class ApiVerticle extends AbstractVerticle {
         VPCRoute.init(routerBuilder, serviceProxyProvider);
     }
 
-    private void setupSecurityHandler(final RouterBuilder routerBuilder) {
+    private void setupSecurityHandler(RouterBuilder routerBuilder) {
         jwtAuthProvider = new JWTAuthProvider(vertx,config().getString("jwt_algorithm"),
             config().getString("jwt_secret"), config().getInteger("token_minutes_valid"));
         routerBuilder
@@ -93,7 +92,7 @@ public class ApiVerticle extends AbstractVerticle {
             .bindBlocking(config -> JWTAuthHandler.create(jwtAuthProvider.getJwtAuth()));
     }
 
-    private void setupFailureHandler(final Router router) {
+    private void setupFailureHandler(Router router) {
         router.route().failureHandler(rc -> {
             String message;
             if (rc.statusCode() == 500) {

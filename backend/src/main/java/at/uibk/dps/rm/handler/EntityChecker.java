@@ -7,7 +7,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
- * Classes that extend the EntityChecker implement methods to perform CRUD operations on a
+ * Classes that inherit the EntityChecker implement methods to perform CRUD operations on a
  * specific database entity. The service indirectly determines the entity type.
  *
  * @author matthi-g
@@ -21,7 +21,7 @@ public abstract class EntityChecker {
      *
      * @param service the service to use
      */
-    public EntityChecker(final ServiceInterface service) {
+    public EntityChecker(ServiceInterface service) {
         this.service = service;
     }
 
@@ -32,8 +32,8 @@ public abstract class EntityChecker {
      * @return a Single that emits the entity as JsonObject if found, else a NotFoundException
      * gets thrown
      */
-    public Single<JsonObject> checkFindOne(final long id) {
-        final Single<JsonObject> findOneById = service.findOne(id);
+    public Single<JsonObject> checkFindOne(long id) {
+        Single<JsonObject> findOneById = service.findOne(id);
         return ErrorHandler.handleFindOne(findOneById);
     }
 
@@ -53,8 +53,8 @@ public abstract class EntityChecker {
      * @param id the id of the entity
      * @return a Completable if it exists, else a NotFoundException gets thrown
      */
-    public Completable checkExistsOne(final long id) {
-        final Single<Boolean> existsOneById = service.existsOneById(id);
+    public Completable checkExistsOne(long id) {
+        Single<Boolean> existsOneById = service.existsOneById(id);
         return ErrorHandler.handleExistsOne(existsOneById).ignoreElement();
     }
 
@@ -65,7 +65,7 @@ public abstract class EntityChecker {
      * @return a Completable if does not violate uniqueness, else an AlreadyExistsException
      * gets thrown.
      */
-    public Completable checkForDuplicateEntity(final JsonObject entity) {
+    public Completable checkForDuplicateEntity(JsonObject entity) {
         return Single.just(entity).ignoreElement();
     }
 
@@ -76,7 +76,7 @@ public abstract class EntityChecker {
      * @param entity the most recent state of the entity
      * @return a Single that emits the most recent entity
      */
-    public Single<JsonObject> checkUpdateNoDuplicate(final JsonObject updateEntity, final JsonObject entity) {
+    public Single<JsonObject> checkUpdateNoDuplicate(JsonObject updateEntity, JsonObject entity) {
         return Single.just(entity);
     }
 
@@ -86,7 +86,7 @@ public abstract class EntityChecker {
      * @param entity the new entity
      * @return a Single that emits the persisted entity
      */
-    public Single<JsonObject> submitCreate(final JsonObject entity) {
+    public Single<JsonObject> submitCreate(JsonObject entity) {
         return service.save(entity);
     }
 
@@ -96,7 +96,7 @@ public abstract class EntityChecker {
      * @param entities the new entities
      * @return a Completable
      */
-    public Completable submitCreateAll(final JsonArray entities) {
+    public Completable submitCreateAll(JsonArray entities) {
         return service.saveAll(entities);
     }
 
@@ -107,8 +107,8 @@ public abstract class EntityChecker {
      * @param entity the most recent state of the entity to update
      * @return a Completable
      */
-    public Completable submitUpdate(final JsonObject updateEntity, final JsonObject entity) {
-        for (final String field : updateEntity.fieldNames()) {
+    public Completable submitUpdate(JsonObject updateEntity, final JsonObject entity) {
+        for (String field : updateEntity.fieldNames()) {
             entity.put(field, updateEntity.getValue(field));
         }
         return submitUpdate(entity);
@@ -120,7 +120,7 @@ public abstract class EntityChecker {
      * @param entity the updated entity
      * @return a Completable
      */
-    public Completable submitUpdate(final JsonObject entity) {
+    public Completable submitUpdate(JsonObject entity) {
         return service.update(entity);
     }
 
@@ -130,7 +130,7 @@ public abstract class EntityChecker {
      * @param id the id of the entity
      * @return a Completable
      */
-    public Completable submitDelete(final long id) {
+    public Completable submitDelete(long id) {
         return service.delete(id);
     }
 }

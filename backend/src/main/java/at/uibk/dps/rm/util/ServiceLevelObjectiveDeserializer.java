@@ -21,27 +21,27 @@ public class ServiceLevelObjectiveDeserializer extends StdDeserializer<ServiceLe
         this(null);
     }
 
-    public ServiceLevelObjectiveDeserializer(final Class<?> valueClass) {
+    public ServiceLevelObjectiveDeserializer(Class<?> valueClass) {
         super(valueClass);
     }
 
     @Override
-    public ServiceLevelObjective deserialize(final JsonParser jsonParser, final DeserializationContext ctxt)
+    public ServiceLevelObjective deserialize(JsonParser jsonParser, DeserializationContext ctxt)
         throws IOException {
-        final JsonNode node = jsonParser.getCodec().readTree(jsonParser);
-        final String name =  node.get("name").asText();
-        final ExpressionType expressionType = ExpressionType.fromString(node.get("expression").asText());
-        final List<JsonNode> values = StreamSupport.stream(node.get("value").spliterator(), false)
+        JsonNode node = jsonParser.getCodec().readTree(jsonParser);
+        String name =  node.get("name").asText();
+        ExpressionType expressionType = ExpressionType.fromString(node.get("expression").asText());
+        List<JsonNode> values = StreamSupport.stream(node.get("value").spliterator(), false)
                 .collect(Collectors.toList());
-        final List<SLOValue> sloValues = new ArrayList<>();
-        for (final JsonNode value : values) {
+        List<SLOValue> sloValues = new ArrayList<>();
+        for (JsonNode value : values) {
             sloValues.add(deserializeSLOValue(value));
         }
 
         return new ServiceLevelObjective(name, expressionType, sloValues);
     }
 
-    private SLOValue deserializeSLOValue(final JsonNode value) {
+    private SLOValue deserializeSLOValue(JsonNode value) {
         SLOValue sloValue = new SLOValue();
         if (value.isNumber()) {
             sloValue.setSloValueType(SLOValueType.NUMBER);

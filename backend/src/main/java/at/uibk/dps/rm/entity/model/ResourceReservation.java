@@ -45,14 +45,14 @@ public class ResourceReservation {
 
     @Override
     @Generated
-    public boolean equals(final Object obj) {
+    public boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final ResourceReservation that = (ResourceReservation) obj;
+        ResourceReservation that = (ResourceReservation) obj;
         return resourceReservationId.equals(that.resourceReservationId);
     }
 

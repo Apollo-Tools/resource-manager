@@ -15,6 +15,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Implements methods to perform CRUD operations on the vpc entity.
+ *
+ * @see EntityChecker
+ *
+ * @author matthi-g
+ */
 public class VPCChecker extends EntityChecker {
 
     private final VPCService vpcService;
@@ -31,11 +38,13 @@ public class VPCChecker extends EntityChecker {
     }
 
     public Single<JsonObject> checkFindOneByRegionIdAndAccountId(long regionId, long accountId) {
-        Single<JsonObject> findOneByRegionIdAndAccountId = vpcService.findOneByRegionIdAndAccountId(regionId, accountId);
+        Single<JsonObject> findOneByRegionIdAndAccountId = vpcService.findOneByRegionIdAndAccountId(regionId,
+            accountId);
         return ErrorHandler.handleFindOne(findOneByRegionIdAndAccountId);
     }
 
-    public Single<List<JsonObject>> checkVPCForFunctionResources(long accountId, List<JsonObject> functionResources) {
+    public Single<List<JsonObject>> checkVPCForFunctionResources(long accountId,
+        List<JsonObject> functionResources) {
         List<Single<JsonObject>> singles = new ArrayList<>();
         HashSet<Long> regionIds = new HashSet<>();
         for (JsonObject jsonObject: functionResources) {

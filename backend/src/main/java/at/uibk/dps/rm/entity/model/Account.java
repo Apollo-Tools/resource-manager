@@ -34,14 +34,14 @@ public class Account {
 
     @Override
     @Generated
-    public boolean equals(final Object obj) {
+    public boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final Account account = (Account) obj;
+        Account account = (Account) obj;
         return accountId.equals(account.accountId);
     }
 

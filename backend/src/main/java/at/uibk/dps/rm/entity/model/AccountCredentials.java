@@ -35,16 +35,14 @@ public class AccountCredentials {
 
     @Override
     @Generated
-    public boolean equals(final Object obj) {
+    public boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-
-        final AccountCredentials that = (AccountCredentials) obj;
-
+        AccountCredentials that = (AccountCredentials) obj;
         return accountCredentialsId.equals(that.accountCredentialsId);
     }
 

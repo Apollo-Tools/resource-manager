@@ -53,14 +53,14 @@ public class Function {
 
     @Override
     @Generated
-    public boolean equals(final Object obj) {
+    public boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final Function function = (Function) obj;
+        Function function = (Function) obj;
         return functionId.equals(function.functionId);
     }
 

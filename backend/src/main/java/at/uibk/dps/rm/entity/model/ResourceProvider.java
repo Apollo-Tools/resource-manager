@@ -29,14 +29,14 @@ public class ResourceProvider {
 
     @Override
     @Generated
-    public boolean equals(final Object obj) {
+    public boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final ResourceProvider resourceProvider = (ResourceProvider) obj;
+        ResourceProvider resourceProvider = (ResourceProvider) obj;
         return providerId.equals(resourceProvider.providerId);
     }
 

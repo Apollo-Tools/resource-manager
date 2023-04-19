@@ -39,14 +39,14 @@ public class FunctionResource {
 
     @Override
     @Generated
-    public boolean equals(final Object obj) {
+    public boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final FunctionResource functionResource = (FunctionResource) obj;
+        FunctionResource functionResource = (FunctionResource) obj;
         return functionResourceId.equals(functionResource.functionResourceId);
     }
 

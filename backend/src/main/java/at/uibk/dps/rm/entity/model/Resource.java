@@ -46,14 +46,14 @@ public class Resource {
 
     @Override
     @Generated
-    public boolean equals(final Object obj) {
+    public boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final Resource resource = (Resource) obj;
+        Resource resource = (Resource) obj;
         return resourceId.equals(resource.resourceId);
     }
 

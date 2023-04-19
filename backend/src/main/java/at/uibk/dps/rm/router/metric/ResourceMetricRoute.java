@@ -11,14 +11,14 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 public class ResourceMetricRoute {
 
-    public static void init(final RouterBuilder router, final ServiceProxyProvider serviceProxyProvider) {
-        final MetricValueChecker metricValueChecker = new MetricValueChecker(serviceProxyProvider
+    public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
+        MetricValueChecker metricValueChecker = new MetricValueChecker(serviceProxyProvider
             .getMetricValueService());
-        final MetricChecker metricChecker = new MetricChecker(serviceProxyProvider.getMetricService());
-        final ResourceChecker resourceChecker = new ResourceChecker(serviceProxyProvider.getResourceService());
-        final MetricValueHandler metricValueHandler = new MetricValueHandler(metricValueChecker, metricChecker,
+        MetricChecker metricChecker = new MetricChecker(serviceProxyProvider.getMetricService());
+        ResourceChecker resourceChecker = new ResourceChecker(serviceProxyProvider.getResourceService());
+        MetricValueHandler metricValueHandler = new MetricValueHandler(metricValueChecker, metricChecker,
             resourceChecker);
-        final ResultHandler resultHandler = new ResultHandler(metricValueHandler);
+        ResultHandler resultHandler = new ResultHandler(metricValueHandler);
 
         router
             .operation("addResourceMetrics")

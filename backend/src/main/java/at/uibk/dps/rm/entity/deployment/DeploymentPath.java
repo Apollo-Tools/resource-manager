@@ -26,7 +26,7 @@ public class DeploymentPath {
      * @param reservationId the id of the reservation
      * @param config the vertx config
      */
-    public DeploymentPath(final long reservationId, final JsonObject config) {
+    public DeploymentPath(long reservationId, JsonObject config) {
         this.buildFolder = Path.of(config.getString("build_directory"));
         this.rootFolder = Path.of(buildFolder.toString(), "reservation_" + reservationId);
         this.functionsFolder = Path.of(rootFolder.toString(), "functions");
@@ -38,7 +38,7 @@ public class DeploymentPath {
      * @param module the concerning module
      * @return the path to the module folder
      */
-    public Path getModuleFolder(final TerraformModule module) {
+    public Path getModuleFolder(TerraformModule module) {
         return Path.of(rootFolder.toString(), module.getModuleName());
     }
 

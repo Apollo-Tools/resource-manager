@@ -21,6 +21,11 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
 
+/**
+ * Implements methods to perform deployment and termination of resources.
+ *
+ * @author matthi-g
+ */
 public class DeploymentChecker {
 
     private final DeploymentService deploymentService;
@@ -29,14 +34,27 @@ public class DeploymentChecker {
 
     private final ReservationLogService reservationLogService;
 
-    public DeploymentChecker(DeploymentService deploymentService, LogService logService,
-                             ReservationLogService reservationLogService) {
-        this.deploymentService = deploymentService;
-        this.logService = logService;
-        this.reservationLogService = reservationLogService;
-    }
+  /**
+   * Create an instance from the deploymentService, logService and reservationLogService.
+   *
+   * @param deploymentService the deployment service
+   * @param logService the log service
+   * @param reservationLogService the reservation service
+   */
+  public DeploymentChecker(DeploymentService deploymentService, LogService logService,
+      ReservationLogService reservationLogService) {
+    this.deploymentService = deploymentService;
+    this.logService = logService;
+    this.reservationLogService = reservationLogService;
+  }
 
-    public Single<ProcessOutput> deployResources(DeployResourcesRequest request) {
+  /**
+   * Deploy resources at multiple regions.
+   *
+   * @param request the request containing all data that is necessary for the deployment
+   * @return a Single that emits the process output of the last step.
+   */
+  public Single<ProcessOutput> deployResources(DeployResourcesRequest request) {
         long reservationId = request.getReservation().getReservationId();
         Vertx vertx = Vertx.currentContext().owner();
         return new ConfigUtility(vertx).getConfig()
@@ -64,21 +82,36 @@ public class DeploymentChecker {
             });
     }
 
+  /**
+   * Build docker images and push them to a docker registry.
+   *
+   * @param vertx the vertx instance of current context
+   * @param request the deploy resources request containing all deployment data
+   * @param functionsToDeploy the functions to deploy
+   * @param deploymentPath the path of the current deployment
+   * @return a Single that emits the process output of the docker process
+   */
     private Single<ProcessOutput> buildAndPushDockerImages(Vertx vertx, DeployResourcesRequest request,
-                                                           FunctionsToDeploy functionsToDeploy, DeploymentPath deploymentPath) {
+        FunctionsToDeploy functionsToDeploy, DeploymentPath deploymentPath) {
         DockerImageService dockerImageService = new DockerImageService(vertx, request.getDockerCredentials(),
             functionsToDeploy.getFunctionIdentifiers(), deploymentPath.getFunctionsFolder());
         return dockerImageService.buildAndPushDockerImages(functionsToDeploy.getFunctionsString());
     }
 
+  /**
+   * Persist a process output as a reservation Log.
+   *
+   * @param processOutput the process output
+   * @param reservation the Reservation
+   * @return a Completable
+   */
     private Completable persistLogs(ProcessOutput processOutput, Reservation reservation) {
         if (processOutput.getProcess() == null) {
             return Completable.complete();
         }
 
         Log log = new Log();
-        String output = processOutput.getOutput();
-        output = ConsoleOutputUtility.escapeConsoleOutput(output);
+        String output = ConsoleOutputUtility.escapeConsoleOutput(processOutput.getOutput());
         log.setLogValue(output);
         return logService.save(JsonObject.mapFrom(log))
             .map(logResult -> {
@@ -96,6 +129,12 @@ public class DeploymentChecker {
             });
     }
 
+  /**
+   * Terminate resources of a reservation.
+   *
+   * @param request the request containing all data that is necessary for the termination
+   * @return a Completable
+   */
     public Completable terminateResources(TerminateResourcesRequest request) {
         long reservationId = request.getReservation().getReservationId();
         Vertx vertx = Vertx.currentContext().owner();
@@ -109,7 +148,14 @@ public class DeploymentChecker {
             });
     }
 
-    public Completable deleteTFDirs(long reservationId) {
+  /**
+   * Delete all folders and files that were created for the deployment. Usually this
+   * gets called when the termination of all resources is done.
+   *
+   * @param reservationId the id of the reservation
+   * @return a Completable
+   */
+  public Completable deleteTFDirs(long reservationId) {
         return deploymentService.deleteTFDirs(reservationId);
     }
 }

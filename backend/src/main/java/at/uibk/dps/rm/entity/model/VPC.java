@@ -35,14 +35,14 @@ public class VPC {
 
     @Override
     @Generated
-    public boolean equals(final Object obj) {
+    public boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final VPC vpc = (VPC) obj;
+        VPC vpc = (VPC) obj;
         return vpcId.equals(vpc.vpcId);
     }
 

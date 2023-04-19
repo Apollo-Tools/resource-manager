@@ -32,22 +32,22 @@ public class TerraformModule {
      * @param cloudProvider the cloud provider (AWS, EDGE)
      * @param moduleName the name of the module
      */
-    public TerraformModule(final CloudProvider cloudProvider, final String moduleName) {
+    public TerraformModule(CloudProvider cloudProvider, String moduleName) {
         this.cloudProvider = cloudProvider;
         this.moduleName = moduleName;
-        hasEdge = cloudProvider.equals(CloudProvider.EDGE);
+        this.hasEdge = cloudProvider.equals(CloudProvider.EDGE);
     }
 
     @Override
     @Generated
-    public boolean equals(final Object obj) {
+    public boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final TerraformModule module = (TerraformModule) obj;
+        TerraformModule module = (TerraformModule) obj;
         return moduleName.equals(module.moduleName);
     }
 

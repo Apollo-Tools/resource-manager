@@ -30,8 +30,8 @@ public class FunctionsToDeploy {
      *
      * @param jsonObject the JsonObject to create the instance from
      */
-    public FunctionsToDeploy(final JsonObject jsonObject) {
-        final FunctionsToDeploy functionsToDeploy = jsonObject.mapTo(FunctionsToDeploy.class);
+    public FunctionsToDeploy(JsonObject jsonObject) {
+        FunctionsToDeploy functionsToDeploy = jsonObject.mapTo(FunctionsToDeploy.class);
         this.functionsString = functionsToDeploy.getFunctionsString();
         this.functionIdentifiers.addAll(functionsToDeploy.getFunctionIdentifiers());
     }

@@ -9,16 +9,16 @@ import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 public class CredentialsRoute {
-    public static void init(final RouterBuilder router, final ServiceProxyProvider serviceProxyProvider) {
-        final CredentialsChecker credentialsChecker = new CredentialsChecker(serviceProxyProvider
+    public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
+        CredentialsChecker credentialsChecker = new CredentialsChecker(serviceProxyProvider
             .getCredentialsService());
-        final AccountCredentialsChecker accountCredentialsChecker = new AccountCredentialsChecker(serviceProxyProvider
+        AccountCredentialsChecker accountCredentialsChecker = new AccountCredentialsChecker(serviceProxyProvider
             .getAccountCredentialsService());
-        final ResourceProviderChecker resourceProviderChecker = new ResourceProviderChecker(serviceProxyProvider
+        ResourceProviderChecker resourceProviderChecker = new ResourceProviderChecker(serviceProxyProvider
             .getResourceProviderService());
-        final CredentialsHandler credentialsHandler = new CredentialsHandler(credentialsChecker,
+        CredentialsHandler credentialsHandler = new CredentialsHandler(credentialsChecker,
             accountCredentialsChecker, resourceProviderChecker);
-        final ResultHandler resultHandler = new ResultHandler(credentialsHandler);
+        ResultHandler resultHandler = new ResultHandler(credentialsHandler);
 
         router
             .operation("addCredentials")

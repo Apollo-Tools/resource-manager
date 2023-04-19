@@ -19,7 +19,7 @@ public class DeploymentVerticle extends AbstractVerticle {
     }
 
     private Completable setupEventBus() {
-        final Maybe<Void> setupEventBus = Maybe.create(emitter -> {
+        Maybe<Void> setupEventBus = Maybe.create(emitter -> {
             DeploymentService deploymentService =
                 new DeploymentServiceImpl();
             new ServiceBinder(vertx.getDelegate())

@@ -8,6 +8,13 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
+/**
+ * Implements methods to perform CRUD operations on the region entity.
+ *
+ * @see EntityChecker
+ *
+ * @author matthi-g
+ */
 public class RegionChecker extends EntityChecker {
 
     private final RegionService regionService;

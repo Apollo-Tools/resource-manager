@@ -9,10 +9,10 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class SLOCompareUtility {
 
-    public static Boolean compareMetricValueWithSLO(final MetricValue metricValue, final ServiceLevelObjective slo) {
+    public static Boolean compareMetricValueWithSLO(MetricValue metricValue, ServiceLevelObjective slo) {
         int compareValue = -1;
-        final boolean isEqualityCheck = slo.getExpression().equals(ExpressionType.EQ);
-        for (final SLOValue sloValue : slo.getValue()) {
+        boolean isEqualityCheck = slo.getExpression().equals(ExpressionType.EQ);
+        for (SLOValue sloValue : slo.getValue()) {
             switch (sloValue.getSloValueType()) {
                 case NUMBER:
                     if (metricValue.getValueNumber() == null) {

@@ -9,11 +9,11 @@ import at.uibk.dps.rm.util.JWTAuthProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 public class AccountRoute {
-    public static void init(final RouterBuilder router, final ServiceProxyProvider serviceProxyProvider,
-        final JWTAuthProvider jwtAuthProvider) {
-        final AccountChecker accountChecker = new AccountChecker(serviceProxyProvider.getAccountService());
-        final AccountHandler accountHandler = new AccountHandler(accountChecker, jwtAuthProvider.getJwtAuth());
-        final ResultHandler resultHandler = new ResultHandler(accountHandler);
+    public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider,
+        JWTAuthProvider jwtAuthProvider) {
+        AccountChecker accountChecker = new AccountChecker(serviceProxyProvider.getAccountService());
+        AccountHandler accountHandler = new AccountHandler(accountChecker, jwtAuthProvider.getJwtAuth());
+        ResultHandler resultHandler = new ResultHandler(accountHandler);
 
 
         router

@@ -30,14 +30,14 @@ public class ResourceType {
 
     @Override
     @Generated
-    public boolean equals(final Object obj) {
+    public boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final ResourceType that = (ResourceType) obj;
+        ResourceType that = (ResourceType) obj;
         return typeId.equals(that.typeId);
     }
 

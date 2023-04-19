@@ -27,14 +27,14 @@ public class MetricType {
 
     @Override
     @Generated
-    public boolean equals(final Object obj) {
+    public boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final MetricType that = (MetricType) obj;
+        MetricType that = (MetricType) obj;
         return metricTypeId.equals(that.metricTypeId);
     }
 

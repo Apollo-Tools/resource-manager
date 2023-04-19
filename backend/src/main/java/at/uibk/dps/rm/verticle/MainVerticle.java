@@ -17,14 +17,14 @@ public class MainVerticle extends AbstractVerticle {
         return new ConfigUtility(vertx).getConfig()
             .flatMapCompletable(
                 config -> {
-                    final Single<String> deployMigrationVerticle = vertx.rxDeployVerticle(new MigrationVerticle(),
+                    Single<String> deployMigrationVerticle = vertx.rxDeployVerticle(new MigrationVerticle(),
                             new DeploymentOptions().setConfig(config))
                         .map(verticle -> vertx.rxUndeploy(verticle).toString());
-                    final Single<String> deployDatabaseVerticle =
+                    Single<String> deployDatabaseVerticle =
                         vertx.rxDeployVerticle(new DatabaseVerticle(), new DeploymentOptions().setConfig(config));
-                    final Single<String> deployDeploymentVerticle = vertx.rxDeployVerticle(new DeploymentVerticle(),
+                    Single<String> deployDeploymentVerticle = vertx.rxDeployVerticle(new DeploymentVerticle(),
                         new DeploymentOptions().setConfig(config));
-                    final Single<String> deployApiVerticle = vertx.rxDeployVerticle(new ApiVerticle(),
+                    Single<String> deployApiVerticle = vertx.rxDeployVerticle(new ApiVerticle(),
                         new DeploymentOptions().setConfig(config));
 
                     return Completable

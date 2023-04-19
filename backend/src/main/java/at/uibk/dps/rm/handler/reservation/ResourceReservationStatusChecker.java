@@ -6,6 +6,13 @@ import at.uibk.dps.rm.service.rxjava3.database.reservation.ResourceReservationSt
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 
+/**
+ * Implements methods to perform CRUD operations on the resource_reservation_status entity.
+ *
+ * @see EntityChecker
+ *
+ * @author matthi-g
+ */
 public class ResourceReservationStatusChecker extends EntityChecker {
     private final ResourceReservationStatusService service;
 

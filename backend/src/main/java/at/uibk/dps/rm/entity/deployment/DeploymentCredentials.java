@@ -29,7 +29,7 @@ public class DeploymentCredentials {
      *
      * @param jsonObject the JsonObject to create the instance from
      */
-    public DeploymentCredentials(final JsonObject jsonObject) {
+    public DeploymentCredentials(JsonObject jsonObject) {
         final DeploymentCredentials credentials = jsonObject.mapTo(DeploymentCredentials.class);
         this.edgeLoginCredentials = credentials.getEdgeLoginCredentials();
         this.cloudCredentials.addAll(credentials.getCloudCredentials());

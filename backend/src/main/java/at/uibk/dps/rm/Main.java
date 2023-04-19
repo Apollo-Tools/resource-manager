@@ -17,9 +17,9 @@ public class Main {
      * The main method of the Resource Manager
      * @param args the command line arguments
      */
-    public static void main(final String[] args) {
+    public static void main(String[] args) {
         JsonMapperConfig.configJsonMapper();
-        final Vertx vertx = Vertx.vertx();
+        Vertx vertx = Vertx.vertx();
         vertx.deployVerticle(new MainVerticle()).blockingSubscribe();
     }
 }

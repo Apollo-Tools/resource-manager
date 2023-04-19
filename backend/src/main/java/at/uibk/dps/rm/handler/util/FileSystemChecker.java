@@ -1,10 +1,18 @@
 package at.uibk.dps.rm.handler.util;
 
+import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.util.FilePathService;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 
+/**
+ * Implements utility methods to perform operations on the vertx file_system.
+ *
+ * @see EntityChecker
+ *
+ * @author matthi-g
+ */
 public class FileSystemChecker {
 
     private final FilePathService filePathService;

@@ -7,6 +7,13 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 
+/**
+ * Implements methods to perform CRUD operations on the resource_provider entity.
+ *
+ * @see EntityChecker
+ *
+ * @author matthi-g
+ */
 public class ResourceProviderChecker extends EntityChecker {
 
     private final ResourceProviderService resourceProviderService;

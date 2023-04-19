@@ -7,11 +7,11 @@ import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 public class ResourceProviderRoute {
-    public static void init(final RouterBuilder router, final ServiceProxyProvider serviceProxyProvider) {
-        final ResourceProviderChecker providerChecker =
+    public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
+        ResourceProviderChecker providerChecker =
             new ResourceProviderChecker(serviceProxyProvider.getResourceProviderService());
-        final ResourceProviderHandler resourceProviderHandler = new ResourceProviderHandler(providerChecker);
-        final ResultHandler resultHandler = new ResultHandler(resourceProviderHandler);
+        ResourceProviderHandler resourceProviderHandler = new ResourceProviderHandler(providerChecker);
+        ResultHandler resultHandler = new ResultHandler(resourceProviderHandler);
 
         router
             .operation("createResourceProvider")

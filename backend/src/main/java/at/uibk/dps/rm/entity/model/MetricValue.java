@@ -61,14 +61,14 @@ public class MetricValue {
 
     @Override
     @Generated
-    public boolean equals(final Object obj) {
+    public boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final MetricValue that = (MetricValue) obj;
+        MetricValue that = (MetricValue) obj;
         return metricValueId.equals(that.metricValueId);
     }
 

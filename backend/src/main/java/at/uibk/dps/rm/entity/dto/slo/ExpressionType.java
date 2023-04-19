@@ -31,7 +31,7 @@ public enum ExpressionType {
      *
      * @param symbol the symbol
      */
-    ExpressionType(final String symbol) {
+    ExpressionType(String symbol) {
         this.symbol = symbol;
     }
 
@@ -48,8 +48,8 @@ public enum ExpressionType {
      * @return true if the symbol is a valid ExpressionType, else false
      */
     public static Boolean symbolExists(final String symbol) {
-        final ExpressionType[] expressionTypes = ExpressionType.values();
-        for (final ExpressionType expressionType: expressionTypes) {
+        ExpressionType[] expressionTypes = ExpressionType.values();
+        for (ExpressionType expressionType: expressionTypes) {
             if (expressionType.getSymbol().equals(symbol)) {
                 return true;
             }
@@ -65,7 +65,7 @@ public enum ExpressionType {
      * @param symbol the symbol
      * @return the created object
      */
-    public static ExpressionType fromString(final String symbol) {
+    public static ExpressionType fromString(String symbol) {
         return Arrays.stream(ExpressionType.values())
                 .filter(value -> value.symbol.equals(symbol))
                 .findFirst()
@@ -80,7 +80,7 @@ public enum ExpressionType {
      * @param value2 the second value
      * @return 1, 0 or -1 depending on the expression type and values
      */
-    public static int compareValues(final ExpressionType expressionType, final Double value1, final Double value2) {
+    public static int compareValues(ExpressionType expressionType, Double value1, Double value2) {
         switch (expressionType) {
             case GT:
                 return - value1.compareTo(value2);
@@ -95,7 +95,7 @@ public enum ExpressionType {
     /**
      * @see #compareValues(ExpressionType, Double, Double) 
      */
-    public static int compareValues(final ExpressionType expressionType, final String value1, final String value2) {
+    public static int compareValues(ExpressionType expressionType, String value1, String value2) {
         if (expressionType == ExpressionType.EQ) {
             return value1.compareTo(value2);
         }
@@ -105,7 +105,7 @@ public enum ExpressionType {
     /**
      * @see #compareValues(ExpressionType, Double, Double) 
      */
-    public static int compareValues(final ExpressionType expressionType, final Boolean value1, final Boolean value2) {
+    public static int compareValues(ExpressionType expressionType, Boolean value1, Boolean value2) {
         if (expressionType == ExpressionType.EQ) {
             return value1.compareTo(value2);
         }

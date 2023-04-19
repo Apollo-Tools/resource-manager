@@ -29,14 +29,14 @@ public class ResourceReservationStatus {
 
     @Override
     @Generated
-    public boolean equals(final Object obj) {
+    public boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final ResourceReservationStatus status = (ResourceReservationStatus) obj;
+        ResourceReservationStatus status = (ResourceReservationStatus) obj;
         return statusId.equals(status.statusId);
     }
 

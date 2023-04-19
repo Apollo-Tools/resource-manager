@@ -9,6 +9,13 @@ import io.vertx.core.json.JsonArray;
 
 import java.util.List;
 
+/**
+ * Implements methods to perform CRUD operations on the resource entity.
+ *
+ * @see EntityChecker
+ *
+ * @author matthi-g
+ */
 public class ResourceChecker extends EntityChecker {
 
     private final ResourceService resourceService;
@@ -18,8 +25,8 @@ public class ResourceChecker extends EntityChecker {
         this.resourceService = resourceService;
     }
 
-    public Single<JsonArray> checkFindAllBySLOs(long functionId, List<String> metrics, List<String> regions,
-                                                List<Long> providerIds, List<Long> resourceTypeIds) {
+    public Single<JsonArray> checkFindAllBySLOs(long functionId, List<String> metrics,
+        List<String> regions, List<Long> providerIds, List<Long> resourceTypeIds) {
         Single<JsonArray> findAllByMultipleMetrics = resourceService.findAllBySLOs(functionId,
             metrics, regions, providerIds, resourceTypeIds);
         return ErrorHandler.handleFindAll(findAllByMultipleMetrics);
