@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.handler.function;
 
-import at.uibk.dps.rm.entity.dto.GetResourcesBySLOsRequest;
+import at.uibk.dps.rm.entity.dto.ListFunctionResourcesBySLOsRequest;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.Function;
@@ -85,7 +85,8 @@ public class FunctionResourceSLOHandlerTest {
         resourcesJson.getJsonObject(2).put("metric_values", new JsonArray(List.of(JsonObject.mapFrom(mv4), JsonObject.mapFrom(mv5))));
         ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("availability", ExpressionType.GT, 0.80);
         List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
-        GetResourcesBySLOsRequest request = TestRequestProvider.createResourceBySLOsRequest(serviceLevelObjectives, 2,
+        ListFunctionResourcesBySLOsRequest
+            request = TestRequestProvider.createResourceBySLOsRequest(serviceLevelObjectives, 2,
             List.of(1L, 2L), List.of(2L, 3L), List.of("US", "EU"));
         JsonObject body = JsonObject.mapFrom(request);
 
@@ -125,7 +126,8 @@ public class FunctionResourceSLOHandlerTest {
         resourcesJson.getJsonObject(0).put("metric_values", new JsonArray(List.of(JsonObject.mapFrom(mv1), JsonObject.mapFrom(mv2))));
         ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("availability", ExpressionType.GT, 0.80);
         List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
-        GetResourcesBySLOsRequest request = TestRequestProvider.createResourceBySLOsRequest(serviceLevelObjectives, 2,
+        ListFunctionResourcesBySLOsRequest
+            request = TestRequestProvider.createResourceBySLOsRequest(serviceLevelObjectives, 2,
             List.of(1L, 2L), List.of(2L, 3L), List.of("US", "EU"));
         JsonObject body = JsonObject.mapFrom(request);
 
@@ -154,7 +156,8 @@ public class FunctionResourceSLOHandlerTest {
         Function f1 = TestFunctionProvider.createFunction(1L);
         ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("availability", ExpressionType.GT, 0.80);
         List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
-        GetResourcesBySLOsRequest request = TestRequestProvider.createResourceBySLOsRequest(serviceLevelObjectives, 2,
+        ListFunctionResourcesBySLOsRequest
+            request = TestRequestProvider.createResourceBySLOsRequest(serviceLevelObjectives, 2,
             List.of(1L, 2L), List.of(2L, 3L), List.of("US", "EU"));
         JsonObject body = JsonObject.mapFrom(request);
 
@@ -181,7 +184,8 @@ public class FunctionResourceSLOHandlerTest {
         long functionId = 1L;
         ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("availability", ExpressionType.GT, 0.80);
         List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
-        GetResourcesBySLOsRequest request = TestRequestProvider.createResourceBySLOsRequest(serviceLevelObjectives, 2,
+        ListFunctionResourcesBySLOsRequest
+            request = TestRequestProvider.createResourceBySLOsRequest(serviceLevelObjectives, 2,
             List.of(1L, 2L), List.of(2L, 3L), List.of("US", "EU"));
         JsonObject body = JsonObject.mapFrom(request);
 
@@ -205,7 +209,8 @@ public class FunctionResourceSLOHandlerTest {
         long functionId = 1L;
         ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("availability", ExpressionType.GT, 0.80);
         List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
-        GetResourcesBySLOsRequest request = TestRequestProvider.createResourceBySLOsRequest(serviceLevelObjectives, 2,
+        ListFunctionResourcesBySLOsRequest
+            request = TestRequestProvider.createResourceBySLOsRequest(serviceLevelObjectives, 2,
             List.of(1L, 2L), List.of(2L, 3L), List.of("US", "EU"));
         JsonObject body = JsonObject.mapFrom(request);
 

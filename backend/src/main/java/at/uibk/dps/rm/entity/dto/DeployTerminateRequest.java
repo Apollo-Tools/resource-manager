@@ -9,6 +9,11 @@ import lombok.Setter;
 
 import java.util.List;
 
+/**
+ * A DAO to simplify transport of the relevant deployment and termination data on the even bus.
+ *
+ * @author matthi-g
+ */
 @Getter
 @Setter
 public abstract class DeployTerminateRequest {
@@ -19,6 +24,11 @@ public abstract class DeployTerminateRequest {
 
     private List<FunctionResource> functionResources;
 
+    /**
+     * Get the object as a JsonObject.
+     *
+     * @return the object as JsonObject
+     */
     public JsonObject toJson() {
         return JsonObject.mapFrom(this);
     }

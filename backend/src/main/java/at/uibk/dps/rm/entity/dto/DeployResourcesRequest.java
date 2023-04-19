@@ -8,6 +8,11 @@ import lombok.*;
 
 import java.util.List;
 
+/**
+ * A DAO to simplify transport of the relevant deployment data on the even bus.
+ *
+ * @author matthi-g
+ */
 @Getter
 @Setter
 @AllArgsConstructor
@@ -19,6 +24,11 @@ public class DeployResourcesRequest extends DeployTerminateRequest {
 
     private List<VPC> vpcList;
 
+    /**
+     * Create an instance with a JsonObject.
+     *
+     * @param jsonObject the JsonObject
+     */
     public DeployResourcesRequest(final JsonObject jsonObject) {
         super();
         DeployResourcesRequest request = jsonObject.mapTo(DeployResourcesRequest.class);

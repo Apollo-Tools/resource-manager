@@ -4,9 +4,20 @@ import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import lombok.NoArgsConstructor;
 
+/**
+ * A DAO to simplify transport of the relevant termination data on the even bus.
+ *
+ * @author matthi-g
+ */
 @NoArgsConstructor
 @DataObject
 public class TerminateResourcesRequest extends DeployTerminateRequest {
+
+    /**
+     * Create an instance with a JsonObject.
+     *
+     * @param jsonObject the JsonObject
+     */
     public TerminateResourcesRequest(final JsonObject jsonObject) {
         super();
         final TerminateResourcesRequest request = jsonObject.mapTo(TerminateResourcesRequest.class);

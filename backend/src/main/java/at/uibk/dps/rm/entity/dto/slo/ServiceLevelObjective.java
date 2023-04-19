@@ -8,6 +8,11 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * Represents a Service Level Objective of the listFunctionResourcesBySLOs operation.
+ *
+ * @author matthi-g
+ */
 @Data
 @AllArgsConstructor
 @JsonDeserialize(using = ServiceLevelObjectiveDeserializer.class)

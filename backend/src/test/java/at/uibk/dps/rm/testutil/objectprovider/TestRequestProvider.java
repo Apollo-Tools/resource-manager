@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.testutil.objectprovider;
 
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
-import at.uibk.dps.rm.entity.dto.GetResourcesBySLOsRequest;
+import at.uibk.dps.rm.entity.dto.ListFunctionResourcesBySLOsRequest;
 import at.uibk.dps.rm.entity.dto.ReserveResourcesRequest;
 import at.uibk.dps.rm.entity.dto.TerminateResourcesRequest;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
@@ -13,11 +13,11 @@ import at.uibk.dps.rm.entity.model.Runtime;
 import java.util.List;
 
 public class TestRequestProvider {
-    public static GetResourcesBySLOsRequest createResourceBySLOsRequest(List<ServiceLevelObjective> slos, int limit,
+    public static ListFunctionResourcesBySLOsRequest createResourceBySLOsRequest(List<ServiceLevelObjective> slos, int limit,
                                                                         List<Long> providers,
                                                                         List<Long> resourceTypes,
                                                                         List<String> regions) {
-        GetResourcesBySLOsRequest request = new GetResourcesBySLOsRequest();
+        ListFunctionResourcesBySLOsRequest request = new ListFunctionResourcesBySLOsRequest();
         request.setServiceLevelObjectives(slos);
         request.setLimit(limit);
         request.setProviders(providers);

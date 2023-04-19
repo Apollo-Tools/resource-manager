@@ -5,6 +5,11 @@ import lombok.NoArgsConstructor;
 
 import java.util.Map;
 
+/**
+ * Represents a subsection in the terraform output.
+ *
+ * @author matthi-g
+ */
 @Data
 @NoArgsConstructor
 public class TFOutput {

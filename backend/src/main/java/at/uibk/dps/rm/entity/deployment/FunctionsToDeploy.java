@@ -8,6 +8,13 @@ import lombok.NoArgsConstructor;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Class that is used in the deployment process to store the identifiers and names of functions,
+ * that have to be
+ * deployed.
+ *
+ * @author matthi-g
+ */
 @Data
 @NoArgsConstructor
 @DataObject(generateConverter = true, publicConverter = false)
@@ -17,12 +24,23 @@ public class FunctionsToDeploy {
 
     private final List<String> functionIdentifiers = new ArrayList<>();
 
+    /**
+     * Create an instance from a JsonObject. The creation fails, if the schema of the JsonObject
+     * is wrong.
+     *
+     * @param jsonObject the JsonObject to create the instance from
+     */
     public FunctionsToDeploy(final JsonObject jsonObject) {
         final FunctionsToDeploy functionsToDeploy = jsonObject.mapTo(FunctionsToDeploy.class);
         this.functionsString = functionsToDeploy.getFunctionsString();
         this.functionIdentifiers.addAll(functionsToDeploy.getFunctionIdentifiers());
     }
 
+    /**
+     * Get the object as a JsonObject.
+     *
+     * @return the object as JsonObject
+     */
     public JsonObject toJson() {
         return JsonObject.mapFrom(this);
     }

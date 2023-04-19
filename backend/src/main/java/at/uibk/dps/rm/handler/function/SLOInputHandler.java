@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.handler.function;
 
-import at.uibk.dps.rm.entity.dto.GetResourcesBySLOsRequest;
+import at.uibk.dps.rm.entity.dto.ListFunctionResourcesBySLOsRequest;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.util.ArrayValidator;
@@ -39,7 +39,7 @@ public class SLOInputHandler {
     }
 
     private static Completable checkArrayDuplicates(JsonObject body) {
-        GetResourcesBySLOsRequest request = body.mapTo(GetResourcesBySLOsRequest.class);
+        ListFunctionResourcesBySLOsRequest request = body.mapTo(ListFunctionResourcesBySLOsRequest.class);
         ArrayValidator<ServiceLevelObjective> validator = new ArrayValidator<>();
         return validator.hasDuplicates(request.getServiceLevelObjectives());
     }

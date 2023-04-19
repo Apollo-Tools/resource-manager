@@ -2,6 +2,11 @@ package at.uibk.dps.rm.entity.dto.slo;
 
 import lombok.Data;
 
+/**
+ * Represents a Service Level Objective value of the listFunctionResourcesBySLOs operation.
+ *
+ * @author matthi-g
+ */
 @Data
 public class SLOValue {
     private SLOValueType sloValueType;

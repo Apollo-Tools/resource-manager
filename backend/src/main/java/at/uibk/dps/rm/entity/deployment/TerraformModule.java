@@ -6,6 +6,12 @@ import lombok.Setter;
 
 import java.util.Objects;
 
+/**
+ * Represents a module in the terraform deployment. For each region a separate module is
+ * used during deployment.
+ *
+ * @author matthi-g
+ */
 @Getter()
 public class TerraformModule {
     private final CloudProvider cloudProvider;
@@ -20,6 +26,12 @@ public class TerraformModule {
     @Setter
     private boolean hasEdge;
 
+    /**
+     * Create an instance from a cloud provider and module name.
+     *
+     * @param cloudProvider the cloud provider (AWS, EDGE)
+     * @param moduleName the name of the module
+     */
     public TerraformModule(final CloudProvider cloudProvider, final String moduleName) {
         this.cloudProvider = cloudProvider;
         this.moduleName = moduleName;
@@ -45,6 +57,11 @@ public class TerraformModule {
         return Objects.hash(moduleName);
     }
 
+    /**
+     * Get the functions string of the module that is used in the terraform output.
+     *
+     * @return the functions string if present, else a blank string
+     */
     public String getFunctionsString() {
         if (this.hasFaas) {
             return String.format("module.%s.function_urls,", this.moduleName);
@@ -52,6 +69,11 @@ public class TerraformModule {
         return "";
     }
 
+    /**
+     * Get the vm string of the module that is used in the terraform output.
+     *
+     * @return the vm string if present, else a blank string
+     */
     public String getVMString() {
         if (this.hasVM) {
             return String.format("module.%s.vm_urls,", this.moduleName);
@@ -59,6 +81,11 @@ public class TerraformModule {
         return "";
     }
 
+    /**
+     * Get the vm string of the module that is used in the terraform output.
+     *
+     * @return the edge string if present, else a blank string
+     */
     public String getEdgeString() {
         if (this.hasEdge) {
             return "module.edge.edge_urls";

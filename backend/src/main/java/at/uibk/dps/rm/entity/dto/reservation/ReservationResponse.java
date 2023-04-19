@@ -5,6 +5,11 @@ import lombok.Data;
 
 import java.sql.Timestamp;
 
+/**
+ * Represents one entry in the listMyReservations operation.
+ *
+ * @author matthi-g
+ */
 @Data
 public class ReservationResponse {
 

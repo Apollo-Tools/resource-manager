@@ -6,6 +6,11 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * Represents the body of the reserveResources operation.
+ *
+ * @author matthi-g
+ */
 @Data
 public class ReserveResourcesRequest {
     private List<FunctionResourceIds> functionResources;

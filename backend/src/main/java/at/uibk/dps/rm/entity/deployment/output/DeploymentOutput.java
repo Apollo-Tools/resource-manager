@@ -4,6 +4,11 @@ import io.vertx.core.json.JsonObject;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Represents the terraform output of a deployment.
+ *
+ * @author matthi-g
+ */
 @Data
 @NoArgsConstructor
 public class DeploymentOutput {
@@ -14,6 +19,12 @@ public class DeploymentOutput {
 
     private TFOutput vmUrls;
 
+    /**
+     * Create an instance from the terraform output in JSON-format.
+     *
+     * @param jsonObject the terraform output
+     * @return the new object
+     */
     public static DeploymentOutput fromJson(final JsonObject jsonObject) {
         for (final String type : new String[]{"edge_urls", "function_urls", "vm_urls"}) {
             final JsonObject typeUrls = jsonObject.getJsonObject(type);

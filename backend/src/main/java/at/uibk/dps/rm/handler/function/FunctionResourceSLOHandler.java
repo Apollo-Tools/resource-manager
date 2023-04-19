@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.handler.function;
 
-import at.uibk.dps.rm.entity.dto.GetResourcesBySLOsRequest;
+import at.uibk.dps.rm.entity.dto.ListFunctionResourcesBySLOsRequest;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.SLOValueType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
@@ -42,9 +42,9 @@ public class FunctionResourceSLOHandler {
     }
 
     public Single<JsonArray> getFunctionResourceBySLOs(RoutingContext rc) {
-        GetResourcesBySLOsRequest requestDTO = rc.body()
+        ListFunctionResourcesBySLOsRequest requestDTO = rc.body()
             .asJsonObject()
-            .mapTo(GetResourcesBySLOsRequest.class);
+            .mapTo(ListFunctionResourcesBySLOsRequest.class);
         List<ServiceLevelObjective> serviceLevelObjectives = requestDTO.getServiceLevelObjectives();
         List<Completable> completables = new ArrayList<>();
         serviceLevelObjectives.forEach(slo -> completables.add(metricChecker.checkServiceLevelObjectives(slo)));

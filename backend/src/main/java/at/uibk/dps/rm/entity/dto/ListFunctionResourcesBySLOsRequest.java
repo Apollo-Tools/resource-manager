@@ -10,8 +10,13 @@ import lombok.Setter;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents the body of the listFunctionResourcesBySLOs operation.
+ *
+ * @author matthi-g
+ */
 @Data
-public class GetResourcesBySLOsRequest {
+public class ListFunctionResourcesBySLOsRequest {
 
     private final static @Getter(AccessLevel.NONE) @Setter(AccessLevel.NONE) int DEFAULT_LIMIT = 10_000;
 
