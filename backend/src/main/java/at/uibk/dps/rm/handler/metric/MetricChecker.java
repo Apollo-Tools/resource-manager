@@ -27,9 +27,9 @@ public class MetricChecker extends EntityChecker {
     }
 
     @Override
-    public Single<JsonObject> checkUpdateNoDuplicate(JsonObject requestBody, JsonObject entity) {
-        if (requestBody.containsKey("metric")) {
-            return this.checkForDuplicateEntity(requestBody)
+    public Single<JsonObject> checkUpdateNoDuplicate(JsonObject updateEntity, JsonObject entity) {
+        if (updateEntity.containsKey("metric")) {
+            return this.checkForDuplicateEntity(updateEntity)
                 .andThen(Single.just(entity));
         }
         return Single.just(entity);

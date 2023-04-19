@@ -31,7 +31,7 @@ public class DeployResourcesRequest extends DeployTerminateRequest {
      */
     public DeployResourcesRequest(final JsonObject jsonObject) {
         super();
-        DeployResourcesRequest request = jsonObject.mapTo(DeployResourcesRequest.class);
+        final DeployResourcesRequest request = jsonObject.mapTo(DeployResourcesRequest.class);
         this.setFunctionResources(request.getFunctionResources());
         this.setCredentialsList(request.getCredentialsList());
         this.setDockerCredentials(request.getDockerCredentials());

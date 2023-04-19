@@ -79,4 +79,9 @@
     </properties>
   </rule>
 
+  <!-- Force local variables to be final -->
+  <rule ref="category/java/codestyle.xml/LocalVariableCouldBeFinal" />
+
+  <!-- Force method arguments to be final -->
+  <rule ref="category/java/codestyle.xml/MethodArgumentCouldBeFinal" />
 </ruleset>

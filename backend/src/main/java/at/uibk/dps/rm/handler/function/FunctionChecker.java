@@ -24,12 +24,12 @@ public class FunctionChecker extends EntityChecker {
     }
 
     @Override
-    public Single<JsonObject> checkUpdateNoDuplicate(JsonObject requestBody, JsonObject entity) {
-        if (requestBody.containsKey("name") && requestBody.containsKey("runtime")) {
+    public Single<JsonObject> checkUpdateNoDuplicate(JsonObject updateEntity, JsonObject entity) {
+        if (updateEntity.containsKey("name") && updateEntity.containsKey("runtime")) {
             Single<Boolean> existsOneByNameAndRuntimeId = functionService
                 .existsOneByNameAndRuntimeIdExcludeEntity(entity.getLong("function_id"),
-                    requestBody.getString("name"),
-                    requestBody.getJsonObject("runtime").getLong("runtime_id"));
+                    updateEntity.getString("name"),
+                    updateEntity.getJsonObject("runtime").getLong("runtime_id"));
             return ErrorHandler.handleDuplicates(existsOneByNameAndRuntimeId)
                 .flatMap(result -> Single.just(entity));
         }
