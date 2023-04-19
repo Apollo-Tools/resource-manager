@@ -8,6 +8,11 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.sql.Timestamp;
 
+/**
+ * Represents the resource_reservation_status entity.
+ *
+ * @author matthi-g
+ */
 @Entity
 @Getter
 @Setter

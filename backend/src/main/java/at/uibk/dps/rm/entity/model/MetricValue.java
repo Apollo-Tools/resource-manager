@@ -12,6 +12,11 @@ import javax.persistence.*;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 
+/**
+ * Represents the metric_value entity.
+ *
+ * @author matthi-g
+ */
 @Entity
 @Getter
 @Setter

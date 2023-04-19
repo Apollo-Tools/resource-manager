@@ -9,6 +9,11 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+/**
+ * Represents the metric_type entity.
+ *
+ * @author matthi-g
+ */
 @Entity
 @Getter
 @Setter

@@ -9,6 +9,11 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.sql.Timestamp;
 
+/**
+ * Represents the function entity.
+ *
+ * @author matthi-g
+ */
 @Entity
 @Getter
 @Setter
@@ -31,6 +36,12 @@ public class Function {
     @Column(insertable = false, updatable = false)
     private @Setter(AccessLevel.NONE) Timestamp updatedAt;
 
+    /**
+     * Get the function identifier, that is used for the deployment. It consists of
+     * the function name and runtime.
+     *
+     * @return the function identifier
+     */
     @JsonIgnore
     public String getFunctionDeploymentId() {
         if (runtime == null) {
