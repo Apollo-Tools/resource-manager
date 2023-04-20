@@ -18,6 +18,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Processes the http requests that concern the metric_value entity.
+ *
+ * @author matthi-g
+ */
 public class MetricValueHandler extends ValidationHandler {
 
     private final MetricValueChecker metricValueChecker;
@@ -26,6 +31,13 @@ public class MetricValueHandler extends ValidationHandler {
 
     private final ResourceChecker resourceChecker;
 
+    /**
+     * Create an instance from the metricValueChecker, metricChecker and resourceChecker.
+     *
+     * @param metricValueChecker the metric value checker
+     * @param metricChecker the metric checker
+     * @param resourceChecker the resource checker
+     */
     public MetricValueHandler(MetricValueChecker metricValueChecker, MetricChecker metricChecker,
                               ResourceChecker resourceChecker) {
         super(metricValueChecker);
@@ -69,12 +81,12 @@ public class MetricValueHandler extends ValidationHandler {
         return HttpHelper.getLongPathParam(rc, "resourceId")
             .flatMap(resourceId -> HttpHelper.getLongPathParam(rc, "metricId")
             .map(metricId -> Map.of("resourceId", resourceId, "metricId", metricId))
-            .flatMap(ids -> checkUpdateDeleteMetricValueExists(ids.get("resourceId"), ids.get("metricId"))
+            .flatMap(ids -> checkMetricValueExists(ids.get("resourceId"), ids.get("metricId"))
                 .andThen(metricChecker.checkUpdateMetricValueSetCorrectly(requestBody,  ids.get("metricId")))
                 .andThen(Single.just(ids))
             ))
             .map(result -> result)
-            .flatMapCompletable(ids -> submitUpdateByValue(requestBody, ids));
+            .flatMapCompletable(ids -> updateOneByValue(requestBody, ids));
     }
 
     @Override
@@ -82,12 +94,19 @@ public class MetricValueHandler extends ValidationHandler {
         return HttpHelper.getLongPathParam(rc, "resourceId")
             .flatMap(resourceId -> HttpHelper.getLongPathParam(rc, "metricId")
                 .map(metricId -> Map.of("resourceId", resourceId, "metricId", metricId))
-                .flatMap(ids -> checkUpdateDeleteMetricValueExists(ids.get("resourceId"), ids.get("metricId"))
+                .flatMap(ids -> checkMetricValueExists(ids.get("resourceId"), ids.get("metricId"))
                 .andThen(Single.just(ids))
             ))
             .flatMapCompletable(ids -> metricValueChecker.submitDeleteMetricValue(ids.get("resourceId"), ids.get("metricId")));
     }
 
+    /**
+     * Check if the metrics that should be added to the resource are already present and exist.
+     *
+     * @param requestBody the request body that contains the metrics
+     * @param resourceId the id of the resource
+     * @return a Single that emits a list of metric values
+     */
     private Single<List<MetricValue>> checkAddMetricsResourceExists(JsonArray requestBody, long resourceId) {
         List<MetricValue> metricValues = new ArrayList<>();
         List<Completable> completables = checkAddMetricList(requestBody, resourceId, metricValues);
@@ -95,6 +114,14 @@ public class MetricValueHandler extends ValidationHandler {
             .andThen(Single.just(metricValues));
     }
 
+    /**
+     * Check if adding metrics to a resource would cause any violations.
+     *
+     * @param requestBody the request body that contains the metrics to add
+     * @param resourceId the id of the resource
+     * @param metricValues the list where the new metric values are stored.
+     * @return a List of completables
+     */
     private List<Completable> checkAddMetricList(JsonArray requestBody, long resourceId, List<MetricValue> metricValues) {
         Resource resource = new Resource();
         resource.setResourceId(resourceId);
@@ -114,14 +141,28 @@ public class MetricValueHandler extends ValidationHandler {
         return completables;
     }
 
-    private Completable checkUpdateDeleteMetricValueExists(long resourceId, long metricId) {
+    /**
+     * Check if a metric value exists by its resourceId and metricId.
+     *
+     * @param resourceId the id of the resource
+     * @param metricId  the id of the metric
+     * @return a Completable
+     */
+    private Completable checkMetricValueExists(long resourceId, long metricId) {
         return Completable.mergeArray(
             resourceChecker.checkExistsOne(resourceId),
             metricChecker.checkExistsOne(metricId),
             metricValueChecker.checkMetricValueExistsByResourceAndMetric(resourceId, metricId));
     }
 
-    private Completable submitUpdateByValue(JsonObject requestBody, Map<String, Long> ids) {
+    /**
+     * Update a metric value depending on its type.
+     *
+     * @param requestBody the request body
+     * @param ids contains the id of the resource and id of the metric
+     * @return a Completable
+     */
+    private Completable updateOneByValue(JsonObject requestBody, Map<String, Long> ids) {
         Object value = requestBody.getValue("value");
         long resourceId = ids.get("resourceId");
         long metricId = ids.get("metricId");

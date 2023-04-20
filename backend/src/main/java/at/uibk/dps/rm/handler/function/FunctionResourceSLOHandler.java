@@ -23,6 +23,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Processes the http requests that concern Service Level Objectives
+ *
+ * @author matthi-g
+ */
 public class FunctionResourceSLOHandler {
 
     private final FunctionChecker functionChecker;
@@ -33,6 +38,14 @@ public class FunctionResourceSLOHandler {
 
     private final MetricValueChecker metricValueChecker;
 
+    /**
+     * Create an instance from the functionChecker, resourceChecker, metricChecker and metricValueChecker.
+     *
+     * @param functionChecker the function checker
+     * @param resourceChecker the resource checker
+     * @param metricChecker the metric checker
+     * @param metricValueChecker the metric value checker
+     */
     public FunctionResourceSLOHandler(FunctionChecker functionChecker, ResourceChecker resourceChecker,
                                       MetricChecker metricChecker, MetricValueChecker metricValueChecker) {
         this.functionChecker = functionChecker;
@@ -41,6 +54,13 @@ public class FunctionResourceSLOHandler {
         this.metricValueChecker = metricValueChecker;
     }
 
+    /**
+     * Find and return all function resources that conform to the Service Level Objectives defined in the request
+     * body.
+     *
+     * @param rc the routing context
+     * @return a Single that emits the list of found function resources as JsonArray
+     */
     public Single<JsonArray> getFunctionResourceBySLOs(RoutingContext rc) {
         ListFunctionResourcesBySLOsRequest requestDTO = rc.body()
             .asJsonObject()
@@ -61,8 +81,12 @@ public class FunctionResourceSLOHandler {
             .map(resources -> filterAndSortResultList(resources, serviceLevelObjectives, requestDTO.getLimit()));
     }
 
-
-
+    /**
+     * Map metric values all resources.
+     *
+     * @param resources the resources
+     * @return the list of resources including the corresponding metric values
+     */
     protected Single<List<JsonObject>> mapMetricValuesToResources(JsonArray resources) {
         //noinspection unchecked
         return Observable
@@ -71,6 +95,12 @@ public class FunctionResourceSLOHandler {
             .toList();
     }
 
+    /**
+     * Find all metric values for a resource and map them to it.
+     *
+     * @param jsonResource the resource
+     * @return the resource including the corresponding metric values
+     */
     private Single<JsonObject> findMetricValuesForResource(JsonObject jsonResource) {
         //noinspection unchecked
         return Observable
@@ -85,6 +115,12 @@ public class FunctionResourceSLOHandler {
             });
     }
 
+    /**
+     * Map a list of resources in JSON-format to a list of resource objects.
+     *
+     * @param jsonObjectList the list of resources
+     * @return the transformed list of resources
+     */
     private List<Resource> mapJsonListToResourceList(List<JsonObject> jsonObjectList) {
         List<Resource> resourceList = new ArrayList<>();
         for (JsonObject resource : jsonObjectList) {
@@ -93,6 +129,14 @@ public class FunctionResourceSLOHandler {
         return resourceList;
     }
 
+    /**
+     * Filter and sort the resources based on the service Level Objectives.
+     *
+     * @param resources the resources
+     * @param serviceLevelObjectives the service level objectives used for filtering and sorting
+     * @param limit the maximum size of the resulting json array
+     * @return the filtered and sorted resources as JsonArray
+     */
     protected JsonArray filterAndSortResultList(List<Resource> resources,
                                                 List<ServiceLevelObjective> serviceLevelObjectives, int limit) {
         List<JsonObject> filteredAndSorted = resources

@@ -376,7 +376,7 @@ public class FunctionResourceHandlerTest {
         when(functionResourceChecker.checkExistsByFunctionAndResource(functionId, resourceId))
             .thenReturn(Completable.complete());
 
-        functionResourceHandler.checkDeleteFunctionResourceExists(functionId, resourceId)
+        functionResourceHandler.checkFunctionResourceExists(functionId, resourceId)
             .blockingSubscribe(() -> {},
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
@@ -393,7 +393,7 @@ public class FunctionResourceHandlerTest {
         when(functionResourceChecker.checkExistsByFunctionAndResource(functionId, resourceId))
             .thenReturn(Completable.complete());
 
-        functionResourceHandler.checkDeleteFunctionResourceExists(functionId, resourceId)
+        functionResourceHandler.checkFunctionResourceExists(functionId, resourceId)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
@@ -412,7 +412,7 @@ public class FunctionResourceHandlerTest {
         when(functionResourceChecker.checkExistsByFunctionAndResource(functionId, resourceId))
             .thenReturn(Completable.complete());
 
-        functionResourceHandler.checkDeleteFunctionResourceExists(functionId, resourceId)
+        functionResourceHandler.checkFunctionResourceExists(functionId, resourceId)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
@@ -431,7 +431,7 @@ public class FunctionResourceHandlerTest {
         when(functionResourceChecker.checkExistsByFunctionAndResource(functionId, resourceId))
             .thenReturn(Completable.error(NotFoundException::new));
 
-        functionResourceHandler.checkDeleteFunctionResourceExists(functionId, resourceId)
+        functionResourceHandler.checkFunctionResourceExists(functionId, resourceId)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);

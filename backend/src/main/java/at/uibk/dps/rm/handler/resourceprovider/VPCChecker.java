@@ -26,23 +26,46 @@ public class VPCChecker extends EntityChecker {
 
     private final VPCService vpcService;
 
+    /**
+     * Create an instance from the vpcService.
+     *
+     * @param vpcService the vpce service
+     */
     public VPCChecker(VPCService vpcService) {
         super(vpcService);
         this.vpcService = vpcService;
     }
 
+    /**
+     * @see #checkForDuplicateEntity(JsonObject)
+     */
     public Completable checkForDuplicateEntity(JsonObject entity, long accountId) {
         Single<Boolean> existsOneByResourceType = vpcService
             .existsOneByRegionIdAndAccountId(entity.getJsonObject("region").getLong("region_id"), accountId);
         return ErrorHandler.handleDuplicates(existsOneByResourceType).ignoreElement();
     }
 
+    /**
+     * Find one vpc by its region and creator.
+     *
+     * @param regionId the id of the region
+     * @param accountId the id of the creator
+     * @return a Single that emits the vpc as JsonObject
+     */
     public Single<JsonObject> checkFindOneByRegionIdAndAccountId(long regionId, long accountId) {
         Single<JsonObject> findOneByRegionIdAndAccountId = vpcService.findOneByRegionIdAndAccountId(regionId,
             accountId);
         return ErrorHandler.handleFindOne(findOneByRegionIdAndAccountId);
     }
 
+    /**
+     * Find all vpc that were registered by the account and are necessary for the functionResources to be
+     * deployed.
+     *
+     * @param accountId the id of the account
+     * @param functionResources the list of function resources
+     * @return a Single that emits a list of found vpcs
+     */
     public Single<List<JsonObject>> checkVPCForFunctionResources(long accountId,
         List<JsonObject> functionResources) {
         List<Single<JsonObject>> singles = new ArrayList<>();

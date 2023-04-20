@@ -7,12 +7,23 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.auth.jwt.JWTAuth;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
+/**
+ * Processes the http requests that concern the account entity.
+ *
+ * @author matthi-g
+ */
 public class AccountHandler extends ValidationHandler {
 
     private final AccountChecker accountChecker;
 
     private final JWTAuth jwtAuth;
 
+  /**
+   * Create an instance from the accountChecker and jwtAuth.
+   *
+   * @param accountChecker the account checker
+   * @param jwtAuth the jwtAuth instance to create access tokens
+   */
     public AccountHandler(AccountChecker accountChecker, JWTAuth jwtAuth) {
         super(accountChecker);
         this.accountChecker = accountChecker;
@@ -56,7 +67,13 @@ public class AccountHandler extends ValidationHandler {
             .flatMapCompletable(entityChecker::submitUpdate);
     }
 
-    public Single<JsonObject> login(RoutingContext rc) {
+  /**
+   * Process the login request.
+   *
+   * @param rc the routing context
+   * @return the generated access token
+   */
+  public Single<JsonObject> login(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
         return accountChecker.checkFindLoginAccount(requestBody.getString("username"))
             .map(account -> accountChecker

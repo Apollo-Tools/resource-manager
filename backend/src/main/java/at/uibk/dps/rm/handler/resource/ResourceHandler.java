@@ -7,10 +7,21 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
+/**
+ * Processes the http requests that concern the resource entity.
+ *
+ * @author matthi-g
+ */
 public class ResourceHandler extends ValidationHandler {
 
     private final ResourceTypeChecker resourceTypeChecker;
 
+    /**
+     * Create an instance from the resourceChecker and resourceTypeChecker
+     *
+     * @param resourceChecker the resource checker
+     * @param resourceTypeChecker the resource type checker
+     */
     public ResourceHandler(ResourceChecker resourceChecker, ResourceTypeChecker resourceTypeChecker) {
         super(resourceChecker);
         this.resourceTypeChecker = resourceTypeChecker;
@@ -38,6 +49,12 @@ public class ResourceHandler extends ValidationHandler {
             .flatMapCompletable(result -> entityChecker.submitUpdate(requestBody, result));
     }
 
+    /**
+     * If the requestBody defines a resource type, check if it exists.
+     *
+     * @param requestBody the request body
+     * @return a Completable
+     */
     protected Single<JsonObject> checkUpdateResourceTypeExists(JsonObject requestBody, JsonObject entity) {
         if (requestBody.containsKey("resource_type")) {
             return resourceTypeChecker.checkExistsOne(requestBody.getJsonObject("resource_type").getLong("type_id"))

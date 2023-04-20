@@ -19,11 +19,22 @@ public class RegionChecker extends EntityChecker {
 
     private final RegionService regionService;
 
+    /**
+     * Create an instance from the regionService.
+     *
+     * @param regionService the region service
+     */
     public RegionChecker(RegionService regionService) {
         super(regionService);
         this.regionService = regionService;
     }
 
+    /**
+     * Find all regions by resource provider.
+     *
+     * @param providerId the id of the provider
+     * @return a Single that emits all found regions as JsonArray
+     */
     public Single<JsonArray> checkFindAllByProvider(long providerId) {
         Single<JsonArray> checkFindAllByProviderId = regionService.findAllByProviderId(providerId);
         return ErrorHandler.handleFindAll(checkFindAllByProviderId);

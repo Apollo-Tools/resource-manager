@@ -18,6 +18,11 @@ public class ResourceTypeChecker extends EntityChecker {
 
     private final ResourceTypeService resourceTypeService;
 
+    /**
+     * Create an instance from the resourceTypeService.
+     *
+     * @param resourceTypeService the resource type service
+     */
     public ResourceTypeChecker(ResourceTypeService resourceTypeService) {
         super(resourceTypeService);
         this.resourceTypeService = resourceTypeService;

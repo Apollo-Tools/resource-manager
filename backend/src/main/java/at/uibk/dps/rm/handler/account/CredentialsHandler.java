@@ -9,6 +9,11 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
+/**
+ * Processes the http requests that concern the credentials entity.
+ *
+ * @author matthi-g
+ */
 public class CredentialsHandler extends ValidationHandler {
 
     private final CredentialsChecker credentialsChecker;
@@ -17,6 +22,14 @@ public class CredentialsHandler extends ValidationHandler {
 
     private final ResourceProviderChecker resourceProviderChecker;
 
+    /**
+     * Create an instance from the credentialsChecker, accountCredentialsChecker and
+     * resourceProviderChecker
+     *
+     * @param credentialsChecker the credentials checker
+     * @param accountCredentialsChecker the account credentials checker
+     * @param resourceProviderChecker the resource provider checker
+     */
     public CredentialsHandler(CredentialsChecker credentialsChecker, AccountCredentialsChecker accountCredentialsChecker,
                               ResourceProviderChecker resourceProviderChecker) {
         super(credentialsChecker);

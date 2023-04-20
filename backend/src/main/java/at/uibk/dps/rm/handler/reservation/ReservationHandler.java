@@ -22,6 +22,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Processes the http requests that concern the reservation entity.
+ *
+ * @author matthi-g
+ */
 public class ReservationHandler extends ValidationHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(DeploymentChecker.class);
@@ -32,12 +37,28 @@ public class ReservationHandler extends ValidationHandler {
 
     private final ResourceReservationStatusChecker statusChecker;
 
+
+    // TODO: move this to the router
     private final DeploymentHandler deploymentHandler;
 
+
+    // TODO: move this to the router
     private final ReservationErrorHandler reservationErrorHandler;
 
+
+    // TODO: move this to the router
     private final ReservationPreconditionHandler preconditionHandler;
 
+    /**
+     * Create an instance from the reservationChecker, resourceReservationChecker, statusChecker, deploymentHandler,
+     * reservationErrorHandler and preconditionHandler
+     * @param reservationChecker the reservation checker
+     * @param resourceReservationChecker the resource reservation checker
+     * @param statusChecker the status checker
+     * @param deploymentHandler the deployment handler
+     * @param reservationErrorHandler the reservation error handler
+     * @param preconditionHandler the precondition handler
+     */
     public ReservationHandler(ReservationChecker reservationChecker, ResourceReservationChecker resourceReservationChecker,
                               ResourceReservationStatusChecker statusChecker, DeploymentHandler deploymentHandler,
                               ReservationErrorHandler reservationErrorHandler,
@@ -119,6 +140,7 @@ public class ReservationHandler extends ValidationHandler {
             );
     }
 
+    //TODO: check if already terminated
     @Override
     protected Completable updateOne(RoutingContext rc) {
         long accountId = rc.user().principal().getLong("account_id");
@@ -135,6 +157,14 @@ public class ReservationHandler extends ValidationHandler {
             });
     }
 
+    /**
+     * Create a list of resource reservations from the reservation, functionResources and status.
+     *
+     * @param reservationJson the reservation
+     * @param functionResources the function resources
+     * @param status the resource reservation status
+     * @return a list resource reservations
+     */
     private Single<List<ResourceReservation>> createResourceReservationList(JsonObject reservationJson,
                                                                             List<JsonObject> functionResources,
                                                                             ResourceReservationStatus status) {
@@ -148,6 +178,14 @@ public class ReservationHandler extends ValidationHandler {
         return Single.just(resourceReservations);
     }
 
+    /**
+     * Create a new resource reservation from the reservation, functionResource and status.
+     *
+     * @param reservation the reservation
+     * @param functionResource the function resource
+     * @param status the resource reservation status
+     * @return the newly created resource reservation
+     */
     private ResourceReservation createNewResourceReservation(Reservation reservation, FunctionResource functionResource,
                                                              ResourceReservationStatus status) {
         ResourceReservation resourceReservation = new ResourceReservation();
@@ -157,6 +195,14 @@ public class ReservationHandler extends ValidationHandler {
         return resourceReservation;
     }
 
+    /**
+     * Execute the deployment of the resource contained in the reservation.
+     *
+     * @param reservation the reservation
+     * @param accountId the id of the creator of the reservation
+     * @param requestDTO the request body
+     * @param vpcList the list of vpcs
+     */
     private void initiateDeployment(Reservation reservation, long accountId, ReserveResourcesRequest requestDTO,
                                     List<VPC> vpcList) {
         deploymentHandler
@@ -170,6 +216,12 @@ public class ReservationHandler extends ValidationHandler {
             .subscribe();
     }
 
+    /**
+     * Execute the termination of the resource contained in the reservation.
+     *
+     * @param reservation the reservation
+     * @param accountId the id of the creator of the reservation
+     */
     private void initiateTermination(Reservation reservation, long accountId) {
         deploymentHandler.terminateResources(reservation, accountId)
             .andThen(Completable.defer(() ->

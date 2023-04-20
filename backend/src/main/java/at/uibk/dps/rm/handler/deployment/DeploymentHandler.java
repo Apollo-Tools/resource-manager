@@ -18,6 +18,11 @@ import io.vertx.core.json.jackson.DatabindCodec;
 
 import java.util.List;
 
+/**
+ * Processes requests that concern deployment.
+ *
+ * @author matthi-g
+ */
 public class DeploymentHandler {
 
     private final DeploymentChecker deploymentChecker;
@@ -28,6 +33,15 @@ public class DeploymentHandler {
 
     private final ResourceReservationChecker resourceReservationChecker;
 
+    /**
+     * Create an instance from the deploymentChecker, credentialsChecker, functionResourceChecker
+     * and resourceReservationChecker
+     *
+     * @param deploymentChecker the deployment checker
+     * @param credentialsChecker the credentials checker
+     * @param functionResourceChecker the function resource checker
+     * @param resourceReservationChecker the resource reservation checker
+     */
     public DeploymentHandler(DeploymentChecker deploymentChecker, CredentialsChecker credentialsChecker,
                              FunctionResourceChecker functionResourceChecker,
                              ResourceReservationChecker resourceReservationChecker) {
@@ -37,6 +51,17 @@ public class DeploymentHandler {
         this.resourceReservationChecker = resourceReservationChecker;
     }
 
+    /**
+     * Deploy all resources from the reservation that was created by the account (accountId). The
+     * docker credentials must contain valid data for edge and vm deployments. The list of VPCs
+     * must be non-empty for vm deployments.
+     *
+     * @param reservation the reservation
+     * @param accountId the id of the creator of the reservation
+     * @param dockerCredentials the docker credentials
+     * @param vpcList the vpc list
+     * @return a Completable
+     */
     public Completable deployResources(Reservation reservation, long accountId, DockerCredentials dockerCredentials,
                                        List<VPC> vpcList) {
         DeployResourcesRequest request = new DeployResourcesRequest();
@@ -50,6 +75,13 @@ public class DeploymentHandler {
                 .storeOutputToFunctionResources(tfOutput, request)));
     }
 
+    /**
+     * Terminate all resources from the reservation that was created by the account (accountId).
+     *
+     * @param reservation the reservation
+     * @param accountId the id of the creator of the reservation
+     * @return a Completable
+     */
     public Completable terminateResources(Reservation reservation, long accountId) {
         TerminateResourcesRequest request = new TerminateResourcesRequest();
         request.setReservation(reservation);
@@ -59,8 +91,16 @@ public class DeploymentHandler {
             .concatWith(Completable.defer(() -> deploymentChecker.deleteTFDirs(reservation.getReservationId())));
     }
 
+    /**
+     * Map credentials and functions resources to a deploy/terminate request.
+     *
+     * @param request the request
+     * @param credentials the credentials
+     * @return the request with the mapped values
+     * @throws JsonProcessingException if the credentials array is malformed
+     */
     private Single<DeployTerminateRequest> mapCredentialsAndFunctionResourcesToRequest(DeployTerminateRequest request,
-                                                                                          JsonArray credentials) throws JsonProcessingException {
+            JsonArray credentials) throws JsonProcessingException {
         ObjectMapper mapper = DatabindCodec.mapper();
         request.setCredentialsList(mapper.readValue(credentials.toString(), new TypeReference<>() {}));
         return functionResourceChecker.checkFindAllByReservationId(request.getReservation().getReservationId())

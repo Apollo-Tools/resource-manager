@@ -4,11 +4,23 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
+import lombok.experimental.UtilityClass;
 
 import java.util.regex.Pattern;
 
+/**
+ * Used to validate the inputs of the account endpoint and fails the context if violations are found.
+ *
+ * @author matthi-g
+ */
+@UtilityClass
 public class AccountInputHandler {
 
+    /**
+     * Validate the contents of a signup request for its correctness.
+     *
+     * @param rc the routing context
+     */
     public static void validateSignupRequest(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
         validatePassword(requestBody.getString("password"))
@@ -17,6 +29,11 @@ public class AccountInputHandler {
             .dispose();
     }
 
+    /**
+     * Validate the contents of a change password request for its correctness.
+     *
+     * @param rc the routing context
+     */
     public static void validateChangePasswordRequest(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
         validatePassword(requestBody.getString("new_password"))
@@ -24,6 +41,12 @@ public class AccountInputHandler {
             .dispose();
     }
 
+    /**
+     * Validate a given password to match the password requirements.
+     *
+     * @param password the password to validate
+     * @return a Completable
+     */
     private static Completable validatePassword(String password) {
         return Maybe.just(password)
             .map(givenPassword -> {
@@ -51,6 +74,12 @@ public class AccountInputHandler {
             .ignoreElement();
     }
 
+    /**
+     * Validate a given username to match the username requirements.
+     *
+     * @param username the username to validate
+     * @return a Completable
+     */
     private static Completable validateUsername(String username) {
         return Maybe.just(username)
             .map(givenUsername -> {

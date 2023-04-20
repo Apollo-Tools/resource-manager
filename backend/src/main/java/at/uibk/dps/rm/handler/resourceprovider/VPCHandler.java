@@ -6,12 +6,23 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
+/**
+ * Processes the http requests that concern the vpc entity.
+ *
+ * @author matthi-g
+ */
 public class VPCHandler extends ValidationHandler {
 
     private final VPCChecker vpcChecker;
 
     private final RegionChecker regionChecker;
 
+    /**
+     * Create an instance from the vpcChecker and regionChecker.
+     *
+     * @param vpcChecker the vpc checker
+     * @param regionChecker the region checker
+     */
     public VPCHandler(VPCChecker vpcChecker, RegionChecker regionChecker) {
         super(vpcChecker);
         this.vpcChecker = vpcChecker;

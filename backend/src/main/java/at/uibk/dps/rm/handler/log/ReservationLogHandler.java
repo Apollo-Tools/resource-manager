@@ -7,12 +7,24 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
+/**
+ * Processes the http requests that concern the reservation_log entity.
+ *
+ * @author matthi-g
+ */
 public class ReservationLogHandler extends ValidationHandler {
 
     private final LogChecker logChecker;
 
     private final ReservationChecker reservationChecker;
 
+    /**
+     * Create an instance from the reservationLogChecker, logChecker and reservationChecker.
+     *
+     * @param reservationLogChecker the reservation log checker
+     * @param logChecker the log checker
+     * @param reservationChecker the reservation checker
+     */
     public ReservationLogHandler(ReservationLogChecker reservationLogChecker, LogChecker logChecker,
                                  ReservationChecker reservationChecker) {
         super(reservationLogChecker);

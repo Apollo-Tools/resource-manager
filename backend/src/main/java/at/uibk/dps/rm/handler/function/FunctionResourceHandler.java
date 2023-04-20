@@ -15,6 +15,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Processes the http requests that concern the function_resource entity.
+ *
+ * @author matthi-g
+ */
 public class FunctionResourceHandler extends ValidationHandler {
 
     private final FunctionResourceChecker functionResourceChecker;
@@ -23,6 +28,13 @@ public class FunctionResourceHandler extends ValidationHandler {
 
     private final ResourceChecker resourceChecker;
 
+    /**
+     * Create an instance from the functionResourceChecker, functionChecker and resourceChecker.
+     *
+     * @param functionResourceChecker the function resource checker
+     * @param functionChecker the function checker
+     * @param resourceChecker the resource checker
+     */
     public FunctionResourceHandler(FunctionResourceChecker functionResourceChecker, FunctionChecker functionChecker,
                                    ResourceChecker resourceChecker) {
         super(functionResourceChecker);
@@ -65,7 +77,7 @@ public class FunctionResourceHandler extends ValidationHandler {
         return HttpHelper.getLongPathParam(rc, "functionId")
             .flatMap(functionId -> HttpHelper.getLongPathParam(rc, "resourceId")
                 .map(resourceId -> Map.of("functionId", functionId, "resourceId", resourceId))
-                .flatMap(ids -> checkDeleteFunctionResourceExists(ids.get("functionId"), ids.get("resourceId"))
+                .flatMap(ids -> checkFunctionResourceExists(ids.get("functionId"), ids.get("resourceId"))
                     .andThen(Single.just(ids))
                 ))
             .flatMapCompletable(ids -> functionResourceChecker.submitDeleteFunctionResource(
@@ -73,6 +85,13 @@ public class FunctionResourceHandler extends ValidationHandler {
     }
 
 
+    /**
+     * Check if the resources that should be added to the function are already present and exist.
+     *
+     * @param requestBody the request body that contains the resources
+     * @param functionId the id of the function
+     * @return a Single that emits a list of function resources
+     */
     protected Single<List<FunctionResource>> checkAddResourcesExist(JsonArray requestBody, long functionId) {
         List<FunctionResource> functionResources = new ArrayList<>();
         List<Completable> completables = checkAddResourcesList(requestBody, functionId, functionResources);
@@ -80,6 +99,14 @@ public class FunctionResourceHandler extends ValidationHandler {
             .andThen(Single.just(functionResources));
     }
 
+    /**
+     * Check if adding resources to a function would cause any violations.
+     *
+     * @param requestBody the request body that contains the resources to add
+     * @param functionId the id of the function
+     * @param functionResources the list where the new function resources are stored.
+     * @return a List of completables
+     */
     private List<Completable> checkAddResourcesList(JsonArray requestBody, long functionId,
                                                     List<FunctionResource> functionResources) {
         Function function = new Function();
@@ -100,7 +127,14 @@ public class FunctionResourceHandler extends ValidationHandler {
         return completables;
     }
 
-    protected Completable checkDeleteFunctionResourceExists(long functionId, long resourceId) {
+    /**
+     * Check if a function resource exists by its functionId and resourceId.
+     *
+     * @param functionId the id of the function
+     * @param resourceId the id of the resource
+     * @return a Completable
+     */
+    protected Completable checkFunctionResourceExists(long functionId, long resourceId) {
         return Completable.mergeArray(
             functionChecker.checkExistsOne(functionId),
             resourceChecker.checkExistsOne(resourceId),

@@ -7,10 +7,21 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
+/**
+ * Processes the http requests that concern the runtime templates.
+ *
+ * @author matthi-g
+ */
 public class RuntimeTemplateHandler extends ValidationHandler {
 
     private final FileSystemChecker fileSystemChecker;
 
+    /**
+     * Create an instance from the runtimeChecker and fileSystemChecker
+     *
+     * @param runtimeChecker the runtime checker
+     * @param fileSystemChecker the file system checker
+     */
     public RuntimeTemplateHandler(RuntimeChecker runtimeChecker, FileSystemChecker fileSystemChecker) {
         super(runtimeChecker);
         this.fileSystemChecker = fileSystemChecker;
