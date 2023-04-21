@@ -22,6 +22,12 @@ public class ResourceReservationStatusRepository extends Repository<ResourceRese
         super(sessionFactory, ResourceReservationStatus.class);
     }
 
+    /**
+     * Fine a resource reservation status by its value.
+     *
+     * @param statusValue the value of the status
+     * @return a CompletionStage that emits the resource reservation status if it exists, else null
+     */
     public CompletionStage<ResourceReservationStatus> findOneByStatusValue(String statusValue) {
         return sessionFactory.withSession(session ->
             session.createQuery("from ResourceReservationStatus status " +

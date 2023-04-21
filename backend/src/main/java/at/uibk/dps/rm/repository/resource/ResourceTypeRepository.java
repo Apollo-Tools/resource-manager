@@ -22,6 +22,12 @@ public class ResourceTypeRepository extends Repository<ResourceType> {
         super(sessionFactory, ResourceType.class);
     }
 
+    /**
+     * Find a resource type by its name.
+     *
+     * @param resourceType the name of the resource type
+     * @return a CompletionStage that emits the resource type if it exists, else null
+     */
     public CompletionStage<ResourceType> findByResourceType(String resourceType) {
         return this.sessionFactory.withSession(session ->
             session.createQuery("from ResourceType where resourceType=:resourceType", entityClass)

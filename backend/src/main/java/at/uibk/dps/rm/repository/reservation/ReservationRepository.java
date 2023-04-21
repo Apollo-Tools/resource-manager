@@ -23,6 +23,12 @@ public class ReservationRepository extends Repository<Reservation> {
         super(sessionFactory, Reservation.class);
     }
 
+    /**
+     * Find all reservations created by an account.
+     *
+     * @param accountId the id of the account
+     * @return a CompletionStage that emits a list of all reservations
+     */
     public CompletionStage<List<Reservation>> findAllByAccountId(long accountId) {
         return sessionFactory.withSession(session ->
             session.createQuery("select distinct r from Reservation r " +
@@ -33,6 +39,13 @@ public class ReservationRepository extends Repository<Reservation> {
         );
     }
 
+    /**
+     * Find a reservation by its id and the id of the creator
+     *
+     * @param id the id of the reservation
+     * @param accountId the id of the creator account
+     * @return a CompletionStage that emits the reservation if it exists, else null
+     */
     public CompletionStage<Reservation> findByIdAndAccountId(long id, long accountId) {
         return sessionFactory.withSession(session ->
             session.createQuery("select r from Reservation r " +

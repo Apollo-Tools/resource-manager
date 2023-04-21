@@ -23,6 +23,13 @@ public class MetricRepository extends Repository<Metric> {
         super(sessionFactory, Metric.class);
     }
 
+    /**
+     * Find all metrics by their resource type and if they are required or optional.
+     *
+     * @param resourceTypeId the id of the resource type
+     * @param required whether the metrics are required or optional
+     * @return a CompletionStage that emits a list of all metrics
+     */
     public CompletionStage<List<Metric>> findAllByResourceTypeId(long resourceTypeId, boolean required) {
         return this.sessionFactory.withSession(session ->
             session.createQuery("select distinct m from ResourceTypeMetric rtm " +
@@ -34,6 +41,12 @@ public class MetricRepository extends Repository<Metric> {
         );
     }
 
+    /**
+     * Find a metric by its name.
+     *
+     * @param metric the name of the metric
+     * @return a CompletionStage that emits the metric if it exists, else null
+     */
     public CompletionStage<Metric> findByMetric(String metric) {
         return this.sessionFactory.withSession(session ->
             session.createQuery("from Metric m where m.metric=:metric", entityClass)

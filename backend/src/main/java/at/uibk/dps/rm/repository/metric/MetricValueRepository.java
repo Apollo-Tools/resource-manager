@@ -23,6 +23,12 @@ public class MetricValueRepository extends Repository<MetricValue> {
         super(sessionFactory, MetricValue.class);
     }
 
+    /**
+     * Find a metric value by its id and fetch the metric.
+     *
+     * @param metricValueId the id of the metric value
+     * @return a CompletionStage that emits the metric value if it exists, else null
+     */
     public CompletionStage<MetricValue> findByIdAndFetch(long metricValueId) {
         return this.sessionFactory.withSession(session ->
             session.createQuery("from MetricValue  mv left join fetch mv.metric "
@@ -32,6 +38,12 @@ public class MetricValueRepository extends Repository<MetricValue> {
         );
     }
 
+    /**
+     * Find all metric values by their resource.
+     *
+     * @param resourceId the id of the resource
+     * @return a CompletionStage that emits a list of all metric values
+     */
     public CompletionStage<List<MetricValue>> findByResourceAndFetch(long resourceId) {
         return this.sessionFactory.withSession(session ->
             session.createQuery("select mv from Resource r " +
@@ -43,6 +55,13 @@ public class MetricValueRepository extends Repository<MetricValue> {
         );
     }
 
+    /**
+     * Find a metric value by its resource and metric.
+     *
+     * @param resourceId the id of the resource
+     * @param metricId the id of the metric
+     * @return a CompletionStage that emits the metric value if it exists, else null
+     */
     public CompletionStage<MetricValue> findByResourceAndMetric(long resourceId, long metricId) {
         return this.sessionFactory.withSession(session ->
             session.createQuery("select mv from Resource r " +
@@ -55,6 +74,16 @@ public class MetricValueRepository extends Repository<MetricValue> {
         );
     }
 
+    /**
+     * Update the values of a metric value by its resource and metric.
+     *
+     * @param resourceId the id of the resource
+     * @param metricId the id of the metric
+     * @param valueString the new string value
+     * @param valueNumber the new number value
+     * @param valueBool the new bool value
+     * @return a CompletionStage that emits nothing
+     */
     public CompletionStage<Void> updateByResourceAndMetric(long resourceId, long metricId, String valueString,
                                                               Double valueNumber, Boolean valueBool) {
         return this.sessionFactory.withTransaction(session ->
@@ -73,6 +102,13 @@ public class MetricValueRepository extends Repository<MetricValue> {
                         })));
     }
 
+    /**
+     * Delete a metric value by its resource and metric
+     *
+     * @param resourceId the id of the resource
+     * @param metricId the id of the metric
+     * @return a CompletionStage that emits the row count
+     */
     public CompletionStage<Integer> deleteByResourceAndMetric(long resourceId, long metricId) {
         return this.sessionFactory.withTransaction(session ->
             session.createQuery("select mv.metricValueId from Resource r " +

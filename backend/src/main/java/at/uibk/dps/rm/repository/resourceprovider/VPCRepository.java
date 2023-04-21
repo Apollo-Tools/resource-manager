@@ -23,6 +23,12 @@ public class VPCRepository extends Repository<VPC> {
         super(sessionFactory, VPC.class);
     }
 
+    /**
+     * Find a vpc by its id and fetch the region and resource provider.
+     *
+     * @param id the id of the vpc
+     * @return a CompletionStage that emits the vpc if it exists, else null
+     */
     public CompletionStage<VPC> findByIdAndFetch(long id) {
         return sessionFactory.withSession(session -> session.createQuery(
                 "from VPC vpc " +
@@ -34,6 +40,13 @@ public class VPCRepository extends Repository<VPC> {
         );
     }
 
+    /**
+     * Find a vpc by its region and creator account.
+     *
+     * @param regionId the id of the region
+     * @param accountId the id of the creator account
+     * @return a CompletionStage that emits the vpc if it exists, else null
+     */
     public CompletionStage<VPC> findByRegionIdAndAccountId(long regionId, long accountId) {
         return sessionFactory.withSession(session ->
             session.createQuery("from VPC vpc " +
@@ -46,6 +59,11 @@ public class VPCRepository extends Repository<VPC> {
         );
     }
 
+    /**
+     * Find all vpcs and fetch the region and resource provider.
+     *
+     * @return a CompletionStage that emits the vpc if it exists, else null
+     */
     public CompletionStage<List<VPC>> findAllAndFetch() {
         return sessionFactory.withSession(session ->
             session.createQuery("select distinct vpc from VPC vpc " +

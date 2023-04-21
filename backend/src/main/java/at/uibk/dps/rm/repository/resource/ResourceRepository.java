@@ -24,6 +24,12 @@ public class ResourceRepository extends Repository<Resource> {
         super(sessionFactory, Resource.class);
     }
 
+    /**
+     * Find a resource by its id and fetch the resource type, region and resource provider.
+     *
+     * @param id the id of the resource
+     * @return a CompletionStage that emits the resource if it exists, else null
+     */
     public CompletionStage<Resource> findByIdAndFetch(long id) {
         return sessionFactory.withSession(session -> session.createQuery(
                 "from Resource r " +
@@ -36,6 +42,11 @@ public class ResourceRepository extends Repository<Resource> {
             );
     }
 
+    /**
+     * Find all resources and fetch the metric values, metric, region and resource provider.
+     *
+     * @return a CompletionStage that emits a list of all resources
+     */
     public CompletionStage<List<Resource>> findAllAndFetch() {
         return sessionFactory.withSession(session ->
             session.createQuery("select distinct r from Resource r " +
@@ -48,6 +59,16 @@ public class ResourceRepository extends Repository<Resource> {
             );
     }
 
+    /**
+     * Find all resources by their function, metrics, resource types, regions and resource providers.
+     *
+     * @param functionId the id of the function
+     * @param metrics the ids of the metrics
+     * @param regions the ids of the regions
+     * @param providerIds the ids of the resource providers
+     * @param resourceTypeIds the ids of the resource types
+     * @return a CompletionStage that emits a list of all resources
+     */
     public CompletionStage<List<Resource>> findAllBySLOs(long functionId, List<String> metrics,
                                                               List<String> regions, List<Long> providerIds,
                                                               List<Long> resourceTypeIds) {
@@ -90,6 +111,12 @@ public class ResourceRepository extends Repository<Resource> {
         );
     }
 
+    /**
+     * Find all resources by their resource type.
+     *
+     * @param typeId the id of the resource type
+     * @return a CompletionStage that emits a list of resources
+     */
     public CompletionStage<List<Resource>> findByResourceType(long typeId) {
         return sessionFactory.withSession(session ->
             session.createQuery("from Resource r " +
@@ -98,6 +125,13 @@ public class ResourceRepository extends Repository<Resource> {
                 .getResultList());
     }
 
+    /**
+     * Find all resources by their function and fetch the region, resource provider, resource type,
+     * metric values and metrics.
+     *
+     * @param functionId the id of the function
+     * @return a CompletionStage that emits a list of all resources
+     */
     public CompletionStage<List<Resource>> findAllByFunctionIdAndFetch(long functionId) {
         return this.sessionFactory.withSession(session ->
             session.createQuery("select distinct r from FunctionResource fr " +

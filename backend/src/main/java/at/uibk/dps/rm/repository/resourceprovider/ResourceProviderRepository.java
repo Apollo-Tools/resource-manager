@@ -22,6 +22,12 @@ public class ResourceProviderRepository extends Repository<ResourceProvider> {
         super(sessionFactory, ResourceProvider.class);
     }
 
+    /**
+     * Find a resource provider by its name.
+     *
+     * @param provider the name of the resource provider
+     * @return a CompletionStage that emits the resource provider if it exists, else null
+     */
     public CompletionStage<ResourceProvider> findByProvider(String provider) {
         return this.sessionFactory.withSession(session ->
             session.createQuery("from ResourceProvider where provider=:provider", entityClass)

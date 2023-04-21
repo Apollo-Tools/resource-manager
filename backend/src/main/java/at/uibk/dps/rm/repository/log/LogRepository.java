@@ -23,6 +23,13 @@ public class LogRepository extends Repository<Log> {
         super(sessionFactory, Log.class);
     }
 
+    /**
+     * Find all logs by their reservation and account.
+     *
+     * @param reservationId the id of the reservation
+     * @param accountId the id of the creator account
+     * @return a CompletionStage that emits a list of all logs
+     */
     public CompletionStage<List<Log>> findAllByReservationIdAndAccountId(long reservationId, long accountId) {
         return sessionFactory.withSession(session ->
             session.createQuery("select distinct l from ReservationLog rl " +

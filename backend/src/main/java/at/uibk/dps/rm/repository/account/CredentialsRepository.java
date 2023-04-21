@@ -23,6 +23,12 @@ public class CredentialsRepository  extends Repository<Credentials> {
         super(sessionFactory, Credentials.class);
     }
 
+    /**
+     * Find credentials by their id and fetch the resource provider
+     *
+     * @param id the id of the credentials
+     * @return a CompletionStage that emits the credentials if they exist, else null
+     */
     public CompletionStage<Credentials> findByIdAndFetch(long id) {
         return sessionFactory.withSession(session -> session.createQuery(
                 "from Credentials c left join fetch c.resourceProvider where c.credentialsId =:id", entityClass)

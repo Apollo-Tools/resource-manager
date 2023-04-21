@@ -22,6 +22,12 @@ public class RuntimeRepository extends Repository<Runtime> {
         super(sessionFactory, Runtime.class);
     }
 
+    /**
+     * Find a runtime by its name
+     *
+     * @param name the name of the runtime
+     * @return a CompletionStage that emits the runtime if it exists, else null
+     */
     public CompletionStage<Runtime> findByName(String name) {
         return this.sessionFactory.withSession(session ->
             session.createQuery("from Runtime where name=:name", entityClass)

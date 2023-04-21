@@ -22,6 +22,12 @@ public class ResourceTypeMetricRepository extends Repository<ResourceTypeMetric>
         super(sessionFactory, ResourceTypeMetric.class);
     }
 
+    /**
+     * Count how many required metrics are not registered for a resource.
+     *
+     * @param resourceId the id of  the resource
+     * @return a CompletionStage that emits the amount of missing required metrics
+     */
     public CompletionStage<Long> countMissingRequiredMetricValuesByResourceId(long resourceId) {
         return this.sessionFactory.withSession(session ->
             session.createQuery("select count(rt) from ResourceTypeMetric rt " +
