@@ -38,20 +38,21 @@ public class ReservationHandler extends ValidationHandler {
     private final ResourceReservationStatusChecker statusChecker;
 
 
-    // TODO: move this to the router
+    //TODO: move this to the router
     private final DeploymentHandler deploymentHandler;
 
 
-    // TODO: move this to the router
+    //TODO: move this to the router
     private final ReservationErrorHandler reservationErrorHandler;
 
 
-    // TODO: move this to the router
+    //TODO: move this to the router
     private final ReservationPreconditionHandler preconditionHandler;
 
     /**
-     * Create an instance from the reservationChecker, resourceReservationChecker, statusChecker, deploymentHandler,
-     * reservationErrorHandler and preconditionHandler
+     * Create an instance from the reservationChecker, resourceReservationChecker, statusChecker,
+     * deploymentHandler, reservationErrorHandler and preconditionHandler
+     *
      * @param reservationChecker the reservation checker
      * @param resourceReservationChecker the resource reservation checker
      * @param statusChecker the status checker

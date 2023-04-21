@@ -11,8 +11,19 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Used to validate the inputs of the reservation endpoint and fails the
+ * context if violations are found.
+ *
+ * @author matthi-g
+ */
 public class ReservationInputHandler {
 
+    /**
+     * Validate if a reserve resources request contains duplicated resources.
+     *
+     * @param rc the routing context
+     */
     public static void validateResourceArrayHasNoDuplicates(RoutingContext rc) {
         ReserveResourcesRequest requestDTO = rc.body()
                 .asJsonObject()
@@ -22,6 +33,12 @@ public class ReservationInputHandler {
                 .dispose();
     }
 
+    /**
+     * Check the functionResourceIds for duplicates.
+     *
+     * @param functionResourceIds the list of function resource ids
+     * @return a Completable
+     */
     private static Completable checkForFunctionResourceDuplicates(List<FunctionResourceIds> functionResourceIds) {
         return Maybe.just(functionResourceIds)
                 .mapOptional(ids -> {

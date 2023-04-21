@@ -18,20 +18,43 @@ public class FileSystemChecker {
     private final FilePathService filePathService;
 
 
+    /**
+     * Create an instance from the filePathService
+     *
+     * @param filePathService the file path service
+     */
     public FileSystemChecker(FilePathService filePathService) {
         this.filePathService = filePathService;
     }
 
+    /**
+     * Check whether a template path exists or not.
+     *
+     * @param templatePath the template path
+     * @return a Completable
+     */
     public Completable checkTemplatePathExists(String templatePath) {
         Single<Boolean> existsTemplatePath = filePathService.templatePathExists(templatePath);
         return ErrorHandler.handleExistsOne(existsTemplatePath).ignoreElement();
     }
 
+    /**
+     * Get a file template by its template path
+     *
+     * @param templatePath the template path
+     * @return a Single that emits the string content of the found file template
+     */
     public Single<String> checkGetFileTemplate(String templatePath) {
         Single<String> getFileTemplate = filePathService.getRuntimeTemplate(templatePath);
         return ErrorHandler.handleTemplateHasContent(getFileTemplate);
     }
 
+    /**
+     * Check whether a terraform lockfile exists at the tfPath.
+     *
+     * @param tfPath the path of the terraform module
+     * @return a Single that emits true if the terraform lockfile exists, else false
+     */
     public Single<Boolean> checkTFLockFileExists(String tfPath) {
         return filePathService.tfLocFileExists(tfPath);
     }

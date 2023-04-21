@@ -19,6 +19,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Checks if the precondtions for a new reservation hold or not.
+ *
+ * @author matthi-g
+ */
 public class ReservationPreconditionHandler {
 
     private final FunctionResourceChecker functionResourceChecker;
@@ -29,6 +34,15 @@ public class ReservationPreconditionHandler {
 
     private final CredentialsChecker credentialsChecker;
 
+    /**
+     * Create an instance from the functionResourceChecker, resourceTypeMetricChecker, vpcChecker
+     * and credentialsChecker.
+     *
+     * @param functionResourceChecker the function resource checker
+     * @param resourceTypeMetricChecker the resource type metric checker
+     * @param vpcChecker the vpc checker
+     * @param credentialsChecker the credentials checker
+     */
     public ReservationPreconditionHandler(FunctionResourceChecker functionResourceChecker, ResourceTypeMetricChecker
         resourceTypeMetricChecker, VPCChecker vpcChecker, CredentialsChecker credentialsChecker) {
         this.functionResourceChecker = functionResourceChecker;
@@ -37,6 +51,14 @@ public class ReservationPreconditionHandler {
         this.credentialsChecker = credentialsChecker;
     }
 
+    /**
+     * Check if all preconditions for a valid reservation are fulfilled.
+     *
+     * @param requestDTO the data from the request
+     * @param accountId the id of the creator
+     * @param vpcList the list of vpcs
+     * @return a Single that emits the list of functionResourceIds
+     */
     public Single<List<JsonObject>> checkReservationIsValid(ReserveResourcesRequest requestDTO, long accountId,
                                                             List<VPC> vpcList) {
         return checkFindFunctionResources(requestDTO.getFunctionResources()).toList()
@@ -51,6 +73,13 @@ public class ReservationPreconditionHandler {
                 .toSingle(() -> functionResources));
     }
 
+    // TODO: move into functionResourceChecker
+    /**
+     * Fine all function resources by functionResourceIds
+     *
+     * @param functionResourceIds the function resource ids
+     * @return an Observable that emits all found function resources as JsonObjects
+     */
     private Observable<JsonObject> checkFindFunctionResources(List<FunctionResourceIds> functionResourceIds) {
         return Observable.fromIterable(functionResourceIds)
             .flatMapSingle(ids -> functionResourceChecker
@@ -58,6 +87,13 @@ public class ReservationPreconditionHandler {
             );
     }
 
+    /**
+     * Check if all necessary credentials exist for the functionResources to be deployed.
+     *
+     * @param accountId the id of the account
+     * @param functionResources the function resources
+     * @return a Completable
+     */
     private Completable checkCredentialsForResources(long accountId, List<JsonObject> functionResources) {
         List<Completable> completables = new ArrayList<>();
         HashSet<Long> resourceProviderIds = new HashSet<>();

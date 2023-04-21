@@ -64,9 +64,9 @@ public class AccountInputHandler {
                     "(?=.*[\\p{Punct}])" +
                     "(?=\\S+$)" +
                     ".{8,512}$";
-                Pattern p = Pattern.compile(regex);
+                Pattern pattern = Pattern.compile(regex);
 
-                if (!p.matcher(givenPassword).matches()) {
+                if (!pattern.matcher(givenPassword).matches()) {
                     throw new Throwable("password does not meet the minimum requirements");
                 }
                 return password;
@@ -87,9 +87,9 @@ public class AccountInputHandler {
                  * At least one character, digit or underscore
                  */
                 String regex = "^[a-z_0-9]+$";
-                Pattern p = Pattern.compile(regex);
+                Pattern pattern = Pattern.compile(regex);
 
-                if (!p.matcher(username).matches()) {
+                if (!pattern.matcher(username).matches()) {
                     throw new Throwable("password does not meet the minimum requirements");
                 }
                 return username;

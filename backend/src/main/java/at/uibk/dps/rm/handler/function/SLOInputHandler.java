@@ -12,8 +12,19 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
 
 import java.util.*;
 
+/**
+ * Used to validate the inputs of requests containing service level objectives and fails the
+ * context if violations are found.
+ *
+ * @author matthi-g
+ */
 public class SLOInputHandler {
 
+    /**
+     * Validate the contents of a getResourcesBySLO request for its correctness.
+     *
+     * @param rc the routing context
+     */
     public static void validateGetResourcesBySLOsRequest(RoutingContext rc) {
         JsonObject body = rc.body().asJsonObject();
         checkExpressionAreValid(body.getJsonArray("slo"))
@@ -22,6 +33,12 @@ public class SLOInputHandler {
             .dispose();
     }
 
+    /**
+     * Check whether the expressions of the slos are valid or not.
+     *
+     * @param slos the service level objectives
+     * @return a Completable
+     */
     private static Completable checkExpressionAreValid(JsonArray slos) {
         if (slos == null) {
             return Completable.complete();
@@ -38,6 +55,12 @@ public class SLOInputHandler {
             .ignoreElement();
     }
 
+    /**
+     * Check the service level objectives for duplicates.
+     *
+     * @param body the request body that contains the service level objectives
+     * @return a Completable
+     */
     private static Completable checkArrayDuplicates(JsonObject body) {
         ListFunctionResourcesBySLOsRequest request = body.mapTo(ListFunctionResourcesBySLOsRequest.class);
         ArrayValidator<ServiceLevelObjective> validator = new ArrayValidator<>();

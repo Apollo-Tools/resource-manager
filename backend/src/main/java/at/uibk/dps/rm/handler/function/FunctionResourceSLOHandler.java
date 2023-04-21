@@ -55,7 +55,8 @@ public class FunctionResourceSLOHandler {
     }
 
     /**
-     * Find and return all function resources that conform to the Service Level Objectives defined in the request
+     * Find and return all function resources that conform to the Service Level Objectives defined
+     * in the request
      * body.
      *
      * @param rc the routing context
@@ -150,6 +151,13 @@ public class FunctionResourceSLOHandler {
         return new JsonArray(subList);
     }
 
+    /**
+     * The filter condition for a resource based on the serviceLevelObjectives.
+     *
+     * @param resource the resource
+     * @param serviceLevelObjectives the service level objectives
+     * @return true if all service level objectives are adhered else false
+     */
     protected boolean resourceFilterBySLOValueType(Resource resource, List<ServiceLevelObjective> serviceLevelObjectives) {
         for (ServiceLevelObjective slo : serviceLevelObjectives) {
             for (MetricValue metricValue : resource.getMetricValues()) {
@@ -164,6 +172,14 @@ public class FunctionResourceSLOHandler {
         return true;
     }
 
+    /**
+     * The sorting condition for the resources based on the serviceLevelObjectives
+     *
+     * @param r1 the first resource to compare
+     * @param r2 the second resource to compare
+     * @param serviceLevelObjectives the service level objectives
+     * @return a positive value if r1 should be ranked higher than r2 else a negative value
+     */
     protected int sortResourceBySLO(Resource r1, Resource r2, List<ServiceLevelObjective> serviceLevelObjectives) {
         for (int i = 0; i < serviceLevelObjectives.size(); i++) {
             ServiceLevelObjective slo = serviceLevelObjectives.get(i);
