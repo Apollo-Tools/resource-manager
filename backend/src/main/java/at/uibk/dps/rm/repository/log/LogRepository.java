@@ -7,7 +7,18 @@ import org.hibernate.reactive.stage.Stage;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 
+/**
+ * Implements database operations for the log entity.
+ *
+ * @author matthi-g
+ */
 public class LogRepository extends Repository<Log> {
+
+    /**
+     * Create an instance from the sessionFactory.
+     *
+     * @param sessionFactory the session factory
+     */
     public LogRepository(Stage.SessionFactory sessionFactory) {
         super(sessionFactory, Log.class);
     }

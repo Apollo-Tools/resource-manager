@@ -7,8 +7,18 @@ import org.hibernate.reactive.stage.Stage;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 
+/**
+ * Implements database operations for the metric entity.
+ *
+ * @author matthi-g
+ */
 public class MetricRepository extends Repository<Metric> {
 
+    /**
+     * Create an instance from the sessionFactory.
+     *
+     * @param sessionFactory the session factory
+     */
     public MetricRepository(Stage.SessionFactory sessionFactory) {
         super(sessionFactory, Metric.class);
     }

@@ -7,7 +7,18 @@ import org.hibernate.reactive.stage.Stage;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 
+/**
+ * Implements database operations for the function resource entity.
+ *
+ * @author matthi-g
+ */
 public class FunctionResourceRepository extends Repository<FunctionResource> {
+
+    /**
+     * Create an instance from the sessionFactory.
+     *
+     * @param sessionFactory the session factory
+     */
     public FunctionResourceRepository(Stage.SessionFactory sessionFactory) {
         super(sessionFactory, FunctionResource.class);
     }

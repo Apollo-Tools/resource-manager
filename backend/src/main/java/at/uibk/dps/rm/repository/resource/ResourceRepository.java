@@ -8,8 +8,18 @@ import java.util.List;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
+/**
+ * Implements database operations for the resource entity.
+ *
+ * @author matthi-g
+ */
 public class ResourceRepository extends Repository<Resource> {
 
+    /**
+     * Create an instance from the sessionFactory.
+     *
+     * @param sessionFactory the session factory
+     */
     public ResourceRepository(Stage.SessionFactory sessionFactory) {
         super(sessionFactory, Resource.class);
     }

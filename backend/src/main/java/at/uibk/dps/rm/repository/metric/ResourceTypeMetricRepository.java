@@ -6,7 +6,18 @@ import org.hibernate.reactive.stage.Stage;
 
 import java.util.concurrent.CompletionStage;
 
+/**
+ * Implements database operations for the resource_type entity.
+ *
+ * @author matthi-g
+ */
 public class ResourceTypeMetricRepository extends Repository<ResourceTypeMetric> {
+
+    /**
+     * Create an instance from the sessionFactory.
+     *
+     * @param sessionFactory the session factory
+     */
     public ResourceTypeMetricRepository(Stage.SessionFactory sessionFactory) {
         super(sessionFactory, ResourceTypeMetric.class);
     }

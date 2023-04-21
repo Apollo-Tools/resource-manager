@@ -6,11 +6,29 @@ import org.hibernate.reactive.stage.Stage;
 
 import java.util.concurrent.CompletionStage;
 
+/**
+ * Implements database operations for the account_credentials entity.
+ *
+ * @author matthi-g
+ */
 public class AccountCredentialsRepository extends Repository<AccountCredentials> {
+
+    /**
+     * Create an instance from the sessionFactory.
+     *
+     * @param sessionFactory the session factory
+     */
     public AccountCredentialsRepository(Stage.SessionFactory sessionFactory) {
         super(sessionFactory, AccountCredentials.class);
     }
 
+    /**
+     * Find account credentials by the accountId and providerId.
+     *
+     * @param accountId the id of the credentials owner
+     * @param providerId the id of the resource provider
+     * @return a CompletionStage that emits the account credentials if they exist, else null
+     */
     public CompletionStage<AccountCredentials> findByAccountAndProvider(long accountId, long providerId) {
         return this.sessionFactory.withSession(session ->
             session.createQuery("from AccountCredentials ac " +
@@ -23,6 +41,13 @@ public class AccountCredentialsRepository extends Repository<AccountCredentials>
         );
     }
 
+    /**
+     * Find account credentials by the credentialsId and accountId.
+     *
+     * @param credentialsId the id of the credentials
+     * @param accountId the id of the credentials owner
+     * @return a CompletionStage that emits the account credentials if they exist, else null
+     */
     public CompletionStage<AccountCredentials> findByCredentialsAndAccount(long credentialsId, long accountId) {
         return this.sessionFactory.withSession(session ->
             session.createQuery("from AccountCredentials ac " +

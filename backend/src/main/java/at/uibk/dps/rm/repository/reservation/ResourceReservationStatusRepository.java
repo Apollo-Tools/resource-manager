@@ -6,7 +6,18 @@ import org.hibernate.reactive.stage.Stage;
 
 import java.util.concurrent.CompletionStage;
 
+/**
+ * Implements database operations for the resource_reservation_status entity.
+ *
+ * @author matthi-g
+ */
 public class ResourceReservationStatusRepository extends Repository<ResourceReservationStatus> {
+
+    /**
+     * Create an instance from the sessionFactory.
+     *
+     * @param sessionFactory the session factory
+     */
     public ResourceReservationStatusRepository(Stage.SessionFactory sessionFactory) {
         super(sessionFactory, ResourceReservationStatus.class);
     }

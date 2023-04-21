@@ -7,7 +7,18 @@ import org.hibernate.reactive.stage.Stage;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 
+/**
+ * Implements database operations for the vpc entity.
+ *
+ * @author matthi-g
+ */
 public class VPCRepository extends Repository<VPC> {
+
+    /**
+     * Create an instance from the sessionFactory.
+     *
+     * @param sessionFactory the session factory
+     */
     public VPCRepository(Stage.SessionFactory sessionFactory) {
         super(sessionFactory, VPC.class);
     }

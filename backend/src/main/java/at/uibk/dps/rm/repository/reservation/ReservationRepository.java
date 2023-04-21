@@ -7,7 +7,18 @@ import org.hibernate.reactive.stage.Stage;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 
+/**
+ * Implements database operations for the reservation entity.
+ *
+ * @author matthi-g
+ */
 public class ReservationRepository extends Repository<Reservation> {
+
+    /**
+     * Create an instance from the sessionFactory.
+     *
+     * @param sessionFactory the session factory
+     */
     public ReservationRepository(Stage.SessionFactory sessionFactory) {
         super(sessionFactory, Reservation.class);
     }
