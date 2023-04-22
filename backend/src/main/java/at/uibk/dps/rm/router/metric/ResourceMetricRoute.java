@@ -6,12 +6,19 @@ import at.uibk.dps.rm.handler.metric.MetricValueChecker;
 import at.uibk.dps.rm.handler.metric.MetricValueHandler;
 import at.uibk.dps.rm.handler.resource.ResourceChecker;
 import at.uibk.dps.rm.handler.resource.ResourceInputHandler;
+import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
-public class ResourceMetricRoute {
+/**
+ * Used to initialise the resource metric route.
+ *
+ * @author matthi-g
+ */
+public class ResourceMetricRoute implements Route {
 
-    public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
+    @Override
+    public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         MetricValueChecker metricValueChecker = new MetricValueChecker(serviceProxyProvider
             .getMetricValueService());
         MetricChecker metricChecker = new MetricChecker(serviceProxyProvider.getMetricService());

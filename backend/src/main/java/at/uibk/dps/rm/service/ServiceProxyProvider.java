@@ -25,6 +25,7 @@ import at.uibk.dps.rm.service.rxjava3.util.FilePathService;
 import io.vertx.rxjava3.core.Vertx;
 import lombok.Getter;
 
+
 @Getter
 public class ServiceProxyProvider {
     private final AccountService accountService;

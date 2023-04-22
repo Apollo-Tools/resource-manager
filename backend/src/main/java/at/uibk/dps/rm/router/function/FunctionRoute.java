@@ -5,12 +5,19 @@ import at.uibk.dps.rm.handler.function.FunctionChecker;
 import at.uibk.dps.rm.handler.function.FunctionHandler;
 import at.uibk.dps.rm.handler.function.FunctionInputHandler;
 import at.uibk.dps.rm.handler.function.RuntimeChecker;
+import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
-public class FunctionRoute {
+/**
+ * Used to initialise the function route.
+ *
+ * @author matthi-g
+ */
+public class FunctionRoute implements Route {
 
-    public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
+    @Override
+    public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         FunctionChecker functionChecker = new FunctionChecker(serviceProxyProvider.getFunctionService());
         RuntimeChecker runtimeChecker = new RuntimeChecker(serviceProxyProvider.getRuntimeService());
         FunctionHandler functionHandler = new FunctionHandler(functionChecker, runtimeChecker);

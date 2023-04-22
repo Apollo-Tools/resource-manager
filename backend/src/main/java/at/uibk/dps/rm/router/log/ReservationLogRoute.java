@@ -5,11 +5,19 @@ import at.uibk.dps.rm.handler.log.LogChecker;
 import at.uibk.dps.rm.handler.log.ReservationLogChecker;
 import at.uibk.dps.rm.handler.log.ReservationLogHandler;
 import at.uibk.dps.rm.handler.reservation.ReservationChecker;
+import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
-public class ReservationLogRoute {
-    public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
+/**
+ * Used to initialise the reservation log route.
+ *
+ * @author matthi-g
+ */
+public class ReservationLogRoute implements Route {
+
+    @Override
+    public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         ReservationLogChecker reservationLogChecker =
             new ReservationLogChecker(serviceProxyProvider.getReservationLogService());
         LogChecker logChecker = new LogChecker(serviceProxyProvider.getLogService());

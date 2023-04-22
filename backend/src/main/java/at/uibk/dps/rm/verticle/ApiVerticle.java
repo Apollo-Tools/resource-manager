@@ -64,24 +64,24 @@ public class ApiVerticle extends AbstractVerticle {
 
     private void setupRoutes(RouterBuilder routerBuilder) {
         ServiceProxyProvider serviceProxyProvider = new ServiceProxyProvider(vertx);
-        AccountRoute.init(routerBuilder, serviceProxyProvider, jwtAuthProvider);
-        ResourceProviderRoute.init(routerBuilder, serviceProxyProvider);
-        ResourceProviderRegionRoute.init(routerBuilder, serviceProxyProvider);
-        RegionRoute.init(routerBuilder, serviceProxyProvider);
-        CredentialsRoute.init(routerBuilder, serviceProxyProvider);
-        ResourceRoute.init(routerBuilder, serviceProxyProvider);
-        ResourceTypeRoute.init(routerBuilder, serviceProxyProvider);
-        ResourceMetricRoute.init(routerBuilder, serviceProxyProvider);
-        MetricRoute.init(routerBuilder, serviceProxyProvider);
-        RuntimeRoute.init(routerBuilder, serviceProxyProvider);
-        RuntimeTemplateRoute.init(routerBuilder, serviceProxyProvider);
-        FunctionRoute.init(routerBuilder, serviceProxyProvider);
-        FunctionResourceRoute.init(routerBuilder, serviceProxyProvider);
-        FunctionResourceSLORoute.init(routerBuilder, serviceProxyProvider);
-        ReservationRoute.init(routerBuilder, serviceProxyProvider);
-        ReservationLogRoute.init(routerBuilder, serviceProxyProvider);
-        ResourceTypeMetricRoute.init(routerBuilder, serviceProxyProvider);
-        VPCRoute.init(routerBuilder, serviceProxyProvider);
+        new AccountRoute().init(routerBuilder, serviceProxyProvider, jwtAuthProvider);
+        new ResourceProviderRoute().init(routerBuilder, serviceProxyProvider);
+        new ResourceProviderRegionRoute().init(routerBuilder, serviceProxyProvider);
+        new RegionRoute().init(routerBuilder, serviceProxyProvider);
+        new CredentialsRoute().init(routerBuilder, serviceProxyProvider);
+        new ResourceRoute().init(routerBuilder, serviceProxyProvider);
+        new ResourceTypeRoute().init(routerBuilder, serviceProxyProvider);
+        new ResourceMetricRoute().init(routerBuilder, serviceProxyProvider);
+        new MetricRoute().init(routerBuilder, serviceProxyProvider);
+        new RuntimeRoute().init(routerBuilder, serviceProxyProvider);
+        new RuntimeTemplateRoute().init(routerBuilder, serviceProxyProvider);
+        new FunctionRoute().init(routerBuilder, serviceProxyProvider);
+        new FunctionResourceRoute().init(routerBuilder, serviceProxyProvider);
+        new FunctionResourceSLORoute().init(routerBuilder, serviceProxyProvider);
+        new ReservationRoute().init(routerBuilder, serviceProxyProvider);
+        new ReservationLogRoute().init(routerBuilder, serviceProxyProvider);
+        new ResourceTypeMetricRoute().init(routerBuilder, serviceProxyProvider);
+        new VPCRoute().init(routerBuilder, serviceProxyProvider);
     }
 
     private void setupSecurityHandler(RouterBuilder routerBuilder) {

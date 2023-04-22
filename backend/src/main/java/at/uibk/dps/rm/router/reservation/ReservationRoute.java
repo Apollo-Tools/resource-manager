@@ -11,13 +11,20 @@ import at.uibk.dps.rm.handler.metric.ResourceTypeMetricChecker;
 import at.uibk.dps.rm.handler.reservation.*;
 import at.uibk.dps.rm.handler.resourceprovider.VPCChecker;
 import at.uibk.dps.rm.handler.util.FileSystemChecker;
+import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.handler.reservation.ReservationPreconditionHandler;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
-public class ReservationRoute {
+/**
+ * Used to initialise the reservation route.
+ *
+ * @author matthi-g
+ */
+public class ReservationRoute implements Route {
 
-    public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
+    @Override
+    public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         /* Checker initialization */
         DeploymentChecker deploymentChecker = new DeploymentChecker(serviceProxyProvider.getDeploymentService(),
             serviceProxyProvider.getLogService(), serviceProxyProvider.getReservationLogService());

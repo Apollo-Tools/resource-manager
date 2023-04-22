@@ -4,11 +4,18 @@ import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.handler.resource.ResourceChecker;
 import at.uibk.dps.rm.handler.resource.ResourceTypeChecker;
 import at.uibk.dps.rm.handler.resource.ResourceTypeHandler;
+import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
-public class ResourceTypeRoute {
-    public static void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
+/**
+ * Used to initialise the reservation route.
+ *
+ * @author matthi-g
+ */
+public class ResourceTypeRoute implements Route {
+    @Override
+    public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         ResourceTypeChecker resourceTypeChecker = new ResourceTypeChecker(serviceProxyProvider
             .getResourceTypeService());
         ResourceChecker resourceChecker = new ResourceChecker(serviceProxyProvider.getResourceService());
