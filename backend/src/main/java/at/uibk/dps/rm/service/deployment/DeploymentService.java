@@ -5,6 +5,7 @@ import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.dto.TerminateResourcesRequest;
+import at.uibk.dps.rm.util.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
@@ -22,8 +23,8 @@ public interface DeploymentService {
     }
 
     @Generated
-    static DeploymentService createProxy(Vertx vertx, String address) {
-        return new DeploymentServiceVertxEBProxy(vertx, address);
+    static DeploymentService createProxy(Vertx vertx) {
+        return new DeploymentServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress("deployment"));
     }
 
     Future<FunctionsToDeploy> packageFunctionsCode(DeployResourcesRequest deployRequest);

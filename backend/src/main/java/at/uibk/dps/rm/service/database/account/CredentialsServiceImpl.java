@@ -2,7 +2,7 @@ package at.uibk.dps.rm.service.database.account;
 
 import at.uibk.dps.rm.entity.model.Credentials;
 import at.uibk.dps.rm.repository.account.CredentialsRepository;
-import at.uibk.dps.rm.service.database.ServiceProxy;
+import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 //TODO: discuss if it is necessary to encrypt secrets
-public class CredentialsServiceImpl extends ServiceProxy<Credentials> implements  CredentialsService {
+public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> implements  CredentialsService {
 
     private final CredentialsRepository credentialsRepository;
 

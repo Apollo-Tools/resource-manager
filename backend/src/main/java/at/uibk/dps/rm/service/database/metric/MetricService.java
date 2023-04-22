@@ -1,8 +1,10 @@
 package at.uibk.dps.rm.service.database.metric;
 
 import at.uibk.dps.rm.annotations.Generated;
+import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.repository.metric.MetricRepository;
-import at.uibk.dps.rm.service.database.ServiceInterface;
+import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
+import at.uibk.dps.rm.util.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
@@ -13,7 +15,7 @@ import io.vertx.core.json.JsonObject;
 
 @ProxyGen
 @VertxGen
-public interface MetricService extends ServiceInterface {
+public interface MetricService extends DatabaseServiceInterface {
 
     @Generated
     @GenIgnore
@@ -22,8 +24,8 @@ public interface MetricService extends ServiceInterface {
     }
 
     @Generated
-    static MetricService createProxy(Vertx vertx, String address) {
-        return new MetricServiceVertxEBProxy(vertx, address);
+    static MetricService createProxy(Vertx vertx) {
+        return new MetricServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(Metric.class));
     }
 
     Future<JsonArray> findAllByResourceTypeId(long resourceTypeId, boolean required);

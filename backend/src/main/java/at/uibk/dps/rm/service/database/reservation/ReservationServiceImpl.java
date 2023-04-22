@@ -2,14 +2,14 @@ package at.uibk.dps.rm.service.database.reservation;
 
 import at.uibk.dps.rm.entity.model.Reservation;
 import at.uibk.dps.rm.repository.reservation.ReservationRepository;
-import at.uibk.dps.rm.service.database.ServiceProxy;
+import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
 
-public class ReservationServiceImpl extends ServiceProxy<Reservation> implements ReservationService {
+public class ReservationServiceImpl extends DatabaseServiceProxy<Reservation> implements ReservationService {
 
     private final ReservationRepository reservationRepository;
 

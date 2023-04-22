@@ -2,12 +2,12 @@ package at.uibk.dps.rm.service.database.resource;
 
 import at.uibk.dps.rm.repository.resource.ResourceTypeRepository;
 import at.uibk.dps.rm.entity.model.ResourceType;
-import at.uibk.dps.rm.service.database.ServiceProxy;
+import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 
 import java.util.Objects;
 
-public class ResourceTypeServiceImpl extends ServiceProxy<ResourceType> implements ResourceTypeService  {
+public class ResourceTypeServiceImpl extends DatabaseServiceProxy<ResourceType> implements ResourceTypeService  {
     private final ResourceTypeRepository resourceTypeRepository;
 
     public ResourceTypeServiceImpl(ResourceTypeRepository resourceTypeRepository) {

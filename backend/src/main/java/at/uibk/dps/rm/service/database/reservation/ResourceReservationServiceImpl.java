@@ -3,14 +3,14 @@ package at.uibk.dps.rm.service.database.reservation;
 import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
 import at.uibk.dps.rm.entity.model.ResourceReservation;
 import at.uibk.dps.rm.repository.reservation.ResourceReservationRepository;
-import at.uibk.dps.rm.service.database.ServiceProxy;
+import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
 
-public class ResourceReservationServiceImpl extends ServiceProxy<ResourceReservation> implements ResourceReservationService {
+public class ResourceReservationServiceImpl extends DatabaseServiceProxy<ResourceReservation> implements ResourceReservationService {
 
     private final ResourceReservationRepository resourceReservationRepository;
 

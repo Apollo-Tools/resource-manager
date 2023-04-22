@@ -2,12 +2,12 @@ package at.uibk.dps.rm.service.database.resourceprovider;
 
 import at.uibk.dps.rm.entity.model.ResourceProvider;
 import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
-import at.uibk.dps.rm.service.database.ServiceProxy;
+import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 
 import java.util.Objects;
 
-public class ResourceProviderServiceImpl extends ServiceProxy<ResourceProvider> implements ResourceProviderService {
+public class ResourceProviderServiceImpl extends DatabaseServiceProxy<ResourceProvider> implements ResourceProviderService {
 
     private final ResourceProviderRepository resourceProviderRepository;
 

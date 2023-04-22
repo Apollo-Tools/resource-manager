@@ -2,7 +2,7 @@ package at.uibk.dps.rm.service.database.resourceprovider;
 
 import at.uibk.dps.rm.entity.model.VPC;
 import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
-import at.uibk.dps.rm.service.database.ServiceProxy;
+import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -10,7 +10,7 @@ import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class VPCServiceImpl extends ServiceProxy<VPC> implements VPCService {
+public class VPCServiceImpl extends DatabaseServiceProxy<VPC> implements VPCService {
     private final VPCRepository vpcRepository;
 
     public VPCServiceImpl(VPCRepository vpcRepository) {

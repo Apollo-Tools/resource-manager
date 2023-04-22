@@ -1,8 +1,10 @@
 package at.uibk.dps.rm.service.database.resource;
 
 import at.uibk.dps.rm.annotations.Generated;
+import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
-import at.uibk.dps.rm.service.database.ServiceInterface;
+import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
+import at.uibk.dps.rm.util.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
@@ -14,7 +16,7 @@ import java.util.List;
 
 @ProxyGen
 @VertxGen
-public interface ResourceService extends ServiceInterface {
+public interface ResourceService extends DatabaseServiceInterface {
 
     @Generated
     @GenIgnore
@@ -23,8 +25,8 @@ public interface ResourceService extends ServiceInterface {
     }
 
     @Generated
-    static ResourceService createProxy(Vertx vertx, String address) {
-        return new ResourceServiceVertxEBProxy(vertx, address);
+    static ResourceService createProxy(Vertx vertx) {
+        return new ResourceServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(Resource.class));
     }
 
     Future<JsonArray> findAllBySLOs(long functionId, List<String> metrics,

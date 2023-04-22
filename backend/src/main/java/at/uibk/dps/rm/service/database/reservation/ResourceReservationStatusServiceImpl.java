@@ -2,11 +2,11 @@ package at.uibk.dps.rm.service.database.reservation;
 
 import at.uibk.dps.rm.entity.model.ResourceReservationStatus;
 import at.uibk.dps.rm.repository.reservation.ResourceReservationStatusRepository;
-import at.uibk.dps.rm.service.database.ServiceProxy;
+import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 
-public class ResourceReservationStatusServiceImpl  extends ServiceProxy<ResourceReservationStatus>
+public class ResourceReservationStatusServiceImpl  extends DatabaseServiceProxy<ResourceReservationStatus>
     implements ResourceReservationStatusService {
 
     private final ResourceReservationStatusRepository repository;

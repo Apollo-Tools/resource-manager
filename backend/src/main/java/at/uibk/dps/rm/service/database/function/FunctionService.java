@@ -1,8 +1,10 @@
 package at.uibk.dps.rm.service.database.function;
 
 import at.uibk.dps.rm.annotations.Generated;
+import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.repository.function.FunctionRepository;
-import at.uibk.dps.rm.service.database.ServiceInterface;
+import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
+import at.uibk.dps.rm.util.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
@@ -13,7 +15,7 @@ import io.vertx.core.json.JsonObject;
 
 @ProxyGen
 @VertxGen
-public interface FunctionService extends ServiceInterface {
+public interface FunctionService extends DatabaseServiceInterface {
 
     @Generated
     @GenIgnore
@@ -22,8 +24,8 @@ public interface FunctionService extends ServiceInterface {
     }
 
     @Generated
-    static FunctionService createProxy(Vertx vertx, String address) {
-        return new FunctionServiceVertxEBProxy(vertx, address);
+    static FunctionService createProxy(Vertx vertx) {
+        return new FunctionServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(Function.class));
     }
 
     Future<JsonObject> findOne(long id);

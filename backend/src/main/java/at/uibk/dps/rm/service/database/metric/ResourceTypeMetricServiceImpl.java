@@ -2,10 +2,10 @@ package at.uibk.dps.rm.service.database.metric;
 
 import at.uibk.dps.rm.entity.model.ResourceTypeMetric;
 import at.uibk.dps.rm.repository.metric.ResourceTypeMetricRepository;
-import at.uibk.dps.rm.service.database.ServiceProxy;
+import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 
-public class ResourceTypeMetricServiceImpl extends ServiceProxy<ResourceTypeMetric>
+public class ResourceTypeMetricServiceImpl extends DatabaseServiceProxy<ResourceTypeMetric>
     implements ResourceTypeMetricService {
 
     private final ResourceTypeMetricRepository repository;

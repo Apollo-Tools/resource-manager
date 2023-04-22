@@ -1,8 +1,10 @@
 package at.uibk.dps.rm.service.database.reservation;
 
 import at.uibk.dps.rm.annotations.Generated;
+import at.uibk.dps.rm.entity.model.ResourceReservationStatus;
 import at.uibk.dps.rm.repository.reservation.ResourceReservationStatusRepository;
-import at.uibk.dps.rm.service.database.ServiceInterface;
+import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
+import at.uibk.dps.rm.util.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
@@ -12,7 +14,7 @@ import io.vertx.core.json.JsonObject;
 
 @ProxyGen
 @VertxGen
-public interface ResourceReservationStatusService extends ServiceInterface {
+public interface ResourceReservationStatusService extends DatabaseServiceInterface {
 
     @Generated
     @GenIgnore
@@ -21,8 +23,9 @@ public interface ResourceReservationStatusService extends ServiceInterface {
     }
 
     @Generated
-    static ResourceReservationStatusService createProxy(Vertx vertx, String address) {
-        return new ResourceReservationStatusServiceVertxEBProxy(vertx, address);
+    static ResourceReservationStatusService createProxy(Vertx vertx) {
+        return new ResourceReservationStatusServiceVertxEBProxy(vertx,
+            ServiceProxyAddress.getServiceProxyAddress(ResourceReservationStatus.class));
     }
 
     Future<JsonObject> findOneByStatusValue(String statusValue);

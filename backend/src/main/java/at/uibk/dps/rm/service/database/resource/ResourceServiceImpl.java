@@ -2,7 +2,7 @@ package at.uibk.dps.rm.service.database.resource;
 
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.entity.model.Resource;
-import at.uibk.dps.rm.service.database.ServiceProxy;
+import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -10,7 +10,7 @@ import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ResourceServiceImpl extends ServiceProxy<Resource> implements ResourceService {
+public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implements ResourceService {
 
     private final ResourceRepository resourceRepository;
 

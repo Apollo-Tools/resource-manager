@@ -2,7 +2,7 @@ package at.uibk.dps.rm.service.database.resourceprovider;
 
 import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
-import at.uibk.dps.rm.service.database.ServiceProxy;
+import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -10,7 +10,7 @@ import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class RegionServiceImpl extends ServiceProxy<Region> implements RegionService {
+public class RegionServiceImpl extends DatabaseServiceProxy<Region> implements RegionService {
     private final RegionRepository regionRepository;
 
     public RegionServiceImpl(RegionRepository repository) {

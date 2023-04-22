@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.handler;
 
-import at.uibk.dps.rm.service.rxjava3.database.ServiceInterface;
+import at.uibk.dps.rm.service.rxjava3.database.DatabaseServiceInterface;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
@@ -14,14 +14,14 @@ import io.vertx.core.json.JsonObject;
  */
 public abstract class EntityChecker {
 
-    private final ServiceInterface service;
+    private final DatabaseServiceInterface service;
 
     /**
      * Create an instance from a service interface.
      *
      * @param service the service to use
      */
-    public EntityChecker(ServiceInterface service) {
+    public EntityChecker(DatabaseServiceInterface service) {
         this.service = service;
     }
 

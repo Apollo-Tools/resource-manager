@@ -2,7 +2,7 @@ package at.uibk.dps.rm.service.database.metric;
 
 import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.entity.model.Metric;
-import at.uibk.dps.rm.service.database.ServiceProxy;
+import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -10,7 +10,7 @@ import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class MetricServiceImpl extends ServiceProxy<Metric> implements MetricService {
+public class MetricServiceImpl extends DatabaseServiceProxy<Metric> implements MetricService {
 
     private final MetricRepository metricRepository;
 

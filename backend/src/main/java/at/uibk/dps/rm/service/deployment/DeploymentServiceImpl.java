@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.dto.TerminateResourcesRequest;
+import at.uibk.dps.rm.service.ServiceProxy;
 import at.uibk.dps.rm.service.deployment.terraform.FunctionFileService;
 import at.uibk.dps.rm.service.deployment.terraform.MainFileService;
 import at.uibk.dps.rm.service.deployment.terraform.TerraformFileService;
@@ -17,9 +18,14 @@ import io.vertx.rxjava3.CompletableHelper;
 import io.vertx.rxjava3.SingleHelper;
 import io.vertx.rxjava3.core.Vertx;
 
-public class DeploymentServiceImpl  implements DeploymentService {
+public class DeploymentServiceImpl extends ServiceProxy implements DeploymentService {
 
     private final Vertx vertx = Vertx.currentContext().owner();
+
+    @Override
+    public String getServiceProxyAddress() {
+        return "deployment" + super.getServiceProxyAddress();
+    }
 
     @Override
     public Future<FunctionsToDeploy> packageFunctionsCode(DeployResourcesRequest deployRequest) {

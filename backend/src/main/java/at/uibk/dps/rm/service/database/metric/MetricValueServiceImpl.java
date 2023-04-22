@@ -3,7 +3,7 @@ package at.uibk.dps.rm.service.database.metric;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.entity.model.MetricValue;
-import at.uibk.dps.rm.service.database.ServiceProxy;
+import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class MetricValueServiceImpl extends ServiceProxy<MetricValue> implements MetricValueService{
+public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> implements MetricValueService{
 
     private final MetricValueRepository metricValueRepository;
 

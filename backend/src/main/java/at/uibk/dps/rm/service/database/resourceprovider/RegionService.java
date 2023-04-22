@@ -1,8 +1,10 @@
 package at.uibk.dps.rm.service.database.resourceprovider;
 
 import at.uibk.dps.rm.annotations.Generated;
+import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
-import at.uibk.dps.rm.service.database.ServiceInterface;
+import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
+import at.uibk.dps.rm.util.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
@@ -12,7 +14,7 @@ import io.vertx.core.json.JsonArray;
 
 @ProxyGen
 @VertxGen
-public interface RegionService extends ServiceInterface {
+public interface RegionService extends DatabaseServiceInterface {
 
     @Generated
     @GenIgnore
@@ -21,8 +23,8 @@ public interface RegionService extends ServiceInterface {
     }
 
     @Generated
-    static RegionService createProxy(Vertx vertx, String address) {
-        return new RegionServiceVertxEBProxy(vertx, address);
+    static RegionService createProxy(Vertx vertx) {
+        return new RegionServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(Region.class));
     }
 
     Future<JsonArray> findAllByProviderId(long providerId);

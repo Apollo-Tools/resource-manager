@@ -2,7 +2,7 @@ package at.uibk.dps.rm.service.database.function;
 
 import at.uibk.dps.rm.entity.model.FunctionResource;
 import at.uibk.dps.rm.repository.function.FunctionResourceRepository;
-import at.uibk.dps.rm.service.database.ServiceProxy;
+import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -10,7 +10,7 @@ import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class FunctionResourceServiceImpl extends ServiceProxy<FunctionResource> implements FunctionResourceService {
+public class FunctionResourceServiceImpl extends DatabaseServiceProxy<FunctionResource> implements FunctionResourceService {
     private final FunctionResourceRepository functionResourceRepository;
 
     public FunctionResourceServiceImpl(FunctionResourceRepository repository) {

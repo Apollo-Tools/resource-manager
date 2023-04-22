@@ -52,33 +52,27 @@ public class ServiceProxyProvider {
     private final FilePathService filePathService;
 
     public ServiceProxyProvider(Vertx vertx) {
-        accountService = AccountService.createProxy(vertx, "account-service-address");
-        accountCredentialsService = AccountCredentialsService
-            .createProxy(vertx, "account-credentials-service-address");
-        credentialsService = CredentialsService.createProxy(vertx, "credentials-service-address");
-        functionService = FunctionService.createProxy(vertx, "function-service-address");
-        functionResourceService = FunctionResourceService.createProxy(
-            vertx, "function-resource-service-address");
-        logService = LogService.createProxy(vertx, "log-service-address");
-        metricService = MetricService.createProxy(vertx,"metric-service-address");
-        metricTypeService = MetricTypeService.createProxy(vertx, "metric-type-service-address");
-        metricValueService = MetricValueService.createProxy(vertx,"metric-value-service-address");
-        regionService = RegionService.createProxy(vertx, "region-service-address");
-        reservationService = ReservationService.createProxy(vertx, "reservation-service-address");
-        reservationLogService = ReservationLogService.createProxy(vertx, "reservation-log-service-address");
-        resourceService = ResourceService.createProxy(vertx,"resource-service-address");
-        resourceProviderService = ResourceProviderService.createProxy(
-            vertx, "resource-provider-service-address");
-        resourceReservationService = ResourceReservationService
-            .createProxy(vertx, "resource-reservation-service-address");
-        resourceReservationStatusService = ResourceReservationStatusService
-            .createProxy(vertx, "resource-reservation-status-service-address");
-        resourceTypeService = ResourceTypeService.createProxy(vertx,"resource-type-service-address");
-        resourceTypeMetricService = ResourceTypeMetricService
-            .createProxy(vertx, "resource-type-metric-service-address");
-        runtimeService = RuntimeService.createProxy(vertx, "runtime-service-address");
-        vpcService = VPCService.createProxy(vertx, "vpc-service-address");
-        deploymentService = DeploymentService.createProxy(vertx, "deployment-service-address");
-        filePathService = FilePathService.createProxy(vertx, "file-path-service-address");
+        accountService = AccountService.createProxy(vertx);
+        accountCredentialsService = AccountCredentialsService.createProxy(vertx);
+        credentialsService = CredentialsService.createProxy(vertx);
+        functionService = FunctionService.createProxy(vertx);
+        functionResourceService = FunctionResourceService.createProxy(vertx);
+        logService = LogService.createProxy(vertx);
+        metricService = MetricService.createProxy(vertx);
+        metricTypeService = MetricTypeService.createProxy(vertx);
+        metricValueService = MetricValueService.createProxy(vertx);
+        regionService = RegionService.createProxy(vertx);
+        reservationService = ReservationService.createProxy(vertx);
+        reservationLogService = ReservationLogService.createProxy(vertx);
+        resourceService = ResourceService.createProxy(vertx);
+        resourceProviderService = ResourceProviderService.createProxy(vertx);
+        resourceReservationService = ResourceReservationService.createProxy(vertx);
+        resourceReservationStatusService = ResourceReservationStatusService.createProxy(vertx);
+        resourceTypeService = ResourceTypeService.createProxy(vertx);
+        resourceTypeMetricService = ResourceTypeMetricService.createProxy(vertx);
+        runtimeService = RuntimeService.createProxy(vertx);
+        vpcService = VPCService.createProxy(vertx);
+        deploymentService = DeploymentService.createProxy(vertx);
+        filePathService = FilePathService.createProxy(vertx);
     }
 }

@@ -35,6 +35,7 @@ import at.uibk.dps.rm.service.database.resource.ResourceTypeService;
 import at.uibk.dps.rm.service.database.resource.ResourceTypeServiceImpl;
 import at.uibk.dps.rm.service.util.FilePathService;
 import at.uibk.dps.rm.service.util.FilePathServiceImpl;
+import at.uibk.dps.rm.util.ServiceProxyBinder;
 import io.reactivex.rxjava3.core.*;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
@@ -128,119 +129,36 @@ public class DatabaseVerticle extends AbstractVerticle {
     private Completable setupEventBus() {
         Maybe<Void> setupEventBus = Maybe.create(emitter -> {
             ServiceBinder serviceBinder = new ServiceBinder(vertx.getDelegate());
+            ServiceProxyBinder serviceProxyBinder = new ServiceProxyBinder(serviceBinder);
 
-            AccountService accountService = new AccountServiceImpl(accountRepository);
-            serviceBinder
-                .setAddress("account-service-address")
-                .register(AccountService.class, accountService);
-
-            AccountCredentialsService accountCredentialsService =
-                new AccountCredentialsServiceImpl(accountCredentialsRepository);
-            serviceBinder
-                .setAddress("account-credentials-service-address")
-                .register(AccountCredentialsService.class, accountCredentialsService);
-
-            CredentialsService credentialsService = new CredentialsServiceImpl(credentialsRepository);
-            serviceBinder
-                .setAddress("credentials-service-address")
-                .register(CredentialsService.class, credentialsService);
-
-            FunctionService functionService = new FunctionServiceImpl(functionRepository);
-            serviceBinder
-                .setAddress("function-service-address")
-                .register(FunctionService.class, functionService);
-
-            FunctionResourceService functionResourceService =
-                new FunctionResourceServiceImpl(functionResourceRepository);
-            serviceBinder
-                .setAddress("function-resource-service-address")
-                .register(FunctionResourceService.class, functionResourceService);
-
-            LogService logService =
-                new LogServiceImpl(logRepository);
-            serviceBinder
-                .setAddress("log-service-address")
-                .register(LogService.class, logService);
-
-            MetricService metricService = new MetricServiceImpl(metricRepository);
-            serviceBinder
-                .setAddress("metric-service-address")
-                .register(MetricService.class, metricService);
-
-            MetricTypeService metricTypeService = new MetricTypeServiceImpl(metricTypeRepository);
-            serviceBinder
-                .setAddress("metric-type-service-address")
-                .register(MetricTypeService.class, metricTypeService);
-
-            MetricValueService metricValueService = new MetricValueServiceImpl(metricValueRepository);
-            serviceBinder
-                .setAddress("metric-value-service-address")
-                .register(MetricValueService.class, metricValueService);
-
-            RegionService regionService =
-                new RegionServiceImpl(regionRepository);
-            serviceBinder
-                .setAddress("region-service-address")
-                .register(RegionService.class, regionService);
-
-            ReservationService reservationService = new ReservationServiceImpl(reservationRepository);
-            serviceBinder
-                .setAddress("reservation-service-address")
-                .register(ReservationService.class, reservationService);
-
-            ReservationLogService reservationLogService = new ReservationLogServiceImpl(reservationLogRepository);
-            serviceBinder
-                .setAddress("reservation-log-service-address")
-                .register(ReservationLogService.class, reservationLogService);
-
-            ResourceService resourceService = new ResourceServiceImpl(resourceRepository);
-            serviceBinder
-                .setAddress("resource-service-address")
-                .register(ResourceService.class, resourceService);
-
-            ResourceProviderService resourceProviderService =
-                new ResourceProviderServiceImpl(resourceProviderRepository);
-            serviceBinder
-                .setAddress("resource-provider-service-address")
-                .register(ResourceProviderService.class, resourceProviderService);
-
-            ResourceReservationService resourceReservationService =
-                new ResourceReservationServiceImpl(resourceReservationRepository);
-            serviceBinder
-                .setAddress("resource-reservation-service-address")
-                .register(ResourceReservationService.class, resourceReservationService);
-
-            ResourceReservationStatusService statusService =
-                new ResourceReservationStatusServiceImpl(statusRepository);
-            serviceBinder
-                .setAddress("resource-reservation-status-service-address")
-                .register(ResourceReservationStatusService.class, statusService);
-
-            ResourceTypeService resourceTypeService = new ResourceTypeServiceImpl(resourceTypeRepository);
-            serviceBinder
-                .setAddress("resource-type-service-address")
-                .register(ResourceTypeService.class, resourceTypeService);
-
-            ResourceTypeMetricService resourceTypeMetricService =
-                new ResourceTypeMetricServiceImpl(resourceTypeMetricRepository);
-            serviceBinder
-                .setAddress("resource-type-metric-service-address")
-                .register(ResourceTypeMetricService.class, resourceTypeMetricService);
-
-            RuntimeService runtimeService = new RuntimeServiceImpl(runtimeRepository);
-            serviceBinder
-                .setAddress("runtime-service-address")
-                .register(RuntimeService.class, runtimeService);
-
-            VPCService vpcService = new VPCServiceImpl(vpcRepository);
-            serviceBinder
-                .setAddress("vpc-service-address")
-                .register(VPCService.class, vpcService);
-
-            FilePathService filePathService = new FilePathServiceImpl(vertx.getDelegate());
-            serviceBinder
-                    .setAddress("file-path-service-address")
-                    .register(FilePathService.class, filePathService);
+            serviceProxyBinder.bind(AccountService.class, new AccountServiceImpl(accountRepository));
+            serviceProxyBinder.bind(AccountCredentialsService.class,
+                new AccountCredentialsServiceImpl(accountCredentialsRepository));
+            serviceProxyBinder.bind(CredentialsService.class, new CredentialsServiceImpl(credentialsRepository));
+            serviceProxyBinder.bind(FunctionService.class, new FunctionServiceImpl(functionRepository));
+            serviceProxyBinder.bind(FunctionResourceService.class,
+                new FunctionResourceServiceImpl(functionResourceRepository));
+            serviceProxyBinder.bind(LogService.class, new LogServiceImpl(logRepository));
+            serviceProxyBinder.bind(MetricService.class, new MetricServiceImpl(metricRepository));
+            serviceProxyBinder.bind(MetricTypeService.class, new MetricTypeServiceImpl(metricTypeRepository));
+            serviceProxyBinder.bind(MetricValueService.class, new MetricValueServiceImpl(metricValueRepository));
+            serviceProxyBinder.bind(RegionService.class, new RegionServiceImpl(regionRepository));
+            serviceProxyBinder.bind(ReservationService.class, new ReservationServiceImpl(reservationRepository));
+            serviceProxyBinder.bind(ReservationLogService.class,
+                new ReservationLogServiceImpl(reservationLogRepository));
+            serviceProxyBinder.bind(ResourceService.class, new ResourceServiceImpl(resourceRepository));
+            serviceProxyBinder.bind(ResourceProviderService.class,
+                new ResourceProviderServiceImpl(resourceProviderRepository));
+            serviceProxyBinder.bind(ResourceReservationService.class,
+                new ResourceReservationServiceImpl(resourceReservationRepository));
+            serviceProxyBinder.bind(ResourceReservationStatusService.class,
+                new ResourceReservationStatusServiceImpl(statusRepository));
+            serviceProxyBinder.bind(ResourceTypeService.class, new ResourceTypeServiceImpl(resourceTypeRepository));
+            serviceProxyBinder.bind(ResourceTypeMetricService.class,
+                new ResourceTypeMetricServiceImpl(resourceTypeMetricRepository));
+            serviceProxyBinder.bind(RuntimeService.class, new RuntimeServiceImpl(runtimeRepository));
+            serviceProxyBinder.bind(VPCService.class, new VPCServiceImpl(vpcRepository));
+            serviceProxyBinder.bind(FilePathService.class, new FilePathServiceImpl(vertx.getDelegate()));
             emitter.onComplete();
         });
         return Completable.fromMaybe(setupEventBus);

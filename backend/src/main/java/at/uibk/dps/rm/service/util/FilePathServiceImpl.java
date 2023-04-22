@@ -1,17 +1,23 @@
 package at.uibk.dps.rm.service.util;
 
+import at.uibk.dps.rm.service.ServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 
 import java.nio.file.Path;
 
-public class FilePathServiceImpl implements FilePathService{
+public class FilePathServiceImpl extends ServiceProxy implements FilePathService{
 
     private final Vertx vertx;
 
 
     public FilePathServiceImpl(Vertx vertx) {
         this.vertx = vertx;
+    }
+
+    @Override
+    public String getServiceProxyAddress() {
+        return "filepath" + super.getServiceProxyAddress();
     }
 
     @Override

@@ -2,14 +2,14 @@ package at.uibk.dps.rm.service.database.log;
 
 import at.uibk.dps.rm.entity.model.Log;
 import at.uibk.dps.rm.repository.log.LogRepository;
-import at.uibk.dps.rm.service.database.ServiceProxy;
+import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
 
-public class LogServiceImpl extends ServiceProxy<Log> implements LogService {
+public class LogServiceImpl extends DatabaseServiceProxy<Log> implements LogService {
 
     private final LogRepository logRepository;
 

@@ -2,7 +2,7 @@ package at.uibk.dps.rm.service;
 
 import at.uibk.dps.rm.entity.model.ResourceType;
 import at.uibk.dps.rm.repository.Repository;
-import at.uibk.dps.rm.service.database.ServiceProxy;
+import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -26,9 +26,9 @@ import static org.mockito.Mockito.verify;
 
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class ServiceProxyTest {
+public class DatabaseServiceProxyTest {
 
-    static class ConcreteServiceProxy extends ServiceProxy<ResourceType> {
+    static class ConcreteServiceProxy extends DatabaseServiceProxy<ResourceType> {
         public ConcreteServiceProxy(Repository<ResourceType> repository) {
             super(repository, ResourceType.class);
         }

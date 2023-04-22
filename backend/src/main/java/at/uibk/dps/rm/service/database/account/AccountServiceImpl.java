@@ -2,13 +2,13 @@ package at.uibk.dps.rm.service.database.account;
 
 import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.repository.account.AccountRepository;
-import at.uibk.dps.rm.service.database.ServiceProxy;
+import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 
 import java.util.Objects;
 
-public class AccountServiceImpl extends ServiceProxy<Account> implements  AccountService {
+public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements  AccountService {
 
     private final AccountRepository accountRepository;
 

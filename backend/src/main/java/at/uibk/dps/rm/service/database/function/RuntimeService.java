@@ -2,7 +2,8 @@ package at.uibk.dps.rm.service.database.function;
 
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.repository.function.RuntimeRepository;
-import at.uibk.dps.rm.service.database.ServiceInterface;
+import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
+import at.uibk.dps.rm.util.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
@@ -11,7 +12,7 @@ import io.vertx.core.Vertx;
 
 @ProxyGen
 @VertxGen
-public interface RuntimeService extends ServiceInterface {
+public interface RuntimeService extends DatabaseServiceInterface {
 
     @Generated
     @GenIgnore
@@ -20,8 +21,8 @@ public interface RuntimeService extends ServiceInterface {
     }
 
     @Generated
-    static RuntimeService createProxy(Vertx vertx, String address) {
-        return new RuntimeServiceVertxEBProxy(vertx, address);
+    static RuntimeService createProxy(Vertx vertx) {
+        return new RuntimeServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(Runtime.class));
     }
 
     Future<Boolean> existsOneByName(String name);

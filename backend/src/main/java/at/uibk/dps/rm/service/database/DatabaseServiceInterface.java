@@ -1,12 +1,14 @@
 package at.uibk.dps.rm.service.database;
 
+import at.uibk.dps.rm.service.ServiceInterface;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 @VertxGen(concrete = false)
-public interface ServiceInterface {
+public interface DatabaseServiceInterface extends ServiceInterface {
+
     Future<JsonObject> save(JsonObject data);
 
     Future<Void> saveAll(JsonArray data);

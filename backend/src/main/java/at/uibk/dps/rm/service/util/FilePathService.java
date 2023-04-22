@@ -1,6 +1,8 @@
 package at.uibk.dps.rm.service.util;
 
 import at.uibk.dps.rm.annotations.Generated;
+import at.uibk.dps.rm.service.ServiceInterface;
+import at.uibk.dps.rm.util.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
@@ -9,7 +11,7 @@ import io.vertx.core.Vertx;
 
 @ProxyGen
 @VertxGen
-public interface FilePathService {
+public interface FilePathService extends ServiceInterface {
 
     @Generated
     @GenIgnore
@@ -18,8 +20,8 @@ public interface FilePathService {
     }
 
     @Generated
-    static FilePathService createProxy(Vertx vertx, String address) {
-        return new FilePathServiceVertxEBProxy(vertx, address);
+    static FilePathService createProxy(Vertx vertx) {
+        return new FilePathServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress("filepath"));
     }
 
     Future<Boolean> templatePathExists(String templatePath);

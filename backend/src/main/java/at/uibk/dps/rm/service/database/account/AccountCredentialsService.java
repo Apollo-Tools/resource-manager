@@ -1,8 +1,10 @@
 package at.uibk.dps.rm.service.database.account;
 
 import at.uibk.dps.rm.annotations.Generated;
+import at.uibk.dps.rm.entity.model.AccountCredentials;
 import at.uibk.dps.rm.repository.account.AccountCredentialsRepository;
-import at.uibk.dps.rm.service.database.ServiceInterface;
+import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
+import at.uibk.dps.rm.util.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
@@ -12,7 +14,7 @@ import io.vertx.core.json.JsonObject;
 
 @ProxyGen
 @VertxGen
-public interface AccountCredentialsService extends ServiceInterface {
+public interface AccountCredentialsService extends DatabaseServiceInterface {
 
     @Generated
     @GenIgnore
@@ -21,8 +23,9 @@ public interface AccountCredentialsService extends ServiceInterface {
     }
 
     @Generated
-    static AccountCredentialsService createProxy(Vertx vertx, String address) {
-        return new AccountCredentialsServiceVertxEBProxy(vertx, address);
+    static AccountCredentialsService createProxy(Vertx vertx) {
+        return new AccountCredentialsServiceVertxEBProxy(vertx,
+            ServiceProxyAddress.getServiceProxyAddress(AccountCredentials.class));
     }
 
     Future<JsonObject> findOneByCredentialsAndAccount(long credentialsId, long accountId);
