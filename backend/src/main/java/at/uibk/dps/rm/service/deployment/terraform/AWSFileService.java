@@ -10,6 +10,11 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Extension of the #ModuleFileService to set up an AWS module of a deployment.
+ *
+ * @author matthi-g
+ */
 public class AWSFileService extends ModuleFileService {
 
     private final Path functionsDir;
@@ -32,10 +37,25 @@ public class AWSFileService extends ModuleFileService {
 
     private final  VPC vpc;
 
-    public AWSFileService(FileSystem fs, Path rootFolder, Path functionsDir, Region region, String awsRole,
+    /**
+     * Create an instance from the fileSystem, rootFolder, functionsDir, region, awsRole,
+     * functionResources, reservationId, module, dockerUserName and vpc.
+     *
+     * @param fileSystem the vertx file system
+     * @param rootFolder the root folder of the module
+     * @param functionsDir the path to the packaged functions
+     * @param region the region where the resources are deployed
+     * @param awsRole the aws role to use
+     * @param functionResources the list of function resources
+     * @param reservationId the id of the reservation
+     * @param module the terraform module
+     * @param dockerUserName the docker username
+     * @param vpc the virtual private cloud to use for the deployment
+     */
+    public AWSFileService(FileSystem fileSystem, Path rootFolder, Path functionsDir, Region region, String awsRole,
                           List<FunctionResource> functionResources, long reservationId, TerraformModule module,
                           String dockerUserName, VPC vpc) {
-        super(fs, rootFolder, module);
+        super(fileSystem, rootFolder, module);
         this.functionsDir = functionsDir;
         this.region = region;
         this.awsRole = awsRole;
@@ -166,6 +186,12 @@ public class AWSFileService extends ModuleFileService {
         return vmString.toString();
     }
 
+    /**
+     * Check whether a new virtual machine has to deployed or not.
+     *
+     * @param resource the virtual machine
+     * @return true if a new virtua machine has to be deployed, else false
+     */
     private boolean checkMustDeployVM(Resource resource) {
         return !vmResourceIds.contains(resource.getResourceId());
     }

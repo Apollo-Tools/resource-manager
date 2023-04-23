@@ -191,13 +191,13 @@ public class TerraformExecutorTest {
         "Windows, \"\"",
         "Linux, \"\"",
     })
-    void getEdgeLoginCommand(String os) {
+    void getEdgeCredentialsCommand(String os) {
         System.setProperty("os.name", os);
         TerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSEdge(vertx);
         String expectedOutput = os.equals("Windows") ? "-var=\"edge_login_data=[{auth_user=\\\"user\\\"," +
             "auth_pw=\\\"pw\\\"},]\"" : "-var=edge_login_data=[{auth_user=\"user\",auth_pw=\"pw\"},]";
 
-        String result = terraformExecutor.getEdgeLoginCommand();
+        String result = terraformExecutor.getEdgeCredentialsCommand();
 
         assertThat(result).isEqualTo(expectedOutput);
     }

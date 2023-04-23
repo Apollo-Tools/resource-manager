@@ -153,7 +153,7 @@ public class DeploymentServiceImplTest {
             (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
             try (MockedConstruction<TerraformSetupService> ignoredTFS =
                      Mockito.mockConstruction(TerraformSetupService.class, (mock, context) ->
-                         given(mock.getDeploymentCredentials()).willReturn(Single.just(deploymentCredentials)))) {
+                         given(mock.getTerminationCredentials()).willReturn(Single.just(deploymentCredentials)))) {
                 deploymentService.getNecessaryCredentials(terminateRequest)
                     .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                         assertThat(result.getEdgeLoginCredentials())
@@ -174,7 +174,7 @@ public class DeploymentServiceImplTest {
             (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
             try (MockedConstruction<TerraformSetupService> ignoredTFS =
                      Mockito.mockConstruction(TerraformSetupService.class, (mock, context) ->
-                         given(mock.getDeploymentCredentials()).willReturn(Single.error(IllegalStateException::new)))) {
+                         given(mock.getTerminationCredentials()).willReturn(Single.error(IllegalStateException::new)))) {
                 deploymentService.getNecessaryCredentials(terminateRequest)
                     .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
                         assertThat(throwable).isInstanceOf(IllegalStateException.class);

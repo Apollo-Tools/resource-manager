@@ -91,7 +91,7 @@ public class TerraformSetupServiceTest {
         String expectedEdgeOutput = os.equals("Windows") ? "edge_login_data=[{auth_user=\\\"user\\\"," +
             "auth_pw=\\\"pw\\\"}," +
             "]" : "edge_login_data=[{auth_user=\"user\",auth_pw=\"pw\"},]";
-        service.getDeploymentCredentials()
+        service.getTerminationCredentials()
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.getCloudCredentials().size()).isEqualTo(1);
                     assertThat(result.getCloudCredentials().get(0).getResourceProvider().getProvider()).isEqualTo("aws");
@@ -111,7 +111,7 @@ public class TerraformSetupServiceTest {
         TerraformSetupService service = new TerraformSetupService(vertx, deployRequest, deploymentPath,
             deploymentCredentials);
 
-        service.getDeploymentCredentials()
+        service.getTerminationCredentials()
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(IllegalStateException.class);

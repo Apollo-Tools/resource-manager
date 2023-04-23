@@ -8,6 +8,11 @@ import lombok.AllArgsConstructor;
 import java.nio.file.Path;
 import java.util.List;
 
+/**
+ * Execute a cli process in a configurable working directory with a list of commands.
+ *
+ * @author matthi-g
+ */
 @AllArgsConstructor
 public class ProcessExecutor {
 
@@ -15,11 +20,22 @@ public class ProcessExecutor {
 
     private final List<String> commands;
 
+    /**
+     * Create an instance from the workingDirectory and commands.
+     *
+     * @param workingDirectory the working directory of the process
+     * @param commands the list of commands to execute
+     */
     public ProcessExecutor(Path workingDirectory, String ...commands) {
         this.workingDirectory = workingDirectory;
         this.commands = List.of(commands);
     }
 
+    /**
+     * Execute the cli commands as a process.
+     *
+     * @return a Single that emits the process output of the commands
+     */
     public Single<ProcessOutput> executeCli() {
         ProcessBuilder processBuilder = new ProcessBuilder(commands)
             .directory(workingDirectory.toFile())

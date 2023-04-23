@@ -18,6 +18,11 @@ import io.vertx.rxjava3.CompletableHelper;
 import io.vertx.rxjava3.SingleHelper;
 import io.vertx.rxjava3.core.Vertx;
 
+/**
+ * This is the implementation of the #DeploymentService.
+ *
+ * @author matthi-g
+ */
 public class DeploymentServiceImpl extends ServiceProxy implements DeploymentService {
 
     private final Vertx vertx = Vertx.currentContext().owner();
@@ -69,7 +74,7 @@ public class DeploymentServiceImpl extends ServiceProxy implements DeploymentSer
             DeploymentPath deploymentPath = new DeploymentPath(reservationId, config);
             TerraformSetupService tfSetupService = new TerraformSetupService(vertx, terminateRequest, deploymentPath,
                 credentials);
-            return tfSetupService.getDeploymentCredentials();
+            return tfSetupService.getTerminationCredentials();
         });
         return SingleHelper.toFuture(getNecessaryCredentials);
     }

@@ -13,12 +13,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipOutputStream;
 
+/**
+ * Extends the #PackageSourceCode class for source code that is written in python.
+ *
+ * @author matthi-g
+ */
 public class PackagePythonCode extends PackageSourceCode{
     protected final String SOURCE_CODE_NAME = "cloud_function.py";
     private final File[] HANDLER_FILES =
         {Path.of("runtime", "python", "main.py").toFile(),
             Path.of("runtime", "python", "handler.py").toFile()};
 
+    /**
+     * Create an instance from vertx and the fileSystem.
+     *
+     * @param vertx a vertx instance
+     * @param fileSystem the vertx file system
+     */
     public PackagePythonCode(Vertx vertx, FileSystem fileSystem) {
         super(vertx, fileSystem);
         setSourceCodeName(SOURCE_CODE_NAME);

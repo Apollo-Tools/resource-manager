@@ -8,12 +8,24 @@ import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
 
+/**
+ * Extension of the #TerraformFileService to set up the main module of a deployment.
+ *
+ * @author matthi-g
+ */
 public class MainFileService extends TerraformFileService {
 
     private final List<TerraformModule> modules;
 
-    public MainFileService(FileSystem fs, Path rootFolder, List<TerraformModule> modules) {
-        super(fs, rootFolder);
+    /**
+     * Create an instance from the fileSystem, rootFolder and modules.
+     *
+     * @param fileSystem the vertx file system
+     * @param rootFolder the root folder of the module
+     * @param modules the list of sub modules
+     */
+    public MainFileService(FileSystem fileSystem, Path rootFolder, List<TerraformModule> modules) {
+        super(fileSystem, rootFolder);
         this.modules = modules;
     }
 
@@ -69,6 +81,11 @@ public class MainFileService extends TerraformFileService {
         return variables.toString();
     }
 
+    /**
+     * Get the string that defines all submodules of the deployment.
+     *
+     * @return the definition of all submodules
+     */
     public String getLocalModulesString() {
         StringBuilder moduleString = new StringBuilder();
         for (TerraformModule module : modules) {

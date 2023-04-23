@@ -15,6 +15,12 @@ import io.vertx.rxjava3.core.file.FileSystem;
 import java.nio.file.Path;
 import java.util.*;
 
+/**
+ * This service prepares all functions for deployment. This includes composition and packaging of
+ * the source code and composing the content of the OpenFaaS stack file.
+ *
+ * @author matthi-g
+ */
 public class FunctionFileService {
 
     private final Vertx vertx;
@@ -31,6 +37,14 @@ public class FunctionFileService {
 
     private FunctionsToDeploy functionsToDeploy = new FunctionsToDeploy();
 
+    /**
+     * Create an instance from vertx, functionResources, functionsDir and dockerCredentials.
+     *
+     * @param vertx the vertx instance
+     * @param functionResources the list of function resources
+     * @param functionsDir the directory where everything related to the functions is stored
+     * @param dockerCredentials the credentials of the docker user
+     */
     public FunctionFileService(Vertx vertx, List<FunctionResource> functionResources, Path functionsDir,
                                DockerCredentials dockerCredentials) {
         this.vertx = vertx;
@@ -40,6 +54,11 @@ public class FunctionFileService {
         this.dockerCredentials = dockerCredentials;
     }
 
+    /**
+     * Package the source code for all function resources.
+     *
+     * @return a Single that emits the functions to deploy
+     */
     public Single<FunctionsToDeploy> packageCode() {
         functionsToDeploy = new FunctionsToDeploy();
         PackageSourceCode packageSourceCode;
@@ -79,6 +98,13 @@ public class FunctionFileService {
             .andThen(Single.fromCallable(() -> functionsToDeploy));
     }
 
+    /**
+     * Check if a function is going to be deployed on a virtual machine or edge device.
+     *
+     * @param function the function
+     * @param functionResources the list of function resources
+     * @return true if the function has to be deployed on a vm or edge device, else false
+     */
     private boolean deployFunctionOnVMOrEdge(Function function, List<FunctionResource> functionResources) {
         return functionResources.stream().anyMatch(functionResource -> {
             String resourceType = functionResource.getResource().getResourceType().getResourceType();

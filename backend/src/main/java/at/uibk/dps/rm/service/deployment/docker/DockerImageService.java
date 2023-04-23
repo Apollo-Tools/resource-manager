@@ -9,10 +9,17 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.buffer.Buffer;
+import lombok.AllArgsConstructor;
 
 import java.nio.file.Path;
 import java.util.List;
 
+/**
+ * This service can be used to build docker images for OpenFaaS and push them to a docker registry.
+ *
+ * @author matthi-g
+ */
+@AllArgsConstructor
 public class DockerImageService {
 
     private final Vertx vertx;
@@ -23,15 +30,14 @@ public class DockerImageService {
 
     private final Path functionsDir;
 
-    public DockerImageService(Vertx vertx, DockerCredentials dockerCredentials,
-                              List<String> functionIdentifiers, Path functionsDir) {
-        this.vertx = vertx;
-        this.dockerCredentials = dockerCredentials;
-        this.functionIdentifiers = functionIdentifiers;
-        this.functionsDir = functionsDir;
-    }
-
-    public Single<ProcessOutput> buildAndPushDockerImages(String functionsString) {
+    /**
+     * Build and push a docker image for each entry in the functionsString that can be deployed to
+     * OpenFaaS.
+     *
+     * @param functionsString the functions for which the image should be built
+     * @return a Single that emits the process output of the build process
+     */
+    public Single<ProcessOutput> buildOpenFaasImages(String functionsString) {
         if (functionsString.isBlank()) {
             return Single.just(new ProcessOutput());
         }
@@ -46,13 +52,13 @@ public class DockerImageService {
                 "%s\n", functionsString);
 
         return createStackFile(functionsDir, stackFile)
-            .andThen(buildFunctionsDockerFiles(functionsDir))
+            .andThen(generateFunctionsDockerFiles(functionsDir))
             .flatMap(buildOutput -> {
                 if (buildOutput.getProcess().exitValue() != 0) {
                     return Single.just(buildOutput);
                 }
                 return new ConfigUtility(vertx).getConfig()
-                        .flatMap(config -> pushDockerImages(functionsDir, config))
+                        .flatMap(config -> buildAndPushDockerImages(functionsDir, config))
                         .map(pushOutput -> {
                             pushOutput.setOutput(buildOutput.getOutput() + pushOutput.getOutput());
                             return pushOutput;
@@ -60,18 +66,38 @@ public class DockerImageService {
             });
     }
 
+    /**
+     * Create the stack file where all functions and function templates are defined.
+     *
+     * @param rootFolder the path where the stack file should be created
+     * @param fileContent the content of the stack file
+     * @return a Completable
+     */
     private Completable createStackFile(Path rootFolder, String fileContent) {
         Path filePath = Path.of(rootFolder.toString(), "stack.yml");
         return vertx.fileSystem().writeFile(filePath.toString(), Buffer.buffer(fileContent));
     }
 
-    private Single<ProcessOutput> buildFunctionsDockerFiles(Path rootFolder) {
+    /**
+     * Generate a dockerfile for each function from the stack file.
+     *
+     * @param rootFolder the path where the stack file is located
+     * @return a Single that emits the process output of the generation of the dockerfiles
+     */
+    private Single<ProcessOutput> generateFunctionsDockerFiles(Path rootFolder) {
         ProcessExecutor processExecutor = new ProcessExecutor(rootFolder.toAbsolutePath(),"faas-cli",
             "build", "-f", "stack.yml", "--shrinkwrap");
         return processExecutor.executeCli();
     }
 
-    private Single<ProcessOutput> pushDockerImages(Path rootFolder, JsonObject config) {
+    /**
+     * Build and push all docker images with the dockerfiles located in the rootFolder.
+     *
+     * @param rootFolder the path to the dockerfiles
+     * @param config the vertx config
+     * @return a Single that emits the process output of the build and pushing process
+     */
+    private Single<ProcessOutput> buildAndPushDockerImages(Path rootFolder, JsonObject config) {
         String dindDir = config.getString("dind_directory");
         List<String> dockerCommands = new java.util.ArrayList<>(List.of("docker", "run", "-v",
             "/var/run/docker.sock:/var/run/docker.sock", "--privileged", "--rm", "-v",

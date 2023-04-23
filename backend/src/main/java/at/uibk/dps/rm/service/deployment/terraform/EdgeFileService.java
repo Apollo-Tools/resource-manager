@@ -10,6 +10,11 @@ import io.vertx.rxjava3.core.file.FileSystem;
 import java.nio.file.Path;
 import java.util.*;
 
+/**
+ * Extension of the #TerraformFileService to set up the edge module of a deployment.
+ *
+ * @author matthi-g
+ */
 public class EdgeFileService extends TerraformFileService {
     private final List<FunctionResource> functionResources;
 
@@ -19,6 +24,16 @@ public class EdgeFileService extends TerraformFileService {
 
     private final String dockerUserName;
 
+    /**
+     * Create an instance from the fileSystem, rootFolder, functionResources, reservationId and
+     * dockerUsername.
+     *
+     * @param fileSystem the vertx file system
+     * @param rootFolder the root folder of the module
+     * @param functionResources the list of function resources
+     * @param reservationId the id of the reservation
+     * @param dockerUsername the docker username
+     */
     public EdgeFileService(FileSystem fileSystem, Path rootFolder, List<FunctionResource> functionResources,
                            long reservationId, String dockerUsername) {
         super(fileSystem, rootFolder);
@@ -37,6 +52,11 @@ public class EdgeFileService extends TerraformFileService {
         return this.getEdgeModulesString();
     }
 
+    /**
+     * Get the string that defines all edge resource from the terraform module.
+     *
+     * @return the edge modules string
+     */
     private String getEdgeModulesString() {
         StringBuilder functionsString = new StringBuilder();
         for (FunctionResource functionResource : functionResources) {

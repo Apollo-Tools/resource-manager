@@ -18,6 +18,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * This service is used to setup everything related to the deployment with terraform. This includes
+ * creation of the necessary directories and files, composing and packaging the source code of
+ * functions and building and pushing docker images.
+ *
+ * @author matthi-g
+ */
 public class TerraformSetupService {
 
     private final Vertx vertx;
@@ -30,6 +37,14 @@ public class TerraformSetupService {
 
     private final DeploymentCredentials credentials;
 
+    /**
+     * Create an instance from vertx, deployRequest, deploymentPath and the credentials.
+     *
+     * @param vertx the vertx instance
+     * @param deployRequest the request which contains all data necessary for deployment
+     * @param deploymentPath the deployment path
+     * @param credentials the deployment credentials
+     */
     public TerraformSetupService(Vertx vertx, DeployResourcesRequest deployRequest, DeploymentPath deploymentPath,
                                  DeploymentCredentials credentials) {
         this.vertx = vertx;
@@ -38,6 +53,14 @@ public class TerraformSetupService {
         this.credentials = credentials;
     }
 
+    /**
+     * Create an instance from vertx, terminate, deploymentPath and the credentials.
+     *
+     * @param vertx the vertx instance
+     * @param terminateRequest the request which contains all data necessary for termination
+     * @param deploymentPath the deployment path
+     * @param credentials the deployment credentials
+     */
     public TerraformSetupService(Vertx vertx, TerminateResourcesRequest terminateRequest, DeploymentPath deploymentPath,
                                  DeploymentCredentials credentials) {
         this.vertx = vertx;
@@ -46,6 +69,11 @@ public class TerraformSetupService {
         this.credentials = credentials;
     }
 
+    /**
+     * Create all terraform module directories.
+     *
+     * @return a Single that emits a list of all terraform modules from the deployment
+     */
     public Single<List<TerraformModule>> setUpTFModuleDirs() {
         if (deployRequest == null) {
             return Single.error(new IllegalStateException("deployRequest must not be null"));
@@ -72,7 +100,12 @@ public class TerraformSetupService {
             .collect(Collectors.toList()));
     }
 
-    public Single<DeploymentCredentials> getDeploymentCredentials() {
+    /**
+     * Get the credentials that are necessary for termination.
+     *
+     * @return a Single that emits the credentials
+     */
+    public Single<DeploymentCredentials> getTerminationCredentials() {
         if (terminateRequest == null) {
             return Single.error(new IllegalStateException("terminateRequest must not be null"));
         }
@@ -90,6 +123,12 @@ public class TerraformSetupService {
         return Single.just(this.credentials);
     }
 
+    /**
+     * Compose the edge login data that is necessary for deployment. It is formatted to be used as
+     * command line parameter of the terraform cli.
+     *
+     * @param regionFunctionResources the function resources grouped by region
+     */
     private void composeEdgeLoginData(List<FunctionResource> regionFunctionResources) {
         StringBuilder edgeCredentials = new StringBuilder();
         edgeCredentials.append("edge_login_data=[");
@@ -114,6 +153,12 @@ public class TerraformSetupService {
         credentials.setEdgeLoginCredentials(edgeCredentials.toString());
     }
 
+    /**
+     * Compose the cloud login data that is necessary for deployment and termination.
+     *
+     * @param credentialsList the list that contains all credentials
+     * @param region the region
+     */
     private void composeCloudLoginData(List<Credentials> credentialsList, Region region) {
         credentialsList.stream()
             .filter(filterCredentials -> filterCredentials.getResourceProvider().equals(region.getResourceProvider()))
@@ -122,6 +167,15 @@ public class TerraformSetupService {
     }
 
     //TODO: Rework for other cloud providers
+
+    /**
+     * Setup everything necessary for cloud deployment in the region.
+     *
+     * @param region the region
+     * @param regionFunctionResources the function resource of the region
+     * @param regionVPCMap all available vpc grouped by region
+     * @return a Single that emits the created terraform module
+     */
     private Single<TerraformModule> cloudDeployment(Region region, List<FunctionResource> regionFunctionResources,
                                                     Map<Region, VPC> regionVPCMap) {
         //TODO: get rid of hard coded labRole
@@ -137,6 +191,12 @@ public class TerraformSetupService {
             .toSingle(() -> module);
     }
 
+    /**
+     * Setup everything necessary for edge deployment.
+     *
+     * @param edgeFunctionResources the function resources for edge deployment
+     * @return a Single that emits the created terraform module
+     */
     private Single<TerraformModule> edgeDeployment(List<FunctionResource> edgeFunctionResources) {
         TerraformModule module = new TerraformModule(CloudProvider.EDGE, "edge");
         Path edgeFolder = deploymentPath.getModuleFolder(module);
@@ -145,5 +205,4 @@ public class TerraformSetupService {
         return edgeService.setUpDirectory()
             .toSingle(() -> module);
     }
-
 }

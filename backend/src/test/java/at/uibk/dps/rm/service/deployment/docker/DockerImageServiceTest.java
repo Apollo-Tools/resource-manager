@@ -68,7 +68,7 @@ public class DockerImageServiceTest {
 
     @ParameterizedTest
     @ValueSource(ints = {0, -1})
-    void buildAndPushDockerImages(int exitValue, VertxTestContext testContext) {
+    void buildOpenFaasImages(int exitValue, VertxTestContext testContext) {
         String functionString = "functions";
 
         when(vertx.fileSystem()).thenReturn(fileSystem);
@@ -86,7 +86,7 @@ public class DockerImageServiceTest {
             (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
             try (MockedConstruction<ProcessExecutor> ignored = Mockito.mockConstruction(ProcessExecutor.class,
                 (mock, context) -> given(mock.executeCli()).willReturn(Single.just(processOutput)))) {
-                dockerImageService.buildAndPushDockerImages(functionString)
+                dockerImageService.buildOpenFaasImages(functionString)
                     .subscribe(result -> testContext.verify(() -> {
                             assertThat(result.getOutput()).isEqualTo("build output\npush output\n");
                             assertThat(result.getProcess().exitValue()).isEqualTo(exitValue);
@@ -99,7 +99,7 @@ public class DockerImageServiceTest {
     }
 
     @Test
-    void buildAndPushDockerImagesBuildFailed(VertxTestContext testContext) {
+    void buildOpenFaasImagesBuildFailed(VertxTestContext testContext) {
         String functionString = "functions";
 
         when(vertx.fileSystem()).thenReturn(fileSystem);
@@ -114,7 +114,7 @@ public class DockerImageServiceTest {
             (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
             try (MockedConstruction<ProcessExecutor> ignored = Mockito.mockConstruction(ProcessExecutor.class,
                 (mock, context) -> given(mock.executeCli()).willReturn(Single.just(processOutput)))) {
-                dockerImageService.buildAndPushDockerImages(functionString)
+                dockerImageService.buildOpenFaasImages(functionString)
                     .subscribe(result -> testContext.verify(() -> {
                             assertThat(result.getOutput()).isEqualTo("build output\n");
                             assertThat(result.getProcess().exitValue()).isEqualTo(-1);
@@ -127,7 +127,7 @@ public class DockerImageServiceTest {
     }
 
     @Test
-    void buildAndPushDockerCreateStackFileFailed(VertxTestContext testContext) {
+    void buildOpenFaasImagesCreateStackFileFailed(VertxTestContext testContext) {
         String functionString = "functions";
 
         when(vertx.fileSystem()).thenReturn(fileSystem);
@@ -136,7 +136,7 @@ public class DockerImageServiceTest {
 
         try(MockedConstruction<ProcessExecutor> ignored = Mockito.mockConstruction(ProcessExecutor.class,
             (mock, context) -> given(mock.executeCli()).willReturn(Single.just(processOutput)))) {
-            dockerImageService.buildAndPushDockerImages(functionString)
+            dockerImageService.buildOpenFaasImages(functionString)
                 .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                     throwable -> testContext.verify(() -> {
                         assertThat(throwable).isInstanceOf(IOException.class);
@@ -147,10 +147,10 @@ public class DockerImageServiceTest {
     }
 
     @Test
-    void buildAndPushDockerBlankFunctionsString(VertxTestContext testContext) {
+    void buildOpenFaasImagesBlankFunctionsString(VertxTestContext testContext) {
         String functionString = "";
 
-        dockerImageService.buildAndPushDockerImages(functionString)
+        dockerImageService.buildOpenFaasImages(functionString)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.getOutput()).isNull();
                     assertThat(result.getProcess()).isNull();
