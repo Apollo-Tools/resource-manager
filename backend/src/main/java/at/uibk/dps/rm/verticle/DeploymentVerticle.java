@@ -9,6 +9,11 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.rxjava3.core.AbstractVerticle;
 import io.vertx.serviceproxy.ServiceBinder;
 
+/**
+ * Everything that relates to the deployment is executed on the DeploymentVerticle.
+ *
+ * @author matthi-g
+ */
 public class DeploymentVerticle extends AbstractVerticle {
 
     private static final Logger logger = LoggerFactory.getLogger(DeploymentVerticle.class);
@@ -18,6 +23,11 @@ public class DeploymentVerticle extends AbstractVerticle {
         return setupEventBus();
     }
 
+    /**
+     * Register all deployment service proxies on the event bus.
+     *
+     * @return a Completable
+     */
     private Completable setupEventBus() {
         Maybe<Void> setupEventBus = Maybe.create(emitter -> {
             DeploymentService deploymentService =

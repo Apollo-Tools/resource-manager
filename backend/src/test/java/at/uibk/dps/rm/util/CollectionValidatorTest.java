@@ -16,14 +16,13 @@ import static org.assertj.core.api.Assertions.fail;
 
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class ArrayValidatorTest {
+public class CollectionValidatorTest {
 
     @Test
-    void checkJsonArrayDuplicates(VertxTestContext testContext) {
-        ArrayValidator<String> validator = new ArrayValidator<>();
+    void checkCollectionNoDuplicates(VertxTestContext testContext) {
         Collection<String> collection = List.of("1", "one", "eins", "uno");
 
-        validator.hasDuplicates(collection)
+        CollectionValidator.hasDuplicates(collection)
             .blockingSubscribe(() -> {},
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
@@ -36,11 +35,10 @@ public class ArrayValidatorTest {
         "1, 1, 1",
         "one, 1, 1",
     })
-    void checkJsonArrayDuplicates(String s1, String s2, String s3, VertxTestContext testContext) {
-        ArrayValidator<String> validator = new ArrayValidator<>();
+    void checkCollectionDuplicates(String s1, String s2, String s3, VertxTestContext testContext) {
         Collection<String> collection = List.of(s1, s2, s3);
 
-        validator.hasDuplicates(collection)
+        CollectionValidator.hasDuplicates(collection)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(Throwable.class);

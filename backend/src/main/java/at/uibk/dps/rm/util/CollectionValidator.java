@@ -2,15 +2,29 @@ package at.uibk.dps.rm.util;
 
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
+import lombok.experimental.UtilityClass;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-public class ArrayValidator<T> {
+/**
+ * A utility class that can be used to validate the items of a collection.
+ *
+ * @author matthi-g
+ */
+@UtilityClass
+public class CollectionValidator {
 
-    public Completable hasDuplicates(Collection<T> collection) {
+    /**
+     * Check a collection if it contains duplicates.
+     *
+     * @param collection the collection of items
+     * @param <T> the type of items
+     * @return a Completable
+     */
+    public static <T> Completable hasDuplicates(Collection<T> collection) {
         return Maybe.just(collection)
             .mapOptional(items -> {
                 Set<T> uniques = new HashSet<>();

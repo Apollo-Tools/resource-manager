@@ -6,11 +6,20 @@ import io.vertx.core.Vertx;
 
 import java.nio.file.Path;
 
+/**
+ * This is the implementation of the #FilePathService.
+ *
+ * @author matthi-g
+ */
 public class FilePathServiceImpl extends ServiceProxy implements FilePathService{
 
     private final Vertx vertx;
 
-
+    /**
+     * Create an instance from vertx.
+     *
+     * @param vertx the vertx instance
+     */
     public FilePathServiceImpl(Vertx vertx) {
         this.vertx = vertx;
     }

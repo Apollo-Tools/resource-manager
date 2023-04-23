@@ -5,7 +5,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import io.vertx.core.json.jackson.DatabindCodec;
 
+/**
+ * Used to configure the global json mapper.
+ *
+ * @author matthi-g
+ */
 public class JsonMapperConfig {
+    /**
+     * Configure the global json mapper.
+     */
     public static void configJsonMapper() {
         // returns the ObjectMapper used by Vert.x
         ObjectMapper mapper = DatabindCodec.mapper();

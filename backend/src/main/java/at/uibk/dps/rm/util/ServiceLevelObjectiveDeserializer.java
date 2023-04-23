@@ -12,15 +12,28 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+/**
+ * This class can be used to deserialize the ServiceLevelObjectives array.
+ *
+ * @author matthi-g
+ */
 public class ServiceLevelObjectiveDeserializer extends StdDeserializer<ServiceLevelObjective> {
 
     private static final long serialVersionUID = 4863372290944518864L;
 
-    // Throws an error if this constructor is not present
+    /**
+     * This unused.
+     * The deserialization throws an error if this constructor is not present
+     */
     public ServiceLevelObjectiveDeserializer() {
         this(null);
     }
 
+    /**
+     * Create an instance from the valueClass.
+     *
+     * @param valueClass
+     */
     public ServiceLevelObjectiveDeserializer(Class<?> valueClass) {
         super(valueClass);
     }
@@ -41,6 +54,12 @@ public class ServiceLevelObjectiveDeserializer extends StdDeserializer<ServiceLe
         return new ServiceLevelObjective(name, expressionType, sloValues);
     }
 
+    /**
+     * Deserialize a service level objective value.
+     *
+     * @param value the value of the service level objective
+     * @return the deserialized service level objective value
+     */
     private SLOValue deserializeSLOValue(JsonNode value) {
         SLOValue sloValue = new SLOValue();
         if (value.isNumber()) {

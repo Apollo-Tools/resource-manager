@@ -8,6 +8,11 @@ import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.rxjava3.core.AbstractVerticle;
 
+/**
+ * This is the main verticle that is responsible for the startup of all other verticles.
+ *
+ * @author matthi-g
+ */
 public class MainVerticle extends AbstractVerticle {
 
     private static final Logger logger = LoggerFactory.getLogger(MainVerticle.class);

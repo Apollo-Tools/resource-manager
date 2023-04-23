@@ -5,8 +5,11 @@ import org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl;
 import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
 
 /**
- *  Source: <a href="https://vladmihalcea.com/map-camel-case-properties-snake-case-column-names-hibernate/">Link</a>
+ *  <a href="https://vladmihalcea.com/map-camel-case-properties-snake-case-column-names-hibernate/">
+ *      Source
+*   </a>
  **/
+@SuppressWarnings("PMD")
 public class CamelCaseToSnakeCaseNamingStrategy extends PhysicalNamingStrategyStandardImpl {
 
     public static final CamelCaseToSnakeCaseNamingStrategy INSTANCE =

@@ -26,6 +26,11 @@ import io.vertx.rxjava3.ext.web.handler.CorsHandler;
 import io.vertx.rxjava3.ext.web.handler.JWTAuthHandler;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
+/**
+ * Everything that relates to the api of the resource manager is executed on the ApiVerticle.
+ *
+ * @author matthi-g
+ */
 public class ApiVerticle extends AbstractVerticle {
 
     private static final Logger logger = LoggerFactory.getLogger(ApiVerticle.class);
@@ -49,6 +54,12 @@ public class ApiVerticle extends AbstractVerticle {
             .ignoreElement();
     }
 
+    /**
+     * Initialize the route for the api using the routerBuilder.
+     *
+     * @param routerBuilder the router builder
+     * @return the intialized router
+     */
     private Router initRouter(RouterBuilder routerBuilder) {
         Router globalRouter = Router.router(vertx);
         setupFailureHandler(globalRouter);
@@ -62,6 +73,11 @@ public class ApiVerticle extends AbstractVerticle {
         return globalRouter;
     }
 
+    /**
+     * Setup all api routes.
+     *
+     * @param routerBuilder the router builder
+     */
     private void setupRoutes(RouterBuilder routerBuilder) {
         ServiceProxyProvider serviceProxyProvider = new ServiceProxyProvider(vertx);
         new AccountRoute().init(routerBuilder, serviceProxyProvider, jwtAuthProvider);
@@ -84,6 +100,11 @@ public class ApiVerticle extends AbstractVerticle {
         new VPCRoute().init(routerBuilder, serviceProxyProvider);
     }
 
+    /**
+     * Set up the security handler.
+     *
+     * @param routerBuilder the router builder
+     */
     private void setupSecurityHandler(RouterBuilder routerBuilder) {
         jwtAuthProvider = new JWTAuthProvider(vertx,config().getString("jwt_algorithm"),
             config().getString("jwt_secret"), config().getInteger("token_minutes_valid"));
@@ -92,6 +113,11 @@ public class ApiVerticle extends AbstractVerticle {
             .bindBlocking(config -> JWTAuthHandler.create(jwtAuthProvider.getJwtAuth()));
     }
 
+    /**
+     * Set up the failure handler.
+     *
+     * @param router the router
+     */
     private void setupFailureHandler(Router router) {
         router.route().failureHandler(rc -> {
             String message;
@@ -109,6 +135,11 @@ public class ApiVerticle extends AbstractVerticle {
         });
     }
 
+    /**
+     * Set up the cors policy for the api.
+     *
+     * @return the resulting cors handler
+     */
     private CorsHandler cors() {
         return CorsHandler.create("*")
                 .allowedMethod(HttpMethod.GET)

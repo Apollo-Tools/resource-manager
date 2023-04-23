@@ -4,6 +4,11 @@ import io.reactivex.rxjava3.core.Completable;
 import io.vertx.rxjava3.core.AbstractVerticle;
 import org.flywaydb.core.Flyway;
 
+/**
+ * The migrationVerticle executes database migrations using flyway.
+ *
+ * @author matthi-g
+ */
 public class MigrationVerticle extends AbstractVerticle {
 
     @Override

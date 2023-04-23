@@ -7,10 +7,20 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.config.ConfigRetriever;
 import io.vertx.rxjava3.core.Vertx;
 
+/**
+ * This class is used to load the vertx config from the environment variables and config file.
+ *
+ * @author matthi-g
+ */
 public class ConfigUtility {
 
     private final ConfigRetriever configRetriever;
 
+    /**
+     * Create an instance from vertx.
+     *
+     * @param vertx the vertx instance
+     */
     public ConfigUtility(Vertx vertx) {
         ConfigStoreOptions storeEnv = new ConfigStoreOptions().setType("env");
         ConfigStoreOptions storeFile = new ConfigStoreOptions()
@@ -21,6 +31,11 @@ public class ConfigUtility {
             .addStore(storeEnv));
     }
 
+    /**
+     * Get the config.
+     *
+     * @return a Single that emits the config as JsonObject
+     */
     public Single<JsonObject> getConfig() {
         return this.configRetriever.getConfig();
     }

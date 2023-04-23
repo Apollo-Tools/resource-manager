@@ -46,6 +46,11 @@ import org.hibernate.reactive.stage.Stage.SessionFactory;
 import javax.persistence.Persistence;
 import java.util.Map;
 
+/**
+ * Everything that relates to database operations is executed on the DatabaseVerticle.
+ *
+ * @author matthi-g
+ */
 public class DatabaseVerticle extends AbstractVerticle {
 
     private static final Logger logger = LoggerFactory.getLogger(DatabaseVerticle.class);
@@ -80,6 +85,11 @@ public class DatabaseVerticle extends AbstractVerticle {
                 .andThen(setupEventBus());
     }
 
+    /**
+     * Set up the connection to the database
+     *
+     * @return a Completable
+     */
     private Completable setupDatabase() {
         Maybe<Void> startDB = vertx.rxExecuteBlocking(emitter -> {
             int dbPort = config().getInteger("db_port");
@@ -99,6 +109,11 @@ public class DatabaseVerticle extends AbstractVerticle {
         return Completable.fromMaybe(startDB);
     }
 
+    /**
+     * Initialize all repositories.
+     *
+     * @return a Completable
+     */
     private Completable initializeRepositories() {
         Maybe<Void> setupServices = Maybe.create(emitter -> {
             accountRepository = new AccountRepository(sessionFactory);
@@ -126,6 +141,11 @@ public class DatabaseVerticle extends AbstractVerticle {
         return Completable.fromMaybe(setupServices);
     }
 
+    /**
+     * Register all database service proxies on the event bus.
+     *
+     * @return a Completable
+     */
     private Completable setupEventBus() {
         Maybe<Void> setupEventBus = Maybe.create(emitter -> {
             ServiceBinder serviceBinder = new ServiceBinder(vertx.getDelegate());
