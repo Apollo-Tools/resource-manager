@@ -10,20 +10,33 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 
+/**
+ * The interface of the service proxy for the runtime entity.
+ *
+ * @author matthi-g
+ */
 @ProxyGen
 @VertxGen
 public interface RuntimeService extends DatabaseServiceInterface {
 
+    @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
     static RuntimeService create(RuntimeRepository runtimeRepository) {
         return new RuntimeServiceImpl(runtimeRepository);
     }
 
+    @SuppressWarnings("PMD.CommentRequired")
     @Generated
     static RuntimeService createProxy(Vertx vertx) {
         return new RuntimeServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(Runtime.class));
     }
 
+    /**
+     * Check if a runtime exists by its name.
+     *
+     * @param name the name of the runtime
+     * @return a Future that emits true if the function exists, else false
+     */
     Future<Boolean> existsOneByName(String name);
 }

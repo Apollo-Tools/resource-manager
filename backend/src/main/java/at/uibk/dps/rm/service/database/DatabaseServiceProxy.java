@@ -11,11 +11,25 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * This class is an abstract implementation of the {@link DatabaseServiceInterface}. For the
+ * implementation of the methods a {@link Repository} is used that has to be provided to the
+ * constructor. The repository determines which type of entity is getting modified by an extension
+ * of this class.
+ *
+ * @param <T> the type of entity
+ */
 public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements DatabaseServiceInterface {
     private final Repository<T> repository;
 
     private final Class<T> entityClass;
 
+    /**
+     * Create an instance from the repository and class of the entity.
+     *
+     * @param repository the repository
+     * @param entityClass the class of the entity
+     */
     public DatabaseServiceProxy(Repository<T> repository, Class<T> entityClass) {
         this.repository = repository;
         this.entityClass = entityClass;
@@ -26,6 +40,7 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
         return entityClass.getSimpleName().toLowerCase() + super.getServiceProxyAddress();
     }
 
+    @Override
     public Future<JsonObject> save(JsonObject data) {
         T entity = data.mapTo(entityClass);
         return Future
@@ -33,6 +48,7 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
             .map(JsonObject::mapFrom);
     }
 
+    @Override
     public Future<Void> saveAll(JsonArray data) {
         List<T> entities = data
             .stream()
@@ -43,18 +59,21 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
             .fromCompletionStage(repository.createAll(entities));
     }
 
+    @Override
     public Future<JsonObject> findOne(long id) {
         return Future
             .fromCompletionStage(repository.findById(id))
             .map(JsonObject::mapFrom);
     }
 
+    @Override
     public Future<Boolean> existsOneById(long id) {
         return Future
             .fromCompletionStage(repository.findById(id))
             .map(Objects::nonNull);
     }
 
+    @Override
     public Future<JsonArray> findAll() {
         return Future
             .fromCompletionStage(repository.findAll())
@@ -67,6 +86,7 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
             });
     }
 
+    @Override
     public Future<Void> update(JsonObject data) {
         T entity = data.mapTo(entityClass);
         return Future
@@ -74,6 +94,7 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
             .mapEmpty();
     }
 
+    @Override
     public Future<Void> delete(long id) {
         return Future
             .fromCompletionStage(repository.deleteById(id))

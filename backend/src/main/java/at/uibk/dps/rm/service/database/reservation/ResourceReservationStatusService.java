@@ -12,21 +12,35 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 
+/**
+ * The interface of the service proxy for the resource_reservation_status entity.
+ *
+ * @author matthi-g
+ */
 @ProxyGen
 @VertxGen
 public interface ResourceReservationStatusService extends DatabaseServiceInterface {
 
+    @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
     static ResourceReservationStatusService create(ResourceReservationStatusRepository repository) {
         return new ResourceReservationStatusServiceImpl(repository);
     }
 
+    @SuppressWarnings("PMD.CommentRequired")
     @Generated
     static ResourceReservationStatusService createProxy(Vertx vertx) {
         return new ResourceReservationStatusServiceVertxEBProxy(vertx,
             ServiceProxyAddress.getServiceProxyAddress(ResourceReservationStatus.class));
     }
 
+    /**
+     * Find a resource reservation status by its value.
+     *
+     * @param statusValue the value of the status
+     * @return a Future that emits the resource reservation status as JsonObject if it exists, else
+     * null
+     */
     Future<JsonObject> findOneByStatusValue(String statusValue);
 }

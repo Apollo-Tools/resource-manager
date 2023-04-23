@@ -12,23 +12,44 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 
+/**
+ * The interface of the service proxy for the account_credentials entity.
+ *
+ * @author matthi-g
+ */
 @ProxyGen
 @VertxGen
 public interface AccountCredentialsService extends DatabaseServiceInterface {
 
+    @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
     static AccountCredentialsService create(AccountCredentialsRepository accountCredentialsRepository) {
         return new AccountCredentialsServiceImpl(accountCredentialsRepository);
     }
 
+    @SuppressWarnings("PMD.CommentRequired")
     @Generated
     static AccountCredentialsService createProxy(Vertx vertx) {
         return new AccountCredentialsServiceVertxEBProxy(vertx,
             ServiceProxyAddress.getServiceProxyAddress(AccountCredentials.class));
     }
 
+    /**
+     * Find account credentials by the credentials and creator account.
+     *
+     * @param credentialsId the id of the credentials
+     * @param accountId the id of the creator account
+     * @return a Future that emits the account credentials as JsonObject if they exist else null
+     */
     Future<JsonObject> findOneByCredentialsAndAccount(long credentialsId, long accountId);
 
+    /**
+     * Check if account credentials exist by account and resource provider.
+     *
+     * @param accountId the id of the creator account
+     * @param providerId the id of the resource provider
+     * @return a Future that emits true if they exist, else false
+     */
     Future<Boolean> existsOneByAccountAndProvider(long accountId, long providerId);
 }

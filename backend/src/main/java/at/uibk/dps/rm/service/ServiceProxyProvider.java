@@ -22,10 +22,17 @@ import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceTypeService;
 import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.VPCService;
 import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentService;
 import at.uibk.dps.rm.service.rxjava3.util.FilePathService;
+import at.uibk.dps.rm.verticle.DatabaseVerticle;
 import io.vertx.rxjava3.core.Vertx;
 import lombok.Getter;
 
-
+/**
+ * This class is used as a provider of the client side of all service proxy services that are
+ * available at the resource manager. To use the service clients their address has to get bound
+ * to a ServiceBinder first like in {@link DatabaseVerticle}.
+ *
+ * @author matthi-g
+ */
 @Getter
 public class ServiceProxyProvider {
     private final AccountService accountService;
@@ -43,6 +50,8 @@ public class ServiceProxyProvider {
     private final ResourceService resourceService;
     private final ResourceProviderService resourceProviderService;
     private final ResourceReservationService resourceReservationService;
+
+    @SuppressWarnings("PMD.LongVariable")
     private final ResourceReservationStatusService resourceReservationStatusService;
     private final ResourceTypeService resourceTypeService;
     private final ResourceTypeMetricService resourceTypeMetricService;
@@ -51,6 +60,11 @@ public class ServiceProxyProvider {
     private final DeploymentService deploymentService;
     private final FilePathService filePathService;
 
+    /**
+     * Create an instance from vertx. All client proxies get setup in this method.
+     *
+     * @param vertx the current vertx instance
+     */
     public ServiceProxyProvider(Vertx vertx) {
         accountService = AccountService.createProxy(vertx);
         accountCredentialsService = AccountCredentialsService.createProxy(vertx);

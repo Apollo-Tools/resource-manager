@@ -45,7 +45,7 @@ public abstract class Repository<E> {
      * Create and save a list of entities.
      *
      * @param entityList the list of entities
-     * @return a CompletionStage that emits nothing
+     * @return an empty CompletionStage
      */
     public CompletionStage<Void> createAll(List<E> entityList) {
         return sessionFactory.withTransaction((session, tx) ->

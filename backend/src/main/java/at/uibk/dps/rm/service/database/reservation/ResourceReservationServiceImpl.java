@@ -10,19 +10,29 @@ import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
 
+/**
+ * This is the implementation of the #ResourceReservationService.
+ *
+ * @author matthi-g
+ */
 public class ResourceReservationServiceImpl extends DatabaseServiceProxy<ResourceReservation> implements ResourceReservationService {
 
     private final ResourceReservationRepository resourceReservationRepository;
 
+    /**
+     * Create aninstance from the resourceReservationRepositry.
+     *
+     * @param resourceReservationRepository the resource reservation repository
+     */
     public ResourceReservationServiceImpl(ResourceReservationRepository resourceReservationRepository) {
         super(resourceReservationRepository, ResourceReservation.class);
         this.resourceReservationRepository = resourceReservationRepository;
     }
 
     @Override
-    public Future<JsonArray> findAllByReservationId(long id) {
+    public Future<JsonArray> findAllByReservationId(long reservationId) {
         return Future
-                .fromCompletionStage(resourceReservationRepository.findAllByReservationId(id))
+                .fromCompletionStage(resourceReservationRepository.findAllByReservationId(reservationId))
                 .map(result -> {
                     ArrayList<JsonObject> objects = new ArrayList<>();
                     for (ResourceReservation entity: result) {

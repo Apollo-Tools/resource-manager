@@ -9,15 +9,26 @@ import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
 
+/**
+ * This is the implementation of the #ReservationService.
+ *
+ * @author matthi-g
+ */
 public class ReservationServiceImpl extends DatabaseServiceProxy<Reservation> implements ReservationService {
 
     private final ReservationRepository reservationRepository;
 
+    /**
+     * Create an instance from the reservationRepository.
+     *
+     * @param reservationRepository the reservation repository
+     */
     public ReservationServiceImpl(ReservationRepository reservationRepository) {
         super(reservationRepository, Reservation.class);
         this.reservationRepository = reservationRepository;
     }
 
+    @Override
     public Future<JsonArray> findAllByAccountId(long accountId) {
         return Future
             .fromCompletionStage(reservationRepository.findAllByAccountId(accountId))

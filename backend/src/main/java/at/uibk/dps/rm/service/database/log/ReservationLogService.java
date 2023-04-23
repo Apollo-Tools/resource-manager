@@ -10,16 +10,23 @@ import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
 
+/**
+ * The interface of the service proxy for the reservation_log entity.
+ *
+ * @author matthi-g
+ */
 @ProxyGen
 @VertxGen
 public interface ReservationLogService extends DatabaseServiceInterface {
 
+    @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
     static ReservationLogService create(ReservationLogRepository reservationLogRepository) {
         return new ReservationLogServiceImpl(reservationLogRepository);
     }
 
+    @SuppressWarnings("PMD.CommentRequired")
     @Generated
     static ReservationLogService createProxy(Vertx vertx) {
         return new ReservationLogServiceVertxEBProxy(vertx,

@@ -10,9 +10,19 @@ import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.Objects;
 
+/**
+ * This is the implementation of the #VPCService.
+ *
+ * @author matthi-g
+ */
 public class VPCServiceImpl extends DatabaseServiceProxy<VPC> implements VPCService {
     private final VPCRepository vpcRepository;
 
+    /**
+     * Create an instance from the vpcRepository.
+     *
+     * @param vpcRepository the vpc repository
+     */
     public VPCServiceImpl(VPCRepository vpcRepository) {
         super(vpcRepository, VPC.class);
         this.vpcRepository = vpcRepository;

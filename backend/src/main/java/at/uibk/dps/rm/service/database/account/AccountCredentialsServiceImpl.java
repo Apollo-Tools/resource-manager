@@ -8,10 +8,20 @@ import io.vertx.core.json.JsonObject;
 
 import java.util.Objects;
 
+/**
+ * This is the implementation of the #AccountCredentialsService.
+ *
+ * @author matthi-g
+ */
 public class AccountCredentialsServiceImpl extends DatabaseServiceProxy<AccountCredentials> implements  AccountCredentialsService {
 
     private final AccountCredentialsRepository accountCredentialsRepository;
 
+    /**
+     * Create an instance from the repository.
+     *
+     * @param repository the account credentials repository
+     */
     public AccountCredentialsServiceImpl(AccountCredentialsRepository repository) {
         super(repository, AccountCredentials.class);
         this.accountCredentialsRepository = repository;

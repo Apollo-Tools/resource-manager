@@ -10,9 +10,19 @@ import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.Objects;
 
+/**
+ * This is the implementation of the #FunctionResourceService.
+ *
+ * @author matthi-g
+ */
 public class FunctionResourceServiceImpl extends DatabaseServiceProxy<FunctionResource> implements FunctionResourceService {
     private final FunctionResourceRepository functionResourceRepository;
 
+    /**
+     * Create an instance from the repository.
+     *
+     * @param repository the function resource repository
+     */
     public FunctionResourceServiceImpl(FunctionResourceRepository repository) {
         super(repository, FunctionResource.class);
         functionResourceRepository = repository;

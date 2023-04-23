@@ -10,10 +10,20 @@ import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This is the implementation of the #ResourceService.
+ *
+ * @author matthi-g
+ */
 public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implements ResourceService {
 
     private final ResourceRepository resourceRepository;
 
+    /**
+     * Create an instance from the resourceRepository.
+     *
+     * @param resourceRepository the resource repository
+     */
     public ResourceServiceImpl(ResourceRepository resourceRepository) {
         super(resourceRepository, Resource.class);
         this.resourceRepository = resourceRepository;

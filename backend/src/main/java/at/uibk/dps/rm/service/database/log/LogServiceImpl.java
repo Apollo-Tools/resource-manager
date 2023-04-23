@@ -9,10 +9,20 @@ import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
 
+/**
+ * This is the implementation of the #LogService.
+ *
+ * @author matthi-g
+ */
 public class LogServiceImpl extends DatabaseServiceProxy<Log> implements LogService {
 
     private final LogRepository logRepository;
 
+    /**
+     * Create an instance from the logRepository.
+     *
+     * @param logRepository the log repository
+     */
     public LogServiceImpl(LogRepository logRepository) {
         super(logRepository, Log.class);
         this.logRepository = logRepository;

@@ -10,9 +10,19 @@ import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.Objects;
 
+/**
+ * This is the implementation of the #RegionService.
+ *
+ * @author matthi-g
+ */
 public class RegionServiceImpl extends DatabaseServiceProxy<Region> implements RegionService {
     private final RegionRepository regionRepository;
 
+    /**
+     * Create an instance from the repository.
+     *
+     * @param repository the region repository
+     */
     public RegionServiceImpl(RegionRepository repository) {
         super(repository, Region.class);
         this.regionRepository = repository;

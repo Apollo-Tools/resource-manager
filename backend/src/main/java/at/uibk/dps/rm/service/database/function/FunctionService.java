@@ -10,29 +10,46 @@ import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 
+/**
+ * The interface of the service proxy for the function entity.
+ *
+ * @author matthi-g
+ */
 @ProxyGen
 @VertxGen
 public interface FunctionService extends DatabaseServiceInterface {
 
+    @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
     static FunctionService create(FunctionRepository functionRepository) {
         return new FunctionServiceImpl(functionRepository);
     }
 
+    @SuppressWarnings("PMD.CommentRequired")
     @Generated
     static FunctionService createProxy(Vertx vertx) {
         return new FunctionServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(Function.class));
     }
 
-    Future<JsonObject> findOne(long id);
-
-    Future<JsonArray> findAll();
-
+    /**
+     * Check if a function exists by its name and runtime id but ignore it if the id of the
+     * function is equal to the excludeId.
+     *
+     * @param excludeId the id to be excluded
+     * @param name the name of the function
+     * @param runtimeId the id of the runtime
+     * @return a Future that emits true if the function exists, else false
+     */
     Future<Boolean> existsOneByNameAndRuntimeIdExcludeEntity(long excludeId, String name, long runtimeId);
 
+    /**
+     * Check if function exists by its name and runtime.
+     *
+     * @param name the name of the function
+     * @param runtimeId the id of the runtime
+     * @return a Future that emits true if the function exists, else false
+     */
     Future<Boolean> existsOneByNameAndRuntimeId(String name, long runtimeId);
 }

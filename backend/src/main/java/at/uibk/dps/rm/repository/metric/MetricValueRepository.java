@@ -82,7 +82,7 @@ public class MetricValueRepository extends Repository<MetricValue> {
      * @param valueString the new string value
      * @param valueNumber the new number value
      * @param valueBool the new bool value
-     * @return a CompletionStage that emits nothing
+     * @return an empty CompletionStage
      */
     public CompletionStage<Void> updateByResourceAndMetric(long resourceId, long metricId, String valueString,
                                                               Double valueNumber, Boolean valueBool) {

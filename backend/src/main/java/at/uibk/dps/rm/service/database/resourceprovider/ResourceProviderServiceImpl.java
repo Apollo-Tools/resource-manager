@@ -7,10 +7,20 @@ import io.vertx.core.Future;
 
 import java.util.Objects;
 
+/**
+ * This is the implementation of the #ResourceProviderService.
+ *
+ * @author matthi-g
+ */
 public class ResourceProviderServiceImpl extends DatabaseServiceProxy<ResourceProvider> implements ResourceProviderService {
 
     private final ResourceProviderRepository resourceProviderRepository;
 
+    /**
+     * Create an instance from the repository.
+     *
+     * @param repository the resource provider repository
+     */
     public ResourceProviderServiceImpl(ResourceProviderRepository repository) {
         super(repository, ResourceProvider.class);
         this.resourceProviderRepository = repository;

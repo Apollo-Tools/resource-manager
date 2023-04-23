@@ -16,6 +16,7 @@ import java.sql.Timestamp;
 @Entity
 @Getter
 @Setter
+@SuppressWarnings("PMD.ShortClassName")
 public class Log {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

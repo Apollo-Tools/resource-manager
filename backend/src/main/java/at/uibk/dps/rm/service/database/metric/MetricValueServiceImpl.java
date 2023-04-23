@@ -13,10 +13,20 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * This is the implementation of the #MetricValueService.
+ *
+ * @author matthi-g
+ */
 public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> implements MetricValueService{
 
     private final MetricValueRepository metricValueRepository;
 
+    /**
+     * Create an instance from the metricValueRepository.
+     *
+     * @param metricValueRepository the metric value repository
+     */
     public MetricValueServiceImpl(MetricValueRepository metricValueRepository) {
         super(metricValueRepository, MetricValue.class);
         this.metricValueRepository = metricValueRepository;

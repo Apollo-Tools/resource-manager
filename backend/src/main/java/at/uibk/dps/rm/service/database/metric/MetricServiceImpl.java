@@ -10,10 +10,20 @@ import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.Objects;
 
+/**
+ * This is the implementation of the #MetricService.
+ *
+ * @author matthi-g
+ */
 public class MetricServiceImpl extends DatabaseServiceProxy<Metric> implements MetricService {
 
     private final MetricRepository metricRepository;
 
+    /**
+     * Create an instance from the metricRepository.
+     *
+     * @param metricRepository the metric repository
+     */
     public MetricServiceImpl(MetricRepository metricRepository) {
         super(metricRepository, Metric.class);
         this.metricRepository = metricRepository;

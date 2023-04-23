@@ -10,11 +10,21 @@ import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.Objects;
 
-//TODO: discuss if it is necessary to encrypt secrets
+//TODO: discuss if it is necessary to encrypt secrets / store secrets
+/**
+ * This is the implementation of the #CredentialsService.
+ *
+ * @author matthi-g
+ */
 public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> implements  CredentialsService {
 
     private final CredentialsRepository credentialsRepository;
 
+    /**
+     * Create an instance from the repository.
+     *
+     * @param repository the credentials repository
+     */
     public CredentialsServiceImpl(CredentialsRepository repository) {
         super(repository, Credentials.class);
         this.credentialsRepository = repository;
