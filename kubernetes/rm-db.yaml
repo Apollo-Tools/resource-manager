@@ -20,18 +20,6 @@ spec:
       port: 5433
       targetPort: 5432
 ---
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: rm-db-pvc
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      # Change size to your needs
-      storage: 1Gi
----
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -70,17 +58,14 @@ spec:
               memory: "200Mi"
               cpu: "200m"
           volumeMounts:
-            # The mount ov the volume
-            - name: rm-db-persistent-storage
+            # The mount of the volume
+            - name: persistent-storage
               mountPath: /var/lib/postgresql/data
-      volumes:
-        - name: rm-db-persistent-storage
-          persistentVolumeClaim:
-            claimName: rm-db-pvc
   volumeClaimTemplates:
     - metadata:
-        name: rm-db-pvc
+        name: persistent-storage
       spec:
+        storageClassName: manual
         accessModes: [ "ReadWriteOnce" ]
         resources:
           requests:

@@ -13,6 +13,9 @@ spec:
     # The external port of the api
     - port: 8888
       targetPort: 8080
+  externalIPs:
+    # Swap with cluster ip
+    - <cluster-IP>
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -33,6 +36,7 @@ spec:
         - name: rm-api
           # Pull latest image
           image: matthigas/rm-api:latest
+          imagePullPolicy: Always
           env:
             # The host url of the db
             - name: db_host

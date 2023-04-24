@@ -13,6 +13,10 @@ spec:
     # The external port of the frontend
     - port: 3000
       targetPort: 3000
+      protocol: TCP
+  externalIPs:
+    # Swap with cluster ip
+    - <cluster-IP>
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -32,6 +36,7 @@ spec:
         - name: rm-gui
           # Pull latest image
           image: matthigas/rm-gui:latest
+          imagePullPolicy: Always
           env:
             # The external url of the api
             - name: NEXT_PUBLIC_API_URL
