@@ -34,14 +34,14 @@ public class ResourceChecker extends EntityChecker {
      * Find all resources by function and service level objectives.
      *
      * @param metrics the list of metrics
-     * @param regions the list of regions
+     * @param regionIds the list of region ids
      * @param providerIds the list of provider ids
      * @param resourceTypeIds the list of resource type ids
      * @return a Single that emits all found resources as JsonArray
      */
     public Single<JsonArray> checkFindAllBySLOs(List<String> metrics,
-        List<String> regions, List<Long> providerIds, List<Long> resourceTypeIds) {
-        Single<JsonArray> findAllByMultipleMetrics = resourceService.findAllBySLOs(metrics, regions, providerIds,
+        List<Long> regionIds, List<Long> providerIds, List<Long> resourceTypeIds) {
+        Single<JsonArray> findAllByMultipleMetrics = resourceService.findAllBySLOs(metrics, regionIds, providerIds,
                 resourceTypeIds);
         return ErrorHandler.handleFindAll(findAllByMultipleMetrics);
     }

@@ -64,25 +64,24 @@ public class ResourceRepository extends Repository<Resource> {
      * Find all resources by their metrics, resource types, regions and resource providers.
      *
      * @param metrics the ids of the metrics
-     * @param regions the ids of the regions
+     * @param regionIds the ids of the regions
      * @param providerIds the ids of the resource providers
      * @param resourceTypeIds the ids of the resource types
      * @return a CompletionStage that emits a list of all resources
      */
-    public CompletionStage<List<Resource>> findAllBySLOs(List<String> metrics, List<String> regions,
+    public CompletionStage<List<Resource>> findAllBySLOs(List<String> metrics, List<Long> regionIds,
             List<Long> providerIds, List<Long> resourceTypeIds) {
         List<String> conditions = new ArrayList<>();
-        if (!regions.isEmpty()) {
-            conditions.add("(" + regions.stream()
-                .map(region -> "UPPER(reg.name) like UPPER('%" + region + "%')")
-                .collect(Collectors.joining("or ")) + ")");
+        if (!regionIds.isEmpty()) {
+            conditions.add("reg.regionId in (" +
+                    regionIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ")");
         }
         if (!providerIds.isEmpty()) {
             conditions.add("reg.resourceProvider.providerId in (" +
                 providerIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ")");
         }
         if (!resourceTypeIds.isEmpty()) {
-            conditions.add("rt in (" +
+            conditions.add("rt.typeId in (" +
                 resourceTypeIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ")");
         }
         if (!metrics.isEmpty()) {

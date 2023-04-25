@@ -22,7 +22,6 @@ public class ServiceLevelObjectiveDeserializer extends StdDeserializer<ServiceLe
     private static final long serialVersionUID = 4863372290944518864L;
 
     /**
-     * This unused.
      * The deserialization throws an error if this constructor is not present
      */
     public ServiceLevelObjectiveDeserializer() {
@@ -32,7 +31,7 @@ public class ServiceLevelObjectiveDeserializer extends StdDeserializer<ServiceLe
     /**
      * Create an instance from the valueClass.
      *
-     * @param valueClass
+     * @param valueClass the value class
      */
     public ServiceLevelObjectiveDeserializer(Class<?> valueClass) {
         super(valueClass);
