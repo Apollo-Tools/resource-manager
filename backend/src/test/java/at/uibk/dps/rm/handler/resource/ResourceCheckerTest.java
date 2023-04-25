@@ -1,12 +1,10 @@
 package at.uibk.dps.rm.handler.resource;
 
-import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UsedByOtherEntityException;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
 import at.uibk.dps.rm.testutil.SingleHelper;
-import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.util.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
@@ -46,21 +44,20 @@ public class ResourceCheckerTest {
     // TODO: refine
     @Test
     void checkFindAllBySLOs(VertxTestContext testContext) {
-        Function function = TestFunctionProvider.createFunction(1L, "foo", "true");
         Resource resource1 = TestResourceProvider.createResource(1L);
         Resource resource2 = TestResourceProvider.createResource(2L);
         Resource resource3 = TestResourceProvider.createResource(3L);
         JsonArray resourcesJson = new JsonArray(List.of(JsonObject.mapFrom(resource1), JsonObject.mapFrom(resource2),
             JsonObject.mapFrom(resource3)));
         List<String> metrics = List.of("availability", "bandwidth");
-        List<String> regions = new ArrayList<>();
+        List<Long> regions = new ArrayList<>();
         List<Long> resourceProviders = new ArrayList<>();
         List<Long> resourceTypes = new ArrayList<>();
 
-        when(resourceService.findAllBySLOs(function.getFunctionId(), metrics, regions, resourceProviders, resourceTypes))
+        when(resourceService.findAllBySLOs(metrics, regions, resourceProviders, resourceTypes))
             .thenReturn(Single.just(resourcesJson));
 
-        resourceChecker.checkFindAllBySLOs(function.getFunctionId(), metrics, regions, resourceProviders, resourceTypes)
+        resourceChecker.checkFindAllBySLOs(metrics, regions, resourceProviders, resourceTypes)
             .subscribe(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(3);
                 assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
@@ -74,17 +71,16 @@ public class ResourceCheckerTest {
 
     @Test
     void checkFindAllBySLOsEmpty(VertxTestContext testContext) {
-        Function function = TestFunctionProvider.createFunction(1L, "foo", "true");
         JsonArray resourcesJson = new JsonArray(List.of());
         List<String> metrics = List.of("availability", "bandwidth");
-        List<String> regions = new ArrayList<>();
+        List<Long> regions = new ArrayList<>();
         List<Long> resourceProviders = new ArrayList<>();
         List<Long> resourceTypes = new ArrayList<>();
 
-        when(resourceService.findAllBySLOs(function.getFunctionId(), metrics, regions, resourceProviders, resourceTypes))
+        when(resourceService.findAllBySLOs(metrics, regions, resourceProviders, resourceTypes))
             .thenReturn(Single.just(resourcesJson));
 
-        resourceChecker.checkFindAllBySLOs(function.getFunctionId(), metrics, regions, resourceProviders, resourceTypes)
+        resourceChecker.checkFindAllBySLOs(metrics, regions, resourceProviders, resourceTypes)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(0);
                     testContext.completeNow();
@@ -95,17 +91,16 @@ public class ResourceCheckerTest {
 
     @Test
     void checkFindAllBySLOsNotFound(VertxTestContext testContext) {
-        Function function = TestFunctionProvider.createFunction(1L, "foo", "true");
         List<String> metrics = List.of("availability", "bandwidth");
-        List<String> regions = new ArrayList<>();
+        List<Long> regions = new ArrayList<>();
         List<Long> resourceProviders = new ArrayList<>();
         List<Long> resourceTypes = new ArrayList<>();
-        Single<JsonArray> handler = new SingleHelper<JsonArray>().getEmptySingle();
+        Single<JsonArray> handler = SingleHelper.getEmptySingle();
 
-        when(resourceService.findAllBySLOs(function.getFunctionId(), metrics, regions, resourceProviders, resourceTypes))
+        when(resourceService.findAllBySLOs(metrics, regions, resourceProviders, resourceTypes))
             .thenReturn(handler);
 
-        resourceChecker.checkFindAllBySLOs(function.getFunctionId(), metrics, regions, resourceProviders, resourceTypes)
+        resourceChecker.checkFindAllBySLOs(metrics, regions, resourceProviders, resourceTypes)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
@@ -158,7 +153,7 @@ public class ResourceCheckerTest {
     @Test
     void checkFindAllByMultipleReservationNotFound(VertxTestContext testContext) {
         long functionId = 1L;
-        Single<JsonArray> handler = new SingleHelper<JsonArray>().getEmptySingle();
+        Single<JsonArray> handler = SingleHelper.getEmptySingle();
 
         when(resourceService.findAllByFunctionId(functionId)).thenReturn(handler);
 

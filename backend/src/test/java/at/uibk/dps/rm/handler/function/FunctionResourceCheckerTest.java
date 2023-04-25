@@ -96,7 +96,7 @@ public class FunctionResourceCheckerTest {
     @Test
     void findOneByFunctionAndResourceNotExists(VertxTestContext testContext) {
         long functionId = 1L, resourceId = 1L;
-        Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
+        Single<JsonObject> handler = SingleHelper.getEmptySingle();
 
         when(functionResourceService.findOneByFunctionAndResource(functionId, resourceId))
             .thenReturn(handler);
@@ -163,7 +163,7 @@ public class FunctionResourceCheckerTest {
     @Test
     void checkFindAllByReservationIdNotFound(VertxTestContext testContext) {
         long reservationId = 1L;
-        Single<JsonArray> handler = new SingleHelper<JsonArray>().getEmptySingle();
+        Single<JsonArray> handler = SingleHelper.getEmptySingle();
 
         when(functionResourceService.findAllByReservationId(reservationId)).thenReturn(handler);
 

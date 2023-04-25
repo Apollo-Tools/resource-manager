@@ -83,7 +83,7 @@ public class RegionCheckerTest {
     @Test
     void checkFindAllByProviderNotFound(VertxTestContext testContext) {
         long providerId = 1L;
-        Single<JsonArray> handler = new SingleHelper<JsonArray>().getEmptySingle();
+        Single<JsonArray> handler = SingleHelper.getEmptySingle();
 
         when(regionService.findAllByProviderId(providerId)).thenReturn(handler);
 

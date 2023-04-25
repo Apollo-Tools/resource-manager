@@ -106,7 +106,7 @@ public class AccountCredentialsCheckerTest {
     @Test
     void checkFindOneByCredentialsAndAccountNotExists(VertxTestContext testContext) {
         long accountId = 1L, credentialsId = 2L;
-        Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
+        Single<JsonObject> handler = SingleHelper.getEmptySingle();
 
         when(accountCredentialsService.findOneByCredentialsAndAccount(credentialsId, accountId))
             .thenReturn(handler);

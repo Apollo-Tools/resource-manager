@@ -84,7 +84,7 @@ public class MetricValueCheckerTest {
     @Test
     void checkFindAllByResourceNotFound(VertxTestContext testContext) {
         long resourceId = 1L;
-        Single<JsonArray> handler = new SingleHelper<JsonArray>().getEmptySingle();
+        Single<JsonArray> handler = SingleHelper.getEmptySingle();
 
         when(metricValueService.findAllByResource(resourceId, true)).thenReturn(handler);
 

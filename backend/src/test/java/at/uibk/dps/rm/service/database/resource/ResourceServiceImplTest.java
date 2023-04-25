@@ -120,19 +120,18 @@ public class ResourceServiceImplTest {
     // TODO: refine
     @Test
     void findAllBySLOs(VertxTestContext testContext) {
-        long functionId = 1L;
         List<String> metrics = List.of("availability");
         Resource entity1 = TestResourceProvider.createResource(1L);
         CompletionStage<List<Resource>> completionStage = CompletionStages.completedFuture(List.of(entity1));
-        List<String> regions = new ArrayList<>();
+        List<Long> regions = new ArrayList<>();
         List<Long> resourceProviders = new ArrayList<>();
         List<Long> resourceTypes = new ArrayList<>();
 
 
-        doReturn(completionStage).when(resourceRepository).findAllBySLOs(functionId, metrics, regions, resourceProviders,
+        doReturn(completionStage).when(resourceRepository).findAllBySLOs(metrics, regions, resourceProviders,
             resourceTypes);
 
-        resourceService.findAllBySLOs(functionId, metrics, regions, resourceProviders, resourceTypes)
+        resourceService.findAllBySLOs(metrics, regions, resourceProviders, resourceTypes)
                 .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(1);
                     assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);

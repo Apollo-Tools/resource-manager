@@ -26,6 +26,4 @@ public class ListResourcesBySLOsRequest {
     private List<Long> providers = new ArrayList<>();
 
     private List<Long> resourceTypes = new ArrayList<>();
-
-    private int limit = 10000;
 }

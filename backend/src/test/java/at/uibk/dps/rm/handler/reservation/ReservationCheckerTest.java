@@ -65,7 +65,7 @@ public class ReservationCheckerTest {
     @Test
     void checkFindAllNotFound(VertxTestContext testContext) {
         Account account = TestAccountProvider.createAccount(1L);
-        Single<JsonArray> handler = new SingleHelper<JsonArray>().getEmptySingle();
+        Single<JsonArray> handler = SingleHelper.getEmptySingle();
 
         when(reservationService.findAllByAccountId(account.getAccountId())).thenReturn(handler);
 
@@ -97,7 +97,7 @@ public class ReservationCheckerTest {
     @Test
     void checkFindOneNotFound(VertxTestContext testContext) {
         long accountId = 2L, reservationId = 1L;
-        Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
+        Single<JsonObject> handler = SingleHelper.getEmptySingle();
 
         when(reservationService.findOneByIdAndAccountId(reservationId, accountId))
             .thenReturn(handler);

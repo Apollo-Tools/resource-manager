@@ -59,7 +59,7 @@ public class AccountCheckerTest {
     @Test
     void checkFindLoginAccountNotExists(VertxTestContext testContext) {
         String username = "user";
-        Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
+        Single<JsonObject> handler = SingleHelper.getEmptySingle();
 
         when(accountService.findOneByUsername(username)).thenReturn(handler);
 

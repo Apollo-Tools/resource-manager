@@ -65,7 +65,7 @@ public class LogCheckerTest {
     @Test
     void checkFindAllByReservationIdNotFound(VertxTestContext testContext) {
         long reservationId = 11L, accountId = 22L;
-        Single<JsonArray> handler = new SingleHelper<JsonArray>().getEmptySingle();
+        Single<JsonArray> handler = SingleHelper.getEmptySingle();
 
         when(logService.findAllByReservationIdAndAccountId(reservationId, accountId))
             .thenReturn(handler);

@@ -70,7 +70,7 @@ public class ResourceSLOHandler {
                         requestDTO.getProviders(), requestDTO.getResourceTypes())))
             .flatMap(this::mapMetricValuesToResources)
             .map(this::mapJsonListToResourceList)
-            .map(resources -> filterAndSortResultList(resources, serviceLevelObjectives, requestDTO.getLimit()));
+            .map(resources -> filterAndSortResultList(resources, serviceLevelObjectives));
     }
 
     /**
@@ -126,20 +126,18 @@ public class ResourceSLOHandler {
      *
      * @param resources the resources
      * @param serviceLevelObjectives the service level objectives used for filtering and sorting
-     * @param limit the maximum size of the resulting json array
      * @return the filtered and sorted resources as JsonArray
      */
     protected JsonArray filterAndSortResultList(List<Resource> resources,
-                                                List<ServiceLevelObjective> serviceLevelObjectives, int limit) {
+                                                List<ServiceLevelObjective> serviceLevelObjectives) {
         List<JsonObject> filteredAndSorted = resources
             .stream()
             .filter(resource -> resourceFilterBySLOValueType(resource, serviceLevelObjectives))
             .sorted((r1, r2) -> sortResourceBySLO(r1, r2, serviceLevelObjectives))
             .map(JsonObject::mapFrom)
             .collect(Collectors.toList());
-        List<JsonObject> subList = filteredAndSorted.subList(0, Math.min(limit, filteredAndSorted.size()));
 
-        return new JsonArray(subList);
+        return new JsonArray(filteredAndSorted);
     }
 
     /**

@@ -107,7 +107,7 @@ public class ResourceReservationCheckerTest {
     @Test
     void checkFindAllByReservationIdNotFound(VertxTestContext testContext) {
         long reservationId = 1L;
-        Single<JsonArray> handler = new SingleHelper<JsonArray>().getEmptySingle();
+        Single<JsonArray> handler = SingleHelper.getEmptySingle();
 
         when(resourceReservationService.findAllByReservationId(reservationId)).thenReturn(handler);
 

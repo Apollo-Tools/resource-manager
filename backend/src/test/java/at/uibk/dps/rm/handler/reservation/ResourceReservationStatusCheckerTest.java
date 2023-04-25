@@ -54,7 +54,7 @@ public class ResourceReservationStatusCheckerTest {
     @Test
     void checkFindOneByStatusValueNotFound(VertxTestContext testContext) {
         String statusValue = ReservationStatusValue.NEW.name();
-        Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
+        Single<JsonObject> handler = SingleHelper.getEmptySingle();
 
         when(statusService.findOneByStatusValue(statusValue)).thenReturn(handler);
 

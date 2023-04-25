@@ -31,7 +31,7 @@ public class ErrorHandlerTest {
 
     @Test
     void handleFindOneNull(VertxTestContext testContext) {
-        Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
+        Single<JsonObject> handler = SingleHelper.getEmptySingle();
 
         ErrorHandler.handleFindOne(handler)
                 .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
@@ -56,7 +56,7 @@ public class ErrorHandlerTest {
 
     @Test
     void handleFindAllNull(VertxTestContext testContext) {
-        Single<JsonArray> handler = new SingleHelper<JsonArray>().getEmptySingle();
+        Single<JsonArray> handler = SingleHelper.getEmptySingle();
 
         ErrorHandler.handleFindAll(handler)
                 .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
@@ -177,7 +177,7 @@ public class ErrorHandlerTest {
 
     @Test
     void handleLoginCredentialsNull(VertxTestContext testContext) {
-        Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
+        Single<JsonObject> handler = SingleHelper.getEmptySingle();
 
         ErrorHandler.handleLoginCredentials(handler)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),

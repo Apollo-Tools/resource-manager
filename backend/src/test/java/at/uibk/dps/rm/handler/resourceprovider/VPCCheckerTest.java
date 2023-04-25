@@ -96,7 +96,7 @@ public class VPCCheckerTest {
     @Test
     void checkFindOneByRegionIdAndAccountIdNotFound(VertxTestContext testContext) {
         long regionId = 1L, accountId = 2L;
-        Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
+        Single<JsonObject> handler = SingleHelper.getEmptySingle();
 
         when(vpcService.findOneByRegionIdAndAccountId(regionId, accountId))
             .thenReturn(handler);
@@ -161,7 +161,7 @@ public class VPCCheckerTest {
         Resource r1 = TestResourceProvider.createResourceVM(1L, aws, "t2.micro");
         FunctionResource fr1 = TestFunctionProvider.createFunctionResource(1L, r1);
         List<JsonObject> functionResources = List.of(JsonObject.mapFrom(fr1));
-        Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
+        Single<JsonObject> handler = SingleHelper.getEmptySingle();
 
         when(vpcService.findOneByRegionIdAndAccountId(1L, accountId)).thenReturn(handler);
 

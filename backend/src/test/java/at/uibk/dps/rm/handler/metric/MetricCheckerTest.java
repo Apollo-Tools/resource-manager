@@ -199,7 +199,7 @@ public class MetricCheckerTest {
     @Test
     void checkFindOneByMetricNotExists(VertxTestContext testContext) {
         String metricName = "region";
-        Single<JsonObject> handler = new SingleHelper<JsonObject>().getEmptySingle();
+        Single<JsonObject> handler = SingleHelper.getEmptySingle();
 
         when(metricService.findOneByMetric(metricName)).thenReturn(handler);
 

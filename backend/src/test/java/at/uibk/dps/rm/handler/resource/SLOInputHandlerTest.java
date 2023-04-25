@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.handler.function;
+package at.uibk.dps.rm.handler.resource;
 
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import io.vertx.core.json.JsonObject;
@@ -23,22 +23,9 @@ public class SLOInputHandlerTest {
 
     @Test
     void validateGetResourcesBySLORequestValid(VertxTestContext testContext) {
-        JsonObject jsonObject = new JsonObject("{\"slo\": " +
-            "[{\"name\": \"region\", \"expression\": \"<\", \"value\": [\"eu-west\"]}, " +
-            "{\"name\": \"bandwidth\", \"expression\": \">\", \"value\": [1000]}]," +
-            "\"limit\": 58467637}");
-
-        RoutingContextMockHelper.mockBody(rc, jsonObject);
-
-        SLOInputHandler.validateGetResourcesBySLOsRequest(rc);
-
-        verify(rc).next();
-        testContext.completeNow();
-    }
-
-    @Test
-    void validateGetResourcesBySLOEmptyRequest(VertxTestContext testContext) {
-        JsonObject jsonObject = new JsonObject("{}");
+        JsonObject jsonObject = new JsonObject("{\"slos\": " +
+            "[{\"name\": \"region\", \"expression\": \"==\", \"value\": [1]}, " +
+            "{\"name\": \"bandwidth\", \"expression\": \">\", \"value\": [1000]}]}");
 
         RoutingContextMockHelper.mockBody(rc, jsonObject);
 
@@ -50,10 +37,9 @@ public class SLOInputHandlerTest {
 
     @Test
     void validateGetResourcesBySLORequestInvalidExpression(VertxTestContext testContext) {
-        JsonObject jsonObject = new JsonObject("{\"slo\": " +
-            "[{\"name\": \"region\", \"expression\": \"<\", \"value\": [\"eu-west\"]}, " +
-            "{\"name\": \"bandwidth\", \"expression\": \">=<\", \"value\": [1000]}]," +
-            "\"limit\": 58467637}");
+        JsonObject jsonObject = new JsonObject("{\"slos\": " +
+            "[{\"name\": \"region\", \"expression\": \"==\", \"value\": [1]}, " +
+            "{\"name\": \"bandwidth\", \"expression\": \">=<\", \"value\": [1000]}]}");
 
         RoutingContextMockHelper.mockBody(rc, jsonObject);
 
@@ -65,8 +51,8 @@ public class SLOInputHandlerTest {
 
     @Test
     void validateGetResourcesBySLORequestDuplicate(VertxTestContext testContext) {
-        JsonObject jsonObject = new JsonObject("{\"slo\": " +
-            "[{\"name\": \"region\", \"expression\": \"<\", \"value\": [\"eu-west\"]}, " +
+        JsonObject jsonObject = new JsonObject("{\"slos\": " +
+            "[{\"name\": \"region\", \"expression\": \"==\", \"value\": [1]}, " +
             "{\"name\": \"region\", \"expression\": \">=<\", \"value\": [\"eu-north\"]}]," +
             "\"limit\": 58467637}");
 
