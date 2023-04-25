@@ -17,10 +17,10 @@ repositories {
   mavenCentral()
 }
 
-val vertxVersion = "4.3.2"
+val vertxVersion = "4.4.1"
 val flywayVersion = "8.5.12"
 val junitJupiterVersion = "5.7.0"
-val postgresVersion = "42.3.6"
+val postgresVersion = "42.6.0"
 val hibernateVersion = "1.1.6.Final"
 
 val launcherClassName = "at.uibk.dps.rm.Main"
@@ -52,7 +52,7 @@ dependencies {
   implementation("de.mkammerer:argon2-jvm:2.11")
 
   // Json parsing
-  implementation("com.fasterxml.jackson.core:jackson-databind:2.13.3")
+  implementation("com.fasterxml.jackson.core:jackson-databind:2.15.0")
 
   // DB
   implementation("com.ongres.scram:client:2.1")
