@@ -57,11 +57,10 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     }
 
     @Override
-    public Future<JsonArray> findAllBySLOs(long functionId, List<String> metrics,
-                                                                 List<String> regions, List<Long> providerIds,
-                                                                 List<Long> resourceTypeIds) {
+    public Future<JsonArray> findAllBySLOs(List<String> metrics, List<String> regions, List<Long> providerIds,
+            List<Long> resourceTypeIds) {
         return Future
-                .fromCompletionStage(resourceRepository.findAllBySLOs(functionId, metrics,
+                .fromCompletionStage(resourceRepository.findAllBySLOs(metrics,
                     regions, providerIds, resourceTypeIds))
                 .map(this::encodeResourceList);
     }

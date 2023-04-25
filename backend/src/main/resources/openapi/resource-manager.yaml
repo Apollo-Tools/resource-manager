@@ -472,16 +472,16 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /functions/{id}/resources/slo:
+
+
+  /resource/slo:
     post:
-      description: Return all resources that conform to the given service level objectives and are linked to the function identified by id
-      operationId: listFunctionResourcesBySLOs
+      description: Return all resources that conform to the given service level objectives
+      operationId: listResourcesBySLOs
       security:
         - bearerAuth: []
       tags:
         - resourcesBySLOs
-      parameters:
-        - $ref: "#/components/parameters/idParam"
       requestBody:
         required: true
         content:
@@ -491,62 +491,7 @@ paths:
               additionalProperties: false
               properties:
                 slo:
-                  description: Filters all resources by the given Service Level Objectives
-                  type: array
-                  minItems: 1
-                  items:
-                    type: object
-                    required:
-                      - name
-                      - expression
-                      - value
-                    additionalProperties: false
-                    properties:
-                      name:
-                        type: string
-                        minLength: 1
-                        maxLength: 256
-                        example: "availability"
-                      expression:
-                        description: Valid expressions are >, <, ==
-                        type: string
-                        minLength: 1
-                        maxLength: 50
-                        example: ">"
-                      value:
-                        oneOf:
-                          - $ref: '#/components/schemas/stringValues'
-                          - $ref: '#/components/schemas/numberValues'
-                          - $ref: '#/components/schemas/boolValues'
-                regions:
-                  description: Filters all resources by regions that contain any of the given strings. If this value is not given, all regions are used
-                  type: array
-                  minItems: 1
-                  items:
-                    type: string
-                    example: US
-                providers:
-                  description: Filters all resources by the given resource providers. If this value is not given, all providers are used
-                  type: array
-                  minItems: 1
-                  items:
-                    type: integer
-                    format: int64
-                    example: 1
-                resource_types:
-                  description: Filters all resources by the given resource types. If this value is not given, all resource types are used
-                  type: array
-                  minItems: 1
-                  items:
-                    type: integer
-                    format: int64
-                    example: 1
-                limit:
-                  description: Limits the result to the given value
-                  type: integer
-                  format: int64
-                  minimum: 1
-                  maxLength: 10000
+                  $ref: "#/components/schemas/Slos"
       responses:
         200:
           description: Successful retrieval of resources conforming to the given service level objectives
@@ -563,7 +508,124 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
+  /resource-ensembles/{id}:
+    get:
+      description: Returns details about a resource ensemble managed by the resource manager
+      operationId: getResourceEnsemble
+      security:
+        - bearerAuth: []
+      tags:
+        - resourceEnsembles
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of a resource ensemble
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourceEnsemble"
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
 
+    delete:
+      description: Deletes a resource ensemble
+      operationId: deleteResourceEnsemble
+      security:
+        - bearerAuth: []
+      tags:
+        - resourceEnsembles
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        204:
+          description: Successful deletion of a resource ensemble
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /resource-ensembles:
+    get:
+      description: Returns details about all resource ensembles managed by the resource manager
+      operationId: listResourceEnsembles
+      security:
+        - bearerAuth: []
+      tags:
+        - resourceEnsembles
+      responses:
+        200:
+          description: Successful pull of all resource ensembles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ResourceEnsemble"
+        500:
+          $ref: "#/components/responses/500"
+
+    post:
+      description: Registers a new resource ensemble
+      operationId: createResourceEnsemble
+      security:
+        - bearerAuth: []
+      tags:
+        - resourceEnsembles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - slos
+                - resources
+              additionalProperties: false
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 64
+                  example: my-resource-ensemble
+                slos:
+                  $ref: "#/components/schemas/Slos"
+                resources:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    required:
+                      - resource_id
+                    additionalProperties: false
+                    properties:
+                      resource_id:
+                        type: integer
+                        format: int64
+                        example: 1
+
+      responses:
+        201:
+          description: Successful registration of a new resource ensemble
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourceEnsemble"
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
   /runtimes/{id}:
     get:
       description: Return details about a runtime
@@ -2031,6 +2093,31 @@ components:
           type: integer
           format: int64
           example: 1679496667103
+
+    ResourceEnsemble:
+      type: object
+      properties:
+        ensemble_id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+        slos:
+          $ref: "#/components/schemas/Slos"
+        resources:
+          type: array
+          items:
+            $ref: "#/components/schemas/Resource"
+        created_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+        updated_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+
     ResourceType:
       type: object
       properties:
@@ -2207,6 +2294,35 @@ components:
       items:
         type: boolean
         example: false
+
+    Slos:
+      description: Filters all resources by the given Service Level Objectives
+      type: array
+      minItems: 1
+      items:
+        type: object
+        required:
+          - name
+          - expression
+          - value
+        additionalProperties: false
+        properties:
+          name:
+            type: string
+            minLength: 1
+            maxLength: 256
+            example: "availability"
+          expression:
+            description: Valid expressions are >, <, ==
+            type: string
+            minLength: 1
+            maxLength: 2
+            example: ">"
+          value:
+            oneOf:
+              - $ref: '#/components/schemas/stringValues'
+              - $ref: '#/components/schemas/numberValues'
+              - $ref: '#/components/schemas/boolValues'
 
   parameters:
     idParam:

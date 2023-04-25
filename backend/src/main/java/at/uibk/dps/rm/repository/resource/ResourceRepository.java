@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.repository.Repository;
 import org.hibernate.reactive.stage.Stage;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
@@ -60,53 +61,49 @@ public class ResourceRepository extends Repository<Resource> {
     }
 
     /**
-     * Find all resources by their function, metrics, resource types, regions and resource providers.
+     * Find all resources by their metrics, resource types, regions and resource providers.
      *
-     * @param functionId the id of the function
      * @param metrics the ids of the metrics
      * @param regions the ids of the regions
      * @param providerIds the ids of the resource providers
      * @param resourceTypeIds the ids of the resource types
      * @return a CompletionStage that emits a list of all resources
      */
-    public CompletionStage<List<Resource>> findAllBySLOs(long functionId, List<String> metrics,
-                                                              List<String> regions, List<Long> providerIds,
-                                                              List<Long> resourceTypeIds) {
-        String regionsCondition = "";
+    public CompletionStage<List<Resource>> findAllBySLOs(List<String> metrics, List<String> regions,
+            List<Long> providerIds, List<Long> resourceTypeIds) {
+        List<String> conditions = new ArrayList<>();
         if (!regions.isEmpty()) {
-            regionsCondition = " and (" + regions.stream()
+            conditions.add("(" + regions.stream()
                 .map(region -> "UPPER(reg.name) like UPPER('%" + region + "%')")
-                .collect(Collectors.joining("or ")) + ") ";
+                .collect(Collectors.joining("or ")) + ")");
         }
-        String providerCondition = "";
         if (!providerIds.isEmpty()) {
-            providerCondition = " and reg.resourceProvider.providerId in (" +
-                providerIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ") ";
+            conditions.add("reg.resourceProvider.providerId in (" +
+                providerIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ")");
         }
-        String resourceTypeCondition = "";
         if (!resourceTypeIds.isEmpty()) {
-            resourceTypeCondition = " and rt in (" +
-                resourceTypeIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ") ";
+            conditions.add("rt in (" +
+                resourceTypeIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ")");
         }
-        String metricsCondition = "";
         if (!metrics.isEmpty()) {
-            metricsCondition = " and m.metric in (" +
-                metrics.stream().map(metric -> "'" + metric + "'").collect(Collectors.joining(",")) + ") ";
+            conditions.add("m.metric in (" +
+                metrics.stream().map(metric -> "'" + metric + "'").collect(Collectors.joining(",")) + ")");
+        }
+        String conditionString ="";
+        if (!conditions.isEmpty()) {
+            conditionString = "where " + String.join(" and ", conditions);
         }
 
-        String query = "select distinct r from FunctionResource fr " +
-            "left join fr.resource r " +
+        String query = "select distinct r from Resource r " +
             "left join fetch r.metricValues mv " +
             "left join fetch r.resourceType rt " +
             "left join fetch r.region reg " +
             "left join fetch reg.resourceProvider " +
             "left join fetch mv.metric m " +
-            "where fr.function.functionId=:functionId " + regionsCondition + providerCondition + resourceTypeCondition +
-            metricsCondition;
+            conditionString;
 
         return this.sessionFactory.withSession(session ->
             session.createQuery(query, Resource.class)
-                .setParameter("functionId", functionId)
                 .getResultList()
         );
     }

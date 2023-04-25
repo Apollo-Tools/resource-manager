@@ -1,6 +1,6 @@
-package at.uibk.dps.rm.handler.function;
+package at.uibk.dps.rm.handler.resource;
 
-import at.uibk.dps.rm.entity.dto.ListFunctionResourcesBySLOsRequest;
+import at.uibk.dps.rm.entity.dto.ListResourcesBySLOsRequest;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.util.CollectionValidator;
 import io.reactivex.rxjava3.core.Completable;
@@ -33,7 +33,7 @@ public class SLOInputHandler {
     }
 
     /**
-     * Check whether the expressions of the slos are valid or not.
+     * Check whether the expressions of the slos are valid.
      *
      * @param slos the service level objectives
      * @return a Completable
@@ -61,7 +61,7 @@ public class SLOInputHandler {
      * @return a Completable
      */
     private static Completable checkArrayDuplicates(JsonObject body) {
-        ListFunctionResourcesBySLOsRequest request = body.mapTo(ListFunctionResourcesBySLOsRequest.class);
+        ListResourcesBySLOsRequest request = body.mapTo(ListResourcesBySLOsRequest.class);
         return CollectionValidator.hasDuplicates(request.getServiceLevelObjectives());
     }
 }

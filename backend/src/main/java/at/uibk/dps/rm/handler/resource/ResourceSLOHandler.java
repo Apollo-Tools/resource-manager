@@ -1,6 +1,6 @@
-package at.uibk.dps.rm.handler.function;
+package at.uibk.dps.rm.handler.resource;
 
-import at.uibk.dps.rm.entity.dto.ListFunctionResourcesBySLOsRequest;
+import at.uibk.dps.rm.entity.dto.ListResourcesBySLOsRequest;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.SLOValueType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
@@ -9,8 +9,6 @@ import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.handler.metric.MetricChecker;
 import at.uibk.dps.rm.handler.metric.MetricValueChecker;
-import at.uibk.dps.rm.handler.resource.ResourceChecker;
-import at.uibk.dps.rm.util.HttpHelper;
 import at.uibk.dps.rm.util.SLOCompareUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
@@ -24,13 +22,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Processes the http requests that concern Service Level Objectives
+ * Processes the http requests that concern filtering resources by Service Level Objectives.
  *
  * @author matthi-g
  */
-public class FunctionResourceSLOHandler {
-
-    private final FunctionChecker functionChecker;
+public class ResourceSLOHandler {
 
     private final ResourceChecker resourceChecker;
 
@@ -39,44 +35,39 @@ public class FunctionResourceSLOHandler {
     private final MetricValueChecker metricValueChecker;
 
     /**
-     * Create an instance from the functionChecker, resourceChecker, metricChecker and metricValueChecker.
+     * Create an instance from the resourceChecker, metricChecker and metricValueChecker.
      *
-     * @param functionChecker the function checker
      * @param resourceChecker the resource checker
      * @param metricChecker the metric checker
      * @param metricValueChecker the metric value checker
      */
-    public FunctionResourceSLOHandler(FunctionChecker functionChecker, ResourceChecker resourceChecker,
-                                      MetricChecker metricChecker, MetricValueChecker metricValueChecker) {
-        this.functionChecker = functionChecker;
+    public ResourceSLOHandler(ResourceChecker resourceChecker, MetricChecker metricChecker,
+            MetricValueChecker metricValueChecker) {
         this.resourceChecker = resourceChecker;
         this.metricChecker = metricChecker;
         this.metricValueChecker = metricValueChecker;
     }
 
     /**
-     * Find and return all function resources that conform to the Service Level Objectives defined
-     * in the request
-     * body.
+     * Find and return all resources that fulfill the Service Level Objectives defined in the
+     * request body.
      *
      * @param rc the routing context
-     * @return a Single that emits the list of found function resources as JsonArray
+     * @return a Single that emits the list of found resources as JsonArray
      */
-    public Single<JsonArray> getFunctionResourceBySLOs(RoutingContext rc) {
-        ListFunctionResourcesBySLOsRequest requestDTO = rc.body()
+    public Single<JsonArray> getResourceBySLOs(RoutingContext rc) {
+        ListResourcesBySLOsRequest requestDTO = rc.body()
             .asJsonObject()
-            .mapTo(ListFunctionResourcesBySLOsRequest.class);
+            .mapTo(ListResourcesBySLOsRequest.class);
         List<ServiceLevelObjective> serviceLevelObjectives = requestDTO.getServiceLevelObjectives();
         List<Completable> completables = new ArrayList<>();
         serviceLevelObjectives.forEach(slo -> completables.add(metricChecker.checkServiceLevelObjectives(slo)));
         return Completable.merge(completables)
-            .andThen(HttpHelper.getLongPathParam(rc, "id"))
-            .flatMap(functionChecker::checkFindOne)
-            .flatMap(function -> Observable.fromStream(serviceLevelObjectives.stream())
+            .andThen(Observable.fromStream(serviceLevelObjectives.stream())
                 .map(ServiceLevelObjective::getName)
                 .toList()
-                .flatMap(metrics -> resourceChecker.checkFindAllBySLOs(function.getLong("function_id"),
-                    metrics, requestDTO.getRegions(), requestDTO.getProviders(), requestDTO.getResourceTypes())))
+                .flatMap(metrics -> resourceChecker.checkFindAllBySLOs(metrics, requestDTO.getRegions(),
+                        requestDTO.getProviders(), requestDTO.getResourceTypes())))
             .flatMap(this::mapMetricValuesToResources)
             .map(this::mapJsonListToResourceList)
             .map(resources -> filterAndSortResultList(resources, serviceLevelObjectives, requestDTO.getLimit()));
