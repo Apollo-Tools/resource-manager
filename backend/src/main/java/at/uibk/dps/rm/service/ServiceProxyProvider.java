@@ -1,5 +1,7 @@
 package at.uibk.dps.rm.service;
 
+import at.uibk.dps.rm.service.rxjava3.database.ensemble.EnsembleSLOService;
+import at.uibk.dps.rm.service.rxjava3.database.ensemble.EnsembleService;
 import at.uibk.dps.rm.service.rxjava3.database.log.ReservationLogService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.ResourceTypeMetricService;
 import at.uibk.dps.rm.service.rxjava3.database.reservation.ResourceReservationStatusService;
@@ -38,6 +40,8 @@ public class ServiceProxyProvider {
     private final AccountService accountService;
     private final AccountCredentialsService accountCredentialsService;
     private final CredentialsService credentialsService;
+    private final EnsembleService ensembleService;
+    private final EnsembleSLOService ensembleSLOService;
     private final FunctionService functionService;
     private final FunctionResourceService functionResourceService;
     private final LogService logService;
@@ -50,7 +54,6 @@ public class ServiceProxyProvider {
     private final ResourceService resourceService;
     private final ResourceProviderService resourceProviderService;
     private final ResourceReservationService resourceReservationService;
-
     @SuppressWarnings("PMD.LongVariable")
     private final ResourceReservationStatusService resourceReservationStatusService;
     private final ResourceTypeService resourceTypeService;
@@ -69,6 +72,8 @@ public class ServiceProxyProvider {
         accountService = AccountService.createProxy(vertx);
         accountCredentialsService = AccountCredentialsService.createProxy(vertx);
         credentialsService = CredentialsService.createProxy(vertx);
+        ensembleService = EnsembleService.createProxy(vertx);
+        ensembleSLOService = EnsembleSLOService.createProxy(vertx);
         functionService = FunctionService.createProxy(vertx);
         functionResourceService = FunctionResourceService.createProxy(vertx);
         logService = LogService.createProxy(vertx);

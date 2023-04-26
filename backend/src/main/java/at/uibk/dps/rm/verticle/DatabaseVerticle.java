@@ -3,6 +3,8 @@ package at.uibk.dps.rm.verticle;
 import at.uibk.dps.rm.repository.account.AccountCredentialsRepository;
 import at.uibk.dps.rm.repository.account.AccountRepository;
 import at.uibk.dps.rm.repository.account.CredentialsRepository;
+import at.uibk.dps.rm.repository.ensemble.EnsembleRepository;
+import at.uibk.dps.rm.repository.ensemble.EnsembleSLORepository;
 import at.uibk.dps.rm.repository.function.FunctionRepository;
 import at.uibk.dps.rm.repository.function.FunctionResourceRepository;
 import at.uibk.dps.rm.repository.function.RuntimeRepository;
@@ -21,6 +23,10 @@ import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
 import at.uibk.dps.rm.service.database.account.*;
+import at.uibk.dps.rm.service.database.ensemble.EnsembleSLOService;
+import at.uibk.dps.rm.service.database.ensemble.EnsembleSLOServiceImpl;
+import at.uibk.dps.rm.service.database.ensemble.EnsembleService;
+import at.uibk.dps.rm.service.database.ensemble.EnsembleServiceImpl;
 import at.uibk.dps.rm.service.database.function.*;
 import at.uibk.dps.rm.service.database.log.LogService;
 import at.uibk.dps.rm.service.database.log.LogServiceImpl;
@@ -60,6 +66,8 @@ public class DatabaseVerticle extends AbstractVerticle {
     private AccountRepository accountRepository;
     private AccountCredentialsRepository accountCredentialsRepository;
     private CredentialsRepository credentialsRepository;
+    private EnsembleRepository ensembleRepository;
+    private EnsembleSLORepository ensembleSLORepository;
     private FunctionRepository functionRepository;
     private FunctionResourceRepository functionResourceRepository;
     private LogRepository logRepository;
@@ -119,6 +127,8 @@ public class DatabaseVerticle extends AbstractVerticle {
             accountRepository = new AccountRepository(sessionFactory);
             accountCredentialsRepository = new AccountCredentialsRepository(sessionFactory);
             credentialsRepository = new CredentialsRepository(sessionFactory);
+            ensembleRepository = new EnsembleRepository(sessionFactory);
+            ensembleSLORepository = new EnsembleSLORepository(sessionFactory);
             functionRepository = new FunctionRepository(sessionFactory);
             functionResourceRepository = new FunctionResourceRepository(sessionFactory);
             logRepository = new LogRepository(sessionFactory);
@@ -155,6 +165,8 @@ public class DatabaseVerticle extends AbstractVerticle {
             serviceProxyBinder.bind(AccountCredentialsService.class,
                 new AccountCredentialsServiceImpl(accountCredentialsRepository));
             serviceProxyBinder.bind(CredentialsService.class, new CredentialsServiceImpl(credentialsRepository));
+            serviceProxyBinder.bind(EnsembleService.class, new EnsembleServiceImpl(ensembleRepository));
+            serviceProxyBinder.bind(EnsembleSLOService.class, new EnsembleSLOServiceImpl(ensembleSLORepository));
             serviceProxyBinder.bind(FunctionService.class, new FunctionServiceImpl(functionRepository));
             serviceProxyBinder.bind(FunctionResourceService.class,
                 new FunctionResourceServiceImpl(functionResourceRepository));

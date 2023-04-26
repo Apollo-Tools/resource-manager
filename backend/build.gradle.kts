@@ -21,7 +21,7 @@ val vertxVersion = "4.4.1"
 val flywayVersion = "8.5.12"
 val junitJupiterVersion = "5.7.0"
 val postgresVersion = "42.6.0"
-val hibernateVersion = "1.1.6.Final"
+val hibernateVersion = "1.1.9.Final"
 
 val launcherClassName = "at.uibk.dps.rm.Main"
 
