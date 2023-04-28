@@ -1,6 +1,6 @@
-package at.uibk.dps.rm.handler.resource;
+package at.uibk.dps.rm.handler.ensemble;
 
-import at.uibk.dps.rm.entity.dto.ListResourcesBySLOsRequest;
+import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.util.CollectionValidator;
 import io.reactivex.rxjava3.core.Completable;
@@ -9,7 +9,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
-import java.util.*;
+import java.util.Optional;
 
 /**
  * Used to validate the inputs of requests containing service level objectives and fails the
@@ -24,7 +24,7 @@ public class SLOInputHandler {
      *
      * @param rc the routing context
      */
-    public static void validateGetResourcesBySLOsRequest(RoutingContext rc) {
+    public static void validateCreateEnsembleRequest(RoutingContext rc) {
         JsonObject body = rc.body().asJsonObject();
         checkExpressionAreValid(body.getJsonArray("slos"))
             .concatWith(Completable.defer(() -> checkArrayDuplicates(body)))
@@ -61,7 +61,7 @@ public class SLOInputHandler {
      * @return a Completable
      */
     private static Completable checkArrayDuplicates(JsonObject body) {
-        ListResourcesBySLOsRequest request = body.mapTo(ListResourcesBySLOsRequest.class);
+        CreateEnsembleRequest request = body.mapTo(CreateEnsembleRequest.class);
         return CollectionValidator.hasDuplicates(request.getServiceLevelObjectives());
     }
 }

@@ -8,7 +8,10 @@ import at.uibk.dps.rm.util.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 @ProxyGen
 @VertxGen
@@ -24,4 +27,8 @@ public interface EnsembleService extends DatabaseServiceInterface {
     static EnsembleService createProxy(Vertx vertx) {
         return new EnsembleServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(Ensemble.class));
     }
+
+    Future<JsonArray> findAllByAccountId(long accountId);
+
+    Future<JsonObject> findOneByIdAndAccountId(long id, long accountId);
 }

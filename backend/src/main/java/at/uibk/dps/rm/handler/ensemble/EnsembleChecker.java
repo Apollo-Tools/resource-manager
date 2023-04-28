@@ -1,7 +1,11 @@
 package at.uibk.dps.rm.handler.ensemble;
 
 import at.uibk.dps.rm.handler.EntityChecker;
+import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.EnsembleService;
+import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 public class EnsembleChecker extends EntityChecker {
 
@@ -16,5 +20,12 @@ public class EnsembleChecker extends EntityChecker {
         this.ensembleService = ensembleService;
     }
 
+    public Single<JsonObject> checkFindOne(long id, long accountId) {
+        Single<JsonObject> findOneById = ensembleService.findOneByIdAndAccountId(id, accountId);
+        return ErrorHandler.handleFindOne(findOneById);
+    }
 
+    public Single<JsonArray> checkFindAll(long accountId) {
+        return ErrorHandler.handleFindAll(ensembleService.findAllByAccountId(accountId));
+    }
 }

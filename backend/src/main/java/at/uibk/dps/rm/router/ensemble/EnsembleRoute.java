@@ -4,6 +4,7 @@ import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.handler.ensemble.EnsembleChecker;
 import at.uibk.dps.rm.handler.ensemble.EnsembleHandler;
 import at.uibk.dps.rm.handler.ensemble.EnsembleSLOChecker;
+import at.uibk.dps.rm.handler.ensemble.SLOInputHandler;
 import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
@@ -17,19 +18,20 @@ public class EnsembleRoute implements Route {
         ResultHandler resultHandler = new ResultHandler(ensembleHandler);
 
         router
-                .operation("createResourceEnsemble")
-                .handler(resultHandler::handleSaveOneRequest);
+            .operation("createEnsemble")
+            .handler(SLOInputHandler::validateCreateEnsembleRequest)
+            .handler(resultHandler::handleSaveOneRequest);
 
         router
-                .operation("listResourceEnsembles")
-                .handler(resultHandler::handleFindAllRequest);
+            .operation("listEnsembles")
+            .handler(resultHandler::handleFindAllRequest);
 
         router
-                .operation("getResourceEnsemble")
-                .handler(resultHandler::handleFindOneRequest);
+            .operation("getEnsemble")
+            .handler(resultHandler::handleFindOneRequest);
 
         router
-                .operation("deleteResourceEnsemble")
-                .handler(resultHandler::handleUpdateRequest);
+            .operation("deleteEnsemble")
+            .handler(resultHandler::handleDeleteRequest);
     }
 }

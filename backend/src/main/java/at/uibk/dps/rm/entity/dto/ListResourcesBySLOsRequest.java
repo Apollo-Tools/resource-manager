@@ -18,7 +18,7 @@ import java.util.List;
 @JsonDeserialize(using = ListResourcesBySLOsRequestDeserializer.class)
 public class ListResourcesBySLOsRequest {
 
-    @JsonProperty("slo")
+    @JsonProperty("slos")
     private List<ServiceLevelObjective> serviceLevelObjectives =new ArrayList<>();
     //TODO: remove
     private List<Long> regions = new ArrayList<>();

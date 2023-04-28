@@ -129,7 +129,7 @@ public class ReservationHandler extends ValidationHandler {
                             statusNew))
                 )
             )
-            // TODO: remove self managed state (use edge instead of self managed vm) */
+            //TODO: remove self managed state (use edge instead of self managed vm) */
             .flatMap(resourceReservations -> resourceReservationChecker
                 .submitCreateAll(Json.encodeToBuffer(resourceReservations).toJsonArray())
                 .andThen(Single.just(JsonObject.mapFrom(resourceReservations.get(0).getReservation())))
@@ -157,6 +157,7 @@ public class ReservationHandler extends ValidationHandler {
                 return Completable.complete();
             });
     }
+    //TODO: add check for authentication in delete
 
     /**
      * Create a list of resource reservations from the reservation, functionResources and status.

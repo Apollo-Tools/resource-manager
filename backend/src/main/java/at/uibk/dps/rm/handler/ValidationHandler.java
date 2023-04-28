@@ -34,7 +34,7 @@ public abstract class ValidationHandler {
      * @param rc the RoutingContext of the request
      * @return a Completable
      */
-    public Completable deleteOne(RoutingContext rc) {
+    protected Completable deleteOne(RoutingContext rc) {
         return HttpHelper.getLongPathParam(rc, "id")
             .flatMap(id -> entityChecker.checkFindOne(id)
                 .flatMapCompletable(this::checkDeleteEntityIsUsed)

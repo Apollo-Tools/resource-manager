@@ -508,23 +508,23 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /resource-ensembles/{id}:
+  /ensembles/{id}:
     get:
-      description: Returns details about a resource ensemble managed by the resource manager
-      operationId: getResourceEnsemble
+      description: Returns details about an ensemble managed by the resource manager
+      operationId: getEnsemble
       security:
         - bearerAuth: []
       tags:
-        - resourceEnsembles
+        - ensembles
       parameters:
         - $ref: "#/components/parameters/idParam"
       responses:
         200:
-          description: Successful pull of a resource ensemble
+          description: Successful pull of an ensemble
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResourceEnsemble"
+                $ref: "#/components/schemas/Ensemble"
         400:
           $ref: "#/components/responses/400"
         404:
@@ -533,17 +533,17 @@ paths:
           $ref: "#/components/responses/500"
 
     delete:
-      description: Deletes a resource ensemble
-      operationId: deleteResourceEnsemble
+      description: Deletes an ensemble
+      operationId: deleteEnsemble
       security:
         - bearerAuth: []
       tags:
-        - resourceEnsembles
+        - ensembles
       parameters:
         - $ref: "#/components/parameters/idParam"
       responses:
         204:
-          description: Successful deletion of a resource ensemble
+          description: Successful deletion of an ensemble
         400:
           $ref: "#/components/responses/400"
         404:
@@ -551,33 +551,33 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /resource-ensembles:
+  /ensembles:
     get:
-      description: Returns details about all resource ensembles managed by the resource manager
-      operationId: listResourceEnsembles
+      description: Returns details about all ensembles managed by the resource manager
+      operationId: listEnsembles
       security:
         - bearerAuth: []
       tags:
-        - resourceEnsembles
+        - ensembles
       responses:
         200:
-          description: Successful pull of all resource ensembles
+          description: Successful pull of all ensembles
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ResourceEnsemble"
+                  $ref: "#/components/schemas/Ensemble"
         500:
           $ref: "#/components/responses/500"
 
     post:
-      description: Registers a new resource ensemble
-      operationId: createResourceEnsemble
+      description: Registers a new ensemble
+      operationId: createEnsemble
       security:
         - bearerAuth: []
       tags:
-        - resourceEnsembles
+        - ensembles
       requestBody:
         required: true
         content:
@@ -594,7 +594,7 @@ paths:
                   type: string
                   minLength: 1
                   maxLength: 64
-                  example: my-resource-ensemble
+                  example: my-ensemble
                 slos:
                   $ref: "#/components/schemas/Slos"
                 resources:
@@ -613,11 +613,11 @@ paths:
 
       responses:
         201:
-          description: Successful registration of a new resource ensemble
+          description: Successful registration of a new ensemble
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResourceEnsemble"
+                $ref: "#/components/schemas/Ensemble"
         400:
           $ref: "#/components/responses/400"
         404:
@@ -626,6 +626,7 @@ paths:
           $ref: "#/components/responses/409"
         500:
           $ref: "#/components/responses/500"
+
   /runtimes/{id}:
     get:
       description: Return details about a runtime
@@ -2094,7 +2095,7 @@ components:
           format: int64
           example: 1679496667103
 
-    ResourceEnsemble:
+    Ensemble:
       type: object
       properties:
         ensemble_id:
