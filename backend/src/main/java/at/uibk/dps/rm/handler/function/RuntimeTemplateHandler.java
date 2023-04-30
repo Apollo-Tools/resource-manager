@@ -2,7 +2,7 @@ package at.uibk.dps.rm.handler.function;
 
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.handler.util.FileSystemChecker;
-import at.uibk.dps.rm.util.HttpHelper;
+import at.uibk.dps.rm.util.misc.HttpHelper;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;

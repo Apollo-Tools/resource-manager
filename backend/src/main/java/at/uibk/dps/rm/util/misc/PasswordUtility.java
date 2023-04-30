@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.util;
+package at.uibk.dps.rm.util.misc;
 
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;

@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.util;
 
+import at.uibk.dps.rm.util.misc.PasswordUtility;
 import io.vertx.junit5.VertxExtension;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;

@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.handler.resource;
 
 import at.uibk.dps.rm.handler.*;
-import at.uibk.dps.rm.util.HttpHelper;
+import at.uibk.dps.rm.util.misc.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;

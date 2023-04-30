@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.handler.function;
 
-import at.uibk.dps.rm.util.JsonArrayValidator;
+import at.uibk.dps.rm.util.validation.JsonArrayValidator;
 import io.vertx.core.json.JsonArray;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 

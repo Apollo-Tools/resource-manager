@@ -4,7 +4,7 @@ import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.repository.reservation.ReservationRepository;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
-import at.uibk.dps.rm.util.JsonMapperConfig;
+import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.hibernate.reactive.util.impl.CompletionStages;

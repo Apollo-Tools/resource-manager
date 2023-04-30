@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.util;
+package at.uibk.dps.rm.util.configuration;
 
 import io.vertx.ext.auth.JWTOptions;
 import io.vertx.ext.auth.PubSecKeyOptions;

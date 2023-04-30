@@ -12,7 +12,7 @@ import at.uibk.dps.rm.handler.resourceprovider.VPCChecker;
 import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestRequestProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
-import at.uibk.dps.rm.util.JsonMapperConfig;
+import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;

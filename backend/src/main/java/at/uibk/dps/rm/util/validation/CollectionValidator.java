@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.util;
+package at.uibk.dps.rm.util.validation;
 
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;

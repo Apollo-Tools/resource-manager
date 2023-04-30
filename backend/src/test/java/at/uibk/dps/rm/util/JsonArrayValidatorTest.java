@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.util;
 
+import at.uibk.dps.rm.util.validation.JsonArrayValidator;
 import io.vertx.core.json.JsonArray;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;

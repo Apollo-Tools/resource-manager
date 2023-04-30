@@ -3,7 +3,7 @@ package at.uibk.dps.rm.handler.resourceprovider;
 import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
-import at.uibk.dps.rm.util.JsonMapperConfig;
+import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;

@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.util;
 
+import at.uibk.dps.rm.util.misc.HttpHelper;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.ext.web.RoutingContext;

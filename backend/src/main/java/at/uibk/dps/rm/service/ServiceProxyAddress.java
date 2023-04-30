@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.util;
+package at.uibk.dps.rm.service;
 
 import lombok.experimental.UtilityClass;
 

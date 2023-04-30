@@ -4,7 +4,7 @@ import at.uibk.dps.rm.entity.model.ResourceProvider;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.ResourceProviderService;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
-import at.uibk.dps.rm.util.JsonMapperConfig;
+import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;

@@ -2,7 +2,7 @@ package at.uibk.dps.rm.handler.resource;
 
 import at.uibk.dps.rm.entity.dto.ListResourcesBySLOsRequest;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
-import at.uibk.dps.rm.util.CollectionValidator;
+import at.uibk.dps.rm.util.validation.CollectionValidator;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.core.json.JsonArray;

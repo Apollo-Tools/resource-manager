@@ -38,7 +38,7 @@
                       value="validate"/>
 
             <property name="hibernate.physical_naming_strategy"
-                      value="at.uibk.dps.rm.util.CamelCaseToSnakeCaseNamingStrategy"
+                      value="at.uibk.dps.rm.util.configuration.CamelCaseToSnakeCaseNamingStrategy"
             />
 
             <!-- SQL statement logging -->

@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.util;
 
+import at.uibk.dps.rm.util.validation.CollectionValidator;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.Test;

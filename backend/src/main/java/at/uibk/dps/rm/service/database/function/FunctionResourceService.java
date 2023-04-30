@@ -6,7 +6,7 @@ import at.uibk.dps.rm.entity.model.FunctionResource;
 import at.uibk.dps.rm.repository.function.FunctionResourceRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 
-import at.uibk.dps.rm.util.ServiceProxyAddress;
+import at.uibk.dps.rm.service.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;

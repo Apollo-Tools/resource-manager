@@ -17,7 +17,7 @@ import at.uibk.dps.rm.router.resourceprovider.ResourceProviderRegionRoute;
 import at.uibk.dps.rm.router.resourceprovider.ResourceProviderRoute;
 import at.uibk.dps.rm.router.resourceprovider.VPCRoute;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
-import at.uibk.dps.rm.util.JWTAuthProvider;
+import at.uibk.dps.rm.util.configuration.JWTAuthProvider;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.impl.logging.Logger;

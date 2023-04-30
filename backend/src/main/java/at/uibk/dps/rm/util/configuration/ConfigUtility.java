@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.util;
+package at.uibk.dps.rm.util.configuration;
 
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.config.ConfigRetrieverOptions;

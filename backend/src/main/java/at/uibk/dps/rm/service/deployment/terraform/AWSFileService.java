@@ -3,7 +3,7 @@ package at.uibk.dps.rm.service.deployment.terraform;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.deployment.TerraformModule;
 import at.uibk.dps.rm.exception.RuntimeNotSupportedException;
-import at.uibk.dps.rm.util.MetricValueMapper;
+import at.uibk.dps.rm.util.misc.MetricValueMapper;
 import io.vertx.rxjava3.core.file.FileSystem;
 
 import java.nio.file.Path;

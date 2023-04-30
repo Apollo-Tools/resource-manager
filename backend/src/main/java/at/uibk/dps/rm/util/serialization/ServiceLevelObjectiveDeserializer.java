@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.util;
+package at.uibk.dps.rm.util.serialization;
 
 import at.uibk.dps.rm.entity.dto.slo.*;
 import com.fasterxml.jackson.core.JsonParser;

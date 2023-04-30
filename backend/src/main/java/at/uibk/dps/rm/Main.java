@@ -1,6 +1,6 @@
 package at.uibk.dps.rm;
 
-import at.uibk.dps.rm.util.JsonMapperConfig;
+import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import at.uibk.dps.rm.verticle.MainVerticle;
 import io.vertx.rxjava3.core.Vertx;
 import lombok.experimental.UtilityClass;

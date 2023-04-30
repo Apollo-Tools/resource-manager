@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.entity.dto.slo;
 
 import at.uibk.dps.rm.annotations.Generated;
-import at.uibk.dps.rm.util.ServiceLevelObjectiveDeserializer;
+import at.uibk.dps.rm.util.serialization.ServiceLevelObjectiveDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;

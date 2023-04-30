@@ -1,6 +1,5 @@
 package at.uibk.dps.rm.service;
 
-import at.uibk.dps.rm.util.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
 
 /**

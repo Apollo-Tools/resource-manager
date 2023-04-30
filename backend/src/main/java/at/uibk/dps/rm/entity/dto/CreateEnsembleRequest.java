@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.entity.dto;
 
 import at.uibk.dps.rm.entity.dto.resource.ResourceId;
-import at.uibk.dps.rm.util.SLORequestDeserializer;
+import at.uibk.dps.rm.util.serialization.SLORequestDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

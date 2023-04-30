@@ -7,7 +7,7 @@ import at.uibk.dps.rm.entity.dto.TerminateResourcesRequest;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.deployment.TerraformModule;
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
-import at.uibk.dps.rm.util.RegionMapper;
+import at.uibk.dps.rm.util.misc.RegionMapper;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.core.Vertx;
 

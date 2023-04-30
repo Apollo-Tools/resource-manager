@@ -3,7 +3,7 @@ package at.uibk.dps.rm.service.database.function;
 import at.uibk.dps.rm.entity.model.Runtime;
 import at.uibk.dps.rm.repository.function.RuntimeRepository;
 import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
-import at.uibk.dps.rm.util.JsonMapperConfig;
+import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.hibernate.reactive.util.impl.CompletionStages;

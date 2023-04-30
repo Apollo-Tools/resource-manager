@@ -4,7 +4,7 @@ import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.account.AccountService;
-import at.uibk.dps.rm.util.PasswordUtility;
+import at.uibk.dps.rm.util.misc.PasswordUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;

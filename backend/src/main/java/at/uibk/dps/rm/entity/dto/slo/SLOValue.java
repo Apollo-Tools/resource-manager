@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.entity.dto.slo;
 
-import at.uibk.dps.rm.util.SLOValueSerializer;
+import at.uibk.dps.rm.util.serialization.SLOValueSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 

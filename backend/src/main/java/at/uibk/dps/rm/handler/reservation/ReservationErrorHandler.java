@@ -9,7 +9,7 @@ import at.uibk.dps.rm.handler.deployment.DeploymentHandler;
 import at.uibk.dps.rm.handler.log.LogChecker;
 import at.uibk.dps.rm.handler.log.ReservationLogChecker;
 import at.uibk.dps.rm.handler.util.FileSystemChecker;
-import at.uibk.dps.rm.util.ConfigUtility;
+import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;

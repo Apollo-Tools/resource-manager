@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.verticle;
 
-import at.uibk.dps.rm.util.ConfigUtility;
+import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.DeploymentOptions;
