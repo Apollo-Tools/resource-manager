@@ -32,4 +32,14 @@ public class EnsembleRepository extends Repository<Ensemble> {
                 .getSingleResultOrNull()
         );
     }
+
+    public CompletionStage<Ensemble> findByNameAndAccountId(String name, long accountId) {
+        return sessionFactory.withSession(session ->
+            session.createQuery("select e from Ensemble e " +
+                    "where e.name=:name and e.createdBy.accountId=:accountId", entityClass)
+                .setParameter("name", name)
+                .setParameter("accountId", accountId)
+                .getSingleResultOrNull()
+        );
+    }
 }

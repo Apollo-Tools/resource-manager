@@ -7,6 +7,7 @@ CREATE TABLE ensemble (
   created_by_id BIGINT NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  UNIQUE (name, created_by_id),
   FOREIGN KEY (created_by_id)
       REFERENCES account (account_id) ON DELETE CASCADE
 );

@@ -123,7 +123,7 @@ public class ApiVerticle extends AbstractVerticle {
      */
     private void setupFailureHandler(Router router) {
         router.route().failureHandler(rc -> {
-            String message;
+            String message  = "";
             if (rc.statusCode() == 500) {
                 message = "internal server error";
                 logger.error(message, rc.failure());
@@ -134,7 +134,7 @@ public class ApiVerticle extends AbstractVerticle {
             rc.response()
                 .putHeader("Content-type", "text/plain; charset=utf-8")
                 .setStatusCode(rc.statusCode())
-                .end();
+                .end(message);
         });
     }
 
@@ -144,7 +144,8 @@ public class ApiVerticle extends AbstractVerticle {
      * @return the resulting cors handler
      */
     private CorsHandler cors() {
-        return CorsHandler.create("*")
+        return CorsHandler.create()
+                .addOrigin("*")
                 .allowedMethod(HttpMethod.GET)
                 .allowedMethod(HttpMethod.POST)
                 .allowedMethod(HttpMethod.DELETE)

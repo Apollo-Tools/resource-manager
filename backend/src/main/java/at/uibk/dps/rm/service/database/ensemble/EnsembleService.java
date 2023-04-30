@@ -31,4 +31,6 @@ public interface EnsembleService extends DatabaseServiceInterface {
     Future<JsonArray> findAllByAccountId(long accountId);
 
     Future<JsonObject> findOneByIdAndAccountId(long id, long accountId);
+
+    Future<Boolean> existsOneByNameAndAccountId(String name, long accountId);
 }

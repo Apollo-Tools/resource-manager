@@ -8,6 +8,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implements EnsembleService {
 
@@ -47,5 +48,12 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
                 }
                 return JsonObject.mapFrom(result);
             });
+    }
+
+    @Override
+    public Future<Boolean> existsOneByNameAndAccountId(String name, long accountId) {
+        return Future
+            .fromCompletionStage(ensembleRepository.findByNameAndAccountId(name, accountId))
+            .map(Objects::nonNull);
     }
 }

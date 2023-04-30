@@ -10,6 +10,7 @@ import io.vertx.core.json.JsonObject;
  *
  * @author matthi-g
  */
+//TODO: change return value of Single<Boolean> to Completable
 public class ErrorHandler {
 
   /**

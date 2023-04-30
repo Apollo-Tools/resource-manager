@@ -1,6 +1,9 @@
 package at.uibk.dps.rm.util;
 
+import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
 import at.uibk.dps.rm.entity.dto.ListResourcesBySLOsRequest;
+import at.uibk.dps.rm.entity.dto.SLORequest;
+import at.uibk.dps.rm.entity.dto.resource.ResourceId;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.SLOType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
@@ -11,6 +14,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -20,14 +24,15 @@ import java.util.stream.StreamSupport;
  *
  * @author matthi-g
  */
-public class ListResourcesBySLOsRequestDeserializer  extends StdDeserializer<ListResourcesBySLOsRequest> {
+public class SLORequestDeserializer extends StdDeserializer<SLORequest> {
 
     private static final long serialVersionUID = 5187456179594582207L;
 
     /**
      * The deserialization throws an error if this constructor is not present
      */
-    public ListResourcesBySLOsRequestDeserializer() {
+    @SuppressWarnings("unused")
+    public SLORequestDeserializer() {
         this(null);
     }
 
@@ -36,17 +41,27 @@ public class ListResourcesBySLOsRequestDeserializer  extends StdDeserializer<Lis
      *
      * @param valueClass the value class
      */
-    public ListResourcesBySLOsRequestDeserializer(Class<?> valueClass) {
+    public SLORequestDeserializer(Class<?> valueClass) {
         super(valueClass);
     }
 
     @Override
-    public ListResourcesBySLOsRequest deserialize(JsonParser jsonParser, DeserializationContext ctxt)
+    public SLORequest deserialize(JsonParser jsonParser, DeserializationContext ctxt)
             throws IOException {
         JsonNode mainNode = jsonParser.getCodec().readTree(jsonParser);
         List<JsonNode> slos = StreamSupport.stream(mainNode.get("slos").spliterator(), false)
                 .collect(Collectors.toList());
-        ListResourcesBySLOsRequest request = new ListResourcesBySLOsRequest();
+        SLORequest request;
+        if (mainNode.has("name")) {
+            CreateEnsembleRequest createRequest = new CreateEnsembleRequest();
+            createRequest.setName(mainNode.get("name").asText());
+            List<JsonNode> resources = StreamSupport.stream(mainNode.get("resources").spliterator(), false)
+                .collect(Collectors.toList());
+            createRequest.setResources(deserializeResourceIds(jsonParser, resources));
+            request = createRequest;
+        } else {
+            request = new ListResourcesBySLOsRequest();
+        }
         for(JsonNode node: slos) {
             ServiceLevelObjective slo;
             try (JsonParser subParser = node.traverse(jsonParser.getCodec())) {
@@ -57,13 +72,24 @@ public class ListResourcesBySLOsRequestDeserializer  extends StdDeserializer<Lis
         return request;
     }
 
+    private List<ResourceId> deserializeResourceIds(JsonParser jsonParser, List<JsonNode> nodes) throws IOException {
+        List<ResourceId> resourceIds = new ArrayList<>();
+
+        for (JsonNode node : nodes) {
+            try (JsonParser subParser = node.traverse(jsonParser.getCodec())) {
+                resourceIds.add(subParser.readValueAs(ResourceId.class));
+            }
+        }
+        return resourceIds;
+    }
+
     /**
      * Map service level objectives either to the regions-, provider-, resourceType- or slo-list.
      *
      * @param slo the service level objectives
      * @param request the list resources by slos request
      */
-    private void mapServiceLevelObjectives(ServiceLevelObjective slo, ListResourcesBySLOsRequest request) {
+    private void mapServiceLevelObjectives(ServiceLevelObjective slo, SLORequest request) {
         if (sloMatchesSLOType(slo, SLOType.REGION)) {
             if (nonMetricSLOisInvalid(slo)) {
                 throw new BadInputException();

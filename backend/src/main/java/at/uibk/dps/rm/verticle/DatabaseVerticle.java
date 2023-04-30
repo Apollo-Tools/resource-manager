@@ -5,6 +5,7 @@ import at.uibk.dps.rm.repository.account.AccountRepository;
 import at.uibk.dps.rm.repository.account.CredentialsRepository;
 import at.uibk.dps.rm.repository.ensemble.EnsembleRepository;
 import at.uibk.dps.rm.repository.ensemble.EnsembleSLORepository;
+import at.uibk.dps.rm.repository.ensemble.ResourceEnsembleRepository;
 import at.uibk.dps.rm.repository.function.FunctionRepository;
 import at.uibk.dps.rm.repository.function.FunctionResourceRepository;
 import at.uibk.dps.rm.repository.function.RuntimeRepository;
@@ -23,10 +24,7 @@ import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
 import at.uibk.dps.rm.service.database.account.*;
-import at.uibk.dps.rm.service.database.ensemble.EnsembleSLOService;
-import at.uibk.dps.rm.service.database.ensemble.EnsembleSLOServiceImpl;
-import at.uibk.dps.rm.service.database.ensemble.EnsembleService;
-import at.uibk.dps.rm.service.database.ensemble.EnsembleServiceImpl;
+import at.uibk.dps.rm.service.database.ensemble.*;
 import at.uibk.dps.rm.service.database.function.*;
 import at.uibk.dps.rm.service.database.log.LogService;
 import at.uibk.dps.rm.service.database.log.LogServiceImpl;
@@ -77,6 +75,7 @@ public class DatabaseVerticle extends AbstractVerticle {
     private RegionRepository regionRepository;
     private ReservationRepository reservationRepository;
     private ReservationLogRepository reservationLogRepository;
+    private ResourceEnsembleRepository resourceEnsembleRepository;
     private ResourceRepository resourceRepository;
     private ResourceProviderRepository resourceProviderRepository;
     private ResourceReservationRepository resourceReservationRepository;
@@ -138,6 +137,7 @@ public class DatabaseVerticle extends AbstractVerticle {
             regionRepository = new RegionRepository(sessionFactory);
             reservationRepository = new ReservationRepository(sessionFactory);
             reservationLogRepository = new ReservationLogRepository(sessionFactory);
+            resourceEnsembleRepository = new ResourceEnsembleRepository(sessionFactory);
             resourceRepository = new ResourceRepository(sessionFactory);
             resourceProviderRepository = new ResourceProviderRepository(sessionFactory);
             resourceReservationRepository = new ResourceReservationRepository(sessionFactory);
@@ -178,6 +178,8 @@ public class DatabaseVerticle extends AbstractVerticle {
             serviceProxyBinder.bind(ReservationService.class, new ReservationServiceImpl(reservationRepository));
             serviceProxyBinder.bind(ReservationLogService.class,
                 new ReservationLogServiceImpl(reservationLogRepository));
+            serviceProxyBinder.bind(ResourceEnsembleService.class,
+                new ResourceEnsembleServiceImpl(resourceEnsembleRepository));
             serviceProxyBinder.bind(ResourceService.class, new ResourceServiceImpl(resourceRepository));
             serviceProxyBinder.bind(ResourceProviderService.class,
                 new ResourceProviderServiceImpl(resourceProviderRepository));

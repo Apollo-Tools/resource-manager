@@ -2,6 +2,7 @@ package at.uibk.dps.rm.service;
 
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.EnsembleSLOService;
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.EnsembleService;
+import at.uibk.dps.rm.service.rxjava3.database.ensemble.ResourceEnsembleService;
 import at.uibk.dps.rm.service.rxjava3.database.log.ReservationLogService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.ResourceTypeMetricService;
 import at.uibk.dps.rm.service.rxjava3.database.reservation.ResourceReservationStatusService;
@@ -51,6 +52,8 @@ public class ServiceProxyProvider {
     private final RegionService regionService;
     private final ReservationService reservationService;
     private final ReservationLogService reservationLogService;
+
+    private final ResourceEnsembleService resourceEnsembleService;
     private final ResourceService resourceService;
     private final ResourceProviderService resourceProviderService;
     private final ResourceReservationService resourceReservationService;
@@ -83,6 +86,7 @@ public class ServiceProxyProvider {
         regionService = RegionService.createProxy(vertx);
         reservationService = ReservationService.createProxy(vertx);
         reservationLogService = ReservationLogService.createProxy(vertx);
+        resourceEnsembleService = ResourceEnsembleService.createProxy(vertx);
         resourceService = ResourceService.createProxy(vertx);
         resourceProviderService = ResourceProviderService.createProxy(vertx);
         resourceReservationService = ResourceReservationService.createProxy(vertx);

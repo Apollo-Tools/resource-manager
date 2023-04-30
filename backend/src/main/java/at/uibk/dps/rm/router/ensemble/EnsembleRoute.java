@@ -1,10 +1,8 @@
 package at.uibk.dps.rm.router.ensemble;
 
 import at.uibk.dps.rm.handler.ResultHandler;
-import at.uibk.dps.rm.handler.ensemble.EnsembleChecker;
-import at.uibk.dps.rm.handler.ensemble.EnsembleHandler;
-import at.uibk.dps.rm.handler.ensemble.EnsembleSLOChecker;
-import at.uibk.dps.rm.handler.ensemble.SLOInputHandler;
+import at.uibk.dps.rm.handler.ensemble.*;
+import at.uibk.dps.rm.handler.resource.ResourceChecker;
 import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
@@ -14,7 +12,11 @@ public class EnsembleRoute implements Route {
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         EnsembleChecker ensembleChecker = new EnsembleChecker(serviceProxyProvider.getEnsembleService());
         EnsembleSLOChecker ensembleSLOChecker = new EnsembleSLOChecker(serviceProxyProvider.getEnsembleSLOService());
-        EnsembleHandler ensembleHandler = new EnsembleHandler(ensembleChecker, ensembleSLOChecker);
+        ResourceEnsembleChecker resourceEnsembleChecker = new ResourceEnsembleChecker(serviceProxyProvider
+            .getResourceEnsembleService());
+        ResourceChecker resourceChecker = new ResourceChecker(serviceProxyProvider.getResourceService());
+        EnsembleHandler ensembleHandler = new EnsembleHandler(ensembleChecker, ensembleSLOChecker,
+            resourceEnsembleChecker, resourceChecker);
         ResultHandler resultHandler = new ResultHandler(ensembleHandler);
 
         router

@@ -1,13 +1,9 @@
 package at.uibk.dps.rm.entity.dto;
 
-import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
-import at.uibk.dps.rm.util.ListResourcesBySLOsRequestDeserializer;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import at.uibk.dps.rm.util.SLORequestDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Data;
-
-import java.util.ArrayList;
-import java.util.List;
+import lombok.EqualsAndHashCode;
 
 /**
  * Represents the body of the listResourcesBySLOs operation.
@@ -15,15 +11,7 @@ import java.util.List;
  * @author matthi-g
  */
 @Data
-@JsonDeserialize(using = ListResourcesBySLOsRequestDeserializer.class)
-public class ListResourcesBySLOsRequest {
+@EqualsAndHashCode(callSuper = true)
+@JsonDeserialize(using = SLORequestDeserializer.class)
+public class ListResourcesBySLOsRequest extends SLORequest {}
 
-    @JsonProperty("slos")
-    private List<ServiceLevelObjective> serviceLevelObjectives =new ArrayList<>();
-    //TODO: remove
-    private List<Long> regions = new ArrayList<>();
-
-    private List<Long> providers = new ArrayList<>();
-
-    private List<Long> resourceTypes = new ArrayList<>();
-}
