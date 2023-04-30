@@ -34,4 +34,17 @@ public class EnsembleSLOServiceImpl extends DatabaseServiceProxy<EnsembleSLO> im
                     return new JsonArray(objects);
                 });
     }
+
+    public Future<JsonArray> findAllByEnsembleId(long ensembleId) {
+        return Future
+            .fromCompletionStage(ensembleSLORepository.findAllByEnsembleId(ensembleId))
+            .map(result -> {
+                ArrayList<JsonObject> objects = new ArrayList<>();
+                for (EnsembleSLO entity : result) {
+                    entity.setEnsemble(null);
+                    objects.add(JsonObject.mapFrom(entity));
+                }
+                return new JsonArray(objects);
+            });
+    }
 }

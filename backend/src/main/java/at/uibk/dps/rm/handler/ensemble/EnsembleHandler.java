@@ -1,18 +1,22 @@
 package at.uibk.dps.rm.handler.ensemble;
 
 import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
+import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
 import at.uibk.dps.rm.entity.dto.resource.ResourceId;
-import at.uibk.dps.rm.entity.dto.slo.SLOValue;
-import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
+import at.uibk.dps.rm.entity.dto.slo.*;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.handler.resource.ResourceChecker;
 import at.uibk.dps.rm.util.HttpHelper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
 import java.util.List;
@@ -28,6 +32,8 @@ public class EnsembleHandler extends ValidationHandler {
 
     private final ResourceChecker resourceChecker;
 
+    private final ObjectMapper mapper;
+
     /**
      * Create an instance from the ensembleChecker.
      *
@@ -40,6 +46,7 @@ public class EnsembleHandler extends ValidationHandler {
         this.ensembleSLOChecker = ensembleSLOChecker;
         this.resourceEnsembleChecker = resourceEnsembleChecker;
         this.resourceChecker = resourceChecker;
+        this.mapper = DatabindCodec.mapper();
     }
 
     @Override
@@ -72,7 +79,22 @@ public class EnsembleHandler extends ValidationHandler {
     @Override
     protected Single<JsonObject> getOne(RoutingContext rc) {
         return HttpHelper.getLongPathParam(rc, "id")
-            .flatMap(id -> ensembleChecker.checkFindOne(id, rc.user().principal().getLong("account_id")));
+            .flatMap(id -> ensembleChecker.checkFindOne(id, rc.user().principal().getLong("account_id")))
+            .flatMap(result -> {
+                GetOneEnsemble response = new GetOneEnsemble();
+                Ensemble ensemble = result.mapTo(Ensemble.class);
+                response.setEnsembleId(ensemble.getEnsembleId());
+                response.setName(ensemble.getName());
+                return resourceEnsembleChecker.checkFindAllByEnsemble(ensemble.getEnsembleId())
+                    .flatMap(resources -> {
+                        mapResourcesToResponse(resources, response);
+                        return ensembleSLOChecker.checkFindAllByEnsemble(ensemble.getEnsembleId());
+                    })
+                    .map(slos -> {
+                        mapSLOsToResponse(slos, ensemble, response);
+                        return JsonObject.mapFrom(response);
+                    });
+            });
     }
 
     @Override
@@ -150,5 +172,66 @@ public class EnsembleHandler extends ValidationHandler {
                 JsonArray ensembleSLOArray = new JsonArray(ensembleSLOs);
                 return ensembleSLOChecker.submitCreateAll(ensembleSLOArray);
             });
+    }
+
+    private List<ServiceLevelObjective> mapEnsembleSLOtoDTO(List<EnsembleSLO> ensembleSLOs) {
+        return ensembleSLOs.stream()
+            .map(ensembleSLO -> {
+                List<SLOValue> sloValues;
+                if (ensembleSLO.getValueNumbers() != null) {
+                    sloValues = ensembleSLO.getValueNumbers().stream().map(value -> {
+                        SLOValue sloValue = new SLOValue();
+                        sloValue.setValueNumber(value);
+                        sloValue.setSloValueType(SLOValueType.NUMBER);
+                        return sloValue;
+                    }).collect(Collectors.toList());
+                } else if (ensembleSLO.getValueStrings() != null) {
+                    sloValues = ensembleSLO.getValueStrings().stream().map(value -> {
+                        SLOValue sloValue = new SLOValue();
+                        sloValue.setValueString(value);
+                        sloValue.setSloValueType(SLOValueType.STRING);
+                        return sloValue;
+                    }).collect(Collectors.toList());
+                } else {
+                    sloValues = ensembleSLO.getValueBools().stream().map(value -> {
+                        SLOValue sloValue = new SLOValue();
+                        sloValue.setValueBool(value);
+                        sloValue.setSloValueType(SLOValueType.BOOLEAN);
+                        return sloValue;
+                    }).collect(Collectors.toList());
+                }
+                return new ServiceLevelObjective(ensembleSLO.getName(),
+                    ensembleSLO.getExpression(), sloValues);
+            }).collect(Collectors.toList());
+    }
+
+    private void mapResourcesToResponse(JsonArray resources, GetOneEnsemble response)
+        throws JsonProcessingException {
+        List<ResourceEnsemble> resourceEnsembles = mapper.readValue(resources.toString(), new TypeReference<>() {});
+        response.setResourceEnsembleList(resourceEnsembles);
+    }
+
+    private void mapSLOsToResponse(JsonArray slos, Ensemble ensemble, GetOneEnsemble response)
+        throws JsonProcessingException {
+        List<EnsembleSLO> ensembleSLOs = mapper.readValue(slos.toString(), new TypeReference<>() {});
+        List<ServiceLevelObjective> serviceLevelObjectives = mapEnsembleSLOtoDTO(ensembleSLOs);
+        response.setServiceLevelObjectives(serviceLevelObjectives);
+        mapNonMetricToSLO(ensemble.getRegions(), SLOType.REGION, serviceLevelObjectives);
+        mapNonMetricToSLO(ensemble.getProviders(), SLOType.RESOURCE_PROVIDER, serviceLevelObjectives);
+        mapNonMetricToSLO(ensemble.getResource_types(), SLOType.RESOURCE_TYPE, serviceLevelObjectives);
+    }
+
+    private void mapNonMetricToSLO(List<Long> values, SLOType sloType,
+                                   List<ServiceLevelObjective> slos) {
+        List<SLOValue> sloValues = values.stream().map(value -> {
+            SLOValue sloValue = new SLOValue();
+            sloValue.setValueNumber(value);
+            sloValue.setSloValueType(SLOValueType.NUMBER);
+            return sloValue;
+        }).collect(Collectors.toList());
+        if (sloValues.isEmpty()) {
+            return;
+        }
+        slos.add(new ServiceLevelObjective(sloType.name(), ExpressionType.EQ, sloValues));
     }
 }

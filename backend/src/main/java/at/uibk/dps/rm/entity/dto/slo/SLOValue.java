@@ -1,5 +1,7 @@
 package at.uibk.dps.rm.entity.dto.slo;
 
+import at.uibk.dps.rm.util.SLOValueSerializer;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 
 /**
@@ -8,6 +10,7 @@ import lombok.Data;
  * @author matthi-g
  */
 @Data
+@JsonSerialize(using = SLOValueSerializer.class)
 public class SLOValue {
     private SLOValueType sloValueType;
 

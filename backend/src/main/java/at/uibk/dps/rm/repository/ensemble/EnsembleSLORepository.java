@@ -20,4 +20,13 @@ public class EnsembleSLORepository extends Repository<EnsembleSLO> {
                         .getResultList()
         );
     }
+
+    public CompletionStage<List<EnsembleSLO>> findAllByEnsembleId(long ensembleId) {
+        return sessionFactory.withSession(session ->
+            session.createQuery("select distinct slo from EnsembleSLO slo " +
+                    "where slo.ensemble.ensembleId=:ensembleId", entityClass)
+                .setParameter("ensembleId", ensembleId)
+                .getResultList()
+        );
+    }
 }

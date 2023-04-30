@@ -28,4 +28,6 @@ public interface EnsembleSLOService extends DatabaseServiceInterface {
     }
 
     Future<JsonArray> findAll();
+
+    Future<JsonArray> findAllByEnsembleId(long ensembleId);
 }
