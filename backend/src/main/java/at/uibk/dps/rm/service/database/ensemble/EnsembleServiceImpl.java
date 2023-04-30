@@ -32,6 +32,9 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Ensemble entity: result) {
                     entity.setCreatedBy(null);
+                    entity.setResource_types(null);
+                    entity.setRegions(null);
+                    entity.setProviders(null);
                     objects.add(JsonObject.mapFrom(entity));
                 }
                 return new JsonArray(objects);
