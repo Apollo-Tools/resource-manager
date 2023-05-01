@@ -2,7 +2,10 @@ package at.uibk.dps.rm.router.ensemble;
 
 import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.handler.ensemble.*;
+import at.uibk.dps.rm.handler.metric.MetricChecker;
+import at.uibk.dps.rm.handler.metric.MetricValueChecker;
 import at.uibk.dps.rm.handler.resource.ResourceChecker;
+import at.uibk.dps.rm.handler.resource.ResourceSLOHandler;
 import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
@@ -17,11 +20,16 @@ public class EnsembleRoute implements Route {
         ResourceChecker resourceChecker = new ResourceChecker(serviceProxyProvider.getResourceService());
         EnsembleHandler ensembleHandler = new EnsembleHandler(ensembleChecker, ensembleSLOChecker,
             resourceEnsembleChecker, resourceChecker);
+        MetricChecker metricChecker = new MetricChecker(serviceProxyProvider.getMetricService());
+        MetricValueChecker metricValueChecker = new MetricValueChecker(serviceProxyProvider.getMetricValueService());
+        ResourceSLOHandler resourceSLOHandler = new ResourceSLOHandler(resourceChecker, metricChecker,
+            metricValueChecker);
         ResultHandler resultHandler = new ResultHandler(ensembleHandler);
 
         router
             .operation("createEnsemble")
-            .handler(SLOInputHandler::validateCreateEnsembleRequest)
+            .handler(EnsembleInputHandler::validateCreateEnsembleRequest)
+            .handler(resourceSLOHandler::validateNewResourceEnsembleSLOs)
             .handler(resultHandler::handleSaveOneRequest);
 
         router

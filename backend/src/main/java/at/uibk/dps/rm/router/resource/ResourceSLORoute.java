@@ -5,7 +5,7 @@ import at.uibk.dps.rm.handler.metric.MetricChecker;
 import at.uibk.dps.rm.handler.metric.MetricValueChecker;
 import at.uibk.dps.rm.handler.resource.ResourceChecker;
 import at.uibk.dps.rm.handler.resource.ResourceSLOHandler;
-import at.uibk.dps.rm.handler.resource.SLOInputHandler;
+import at.uibk.dps.rm.handler.resource.ResourceSLOInputHandler;
 import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
@@ -27,7 +27,7 @@ public class ResourceSLORoute implements Route {
 
         router
                 .operation("listResourcesBySLOs")
-                .handler(SLOInputHandler::validateGetResourcesBySLOsRequest)
+                .handler(ResourceSLOInputHandler::validateGetResourcesBySLOsRequest)
                 .handler(rc -> resultHandler.handleFindAllRequest(rc, sloHandler.getResourceBySLOs(rc)));
     }
 }

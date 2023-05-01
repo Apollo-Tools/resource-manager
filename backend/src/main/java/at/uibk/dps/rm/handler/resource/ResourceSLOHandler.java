@@ -1,6 +1,8 @@
 package at.uibk.dps.rm.handler.resource;
 
-import at.uibk.dps.rm.entity.dto.ListResourcesBySLOsRequest;
+import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
+import at.uibk.dps.rm.entity.dto.SLORequest;
+import at.uibk.dps.rm.entity.dto.resource.ResourceId;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.SLOValueType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
@@ -10,15 +12,20 @@ import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.handler.metric.MetricChecker;
 import at.uibk.dps.rm.handler.metric.MetricValueChecker;
 import at.uibk.dps.rm.util.validation.SLOCompareUtility;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -48,6 +55,16 @@ public class ResourceSLOHandler {
         this.metricValueChecker = metricValueChecker;
     }
 
+    public void validateNewResourceEnsembleSLOs(RoutingContext rc) {
+        getResourceBySLOs(rc)
+            .flatMap(resources -> {
+                CreateEnsembleRequest request = rc.body().asJsonObject().mapTo(CreateEnsembleRequest.class);
+                List<ResourceId> resourceIds = request.getResources();
+                return checkResourcesFulfillSLOs(resourceIds, resources);
+            })
+            .subscribe(res -> rc.next(), throwable -> rc.fail(400, throwable));
+    }
+
     /**
      * Find and return all resources that fulfill the Service Level Objectives defined in the
      * request body.
@@ -56,14 +73,14 @@ public class ResourceSLOHandler {
      * @return a Single that emits the list of found resources as JsonArray
      */
     public Single<JsonArray> getResourceBySLOs(RoutingContext rc) {
-        ListResourcesBySLOsRequest requestDTO = rc.body()
+        SLORequest requestDTO = rc.body()
             .asJsonObject()
-            .mapTo(ListResourcesBySLOsRequest.class);
+            .mapTo(SLORequest.class);
         List<ServiceLevelObjective> serviceLevelObjectives = requestDTO.getServiceLevelObjectives();
         List<Completable> completables = new ArrayList<>();
         serviceLevelObjectives.forEach(slo -> completables.add(metricChecker.checkServiceLevelObjectives(slo)));
         return Completable.merge(completables)
-            .andThen(Observable.fromStream(serviceLevelObjectives.stream())
+            .andThen(Observable.fromIterable(serviceLevelObjectives)
                 .map(ServiceLevelObjective::getName)
                 .toList()
                 .flatMap(metrics -> resourceChecker.checkFindAllBySLOs(metrics, requestDTO.getRegions(),
@@ -71,6 +88,22 @@ public class ResourceSLOHandler {
             .flatMap(this::mapMetricValuesToResources)
             .map(this::mapJsonListToResourceList)
             .map(resources -> filterAndSortResultList(resources, serviceLevelObjectives));
+    }
+
+    public Single<Boolean> checkResourcesFulfillSLOs(List<ResourceId> resourceIds, JsonArray resources)
+        throws JsonProcessingException {
+        ObjectMapper mapper = DatabindCodec.mapper();
+        List<Resource> resourceList = mapper.readValue(resources.toString(), new TypeReference<>() {});
+        return Observable.fromIterable(resourceIds)
+            .map(ResourceId::getResourceId)
+            .all(resourceId -> resourceList.stream()
+                .anyMatch(resource -> Objects.equals(resource.getResourceId(), resourceId)))
+            .map(result -> {
+                if (!result) {
+                    throw new Throwable("slo mismatch");
+                }
+                return true;
+            });
     }
 
     /**
@@ -132,33 +165,12 @@ public class ResourceSLOHandler {
                                                 List<ServiceLevelObjective> serviceLevelObjectives) {
         List<JsonObject> filteredAndSorted = resources
             .stream()
-            .filter(resource -> resourceFilterBySLOValueType(resource, serviceLevelObjectives))
+            .filter(resource -> SLOCompareUtility.resourceFilterBySLOValueType(resource, serviceLevelObjectives))
             .sorted((r1, r2) -> sortResourceBySLO(r1, r2, serviceLevelObjectives))
             .map(JsonObject::mapFrom)
             .collect(Collectors.toList());
 
         return new JsonArray(filteredAndSorted);
-    }
-
-    /**
-     * The filter condition for a resource based on the serviceLevelObjectives.
-     *
-     * @param resource the resource
-     * @param serviceLevelObjectives the service level objectives
-     * @return true if all service level objectives are adhered else false
-     */
-    protected boolean resourceFilterBySLOValueType(Resource resource, List<ServiceLevelObjective> serviceLevelObjectives) {
-        for (ServiceLevelObjective slo : serviceLevelObjectives) {
-            for (MetricValue metricValue : resource.getMetricValues()) {
-                Metric metric = metricValue.getMetric();
-                if (metric.getMetric().equals(slo.getName())) {
-                    if (!SLOCompareUtility.compareMetricValueWithSLO(metricValue, slo)) {
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
     }
 
     /**

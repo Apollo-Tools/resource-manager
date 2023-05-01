@@ -3,6 +3,7 @@ package at.uibk.dps.rm.handler.resource;
 import at.uibk.dps.rm.util.validation.JsonArrayValidator;
 import io.vertx.core.json.JsonArray;
 import io.vertx.rxjava3.ext.web.RoutingContext;
+import lombok.experimental.UtilityClass;
 
 /**
  * Used to validate the inputs of the resource endpoint and fails the
@@ -10,6 +11,7 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
  *
  * @author matthi-g
  */
+@UtilityClass
 public class ResourceInputHandler {
 
     /**

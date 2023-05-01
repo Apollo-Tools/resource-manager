@@ -16,7 +16,7 @@ import static org.mockito.Mockito.verify;
 
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class SLOInputHandlerTest {
+public class ResourceSLOInputHandlerTest {
 
     @Mock
     private RoutingContext rc;
@@ -29,7 +29,7 @@ public class SLOInputHandlerTest {
 
         RoutingContextMockHelper.mockBody(rc, jsonObject);
 
-        SLOInputHandler.validateGetResourcesBySLOsRequest(rc);
+        ResourceSLOInputHandler.validateGetResourcesBySLOsRequest(rc);
 
         verify(rc).next();
         testContext.completeNow();
@@ -43,7 +43,7 @@ public class SLOInputHandlerTest {
 
         RoutingContextMockHelper.mockBody(rc, jsonObject);
 
-        SLOInputHandler.validateGetResourcesBySLOsRequest(rc);
+        ResourceSLOInputHandler.validateGetResourcesBySLOsRequest(rc);
 
         verify(rc).fail(eq(400), any(Throwable.class));
         testContext.completeNow();
@@ -58,7 +58,7 @@ public class SLOInputHandlerTest {
 
         RoutingContextMockHelper.mockBody(rc, jsonObject);
 
-        SLOInputHandler.validateGetResourcesBySLOsRequest(rc);
+        ResourceSLOInputHandler.validateGetResourcesBySLOsRequest(rc);
 
         verify(rc).fail(eq(400), any(Throwable.class));
         testContext.completeNow();

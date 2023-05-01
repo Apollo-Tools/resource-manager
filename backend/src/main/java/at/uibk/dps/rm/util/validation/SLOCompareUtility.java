@@ -3,8 +3,12 @@ package at.uibk.dps.rm.util.validation;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.SLOValue;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
+import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.entity.model.MetricValue;
+import at.uibk.dps.rm.entity.model.Resource;
 import lombok.experimental.UtilityClass;
+
+import java.util.List;
 
 /**
  * This utility class is used to compare service level objectives.
@@ -59,5 +63,26 @@ public class SLOCompareUtility {
             }
         }
         return false;
+    }
+
+    /**
+     * The filter condition for a resource based on the serviceLevelObjectives.
+     *
+     * @param resource the resource
+     * @param slos the service level objectives
+     * @return true if all service level objectives are adhered else false
+     */
+    public static boolean resourceFilterBySLOValueType(Resource resource, List<ServiceLevelObjective> slos) {
+        for (ServiceLevelObjective slo : slos) {
+            for (MetricValue metricValue : resource.getMetricValues()) {
+                Metric metric = metricValue.getMetric();
+                if (metric.getMetric().equals(slo.getName())) {
+                    if (!SLOCompareUtility.compareMetricValueWithSLO(metricValue, slo)) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 }

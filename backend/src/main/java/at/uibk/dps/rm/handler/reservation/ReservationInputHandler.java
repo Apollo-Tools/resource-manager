@@ -5,6 +5,7 @@ import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.rxjava3.ext.web.RoutingContext;
+import lombok.experimental.UtilityClass;
 
 import java.util.HashSet;
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.Set;
  *
  * @author matthi-g
  */
+@UtilityClass
 public class ReservationInputHandler {
 
     /**
