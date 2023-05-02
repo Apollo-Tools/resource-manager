@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.handler.resource;
 
+import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.MetricValue;
@@ -8,7 +9,6 @@ import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.handler.metric.MetricChecker;
 import at.uibk.dps.rm.handler.metric.MetricValueChecker;
-import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.*;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
@@ -17,7 +17,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
-import io.vertx.rxjava3.ext.web.RoutingContext;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,9 +50,6 @@ public class ResourceSLOHandlerTest {
     @Mock
     private MetricValueChecker metricValueChecker;
 
-    @Mock
-    private RoutingContext rc;
-
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
@@ -75,31 +71,26 @@ public class ResourceSLOHandlerTest {
         resourcesJson.getJsonObject(0).put("metric_values", new JsonArray(List.of(JsonObject.mapFrom(mv1), JsonObject.mapFrom(mv2))));
         resourcesJson.getJsonObject(1).put("metric_values", new JsonArray(List.of(JsonObject.mapFrom(mv3))));
         resourcesJson.getJsonObject(2).put("metric_values", new JsonArray(List.of(JsonObject.mapFrom(mv4), JsonObject.mapFrom(mv5))));
-        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("availability", ExpressionType.GT, 0.80);
-        List<JsonObject> serviceLevelObjectives = List.of(JsonObject.mapFrom(slo));
-        JsonObject body = new JsonObject();
-        body.put("slos", serviceLevelObjectives);
+        SLORequest sloRequest = TestDTOProvider.createSLORequest();
 
-        RoutingContextMockHelper.mockBody(rc, body);
         when(metricChecker.checkServiceLevelObjectives(any(ServiceLevelObjective.class)))
             .thenReturn(Completable.complete());
-        when(resourceChecker.checkFindAllBySLOs(List.of(slo.getName()), new ArrayList<>(), new ArrayList<>(),
-                        new ArrayList<>()))
-            .thenReturn(Single.just(resourcesJson));
+        when(resourceChecker.checkFindAllBySLOs(List.of("availability"), List.of(3L, 4L), List.of(1L, 2L),
+                List.of(5L))).thenReturn(Single.just(resourcesJson));
         when(metricValueChecker.checkFindOne(mv1.getMetricValueId())).thenReturn(Single.just(JsonObject.mapFrom(mv1)));
         when(metricValueChecker.checkFindOne(mv2.getMetricValueId())).thenReturn(Single.just(JsonObject.mapFrom(mv2)));
         when(metricValueChecker.checkFindOne(mv3.getMetricValueId())).thenReturn(Single.just(JsonObject.mapFrom(mv3)));
         when(metricValueChecker.checkFindOne(mv4.getMetricValueId())).thenReturn(Single.just(JsonObject.mapFrom(mv4)));
         when(metricValueChecker.checkFindOne(mv5.getMetricValueId())).thenReturn(Single.just(JsonObject.mapFrom(mv5)));
 
-        handler.getResourcesBySLOs(rc)
+        handler.getResourcesBySLOs(sloRequest)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(2);
                     assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(3L);
                     assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(1L);
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
+                   throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
@@ -110,21 +101,16 @@ public class ResourceSLOHandlerTest {
         MetricValue mv2 = TestMetricProvider.createMetricValue(2L, 2L, "availability", 0.995);
         JsonArray resourcesJson = new JsonArray(List.of(JsonObject.mapFrom(resource1)));
         resourcesJson.getJsonObject(0).put("metric_values", new JsonArray(List.of(JsonObject.mapFrom(mv1), JsonObject.mapFrom(mv2))));
-        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("availability", ExpressionType.GT, 0.80);
-        List<JsonObject> serviceLevelObjectives = List.of(JsonObject.mapFrom(slo));
-        JsonObject body = new JsonObject();
-        body.put("slos", serviceLevelObjectives);
+        SLORequest sloRequest = TestDTOProvider.createSLORequest();
 
-        RoutingContextMockHelper.mockBody(rc, body);
         when(metricChecker.checkServiceLevelObjectives(any(ServiceLevelObjective.class)))
             .thenReturn(Completable.complete());
-        when(resourceChecker.checkFindAllBySLOs(List.of(slo.getName()), new ArrayList<>(), new ArrayList<>(),
-                new ArrayList<>()))
-            .thenReturn(Single.just(resourcesJson));
+        when(resourceChecker.checkFindAllBySLOs(List.of("availability"), List.of(3L, 4L), List.of(1L, 2L),
+                List.of(5L))).thenReturn(Single.just(resourcesJson));
         when(metricValueChecker.checkFindOne(mv1.getMetricValueId())).thenReturn(Single.error(NotFoundException::new));
 
-        handler.getResourcesBySLOs(rc)
-            .subscribe(result -> testContext.verify(() -> Assertions.fail("method did not throw exception")),
+        handler.getResourcesBySLOs(sloRequest)
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
@@ -134,20 +120,15 @@ public class ResourceSLOHandlerTest {
 
     @Test
     void getResourceBySLOsResourcesNotExists(VertxTestContext testContext) {
-        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("availability", ExpressionType.GT, 0.80);
-        List<JsonObject> serviceLevelObjectives = List.of(JsonObject.mapFrom(slo));
-        JsonObject body = new JsonObject();
-        body.put("slos", serviceLevelObjectives);
+        SLORequest sloRequest = TestDTOProvider.createSLORequest();
 
-        RoutingContextMockHelper.mockBody(rc, body);
         when(metricChecker.checkServiceLevelObjectives(any(ServiceLevelObjective.class)))
             .thenReturn(Completable.complete());
-        when(resourceChecker.checkFindAllBySLOs(List.of(slo.getName()), new ArrayList<>(), new ArrayList<>(),
-                new ArrayList<>()))
-            .thenReturn(Single.error(NotFoundException::new));
+        when(resourceChecker.checkFindAllBySLOs(List.of("availability"), List.of(3L, 4L), List.of(1L, 2L),
+                List.of(5L))).thenReturn(Single.error(NotFoundException::new));
 
-        handler.getResourcesBySLOs(rc)
-            .subscribe(result -> testContext.verify(() -> Assertions.fail("method did not throw exception")),
+        handler.getResourcesBySLOs(sloRequest)
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
@@ -157,17 +138,13 @@ public class ResourceSLOHandlerTest {
 
     @Test
     void getResourceBySLOsSLOsNotValid(VertxTestContext testContext) {
-        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("availability", ExpressionType.GT, 0.80);
-        List<JsonObject> serviceLevelObjectives = List.of(JsonObject.mapFrom(slo));
-        JsonObject body = new JsonObject();
-        body.put("slos", serviceLevelObjectives);
+        SLORequest sloRequest = TestDTOProvider.createSLORequest();
 
-        RoutingContextMockHelper.mockBody(rc, body);
         when(metricChecker.checkServiceLevelObjectives(any(ServiceLevelObjective.class)))
             .thenReturn(Completable.error(BadInputException::new));
 
-        handler.getResourcesBySLOs(rc)
-            .subscribe(result -> testContext.verify(() -> Assertions.fail("method did not throw exception")),
+        handler.getResourcesBySLOs(sloRequest)
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(BadInputException.class);
                     testContext.completeNow();
@@ -291,51 +268,6 @@ public class ResourceSLOHandlerTest {
         JsonArray result = handler.filterAndSortResultList(resources, serviceLevelObjectives);
 
         assertThat(result.size()).isEqualTo(0);
-    }
-
-    @Test
-    void resourceFilterBySLOValueTypeValid() {
-        Resource resource = TestResourceProvider.createResource(1L);
-        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, 1L, "latency", 25.0);
-        MetricValue mv2 = TestMetricProvider.createMetricValue(2L, 2L, "availability", "high");
-        Set<MetricValue> metricValues = Set.of(mv1, mv2);
-        resource.setMetricValues(metricValues);
-        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("availability", ExpressionType.EQ, "high");
-        List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
-
-        boolean result = handler.resourceFilterBySLOValueType(resource, serviceLevelObjectives);
-
-        assertThat(result).isTrue();
-    }
-
-    @Test
-    void resourceFilterBySLOValueTypeNoValueTypeMatch() {
-        Resource resource = TestResourceProvider.createResource(1L);
-        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, 1L, "latency", 25.0);
-        MetricValue mv2 = TestMetricProvider.createMetricValue(2L, 2L, "availability", 0.995);
-        Set<MetricValue> metricValues = Set.of(mv1, mv2);
-        resource.setMetricValues(metricValues);
-        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("availability", ExpressionType.EQ, "high");
-        List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
-
-        boolean result = handler.resourceFilterBySLOValueType(resource, serviceLevelObjectives);
-
-        assertThat(result).isFalse();
-    }
-
-    @Test
-    void resourceFilterBySLOValueTypeNoNameMatch() {
-        Resource resource = TestResourceProvider.createResource(1L);
-        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, 1L, "latency", 25.0);
-        MetricValue mv2 = TestMetricProvider.createMetricValue(2L, 2L, "availability", 0.995);
-        Set<MetricValue> metricValues = Set.of(mv1, mv2);
-        resource.setMetricValues(metricValues);
-        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("bandwidth", ExpressionType.EQ, "high");
-        List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
-
-        boolean result = handler.resourceFilterBySLOValueType(resource, serviceLevelObjectives);
-
-        assertThat(result).isTrue();
     }
 
     @ParameterizedTest

@@ -5,6 +5,8 @@ import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
 import at.uibk.dps.rm.entity.deployment.output.TFOutput;
+import at.uibk.dps.rm.entity.dto.ListResourcesBySLOsRequest;
+import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.SLOValue;
@@ -12,13 +14,11 @@ import at.uibk.dps.rm.entity.dto.slo.SLOValueType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.ResourceProvider;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class TestDTOProvider {
-    public static SLOValue createSLOValue(double value) {
+    public static SLOValue createSLOValue(Number value) {
         SLOValue sloValue = new SLOValue();
         sloValue.setSloValueType(SLOValueType.NUMBER);
         sloValue.setValueNumber(value);
@@ -164,5 +164,20 @@ public class TestDTOProvider {
         deploymentOutput.setEdgeUrls(createEmptyTFOutput());
         deploymentOutput.setVmUrls(createEmptyTFOutput());
         return deploymentOutput;
+    }
+
+    public static List<SLOValue> createSLOValueList(Number... values) {
+        return Arrays.stream(values).map(TestDTOProvider::createSLOValue).collect(Collectors.toList());
+    }
+
+    public static SLORequest createSLORequest() {
+        SLORequest request = new ListResourcesBySLOsRequest();
+        request.setProviders(List.of(1L, 2L));
+        request.setRegions(List.of(3L, 4L));
+        request.setResourceTypes(List.of(5L));
+        ServiceLevelObjective slo1 = new ServiceLevelObjective("availability", ExpressionType.GT,
+                createSLOValueList(0.8));
+        request.setServiceLevelObjectives(List.of(slo1));
+        return request;
     }
 }
