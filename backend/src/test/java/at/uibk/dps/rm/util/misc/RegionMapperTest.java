@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.util;
+package at.uibk.dps.rm.util.misc;
 
 import at.uibk.dps.rm.entity.model.FunctionResource;
 import at.uibk.dps.rm.entity.model.Region;
@@ -7,7 +7,6 @@ import at.uibk.dps.rm.entity.model.VPC;
 import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
-import at.uibk.dps.rm.util.misc.RegionMapper;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

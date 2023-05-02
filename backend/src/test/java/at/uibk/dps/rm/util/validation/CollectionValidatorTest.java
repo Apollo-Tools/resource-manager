@@ -1,28 +1,28 @@
-package at.uibk.dps.rm.util;
+package at.uibk.dps.rm.util.validation;
 
-import at.uibk.dps.rm.util.validation.JsonArrayValidator;
-import io.vertx.core.json.JsonArray;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Collection;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class JsonArrayValidatorTest {
+public class CollectionValidatorTest {
 
     @Test
-    void checkJsonArrayDuplicates(VertxTestContext testContext) {
-        JsonArray jsonArray = new JsonArray("[{\"id\": 1}, {\"id\": 2}, {\"id\": 3}]");
-        String key = "id";
+    void checkCollectionNoDuplicates(VertxTestContext testContext) {
+        Collection<String> collection = List.of("1", "one", "eins", "uno");
 
-        JsonArrayValidator.checkJsonArrayDuplicates(jsonArray, key)
+        CollectionValidator.hasDuplicates(collection)
             .blockingSubscribe(() -> {},
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
@@ -30,13 +30,15 @@ public class JsonArrayValidatorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"[{\"id\": 1}, {\"id\": 1}, {\"id\": 1}]", "[{\"id\": 1}, {\"id\": 2}, {\"id\": 1}]",
-        "[{\"id\": 1}, {\"id\": 2}, {\"id\": 2}]"})
-    void checkJsonArrayDuplicates(String json, VertxTestContext testContext) {
-        JsonArray jsonArray = new JsonArray(json);
-        String key = "id";
+    @CsvSource({
+        "1, one, 1",
+        "1, 1, 1",
+        "one, 1, 1",
+    })
+    void checkCollectionDuplicates(String s1, String s2, String s3, VertxTestContext testContext) {
+        Collection<String> collection = List.of(s1, s2, s3);
 
-        JsonArrayValidator.checkJsonArrayDuplicates(jsonArray, key)
+        CollectionValidator.hasDuplicates(collection)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(Throwable.class);

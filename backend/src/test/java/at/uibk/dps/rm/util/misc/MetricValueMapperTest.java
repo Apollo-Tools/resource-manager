@@ -1,8 +1,7 @@
-package at.uibk.dps.rm.util;
+package at.uibk.dps.rm.util.misc;
 
 import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.testutil.objectprovider.TestMetricProvider;
-import at.uibk.dps.rm.util.misc.MetricValueMapper;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;

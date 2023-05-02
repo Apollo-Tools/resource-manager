@@ -1,11 +1,10 @@
-package at.uibk.dps.rm.util;
+package at.uibk.dps.rm.util.validation;
 
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.SLOValue;
 import at.uibk.dps.rm.entity.dto.slo.SLOValueType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.MetricValue;
-import at.uibk.dps.rm.util.validation.SLOCompareUtility;
 import io.vertx.junit5.VertxExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
