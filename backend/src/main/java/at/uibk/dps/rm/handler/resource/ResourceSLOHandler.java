@@ -2,6 +2,8 @@ package at.uibk.dps.rm.handler.resource;
 
 import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
 import at.uibk.dps.rm.entity.dto.SLORequest;
+import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
+import at.uibk.dps.rm.entity.dto.ensemble.ResourceEnsembleStatus;
 import at.uibk.dps.rm.entity.dto.resource.ResourceId;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.SLOValueType;
@@ -56,7 +58,10 @@ public class ResourceSLOHandler {
     }
 
     public void validateNewResourceEnsembleSLOs(RoutingContext rc) {
-        getResourceBySLOs(rc)
+        SLORequest requestDTO = rc.body()
+            .asJsonObject()
+            .mapTo(SLORequest.class);
+        getResourcesBySLOs(requestDTO)
             .flatMap(resources -> {
                 CreateEnsembleRequest request = rc.body().asJsonObject().mapTo(CreateEnsembleRequest.class);
                 List<ResourceId> resourceIds = request.getResources();
@@ -65,32 +70,55 @@ public class ResourceSLOHandler {
             .subscribe(res -> rc.next(), throwable -> rc.fail(400, throwable));
     }
 
+    public Single<List<ResourceEnsembleStatus>> validateExistingEnsemble(GetOneEnsemble ensemble) {
+        return getResourcesBySLOs(ensemble)
+            .flatMap(resources -> Observable.fromIterable(ensemble.getResourceEnsembles())
+                .map(resourceEnsemble -> {
+                    ResourceId resourceId = new ResourceId();
+                    resourceId.setResourceId(resourceEnsemble.getResource().getResourceId());
+                    return resourceId;
+                })
+                .toList()
+                .flatMap(resourceIds -> getResourceEnsembleStatus(resourceIds, resources)));
+    }
+
     /**
      * Find and return all resources that fulfill the Service Level Objectives defined in the
-     * request body.
+     * sloRequest
      *
-     * @param rc the routing context
+     * @param sloRequest the servie level objective request
      * @return a Single that emits the list of found resources as JsonArray
      */
-    public Single<JsonArray> getResourceBySLOs(RoutingContext rc) {
-        SLORequest requestDTO = rc.body()
-            .asJsonObject()
-            .mapTo(SLORequest.class);
-        List<ServiceLevelObjective> serviceLevelObjectives = requestDTO.getServiceLevelObjectives();
+    public Single<JsonArray> getResourcesBySLOs(SLORequest sloRequest) {
+        List<ServiceLevelObjective> serviceLevelObjectives = sloRequest.getServiceLevelObjectives();
         List<Completable> completables = new ArrayList<>();
         serviceLevelObjectives.forEach(slo -> completables.add(metricChecker.checkServiceLevelObjectives(slo)));
         return Completable.merge(completables)
             .andThen(Observable.fromIterable(serviceLevelObjectives)
                 .map(ServiceLevelObjective::getName)
                 .toList()
-                .flatMap(metrics -> resourceChecker.checkFindAllBySLOs(metrics, requestDTO.getRegions(),
-                        requestDTO.getProviders(), requestDTO.getResourceTypes())))
+                .flatMap(metrics -> resourceChecker.checkFindAllBySLOs(metrics, sloRequest.getRegions(),
+                        sloRequest.getProviders(), sloRequest.getResourceTypes())))
             .flatMap(this::mapMetricValuesToResources)
             .map(this::mapJsonListToResourceList)
             .map(resources -> filterAndSortResultList(resources, serviceLevelObjectives));
     }
 
-    public Single<Boolean> checkResourcesFulfillSLOs(List<ResourceId> resourceIds, JsonArray resources)
+    public Single<List<ResourceEnsembleStatus>> getResourceEnsembleStatus(List<ResourceId> resourceIds, JsonArray resources)
+        throws JsonProcessingException {
+        ObjectMapper mapper = DatabindCodec.mapper();
+        List<Resource> resourceList = mapper.readValue(resources.toString(), new TypeReference<>() {});
+        return Observable.fromIterable(resourceIds)
+            .map(ResourceId::getResourceId)
+            .map(resourceId -> {
+                boolean isValid = resourceList.stream()
+                    .anyMatch(resource -> Objects.equals(resource.getResourceId(), resourceId));
+                return new ResourceEnsembleStatus(resourceId, isValid);
+            })
+            .toList();
+    }
+
+    public Single<Resource> checkResourcesFulfillSLOs(List<ResourceId> resourceIds, JsonArray resources)
         throws JsonProcessingException {
         ObjectMapper mapper = DatabindCodec.mapper();
         List<Resource> resourceList = mapper.readValue(resources.toString(), new TypeReference<>() {});
@@ -102,7 +130,7 @@ public class ResourceSLOHandler {
                 if (!result) {
                     throw new Throwable("slo mismatch");
                 }
-                return true;
+                return new Resource();
             });
     }
 

@@ -175,7 +175,7 @@ public class ResultHandler {
      * @param rc the RoutingContext of the request
      * @param throwable the caught throwable
      */
-    private static void handleRequestError(final RoutingContext rc, final Throwable throwable) {
+    public static void handleRequestError(final RoutingContext rc, final Throwable throwable) {
         int statusCode = 500;
         if (throwable instanceof NotFoundException) {
             statusCode = 404;

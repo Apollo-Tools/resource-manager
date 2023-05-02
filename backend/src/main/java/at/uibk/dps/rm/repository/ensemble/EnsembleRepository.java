@@ -42,4 +42,15 @@ public class EnsembleRepository extends Repository<Ensemble> {
                 .getSingleResultOrNull()
         );
     }
+
+    public CompletionStage<Integer> updateValidity(long ensembleId, boolean isValid) {
+        return sessionFactory.withSession(session ->
+            session.createQuery("update Ensemble e " +
+                    "set isValid=:isValid " +
+                    "where e.ensembleId=:ensembleId")
+                .setParameter("isValid", isValid)
+                .setParameter("ensembleId", ensembleId)
+                .executeUpdate()
+        );
+    }
 }

@@ -551,6 +551,38 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
+  /ensembles/{id}/validate:
+    get:
+      description: Validate if all resources from an ensemble fulfill its service level objectives
+      operationId: validateEnsemble
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - ensembles
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful validation of all resources of an ensemble
+          content:
+            application/json:
+              schema:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      resource_id:
+                        type: integer
+                        format: int64
+                        example: 1
+                      is_valid:
+                        type: boolean
+                        example: true
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
   /ensembles:
     get:
       description: Returns details about all ensembles managed by the resource manager

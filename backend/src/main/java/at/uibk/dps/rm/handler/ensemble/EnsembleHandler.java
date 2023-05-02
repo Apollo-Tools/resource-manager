@@ -77,7 +77,7 @@ public class EnsembleHandler extends ValidationHandler {
     }
 
     @Override
-    protected Single<JsonObject> getOne(RoutingContext rc) {
+    public Single<JsonObject> getOne(RoutingContext rc) {
         return HttpHelper.getLongPathParam(rc, "id")
             .flatMap(id -> ensembleChecker.checkFindOne(id, rc.user().principal().getLong("account_id")))
             .flatMap(result -> {
@@ -208,7 +208,7 @@ public class EnsembleHandler extends ValidationHandler {
     private void mapResourcesToResponse(JsonArray resources, GetOneEnsemble response)
         throws JsonProcessingException {
         List<ResourceEnsemble> resourceEnsembles = mapper.readValue(resources.toString(), new TypeReference<>() {});
-        response.setResourceEnsembleList(resourceEnsembles);
+        response.setResourceEnsembles(resourceEnsembles);
     }
 
     private void mapSLOsToResponse(JsonArray slos, Ensemble ensemble, GetOneEnsemble response)
@@ -216,22 +216,8 @@ public class EnsembleHandler extends ValidationHandler {
         List<EnsembleSLO> ensembleSLOs = mapper.readValue(slos.toString(), new TypeReference<>() {});
         List<ServiceLevelObjective> serviceLevelObjectives = mapEnsembleSLOtoDTO(ensembleSLOs);
         response.setServiceLevelObjectives(serviceLevelObjectives);
-        mapNonMetricToSLO(ensemble.getRegions(), SLOType.REGION, serviceLevelObjectives);
-        mapNonMetricToSLO(ensemble.getProviders(), SLOType.RESOURCE_PROVIDER, serviceLevelObjectives);
-        mapNonMetricToSLO(ensemble.getResource_types(), SLOType.RESOURCE_TYPE, serviceLevelObjectives);
-    }
-
-    private void mapNonMetricToSLO(List<Long> values, SLOType sloType,
-                                   List<ServiceLevelObjective> slos) {
-        List<SLOValue> sloValues = values.stream().map(value -> {
-            SLOValue sloValue = new SLOValue();
-            sloValue.setValueNumber(value);
-            sloValue.setSloValueType(SLOValueType.NUMBER);
-            return sloValue;
-        }).collect(Collectors.toList());
-        if (sloValues.isEmpty()) {
-            return;
-        }
-        slos.add(new ServiceLevelObjective(sloType.name(), ExpressionType.EQ, sloValues));
+        response.setRegions(ensemble.getRegions());
+        response.setProviders(ensemble.getProviders());
+        response.setResourceTypes(ensemble.getResource_types());
     }
 }

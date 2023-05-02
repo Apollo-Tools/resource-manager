@@ -34,4 +34,8 @@ public class EnsembleChecker extends EntityChecker {
     public Single<JsonArray> checkFindAll(long accountId) {
         return ErrorHandler.handleFindAll(ensembleService.findAllByAccountId(accountId));
     }
+
+    public Completable submitUpdateValidity(long ensembleId, boolean validity) {
+        return ensembleService.updateEnsembleValidity(ensembleId, validity);
+    }
 }

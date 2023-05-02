@@ -4,6 +4,7 @@ CREATE TABLE ensemble (
   regions BIGINT[],
   providers BIGINT[],
   resource_types BIGINT[],
+  is_valid BOOLEAN DEFAULT true NOT NULL,
   created_by_id BIGINT NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW(),

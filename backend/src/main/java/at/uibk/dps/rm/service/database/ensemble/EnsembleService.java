@@ -33,4 +33,6 @@ public interface EnsembleService extends DatabaseServiceInterface {
     Future<JsonObject> findOneByIdAndAccountId(long id, long accountId);
 
     Future<Boolean> existsOneByNameAndAccountId(String name, long accountId);
+
+    Future<Void> updateEnsembleValidity(long ensembleId, boolean isValid);
 }

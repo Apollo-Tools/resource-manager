@@ -1,5 +1,7 @@
 package at.uibk.dps.rm.router.ensemble;
 
+import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
+import at.uibk.dps.rm.entity.dto.ensemble.ResourceEnsembleStatus;
 import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.handler.ensemble.*;
 import at.uibk.dps.rm.handler.metric.MetricChecker;
@@ -8,6 +10,9 @@ import at.uibk.dps.rm.handler.resource.ResourceChecker;
 import at.uibk.dps.rm.handler.resource.ResourceSLOHandler;
 import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonArray;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 public class EnsembleRoute implements Route {
@@ -43,5 +48,20 @@ public class EnsembleRoute implements Route {
         router
             .operation("deleteEnsemble")
             .handler(resultHandler::handleDeleteRequest);
+
+        router
+            .operation("validateEnsemble")
+            .handler(rc -> ensembleHandler.getOne(rc)
+                .flatMap(ensembleJson-> {
+                    GetOneEnsemble ensemble = ensembleJson.mapTo(GetOneEnsemble.class);
+                    return resourceSLOHandler.validateExistingEnsemble(ensemble)
+                        .flatMap(resourceEnsembleStatuses -> Observable.fromIterable(resourceEnsembleStatuses)
+                            .all(ResourceEnsembleStatus::getIsValid)
+                            .flatMapCompletable(allValid -> ensembleChecker
+                                .submitUpdateValidity(ensemble.getEnsembleId(), allValid))
+                            .andThen(Single.defer(() -> Single.just(resourceEnsembleStatuses))));
+                })
+                .subscribe(res -> rc.end(new JsonArray(res).encodePrettily()).subscribe(),
+                    throwable -> ResultHandler.handleRequestError(rc, throwable)));
     }
 }

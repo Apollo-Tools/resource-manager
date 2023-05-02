@@ -35,6 +35,8 @@ public class Ensemble {
     @Type(type="long-array")
     private List<Long> resource_types;
 
+    private Boolean isValid;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_id")
     private Account createdBy;

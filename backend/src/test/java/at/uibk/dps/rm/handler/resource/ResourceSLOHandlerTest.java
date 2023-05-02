@@ -92,7 +92,7 @@ public class ResourceSLOHandlerTest {
         when(metricValueChecker.checkFindOne(mv4.getMetricValueId())).thenReturn(Single.just(JsonObject.mapFrom(mv4)));
         when(metricValueChecker.checkFindOne(mv5.getMetricValueId())).thenReturn(Single.just(JsonObject.mapFrom(mv5)));
 
-        handler.getResourceBySLOs(rc)
+        handler.getResourcesBySLOs(rc)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(2);
                     assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(3L);
@@ -123,7 +123,7 @@ public class ResourceSLOHandlerTest {
             .thenReturn(Single.just(resourcesJson));
         when(metricValueChecker.checkFindOne(mv1.getMetricValueId())).thenReturn(Single.error(NotFoundException::new));
 
-        handler.getResourceBySLOs(rc)
+        handler.getResourcesBySLOs(rc)
             .subscribe(result -> testContext.verify(() -> Assertions.fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
@@ -146,7 +146,7 @@ public class ResourceSLOHandlerTest {
                 new ArrayList<>()))
             .thenReturn(Single.error(NotFoundException::new));
 
-        handler.getResourceBySLOs(rc)
+        handler.getResourcesBySLOs(rc)
             .subscribe(result -> testContext.verify(() -> Assertions.fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
@@ -166,7 +166,7 @@ public class ResourceSLOHandlerTest {
         when(metricChecker.checkServiceLevelObjectives(any(ServiceLevelObjective.class)))
             .thenReturn(Completable.error(BadInputException::new));
 
-        handler.getResourceBySLOs(rc)
+        handler.getResourcesBySLOs(rc)
             .subscribe(result -> testContext.verify(() -> Assertions.fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(BadInputException.class);

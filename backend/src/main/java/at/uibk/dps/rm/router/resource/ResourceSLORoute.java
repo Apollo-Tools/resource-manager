@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.router.resource;
 
+import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.handler.metric.MetricChecker;
 import at.uibk.dps.rm.handler.metric.MetricValueChecker;
@@ -28,6 +29,11 @@ public class ResourceSLORoute implements Route {
         router
                 .operation("listResourcesBySLOs")
                 .handler(ResourceSLOInputHandler::validateGetResourcesBySLOsRequest)
-                .handler(rc -> resultHandler.handleFindAllRequest(rc, sloHandler.getResourceBySLOs(rc)));
+                .handler(rc -> {
+                    SLORequest requestDTO = rc.body()
+                        .asJsonObject()
+                        .mapTo(SLORequest.class);
+                    resultHandler.handleFindAllRequest(rc, sloHandler.getResourcesBySLOs(requestDTO));
+                });
     }
 }

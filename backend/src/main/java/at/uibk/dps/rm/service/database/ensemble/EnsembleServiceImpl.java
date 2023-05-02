@@ -59,4 +59,11 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
             .fromCompletionStage(ensembleRepository.findByNameAndAccountId(name, accountId))
             .map(Objects::nonNull);
     }
+
+    @Override
+    public Future<Void> updateEnsembleValidity(long ensembleId, boolean isValid) {
+        return Future
+            .fromCompletionStage(ensembleRepository.updateValidity(ensembleId, isValid))
+            .mapEmpty();
+    }
 }

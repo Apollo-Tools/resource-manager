@@ -3,10 +3,12 @@ package at.uibk.dps.rm.util.serialization;
 import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
 import at.uibk.dps.rm.entity.dto.ListResourcesBySLOsRequest;
 import at.uibk.dps.rm.entity.dto.SLORequest;
+import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
 import at.uibk.dps.rm.entity.dto.resource.ResourceId;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.SLOType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
+import at.uibk.dps.rm.entity.model.ResourceEnsemble;
 import at.uibk.dps.rm.exception.BadInputException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -52,13 +54,25 @@ public class SLORequestDeserializer extends StdDeserializer<SLORequest> {
         List<JsonNode> slos = StreamSupport.stream(mainNode.get("slos").spliterator(), false)
                 .collect(Collectors.toList());
         SLORequest request;
-        if (mainNode.has("name")) {
+        // GetOneEnsembleRequest
+        if (mainNode.has("ensemble_id")) {
+            GetOneEnsemble getOneRequest = new GetOneEnsemble();
+            getOneRequest.setEnsembleId(mainNode.get("ensemble_id").asLong());
+            getOneRequest.setName(mainNode.get("name").asText());
+            List<JsonNode> resourceEnsembles = StreamSupport.stream(mainNode.get("resources").spliterator(),
+                    false)
+                .collect(Collectors.toList());
+            getOneRequest.setResourceEnsembles(deserializeResourceEnsembles(jsonParser, resourceEnsembles));
+            request = getOneRequest;
+        // CreateEnsembleRequest
+        } else if (mainNode.has("name")) {
             CreateEnsembleRequest createRequest = new CreateEnsembleRequest();
             createRequest.setName(mainNode.get("name").asText());
             List<JsonNode> resources = StreamSupport.stream(mainNode.get("resources").spliterator(), false)
                 .collect(Collectors.toList());
             createRequest.setResources(deserializeResourceIds(jsonParser, resources));
             request = createRequest;
+        // ListResourcesBySLOSRequest
         } else {
             request = new ListResourcesBySLOsRequest();
         }
@@ -81,6 +95,17 @@ public class SLORequestDeserializer extends StdDeserializer<SLORequest> {
             }
         }
         return resourceIds;
+    }
+
+    private List<ResourceEnsemble> deserializeResourceEnsembles(JsonParser jsonParser, List<JsonNode> nodes)
+        throws IOException {
+        List<ResourceEnsemble> resourceEnsembles = new ArrayList<>();
+        for (JsonNode node : nodes) {
+            try (JsonParser subParser = node.traverse(jsonParser.getCodec())) {
+                resourceEnsembles.add(subParser.readValueAs(ResourceEnsemble.class));
+            }
+        }
+        return resourceEnsembles;
     }
 
     /**
