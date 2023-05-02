@@ -63,4 +63,6 @@ public interface ResourceService extends DatabaseServiceInterface {
      * @return a Future that emits true if it exists, else false
      */
     Future<Boolean> existsOneByResourceType(long typeId);
+
+    Future<JsonArray> findAllByEnsembleId(long ensembleId);
 }

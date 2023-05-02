@@ -57,6 +57,11 @@ public class ResourceChecker extends EntityChecker {
         return ErrorHandler.handleFindAll(findAllByFunction);
     }
 
+    public Single<JsonArray> checkFindAllByEnsemble(long ensembleId) {
+        Single<JsonArray> findAllByEnsemble = resourceService.findAllByEnsembleId(ensembleId);
+        return ErrorHandler.handleFindAll(findAllByEnsemble);
+    }
+
     /**
      * Check if at least one resource is used by resource type.
      *

@@ -85,7 +85,7 @@ public class EnsembleHandler extends ValidationHandler {
                 Ensemble ensemble = result.mapTo(Ensemble.class);
                 response.setEnsembleId(ensemble.getEnsembleId());
                 response.setName(ensemble.getName());
-                return resourceEnsembleChecker.checkFindAllByEnsemble(ensemble.getEnsembleId())
+                return resourceChecker.checkFindAllByEnsemble(ensemble.getEnsembleId())
                     .flatMap(resources -> {
                         mapResourcesToResponse(resources, response);
                         return ensembleSLOChecker.checkFindAllByEnsemble(ensemble.getEnsembleId());
@@ -116,6 +116,7 @@ public class EnsembleHandler extends ValidationHandler {
         Account createdBy = new Account();
         createdBy.setAccountId(accountId);
         Ensemble ensemble = new Ensemble();
+        ensemble.setIsValid(true);
         ensemble.setName(request.getName());
         ensemble.setCreatedBy(createdBy);
         ensemble.setRegions(request.getRegions());
@@ -207,8 +208,8 @@ public class EnsembleHandler extends ValidationHandler {
 
     private void mapResourcesToResponse(JsonArray resources, GetOneEnsemble response)
         throws JsonProcessingException {
-        List<ResourceEnsemble> resourceEnsembles = mapper.readValue(resources.toString(), new TypeReference<>() {});
-        response.setResourceEnsembles(resourceEnsembles);
+        List<Resource> resourceList = mapper.readValue(resources.toString(), new TypeReference<>() {});
+        response.setResources(resourceList);
     }
 
     private void mapSLOsToResponse(JsonArray slos, Ensemble ensemble, GetOneEnsemble response)

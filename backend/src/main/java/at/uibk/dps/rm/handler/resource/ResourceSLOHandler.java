@@ -72,10 +72,10 @@ public class ResourceSLOHandler {
 
     public Single<List<ResourceEnsembleStatus>> validateExistingEnsemble(GetOneEnsemble ensemble) {
         return getResourcesBySLOs(ensemble)
-            .flatMap(resources -> Observable.fromIterable(ensemble.getResourceEnsembles())
-                .map(resourceEnsemble -> {
+            .flatMap(resources -> Observable.fromIterable(ensemble.getResources())
+                .map(resource -> {
                     ResourceId resourceId = new ResourceId();
-                    resourceId.setResourceId(resourceEnsemble.getResource().getResourceId());
+                    resourceId.setResourceId(resource.getResourceId());
                     return resourceId;
                 })
                 .toList()

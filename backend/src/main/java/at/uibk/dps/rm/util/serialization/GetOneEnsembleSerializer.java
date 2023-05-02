@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class GetOneEnsembleSerializer extends StdSerializer<GetOneEnsemble> {
+    private static final long serialVersionUID = 470707283974578017L;
+
     @SuppressWarnings("unused")
     public GetOneEnsembleSerializer() {
         this(null);
@@ -26,7 +28,7 @@ public class GetOneEnsembleSerializer extends StdSerializer<GetOneEnsemble> {
         gen.writeStartObject();
         gen.writeNumberField("ensemble_id", getOneEnsemble.getEnsembleId());
         gen.writeStringField("name", getOneEnsemble.getName());
-        gen.writeObjectField("resources", getOneEnsemble.getResourceEnsembles());
+        gen.writeObjectField("resources", getOneEnsemble.getResources());
         List<ServiceLevelObjective> slos = getOneEnsemble.getServiceLevelObjectives();
         mapNonMetricToSLO(getOneEnsemble.getRegions(), SLOType.REGION, slos);
         mapNonMetricToSLO(getOneEnsemble.getProviders(), SLOType.RESOURCE_PROVIDER, slos);

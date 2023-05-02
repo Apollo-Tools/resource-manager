@@ -8,7 +8,7 @@ import at.uibk.dps.rm.entity.dto.resource.ResourceId;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.SLOType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
-import at.uibk.dps.rm.entity.model.ResourceEnsemble;
+import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.exception.BadInputException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -59,10 +59,10 @@ public class SLORequestDeserializer extends StdDeserializer<SLORequest> {
             GetOneEnsemble getOneRequest = new GetOneEnsemble();
             getOneRequest.setEnsembleId(mainNode.get("ensemble_id").asLong());
             getOneRequest.setName(mainNode.get("name").asText());
-            List<JsonNode> resourceEnsembles = StreamSupport.stream(mainNode.get("resources").spliterator(),
+            List<JsonNode> resources = StreamSupport.stream(mainNode.get("resources").spliterator(),
                     false)
                 .collect(Collectors.toList());
-            getOneRequest.setResourceEnsembles(deserializeResourceEnsembles(jsonParser, resourceEnsembles));
+            getOneRequest.setResources(deserializeResources(jsonParser, resources));
             request = getOneRequest;
         // CreateEnsembleRequest
         } else if (mainNode.has("name")) {
@@ -97,15 +97,15 @@ public class SLORequestDeserializer extends StdDeserializer<SLORequest> {
         return resourceIds;
     }
 
-    private List<ResourceEnsemble> deserializeResourceEnsembles(JsonParser jsonParser, List<JsonNode> nodes)
+    private List<Resource> deserializeResources(JsonParser jsonParser, List<JsonNode> nodes)
         throws IOException {
-        List<ResourceEnsemble> resourceEnsembles = new ArrayList<>();
+        List<Resource> resources = new ArrayList<>();
         for (JsonNode node : nodes) {
             try (JsonParser subParser = node.traverse(jsonParser.getCodec())) {
-                resourceEnsembles.add(subParser.readValueAs(ResourceEnsemble.class));
+                resources.add(subParser.readValueAs(Resource.class));
             }
         }
-        return resourceEnsembles;
+        return resources;
     }
 
     /**

@@ -11,7 +11,7 @@ info:
     name: TODO
 
 servers:
-  - url: localhost:8888/api
+  - url: localhost:8080/api
     description: Local Dev Server
 paths:
   /accounts:
@@ -474,7 +474,7 @@ paths:
 
 
 
-  /resource/slo:
+  /resources/slo:
     post:
       description: Return all resources that conform to the given service level objectives
       operationId: listResourcesBySLOs

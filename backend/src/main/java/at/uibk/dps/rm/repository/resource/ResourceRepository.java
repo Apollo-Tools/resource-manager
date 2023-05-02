@@ -143,4 +143,19 @@ public class ResourceRepository extends Repository<Resource> {
                 .getResultList()
         );
     }
+
+    public CompletionStage<List<Resource>> findAllByEnsembleId(long ensembleId) {
+        return sessionFactory.withSession(session ->
+                session.createQuery("select distinct r from ResourceEnsemble re " +
+                                "left join re.resource r " +
+                                "left join fetch r.resourceType rt " +
+                                "left join fetch r.region reg " +
+                                "left join fetch reg.resourceProvider " +
+                                "left join fetch r.metricValues mv " +
+                                "left join fetch mv.metric " +
+                                "where re.ensemble.ensembleId=:ensembleId", entityClass)
+                        .setParameter("ensembleId", ensembleId)
+                        .getResultList()
+        );
+    }
 }

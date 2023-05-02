@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.entity.dto.ensemble;
 
 import at.uibk.dps.rm.entity.dto.SLORequest;
-import at.uibk.dps.rm.entity.model.ResourceEnsemble;
+import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.util.serialization.GetOneEnsembleSerializer;
 import at.uibk.dps.rm.util.serialization.SLORequestDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -21,5 +21,5 @@ public class GetOneEnsemble extends SLORequest {
 
     private String name;
 
-    private List<ResourceEnsemble> resourceEnsembles;
+    private List<Resource> resources;
 }

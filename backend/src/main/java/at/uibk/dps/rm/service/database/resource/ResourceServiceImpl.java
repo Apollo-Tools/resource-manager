@@ -72,6 +72,13 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
             .map(this::encodeResourceList);
     }
 
+    @Override
+    public Future<JsonArray> findAllByEnsembleId(long ensembleId) {
+        return Future
+                .fromCompletionStage(resourceRepository.findAllByEnsembleId(ensembleId))
+                .map(this::encodeResourceList);
+    }
+
     private JsonArray encodeResourceList(List<Resource> resourceList) {
         ArrayList<JsonObject> objects = new ArrayList<>();
         for (Resource resource: resourceList) {
