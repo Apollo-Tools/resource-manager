@@ -8,14 +8,17 @@ import at.uibk.dps.rm.entity.deployment.output.TFOutput;
 import at.uibk.dps.rm.entity.dto.ListResourcesBySLOsRequest;
 import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
+import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.SLOValue;
 import at.uibk.dps.rm.entity.dto.slo.SLOValueType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
+import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.model.ResourceProvider;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class TestDTOProvider {
     public static SLOValue createSLOValue(Number value) {
@@ -179,5 +182,21 @@ public class TestDTOProvider {
                 createSLOValueList(0.8));
         request.setServiceLevelObjectives(List.of(slo1));
         return request;
+    }
+
+    public static GetOneEnsemble createGetOneEnsemble() {
+        GetOneEnsemble getOneEnsemble = new GetOneEnsemble();
+        getOneEnsemble.setEnsembleId(1L);
+        getOneEnsemble.setName("ensemble");
+        getOneEnsemble.setProviders(List.of(1L, 2L));
+        getOneEnsemble.setRegions(List.of(3L, 4L));
+        getOneEnsemble.setResourceTypes(List.of(5L));
+        ServiceLevelObjective slo1 = new ServiceLevelObjective("availability", ExpressionType.GT,
+                createSLOValueList(0.8));
+        getOneEnsemble.setServiceLevelObjectives(Stream.of(slo1).collect(Collectors.toList()));
+        Resource r1 = TestResourceProvider.createResource(1L);
+        Resource r2 = TestResourceProvider.createResource(2L);
+        getOneEnsemble.setResources(List.of(r1, r2));
+        return getOneEnsemble;
     }
 }

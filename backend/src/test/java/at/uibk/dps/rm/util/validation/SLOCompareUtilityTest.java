@@ -5,6 +5,10 @@ import at.uibk.dps.rm.entity.dto.slo.SLOValue;
 import at.uibk.dps.rm.entity.dto.slo.SLOValueType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.MetricValue;
+import at.uibk.dps.rm.entity.model.Resource;
+import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestMetricProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import io.vertx.junit5.VertxExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,6 +17,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -173,5 +178,50 @@ public class SLOCompareUtilityTest {
         boolean actualValue = SLOCompareUtility.compareMetricValueWithSLO(metric, slo);
 
         assertThat(actualValue).isEqualTo(false);
+    }
+
+    @Test
+    void resourceFilterBySLOValueTypeValid() {
+        Resource resource = TestResourceProvider.createResource(1L);
+        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, 1L, "latency", 25.0);
+        MetricValue mv2 = TestMetricProvider.createMetricValue(2L, 2L, "availability", "high");
+        Set<MetricValue> metricValues = Set.of(mv1, mv2);
+        resource.setMetricValues(metricValues);
+        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("availability", ExpressionType.EQ, "high");
+        List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
+
+        boolean result = SLOCompareUtility.resourceFilterBySLOValueType(resource, serviceLevelObjectives);
+
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void resourceFilterBySLOValueTypeNoValueTypeMatch() {
+        Resource resource = TestResourceProvider.createResource(1L);
+        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, 1L, "latency", 25.0);
+        MetricValue mv2 = TestMetricProvider.createMetricValue(2L, 2L, "availability", 0.995);
+        Set<MetricValue> metricValues = Set.of(mv1, mv2);
+        resource.setMetricValues(metricValues);
+        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("availability", ExpressionType.EQ, "high");
+        List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
+
+        boolean result = SLOCompareUtility.resourceFilterBySLOValueType(resource, serviceLevelObjectives);
+
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void resourceFilterBySLOValueTypeNoNameMatch() {
+        Resource resource = TestResourceProvider.createResource(1L);
+        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, 1L, "latency", 25.0);
+        MetricValue mv2 = TestMetricProvider.createMetricValue(2L, 2L, "availability", 0.995);
+        Set<MetricValue> metricValues = Set.of(mv1, mv2);
+        resource.setMetricValues(metricValues);
+        ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective("bandwidth", ExpressionType.EQ, "high");
+        List<ServiceLevelObjective> serviceLevelObjectives = List.of(slo);
+
+        boolean result = SLOCompareUtility.resourceFilterBySLOValueType(resource, serviceLevelObjectives);
+
+        assertThat(result).isTrue();
     }
 }

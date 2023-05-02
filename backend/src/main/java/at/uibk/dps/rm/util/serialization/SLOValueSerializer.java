@@ -9,6 +9,8 @@ import java.io.IOException;
 
 public class SLOValueSerializer extends StdSerializer<SLOValue> {
 
+    private static final long serialVersionUID = 190033535439232237L;
+
     @SuppressWarnings("unused")
     public SLOValueSerializer() {
         this(null);
