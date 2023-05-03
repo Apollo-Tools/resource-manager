@@ -37,4 +37,26 @@ public class TestEnsembleProvider {
         ensembleSLO.setEnsemble(ensemble);
         return ensembleSLO;
     }
+
+    public static EnsembleSLO createEnsembleSLO(long ensembleSLOId, String name, long ensembleId, String value) {
+        EnsembleSLO ensembleSLO = new EnsembleSLO();
+        ensembleSLO.setEnsembleSLOId(ensembleSLOId);
+        ensembleSLO.setName(name);
+        ensembleSLO.setExpression(ExpressionType.EQ);
+        ensembleSLO.setValueStrings(List.of(value));
+        Ensemble ensemble = createEnsemble(ensembleId, 1L);
+        ensembleSLO.setEnsemble(ensemble);
+        return ensembleSLO;
+    }
+
+    public static EnsembleSLO createEnsembleSLO(long ensembleSLOId, String name, long ensembleId, Boolean... values) {
+        EnsembleSLO ensembleSLO = new EnsembleSLO();
+        ensembleSLO.setEnsembleSLOId(ensembleSLOId);
+        ensembleSLO.setName(name);
+        ensembleSLO.setExpression(ExpressionType.EQ);
+        ensembleSLO.setValueBools(List.of(values));
+        Ensemble ensemble = createEnsemble(ensembleId, 1L);
+        ensembleSLO.setEnsemble(ensemble);
+        return ensembleSLO;
+    }
 }

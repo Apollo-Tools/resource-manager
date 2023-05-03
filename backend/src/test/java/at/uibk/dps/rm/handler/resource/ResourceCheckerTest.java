@@ -28,10 +28,10 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class ResourceCheckerTest {
 
-    ResourceChecker resourceChecker;
+    private ResourceChecker resourceChecker;
 
     @Mock
-    ResourceService resourceService;
+    private ResourceService resourceService;
 
     @BeforeEach
     void initTest() {

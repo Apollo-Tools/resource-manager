@@ -27,8 +27,7 @@ public class EnsembleInputHandler {
         JsonObject body = rc.body().asJsonObject();
         ExpressionValidator.checkExpressionAreValid(body.getJsonArray("slos"))
             .concatWith(Completable.defer(() -> checkArrayDuplicates(body)))
-            .subscribe(rc::next, throwable -> rc.fail(400, throwable))
-            .dispose();
+            .subscribe(rc::next, throwable -> rc.fail(400, throwable));
     }
 
     /**
