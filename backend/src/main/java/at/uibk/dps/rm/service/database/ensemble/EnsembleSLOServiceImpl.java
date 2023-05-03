@@ -22,19 +22,6 @@ public class EnsembleSLOServiceImpl extends DatabaseServiceProxy<EnsembleSLO> im
         this.ensembleSLORepository = ensembleSLORepository;
     }
 
-    @Override
-    public Future<JsonArray> findAll() {
-        return Future
-                .fromCompletionStage(ensembleSLORepository.findAllAndFetch())
-                .map(result -> {
-                    ArrayList<JsonObject> objects = new ArrayList<>();
-                    for (EnsembleSLO entity: result) {
-                        objects.add(JsonObject.mapFrom(entity));
-                    }
-                    return new JsonArray(objects);
-                });
-    }
-
     public Future<JsonArray> findAllByEnsembleId(long ensembleId) {
         return Future
             .fromCompletionStage(ensembleSLORepository.findAllByEnsembleId(ensembleId))

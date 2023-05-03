@@ -6,6 +6,7 @@ import at.uibk.dps.rm.entity.model.usertypes.BoolArrayType;
 import at.uibk.dps.rm.entity.model.usertypes.ExpressionConverter;
 import at.uibk.dps.rm.entity.model.usertypes.NumberArrayType;
 import at.uibk.dps.rm.entity.model.usertypes.StringArrayType;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,6 +21,7 @@ import java.util.List;
 public class EnsembleSLO {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonProperty("ensemble_slo_id")
     @Column(name = "ensemble_slo_id")
     private Long ensembleSLOId;
 

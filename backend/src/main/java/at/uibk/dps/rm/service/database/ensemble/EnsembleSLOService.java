@@ -27,7 +27,5 @@ public interface EnsembleSLOService extends DatabaseServiceInterface {
         return new EnsembleSLOServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(EnsembleSLO.class));
     }
 
-    Future<JsonArray> findAll();
-
     Future<JsonArray> findAllByEnsembleId(long ensembleId);
 }

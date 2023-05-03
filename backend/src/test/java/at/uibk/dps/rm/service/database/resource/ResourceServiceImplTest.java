@@ -28,7 +28,7 @@ public class ResourceServiceImplTest {
     private ResourceService resourceService;
 
     @Mock
-    ResourceRepository resourceRepository;
+    private ResourceRepository resourceRepository;
 
     @BeforeEach
     void initTest() {
