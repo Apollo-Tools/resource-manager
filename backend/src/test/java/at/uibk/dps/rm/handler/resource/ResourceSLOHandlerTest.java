@@ -1,6 +1,8 @@
 package at.uibk.dps.rm.handler.resource;
 
+import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
 import at.uibk.dps.rm.entity.dto.SLORequest;
+import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.MetricValue;
@@ -17,6 +19,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import io.vertx.rxjava3.ext.web.RoutingContext;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,6 +36,8 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(VertxExtension.class)
@@ -50,38 +55,57 @@ public class ResourceSLOHandlerTest {
     @Mock
     private MetricValueChecker metricValueChecker;
 
+    @Mock
+    private RoutingContext rc;
+
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
         handler = new ResourceSLOHandler(resourceChecker, metricChecker, metricValueChecker);
     }
 
+    @ParameterizedTest
+    @CsvSource({
+            "1, 3, true",
+            "1, 2, false"
+    })
+    void validateNewResourceEnsembleSLOsValid(long resourceId1, long resourceId2, boolean isValid,
+            VertxTestContext testContext) {
+        mockGetResourcesBySLOsValid();
+        CreateEnsembleRequest sloRequest = TestDTOProvider.createCreateEnsembleRequest(resourceId1, resourceId2);
+
+        handler.validateNewResourceEnsembleSLOs(rc, sloRequest);
+
+        if (isValid) {
+            verify(rc).next();
+        } else {
+            verify(rc).fail(eq(400), any(Throwable.class));
+        }
+        testContext.completeNow();
+    }
+
+    @Test
+    void validateExistingEnsemble(VertxTestContext testContext) {
+        mockGetResourcesBySLOsValid();
+        GetOneEnsemble sloRequest = TestDTOProvider.createGetOneEnsemble();
+
+        handler.validateExistingEnsemble(sloRequest)
+            .subscribe(result -> testContext.verify(() -> {
+                        assertThat(result.size()).isEqualTo(2);
+                        assertThat(result.get(0).getResourceId()).isEqualTo(1L);
+                        assertThat(result.get(0).getIsValid()).isEqualTo(true);
+                        assertThat(result.get(1).getResourceId()).isEqualTo(2L);
+                        assertThat(result.get(1).getIsValid()).isEqualTo(false);
+                        testContext.completeNow();
+                    }),
+                    throwable -> testContext.verify(() -> fail("method has thrown exception"))
+            );
+    }
+
     @Test
     void getResourceBySLOs(VertxTestContext testContext) {
-        Resource resource1 = TestResourceProvider.createResource(1L);
-        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, 1L, "latency", 25.0);
-        MetricValue mv2 = TestMetricProvider.createMetricValue(2L, 2L, "availability", 0.995);
-        Resource resource2 = TestResourceProvider.createResource(2L);
-        MetricValue mv3 = TestMetricProvider.createMetricValue(3L, 2L, "availability", 0.8);
-        Resource resource3 = TestResourceProvider.createResource(3L);
-        MetricValue mv4 = TestMetricProvider.createMetricValue(4L, 3L, "bandwidth", 1000);
-        MetricValue mv5 = TestMetricProvider.createMetricValue(5L, 2L, "availability", 0.999);
-        JsonArray resourcesJson = new JsonArray(List.of(JsonObject.mapFrom(resource1), JsonObject.mapFrom(resource2),
-            JsonObject.mapFrom(resource3)));
-        resourcesJson.getJsonObject(0).put("metric_values", new JsonArray(List.of(JsonObject.mapFrom(mv1), JsonObject.mapFrom(mv2))));
-        resourcesJson.getJsonObject(1).put("metric_values", new JsonArray(List.of(JsonObject.mapFrom(mv3))));
-        resourcesJson.getJsonObject(2).put("metric_values", new JsonArray(List.of(JsonObject.mapFrom(mv4), JsonObject.mapFrom(mv5))));
+        mockGetResourcesBySLOsValid();
         SLORequest sloRequest = TestDTOProvider.createSLORequest();
-
-        when(metricChecker.checkServiceLevelObjectives(any(ServiceLevelObjective.class)))
-            .thenReturn(Completable.complete());
-        when(resourceChecker.checkFindAllBySLOs(List.of("availability"), List.of(3L, 4L), List.of(1L, 2L),
-                List.of(5L))).thenReturn(Single.just(resourcesJson));
-        when(metricValueChecker.checkFindOne(mv1.getMetricValueId())).thenReturn(Single.just(JsonObject.mapFrom(mv1)));
-        when(metricValueChecker.checkFindOne(mv2.getMetricValueId())).thenReturn(Single.just(JsonObject.mapFrom(mv2)));
-        when(metricValueChecker.checkFindOne(mv3.getMetricValueId())).thenReturn(Single.just(JsonObject.mapFrom(mv3)));
-        when(metricValueChecker.checkFindOne(mv4.getMetricValueId())).thenReturn(Single.just(JsonObject.mapFrom(mv4)));
-        when(metricValueChecker.checkFindOne(mv5.getMetricValueId())).thenReturn(Single.just(JsonObject.mapFrom(mv5)));
 
         handler.getResourcesBySLOs(sloRequest)
             .subscribe(result -> testContext.verify(() -> {
@@ -321,5 +345,31 @@ public class ResourceSLOHandlerTest {
         int result = handler.sortResourceBySLO(resource1, resource2, serviceLevelObjectives);
 
         assertThat(result).isEqualTo(0);
+    }
+
+    private void mockGetResourcesBySLOsValid() {
+        Resource resource1 = TestResourceProvider.createResource(1L);
+        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, 1L, "latency", 25.0);
+        MetricValue mv2 = TestMetricProvider.createMetricValue(2L, 2L, "availability", 0.995);
+        Resource resource2 = TestResourceProvider.createResource(2L);
+        MetricValue mv3 = TestMetricProvider.createMetricValue(3L, 2L, "availability", 0.8);
+        Resource resource3 = TestResourceProvider.createResource(3L);
+        MetricValue mv4 = TestMetricProvider.createMetricValue(4L, 3L, "bandwidth", 1000);
+        MetricValue mv5 = TestMetricProvider.createMetricValue(5L, 2L, "availability", 0.999);
+        JsonArray resourcesJson = new JsonArray(List.of(JsonObject.mapFrom(resource1), JsonObject.mapFrom(resource2),
+                JsonObject.mapFrom(resource3)));
+        resourcesJson.getJsonObject(0).put("metric_values", new JsonArray(List.of(JsonObject.mapFrom(mv1), JsonObject.mapFrom(mv2))));
+        resourcesJson.getJsonObject(1).put("metric_values", new JsonArray(List.of(JsonObject.mapFrom(mv3))));
+        resourcesJson.getJsonObject(2).put("metric_values", new JsonArray(List.of(JsonObject.mapFrom(mv4), JsonObject.mapFrom(mv5))));
+
+        when(metricChecker.checkServiceLevelObjectives(any(ServiceLevelObjective.class)))
+                .thenReturn(Completable.complete());
+        when(resourceChecker.checkFindAllBySLOs(List.of("availability"), List.of(3L, 4L), List.of(1L, 2L),
+                List.of(5L))).thenReturn(Single.just(resourcesJson));
+        when(metricValueChecker.checkFindOne(mv1.getMetricValueId())).thenReturn(Single.just(JsonObject.mapFrom(mv1)));
+        when(metricValueChecker.checkFindOne(mv2.getMetricValueId())).thenReturn(Single.just(JsonObject.mapFrom(mv2)));
+        when(metricValueChecker.checkFindOne(mv3.getMetricValueId())).thenReturn(Single.just(JsonObject.mapFrom(mv3)));
+        when(metricValueChecker.checkFindOne(mv4.getMetricValueId())).thenReturn(Single.just(JsonObject.mapFrom(mv4)));
+        when(metricValueChecker.checkFindOne(mv5.getMetricValueId())).thenReturn(Single.just(JsonObject.mapFrom(mv5)));
     }
 }

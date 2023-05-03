@@ -1,7 +1,10 @@
 package at.uibk.dps.rm.testutil.objectprovider;
 
 import at.uibk.dps.rm.entity.model.*;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
+import java.util.List;
 import java.util.Set;
 
 public class TestResourceProvider {
@@ -85,5 +88,13 @@ public class TestResourceProvider {
         resourceType.setTypeId(resourceTypeId);
         resourceType.setResourceType(resourceTypeLabel);
         return resourceType;
+    }
+
+    public static JsonArray createGetAllResourcesArray() {
+        Resource resource1 = TestResourceProvider.createResource(1L);
+        Resource resource2 = TestResourceProvider.createResource(2L);
+        Resource resource3 = TestResourceProvider.createResource(3L);
+        return new JsonArray(List.of(JsonObject.mapFrom(resource1), JsonObject.mapFrom(resource2),
+                JsonObject.mapFrom(resource3)));
     }
 }

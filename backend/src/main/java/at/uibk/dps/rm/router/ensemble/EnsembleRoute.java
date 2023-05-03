@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.router.ensemble;
 
+import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
 import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
 import at.uibk.dps.rm.entity.dto.ensemble.ResourceEnsembleStatus;
 import at.uibk.dps.rm.handler.ResultHandler;
@@ -34,7 +35,12 @@ public class EnsembleRoute implements Route {
         router
             .operation("createEnsemble")
             .handler(EnsembleInputHandler::validateCreateEnsembleRequest)
-            .handler(resourceSLOHandler::validateNewResourceEnsembleSLOs)
+            .handler(rc -> {
+                CreateEnsembleRequest requestDTO = rc.body()
+                        .asJsonObject()
+                        .mapTo(CreateEnsembleRequest.class);
+                resourceSLOHandler.validateNewResourceEnsembleSLOs(rc, requestDTO);
+            })
             .handler(resultHandler::handleSaveOneRequest);
 
         router

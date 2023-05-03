@@ -1,20 +1,18 @@
 package at.uibk.dps.rm.handler.resource;
 
-import at.uibk.dps.rm.entity.model.Resource;
-import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UsedByOtherEntityException;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
-import at.uibk.dps.rm.testutil.SingleHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -41,14 +39,9 @@ public class ResourceCheckerTest {
         resourceChecker = new ResourceChecker(resourceService);
     }
 
-    // TODO: refine
     @Test
     void checkFindAllBySLOs(VertxTestContext testContext) {
-        Resource resource1 = TestResourceProvider.createResource(1L);
-        Resource resource2 = TestResourceProvider.createResource(2L);
-        Resource resource3 = TestResourceProvider.createResource(3L);
-        JsonArray resourcesJson = new JsonArray(List.of(JsonObject.mapFrom(resource1), JsonObject.mapFrom(resource2),
-            JsonObject.mapFrom(resource3)));
+        JsonArray resourcesJson = TestResourceProvider.createGetAllResourcesArray();
         List<String> metrics = List.of("availability", "bandwidth");
         List<Long> regions = new ArrayList<>();
         List<Long> resourceProviders = new ArrayList<>();
@@ -59,10 +52,7 @@ public class ResourceCheckerTest {
 
         resourceChecker.checkFindAllBySLOs(metrics, regions, resourceProviders, resourceTypes)
             .subscribe(result -> testContext.verify(() -> {
-                assertThat(result.size()).isEqualTo(3);
-                assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
-                assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
-                assertThat(result.getJsonObject(2).getLong("resource_id")).isEqualTo(3L);
+                        verifyGetAllResourceRequest(result);
                 testContext.completeNow();
             }),
             throwable -> testContext.verify(() -> fail("method has thrown exception"))
@@ -90,42 +80,15 @@ public class ResourceCheckerTest {
     }
 
     @Test
-    void checkFindAllBySLOsNotFound(VertxTestContext testContext) {
-        List<String> metrics = List.of("availability", "bandwidth");
-        List<Long> regions = new ArrayList<>();
-        List<Long> resourceProviders = new ArrayList<>();
-        List<Long> resourceTypes = new ArrayList<>();
-        Single<JsonArray> handler = SingleHelper.getEmptySingle();
-
-        when(resourceService.findAllBySLOs(metrics, regions, resourceProviders, resourceTypes))
-            .thenReturn(handler);
-
-        resourceChecker.checkFindAllBySLOs(metrics, regions, resourceProviders, resourceTypes)
-            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(NotFoundException.class);
-                    testContext.completeNow();
-                })
-            );
-    }
-
-    @Test
-    void checkFindAllByFunctionIdFound(VertxTestContext testContext) {
+    void checkFindAllByFunction(VertxTestContext testContext) {
         long functionId = 1L;
-        Resource resource1 = TestResourceProvider.createResource(1L);
-        Resource resource2 = TestResourceProvider.createResource(2L);
-        Resource resource3 = TestResourceProvider.createResource(3L);
-        JsonArray resourcesJson = new JsonArray(List.of(JsonObject.mapFrom(resource1), JsonObject.mapFrom(resource2),
-            JsonObject.mapFrom(resource3)));
+        JsonArray resourcesJson = TestResourceProvider.createGetAllResourcesArray();
 
         when(resourceService.findAllByFunctionId(functionId)).thenReturn(Single.just(resourcesJson));
 
         resourceChecker.checkFindAllByFunction(functionId)
             .subscribe(result -> testContext.verify(() -> {
-                    assertThat(result.size()).isEqualTo(3);
-                    assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
-                    assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
-                    assertThat(result.getJsonObject(2).getLong("resource_id")).isEqualTo(3L);
+                        verifyGetAllResourceRequest(result);
                     verify(resourceService).findAllByFunctionId(functionId);
                     testContext.completeNow();
                 }),
@@ -134,7 +97,7 @@ public class ResourceCheckerTest {
     }
 
     @Test
-    void checkFindAllByReservationEmpty(VertxTestContext testContext) {
+    void checkFindAllByFunctionEmpty(VertxTestContext testContext) {
         long functionId = 1L;
         JsonArray resourcesJson = new JsonArray(List.of());
 
@@ -151,49 +114,66 @@ public class ResourceCheckerTest {
     }
 
     @Test
-    void checkFindAllByMultipleReservationNotFound(VertxTestContext testContext) {
-        long functionId = 1L;
-        Single<JsonArray> handler = SingleHelper.getEmptySingle();
+    void checkFindAllByEnsembleFound(VertxTestContext testContext) {
+        long ensembleId = 1L;
+        JsonArray resourcesJson = TestResourceProvider.createGetAllResourcesArray();
 
-        when(resourceService.findAllByFunctionId(functionId)).thenReturn(handler);
+        when(resourceService.findAllByEnsembleId(ensembleId)).thenReturn(Single.just(resourcesJson));
 
-        resourceChecker.checkFindAllByFunction(functionId)
-            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(NotFoundException.class);
-                    testContext.completeNow();
-                })
-            );
+        resourceChecker.checkFindAllByEnsemble(ensembleId)
+                .subscribe(result -> testContext.verify(() -> {
+                            verifyGetAllResourceRequest(result);
+                            testContext.completeNow();
+                        }),
+                        throwable -> testContext.verify(() -> fail("method has thrown exception"))
+                );
     }
 
     @Test
-    void checkOneUsedByResourceTypeFalse(VertxTestContext testContext) {
+    void checkFindAllByEnsembleEmpty(VertxTestContext testContext) {
+        long ensembleId = 1L;
+        JsonArray resourcesJson = new JsonArray(List.of());
+
+        when(resourceService.findAllByEnsembleId(ensembleId)).thenReturn(Single.just(resourcesJson));
+
+        resourceChecker.checkFindAllByEnsemble(ensembleId)
+                .subscribe(result -> testContext.verify(() -> {
+                            assertThat(result.size()).isEqualTo(0);
+                            testContext.completeNow();
+                        }),
+                        throwable -> testContext.verify(() -> fail("method has thrown exception"))
+                );
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void checkOneUsedByResourceType(boolean isUsed, VertxTestContext testContext) {
         long resourceTyeId = 1L;
 
-        when(resourceService.existsOneByResourceType(resourceTyeId)).thenReturn(Single.just(false));
+        when(resourceService.existsOneByResourceType(resourceTyeId)).thenReturn(Single.just(isUsed));
 
         resourceChecker.checkOneUsedByResourceType(resourceTyeId)
             .blockingSubscribe(() -> {
+                    if (isUsed) {
+                        testContext.verify(() -> fail("method did not throw exception"));
+                    }
                 },
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
+                throwable -> {
+                    if (isUsed) {
+                        assertThat(throwable).isInstanceOf(UsedByOtherEntityException.class);
+                        testContext.completeNow();
+                    } else {
+                        testContext.verify(() -> fail("method has thrown exception"));
+                    }
+                }
             );
-
-        verify(resourceService).existsOneByResourceType(resourceTyeId);
         testContext.completeNow();
     }
 
-    @Test
-    void checkOneUsedByResourceTypeTrue(VertxTestContext testContext) {
-        long resourceTyeId = 1L;
-
-        when(resourceService.existsOneByResourceType(resourceTyeId)).thenReturn(Single.just(true));
-
-        resourceChecker.checkOneUsedByResourceType(resourceTyeId)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(UsedByOtherEntityException.class);
-                    testContext.completeNow();
-                })
-            );
+    private void verifyGetAllResourceRequest(JsonArray result) {
+        assertThat(result.size()).isEqualTo(3);
+        for (int i = 0; i < 3; i++) {
+            assertThat(result.getJsonObject(i).getLong("resource_id")).isEqualTo(i+1);
+        }
     }
 }

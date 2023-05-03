@@ -57,14 +57,10 @@ public class ResourceSLOHandler {
         this.metricValueChecker = metricValueChecker;
     }
 
-    public void validateNewResourceEnsembleSLOs(RoutingContext rc) {
-        SLORequest requestDTO = rc.body()
-            .asJsonObject()
-            .mapTo(SLORequest.class);
+    public void validateNewResourceEnsembleSLOs(RoutingContext rc, CreateEnsembleRequest requestDTO) {
         getResourcesBySLOs(requestDTO)
             .flatMap(resources -> {
-                CreateEnsembleRequest request = rc.body().asJsonObject().mapTo(CreateEnsembleRequest.class);
-                List<ResourceId> resourceIds = request.getResources();
+                List<ResourceId> resourceIds = requestDTO.getResources();
                 return checkResourcesFulfillSLOs(resourceIds, resources);
             })
             .subscribe(res -> rc.next(), throwable -> rc.fail(400, throwable));

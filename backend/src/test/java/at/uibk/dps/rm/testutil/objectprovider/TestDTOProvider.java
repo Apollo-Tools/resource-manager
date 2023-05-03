@@ -5,10 +5,12 @@ import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
 import at.uibk.dps.rm.entity.deployment.output.TFOutput;
+import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
 import at.uibk.dps.rm.entity.dto.ListResourcesBySLOsRequest;
 import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
+import at.uibk.dps.rm.entity.dto.resource.ResourceId;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.SLOValue;
 import at.uibk.dps.rm.entity.dto.slo.SLOValueType;
@@ -181,6 +183,25 @@ public class TestDTOProvider {
         ServiceLevelObjective slo1 = new ServiceLevelObjective("availability", ExpressionType.GT,
                 createSLOValueList(0.8));
         request.setServiceLevelObjectives(List.of(slo1));
+        return request;
+    }
+
+    public static CreateEnsembleRequest createCreateEnsembleRequest(long... resourceIds) {
+        CreateEnsembleRequest request = new CreateEnsembleRequest();
+        request.setName("ensemble");
+        request.setProviders(List.of(1L, 2L));
+        request.setRegions(List.of(3L, 4L));
+        request.setResourceTypes(List.of(5L));
+        ServiceLevelObjective slo1 = new ServiceLevelObjective("availability", ExpressionType.GT,
+                createSLOValueList(0.8));
+        request.setServiceLevelObjectives(List.of(slo1));
+        List<ResourceId> resourceIdList = new ArrayList<>();
+        for (long id : resourceIds) {
+            ResourceId resourceId = new ResourceId();
+            resourceId.setResourceId(id);
+            resourceIdList.add(resourceId);
+        }
+        request.setResources(resourceIdList);
         return request;
     }
 
