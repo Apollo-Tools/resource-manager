@@ -4,12 +4,14 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import io.vertx.core.json.jackson.DatabindCodec;
+import lombok.experimental.UtilityClass;
 
 /**
  * Used to configure the global json mapper.
  *
  * @author matthi-g
  */
+@UtilityClass
 public class JsonMapperConfig {
     /**
      * Configure the global json mapper.

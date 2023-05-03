@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.dto.slo.SLOValue;
 import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
 import io.vertx.core.json.JsonObject;
 import lombok.Data;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -14,6 +15,11 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SLOValueSerializerTest {
+
+    @BeforeEach
+    void initTest() {
+        JsonMapperConfig.configJsonMapper();
+    }
 
     @Data
     private static class SLOValueWrapper {
@@ -33,6 +39,6 @@ public class SLOValueSerializerTest {
         SLOValueWrapper wrapper = new SLOValueWrapper(List.of(sloValue));
         JsonObject result = JsonObject.mapFrom(wrapper);
 
-        assertThat(result.getValue("sloValue").toString()).isEqualTo(expectedValue);
+        assertThat(result.getValue("slo_value").toString()).isEqualTo(expectedValue);
     }
 }

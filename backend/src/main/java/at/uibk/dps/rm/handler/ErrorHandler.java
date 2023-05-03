@@ -4,6 +4,7 @@ import at.uibk.dps.rm.exception.*;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import lombok.experimental.UtilityClass;
 
 /**
  * This class is used for Validation of the results in extensions of the {@link EntityChecker}
@@ -11,6 +12,7 @@ import io.vertx.core.json.JsonObject;
  * @author matthi-g
  */
 //TODO: change return value of Single<Boolean> to Completable
+@UtilityClass
 public class ErrorHandler {
 
   /**
