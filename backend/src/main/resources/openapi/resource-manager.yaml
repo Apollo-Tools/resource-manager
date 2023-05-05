@@ -567,17 +567,17 @@ paths:
           content:
             application/json:
               schema:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      resource_id:
-                        type: integer
-                        format: int64
-                        example: 1
-                      is_valid:
-                        type: boolean
-                        example: true
+                type: array
+                items:
+                  type: object
+                  properties:
+                    resource_id:
+                      type: integer
+                      format: int64
+                      example: 1
+                    is_valid:
+                      type: boolean
+                      example: true
         404:
           $ref: "#/components/responses/404"
         500:
@@ -2059,6 +2059,107 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
+  /services/{id}:
+    get:
+      description: Return details about a service managed by the resource manager
+      operationId: getService
+      security:
+        - bearerAuth: []
+      tags:
+        - services
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of a service
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+    delete:
+      description: Deletes a service
+      operationId: deleteService
+      security:
+        - bearerAuth: []
+      tags:
+        - service
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        204:
+          description: Successful deletion of a service
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /services:
+    get:
+      description: Return details about all services managed by the resource manager
+      operationId: listServices
+      security:
+        - bearerAuth: []
+      tags:
+        - services
+      responses:
+        200:
+          description: Successful pull of all services
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Service"
+        500:
+          $ref: "#/components/responses/500"
+
+    post:
+      description: Creates a new service
+      operationId: createService
+      security:
+        - bearerAuth: []
+      tags:
+        - sertvices
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              additionalProperties: false
+              properties:
+                name:
+                  description: the name of the docker image
+                  type: string
+                  minLength: 1
+                  maxLength: 4096
+                  example: user/example
+
+      responses:
+        201:
+          description: Successful creation of a new service
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+        400:
+          $ref: "#/components/responses/400"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
 components:
   schemas:
     Account:
@@ -2256,6 +2357,20 @@ components:
           type: string
         template_path:
           type: string
+        created_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+    Service:
+      type: object
+      properties:
+        service_id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: user/example
         created_at:
           type: integer
           format: int64

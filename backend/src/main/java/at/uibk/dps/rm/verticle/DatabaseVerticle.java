@@ -23,6 +23,7 @@ import at.uibk.dps.rm.repository.resource.ResourceTypeRepository;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
+import at.uibk.dps.rm.repository.service.ServiceRepository;
 import at.uibk.dps.rm.service.database.account.*;
 import at.uibk.dps.rm.service.database.ensemble.*;
 import at.uibk.dps.rm.service.database.function.*;
@@ -37,6 +38,8 @@ import at.uibk.dps.rm.service.database.resource.ResourceService;
 import at.uibk.dps.rm.service.database.resource.ResourceServiceImpl;
 import at.uibk.dps.rm.service.database.resource.ResourceTypeService;
 import at.uibk.dps.rm.service.database.resource.ResourceTypeServiceImpl;
+import at.uibk.dps.rm.service.database.service.ServiceService;
+import at.uibk.dps.rm.service.database.service.ServiceServiceImpl;
 import at.uibk.dps.rm.service.util.FilePathService;
 import at.uibk.dps.rm.service.util.FilePathServiceImpl;
 import at.uibk.dps.rm.service.ServiceProxyBinder;
@@ -83,6 +86,7 @@ public class DatabaseVerticle extends AbstractVerticle {
     private ResourceTypeRepository resourceTypeRepository;
     private ResourceTypeMetricRepository resourceTypeMetricRepository;
     private RuntimeRepository runtimeRepository;
+    private ServiceRepository serviceRepository;
     private VPCRepository vpcRepository;
 
     @Override
@@ -145,6 +149,7 @@ public class DatabaseVerticle extends AbstractVerticle {
             resourceTypeRepository = new ResourceTypeRepository(sessionFactory);
             resourceTypeMetricRepository = new ResourceTypeMetricRepository(sessionFactory);
             runtimeRepository = new RuntimeRepository(sessionFactory);
+            serviceRepository = new ServiceRepository(sessionFactory);
             vpcRepository = new VPCRepository(sessionFactory);
             emitter.onComplete();
         });
@@ -191,6 +196,7 @@ public class DatabaseVerticle extends AbstractVerticle {
             serviceProxyBinder.bind(ResourceTypeMetricService.class,
                 new ResourceTypeMetricServiceImpl(resourceTypeMetricRepository));
             serviceProxyBinder.bind(RuntimeService.class, new RuntimeServiceImpl(runtimeRepository));
+            serviceProxyBinder.bind(ServiceService.class, new ServiceServiceImpl(serviceRepository));
             serviceProxyBinder.bind(VPCService.class, new VPCServiceImpl(vpcRepository));
             serviceProxyBinder.bind(FilePathService.class, new FilePathServiceImpl(vertx.getDelegate()));
             emitter.onComplete();
