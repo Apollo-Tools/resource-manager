@@ -22,6 +22,7 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
 import java.util.List;
 import java.util.stream.Collectors;
 
+//TODO: implement update of resources
 public class EnsembleHandler extends ValidationHandler {
 
     private final EnsembleChecker ensembleChecker;
