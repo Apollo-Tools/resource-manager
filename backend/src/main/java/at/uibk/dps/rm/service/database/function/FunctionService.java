@@ -11,6 +11,8 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 
+import java.util.Set;
+
 /**
  * The interface of the service proxy for the function entity.
  *
@@ -52,4 +54,6 @@ public interface FunctionService extends DatabaseServiceInterface {
      * @return a Future that emits true if the function exists, else false
      */
     Future<Boolean> existsOneByNameAndRuntimeId(String name, long runtimeId);
+
+    Future<Boolean> existsAllByIds(Set<Long> functionIds);
 }

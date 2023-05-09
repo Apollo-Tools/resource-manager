@@ -29,7 +29,7 @@ resource "kubernetes_manifest" "pre_puller" {
     "kind" = "DaemonSet"
     "metadata" = {
       "name" = local.name
-      "namespace" = "default"
+      "namespace" = var.namespace
     }
     "spec" = {
       "selector" = {

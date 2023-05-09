@@ -5,7 +5,9 @@ import at.uibk.dps.rm.repository.Repository;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletionStage;
+import java.util.stream.Collectors;
 
 /**
  * Implements database operations for the function entity.
@@ -85,6 +87,15 @@ public class FunctionRepository extends Repository<Function> {
             session.createQuery("select distinct f from Function f " +
                     "left join fetch f.runtime ",
                     entityClass)
+                .getResultList()
+        );
+    }
+
+    public CompletionStage<List<Function>> findAllByIds(Set<Long> functionIds) {
+        String functionIdsConcat = functionIds.stream().map(Object::toString).collect(Collectors.joining(","));
+        return sessionFactory.withSession(session ->
+            session.createQuery("select distinct f from Function f " +
+                "where f.functionId in (" + functionIdsConcat + ")", entityClass)
                 .getResultList()
         );
     }

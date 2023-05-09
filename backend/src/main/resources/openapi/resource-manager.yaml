@@ -1142,9 +1142,28 @@ paths:
               type: object
               required:
                 - function_resources
+                - service_resources
                 - docker_credentials
               additionalProperties: false
               properties:
+                service_resources:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    required:
+                      - service_id
+                      - resource_id
+                    additionalProperties: false
+                    properties:
+                      service_id:
+                        type: integer
+                        format: int64
+                        example: 1
+                      resource_id:
+                        type: integer
+                        format: int64
+                        example: 1
                 function_resources:
                   type: array
                   minItems: 1

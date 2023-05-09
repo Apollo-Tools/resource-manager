@@ -4,7 +4,10 @@ import at.uibk.dps.rm.entity.model.Service;
 import at.uibk.dps.rm.repository.Repository;
 import org.hibernate.reactive.stage.Stage;
 
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletionStage;
+import java.util.stream.Collectors;
 
 public class ServiceRepository extends Repository<Service> {
 
@@ -23,6 +26,15 @@ public class ServiceRepository extends Repository<Service> {
                     "where s.name=:name", entityClass)
             .setParameter("name", name)
             .getSingleResultOrNull()
+        );
+    }
+
+    public CompletionStage<List<Service>> findAllByIds(Set<Long> serviceIds) {
+        String serviceIdsConcat = serviceIds.stream().map(Object::toString).collect(Collectors.joining(","));
+        return sessionFactory.withSession(session ->
+            session.createQuery("select distinct s from Service s " +
+                    "where s.serviceId in (" + serviceIdsConcat + ")", entityClass)
+                .getResultList()
         );
     }
 }

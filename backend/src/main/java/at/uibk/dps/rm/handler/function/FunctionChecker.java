@@ -1,11 +1,16 @@
 package at.uibk.dps.rm.handler.function;
 
+import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.function.FunctionService;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * Implements methods to perform CRUD operations on the function entity.
@@ -46,5 +51,14 @@ public class FunctionChecker extends EntityChecker {
                 .flatMap(result -> Single.just(entity));
         }
         return Single.just(entity);
+    }
+
+    public Completable checkExistAllByIds(List<FunctionResourceIds> functionResourceIds) {
+        Single<Boolean> existsAllByFunctionIds = Observable.fromIterable(functionResourceIds)
+            .map(FunctionResourceIds::getFunctionId)
+            .toList()
+            .map(Set::copyOf)
+            .flatMap(functionService::existsAllByIds);
+        return ErrorHandler.handleExistsOne(existsAllByFunctionIds).ignoreElement();
     }
 }

@@ -9,6 +9,7 @@ import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * This is the implementation of the #ResourceService.
@@ -77,6 +78,20 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
         return Future
                 .fromCompletionStage(resourceRepository.findAllByEnsembleId(ensembleId))
                 .map(this::encodeResourceList);
+    }
+
+    @Override
+    public Future<Boolean> existsAllByIdsAndResourceTypes(Set<Long> resourceIds, List<String> resourceTypes) {
+        return Future
+            .fromCompletionStage(resourceRepository.findAllByResourceIdsAndResourceTypes(resourceIds, resourceTypes))
+            .map(result -> result.size() == resourceIds.size());
+    }
+
+    @Override
+    public Future<JsonArray> findAllByResourceId(List<Long> resourceIds) {
+        return Future
+            .fromCompletionStage(resourceRepository.findAllByResourceIdsAndFetch(resourceIds))
+            .map(this::encodeResourceList);
     }
 
     private JsonArray encodeResourceList(List<Resource> resourceList) {

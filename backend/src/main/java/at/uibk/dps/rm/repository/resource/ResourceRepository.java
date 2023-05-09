@@ -6,6 +6,7 @@ import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
@@ -156,6 +157,33 @@ public class ResourceRepository extends Repository<Resource> {
                                 "where re.ensemble.ensembleId=:ensembleId", entityClass)
                         .setParameter("ensembleId", ensembleId)
                         .getResultList()
+        );
+    }
+
+    public CompletionStage<List<Resource>> findAllByResourceIdsAndResourceTypes(Set<Long> resourceIds,
+        List<String> resourceTypes) {
+        String resourceIdsConcat = resourceIds.stream().map(Object::toString).collect(Collectors.joining(","));
+        String resourceTypesConcat = resourceTypes.stream().map(Object::toString).collect(Collectors.joining("','"));
+        return sessionFactory.withSession(session ->
+            session.createQuery("select distinct r from Resource r " +
+                    "where r.resourceId in (" + resourceIdsConcat + ") and " +
+                        "r.resourceType.resourceType in ('" + resourceTypesConcat + "')",
+                    entityClass)
+                .getResultList()
+        );
+    }
+
+    public CompletionStage<List<Resource>> findAllByResourceIdsAndFetch(List<Long> resourceIds) {
+        String resourceIdsConcat = resourceIds.stream().map(Object::toString).collect(Collectors.joining(","));
+        return this.sessionFactory.withSession(session ->
+            session.createQuery("select distinct r from Resource r " +
+                    "left join fetch r.region reg " +
+                    "left join fetch reg.resourceProvider " +
+                    "left join fetch r.resourceType " +
+                    "left join fetch r.metricValues mv " +
+                    "left join fetch mv.metric " +
+                    "where r.resourceId in (" + resourceIdsConcat + ")", Resource.class)
+                .getResultList()
         );
     }
 }

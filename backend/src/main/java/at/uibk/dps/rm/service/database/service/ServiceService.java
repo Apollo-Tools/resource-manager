@@ -11,6 +11,8 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 
+import java.util.Set;
+
 @ProxyGen
 @VertxGen
 public interface ServiceService extends DatabaseServiceInterface {
@@ -28,4 +30,6 @@ public interface ServiceService extends DatabaseServiceInterface {
     }
 
     Future<Boolean> existsOneByName(String name);
+
+    Future<Boolean> existsAllByIds(Set<Long> serviceIds);
 }

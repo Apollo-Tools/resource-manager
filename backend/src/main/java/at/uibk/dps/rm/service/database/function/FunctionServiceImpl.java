@@ -9,6 +9,7 @@ import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * This is the implementation of the #FunctionService.
@@ -62,4 +63,10 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
             .map(Objects::nonNull);
     }
 
+    @Override
+    public Future<Boolean> existsAllByIds(Set<Long> functionIds) {
+        return Future
+            .fromCompletionStage(functionRepository.findAllByIds(functionIds))
+            .map(result -> result.size() == functionIds.size());
+    }
 }

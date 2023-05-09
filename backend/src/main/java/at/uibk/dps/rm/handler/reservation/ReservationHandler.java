@@ -121,12 +121,15 @@ public class ReservationHandler extends ValidationHandler {
         long accountId = rc.user().principal().getLong("account_id");
         List<VPC> vpcList = new ArrayList<>();
         return preconditionHandler.checkReservationIsValid(requestDTO, accountId, vpcList)
-            .flatMap(functionResources -> reservationChecker.submitCreateReservation(accountId)
+            .flatMap(resources -> reservationChecker.submitCreateReservation(accountId)
                 .flatMap(reservationJson ->
                     statusChecker.checkFindOneByStatusValue(ReservationStatusValue.NEW.name())
                         .map(statusNew -> statusNew.mapTo(ResourceReservationStatus.class))
-                        .flatMap(statusNew -> createResourceReservationList(reservationJson, functionResources,
-                            statusNew))
+                        .flatMap(statusNew -> {
+                            List<JsonObject> functionResources = new ArrayList<>();
+                            return createResourceReservationList(reservationJson, functionResources,
+                                statusNew);
+                        })
                 )
             )
             //TODO: remove self managed state (use edge instead of self managed vm) */

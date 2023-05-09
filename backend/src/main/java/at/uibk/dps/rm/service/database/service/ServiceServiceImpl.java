@@ -6,6 +6,7 @@ import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 
 import java.util.Objects;
+import java.util.Set;
 
 public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements ServiceService {
 
@@ -21,9 +22,17 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
         this.serviceRepository = repository;
     }
 
+    @Override
     public Future<Boolean> existsOneByName(String name) {
         return Future
             .fromCompletionStage(serviceRepository.findOneByName(name))
             .map(Objects::nonNull);
+    }
+
+    @Override
+    public Future<Boolean> existsAllByIds(Set<Long> serviceIds) {
+        return Future
+            .fromCompletionStage(serviceRepository.findAllByIds(serviceIds))
+            .map(result -> result.size() == serviceIds.size());
     }
 }

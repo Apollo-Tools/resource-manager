@@ -13,6 +13,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * The interface of the service proxy for the resource entity.
@@ -65,4 +66,8 @@ public interface ResourceService extends DatabaseServiceInterface {
     Future<Boolean> existsOneByResourceType(long typeId);
 
     Future<JsonArray> findAllByEnsembleId(long ensembleId);
+
+    Future<Boolean> existsAllByIdsAndResourceTypes(Set<Long> resourceIds, List<String> resourceTypes);
+
+    Future<JsonArray> findAllByResourceId(List<Long> resourceIds);
 }

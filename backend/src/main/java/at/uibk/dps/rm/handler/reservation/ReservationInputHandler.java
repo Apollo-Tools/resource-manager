@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.handler.reservation;
 
 import at.uibk.dps.rm.entity.dto.ReserveResourcesRequest;
-import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.rxjava3.ext.web.RoutingContext;
@@ -28,24 +27,25 @@ public class ReservationInputHandler {
      */
     public static void validateResourceArrayHasNoDuplicates(RoutingContext rc) {
         ReserveResourcesRequest requestDTO = rc.body()
-                .asJsonObject()
-                .mapTo(ReserveResourcesRequest.class);
-        checkForFunctionResourceDuplicates(requestDTO.getFunctionResources())
-                .subscribe(rc::next, throwable -> rc.fail(400, throwable))
-                .dispose();
+            .asJsonObject()
+            .mapTo(ReserveResourcesRequest.class);
+        checkForResourceIdDuplicates(requestDTO.getFunctionResources())
+            .andThen(checkForResourceIdDuplicates(requestDTO.getServiceResources()))
+            .subscribe(rc::next, throwable -> rc.fail(400, throwable))
+            .dispose();
     }
 
     /**
-     * Check the functionResourceIds for duplicates.
+     * Check the resourceIds for duplicates.
      *
-     * @param functionResourceIds the list of function resource ids
+     * @param resourceIds the list of resource ids
      * @return a Completable
      */
-    private static Completable checkForFunctionResourceDuplicates(List<FunctionResourceIds> functionResourceIds) {
-        return Maybe.just(functionResourceIds)
+    private static Completable checkForResourceIdDuplicates(List<?> resourceIds) {
+        return Maybe.just(resourceIds)
                 .mapOptional(ids -> {
-                    Set<FunctionResourceIds> functionResourceIdsSet = new HashSet<>(ids);
-                    if (ids.size() != functionResourceIdsSet.size()) {
+                    Set<?> resourceIdSet = new HashSet<>(ids);
+                    if (ids.size() != resourceIdSet.size()) {
                         throw new Throwable("duplicated input");
                     }
                     return Optional.empty();

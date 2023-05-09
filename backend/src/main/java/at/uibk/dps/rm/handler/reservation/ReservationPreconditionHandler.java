@@ -2,16 +2,20 @@ package at.uibk.dps.rm.handler.reservation;
 
 import at.uibk.dps.rm.entity.dto.ReserveResourcesRequest;
 import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
-import at.uibk.dps.rm.entity.model.FunctionResource;
-import at.uibk.dps.rm.entity.model.Region;
-import at.uibk.dps.rm.entity.model.VPC;
+import at.uibk.dps.rm.entity.dto.reservation.ServiceResourceIds;
+import at.uibk.dps.rm.entity.dto.resource.ResourceTypeEnum;
+import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.handler.account.CredentialsChecker;
+import at.uibk.dps.rm.handler.function.FunctionChecker;
 import at.uibk.dps.rm.handler.function.FunctionResourceChecker;
 import at.uibk.dps.rm.handler.metric.ResourceTypeMetricChecker;
+import at.uibk.dps.rm.handler.resource.ResourceChecker;
 import at.uibk.dps.rm.handler.resourceprovider.VPCChecker;
+import at.uibk.dps.rm.handler.service.ServiceChecker;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
@@ -28,6 +32,12 @@ public class ReservationPreconditionHandler {
 
     private final FunctionResourceChecker functionResourceChecker;
 
+    private final FunctionChecker functionChecker;
+
+    private final ServiceChecker serviceChecker;
+
+    private final ResourceChecker resourceChecker;
+
     private final ResourceTypeMetricChecker resourceTypeMetricChecker;
 
     private final VPCChecker vpcChecker;
@@ -43,9 +53,14 @@ public class ReservationPreconditionHandler {
      * @param vpcChecker the vpc checker
      * @param credentialsChecker the credentials checker
      */
-    public ReservationPreconditionHandler(FunctionResourceChecker functionResourceChecker, ResourceTypeMetricChecker
-        resourceTypeMetricChecker, VPCChecker vpcChecker, CredentialsChecker credentialsChecker) {
+    public ReservationPreconditionHandler(FunctionResourceChecker functionResourceChecker, FunctionChecker functionChecker,
+        ServiceChecker serviceChecker, ResourceChecker resourceChecker,
+        ResourceTypeMetricChecker resourceTypeMetricChecker, VPCChecker vpcChecker,
+        CredentialsChecker credentialsChecker) {
         this.functionResourceChecker = functionResourceChecker;
+        this.functionChecker = functionChecker;
+        this.serviceChecker = serviceChecker;
+        this.resourceChecker = resourceChecker;
         this.resourceTypeMetricChecker = resourceTypeMetricChecker;
         this.vpcChecker = vpcChecker;
         this.credentialsChecker = credentialsChecker;
@@ -59,18 +74,22 @@ public class ReservationPreconditionHandler {
      * @param vpcList the list of vpcs
      * @return a Single that emits the list of functionResourceIds
      */
-    public Single<List<JsonObject>> checkReservationIsValid(ReserveResourcesRequest requestDTO, long accountId,
+    public Single<JsonArray> checkReservationIsValid(ReserveResourcesRequest requestDTO, long accountId,
                                                             List<VPC> vpcList) {
-        return checkFindFunctionResources(requestDTO.getFunctionResources()).toList()
-            .flatMap(functionResources -> checkCredentialsForResources(accountId, functionResources)
-                .andThen(resourceTypeMetricChecker.checkMissingRequiredMetricsByFunctionResources(functionResources))
-                .andThen(vpcChecker.checkVPCForFunctionResources(accountId, functionResources)
+        return functionChecker.checkExistAllByIds(requestDTO.getFunctionResources())
+            .andThen(serviceChecker.checkExistAllByIds(requestDTO.getServiceResources()))
+            .andThen(resourceChecker.checkExistAllByIdsAndResourceType(requestDTO.getServiceResources(),
+                requestDTO.getFunctionResources()))
+            .andThen(Single.defer(() -> checkFindResources(requestDTO)))
+            .flatMap(resources -> checkCredentialsForResources(accountId, resources)
+                .andThen(resourceTypeMetricChecker.checkMissingRequiredMetricsByFunctionResources(resources))
+                .andThen(vpcChecker.checkVPCForFunctionResources(accountId, resources)
                     .map(vpcs -> {
                         vpcList.addAll(vpcs.stream().map(vpc -> vpc.mapTo(VPC.class)).collect(Collectors.toList()));
                         return vpcList;
                     }).ignoreElement()
                 )
-                .toSingle(() -> functionResources));
+                .toSingle(() -> resources));
     }
 
     // TODO: move into functionResourceChecker
@@ -87,20 +106,41 @@ public class ReservationPreconditionHandler {
             );
     }
 
+    private Single<JsonArray> checkFindResources(ReserveResourcesRequest request) {
+        Single<List<Long>> functionResourceIds = Observable.fromIterable(request.getFunctionResources())
+            .map(FunctionResourceIds::getResourceId)
+            .toList();
+        Single<List<Long>> serviceResourceIds = Observable.fromIterable(request.getServiceResources())
+            .map(ServiceResourceIds::getResourceId)
+            .toList();
+
+        return functionResourceIds
+            .flatMap(ids -> {
+                List<Long> resourceIds = new ArrayList<>(ids);
+                return serviceResourceIds.map(ids2 -> {
+                    resourceIds.addAll(ids2);
+                    return resourceIds;
+                });
+            })
+            .flatMap(resourceChecker::checkFindAllByResourceIds);
+    }
+
     /**
-     * Check if all necessary credentials exist for the functionResources to be deployed.
+     * Check if all necessary credentials exist for the resources to be deployed.
      *
      * @param accountId the id of the account
-     * @param functionResources the function resources
+     * @param resources the resources
      * @return a Completable
      */
-    private Completable checkCredentialsForResources(long accountId, List<JsonObject> functionResources) {
+    private Completable checkCredentialsForResources(long accountId, JsonArray resources) {
         List<Completable> completables = new ArrayList<>();
         HashSet<Long> resourceProviderIds = new HashSet<>();
-        for (JsonObject jsonObject: functionResources) {
-            Region region = jsonObject.mapTo(FunctionResource.class).getResource().getRegion();
-            long providerId = region.getResourceProvider().getProviderId();
-            if (!resourceProviderIds.contains(providerId) && !region.getName().equals("edge")) {
+        for (Object object: resources.getList()) {
+            Resource resource = ((JsonObject) object).mapTo(Resource.class);
+            long providerId = resource.getRegion().getResourceProvider().getProviderId();
+            String resourceType = resource.getResourceType().getResourceType();
+            if (!resourceProviderIds.contains(providerId) && !resourceType.equals(ResourceTypeEnum.EDGE.getValue()) &&
+                    !resourceType.equals(ResourceTypeEnum.CONTAINER.getValue())) {
                 completables.add(credentialsChecker.checkExistsOneByProviderId(accountId, providerId));
                 resourceProviderIds.add(providerId);
             }

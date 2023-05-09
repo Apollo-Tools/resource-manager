@@ -1,13 +1,18 @@
 package at.uibk.dps.rm.handler.resource;
 
+import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
+import at.uibk.dps.rm.entity.dto.reservation.ServiceResourceIds;
+import at.uibk.dps.rm.entity.dto.resource.ResourceTypeEnum;
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Implements methods to perform CRUD operations on the resource entity.
@@ -62,6 +67,11 @@ public class ResourceChecker extends EntityChecker {
         return ErrorHandler.handleFindAll(findAllByEnsemble);
     }
 
+    public Single<JsonArray> checkFindAllByResourceIds(List<Long> resourceIds) {
+        Single<JsonArray> findAllByResourceIds = resourceService.findAllByResourceId(resourceIds);
+        return ErrorHandler.handleFindAll(findAllByResourceIds);
+    }
+
     /**
      * Check if at least one resource is used by resource type.
      *
@@ -71,5 +81,29 @@ public class ResourceChecker extends EntityChecker {
     public Completable checkOneUsedByResourceType(long resourceTypeId) {
         Single<Boolean> existsOneByResourceType = resourceService.existsOneByResourceType(resourceTypeId);
         return ErrorHandler.handleUsedByOtherEntity(existsOneByResourceType).ignoreElement();
+    }
+
+    public Completable checkExistAllByIdsAndResourceType(List<ServiceResourceIds> serviceResourceIds,
+        List<FunctionResourceIds> functionResourceIds) {
+        List<String> functionResourceTypes = List.of(ResourceTypeEnum.EDGE.getValue(), ResourceTypeEnum.FAAS.getValue(),
+            ResourceTypeEnum.VM.getValue());
+        List<String> serviceResourceTypes = List.of(ResourceTypeEnum.CONTAINER.getValue());
+
+        Single<Boolean> existsAllServiceResources =  Observable.fromIterable(serviceResourceIds)
+            .map(ServiceResourceIds::getResourceId)
+            .toList()
+            .map(Set::copyOf)
+            .flatMap(result -> resourceService.existsAllByIdsAndResourceTypes(result, serviceResourceTypes));
+
+        Single<Boolean> existsAllFunctionResources =  Observable.fromIterable(functionResourceIds)
+            .map(FunctionResourceIds::getResourceId)
+            .toList()
+            .map(Set::copyOf)
+            .flatMap(result -> resourceService.existsAllByIdsAndResourceTypes(result, functionResourceTypes));
+
+        Single<Boolean> existsAll = existsAllFunctionResources
+            .flatMap(existsAllSR -> existsAllServiceResources.map(existsAllFR -> existsAllSR && existsAllFR));
+
+        return ErrorHandler.handleExistsOne(existsAll).ignoreElement();
     }
 }

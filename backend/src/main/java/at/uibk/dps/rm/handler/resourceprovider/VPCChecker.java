@@ -1,12 +1,13 @@
 package at.uibk.dps.rm.handler.resourceprovider;
 
-import at.uibk.dps.rm.entity.model.FunctionResource;
-import at.uibk.dps.rm.entity.model.Region;
+import at.uibk.dps.rm.entity.dto.resource.ResourceTypeEnum;
+import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.VPCService;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
@@ -59,21 +60,23 @@ public class VPCChecker extends EntityChecker {
     }
 
     /**
-     * Find all vpc that were registered by the account and are necessary for the functionResources to be
+     * Find all vpc that were registered by the account and are necessary for the resources to be
      * deployed.
      *
      * @param accountId the id of the account
-     * @param functionResources the list of function resources
+     * @param resources the list of resources
      * @return a Single that emits a list of found vpcs
      */
     public Single<List<JsonObject>> checkVPCForFunctionResources(long accountId,
-        List<JsonObject> functionResources) {
+            JsonArray resources) {
         List<Single<JsonObject>> singles = new ArrayList<>();
         HashSet<Long> regionIds = new HashSet<>();
-        for (JsonObject jsonObject: functionResources) {
-            Region region = jsonObject.mapTo(FunctionResource.class).getResource().getRegion();
-            long regionId = region.getRegionId();
-            if (!regionIds.contains(regionId) && !region.getName().equals("edge")) {
+        for (Object object: resources) {
+            Resource resource = ((JsonObject) object).mapTo(Resource.class);
+            long regionId = resource.getRegion().getRegionId();
+            String resourceType = resource.getResourceType().getResourceType();
+            if (!regionIds.contains(regionId) && !resourceType.equals(ResourceTypeEnum.EDGE.getValue()) &&
+                    !resourceType.equals(ResourceTypeEnum.CONTAINER.getValue())) {
                 singles.add(this.checkFindOneByRegionIdAndAccountId(regionId, accountId));
                 regionIds.add(regionId);
             }
