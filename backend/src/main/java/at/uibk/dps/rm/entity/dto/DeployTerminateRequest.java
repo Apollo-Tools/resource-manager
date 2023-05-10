@@ -1,8 +1,6 @@
 package at.uibk.dps.rm.entity.dto;
 
-import at.uibk.dps.rm.entity.model.Credentials;
-import at.uibk.dps.rm.entity.model.FunctionResource;
-import at.uibk.dps.rm.entity.model.Reservation;
+import at.uibk.dps.rm.entity.model.*;
 import io.vertx.core.json.JsonObject;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,6 +21,10 @@ public abstract class DeployTerminateRequest {
     private List<Credentials> credentialsList;
 
     private List<FunctionResource> functionResources;
+
+    private List<FunctionReservation> functionReservations;
+
+    private List<ServiceReservation> serviceReservations;
 
     /**
      * Get the object as a JsonObject.

@@ -60,7 +60,7 @@ public class ReservationRoute implements Route {
                 resourceChecker, resourceTypeMetricChecker, vpcChecker, credentialsChecker);
         /* Handler initialization */
         DeploymentHandler deploymentHandler = new DeploymentHandler(deploymentChecker, credentialsChecker,
-            functionResourceChecker, resourceReservationChecker);
+            functionReservationChecker, serviceReservationChecker, resourceReservationChecker);
         ReservationErrorHandler reservationErrorHandler = new ReservationErrorHandler(resourceReservationChecker,
             logChecker, reservationLogChecker, fileSystemChecker, deploymentHandler);
         ReservationHandler reservationHandler = new ReservationHandler(reservationChecker,

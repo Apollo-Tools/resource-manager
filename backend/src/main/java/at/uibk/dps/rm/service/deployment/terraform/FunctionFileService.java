@@ -3,7 +3,7 @@ package at.uibk.dps.rm.service.deployment.terraform;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.model.Function;
-import at.uibk.dps.rm.entity.model.FunctionResource;
+import at.uibk.dps.rm.entity.model.FunctionReservation;
 import at.uibk.dps.rm.exception.RuntimeNotSupportedException;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackagePythonCode;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackageSourceCode;
@@ -27,7 +27,7 @@ public class FunctionFileService {
 
     private final FileSystem fileSystem;
 
-    private final List<FunctionResource> functionResources;
+    private final List<FunctionReservation> functionReservations;
 
     private final Path functionsDir;
 
@@ -41,15 +41,15 @@ public class FunctionFileService {
      * Create an instance from vertx, functionResources, functionsDir and dockerCredentials.
      *
      * @param vertx the vertx instance
-     * @param functionResources the list of function resources
+     * @param functionReservations the list of function reservations
      * @param functionsDir the directory where everything related to the functions is stored
      * @param dockerCredentials the credentials of the docker user
      */
-    public FunctionFileService(Vertx vertx, List<FunctionResource> functionResources, Path functionsDir,
+    public FunctionFileService(Vertx vertx, List<FunctionReservation> functionReservations, Path functionsDir,
                                DockerCredentials dockerCredentials) {
         this.vertx = vertx;
         this.fileSystem = vertx.fileSystem();
-        this.functionResources = functionResources;
+        this.functionReservations = functionReservations;
         this.functionsDir = functionsDir;
         this.dockerCredentials = dockerCredentials;
     }
@@ -64,7 +64,7 @@ public class FunctionFileService {
         PackageSourceCode packageSourceCode;
         StringBuilder functionsString = new StringBuilder();
         List<Completable> completables = new ArrayList<>();
-        for (FunctionResource fr : functionResources) {
+        for (FunctionReservation fr : functionReservations) {
             Function function = fr.getFunction();
             if (functionIds.contains(function.getFunctionId())) {
                 continue;
@@ -74,7 +74,7 @@ public class FunctionFileService {
                 packageSourceCode = new PackagePythonCode(vertx, fileSystem);
                 completables.add(packageSourceCode.composeSourceCode(functionsDir, functionIdentifier,
                     function.getCode()));
-                if (deployFunctionOnVMOrEdge(function, functionResources)) {
+                if (deployFunctionOnVMOrEdge(function)) {
                     functionsString.append(String.format(
                         "  %s:\n" +
                             "    lang: python3-flask-debian\n" +
@@ -102,13 +102,12 @@ public class FunctionFileService {
      * Check if a function is going to be deployed on a virtual machine or edge device.
      *
      * @param function the function
-     * @param functionResources the list of function resources
      * @return true if the function has to be deployed on a vm or edge device, else false
      */
-    private boolean deployFunctionOnVMOrEdge(Function function, List<FunctionResource> functionResources) {
-        return functionResources.stream().anyMatch(functionResource -> {
-            String resourceType = functionResource.getResource().getResourceType().getResourceType();
-            return functionResource.getFunction().equals(function) &&
+    private boolean deployFunctionOnVMOrEdge(Function function) {
+        return functionReservations.stream().anyMatch(functionReservation -> {
+            String resourceType = functionReservation.getResource().getResourceType().getResourceType();
+            return functionReservation.getFunction().equals(function) &&
                 (resourceType.equals("edge") || resourceType.equals("vm"));
         });
     }

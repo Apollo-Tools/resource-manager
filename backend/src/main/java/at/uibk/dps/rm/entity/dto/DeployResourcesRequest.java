@@ -33,6 +33,8 @@ public class DeployResourcesRequest extends DeployTerminateRequest {
         super();
         DeployResourcesRequest request = jsonObject.mapTo(DeployResourcesRequest.class);
         this.setFunctionResources(request.getFunctionResources());
+        this.setFunctionReservations(request.getFunctionReservations());
+        this.setServiceReservations(request.getServiceReservations());
         this.setCredentialsList(request.getCredentialsList());
         this.setDockerCredentials(request.getDockerCredentials());
         this.setReservation(request.getReservation());

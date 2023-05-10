@@ -38,7 +38,7 @@ public class DeploymentServiceImpl extends ServiceProxy implements DeploymentSer
             DeploymentPath deploymentPath = new DeploymentPath(deployRequest.getReservation().getReservationId(),
                 config);
             FunctionFileService functionFileService = new FunctionFileService(vertx,
-                deployRequest.getFunctionResources(), deploymentPath.getFunctionsFolder(),
+                deployRequest.getFunctionReservations(), deploymentPath.getFunctionsFolder(),
                 deployRequest.getDockerCredentials());
             return functionFileService.packageCode();
         });
