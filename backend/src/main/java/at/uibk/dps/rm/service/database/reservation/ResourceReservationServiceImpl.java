@@ -77,10 +77,9 @@ public class ResourceReservationServiceImpl extends DatabaseServiceProxy<Resourc
     }
 
     @Override
-    public Future<Void> updateTriggerUrl(long functionResourceId, long reservationId, String triggerUrl) {
+    public Future<Void> updateTriggerUrl(long id, String triggerUrl) {
         return Future
-            .fromCompletionStage(resourceReservationRepository.updateTriggerUrl(functionResourceId, reservationId,
-                    triggerUrl))
+            .fromCompletionStage(resourceReservationRepository.updateTriggerUrl(id, triggerUrl))
             .mapEmpty();
     }
 

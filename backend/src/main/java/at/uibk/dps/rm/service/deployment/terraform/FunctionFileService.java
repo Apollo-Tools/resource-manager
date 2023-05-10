@@ -81,6 +81,7 @@ public class FunctionFileService {
                             "    handler: ./%s\n" +
                             "    image: %s/%s:latest\n", functionIdentifier, functionIdentifier,
                         dockerCredentials.getUsername(), functionIdentifier));
+                    functionsToDeploy.getDockerFunctionIdentifiers().add(functionIdentifier);
                 }
             } else {
                 return Single.error(RuntimeNotSupportedException::new);
@@ -88,7 +89,7 @@ public class FunctionFileService {
             functionIds.add(function.getFunctionId());
             functionsToDeploy.getFunctionIdentifiers().add(functionIdentifier);
         }
-        functionsToDeploy.setFunctionsString(functionsString.toString());
+        functionsToDeploy.setDockerFunctionsString(functionsString.toString());
         // TODO: add check if this is necessary (=no changes since last push)
         if (completables.isEmpty()) {
             return Single.just(functionsToDeploy);

@@ -38,7 +38,7 @@ public class DockerImageService {
      * @return a Single that emits the process output of the build process
      */
     public Single<ProcessOutput> buildOpenFaasImages(String functionsString) {
-        if (functionsString.isBlank()) {
+        if (functionIdentifiers.isEmpty()) {
             return Single.just(new ProcessOutput());
         }
         String stackFile = String.format(
@@ -101,7 +101,7 @@ public class DockerImageService {
         String dindDir = config.getString("dind_directory");
         List<String> dockerCommands = new java.util.ArrayList<>(List.of("docker", "run", "-v",
             "/var/run/docker.sock:/var/run/docker.sock", "--privileged", "--rm", "-v",
-            Path.of(dindDir, rootFolder.toString()).toAbsolutePath() +
+            Path.of(dindDir, rootFolder.toString()).toAbsolutePath().toString().replace("\\", "/") +
                 "/build:/build", "docker:latest", "/bin/sh", "-c"));
         StringBuilder dockerInteractiveCommands = new StringBuilder("cd ./build && docker login -u " +
             dockerCredentials.getUsername() + " -p " + dockerCredentials.getAccessToken() +

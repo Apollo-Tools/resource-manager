@@ -94,8 +94,8 @@ public class DeploymentChecker {
     private Single<ProcessOutput> buildAndPushDockerImages(Vertx vertx, DeployResourcesRequest request,
         FunctionsToDeploy functionsToDeploy, DeploymentPath deploymentPath) {
         DockerImageService dockerImageService = new DockerImageService(vertx, request.getDockerCredentials(),
-            functionsToDeploy.getFunctionIdentifiers(), deploymentPath.getFunctionsFolder());
-        return dockerImageService.buildOpenFaasImages(functionsToDeploy.getFunctionsString());
+            functionsToDeploy.getDockerFunctionIdentifiers(), deploymentPath.getFunctionsFolder());
+        return dockerImageService.buildOpenFaasImages(functionsToDeploy.getDockerFunctionsString());
     }
 
   /**

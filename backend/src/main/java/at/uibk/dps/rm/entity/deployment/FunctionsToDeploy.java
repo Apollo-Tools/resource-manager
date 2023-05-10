@@ -20,7 +20,9 @@ import java.util.List;
 @DataObject(generateConverter = true, publicConverter = false)
 public class FunctionsToDeploy {
 
-    private String functionsString = "new StringBuilder()";
+    private String dockerFunctionsString = "";
+
+    private final List<String> dockerFunctionIdentifiers = new ArrayList<>();
 
     private final List<String> functionIdentifiers = new ArrayList<>();
 
@@ -32,7 +34,8 @@ public class FunctionsToDeploy {
      */
     public FunctionsToDeploy(JsonObject jsonObject) {
         FunctionsToDeploy functionsToDeploy = jsonObject.mapTo(FunctionsToDeploy.class);
-        this.functionsString = functionsToDeploy.getFunctionsString();
+        this.dockerFunctionsString = functionsToDeploy.getDockerFunctionsString();
+        this.dockerFunctionIdentifiers.addAll(functionsToDeploy.getDockerFunctionIdentifiers());
         this.functionIdentifiers.addAll(functionsToDeploy.getFunctionIdentifiers());
     }
 

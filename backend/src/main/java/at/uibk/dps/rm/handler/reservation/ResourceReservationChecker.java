@@ -4,7 +4,7 @@ import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
 import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
-import at.uibk.dps.rm.entity.model.FunctionResource;
+import at.uibk.dps.rm.entity.model.FunctionReservation;
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.reservation.ResourceReservationService;
@@ -112,13 +112,13 @@ public class ResourceReservationChecker extends EntityChecker {
      */
     private void findFunctionResourceAndUpdateTriggerUrl(DeployResourcesRequest request, long resourceId,
         String functionName, String runtimeName, String triggerUrl, List<Completable> completables) {
-        request.getFunctionResources().stream()
-            .filter(functionResource -> matchesFunctionResource(resourceId, functionName, runtimeName,
-                functionResource))
+        request.getFunctionReservations().stream()
+            .filter(functionReservation -> matchesFunctionResource(resourceId, functionName, runtimeName,
+                functionReservation))
             .findFirst()
-            .ifPresent(functionResource -> completables
-                .add(resourceReservationService.updateTriggerUrl(functionResource.getFunctionResourceId(),
-                    request.getReservation().getReservationId(), triggerUrl))
+            .ifPresent(functionReservation -> completables
+                .add(resourceReservationService.updateTriggerUrl(functionReservation.getResourceReservationId(),
+                    triggerUrl))
             );
     }
 
@@ -172,13 +172,13 @@ public class ResourceReservationChecker extends EntityChecker {
      * @param resourceId the id of a reservation
      * @param functionName the name of the function
      * @param runtimeName the name of the runtime
-     * @param functionResource the function resource
+     * @param functionReservation the function reservation
      * @return true if they match, else fales
      */
     private static boolean matchesFunctionResource(long resourceId, String functionName, String runtimeName,
-        FunctionResource functionResource) {
-        return functionResource.getResource().getResourceId() == resourceId &&
-            functionResource.getFunction().getName().equals(functionName) &&
-            functionResource.getFunction().getRuntime().getName().replace(".", "").equals(runtimeName);
+        FunctionReservation functionReservation) {
+        return functionReservation.getResource().getResourceId() == resourceId &&
+            functionReservation.getFunction().getName().equals(functionName) &&
+            functionReservation.getFunction().getRuntime().getName().replace(".", "").equals(runtimeName);
     }
 }

@@ -69,7 +69,7 @@ public class DeploymentServiceImplTest {
                         assertThat(result.getFunctionIdentifiers().size()).isEqualTo(2);
                         assertThat(result.getFunctionIdentifiers().get(0)).isEqualTo("foo1_python39");
                         assertThat(result.getFunctionIdentifiers().get(1)).isEqualTo("foo2_python39");
-                        assertThat(result.getFunctionsString()).isEqualTo("\"  foo1_python39:\\n    " +
+                        assertThat(result.getDockerFunctionsString()).isEqualTo("\"  foo1_python39:\\n    " +
                             "lang: python3-flask-debian\\n    handler: ./foo1_python39\\n    " +
                             "image: user/foo1_python39:latest\\n  foo2_python39:\\n    lang: python3-flask-debian\\n    " +
                             "handler: ./foo2_python39\\n    image: user/foo2_python39:latest\\n\"");

@@ -46,22 +46,19 @@ public class ResourceReservationRepository extends Repository<ResourceReservatio
 
     //TODO: add account id
     /**
-     * Update the trigger url of a resource reservation by its funciton resource and reservation.
+     * Update the trigger url of a resource reservation by its id.
      *
-     * @param functionResourceId the id of the function resource
-     * @param reservationId the id of the reservation
+     * @param id the id of the resource reservation
      * @param triggerUrl the new trigger url
      * @return a CompletionStage that emits the row count
      */
-    public CompletionStage<Integer> updateTriggerUrl(long functionResourceId, long reservationId, String triggerUrl) {
+    public CompletionStage<Integer> updateTriggerUrl(long id, String triggerUrl) {
         return sessionFactory.withSession(session ->
             session.createQuery("update ResourceReservation rr " +
                 "set triggerUrl=:triggerUrl, isDeployed=true " +
-                "where rr.functionResource.functionResourceId=:functionResourceId and " +
-                "rr.reservation.reservationId=:reservationId")
+                "where rr.resourceReservationId=:id")
                 .setParameter("triggerUrl", triggerUrl)
-                .setParameter("functionResourceId", functionResourceId)
-                .setParameter("reservationId", reservationId)
+                .setParameter("id", id)
                 .executeUpdate()
         );
     }

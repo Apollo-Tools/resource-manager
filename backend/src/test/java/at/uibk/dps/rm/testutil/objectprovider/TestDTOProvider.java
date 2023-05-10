@@ -85,7 +85,7 @@ public class TestDTOProvider {
         FunctionsToDeploy functionsToDeploy = new FunctionsToDeploy();
         functionsToDeploy.getFunctionIdentifiers().add("foo1_python39");
         functionsToDeploy.getFunctionIdentifiers().add("foo2_python39");
-        functionsToDeploy.setFunctionsString("\"  foo1_python39:\\n    lang: python3-flask-debian\\n    " +
+        functionsToDeploy.setDockerFunctionsString("\"  foo1_python39:\\n    lang: python3-flask-debian\\n    " +
             "handler: ./foo1_python39\\n    image: user/foo1_python39:latest\\n  foo2_python39:\\n    " +
             "lang: python3-flask-debian\\n    handler: ./foo2_python39\\n    image: user/foo2_python39:latest\\n\"");
         return functionsToDeploy;

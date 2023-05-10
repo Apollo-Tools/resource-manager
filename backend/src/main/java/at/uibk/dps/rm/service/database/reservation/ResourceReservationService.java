@@ -45,14 +45,13 @@ public interface ResourceReservationService extends DatabaseServiceInterface {
     Future<JsonArray> findAllByReservationId(long reservationId);
 
     /**
-     * Update the trigger url of a resource reservation by its function resource and reservation.
+     * Update the trigger url of a resource reservation by its id.
      *
-     * @param functionResourceId the id of the function resource
-     * @param reservationId the id of  the reservation
+     * @param resourceReservationId the id of the resource reservation
      * @param triggerUrl the new trigger url
      * @return an empty Future
      */
-    Future<Void> updateTriggerUrl(long functionResourceId, long reservationId, String triggerUrl);
+    Future<Void> updateTriggerUrl(long resourceReservationId,  String triggerUrl);
 
     /**
      * Update the status of all resource reservations by their reservation.

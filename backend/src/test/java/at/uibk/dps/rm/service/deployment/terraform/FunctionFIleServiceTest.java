@@ -39,7 +39,7 @@ public class FunctionFIleServiceTest {
                         assertThat(result.getFunctionIdentifiers().size()).isEqualTo(2);
                         assertThat(result.getFunctionIdentifiers().get(0)).isEqualTo("foo1_python39");
                         assertThat(result.getFunctionIdentifiers().get(1)).isEqualTo("foo2_python39");
-                        assertThat(result.getFunctionsString().toString()).isEqualTo("  foo2_python39:\n" +
+                        assertThat(result.getDockerFunctionsString()).isEqualTo("  foo2_python39:\n" +
                             "    lang: python3-flask-debian\n" +
                             "    handler: ./foo2_python39\n" +
                             "    image: user/foo2_python39:latest\n");
@@ -62,7 +62,7 @@ public class FunctionFIleServiceTest {
                         assertThat(result.getFunctionIdentifiers().size()).isEqualTo(2);
                         assertThat(result.getFunctionIdentifiers().get(0)).isEqualTo("foo1_python39");
                         assertThat(result.getFunctionIdentifiers().get(1)).isEqualTo("foo2_python39");
-                        assertThat(result.getFunctionsString().toString()).isEqualTo("  foo1_python39:\n" +
+                        assertThat(result.getDockerFunctionsString()).isEqualTo("  foo1_python39:\n" +
                             "    lang: python3-flask-debian\n" +
                             "    handler: ./foo1_python39\n" +
                             "    image: user/foo1_python39:latest\n" +
@@ -88,7 +88,7 @@ public class FunctionFIleServiceTest {
                 .subscribe(result -> testContext.verify(() -> {
                         assertThat(result.getFunctionIdentifiers().size()).isEqualTo(1);
                         assertThat(result.getFunctionIdentifiers().get(0)).isEqualTo("foo1_python39");
-                        assertThat(result.getFunctionsString().toString()).isEqualTo("  foo1_python39:\n" +
+                        assertThat(result.getDockerFunctionsString()).isEqualTo("  foo1_python39:\n" +
                             "    lang: python3-flask-debian\n" +
                             "    handler: ./foo1_python39\n" +
                             "    image: user/foo1_python39:latest\n");
@@ -109,7 +109,7 @@ public class FunctionFIleServiceTest {
             service.packageCode()
                 .subscribe(result -> testContext.verify(() -> {
                         assertThat(result.getFunctionIdentifiers().size()).isEqualTo(0);
-                        assertThat(result.getFunctionsString().toString()).isEqualTo("");
+                        assertThat(result.getDockerFunctionsString()).isEqualTo("");
                         testContext.completeNow();
                     }),
                     throwable -> testContext.verify(() -> fail("method has thrown exception"))
