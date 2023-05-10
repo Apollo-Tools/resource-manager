@@ -15,9 +15,11 @@ import java.sql.Timestamp;
  * @author matthi-g
  */
 @Entity
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "reservation_type")
 @Getter
 @Setter
-public class ResourceReservation {
+public abstract class ResourceReservation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,6 +29,10 @@ public class ResourceReservation {
     private Boolean isDeployed = false;
 
     private String triggerUrl = "";
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "resource_id")
+    private Resource resource;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "function_resource_id")

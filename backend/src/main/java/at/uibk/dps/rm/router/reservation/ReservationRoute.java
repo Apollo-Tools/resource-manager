@@ -40,6 +40,10 @@ public class ReservationRoute implements Route {
         ResourceChecker resourceChecker = new ResourceChecker(serviceProxyProvider.getResourceService());
         ResourceReservationChecker resourceReservationChecker =
             new ResourceReservationChecker(serviceProxyProvider.getResourceReservationService());
+        FunctionReservationChecker functionReservationChecker = new FunctionReservationChecker(serviceProxyProvider
+            .getFunctionReservationService());
+        ServiceReservationChecker serviceReservationChecker = new ServiceReservationChecker(serviceProxyProvider
+            .getServiceReservationService());
         LogChecker logChecker = new LogChecker(serviceProxyProvider.getLogService());
         ReservationLogChecker reservationLogChecker = new ReservationLogChecker(serviceProxyProvider
             .getReservationLogService());
@@ -60,7 +64,8 @@ public class ReservationRoute implements Route {
         ReservationErrorHandler reservationErrorHandler = new ReservationErrorHandler(resourceReservationChecker,
             logChecker, reservationLogChecker, fileSystemChecker, deploymentHandler);
         ReservationHandler reservationHandler = new ReservationHandler(reservationChecker,
-            resourceReservationChecker, statusChecker, deploymentHandler, reservationErrorHandler, preconditionChecker);
+            resourceReservationChecker, functionReservationChecker, serviceReservationChecker, statusChecker,
+            deploymentHandler, reservationErrorHandler, preconditionChecker);
         ResultHandler resultHandler = new ResultHandler(reservationHandler);
 
         router

@@ -15,9 +15,7 @@ import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.metric.MetricTypeRepository;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.repository.metric.ResourceTypeMetricRepository;
-import at.uibk.dps.rm.repository.reservation.ReservationRepository;
-import at.uibk.dps.rm.repository.reservation.ResourceReservationRepository;
-import at.uibk.dps.rm.repository.reservation.ResourceReservationStatusRepository;
+import at.uibk.dps.rm.repository.reservation.*;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resource.ResourceTypeRepository;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
@@ -70,6 +68,7 @@ public class DatabaseVerticle extends AbstractVerticle {
     private EnsembleRepository ensembleRepository;
     private EnsembleSLORepository ensembleSLORepository;
     private FunctionRepository functionRepository;
+    private FunctionReservationRepository functionReservationRepository;
     private FunctionResourceRepository functionResourceRepository;
     private LogRepository logRepository;
     private MetricRepository metricRepository;
@@ -87,6 +86,7 @@ public class DatabaseVerticle extends AbstractVerticle {
     private ResourceTypeMetricRepository resourceTypeMetricRepository;
     private RuntimeRepository runtimeRepository;
     private ServiceRepository serviceRepository;
+    private ServiceReservationRepository serviceReservationRepository;
     private VPCRepository vpcRepository;
 
     @Override
@@ -133,6 +133,7 @@ public class DatabaseVerticle extends AbstractVerticle {
             ensembleRepository = new EnsembleRepository(sessionFactory);
             ensembleSLORepository = new EnsembleSLORepository(sessionFactory);
             functionRepository = new FunctionRepository(sessionFactory);
+            functionReservationRepository = new FunctionReservationRepository(sessionFactory);
             functionResourceRepository = new FunctionResourceRepository(sessionFactory);
             logRepository = new LogRepository(sessionFactory);
             metricRepository = new MetricRepository(sessionFactory);
@@ -150,6 +151,7 @@ public class DatabaseVerticle extends AbstractVerticle {
             resourceTypeMetricRepository = new ResourceTypeMetricRepository(sessionFactory);
             runtimeRepository = new RuntimeRepository(sessionFactory);
             serviceRepository = new ServiceRepository(sessionFactory);
+            serviceReservationRepository = new ServiceReservationRepository(sessionFactory);
             vpcRepository = new VPCRepository(sessionFactory);
             emitter.onComplete();
         });
@@ -173,6 +175,8 @@ public class DatabaseVerticle extends AbstractVerticle {
             serviceProxyBinder.bind(EnsembleService.class, new EnsembleServiceImpl(ensembleRepository));
             serviceProxyBinder.bind(EnsembleSLOService.class, new EnsembleSLOServiceImpl(ensembleSLORepository));
             serviceProxyBinder.bind(FunctionService.class, new FunctionServiceImpl(functionRepository));
+            serviceProxyBinder.bind(FunctionReservationService.class,
+                new FunctionReservationServiceImpl(functionReservationRepository));
             serviceProxyBinder.bind(FunctionResourceService.class,
                 new FunctionResourceServiceImpl(functionResourceRepository));
             serviceProxyBinder.bind(LogService.class, new LogServiceImpl(logRepository));
@@ -197,6 +201,8 @@ public class DatabaseVerticle extends AbstractVerticle {
                 new ResourceTypeMetricServiceImpl(resourceTypeMetricRepository));
             serviceProxyBinder.bind(RuntimeService.class, new RuntimeServiceImpl(runtimeRepository));
             serviceProxyBinder.bind(ServiceService.class, new ServiceServiceImpl(serviceRepository));
+            serviceProxyBinder.bind(ServiceReservationService.class,
+                new ServiceReservationServiceImpl(serviceReservationRepository));
             serviceProxyBinder.bind(VPCService.class, new VPCServiceImpl(vpcRepository));
             serviceProxyBinder.bind(FilePathService.class, new FilePathServiceImpl(vertx.getDelegate()));
             emitter.onComplete();

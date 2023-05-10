@@ -2,7 +2,9 @@ package at.uibk.dps.rm.handler.reservation;
 
 import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
 import at.uibk.dps.rm.entity.dto.ReserveResourcesRequest;
+import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
 import at.uibk.dps.rm.entity.dto.reservation.ReservationResponse;
+import at.uibk.dps.rm.entity.dto.reservation.ServiceResourceIds;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.handler.deployment.DeploymentChecker;
@@ -17,9 +19,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -36,6 +36,10 @@ public class ReservationHandler extends ValidationHandler {
     private final ResourceReservationChecker resourceReservationChecker;
 
     private final ResourceReservationStatusChecker statusChecker;
+
+    private final FunctionReservationChecker functionReservationChecker;
+
+    private final ServiceReservationChecker serviceReservationChecker;
 
 
     //TODO: move this to the router
@@ -61,12 +65,14 @@ public class ReservationHandler extends ValidationHandler {
      * @param preconditionHandler the precondition handler
      */
     public ReservationHandler(ReservationChecker reservationChecker, ResourceReservationChecker resourceReservationChecker,
-                              ResourceReservationStatusChecker statusChecker, DeploymentHandler deploymentHandler,
-                              ReservationErrorHandler reservationErrorHandler,
-                              ReservationPreconditionHandler preconditionHandler) {
+          FunctionReservationChecker functionReservationChecker, ServiceReservationChecker serviceReservationChecker,
+          ResourceReservationStatusChecker statusChecker, DeploymentHandler deploymentHandler,
+          ReservationErrorHandler reservationErrorHandler, ReservationPreconditionHandler preconditionHandler) {
         super(reservationChecker);
         this.reservationChecker = reservationChecker;
         this.resourceReservationChecker = resourceReservationChecker;
+        this.functionReservationChecker = functionReservationChecker;
+        this.serviceReservationChecker = serviceReservationChecker;
         this.statusChecker = statusChecker;
         this.deploymentHandler = deploymentHandler;
         this.reservationErrorHandler = reservationErrorHandler;
@@ -125,22 +131,20 @@ public class ReservationHandler extends ValidationHandler {
                 .flatMap(reservationJson ->
                     statusChecker.checkFindOneByStatusValue(ReservationStatusValue.NEW.name())
                         .map(statusNew -> statusNew.mapTo(ResourceReservationStatus.class))
-                        .flatMap(statusNew -> {
-                            List<JsonObject> functionResources = new ArrayList<>();
-                            return createResourceReservationList(reservationJson, functionResources,
-                                statusNew);
+                        .flatMap(statusNew -> createResourceReservationMap(reservationJson, requestDTO, statusNew))
+                    //TODO: remove self managed state (use edge instead of self managed vm) */
+                    .flatMap(resourceReservations -> functionReservationChecker
+                        .submitCreateAll(Json.encodeToBuffer(resourceReservations.get("function")).toJsonArray())
+                        .andThen(serviceReservationChecker.submitCreateAll(Json
+                            .encodeToBuffer(resourceReservations.get("service")).toJsonArray()))
+                        .andThen(Single.defer(() -> Single.just(1)))
+                        .map(res -> {
+                            Reservation reservation = reservationJson.mapTo(Reservation.class);
+                            initiateDeployment(reservation, accountId, requestDTO, vpcList);
+                            return reservationJson;
                         })
+                    )
                 )
-            )
-            //TODO: remove self managed state (use edge instead of self managed vm) */
-            .flatMap(resourceReservations -> resourceReservationChecker
-                .submitCreateAll(Json.encodeToBuffer(resourceReservations).toJsonArray())
-                .andThen(Single.just(JsonObject.mapFrom(resourceReservations.get(0).getReservation())))
-                .map(result -> {
-                    Reservation reservation = result.mapTo(Reservation.class);
-                    initiateDeployment(reservation, accountId, requestDTO, vpcList);
-                    return result;
-                })
             );
     }
 
@@ -162,24 +166,28 @@ public class ReservationHandler extends ValidationHandler {
     }
     //TODO: add check for authentication in delete
 
-    /**
-     * Create a list of resource reservations from the reservation, functionResources and status.
-     *
-     * @param reservationJson the reservation
-     * @param functionResources the function resources
-     * @param status the resource reservation status
-     * @return a list resource reservations
-     */
-    private Single<List<ResourceReservation>> createResourceReservationList(JsonObject reservationJson,
-                                                                            List<JsonObject> functionResources,
-                                                                            ResourceReservationStatus status) {
-        List<ResourceReservation> resourceReservations = new ArrayList<>();
+    private Single<Map<String, List<ResourceReservation>>> createResourceReservationMap(JsonObject reservationJson,
+                                                                                  ReserveResourcesRequest request,
+                                                                                  ResourceReservationStatus status) {
+        List<ResourceReservation> functionReservations = new ArrayList<>();
+        List<ResourceReservation> serviceReservations = new ArrayList<>();
         Reservation reservation = reservationJson.mapTo(Reservation.class);
-        for (JsonObject functionResourceJson : functionResources) {
-            FunctionResource functionResource = new FunctionResource();
-            functionResource.setFunctionResourceId(functionResourceJson.getLong("function_resource_id"));
-            resourceReservations.add(createNewResourceReservation(reservation, functionResource, status));
+        for (FunctionResourceIds functionResourceIds : request.getFunctionResources()) {
+            Resource resource = new Resource();
+            resource.setResourceId(functionResourceIds.getResourceId());
+            Function function = new Function();
+            function.setFunctionId(functionResourceIds.getFunctionId());
+            functionReservations.add(createNewResourceReservation(reservation, resource, function, status));
         }
+        for (ServiceResourceIds serviceResourceIds : request.getServiceResources()) {
+            Resource resource = new Resource();
+            resource.setResourceId(serviceResourceIds.getResourceId());
+            Service service = new Service();
+            service.setServiceId(serviceResourceIds.getServiceId());
+            serviceReservations.add(createNewResourceReservation(reservation, resource, service, status));
+        }
+        Map<String, List<ResourceReservation>> resourceReservations = Map.of("function", functionReservations,
+            "service", serviceReservations);
         return Single.just(resourceReservations);
     }
 
@@ -193,9 +201,29 @@ public class ReservationHandler extends ValidationHandler {
      */
     private ResourceReservation createNewResourceReservation(Reservation reservation, FunctionResource functionResource,
                                                              ResourceReservationStatus status) {
-        ResourceReservation resourceReservation = new ResourceReservation();
+        ResourceReservation resourceReservation = new FunctionReservation();
         resourceReservation.setReservation(reservation);
         resourceReservation.setFunctionResource(functionResource);
+        resourceReservation.setStatus(status);
+        return resourceReservation;
+    }
+
+    private ResourceReservation createNewResourceReservation(Reservation reservation, Resource resource,
+            Function function, ResourceReservationStatus status) {
+        FunctionReservation resourceReservation = new FunctionReservation();
+        resourceReservation.setReservation(reservation);
+        resourceReservation.setResource(resource);
+        resourceReservation.setFunction(function);
+        resourceReservation.setStatus(status);
+        return resourceReservation;
+    }
+
+    private ResourceReservation createNewResourceReservation(Reservation reservation, Resource resource,
+                                                             Service service, ResourceReservationStatus status) {
+        ServiceReservation resourceReservation = new ServiceReservation();
+        resourceReservation.setReservation(reservation);
+        resourceReservation.setResource(resource);
+        resourceReservation.setService(service);
         resourceReservation.setStatus(status);
         return resourceReservation;
     }
