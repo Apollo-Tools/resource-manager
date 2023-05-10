@@ -1,9 +1,6 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
-import at.uibk.dps.rm.entity.model.Function;
-import at.uibk.dps.rm.entity.model.FunctionResource;
-import at.uibk.dps.rm.entity.model.MetricValue;
-import at.uibk.dps.rm.entity.model.Resource;
+import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.util.misc.MetricValueMapper;
 import io.vertx.rxjava3.core.file.FileSystem;
 
@@ -16,7 +13,7 @@ import java.util.*;
  * @author matthi-g
  */
 public class EdgeFileService extends TerraformFileService {
-    private final List<FunctionResource> functionResources;
+    private final List<FunctionReservation> functionReservations;
 
     private final long reservationId;
 
@@ -25,19 +22,19 @@ public class EdgeFileService extends TerraformFileService {
     private final String dockerUserName;
 
     /**
-     * Create an instance from the fileSystem, rootFolder, functionResources, reservationId and
+     * Create an instance from the fileSystem, rootFolder, functionReservations, reservationId and
      * dockerUsername.
      *
      * @param fileSystem the vertx file system
      * @param rootFolder the root folder of the module
-     * @param functionResources the list of function resources
+     * @param functionReservations the list of function reservations
      * @param reservationId the id of the reservation
      * @param dockerUsername the docker username
      */
-    public EdgeFileService(FileSystem fileSystem, Path rootFolder, List<FunctionResource> functionResources,
+    public EdgeFileService(FileSystem fileSystem, Path rootFolder, List<FunctionReservation> functionReservations,
                            long reservationId, String dockerUsername) {
         super(fileSystem, rootFolder);
-        this.functionResources = functionResources;
+        this.functionReservations = functionReservations;
         this.reservationId = reservationId;
         this.dockerUserName = dockerUsername;
     }
@@ -59,9 +56,9 @@ public class EdgeFileService extends TerraformFileService {
      */
     private String getEdgeModulesString() {
         StringBuilder functionsString = new StringBuilder();
-        for (FunctionResource functionResource : functionResources) {
-            Resource resource = functionResource.getResource();
-            Function function = functionResource.getFunction();
+        for (FunctionReservation functionReservation : functionReservations) {
+            Resource resource = functionReservation.getResource();
+            Function function = functionReservation.getFunction();
             if (!resource.getResourceType().getResourceType().equals("edge")) {
                 continue;
             }
@@ -106,9 +103,9 @@ public class EdgeFileService extends TerraformFileService {
     protected String getOutputString() {
         StringBuilder functionNames = new StringBuilder(), functionModuleOutputs = new StringBuilder();
         int edgeCount = 0;
-        for (FunctionResource functionResource : functionResources) {
-            Resource resource = functionResource.getResource();
-            Function function = functionResource.getFunction();
+        for (FunctionReservation functionReservation : functionReservations) {
+            Resource resource = functionReservation.getResource();
+            Function function = functionReservation.getFunction();
             if (!resource.getResourceType().getResourceType().equals("edge")) {
                 continue;
             }

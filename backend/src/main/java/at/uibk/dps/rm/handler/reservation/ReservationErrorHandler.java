@@ -71,7 +71,8 @@ public class ReservationErrorHandler {
                 }))
             .flatMapCompletable(tfLockFileExists -> {
                 if (tfLockFileExists) {
-                    return deploymentHandler.terminateResources(reservation, accountId);
+                    return deploymentHandler.terminateResources(reservation, accountId)
+                        .onErrorComplete();
                 } else {
                     return Completable.complete();
                 }

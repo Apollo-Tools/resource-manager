@@ -23,7 +23,7 @@ public class AWSFileService extends ModuleFileService {
 
     private final String awsRole;
 
-    private final List<FunctionResource> functionResources;
+    private final List<FunctionReservation> functionReservations;
 
     private final long reservationId;
 
@@ -39,27 +39,27 @@ public class AWSFileService extends ModuleFileService {
 
     /**
      * Create an instance from the fileSystem, rootFolder, functionsDir, region, awsRole,
-     * functionResources, reservationId, module, dockerUserName and vpc.
+     * functionReservations, reservationId, module, dockerUserName and vpc.
      *
      * @param fileSystem the vertx file system
      * @param rootFolder the root folder of the module
      * @param functionsDir the path to the packaged functions
      * @param region the region where the resources are deployed
      * @param awsRole the aws role to use
-     * @param functionResources the list of function resources
+     * @param functionReservations the list of function reservations
      * @param reservationId the id of the reservation
      * @param module the terraform module
      * @param dockerUserName the docker username
      * @param vpc the virtual private cloud to use for the deployment
      */
     public AWSFileService(FileSystem fileSystem, Path rootFolder, Path functionsDir, Region region, String awsRole,
-                          List<FunctionResource> functionResources, long reservationId, TerraformModule module,
+                          List<FunctionReservation> functionReservations, long reservationId, TerraformModule module,
                           String dockerUserName, VPC vpc) {
         super(fileSystem, rootFolder, module);
         this.functionsDir = functionsDir;
         this.region = region;
         this.awsRole = awsRole;
-        this.functionResources = functionResources;
+        this.functionReservations = functionReservations;
         this.reservationId = reservationId;
         this.dockerUserName = dockerUserName;
         this.vpc = vpc;
@@ -83,12 +83,12 @@ public class AWSFileService extends ModuleFileService {
             functionRuntimes = new StringBuilder(), functionTimeouts = new StringBuilder(),
             functionMemorySizes = new StringBuilder(), functionHandlers = new StringBuilder(),
             functionLayers = new StringBuilder();
-        for (FunctionResource fr: functionResources) {
-            Resource resource = fr.getResource();
+        for (FunctionReservation functionReservation: functionReservations) {
+            Resource resource = functionReservation.getResource();
             if (!resource.getResourceType().getResourceType().equals("faas")) {
                 continue;
             }
-            Function function = fr.getFunction();
+            Function function = functionReservation.getFunction();
             String runtime = function.getRuntime().getName();
             String functionIdentifier =  function.getFunctionDeploymentId();
             functionNames.append("\"").append("r").append(resource.getResourceId())
@@ -135,9 +135,9 @@ public class AWSFileService extends ModuleFileService {
         StringBuilder resourceNamesString = new StringBuilder(), instanceTypesString = new StringBuilder(),
             functionsString = new StringBuilder(), vmString = new StringBuilder();
 
-        for (FunctionResource functionResource: functionResources) {
-            Resource resource = functionResource.getResource();
-            Function function = functionResource.getFunction();
+        for (FunctionReservation functionReservation: functionReservations) {
+            Resource resource = functionReservation.getResource();
+            Function function = functionReservation.getFunction();
             if (!resource.getResourceType().getResourceType().equals("vm")) {
                 continue;
             }
@@ -232,9 +232,9 @@ public class AWSFileService extends ModuleFileService {
         }
         if (!this.vmFunctionIds.isEmpty()) {
             StringBuilder vmUrls = new StringBuilder(), vmFunctionIds = new StringBuilder();
-            for (FunctionResource functionResource: functionResources) {
-                Resource resource = functionResource.getResource();
-                Function function = functionResource.getFunction();
+            for (FunctionReservation functionReservation: functionReservations) {
+                Resource resource = functionReservation.getResource();
+                Function function = functionReservation.getFunction();
                 String functionIdentifier = function.getFunctionDeploymentId();
                 if (resource.getResourceType().getResourceType().equals("vm")) {
                     vmUrls.append(String.format("module.r%s_%s.function_url,",
