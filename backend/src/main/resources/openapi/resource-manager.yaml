@@ -1143,7 +1143,6 @@ paths:
               required:
                 - function_resources
                 - service_resources
-                - docker_credentials
               additionalProperties: false
               properties:
                 service_resources:
@@ -1197,6 +1196,29 @@ paths:
                       description: preferrably an access token or if not available the password for the docker registry
                       type: string
                       example: abcdef1234
+                kube_config:
+                  description: the kube config to use for the resource deploymnt. It should contain
+                  type: string
+                  example: |
+                    apiVersion: v1
+                    clusters:
+                    - cluster:
+                        certificate-authority-data: <authority-certificate>
+                        server: <cluster-ip>
+                      name: <cluster-name>
+                    contexts:
+                    - context:
+                        cluster: <cluster-name>
+                        user: <user-name>
+                      name: <context-name>
+                    kind: Config
+                    preferences: {}
+                    users:
+                    - name: <user-name>
+                      user:
+                        client-certificate-data: <client-certificate-data>
+                        client-key-data: <client-key-data>     
+
       responses:
         200:
           description: Successful reservation of resources
