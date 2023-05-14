@@ -1,0 +1,2 @@
+ALTER TABLE log
+ALTER column log_value TYPE VARCHAR(131072);

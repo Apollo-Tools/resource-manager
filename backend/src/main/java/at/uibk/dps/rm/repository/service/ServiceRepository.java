@@ -3,7 +3,9 @@ package at.uibk.dps.rm.repository.service;
 import at.uibk.dps.rm.entity.model.Service;
 import at.uibk.dps.rm.repository.Repository;
 import org.hibernate.reactive.stage.Stage;
+import org.hibernate.reactive.util.impl.CompletionStages;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletionStage;
@@ -30,6 +32,10 @@ public class ServiceRepository extends Repository<Service> {
     }
 
     public CompletionStage<List<Service>> findAllByIds(Set<Long> serviceIds) {
+        if (serviceIds.isEmpty()) {
+            return CompletionStages.completedFuture(new ArrayList<>());
+        }
+
         String serviceIdsConcat = serviceIds.stream().map(Object::toString).collect(Collectors.joining(","));
         return sessionFactory.withSession(session ->
             session.createQuery("select distinct s from Service s " +

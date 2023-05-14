@@ -184,28 +184,12 @@ public class ReservationHandler extends ValidationHandler {
             resource.setResourceId(serviceResourceIds.getResourceId());
             Service service = new Service();
             service.setServiceId(serviceResourceIds.getServiceId());
-            serviceReservations.add(createNewResourceReservation(reservation, resource, service, status));
+            serviceReservations.add(createNewResourceReservation(reservation, resource, service,
+                serviceResourceIds.getNamespace(), serviceResourceIds.getContext(), status));
         }
         Map<String, List<ResourceReservation>> resourceReservations = Map.of("function", functionReservations,
             "service", serviceReservations);
         return Single.just(resourceReservations);
-    }
-
-    /**
-     * Create a new resource reservation from the reservation, functionResource and status.
-     *
-     * @param reservation the reservation
-     * @param functionResource the function resource
-     * @param status the resource reservation status
-     * @return the newly created resource reservation
-     */
-    private ResourceReservation createNewResourceReservation(Reservation reservation, FunctionResource functionResource,
-                                                             ResourceReservationStatus status) {
-        ResourceReservation resourceReservation = new FunctionReservation();
-        resourceReservation.setReservation(reservation);
-        resourceReservation.setFunctionResource(functionResource);
-        resourceReservation.setStatus(status);
-        return resourceReservation;
     }
 
     private ResourceReservation createNewResourceReservation(Reservation reservation, Resource resource,
@@ -219,12 +203,14 @@ public class ReservationHandler extends ValidationHandler {
     }
 
     private ResourceReservation createNewResourceReservation(Reservation reservation, Resource resource,
-                                                             Service service, ResourceReservationStatus status) {
+            Service service, String namespace, String context, ResourceReservationStatus status) {
         ServiceReservation resourceReservation = new ServiceReservation();
         resourceReservation.setReservation(reservation);
         resourceReservation.setResource(resource);
         resourceReservation.setService(service);
         resourceReservation.setStatus(status);
+        resourceReservation.setNamespace(namespace);
+        resourceReservation.setContext(context);
         return resourceReservation;
     }
 
@@ -236,10 +222,12 @@ public class ReservationHandler extends ValidationHandler {
      * @param requestDTO the request body
      * @param vpcList the list of vpcs
      */
+    // TODO: add check for kubeconfig
     private void initiateDeployment(Reservation reservation, long accountId, ReserveResourcesRequest requestDTO,
                                     List<VPC> vpcList) {
         deploymentHandler
-            .deployResources(reservation, accountId, requestDTO.getDockerCredentials(), vpcList)
+            .deployResources(reservation, accountId, requestDTO.getDockerCredentials(), requestDTO.getKubeConfig(),
+                vpcList)
             .andThen(Completable.defer(() ->
                 resourceReservationChecker.submitUpdateStatus(reservation.getReservationId(),
                     ReservationStatusValue.DEPLOYED)))

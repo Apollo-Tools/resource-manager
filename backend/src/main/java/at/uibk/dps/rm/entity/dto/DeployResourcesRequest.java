@@ -22,6 +22,8 @@ public class DeployResourcesRequest extends DeployTerminateRequest {
 
     private DockerCredentials dockerCredentials;
 
+    private String kubeConfig;
+
     private List<VPC> vpcList;
 
     /**
@@ -36,6 +38,7 @@ public class DeployResourcesRequest extends DeployTerminateRequest {
         this.setFunctionReservations(request.getFunctionReservations());
         this.setServiceReservations(request.getServiceReservations());
         this.setCredentialsList(request.getCredentialsList());
+        this.setKubeConfig(request.getKubeConfig());
         this.setDockerCredentials(request.getDockerCredentials());
         this.setReservation(request.getReservation());
         this.setVpcList(request.getVpcList());

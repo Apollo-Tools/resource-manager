@@ -99,7 +99,7 @@ public class MainFileService extends TerraformFileService {
                     "  source = \"./edge\"\n" +
                     "  login_data = var.edge_login_data\n" +
                     "}\n");
-            } else {
+            } else if (module.getCloudProvider().equals(CloudProvider.AWS)){
                 String moduleName = module.getModuleName();
                 String prefix = module.getCloudProvider().toString().toLowerCase();
                 moduleString.append(String.format(
@@ -109,6 +109,11 @@ public class MainFileService extends TerraformFileService {
                     "  secret_access_key = var.%s_secret_access_key\n" +
                     "  session_token = var.%s_session_token\n" +
                     "}\n", moduleName, moduleName, prefix, prefix, prefix));
+            } else {
+                moduleString.append(
+                    "module \"container\" {\n" +
+                    "  source = \"./container\"\n" +
+                    "}\n");
             }
         }
         return moduleString.toString();

@@ -3,6 +3,7 @@ package at.uibk.dps.rm.repository.resource;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.repository.Repository;
 import org.hibernate.reactive.stage.Stage;
+import org.hibernate.reactive.util.impl.CompletionStages;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -162,6 +163,10 @@ public class ResourceRepository extends Repository<Resource> {
 
     public CompletionStage<List<Resource>> findAllByResourceIdsAndResourceTypes(Set<Long> resourceIds,
         List<String> resourceTypes) {
+        if (resourceIds.isEmpty()) {
+            return CompletionStages.completedFuture(new ArrayList<>());
+        }
+
         String resourceIdsConcat = resourceIds.stream().map(Object::toString).collect(Collectors.joining(","));
         String resourceTypesConcat = resourceTypes.stream().map(Object::toString).collect(Collectors.joining("','"));
         return sessionFactory.withSession(session ->

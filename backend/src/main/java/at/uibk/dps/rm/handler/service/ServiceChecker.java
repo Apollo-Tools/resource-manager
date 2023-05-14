@@ -38,5 +38,6 @@ public class ServiceChecker extends EntityChecker {
             .map(Set::copyOf)
             .flatMap(service::existsAllByIds);
         return ErrorHandler.handleExistsOne(existsAllByServiceIds).ignoreElement();
+
     }
 }

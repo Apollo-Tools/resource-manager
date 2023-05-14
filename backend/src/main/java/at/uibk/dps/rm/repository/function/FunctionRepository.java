@@ -3,7 +3,9 @@ package at.uibk.dps.rm.repository.function;
 import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.repository.Repository;
 import org.hibernate.reactive.stage.Stage;
+import org.hibernate.reactive.util.impl.CompletionStages;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletionStage;
@@ -92,6 +94,9 @@ public class FunctionRepository extends Repository<Function> {
     }
 
     public CompletionStage<List<Function>> findAllByIds(Set<Long> functionIds) {
+        if (functionIds.isEmpty()) {
+            return CompletionStages.completedFuture(new ArrayList<>());
+        }
         String functionIdsConcat = functionIds.stream().map(Object::toString).collect(Collectors.joining(","));
         return sessionFactory.withSession(session ->
             session.createQuery("select distinct f from Function f " +

@@ -8,8 +8,11 @@ import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.deployment.TerraformModule;
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.util.misc.RegionMapper;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.core.Vertx;
+import io.vertx.rxjava3.core.buffer.Buffer;
+import io.vertx.rxjava3.core.file.FileSystem;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -95,6 +98,7 @@ public class TerraformSetupService {
                 composeCloudLoginData(deployRequest.getCredentialsList(), region);
             }
         }
+        singles.add(containerDeployment(deployRequest.getServiceReservations()));
 
         return Single.zip(singles, objects -> Arrays.stream(objects).map(object -> (TerraformModule) object)
             .collect(Collectors.toList()));
@@ -203,6 +207,31 @@ public class TerraformSetupService {
         EdgeFileService edgeService = new EdgeFileService(vertx.fileSystem(), edgeFolder, edgeFunctionReservations,
             deployRequest.getReservation().getReservationId(), deployRequest.getDockerCredentials().getUsername());
         return edgeService.setUpDirectory()
+            .toSingle(() -> module);
+    }
+
+    private Single<TerraformModule> containerDeployment(List<ServiceReservation> serviceReservations) {
+        FileSystem fileSystem = vertx.fileSystem();
+        long reservationId = deployRequest.getReservation().getReservationId();
+        TerraformModule module = new TerraformModule(CloudProvider.CONTAINER, "container");
+        Path containerFolder = deploymentPath.getModuleFolder(module);
+        Path configPath = Path.of(containerFolder.toString(), "config");
+        ContainerPullFileService containerFileService = new ContainerPullFileService(fileSystem, containerFolder,
+            serviceReservations, reservationId);
+        List<Completable> completables = new ArrayList<>();
+        for (ServiceReservation serviceReservation : serviceReservations) {
+            long serviceId = serviceReservation.getService().getServiceId();
+            long resourceId = serviceReservation.getResource().getResourceId();
+            Path deployFolder = Path.of(containerFolder.toString(),  resourceId + "_" + serviceId);
+            ContainerDeployFileService containerDeployFileService = new ContainerDeployFileService(fileSystem,
+                deployFolder, serviceReservation, reservationId);
+            completables.add(containerDeployFileService.setUpDirectory());
+        }
+
+        return containerFileService.setUpDirectory()
+            .andThen(Completable.merge(completables))
+            .andThen(Completable.defer(() -> fileSystem.writeFile(configPath.toString(),
+                Buffer.buffer(deployRequest.getKubeConfig()))))
             .toSingle(() -> module);
     }
 }

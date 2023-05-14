@@ -68,10 +68,11 @@ public class DeploymentHandler {
      * @return a Completable
      */
     public Completable deployResources(Reservation reservation, long accountId, DockerCredentials dockerCredentials,
-                                       List<VPC> vpcList) {
+            String kubeConfig, List<VPC> vpcList) {
         DeployResourcesRequest request = new DeployResourcesRequest();
         request.setReservation(reservation);
         request.setDockerCredentials(dockerCredentials);
+        request.setKubeConfig(kubeConfig);
         request.setVpcList(vpcList);
         return credentialsChecker.checkFindAll(accountId)
             .flatMap(credentials -> mapCredentialsAndResourcesToRequest(request, credentials))

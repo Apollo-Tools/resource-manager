@@ -89,7 +89,7 @@ public class ResourceChecker extends EntityChecker {
             ResourceTypeEnum.VM.getValue());
         List<String> serviceResourceTypes = List.of(ResourceTypeEnum.CONTAINER.getValue());
 
-        Single<Boolean> existsAllServiceResources =  Observable.fromIterable(serviceResourceIds)
+        Single<Boolean> existsAllServiceResources = Observable.fromIterable(serviceResourceIds)
             .map(ServiceResourceIds::getResourceId)
             .toList()
             .map(Set::copyOf)

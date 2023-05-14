@@ -19,4 +19,6 @@ public class ReserveResourcesRequest {
     private List<ServiceResourceIds> serviceResources;
 
     private DockerCredentials dockerCredentials;
+
+    private String kubeConfig;
 }

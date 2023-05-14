@@ -12,4 +12,8 @@ public class ServiceResourceIds {
     private long serviceId;
 
     private long resourceId;
+
+    private String namespace;
+
+    private String context;
 }

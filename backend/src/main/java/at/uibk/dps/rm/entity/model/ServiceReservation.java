@@ -13,4 +13,8 @@ public class ServiceReservation extends ResourceReservation {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_id")
     private Service service;
+
+    private String namespace;
+
+    private String context;
 }

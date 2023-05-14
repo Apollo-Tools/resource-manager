@@ -25,5 +25,9 @@ public enum CloudProvider {
     /**
      * Edge Resources
      */
-    EDGE
+    EDGE,
+    /**
+     * Container Resources
+     */
+    CONTAINER,
 }
