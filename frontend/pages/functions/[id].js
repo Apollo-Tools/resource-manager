@@ -11,7 +11,7 @@ import {ExclamationCircleFilled} from '@ant-design/icons';
 
 const {confirm} = Modal;
 
-const ResourceDetails = () => {
+const FunctionDetails = () => {
   const {token, checkTokenExpired} = useAuth();
   const [func, setFunction] = useState('');
   const [selectedSegment, setSelectedSegment] = useState('Details');
@@ -108,4 +108,4 @@ const ResourceDetails = () => {
   );
 };
 
-export default ResourceDetails;
+export default FunctionDetails;
