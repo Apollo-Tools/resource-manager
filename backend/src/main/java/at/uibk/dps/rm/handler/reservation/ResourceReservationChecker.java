@@ -5,6 +5,7 @@ import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
 import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.model.FunctionReservation;
+import at.uibk.dps.rm.entity.model.ServiceReservation;
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.reservation.ResourceReservationService;
@@ -84,6 +85,7 @@ public class ResourceReservationChecker extends EntityChecker {
             request));
         completables.addAll(setTriggerUrlsByResourceTypeSet(deploymentOutput.getVmUrls().getValue().entrySet(),
             request));
+        completables.addAll(setTriggerUrlForContainers(request));
         return Completable.merge(completables);
     }
 
@@ -103,6 +105,18 @@ public class ResourceReservationChecker extends EntityChecker {
             String functionName = entryInfo[1], runtimeName = entryInfo[2];
             findFunctionResourceAndUpdateTriggerUrl(request, resourceId, functionName, runtimeName, entry.getValue(),
                 completables);
+        }
+        return completables;
+    }
+
+    private List<Completable> setTriggerUrlForContainers(DeployResourcesRequest request) {
+        List<Completable> completables = new ArrayList<>();
+        for (ServiceReservation serviceReservation : request.getServiceReservations()) {
+            String triggerUrl = String.format("/reservations/%s/%s/deploy",
+                request.getReservation().getReservationId(),
+                serviceReservation.getResourceReservationId()) ;
+            completables.add(resourceReservationService.updateTriggerUrl(serviceReservation.getResourceReservationId(),
+                triggerUrl));
         }
         return completables;
     }

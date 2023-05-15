@@ -152,6 +152,7 @@ public class ReservationHandler extends ValidationHandler {
     @Override
     protected Completable updateOne(RoutingContext rc) {
         long accountId = rc.user().principal().getLong("account_id");
+
         return HttpHelper.getLongPathParam(rc, "id")
             .flatMap(id -> reservationChecker.checkFindOne(id, rc.user().principal().getLong("account_id")))
             .flatMap(reservationJson ->
