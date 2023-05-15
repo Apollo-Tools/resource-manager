@@ -67,13 +67,11 @@ public class ContainerDeployFileService extends TerraformFileService {
             serviceType = metricValues.get("external-ip").getValueString();
         }
 
-        String tfPath = Path.of("terraform", "k8s", "deployment").toAbsolutePath().toString()
-            .replace("\\", "/");
         String configPath = Path.of(rootFolder.getParent().toString(), "config").toAbsolutePath().toString()
             .replace("\\", "/");
         functionsString.append(String.format(
             "module \"deployment_%s\" {\n" +
-            "  source = \"%s\"\n" +
+            "  source = \"../../../../terraform/k8s/deployment\"\n" +
             "  config_path = \"%s\"\n" +
             "  config_context = \"%s\"\n" +
             "  namespace = \"%s\"\n" +
@@ -85,7 +83,7 @@ public class ContainerDeployFileService extends TerraformFileService {
             "  ports = [%s]\n" +
             "  service_type = \"%s\"\n" +
             "  external_ip = \"%s\"\n" +
-            "}\n", identifier, tfPath, configPath, serviceReservation.getContext(),
+            "}\n", identifier, configPath, serviceReservation.getContext(),
             serviceReservation.getNamespace(), service.getName(), reservationId,
             metricValues.get("replicas").getValueNumber().longValue(), metricValues.get("cpu").getValueNumber().doubleValue(),
             metricValues.get("memory-size").getValueNumber().longValue(), ports, serviceType, externalIp));
