@@ -9,6 +9,7 @@ import at.uibk.dps.rm.entity.model.Reservation;
 import at.uibk.dps.rm.entity.model.ReservationLog;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
 import at.uibk.dps.rm.service.deployment.docker.DockerImageService;
+import at.uibk.dps.rm.service.deployment.executor.MainTerraformExecutor;
 import at.uibk.dps.rm.service.deployment.executor.TerraformExecutor;
 import at.uibk.dps.rm.service.rxjava3.database.log.LogService;
 import at.uibk.dps.rm.service.rxjava3.database.log.ReservationLogService;
@@ -20,6 +21,8 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
+
+import java.nio.file.Path;
 
 /**
  * Implements methods to perform deployment and termination of resources.
@@ -65,7 +68,7 @@ public class DeploymentChecker {
                     .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, request.getReservation()))
                     .andThen(deploymentService.setUpTFModules(request))
                     .flatMap(deploymentCredentials -> {
-                        TerraformExecutor terraformExecutor = new TerraformExecutor(vertx, deploymentCredentials);
+                        TerraformExecutor terraformExecutor = new MainTerraformExecutor(vertx, deploymentCredentials);
                         return Single.fromCallable(() ->
                                 terraformExecutor.setPluginCacheFolder(deploymentPath.getTFCacheFolder()))
                             .map(res -> terraformExecutor);
@@ -142,20 +145,54 @@ public class DeploymentChecker {
             .flatMapCompletable(config -> {
                 DeploymentPath deploymentPath = new DeploymentPath(reservationId, config);
                 return deploymentService.getNecessaryCredentials(request)
-                    .map(deploymentCredentials -> new TerraformExecutor(vertx, deploymentCredentials))
+                    .map(deploymentCredentials -> new MainTerraformExecutor(vertx, deploymentCredentials))
                     .flatMap(terraformExecutor -> terraformExecutor.destroy(deploymentPath.getRootFolder()))
                     .flatMapCompletable(terminateOutput -> persistLogs(terminateOutput, request.getReservation()));
             });
     }
 
-  /**
-   * Delete all folders and files that were created for the deployment. Usually this
-   * gets called when the termination of all resources is done.
-   *
-   * @param reservationId the id of the reservation
-   * @return a Completable
-   */
-  public Completable deleteTFDirs(long reservationId) {
+    /**
+    * Delete all folders and files that were created for the deployment. Usually this
+    * gets called when the termination of all resources is done.
+    *
+    * @param reservationId the id of the reservation
+    * @return a Completable
+    */
+    public Completable deleteTFDirs(long reservationId) {
         return deploymentService.deleteTFDirs(reservationId);
+    }
+
+    public Completable deployContainer(long reservationId, long resourceReservationId) {
+        Vertx vertx = Vertx.currentContext().owner();
+        Reservation reservation = new Reservation();
+        reservation.setReservationId(reservationId);
+        return new ConfigUtility(vertx).getConfig()
+            .flatMapCompletable(config -> {
+                TerraformExecutor terraformExecutor = new TerraformExecutor(vertx);
+                DeploymentPath deploymentPath = new DeploymentPath(reservationId, config);
+                Path containerPath = Path.of(deploymentPath.getRootFolder().toString(), "container",
+                    String.valueOf(resourceReservationId));
+                return terraformExecutor.init(containerPath)
+                    .flatMapCompletable(initOutput -> persistLogs(initOutput, reservation))
+                    .andThen(terraformExecutor.apply(containerPath))
+                    .flatMapCompletable(applyOutput -> persistLogs(applyOutput, reservation));
+            });
+    }
+
+    public Completable terminateContainer(long reservationId, long resourceReservationId) {
+        Vertx vertx = Vertx.currentContext().owner();
+        Reservation reservation = new Reservation();
+        reservation.setReservationId(reservationId);
+        return new ConfigUtility(vertx).getConfig()
+            .flatMapCompletable(config -> {
+                TerraformExecutor terraformExecutor = new TerraformExecutor(vertx);
+                DeploymentPath deploymentPath = new DeploymentPath(reservationId, config);
+                Path containerPath = Path.of(deploymentPath.getRootFolder().toString(), "container",
+                    String.valueOf(resourceReservationId));
+                return terraformExecutor.init(containerPath)
+                    .flatMapCompletable(initOutput -> persistLogs(initOutput, reservation))
+                    .andThen(terraformExecutor.destroy(containerPath))
+                    .flatMapCompletable(destroyOutput -> persistLogs(destroyOutput, reservation));
+            });
     }
 }

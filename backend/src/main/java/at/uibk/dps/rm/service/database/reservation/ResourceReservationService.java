@@ -44,6 +44,9 @@ public interface ResourceReservationService extends DatabaseServiceInterface {
      */
     Future<JsonArray> findAllByReservationId(long reservationId);
 
+    Future<Boolean> existsByReservationIdResourceReservationIdAndAccountId(long reservationId,
+        long resourceReservationId, long accountId);
+
     /**
      * Update the trigger url of a resource reservation by its id.
      *

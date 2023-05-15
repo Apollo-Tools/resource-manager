@@ -12,6 +12,7 @@ import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -74,6 +75,14 @@ public class ResourceReservationServiceImpl extends DatabaseServiceProxy<Resourc
                     }
                     return new JsonArray(objects);
                 });
+    }
+
+    @Override
+    public Future<Boolean> existsByReservationIdResourceReservationIdAndAccountId(long reservationId,
+            long resourceReservationId, long accountId) {
+        return Future.fromCompletionStage(resourceReservationRepository
+                .findOneByReservationIdResourceReservationIdAndAccountId(reservationId, resourceReservationId, accountId))
+            .map(Objects::nonNull);
     }
 
     @Override

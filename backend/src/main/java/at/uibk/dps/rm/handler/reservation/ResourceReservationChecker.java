@@ -46,8 +46,15 @@ public class ResourceReservationChecker extends EntityChecker {
      * @return a Single that emits all found resource reservations as JsonArray
      */
     public Single<JsonArray> checkFindAllByReservationId(long id) {
-        final Single<JsonArray> findAllByResourceId = resourceReservationService.findAllByReservationId(id);
+        Single<JsonArray> findAllByResourceId = resourceReservationService.findAllByReservationId(id);
         return ErrorHandler.handleFindAll(findAllByResourceId);
+    }
+
+    public Single<Boolean> checkExistsForStartup(long reservationId,
+            long resourceReservationId, long accountId) {
+        Single<Boolean> exists = resourceReservationService
+            .existsByReservationIdResourceReservationIdAndAccountId(reservationId, resourceReservationId, accountId);
+        return ErrorHandler.handleExistsOne(exists);
     }
 
     /**

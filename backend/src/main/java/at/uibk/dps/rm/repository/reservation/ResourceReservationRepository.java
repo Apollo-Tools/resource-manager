@@ -44,6 +44,21 @@ public class ResourceReservationRepository extends Repository<ResourceReservatio
         );
     }
 
+    public CompletionStage<ResourceReservation> findOneByReservationIdResourceReservationIdAndAccountId(long reservationId,
+            long resourceReservationId, long accountId) {
+        return sessionFactory.withSession(session ->
+            session.createQuery("from ResourceReservation rr " +
+                    "where rr.reservation.reservationId=:reservationId and " +
+                    "rr.resourceReservationId=:resourceReservationId and " +
+                    "rr.reservation.createdBy.accountId=:accountId", entityClass)
+                .setParameter("reservationId", reservationId)
+                .setParameter("resourceReservationId", resourceReservationId)
+                .setParameter("accountId", accountId)
+                .getSingleResultOrNull()
+        );
+    }
+
+
     //TODO: add account id
     /**
      * Update the trigger url of a resource reservation by its id.

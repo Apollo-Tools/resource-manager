@@ -220,9 +220,7 @@ public class TerraformSetupService {
             serviceReservations, reservationId);
         List<Completable> completables = new ArrayList<>();
         for (ServiceReservation serviceReservation : serviceReservations) {
-            long serviceId = serviceReservation.getService().getServiceId();
-            long resourceId = serviceReservation.getResource().getResourceId();
-            Path deployFolder = Path.of(containerFolder.toString(),  resourceId + "_" + serviceId);
+            Path deployFolder = Path.of(containerFolder.toString(),  serviceReservation.getResourceReservationId().toString());
             ContainerDeployFileService containerDeployFileService = new ContainerDeployFileService(fileSystem,
                 deployFolder, serviceReservation, reservationId);
             completables.add(containerDeployFileService.setUpDirectory());
