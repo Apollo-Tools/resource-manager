@@ -6,6 +6,7 @@ import {useAuth} from '../../lib/AuthenticationProvider';
 import {deleteResource, listResources} from '../../lib/ResourceService';
 import {ExclamationCircleFilled} from '@ant-design/icons';
 import {useEffect, useState} from 'react';
+import NewEntityButton from '../../components/misc/NewEntityButton';
 
 const {confirm} = Modal;
 
@@ -60,6 +61,7 @@ const Resources = () => {
       </Head>
       <div className="card container w-11/12 max-w-7xl p-10">
         <Typography.Title level={2}>All Resources</Typography.Title>
+        <NewEntityButton name="Resource"/>
         <ResourceTable resources={resources} onDelete={showDeleteConfirm} hasActions/>
       </div>
     </>
