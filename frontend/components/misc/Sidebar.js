@@ -48,7 +48,7 @@ const Sidebar = ({children}) => {
       getItem(<Link href="/functions/functions"><FunctionOutlined /><span>Functions</span></Link>, '1.3'),
       getItem(<Link href="/services/services"><DeploymentUnitOutlined /><span>Services</span></Link>, '1.4'),
     ]),
-    getItem(<><BookOutlined /><span>Reservations</span></>, '3', [
+    getItem(<><BookOutlined /><span>Reservations</span></>, '2', [
       getItem(<Link href="/ensembles/ensembles" ><DatabaseOutlined /><span>Ensembles</span></Link>, '2.1'),
       getItem(<Link href="/reservations/reservations" ><GroupOutlined /><span>Reservations</span></Link>, '2.2'),
     ]),
