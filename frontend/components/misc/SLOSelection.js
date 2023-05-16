@@ -6,7 +6,7 @@ import {listMetrics} from '../../lib/MetricService';
 import {useAuth} from '../../lib/AuthenticationProvider';
 
 
-const SLOSelection = ({value = {}, onChange}) => {
+const SLOSelection = ({value = [], onChange}) => {
   const {token, checkTokenExpired} = useAuth();
   const [metrics, setMetrics] = useState([]);
   const [sloId, setSloId] = useState(0);
@@ -30,9 +30,7 @@ const SLOSelection = ({value = {}, onChange}) => {
   }, []);
 
   useEffect(() => {
-    console.log(metrics);
     if (metrics.length > 0 && !metricsInitialised) {
-      console.log('init metrics');
       setMetrics((prevMetrics) =>
         [...prevMetrics, {metric_id: -1, metric: 'region', metric_type: {type: 'number'}},
           {metric_id: -2, metric: 'resource_provider', metric_type: {type: 'number'}},
@@ -42,11 +40,7 @@ const SLOSelection = ({value = {}, onChange}) => {
   }, [metrics]);
 
   const triggerChange = (changedValue) => {
-    onChange?.({
-      slos,
-      ...value,
-      ...changedValue,
-    });
+    onChange?.(changedValue);
   };
 
 
@@ -66,14 +60,12 @@ const SLOSelection = ({value = {}, onChange}) => {
   };
 
   const onClickRemoveSLO = (id) => {
-    console.log(id);
     setSlos((prevSlos) => prevSlos.filter((slo) => slo.id !== id));
   };
 
 
   const onChangeMetricSelect = (value, sloId) => {
     const metric = metrics.find((metric) => metric.metric_id === value);
-    console.log(metric);
     setSlos((prevSlos) => {
       return prevSlos.map((slo) => {
         if (slo.id === sloId) {

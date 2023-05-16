@@ -65,6 +65,7 @@ const SLOValue = ({expression, metricType, onChange}) => {
           key={idx}
           value={value}
           onChange={(e) => onChangeValue(e.target.value, idx)}
+          addonAfter={selectAfter}
         />;
     }
     return input;
@@ -75,7 +76,6 @@ const SLOValue = ({expression, metricType, onChange}) => {
   } else if (expression === '==' && metricType !== 'boolean') {
     return <div className="block w-52 text-right">
       {values.map((value, idx) => {
-        console.log(getInput(value, idx));
         return getInput(value, idx, true);
       })}
       <Button type="default" icon={<PlusSquareOutlined />} className="relative left-auto right-0" size="small" onClick={onClickAddValue}>Value</Button>

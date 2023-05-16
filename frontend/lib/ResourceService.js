@@ -113,3 +113,25 @@ export async function addResourceMetrics(resourceId, metricValues, token, setErr
     console.log(error);
   }
 }
+
+
+export async function listResourcesBySLOs(slos, token, setResources, setError) {
+  try {
+    const route = `${API_ROUTE}/slo`;
+    const response = await fetch(route, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        slos: slos,
+      }),
+    });
+    const data = await response.json();
+    setResources(() => data);
+  } catch (error) {
+    setError(true);
+    console.log(error);
+  }
+}

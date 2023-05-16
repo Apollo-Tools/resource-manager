@@ -2,8 +2,9 @@ import Head from 'next/head';
 import {siteTitle} from '../../components/misc/Sidebar';
 import {useEffect, useState} from 'react';
 import {Result, Button, Typography} from 'antd';
-import {SmileOutlined} from '@ant-design/icons';
+import {DatabaseOutlined, SmileOutlined, UndoOutlined} from '@ant-design/icons';
 import NewEnsembleForm from '../../components/ensembles/NewEnsembleForm';
+import Link from 'next/link';
 
 
 const NewEnsemble = () => {
@@ -17,7 +18,6 @@ const NewEnsemble = () => {
 
   const onClickRestart = () => {
     setNewEnsemble(null);
-    setFinished(false);
   };
 
   return (
@@ -31,7 +31,12 @@ const NewEnsemble = () => {
           <Result
             icon={<SmileOutlined />}
             title="The ensemble has been created!"
-            extra={<Button type="primary" onClick={onClickRestart}>Restart</Button>}
+            extra={<>
+              <Button type="primary" icon={<UndoOutlined />} onClick={onClickRestart}>Restart</Button>
+              <Link href={`/ensembles/ensembles`}>
+                <Button type="default" icon={<DatabaseOutlined />}>All Ensembles</Button>
+              </Link>
+            </>}
           />:
           <NewEnsembleForm setNewEnsemble={setNewEnsemble}/>
         }
