@@ -2,9 +2,12 @@ import {useEffect, useState} from 'react';
 import {Button, Input, InputNumber, Switch} from 'antd';
 import {CheckOutlined, CloseOutlined, PlusSquareOutlined, RestOutlined} from '@ant-design/icons';
 
-
-const SLOValue = ({expression, metricType}) => {
+const SLOValue = ({expression, metricType, onChange}) => {
   const [values, setValues] = useState([]);
+
+  useEffect(() => {
+    onChange(values);
+  }, [values]);
 
   useEffect(() => {
     setValues(['']);

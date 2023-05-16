@@ -2,38 +2,12 @@ import {Button, Form, Input} from 'antd';
 import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import PropTypes from 'prop-types';
-import {createFunction} from '../../lib/FunctionService';
-import {listMetrics} from '../../lib/MetricService';
-import {CloseSquareOutlined, PlusSquareOutlined} from '@ant-design/icons';
 import SLOSelection from '../misc/SLOSelection';
-
 
 const NewEnsembleForm = ({setNewEnsemble}) => {
   const [form] = Form.useForm();
   const {token, checkTokenExpired} = useAuth();
   const [error, setError] = useState();
-  const [metrics, setMetrics] = useState([]);
-  const [slos, setSlos] = useState([]);
-  const [sloId, setSloId] = useState(0);
-  const [metricsInitialised, setMetricsInitialised] = useState(false);
-
-  useEffect(() => {
-    if (!checkTokenExpired()) {
-      listMetrics(token, setMetrics, setError);
-    }
-  }, []);
-
-  useEffect(() => {
-    console.log(metrics);
-    if (metrics.length > 0 && !metricsInitialised) {
-      console.log('init metrics');
-      setMetrics((prevMetrics) =>
-        [...prevMetrics, {metric_id: -1, metric: 'region', metric_type: {type: 'number'}},
-          {metric_id: -2, metric: 'resource_provider', metric_type: {type: 'number'}},
-          {metric_id: -3, metric: 'resource_type', metric_type: {type: 'number'}}]);
-      setMetricsInitialised(true);
-    }
-  }, [metrics]);
 
   // TODO: improve error handling
   useEffect(() => {
@@ -45,7 +19,7 @@ const NewEnsembleForm = ({setNewEnsemble}) => {
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
-      await createFunction(values.runtime, values.name, values.code, token, setNewEnsemble, setError);
+      // await createFunction(values.runtime, values.name, values.code, token, setNewEnsemble, setError);
       console.log(values);
     }
   };
@@ -53,73 +27,8 @@ const NewEnsembleForm = ({setNewEnsemble}) => {
     console.log('Failed:', errorInfo);
   };
 
-  const onClickAddSLO = () => {
-    setSlos((prevSlos) => [...prevSlos, {
-      id: sloId,
-      name: '',
-      metricType: 'number',
-      expression: '',
-      value: [],
-    }]);
-    setSloId((prevId) => prevId + 1);
-  };
-
-  const onClickRemoveSLO = (id) => {
-    console.log(id);
-    setSlos((prevSlos) => prevSlos.filter((slo) => slo.id !== id));
-  };
-
-  useEffect(() => {
-    console.log(slos);
-  }, [slos]);
-
-  const onChangeMetricSelect = (value, sloId) => {
-    const metric = metrics.find((metric) => metric.metric_id === value);
-    console.log(metric);
-    setSlos((prevSlos) => {
-      return prevSlos.map((slo) => {
-        if (slo.id === sloId) {
-          slo.name = metric?.metric;
-          slo.metricType = metric?.metric_type?.type;
-        }
-        return slo;
-      });
-    });
-  };
-
-  const onChangeExpressionSelect = (value, sloId) => {
-    setSlos((prevSlos) => {
-      return prevSlos.map((slo) => {
-        if (slo.id === sloId) {
-          slo.expression = value;
-        }
-        return slo;
-      });
-    });
-  };
-
-
   return (
     <>
-      <div>
-        {slos.map((slo) => {
-          return (
-            <div key={slo.id}>
-              <SLOSelection
-                metrics={metrics}
-                selectedMetrics={slos.map((metricSlo) => metricSlo.name)}
-                slo={slo}
-                updateMetric={onChangeMetricSelect}
-                updateExpression={onChangeExpressionSelect}
-              />
-              <Button type="ghost" icon={<CloseSquareOutlined />} onClick={() => onClickRemoveSLO(slo.id)}/>
-            </div>
-          );
-        })}
-        <Button className="mt-8" type="primary" icon={<PlusSquareOutlined />} onClick={onClickAddSLO}>SLO</Button>
-
-      </div>
-
       <Form
         name="newFunctionForm"
         form={form}
@@ -139,6 +48,37 @@ const NewEnsembleForm = ({setNewEnsemble}) => {
           ]}
         >
           <Input className="w-40" />
+        </Form.Item>
+        <Form.Item
+          label="Service Level Objectives"
+          name="slos"
+          valuePropName="slos"
+          validateStatus="success"
+          validateTrigger=''
+          rules={[
+            {
+              required: true,
+              message: 'Please add slos!',
+            },
+            () => ({
+              validator(_, value) {
+                console.log(value);
+                const slos = value.slos;
+                if (slos.length < 1) {
+                  return Promise.reject(new Error('At least one SLO is required'));
+                }
+                if (slos.filter((slo) => slo.name === '' || slo.value.length < 1 || slo.expression === '')
+                    .length > 0) {
+                  return Promise.reject(new Error('SLOs are not complete'));
+                }
+
+                return Promise.resolve();
+              },
+            }),
+          ]}
+        >
+          <SLOSelection />
+
         </Form.Item>
 
         <Form.Item>
