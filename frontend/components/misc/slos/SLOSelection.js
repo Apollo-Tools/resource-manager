@@ -2,11 +2,11 @@ import {useEffect, useState} from 'react';
 import SLOEntry from './SLOEntry';
 import {Button} from 'antd';
 import {CloseSquareOutlined, PlusSquareOutlined} from '@ant-design/icons';
-import {listMetrics} from '../../lib/MetricService';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {listMetrics} from '../../../lib/MetricService';
+import {useAuth} from '../../../lib/AuthenticationProvider';
 
 
-const SLOSelection = ({value = [], onChange}) => {
+const SLOSelection = ({onChange}) => {
   const {token, checkTokenExpired} = useAuth();
   const [metrics, setMetrics] = useState([]);
   const [sloId, setSloId] = useState(0);

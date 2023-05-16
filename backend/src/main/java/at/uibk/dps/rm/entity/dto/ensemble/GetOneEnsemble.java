@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 @Data
@@ -22,4 +23,8 @@ public class GetOneEnsemble extends SLORequest {
     private String name;
 
     private List<Resource> resources;
+
+    private Timestamp createdAt;
+
+    private Timestamp updatedAt;
 }

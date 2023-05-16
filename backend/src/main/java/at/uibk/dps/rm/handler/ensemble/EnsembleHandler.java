@@ -86,6 +86,8 @@ public class EnsembleHandler extends ValidationHandler {
                 Ensemble ensemble = result.mapTo(Ensemble.class);
                 response.setEnsembleId(ensemble.getEnsembleId());
                 response.setName(ensemble.getName());
+                response.setCreatedAt(ensemble.getCreatedAt());
+                response.setUpdatedAt(ensemble.getUpdatedAt());
                 return resourceChecker.checkFindAllByEnsemble(ensemble.getEnsembleId())
                     .flatMap(resources -> {
                         mapResourcesToResponse(resources, response);

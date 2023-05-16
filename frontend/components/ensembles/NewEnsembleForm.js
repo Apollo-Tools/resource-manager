@@ -2,7 +2,7 @@ import {Button, Form, Input, message} from 'antd';
 import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import PropTypes from 'prop-types';
-import SLOSelection from '../misc/SLOSelection';
+import SLOSelection from '../misc/slos/SLOSelection';
 import {listResourcesBySLOs} from '../../lib/ResourceService';
 import {SearchOutlined} from '@ant-design/icons';
 import ResourceTableFormItem from '../resources/ResourceTableFormItem';
