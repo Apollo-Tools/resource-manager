@@ -4,7 +4,6 @@ import SLOValue from './SLOValue';
 
 const {Option} = Select;
 
-
 const SLOSelection = ({metrics, selectedMetrics, slo, updateMetric, updateExpression}) => {
   const [expression, setExpression] = useState('');
 
@@ -31,8 +30,6 @@ const SLOSelection = ({metrics, selectedMetrics, slo, updateMetric, updateExpres
   const metricAlreadySelected = (metric) => {
     return selectedMetrics.find((selectedMetric) => selectedMetric === metric.metric) !== undefined;
   };
-
-  // TODO: add region, resource_type and resource_provider
 
   return (
     <Space align="start">

@@ -15,12 +15,25 @@ const NewEnsembleForm = ({setNewEnsemble}) => {
   const [metrics, setMetrics] = useState([]);
   const [slos, setSlos] = useState([]);
   const [sloId, setSloId] = useState(0);
+  const [metricsInitialised, setMetricsInitialised] = useState(false);
 
   useEffect(() => {
     if (!checkTokenExpired()) {
       listMetrics(token, setMetrics, setError);
     }
   }, []);
+
+  useEffect(() => {
+    console.log(metrics);
+    if (metrics.length > 0 && !metricsInitialised) {
+      console.log('init metrics');
+      setMetrics((prevMetrics) =>
+        [...prevMetrics, {metric_id: -1, metric: 'region', metric_type: {type: 'number'}},
+          {metric_id: -2, metric: 'resource_provider', metric_type: {type: 'number'}},
+          {metric_id: -3, metric: 'resource_type', metric_type: {type: 'number'}}]);
+      setMetricsInitialised(true);
+    }
+  }, [metrics]);
 
   // TODO: improve error handling
   useEffect(() => {
