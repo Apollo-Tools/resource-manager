@@ -92,7 +92,7 @@ const NewReservationForm = ({setNewReservation}) => {
         layout="vertical"
       >
         <Form.Item name="functionResources">
-          <FunctionTable hideDelete isExpandable onChange={onChangeFunctionResources}/>
+          <FunctionTable hideDelete isExpandable />
         </Form.Item>
         <Form.Item
           label="Docker Username"

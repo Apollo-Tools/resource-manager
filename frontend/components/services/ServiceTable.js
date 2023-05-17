@@ -3,7 +3,6 @@ import {Button, Modal, Space, Table} from 'antd';
 import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
-import {getFunctionResources} from '../../lib/FunctionResourceService';
 import ResourceTable from '../resources/ResourceTable';
 import PropTypes from 'prop-types';
 import {deleteService, listServices} from '../../lib/ServiceService';
@@ -11,16 +10,17 @@ import {deleteService, listServices} from '../../lib/ServiceService';
 const {Column} = Table;
 const {confirm} = Modal;
 
-const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable}) => {
+const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources}) => {
   const {token, checkTokenExpired} = useAuth();
   const [error, setError] = useState(false);
   const [expandedKeys, setExpandedKeys] = useState([]);
   const [services, setServices] = useState([]);
-  const [selectedResourceIds, setSelectedResourceIds] = useState(new Map());
+  const [selectedResources, setSelectedResources] = useState();
 
   useEffect(() => {
     if (!checkTokenExpired()) {
       listServices(token, setServices, setError);
+      setSelectedResources(value);
     }
   }, []);
 
@@ -33,8 +33,8 @@ const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable}) => {
   }, [error]);
 
   useEffect(() => {
-    onChange?.({selectedResourceIds, ...value, ...{selectedResourceIds}});
-  }, [selectedResourceIds]);
+    onChange?.(selectedResources);
+  }, [selectedResources]);
 
   const onClickDelete = (id) => {
     if (!checkTokenExpired()) {
@@ -61,10 +61,10 @@ const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable}) => {
     });
   };
 
-  const updatedSelectedResourceIds = (serviceId, newSelectedResourceIds) => {
-    setSelectedResourceIds((prevValues) => {
-      if (newSelectedResourceIds.length > 0) {
-        return new Map(prevValues.set(serviceId, newSelectedResourceIds));
+  const updatedSelectedResourceIds = (serviceId, newSelectedResources) => {
+    setSelectedResources((prevValues) => {
+      if (newSelectedResources.length > 0) {
+        return new Map(prevValues.set(serviceId, newSelectedResources));
       } else if (prevValues.has(serviceId)) {
         const newMap = new Map(prevValues);
         newMap.delete(serviceId);
@@ -76,41 +76,34 @@ const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable}) => {
   const onExpandRow = async (expanded, record) => {
     const keys = [];
     if (expanded) {
-      if (!Object.hasOwn(record, 'function_resources')) {
-        await getFunctionResources(record.service_id, token, setError)
-            .then((result) => {
-              const rowSelection = {
-                selectedResourceIds,
-                onChange: (newSelectedResourceIds) => {
-                  updatedSelectedResourceIds(record.service_id, newSelectedResourceIds);
-                },
-              };
-              record.function_resources = result;
-              record.rowSelection = rowSelection;
-            });
-      }
+      record.resources = resources;
+      record.rowSelection = {
+        selectedRowKeys: selectedResources?.get(record.service_id)?.map((resource) => resource.resource_id),
+        onChange: (newSelectedResourceIds, newSelectedResources) => {
+          updatedSelectedResourceIds(record.service_id, newSelectedResources);
+        },
+      };
       keys.push(record.service_id);
     }
     setExpandedKeys(keys);
+  };
+
+  const expandedRowRender = {
+    expandedRowRender: (service) => {
+      return (
+        <ResourceTable resources={resources} hasActions rowSelection={service.rowSelection}/>
+      );
+    },
+    expandedRowKeys: expandedKeys,
+    onExpand: onExpandRow,
   };
 
   return (
     <Table
       dataSource={services}
       rowKey={(record) => record.service_id}
-      expandable={{
-        expandedRowRender: (service) => {
-          if (Object.hasOwn(service, 'function_resources') && service.function_resources.length > 0) {
-            return (
-              <ResourceTable resources={service.function_resources} hasActions rowSelection={service.rowSelection}/>
-            );
-          }
-          return <p>No resources</p>;
-        },
-        rowExpandable: () => isExpandable,
-        expandedRowKeys: expandedKeys,
-        onExpand: onExpandRow,
-      }}
+      expandable={isExpandable ? expandedRowRender : null}
+      size="small"
     >
       <Column title="Id" dataIndex="service_id" key="id"
         sorter={(a, b) => a.service_id - b.service_id}

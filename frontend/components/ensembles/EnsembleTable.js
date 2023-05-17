@@ -11,7 +11,7 @@ import {deleteEnsemble, listEnsembles, validateEnsemble} from '../../lib/Ensembl
 const {Column} = Table;
 const {confirm} = Modal;
 
-const EnsembleTable = () => {
+const EnsembleTable = ({rowSelection}) => {
   const {token, checkTokenExpired} = useAuth();
   const [error, setError] = useState(false);
   const [ensembles, setEnsembles] = useState([]);
@@ -89,6 +89,9 @@ const EnsembleTable = () => {
     <Table
       dataSource={ensembles}
       rowKey={(record) => record.ensemble_id}
+      rowSelection={rowSelection}
+      className="h-[600px]"
+      size='small'
     >
       <Column title="Id" dataIndex="ensemble_id" key="id"
         sorter={(a, b) => a.ensemble_id - b.ensemble_id}

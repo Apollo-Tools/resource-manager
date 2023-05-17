@@ -5,23 +5,23 @@ import {DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined} from '@ant-
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import {deleteFunction, listFunctions} from '../../lib/FunctionService';
-import {getFunctionResources} from '../../lib/FunctionResourceService';
 import ResourceTable from '../resources/ResourceTable';
 import PropTypes from 'prop-types';
 
 const {Column} = Table;
 const {confirm} = Modal;
 
-const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable}) => {
+const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resources}) => {
   const {token, checkTokenExpired} = useAuth();
   const [error, setError] = useState(false);
   const [expandedKeys, setExpandedKeys] = useState([]);
   const [functions, setFunctions] = useState([]);
-  const [selectedResourceIds, setSelectedResourceIds] = useState(new Map());
+  const [selectedResources, setSelectedResources] = useState(new Map());
 
   useEffect(() => {
     if (!checkTokenExpired()) {
       listFunctions(token, setFunctions, setError);
+      setSelectedResources(value);
     }
   }, []);
 
@@ -34,8 +34,8 @@ const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable}) => {
   }, [error]);
 
   useEffect(() => {
-    onChange?.({selectedResourceIds, ...value, ...{selectedResourceIds}});
-  }, [selectedResourceIds]);
+    onChange?.(selectedResources);
+  }, [selectedResources]);
 
   const onClickDelete = (id) => {
     if (!checkTokenExpired()) {
@@ -62,10 +62,10 @@ const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable}) => {
     });
   };
 
-  const updatedSelectedResourceIds = (functionId, newSelectedResourceIds) => {
-    setSelectedResourceIds((prevValues) => {
-      if (newSelectedResourceIds.length > 0) {
-        return new Map(prevValues.set(functionId, newSelectedResourceIds));
+  const updatedSelectedResourceIds = (functionId, newSelectedResources) => {
+    setSelectedResources((prevValues) => {
+      if (newSelectedResources.length > 0) {
+        return new Map(prevValues.set(functionId, newSelectedResources));
       } else if (prevValues.has(functionId)) {
         const newMap = new Map(prevValues);
         newMap.delete(functionId);
@@ -77,39 +77,32 @@ const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable}) => {
   const onExpandRow = async (expanded, record) => {
     const keys = [];
     if (expanded) {
-      if (!Object.hasOwn(record, 'function_resources')) {
-        await getFunctionResources(record.function_id, token, setError)
-            .then((result) => {
-              const rowSelection = {
-                selectedResourceIds,
-                onChange: (newSelectedResourceIds) => {
-                  updatedSelectedResourceIds(record.function_id, newSelectedResourceIds);
-                },
-              };
-              record.function_resources = result;
-              record.rowSelection = rowSelection;
-            });
-      }
+      record.resources = resources;
+      record.rowSelection = {
+        selectedRowKeys: selectedResources?.get(record.function_id)?.map((resource) => resource.resource_id),
+        onChange: (newSelectedResourceIds, newSelectedResources) => {
+          updatedSelectedResourceIds(record.function_id, newSelectedResources);
+        },
+      };
       keys.push(record.function_id);
     }
     setExpandedKeys(keys);
+  };
+
+  const expandedRowRender = {
+    expandedRowRender: (func) => {
+      return <ResourceTable resources={resources} hasActions rowSelection={func.rowSelection}/>;
+    },
+    expandedRowKeys: expandedKeys,
+    onExpand: onExpandRow,
   };
 
   return (
     <Table
       dataSource={functions}
       rowKey={(record) => record.function_id}
-      expandable={{
-        expandedRowRender: (func) => {
-          if (Object.hasOwn(func, 'function_resources') && func.function_resources.length > 0) {
-            return (<ResourceTable resources={func.function_resources} hasActions rowSelection={func.rowSelection}/>);
-          }
-          return <p>No resources</p>;
-        },
-        rowExpandable: () => isExpandable,
-        expandedRowKeys: expandedKeys,
-        onExpand: onExpandRow,
-      }}
+      expandable={isExpandable ? expandedRowRender : null}
+      size="small"
     >
       <Column title="Id" dataIndex="function_id" key="id"
         sorter={(a, b) => a.function_id - b.function_id}
