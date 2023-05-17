@@ -1,6 +1,7 @@
 import {Button, Input, Space} from 'antd';
 import {SearchOutlined} from '@ant-design/icons';
 import {useRef} from 'react';
+import PropTypes from 'prop-types';
 
 
 const ColumnFilterDropdown = ({setSelectedKeys, selectedKeys, confirm, clearFilters, columnName}) => {
@@ -54,6 +55,14 @@ const ColumnFilterDropdown = ({setSelectedKeys, selectedKeys, confirm, clearFilt
       </Space>
     </div>
   );
+};
+
+ColumnFilterDropdown.propTypes = {
+  setSelectedKeys: PropTypes.func.isRequired,
+  selectedKeys: PropTypes.array.isRequired,
+  confirm: PropTypes.func.isRequired,
+  clearFilters: PropTypes.func.isRequired,
+  columnName: PropTypes.string.isRequired,
 };
 
 export default ColumnFilterDropdown;

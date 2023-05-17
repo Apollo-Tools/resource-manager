@@ -4,6 +4,7 @@ import {Button} from 'antd';
 import {CloseSquareOutlined, PlusSquareOutlined} from '@ant-design/icons';
 import {listMetrics} from '../../../lib/MetricService';
 import {useAuth} from '../../../lib/AuthenticationProvider';
+import PropTypes from 'prop-types';
 
 
 const SLOSelection = ({onChange}) => {
@@ -118,6 +119,10 @@ const SLOSelection = ({onChange}) => {
     })}
     <Button className="mt-2" type="default" icon={<PlusSquareOutlined />} onClick={onClickAddSLO}>SLO</Button>
   </div>);
+};
+
+SLOSelection.propTypes = {
+  onChange: PropTypes.func,
 };
 
 export default SLOSelection;

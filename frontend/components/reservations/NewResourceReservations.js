@@ -4,6 +4,7 @@ import {getEnsemble} from '../../lib/EnsembleService';
 import FunctionTable from '../functions/FunctionTable';
 import ServiceTable from '../services/ServiceTable';
 import {Button, Typography} from 'antd';
+import PropTypes from 'prop-types';
 
 
 const NewResourceReservations = ({ensembleId, functionResources, setFunctionResources, serviceResources,
@@ -88,6 +89,16 @@ const NewResourceReservations = ({ensembleId, functionResources, setFunctionReso
       <Button type="default" onClick={onClickBack} className="float-left">Back</Button>
     </>
   );
+};
+
+NewResourceReservations.propTypes = {
+  ensembleId: PropTypes.number.isRequired,
+  functionResources: PropTypes.instanceOf(Map).isRequired,
+  setFunctionResources: PropTypes.func.isRequired,
+  serviceResources: PropTypes.instanceOf(Map).isRequired,
+  setServiceResources: PropTypes.func.isRequired,
+  next: PropTypes.func.isRequired,
+  prev: PropTypes.func.isRequired,
 };
 
 export default NewResourceReservations;

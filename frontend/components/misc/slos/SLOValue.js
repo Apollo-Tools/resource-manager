@@ -1,12 +1,13 @@
 import {useEffect, useState} from 'react';
 import {Button, Input, InputNumber, Switch} from 'antd';
 import {CheckOutlined, CloseOutlined, PlusSquareOutlined, RestOutlined} from '@ant-design/icons';
+import PropTypes from 'prop-types';
 
 const SLOValue = ({expression, metricType, onChange}) => {
   const [values, setValues] = useState([]);
 
   useEffect(() => {
-    onChange(values);
+    onChange?.(values);
   }, [values]);
 
   useEffect(() => {
@@ -83,6 +84,12 @@ const SLOValue = ({expression, metricType, onChange}) => {
   } else {
     return <div className="block w-52 text-right">{getInput(values[0], 0, false)}</div>;
   }
+};
+
+SLOValue.propTypes = {
+  expression: PropTypes.string.isRequired,
+  metricType: PropTypes.string.isRequired,
+  onChange: PropTypes.func,
 };
 
 export default SLOValue;

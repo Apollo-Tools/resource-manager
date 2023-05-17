@@ -1,6 +1,7 @@
 import {Radio, Select, Space} from 'antd';
 import {useState} from 'react';
 import SLOValue from './SLOValue';
+import PropTypes from 'prop-types';
 
 const {Option} = Select;
 
@@ -14,7 +15,7 @@ const SLOEntry = ({metrics, selectedMetrics, slo, updateMetric, updateExpression
   };
 
   const onChangeMetric = (value) => {
-    updateMetric(value, slo.id);
+    updateMetric?.(value, slo.id);
     if (expressions[slo.metricType].length === 1) {
       onChangeExpression(expressions[slo.metricType][0]);
     } else {
@@ -23,7 +24,7 @@ const SLOEntry = ({metrics, selectedMetrics, slo, updateMetric, updateExpression
   };
 
   const onChangeExpression = (value) => {
-    updateExpression(value, slo.id);
+    updateExpression?.(value, slo.id);
     setExpression(value);
   };
 
@@ -32,7 +33,7 @@ const SLOEntry = ({metrics, selectedMetrics, slo, updateMetric, updateExpression
   };
 
   const onChangeValue = (value) => {
-    return updateValue(value, slo.id);
+    return updateValue?.(value, slo.id);
   };
 
   return (
@@ -61,6 +62,15 @@ const SLOEntry = ({metrics, selectedMetrics, slo, updateMetric, updateExpression
       <SLOValue expression={expression} metricType={slo.metricType} onChange={onChangeValue}/>
     </Space>
   );
+};
+
+SLOEntry.propTypes = {
+  metrics: PropTypes.arrayOf(PropTypes.object).isRequired,
+  selectedMetrics: PropTypes.arrayOf(PropTypes.object).isRequired,
+  slo: PropTypes.object.isRequired,
+  updateMetric: PropTypes.func,
+  updateExpression: PropTypes.func,
+  updateValue: PropTypes.func,
 };
 
 export default SLOEntry;

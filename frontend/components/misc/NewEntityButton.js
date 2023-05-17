@@ -7,7 +7,7 @@ import PropTypes from 'prop-types';
 const NewEntityButton = ({name}) => {
   const lowerCaseName = name.toLowerCase();
   return (
-    <Link href={`/${lowerCaseName}s/new-${lowerCaseName}`} className="block mb-5">
+    <Link href={`/${lowerCaseName}s/new-${lowerCaseName}`} className="block mb-5 w-fit">
       <Button type="default" icon={<PlusOutlined />}>New {name}</Button>
     </Link>
   );

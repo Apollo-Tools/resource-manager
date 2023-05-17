@@ -3,6 +3,7 @@ import {Button, Form, Input} from 'antd';
 import {LockOutlined, UserOutlined} from '@ant-design/icons';
 import {reserveResources} from '../../lib/ReservationService';
 import {useAuth} from '../../lib/AuthenticationProvider';
+import PropTypes from 'prop-types';
 
 
 const AddCredentials = ({functionResources, serviceResources, next, prev, onSubmit}) => {
@@ -143,6 +144,14 @@ const AddCredentials = ({functionResources, serviceResources, next, prev, onSubm
       </Form>
     </>
   );
+};
+
+AddCredentials.propTypes = {
+  functionResources: PropTypes.instanceOf(Map).isRequired,
+  serviceResources: PropTypes.instanceOf(Map).isRequired,
+  next: PropTypes.func.isRequired,
+  prev: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func,
 };
 
 export default AddCredentials;

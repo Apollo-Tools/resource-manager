@@ -145,6 +145,7 @@ FunctionTable.propTypes = {
   onChange: PropTypes.func,
   hideDelete: PropTypes.bool,
   isExpandable: PropTypes.bool,
+  resources: PropTypes.arrayOf(PropTypes.object),
 };
 
 export default FunctionTable;

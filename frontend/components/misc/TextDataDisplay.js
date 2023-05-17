@@ -1,5 +1,6 @@
 import {Typography} from 'antd';
 import DataDisplay from './DataDisplay';
+import PropTypes from 'prop-types';
 
 const {Text} = Typography;
 
@@ -11,6 +12,12 @@ const TextDataDisplay = ({value, label, className}) => {
       </Text>
     </DataDisplay>
   );
+};
+
+TextDataDisplay.propTypes = {
+  value: PropTypes.node.isRequired,
+  label: PropTypes.string.isRequired,
+  className: PropTypes.string,
 };
 
 export default TextDataDisplay;

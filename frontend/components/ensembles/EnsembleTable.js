@@ -8,6 +8,7 @@ import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import {deleteEnsemble, listEnsembles, validateEnsemble} from '../../lib/EnsembleService';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
+import PropTypes from 'prop-types';
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -141,6 +142,7 @@ const EnsembleTable = ({rowSelection}) => {
 };
 
 EnsembleTable.propTypes = {
+  rowSelection: PropTypes.object,
 };
 
 export default EnsembleTable;
