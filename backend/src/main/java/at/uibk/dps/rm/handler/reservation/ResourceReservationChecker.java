@@ -40,7 +40,6 @@ public class ResourceReservationChecker extends EntityChecker {
         this.resourceReservationService = resourceReservationService;
     }
 
-    //TODO add accountId
     /**
      * Find all resource reservations by reservation.
      *

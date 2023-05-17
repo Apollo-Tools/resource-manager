@@ -34,9 +34,6 @@ public class ResourceReservationRepository extends Repository<ResourceReservatio
     public CompletionStage<List<ResourceReservation>> findAllByReservationId(long reservationId) {
         return sessionFactory.withSession(session ->
                 session.createQuery("select distinct rr from ResourceReservation rr " +
-                                "left join fetch rr.functionResource fr " +
-                                "left join fetch fr.resource " +
-                                "left join fetch fr.function " +
                                 "left join fetch rr.status " +
                                 "where rr.reservation.reservationId=:reservationId", entityClass)
                         .setParameter("reservationId", reservationId)

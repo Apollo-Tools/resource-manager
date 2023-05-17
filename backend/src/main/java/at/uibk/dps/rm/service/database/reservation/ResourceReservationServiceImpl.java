@@ -65,12 +65,14 @@ public class ResourceReservationServiceImpl extends DatabaseServiceProxy<Resourc
                 .map(result -> {
                     ArrayList<JsonObject> objects = new ArrayList<>();
                     for (ResourceReservation entity: result) {
-                        entity.setReservation(null);
                         // TODO: fix
-                        entity.getFunctionResource().getResource().setResourceType(null);
-                        entity.getFunctionResource().getResource().setMetricValues(null);
-                        entity.getFunctionResource().getResource().setRegion(null);
-                        entity.getFunctionResource().getFunction().setRuntime(null);
+                        if (entity instanceof ServiceReservation) {
+                            ((ServiceReservation) entity).setService(null);
+                        } else if (entity instanceof FunctionReservation) {
+                            ((FunctionReservation) entity).setFunction(null);
+                        }
+                        entity.setReservation(null);
+                        entity.setResource(null);
                         objects.add(JsonObject.mapFrom(entity));
                     }
                     return new JsonArray(objects);
