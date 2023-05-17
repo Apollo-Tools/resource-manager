@@ -9,9 +9,11 @@ import {Button, Typography} from 'antd';
 const NewResourceReservations = ({ensembleId, functionResources, setFunctionResources, serviceResources,
   setServiceResources, next, prev}) => {
   const {token, checkTokenExpired} = useAuth();
-  const [ensemble, setEnsemble] = useState([]);
+  const [ensemble, setEnsemble] = useState();
   const [error, setError] = useState(false);
   const [selected, setSelected] = useState(false);
+  const [functionResourceChoice, setfunctionResourceChoice] = useState([]);
+  const [serviceResourceChoice, setserviceResourceChoice] = useState([]);
 
   // TODO: improve error handling
   useEffect(() => {
@@ -27,6 +29,15 @@ const NewResourceReservations = ({ensembleId, functionResources, setFunctionReso
       setSelected(checkAnySelected);
     }
   }, []);
+
+  useEffect(() => {
+    if (ensemble != null) {
+      setfunctionResourceChoice(ensemble?.resources
+          .filter((resource) => resource.resource_type.resource_type !== 'container'));
+      setserviceResourceChoice(ensemble?.resources
+          .filter((resource) => resource.resource_type.resource_type === 'container'));
+    }
+  }, [ensemble]);
 
   const checkAnySelected = () => {
     return (functionResources != null && functionResources.size > 0) ||
@@ -52,20 +63,27 @@ const NewResourceReservations = ({ensembleId, functionResources, setFunctionReso
   return (
     <>
       <Typography.Title level={2}>Functions</Typography.Title>
-      <FunctionTable
+      {functionResourceChoice.length > 0 ? <FunctionTable
         value={functionResources}
         hideDelete
         isExpandable
-        resources={ensemble?.resources}
-        onChange={onFunctionResourcesSelected}/>
+        resources={functionResourceChoice}
+        onChange={onFunctionResourcesSelected}/> :
+        <Typography.Text>
+          Not suitable resources for function deployment available...
+        </Typography.Text>
+      }
       <Typography.Title level={2}>Services</Typography.Title>
-      <ServiceTable
+      {serviceResourceChoice.length > 0 ? <ServiceTable
         value={serviceResources}
         hideDelete
         isExpandable
-        resources={ensemble?.resources}
-        onChange={onServiceResourcesSelected}
-      />
+        resources={serviceResourceChoice}
+        onChange={onServiceResourcesSelected}/> :
+        <Typography.Text className="block mb-10">
+          Not suitable resources for service deployment available...
+        </Typography.Text>
+      }
       <Button type="primary" onClick={next} disabled={!selected} className="float-right">Next</Button>
       <Button type="default" onClick={onClickBack} className="float-left">Back</Button>
     </>

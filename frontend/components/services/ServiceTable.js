@@ -6,6 +6,7 @@ import {useEffect, useState} from 'react';
 import ResourceTable from '../resources/ResourceTable';
 import PropTypes from 'prop-types';
 import {deleteService, listServices} from '../../lib/ServiceService';
+import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -112,18 +113,22 @@ const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources
       <Column title="Name" dataIndex="name" key="name"
         sorter={(a, b) =>
           a.name.localeCompare(b.name)}
+        filterDropdown={({setSelectedKeys, selectedKeys, confirm, clearFilters}) =>
+          <ColumnFilterDropdown setSelectedKeys={setSelectedKeys} clearFilters={clearFilters}
+            selectedKeys={selectedKeys} confirm={confirm} columnName="name" />}
+        onFilter={(value, record) => record.name.startsWith(value)}
       />
       <Column title="Created at" dataIndex="created_at" key="created_at"
         render={(createdAt) => <DateFormatter dateTimestamp={createdAt}/>}
         sorter={(a, b) => a.created_at - b.created_at}
       />
-      <Column title="Actions" key="action"
+      {!hideDelete && <Column title="Actions" key="action"
         render={(_, record) => (
           <Space size="middle">
-            {!hideDelete && (<Button onClick={() => showDeleteConfirm(record.service_id)} icon={<DeleteOutlined />}/>)}
+            <Button onClick={() => showDeleteConfirm(record.service_id)} icon={<DeleteOutlined />}/>
           </Space>
         )}
-      />
+      />}
     </Table>
   );
 };
@@ -133,6 +138,7 @@ ServiceTable.propTypes = {
   onChange: PropTypes.func,
   hideDelete: PropTypes.bool,
   isExpandable: PropTypes.bool,
+  resources: PropTypes.arrayOf(PropTypes.object),
 };
 
 export default ServiceTable;

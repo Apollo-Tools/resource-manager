@@ -7,6 +7,7 @@ import {
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import {deleteEnsemble, listEnsembles, validateEnsemble} from '../../lib/EnsembleService';
+import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -100,6 +101,10 @@ const EnsembleTable = ({rowSelection}) => {
       <Column title="Name" dataIndex="name" key="name"
         sorter={(a, b) =>
           a.name.localeCompare(b.name)}
+        filterDropdown={({setSelectedKeys, selectedKeys, confirm, clearFilters}) =>
+          <ColumnFilterDropdown setSelectedKeys={setSelectedKeys} clearFilters={clearFilters}
+            selectedKeys={selectedKeys} confirm={confirm} columnName="name" />}
+        onFilter={(value, record) => record.name.startsWith(value)}
       />
       <Column title="Valid" dataIndex="is_valid" key="is_valid"
         render={(isValid) => {

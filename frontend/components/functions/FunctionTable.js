@@ -7,6 +7,7 @@ import {useEffect, useState} from 'react';
 import {deleteFunction, listFunctions} from '../../lib/FunctionService';
 import ResourceTable from '../resources/ResourceTable';
 import PropTypes from 'prop-types';
+import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -111,6 +112,10 @@ const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resource
       <Column title="Name" dataIndex="name" key="name"
         sorter={(a, b) =>
           a.name.localeCompare(b.name)}
+        filterDropdown={({setSelectedKeys, selectedKeys, confirm, clearFilters}) =>
+          <ColumnFilterDropdown setSelectedKeys={setSelectedKeys} clearFilters={clearFilters}
+            selectedKeys={selectedKeys} confirm={confirm} columnName="name" />}
+        onFilter={(value, record) => record.name.startsWith(value)}
       />
       <Column title="Runtime" dataIndex="runtime" key="runtime"
         render={(runtime) => runtime.name}
