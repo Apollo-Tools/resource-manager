@@ -8,7 +8,6 @@ locals {
 }
 
 resource "kubernetes_service_v1" "service" {
-  count = length(var.ports)
   metadata {
     name = local.name
     namespace = var.namespace
@@ -20,6 +19,7 @@ resource "kubernetes_service_v1" "service" {
     dynamic "port" {
       for_each = var.ports
       content {
+        name = "port-${port.value.service_port}-${port.value.container_port}"
         port = port.value.service_port
         target_port = port.value.container_port
       }
@@ -71,11 +71,18 @@ resource "kubernetes_deployment_v1" "deployment" {
           dynamic "port" {
             for_each = var.ports
             content {
+              name = "port-${port.value.service_port}-${port.value.container_port}"
               container_port = port.value.container_port
             }
           }
         }
       }
     }
+  }
+
+  timeouts {
+    create = "2m"
+    update = "2m"
+    delete = "2m"
   }
 }

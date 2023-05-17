@@ -64,7 +64,7 @@ public class ContainerDeployFileService extends TerraformFileService {
         }
         String externalIp = "";
         if (metricValues.containsKey("external-ip")) {
-            serviceType = metricValues.get("external-ip").getValueString();
+            externalIp = metricValues.get("external-ip").getValueString();
         }
 
         String configPath = Path.of(rootFolder.getParent().toString(), "config").toAbsolutePath().toString()

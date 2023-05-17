@@ -7,7 +7,7 @@ import ResourceReservationTable from '../../components/reservations/ResourceRese
 import ReservationStatusCircle from '../../components/reservations/ReservationStatusCircle';
 import {useInterval} from '../../lib/hooks/useInterval';
 import LogsDisplay from '../../components/logs/LogsDisplay';
-import {DisconnectOutlined, ExclamationCircleFilled} from '@ant-design/icons';
+import {DisconnectOutlined, ExclamationCircleFilled, ReloadOutlined} from '@ant-design/icons';
 
 const {confirm} = Modal;
 
@@ -120,10 +120,13 @@ const ReservationDetails = () => {
           isError={reservationStatus.isError}
         />
         Reservation Details ({ id })
-        {reservationStatus.isDeployed &&
+        <div className="float-right">
+          <Button icon={<ReloadOutlined />} className="bg-yellow-50 text-yellow-500 border-yellow-500" onClick={refreshReservation}/>
+          {reservationStatus.isDeployed &&
           <Button disabled={!reservation.is_active} onClick={ () => showCancelConfirm(id) }
-            icon={ <DisconnectOutlined/> } className="ml-5"/>
-        }
+            icon={ <DisconnectOutlined/> } className="ml-2 bg-red-50 text-red-500 border-red-500"/>
+          }
+        </div>
       </Typography.Title>
       <Divider/>
       {reservation.is_active &&
