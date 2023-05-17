@@ -1,5 +1,14 @@
 import env from '@beam-australia/react-env';
 const API_ROUTE = `${env('API_URL')}/accounts`;
+
+/**
+ * Login with username and password and set the retrieved access token.
+ *
+ * @param {string} username the username
+ * @param {string} password the password
+ * @param {function} setToken the function to set the access token
+ * @param {function} setError the function to set the error if one occurs
+ */
 export async function getLogin(username, password, setToken, setError) {
   try {
     const response = await fetch(`${API_ROUTE}/login`, {
@@ -20,6 +29,15 @@ export async function getLogin(username, password, setToken, setError) {
   }
 }
 
+/**
+ * Update the password of the user.
+ *
+ * @param {string} oldPassword the old password
+ * @param {string} newPassword the new password
+ * @param {string} token the access token
+ * @param {function} setResponse the function to set the response
+ * @param {function} setError the function to set the error if one occurs
+ */
 export async function changePassword(oldPassword, newPassword, token, setResponse, setError) {
   try {
     const response = await fetch(`${API_ROUTE}`, {
@@ -40,6 +58,13 @@ export async function changePassword(oldPassword, newPassword, token, setRespons
   }
 }
 
+/**
+ * Get details of the currently logged in account.
+ *
+ * @param {string} token the access token
+ * @param {function} setAccount the function to set the account details
+ * @param {function} setError the function to set the error if one occurs
+ */
 export async function getAccount(token, setAccount, setError) {
   try {
     const response = await fetch(`${API_ROUTE}`, {
@@ -56,6 +81,14 @@ export async function getAccount(token, setAccount, setError) {
   }
 }
 
+/**
+ * Sign up a new user account.
+ *
+ * @param {string} username the username
+ * @param {string} password the password
+ * @param {function} setResponse the function to set the response
+ * @param {function} setError the function to set the error if one occurs
+ */
 export async function signUp(username, password, setResponse, setError) {
   try {
     const response = await fetch(`${API_ROUTE}/signup`, {
