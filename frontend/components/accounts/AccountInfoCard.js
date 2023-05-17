@@ -1,11 +1,11 @@
 import DateFormatter from '../misc/DateFormatter';
 import ResetPasswordForm from './ResetPasswordForm';
-import {Typography} from 'antd';
+import {Space} from 'antd';
 import {useEffect, useState} from 'react';
 import {getAccount} from '../../lib/AccountService';
 import {useAuth} from '../../lib/AuthenticationProvider';
-
-const {Title} = Typography;
+import TextDataDisplay from '../misc/TextDataDisplay';
+import DataDisplay from '../misc/DataDisplay';
 
 const AccountInfoCard = () => {
   const {token, checkTokenExpired} = useAuth();
@@ -31,15 +31,14 @@ const AccountInfoCard = () => {
   }
   return (
     <div className="flex md:flex-row flex-col">
+      <Space className="basis-full md:basis-1/2" direction="vertical" size="large">
+        <TextDataDisplay label="Username" value={account.username} />
+        <TextDataDisplay label="Created at" value={<DateFormatter dateTimestamp={account.created_at} />} />
+      </Space>
       <div className="basis-full md:basis-1/2">
-        <Title level={5} className="mt-0.5">Username</Title>
-        {account.username}
-        <Title level={5}>Created At</Title>
-        <DateFormatter dateTimestamp={account.created_at} />
-      </div>
-      <div className="basis-full md:basis-1/2">
-        <Title level={5} className="mt-0.5">Reset Password</Title>
-        <ResetPasswordForm />
+        <DataDisplay label={'Reset Password'}>
+          <ResetPasswordForm />
+        </DataDisplay>
       </div>
     </div>
   );

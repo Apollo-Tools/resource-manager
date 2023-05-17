@@ -1,10 +1,11 @@
-import {Button, Form, Input, Space} from 'antd';
+import {Button, Form, Typography, Space} from 'antd';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import {updateFunction} from '../../lib/FunctionService';
 import CodeMirror from '@uiw/react-codemirror';
 import {getEditorExtension} from '../../lib/CodeEditorService';
+import TextDataDisplay from '../misc/TextDataDisplay';
 
 const UpdateFunctionForm = ({func, reloadFunction}) => {
   const [form] = Form.useForm();
@@ -36,7 +37,7 @@ const UpdateFunctionForm = ({func, reloadFunction}) => {
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
-      await updateFunction(func.function_id, values.name, values.code, token, setError)
+      await updateFunction(func.function_id, values.code, token, setError)
           .then(() => reloadFunction())
           .then(() => setModified(false));
       console.log(values);
@@ -49,24 +50,21 @@ const UpdateFunctionForm = ({func, reloadFunction}) => {
 
   const resetFields = () => {
     form.setFieldsValue({
-      name: func.name,
       code: func.code,
-      runtime: func.runtime.name,
     });
     const extension = getEditorExtension(func.runtime.name);
     setEditorExtensions(extension != null ? [extension] : []);
+    setModified(false);
   };
 
   const checkIsModified = () => {
-    const name = form.getFieldValue('name');
-    const runtime = form.getFieldValue('runtime');
     const code = form.getFieldValue('code');
 
-    console.log('check ' + isModified + name + runtime + code);
+    console.log('check ' + isModified + code);
     if (func === null) {
       return false;
     }
-    return name !== func.name || runtime !== func.runtime?.runtime_id || runtime !== func.code;
+    return code !== func.code;
   };
 
   return (
@@ -79,42 +77,27 @@ const UpdateFunctionForm = ({func, reloadFunction}) => {
         autoComplete="off"
         layout="vertical"
       >
-        <Form.Item
-          label="Name"
-          name="name"
-          rules={[
-            {
-              required: true,
-              message: 'Please input a name!',
-            },
-          ]}
-        >
-          <Input className="w-40" onChange={() => setModified(checkIsModified())}/>
-        </Form.Item>
+        <Space size="large" direction="vertical" className="w-full">
+          <TextDataDisplay label="Name" value={func.name} />
+          <TextDataDisplay label="Runtime" value={func.runtime.name} />
 
-        <Form.Item
-          label="Runtime"
-          name="runtime"
-        >
-          <Input className="text-black bg-blank w-40" onChange={() => setModified(checkIsModified())} disabled/>
-        </Form.Item>
-
-        <Form.Item
-          label="Code"
-          name="code"
-          rules={[
-            {
-              required: true,
-              message: 'Please input the function code!',
-            },
-          ]}
-        >
-          <CodeMirror
-            height="200px"
-            extensions={editorExtensions}
-            onChange={() => setModified(checkIsModified())}
-          />
-        </Form.Item>
+          <Form.Item
+            label={<Typography.Title level={5} className="mt-3">Code</Typography.Title>}
+            name="code"
+            rules={[
+              {
+                required: true,
+                message: 'Please input the function code!',
+              },
+            ]}
+          >
+            <CodeMirror
+              maxHeight="40vh"
+              extensions={editorExtensions}
+              onChange={() => setModified(checkIsModified())}
+            />
+          </Form.Item>
+        </Space>
 
         <Form.Item>
           <Space>

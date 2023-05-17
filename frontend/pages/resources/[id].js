@@ -3,7 +3,7 @@ import {useRouter} from 'next/router';
 import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {Divider, Segmented, Typography} from 'antd';
-import UpdateResourceForm from '../../components/resources/UpdateResourceForm';
+import ResourceDetailsCard from '../../components/resources/ResourceDetailsCard';
 import AddMetricValuesForm from '../../components/metrics/AddMetricValuesForm';
 import {listResourceMetrics} from '../../lib/MetricValueService';
 import MetricValuesTable from '../../components/metrics/MetricValuesTable';
@@ -43,10 +43,6 @@ const ResourceDetails = () => {
     }
   }, [error]);
 
-  const reloadResource = async () => {
-    await getResource(id, token, setResource, setError);
-  };
-
   const mapValuesToValueField = () => {
     setMetricValues((prevValues) => {
       return prevValues.map((metricValue) => {
@@ -77,7 +73,7 @@ const ResourceDetails = () => {
       <Divider />
       {
         selectedSegment === 'Details' && resource != null &&
-          <UpdateResourceForm resource={resource} reloadResource={reloadResource}/>
+          <ResourceDetailsCard resource={resource}/>
       }
       {
         selectedSegment === 'Metric Values' && resource != null && (
