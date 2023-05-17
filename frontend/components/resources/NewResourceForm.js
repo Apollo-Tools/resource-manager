@@ -56,8 +56,10 @@ const NewResourceForm = ({setNewResource}) => {
   const onChangeResourceType = (typeId) => {
     if (resourceTypes.filter((type) => type.type_id === typeId)[0].resource_type === 'edge') {
       setRegionSelectables(() => regions.filter((region) => region.name === 'edge'));
+    } else if (resourceTypes.filter((type) => type.type_id === typeId)[0].resource_type === 'container') {
+      setRegionSelectables(() => regions.filter((region) => region.name === 'k8s'));
     } else {
-      setRegionSelectables(() => regions.filter((region) => region.name !== 'edge'));
+      setRegionSelectables(() => regions.filter((region) => !['edge', 'k8s'].includes(region.name)));
     }
     form.resetFields(['region']);
   };
