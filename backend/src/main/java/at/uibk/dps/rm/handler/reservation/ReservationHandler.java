@@ -92,12 +92,18 @@ public class ReservationHandler extends ValidationHandler {
     protected Single<JsonObject> getOne(RoutingContext rc) {
         return HttpHelper.getLongPathParam(rc, "id")
             .flatMap(id -> reservationChecker.checkFindOne(id, rc.user().principal().getLong("account_id")))
-            .flatMap(reservation -> resourceReservationChecker
-                    .checkFindAllByReservationId(reservation.getLong("reservation_id"))
-                    .map(resourceReservations -> {
-                        reservation.put("resource_reservations", resourceReservations);
+            .flatMap(result -> functionReservationChecker
+                    .checkFindAllByReservationId(result.getLong("reservation_id"))
+                    .map(functionReservations -> {
+                        result.put("function_resources", functionReservations);
+                        return result;
+                    })
+                    .flatMap(reservation -> serviceReservationChecker
+                        .checkFindAllByReservationId(reservation.getLong("reservation_id"))
+                    .map(serviceReservations -> {
+                        reservation.put("service_resources", serviceReservations);
                         return reservation;
-                    }));
+                    })));
     }
 
     @Override

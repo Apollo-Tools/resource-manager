@@ -66,11 +66,8 @@ const ReservationDetails = () => {
   };
 
   const checkReservationStatus = () => {
-    if (!Object.hasOwn(reservation, 'resource_reservations')) {
-      return;
-    }
-
-    const resourceReservations = reservation.resource_reservations;
+    const resourceReservations = [...reservation.function_resources, ...reservation.service_resources];
+    console.log('res', resourceReservations);
     setReservationStatus(() => {
       return {
         isNew: existResourceReservationsByStatusValue(resourceReservations, 'NEW'),
@@ -131,7 +128,8 @@ const ReservationDetails = () => {
       <Divider/>
       {reservation.is_active &&
         <>
-          <ResourceReservationTable resourceReservations={reservation.resource_reservations}/>
+          {reservation.function_resources.length > 0 && <ResourceReservationTable resourceReservations={reservation.function_resources} type='function'/>}
+          {reservation.service_resources.length > 0 && <ResourceReservationTable resourceReservations={reservation.service_resources} type='service'/>}
           <Divider />
         </>
       }

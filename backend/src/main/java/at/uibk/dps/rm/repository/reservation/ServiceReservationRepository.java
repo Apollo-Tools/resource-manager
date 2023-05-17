@@ -28,6 +28,7 @@ public class ServiceReservationRepository extends Repository<ServiceReservation>
                     "left join fetch r.resourceType " +
                     "left join fetch r.region reg " +
                     "left join fetch reg.resourceProvider " +
+                    "left join fetch sr.status " +
                     "where sr.reservation.reservationId=:reservationId", entityClass)
                 .setParameter("reservationId", reservationId)
                 .getResultList()

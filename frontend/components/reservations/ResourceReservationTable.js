@@ -7,25 +7,33 @@ import ReservationStatusBadge from './ReservationStatusBadge';
 
 const {Column} = Table;
 
-const ResourceReservationTable = ({resourceReservations}) => {
+const ResourceReservationTable = ({resourceReservations, type}) => {
   return (
-    <Table dataSource={ resourceReservations } rowKey={ (record) => record.resource_reservation_id }>
+    <Table dataSource={ resourceReservations } rowKey={ (record) => record.resource_reservation_id } size="small">
       <Column title="Id" dataIndex="resource_reservation_id" key="resource_reservation_id"
         sorter={ (a, b) => a.resource_reservation_id - b.resource_reservation_id }
       />
-      <Column title="Function" dataIndex={['function_resource', 'function']} key="function"
+      {type === 'function' &&<Column title='Function' dataIndex={['function']} key="function"
         render={(func) =>
           <Link href={`/functions/${func.function_id}`}>
             <Button type="link" size="small">{func.name}</Button>
           </Link>}
-        sorter={ (a, b) => a.function_resource.function.name.localeCompare(b.function_resource.function.name) }
-      />
-      <Column title="Resource" dataIndex={['function_resource', 'resource']} key="resource"
+        sorter={ (a, b) => a.function.name.localeCompare(b.function.name) }
+      /> }
+      {type==='service' && <Column title='Service' dataIndex={['service']} key="function"
+        render={(func) =>
+          <Link href={`/functions/${func.function_id}`}>
+            <Button type="link" size="small">{func.name}</Button>
+          </Link>}
+        sorter={ (a, b) => a.service.name.localeCompare(b.service.name) }
+      />}
+
+      <Column title="Resource" dataIndex={['resource']} key="resource"
         render={(resource) =>
           <Link href={`/resources/${resource.resource_id}`}>
             <Button type="link" size="small">{resource.resource_id}</Button>
           </Link>}
-        sorter={ (a, b) => a.function_resource.resource.resource_id - b.function_resource.resource.resource_id }
+        sorter={ (a, b) => a.resource.resource_id - b.resource.resource_id }
       />
       <Column title="Trigger url" dataIndex="trigger_url" key="trigger_url"
         sorter={ (a, b) => a.trigger_url.localeCompare(b.trigger_url) }
@@ -58,6 +66,7 @@ const ResourceReservationTable = ({resourceReservations}) => {
 
 ResourceReservationTable.propTypes = {
   resourceReservations: PropTypes.array.isRequired,
+  type: PropTypes.oneOf(['function', 'service']),
 };
 
 export default ResourceReservationTable;
