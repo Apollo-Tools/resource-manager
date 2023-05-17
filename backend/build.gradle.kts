@@ -53,6 +53,8 @@ dependencies {
 
   // Json parsing
   implementation("com.fasterxml.jackson.core:jackson-databind:2.15.0")
+  // YAML parsing
+  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.15.0")
 
   // DB
   implementation("com.ongres.scram:client:2.1")

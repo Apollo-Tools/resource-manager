@@ -2,14 +2,22 @@ package at.uibk.dps.rm.handler.reservation;
 
 import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
 import at.uibk.dps.rm.entity.dto.ReserveResourcesRequest;
+import at.uibk.dps.rm.entity.dto.credentials.KubeConfig;
+import at.uibk.dps.rm.entity.dto.credentials.k8s.Cluster;
+import at.uibk.dps.rm.entity.dto.credentials.k8s.Context;
 import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
 import at.uibk.dps.rm.entity.dto.reservation.ReservationResponse;
 import at.uibk.dps.rm.entity.dto.reservation.ServiceResourceIds;
 import at.uibk.dps.rm.entity.model.*;
+import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.handler.deployment.DeploymentChecker;
 import at.uibk.dps.rm.handler.deployment.DeploymentHandler;
 import at.uibk.dps.rm.util.misc.HttpHelper;
+import at.uibk.dps.rm.util.misc.MetricValueMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.impl.logging.Logger;
@@ -17,6 +25,7 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
 import java.util.*;
@@ -131,7 +140,8 @@ public class ReservationHandler extends ValidationHandler {
                 .flatMap(reservationJson ->
                     statusChecker.checkFindOneByStatusValue(ReservationStatusValue.NEW.name())
                         .map(statusNew -> statusNew.mapTo(ResourceReservationStatus.class))
-                        .flatMap(statusNew -> createResourceReservationMap(reservationJson, requestDTO, statusNew))
+                        .flatMap(statusNew -> createResourceReservationMap(reservationJson, requestDTO, statusNew,
+                            resources))
                     //TODO: remove self managed state (use edge instead of self managed vm) */
                     .flatMap(resourceReservations -> functionReservationChecker
                         .submitCreateAll(Json.encodeToBuffer(resourceReservations.get("function")).toJsonArray())
@@ -168,11 +178,18 @@ public class ReservationHandler extends ValidationHandler {
     //TODO: add check for authentication in delete
 
     private Single<Map<String, List<ResourceReservation>>> createResourceReservationMap(JsonObject reservationJson,
-                                                                                  ReserveResourcesRequest request,
-                                                                                  ResourceReservationStatus status) {
+            ReserveResourcesRequest request, ResourceReservationStatus status, JsonArray resources) {
         List<ResourceReservation> functionReservations = new ArrayList<>();
         List<ResourceReservation> serviceReservations = new ArrayList<>();
         Reservation reservation = reservationJson.mapTo(Reservation.class);
+        List<Resource> resouceList;
+        KubeConfig kubeConfig;
+        try {
+            resouceList = DatabindCodec.mapper().readValue(resources.toString(), new TypeReference<>() {});
+            kubeConfig = new YAMLMapper().readValue(request.getKubeConfig(), KubeConfig.class);
+        } catch (JsonProcessingException e) {
+            return Single.error(new RuntimeException("Error during deserialization of resources/kube config"));
+        }
         for (FunctionResourceIds functionResourceIds : request.getFunctionResources()) {
             Resource resource = new Resource();
             resource.setResourceId(functionResourceIds.getResourceId());
@@ -181,16 +198,36 @@ public class ReservationHandler extends ValidationHandler {
             functionReservations.add(createNewResourceReservation(reservation, resource, function, status));
         }
         for (ServiceResourceIds serviceResourceIds : request.getServiceResources()) {
-            Resource resource = new Resource();
+            Resource resource = resouceList.stream()
+                .filter(r -> r.getResourceId() == serviceResourceIds.getResourceId())
+                .findFirst()
+                .orElse(new Resource());
             resource.setResourceId(serviceResourceIds.getResourceId());
+            Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
+            String clusterUrl = metricValues.containsKey("cluster-url") ?
+                metricValues.get("cluster-url").getValueString() : "";
+            Context context = getContextByClusterUrl(kubeConfig, clusterUrl);
+            String namespace = context.getContext().getNamespace() != null ? context.getContext().getNamespace() :
+                "default";
             Service service = new Service();
             service.setServiceId(serviceResourceIds.getServiceId());
             serviceReservations.add(createNewResourceReservation(reservation, resource, service,
-                serviceResourceIds.getNamespace(), serviceResourceIds.getContext(), status));
+                namespace, context.getName(), status));
         }
         Map<String, List<ResourceReservation>> resourceReservations = Map.of("function", functionReservations,
             "service", serviceReservations);
         return Single.just(resourceReservations);
+    }
+
+    private Context getContextByClusterUrl(KubeConfig kubeConfig, String clusterUrl) {
+        Cluster cluster = kubeConfig.getClusters().stream()
+            .filter(c -> c.getCluster().getServer().equals(clusterUrl))
+            .findFirst()
+            .orElseThrow(() -> new UnauthorizedException("Cluster url not found in kube config"));
+        return kubeConfig.getContexts().stream()
+            .filter(c -> c.getContext().getCluster().equals(cluster.getName()))
+            .findFirst()
+            .orElseThrow(() -> new UnauthorizedException("No suitable context found in kube config"));
     }
 
     private ResourceReservation createNewResourceReservation(Reservation reservation, Resource resource,

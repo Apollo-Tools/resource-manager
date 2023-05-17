@@ -1152,8 +1152,6 @@ paths:
                     required:
                       - service_id
                       - resource_id
-                      - namespace
-                      - context
                     additionalProperties: false
                     properties:
                       service_id:
@@ -1164,12 +1162,6 @@ paths:
                         type: integer
                         format: int64
                         example: 1
-                      namespace:
-                        type: string
-                        example: default
-                      context:
-                        type: string
-                        example: default
                 function_resources:
                   type: array
                   items:
