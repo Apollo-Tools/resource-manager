@@ -1,10 +1,7 @@
 import {useEffect, useState} from 'react';
 import Head from 'next/head';
 import {siteTitle} from '../../components/misc/Sidebar';
-import {Button, message, Result, Space, Steps, Typography} from 'antd';
-import {SmileOutlined} from '@ant-design/icons';
-import Link from 'next/link';
-import NewReservationForm from '../../components/reservations/NewReservationForm';
+import {message, Steps, Typography} from 'antd';
 import NewReservationEnsemble from '../../components/reservations/NewReservationEnsemble';
 import NewResourceReservations from '../../components/reservations/NewResourceReservations';
 import AddCredentials from '../../components/reservations/AddCredentials';
@@ -63,10 +60,6 @@ const NewReservation = () => {
     }
   }, [error]);
 
-  const onClickRestart = () => {
-    setNewReservation(null);
-  };
-
   return (
     <>
       {contextHolder}
@@ -90,24 +83,12 @@ const NewReservation = () => {
           />
         }
         {current === 2 &&
-          <AddCredentials serviceResources={serviceResources} functionResources={functionResources} />
-        }
-
-        {newReservation ?
-          <Result
-            icon={<SmileOutlined />}
-            title="The reservation has been created!"
-            extra={(<Space size={100}>
-              <Link href={ `/reservations/${ newReservation.reservation_id }` }>
-                <Button type="primary">Show</Button>
-              </Link>
-              <Button type="default" onClick={onClickRestart}>Restart</Button>
-            </Space>
-            )}
-          /> :
-          <div className="hidden">
-            <NewReservationForm setNewReservation={setNewReservation} />
-          </div>
+          <AddCredentials
+            serviceResources={serviceResources}
+            functionResources={functionResources}
+            next={next}
+            prev={prev}
+          />
         }
       </div>
     </>
