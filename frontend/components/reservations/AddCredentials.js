@@ -5,7 +5,7 @@ import {reserveResources} from '../../lib/ReservationService';
 import {useAuth} from '../../lib/AuthenticationProvider';
 
 
-const AddCredentials = ({functionResources, serviceResources, next, prev}) => {
+const AddCredentials = ({functionResources, serviceResources, next, prev, onSubmit}) => {
   const [form] = Form.useForm();
   const {token, checkTokenExpired} = useAuth();
   const [error, setError] = useState(false);
@@ -25,6 +25,13 @@ const AddCredentials = ({functionResources, serviceResources, next, prev}) => {
       setError(false);
     }
   }, [error]);
+
+  useEffect(() => {
+    if (newReservation != null) {
+      onSubmit?.(newReservation);
+      next();
+    }
+  }, [newReservation]);
 
   const atLeastOneEdgeOrVMPresent = () => {
     for (const entry of functionResources.entries()) {

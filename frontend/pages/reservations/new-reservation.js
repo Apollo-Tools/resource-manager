@@ -1,10 +1,12 @@
 import {useEffect, useState} from 'react';
 import Head from 'next/head';
 import {siteTitle} from '../../components/misc/Sidebar';
-import {message, Steps, Typography} from 'antd';
+import {Button, message, Result, Space, Steps, Typography} from 'antd';
 import NewReservationEnsemble from '../../components/reservations/NewReservationEnsemble';
 import NewResourceReservations from '../../components/reservations/NewResourceReservations';
 import AddCredentials from '../../components/reservations/AddCredentials';
+import {GroupOutlined, SmileOutlined, UndoOutlined} from '@ant-design/icons';
+import Link from 'next/link';
 
 const steps = [
   {
@@ -36,6 +38,7 @@ const NewReservation = () => {
   }));
 
   const next = () => {
+    console.log(current);
     setCurrent(current + 1);
   };
   const prev = () => {
@@ -59,6 +62,14 @@ const NewReservation = () => {
       setError(false);
     }
   }, [error]);
+
+  const onClickRestart = () => {
+    setCurrent(0);
+    setNewReservation(null);
+    setSelectedEnsembleId(null);
+    setServiceResources(() => new Map());
+    setFunctionResources(() => new Map());
+  };
 
   return (
     <>
@@ -88,6 +99,21 @@ const NewReservation = () => {
             functionResources={functionResources}
             next={next}
             prev={prev}
+            onSubmit={setNewReservation}
+          />
+        }
+        {
+          current === 3 &&
+          <Result
+            icon={<SmileOutlined />}
+            title="The reservation has been created!"
+            extra={(<Space size={100}>
+              <Link href={ `/reservations/${ newReservation?.reservation_id }` }>
+                <Button type="primary" icon={<GroupOutlined />}>Show</Button>
+              </Link>
+              <Button type="default" icon={<UndoOutlined />} onClick={onClickRestart}>Restart</Button>
+            </Space>
+            )}
           />
         }
       </div>
