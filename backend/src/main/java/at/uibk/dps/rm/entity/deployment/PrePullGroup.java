@@ -4,10 +4,24 @@ import at.uibk.dps.rm.annotations.Generated;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Represents the k8s details of a group of images that have to be pre-pulled
+ * for future deployment.
+ *
+ * @author matthi-g
+ */
 @Getter
 @Setter
 public class PrePullGroup {
 
+    /**
+     * Create an instance from the resourceId, context, namespace and timeout.
+     *
+     * @param resourceId the id of the resource
+     * @param context the k8s context
+     * @param namespace the k8s namespace
+     * @param timeout the timeout of the pre-pull deployment
+     */
     public PrePullGroup(Long resourceId, String context, String namespace, long timeout) {
         this.identifier = resourceId + namespace;
         this.context = context;

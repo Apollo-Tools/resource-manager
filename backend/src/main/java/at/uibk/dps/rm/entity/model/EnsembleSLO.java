@@ -15,6 +15,11 @@ import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.List;
 
+/**
+ * Represents the ensemble_slo.
+ *
+ * @author matthi-g
+ */
 @Entity
 @Getter
 @Setter

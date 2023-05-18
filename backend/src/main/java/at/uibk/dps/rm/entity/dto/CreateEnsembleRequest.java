@@ -9,6 +9,11 @@ import lombok.EqualsAndHashCode;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents the body of the createEnsemble operation.
+ *
+ * @author matthi-g
+ */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @JsonDeserialize(using = SLORequestDeserializer.class)

@@ -12,6 +12,11 @@ import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.List;
 
+/**
+ * Represents the ensemble entity.
+ *
+ * @author matthi-g
+ */
 @Entity
 @Getter
 @Setter

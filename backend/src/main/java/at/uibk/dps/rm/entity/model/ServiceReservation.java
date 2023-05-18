@@ -5,6 +5,11 @@ import lombok.Setter;
 
 import javax.persistence.*;
 
+/**
+ * Represents the service_reservation entity.
+ *
+ * @author matthi-g
+ */
 @Entity
 @DiscriminatorValue("service")
 @Getter

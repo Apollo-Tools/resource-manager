@@ -9,6 +9,11 @@ import lombok.Data;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Superclass of requests that contain service level objectives.
+ *
+ * @author matthi-g
+ */
 @Data
 @JsonDeserialize(using = SLORequestDeserializer.class)
 public abstract class SLORequest {

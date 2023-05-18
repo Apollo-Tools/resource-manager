@@ -12,6 +12,12 @@ import lombok.EqualsAndHashCode;
 import java.sql.Timestamp;
 import java.util.List;
 
+
+/**
+ * Represents the response body of the getEnsemble operation.
+ *
+ * @author matthi-g
+ */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @JsonDeserialize(using = SLORequestDeserializer.class)

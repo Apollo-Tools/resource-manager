@@ -5,6 +5,11 @@ import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 
+/**
+ * Convert an object of type {@link ExpressionType} into a string value and vice versa.
+ *
+ * @author matthi-g
+ */
 @Converter
 public class ExpressionConverter implements AttributeConverter<ExpressionType, String> {
     @Override

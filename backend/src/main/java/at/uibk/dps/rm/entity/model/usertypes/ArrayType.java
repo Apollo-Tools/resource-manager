@@ -12,8 +12,15 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Used to define database arrays. Currently only works with items of type long.
+ * For other types use {@link ArrayConverter}.
+ *
+ * @param <T> The type of the array items
+ * @author matthi-g
+ */
 @SuppressWarnings("unchecked")
-public abstract class ArrayType<T> implements UserType{
+public abstract class ArrayType<T> implements UserType {
     @Override
     public int[] sqlTypes() {
         return new int[]{Types.ARRAY};
@@ -46,13 +53,13 @@ public abstract class ArrayType<T> implements UserType{
     }
 
     @Override
-    public boolean equals(Object x, Object y) throws HibernateException {
-        return x != null && x.equals(y);
+    public boolean equals(Object obj1, Object obj2) throws HibernateException {
+        return obj1 != null && obj1.equals(obj2);
     }
 
     @Override
-    public int hashCode(Object x) throws HibernateException {
-        return x == null ? 0 : x.hashCode();
+    public int hashCode(Object object) throws HibernateException {
+        return object == null ? 0 : object.hashCode();
     }
 
     @Override

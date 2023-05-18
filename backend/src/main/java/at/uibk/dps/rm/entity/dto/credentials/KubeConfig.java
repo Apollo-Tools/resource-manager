@@ -8,6 +8,12 @@ import lombok.Setter;
 
 import java.util.List;
 
+/**
+ * Represents the necessary details of a kube config to extract the right namespaces
+ * and contexts.
+ *
+ * @author matthi-g
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
 @Setter

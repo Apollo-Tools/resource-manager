@@ -5,6 +5,11 @@ import lombok.Setter;
 
 import javax.persistence.*;
 
+/**
+ * Represents the resource_reservation entity with type function.
+ *
+ * @author matthi-g
+ */
 @Entity
 @DiscriminatorValue("function")
 @Getter
