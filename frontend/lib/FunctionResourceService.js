@@ -29,7 +29,7 @@ export async function listFunctionResources(functionId, token, setFunctionResour
  * Add resources to a function.
  *
  * @param {number} functionId the id of the function
- * @param {List<*>} resources the resources
+ * @param {any[]} resources the resources
  * @param {string} token the access token
  * @param {function} setError the function to set the error if one occurs
  */
