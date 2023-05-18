@@ -53,6 +53,13 @@ public class FunctionChecker extends EntityChecker {
         return Single.just(entity);
     }
 
+    /**
+     * Check if all functions from the given list exist by their function id.
+     *
+     * @param functionResourceIds the list of function resources
+     * @return a Completable if all functions exist, else an NotFoundException
+     * gets thrown
+     */
     public Completable checkExistAllByIds(List<FunctionResourceIds> functionResourceIds) {
         Single<Boolean> existsAllByFunctionIds = Observable.fromIterable(functionResourceIds)
             .map(FunctionResourceIds::getFunctionId)

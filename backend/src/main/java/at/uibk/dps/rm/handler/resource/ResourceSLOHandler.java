@@ -57,15 +57,27 @@ public class ResourceSLOHandler {
         this.metricValueChecker = metricValueChecker;
     }
 
+    /**
+     * Validate the resources for a create ensemble request.
+     *
+     * @param rc the rounting context
+     * @param requestDTO the request
+     */
     public void validateNewResourceEnsembleSLOs(RoutingContext rc, CreateEnsembleRequest requestDTO) {
         getResourcesBySLOs(requestDTO)
-            .flatMap(resources -> {
+            .flatMapCompletable(resources -> {
                 List<ResourceId> resourceIds = requestDTO.getResources();
                 return checkResourcesFulfillSLOs(resourceIds, resources);
             })
-            .subscribe(res -> rc.next(), throwable -> rc.fail(400, throwable));
+            .subscribe(rc::next, throwable -> rc.fail(400, throwable));
     }
 
+    /**
+     * Validate the resources from an existing ensemble.
+     *
+     * @param ensemble the ensemble
+     * @return a Single that emits the List of pairs of resource_ids and their validation status
+     */
     public Single<List<ResourceEnsembleStatus>> validateExistingEnsemble(GetOneEnsemble ensemble) {
         return getResourcesBySLOs(ensemble)
             .flatMap(resources -> Observable.fromIterable(ensemble.getResources())
@@ -100,11 +112,20 @@ public class ResourceSLOHandler {
             .map(resources -> filterAndSortResultList(resources, serviceLevelObjectives));
     }
 
-    public Single<List<ResourceEnsembleStatus>> getResourceEnsembleStatus(List<ResourceId> resourceIds, JsonArray resources)
-        throws JsonProcessingException {
+    /**
+     * Get the slo status of all resources
+     *
+     * @param validResourceIds the ids of all valid resources
+     * @param resources the resources to validate
+     * @return the List of pairs of resource_ids and their validation status being true for valid
+     * and false for invalid
+     * @throws JsonProcessingException  when an error occurs during json processing
+     */
+    public Single<List<ResourceEnsembleStatus>> getResourceEnsembleStatus(List<ResourceId> validResourceIds,
+            JsonArray resources) throws JsonProcessingException {
         ObjectMapper mapper = DatabindCodec.mapper();
         List<Resource> resourceList = mapper.readValue(resources.toString(), new TypeReference<>() {});
-        return Observable.fromIterable(resourceIds)
+        return Observable.fromIterable(validResourceIds)
             .map(ResourceId::getResourceId)
             .map(resourceId -> {
                 boolean isValid = resourceList.stream()
@@ -114,11 +135,19 @@ public class ResourceSLOHandler {
             .toList();
     }
 
-    public Single<Resource> checkResourcesFulfillSLOs(List<ResourceId> resourceIds, JsonArray resources)
+    /**
+     * Check if resources fulfill service level objectives.
+     *
+     * @param validResourceIds the ids of all valid resources
+     * @param resources the resources to validate
+     * @return a Completable if all resources fulfill the slos else a throwable is thrown
+     * @throws JsonProcessingException when an error occurs during json processing
+     */
+    public Completable checkResourcesFulfillSLOs(List<ResourceId> validResourceIds, JsonArray resources)
         throws JsonProcessingException {
         ObjectMapper mapper = DatabindCodec.mapper();
         List<Resource> resourceList = mapper.readValue(resources.toString(), new TypeReference<>() {});
-        return Observable.fromIterable(resourceIds)
+        return Observable.fromIterable(validResourceIds)
             .map(ResourceId::getResourceId)
             .all(resourceId -> resourceList.stream()
                 .anyMatch(resource -> Objects.equals(resource.getResourceId(), resourceId)))
@@ -126,8 +155,9 @@ public class ResourceSLOHandler {
                 if (!result) {
                     throw new Throwable("slo mismatch");
                 }
-                return new Resource();
-            });
+                return true;
+            })
+            .ignoreElement();
     }
 
     /**

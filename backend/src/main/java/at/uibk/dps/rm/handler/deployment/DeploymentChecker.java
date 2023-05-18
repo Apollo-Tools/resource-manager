@@ -166,6 +166,13 @@ public class DeploymentChecker {
             });
     }
 
+    /**
+     * Terminate all container resources from a reservation.
+     *
+     * @param request the request containing all data that is necessary for the termination
+     * @param deploymentPath the deployment path of the reservation
+     * @return a Completable
+     */
     public Completable terminateAllContainerResources(TerminateResourcesRequest request, DeploymentPath deploymentPath) {
         return Observable.fromIterable(request.getServiceReservations())
             .map(serviceReservation -> {
@@ -189,6 +196,13 @@ public class DeploymentChecker {
         return deploymentService.deleteTFDirs(reservationId);
     }
 
+    /**
+     * Deploy a container from a reservation.
+     *
+     * @param reservationId the id of the reservation
+     * @param resourceReservationId the id of the resource reservation
+     * @return a Completable
+     */
     public Completable deployContainer(long reservationId, long resourceReservationId) {
         Vertx vertx = Vertx.currentContext().owner();
         Reservation reservation = new Reservation();
@@ -204,6 +218,13 @@ public class DeploymentChecker {
             });
     }
 
+    /**
+     * Terminate a container from a reservation.
+     *
+     * @param reservationId the id of the reservation
+     * @param resourceReservationId the id of the resource reservation
+     * @return a Completable
+     */
     public Completable terminateContainer(long reservationId, long resourceReservationId) {
         Vertx vertx = Vertx.currentContext().owner();
         Reservation reservation = new Reservation();

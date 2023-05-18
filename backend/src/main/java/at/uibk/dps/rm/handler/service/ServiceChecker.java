@@ -12,6 +12,13 @@ import io.vertx.core.json.JsonObject;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Implements methods to perform CRUD operations on the service entity.
+ *
+ * @see EntityChecker
+ *
+ * @author matthi-g
+ */
 public class ServiceChecker extends EntityChecker {
 
     private final ServiceService service;
@@ -31,6 +38,13 @@ public class ServiceChecker extends EntityChecker {
         return ErrorHandler.handleDuplicates(existsByName).ignoreElement();
     }
 
+    /**
+     * Check if all services from the given list exist by their service id.
+     *
+     * @param serviceResourceIds the list of service resources
+     * @return a Completable if all services exist, else an NotFoundException
+     * gets thrown
+     */
     public Completable checkExistAllByIds(List<ServiceResourceIds> serviceResourceIds) {
         Single<Boolean> existsAllByServiceIds =  Observable.fromIterable(serviceResourceIds)
             .map(ServiceResourceIds::getServiceId)

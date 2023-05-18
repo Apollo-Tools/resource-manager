@@ -33,6 +33,7 @@ public class ReservationChecker  extends EntityChecker {
     /**
      * Find all reservations by account.
      *
+     * @param accountId the id of the account
      * @return a Single that emits all found reservations as JsonArray
      */
     public Single<JsonArray> checkFindAll(long accountId) {

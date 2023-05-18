@@ -62,11 +62,23 @@ public class ResourceChecker extends EntityChecker {
         return ErrorHandler.handleFindAll(findAllByFunction);
     }
 
+    /**
+     * Find all resources by ensemble.
+     *
+     * @param ensembleId the id of the ensemble
+     * @return a Single that emits all found resources as JsonArray
+     */
     public Single<JsonArray> checkFindAllByEnsemble(long ensembleId) {
         Single<JsonArray> findAllByEnsemble = resourceService.findAllByEnsembleId(ensembleId);
         return ErrorHandler.handleFindAll(findAllByEnsemble);
     }
 
+    /**
+     * Find all resources by a list of resource ids.
+     *
+     * @param resourceIds the list of resource ids
+     * @return a Single that emits all found resources as JsonArray
+     */
     public Single<JsonArray> checkFindAllByResourceIds(List<Long> resourceIds) {
         Single<JsonArray> findAllByResourceIds = resourceService.findAllByResourceId(resourceIds);
         return ErrorHandler.handleFindAll(findAllByResourceIds);
@@ -76,13 +88,22 @@ public class ResourceChecker extends EntityChecker {
      * Check if at least one resource is used by resource type.
      *
      * @param resourceTypeId the id of the resource type
-     * @return a Completable
+     * @return a Completable the resource is not used by another entity, else a
+     * UsedByOtherEntityException gets thrown
      */
     public Completable checkOneUsedByResourceType(long resourceTypeId) {
         Single<Boolean> existsOneByResourceType = resourceService.existsOneByResourceType(resourceTypeId);
         return ErrorHandler.handleUsedByOtherEntity(existsOneByResourceType).ignoreElement();
     }
 
+    /**
+     * Check whether all resources from the serviceResourceIds and functionResourceIds exists with
+     * a suitable resource type.
+     *
+     * @param serviceResourceIds the list of service resource ids
+     * @param functionResourceIds the list of function resource ids
+     * @return a Completable if all resources exists, else  a NotFoundException gets thrown
+     */
     public Completable checkExistAllByIdsAndResourceType(List<ServiceResourceIds> serviceResourceIds,
         List<FunctionResourceIds> functionResourceIds) {
         List<String> functionResourceTypes = List.of(ResourceTypeEnum.EDGE.getValue(), ResourceTypeEnum.FAAS.getValue(),
