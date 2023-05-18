@@ -37,6 +37,13 @@ export async function createResource(resourceTypeId, isSelfManaged, regionId, to
   }
 }
 
+/**
+ * List all existing resources.
+ *
+ * @param {string} token the access token
+ * @param {function} setResources the function to set the retrieved resources
+ * @param {function} setError the function to set the error if one occurred
+ */
 export async function listResources(token, setResources, setError) {
   try {
     const route = `${API_ROUTE}`;
@@ -54,6 +61,14 @@ export async function listResources(token, setResources, setError) {
   }
 }
 
+/**
+ * Get the details of a resource.
+ *
+ * @param {number} id the id of the resource
+ * @param {string} token the access token
+ * @param {function} setResource the function to set the retrieved resource
+ * @param {function} setError the function to set the error if one occured
+ */
 export async function getResource(id, token, setResource, setError) {
   try {
     const response = await fetch(`${API_ROUTE}/${id}`, {
@@ -70,28 +85,14 @@ export async function getResource(id, token, setResource, setError) {
   }
 }
 
-export async function updateResource(id, resourceTypeId, isSelfManaged, token, setError) {
-  try {
-    const response = await fetch(`${API_ROUTE}/${id}`, {
-      method: 'PATCH',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        resource_type: {
-          type_id: resourceTypeId,
-        },
-        is_self_managed: isSelfManaged,
-      }),
-    });
-    return response.ok;
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
-}
-
+/**
+ * Delete an existing resource.
+ *
+ * @param {number} id the id of the resource
+ * @param {string} token the access token
+ * @param {function} setError the function to set the error if one occurred
+ * @return {Promise<boolean>} true if the request was successful
+ */
 export async function deleteResource(id, token, setError) {
   try {
     const response = await fetch(`${API_ROUTE}/${id}`, {
@@ -107,6 +108,14 @@ export async function deleteResource(id, token, setError) {
   }
 }
 
+/**
+ * Add metric values to an existing resource.
+ *
+ * @param {number} resourceId the id of the resource
+ * @param {any[]} metricValues the metric values to add
+ * @param {string} token the access token
+ * @param {function} setError the function to set the error if one occurred
+ */
 export async function addResourceMetrics(resourceId, metricValues, token, setError) {
   try {
     const response = await fetch(`${API_ROUTE}/${resourceId}/metrics`, {
@@ -124,7 +133,14 @@ export async function addResourceMetrics(resourceId, metricValues, token, setErr
   }
 }
 
-
+/**
+ * List all resources that conform the given service level objectives (slo).
+ *
+ * @param {any[]} slos the service level objectives
+ * @param {string} token the access token
+ * @param {function} setResources the function to set the retrieved resources
+ * @param {function} setError the function to set the error if one occurred
+ */
 export async function listResourcesBySLOs(slos, token, setResources, setError) {
   try {
     const route = `${API_ROUTE}/slo`;

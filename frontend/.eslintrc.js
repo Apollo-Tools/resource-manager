@@ -18,6 +18,7 @@ module.exports = {
   'plugins': [
     'react',
   ],
+  'ignorePatterns': ['*__ENV.js'],
   'rules': {
     'linebreak-style': 0,
     'max-len': [
