@@ -2,7 +2,7 @@ import Head from 'next/head';
 import {siteTitle} from '../components/misc/Sidebar';
 import Link from 'next/link';
 
-export default function Home() {
+const Home = () => {
   return (
     <>
       <Head>
@@ -24,4 +24,6 @@ export default function Home() {
       </section>
     </>
   );
-}
+};
+
+export default Home;

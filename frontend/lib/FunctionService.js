@@ -1,6 +1,16 @@
 import env from '@beam-australia/react-env';
 const API_ROUTE = `${env('API_URL')}/functions`;
 
+/**
+ * Create a new function.
+ *
+ * @param {number} runtimeId the id of the runtime
+ * @param {string} name the name of the function
+ * @param {string} code the code of the function
+ * @param {string} token the access token
+ * @param {function} setFunction the function to set the created function
+ * @param {function} setError the function to set the error if one occurs
+ */
 export async function createFunction(runtimeId, name, code, token, setFunction, setError) {
   try {
     const response = await fetch(`${API_ROUTE}`, {
@@ -25,6 +35,13 @@ export async function createFunction(runtimeId, name, code, token, setFunction, 
   }
 }
 
+/**
+ * List all existing functions.
+ *
+ * @param {string} token the access token
+ * @param {function} setFunctions the function to set the retrieved functions
+ * @param {function} setError the function to set the error if one occurs
+ */
 export async function listFunctions(token, setFunctions, setError) {
   try {
     const response = await fetch(API_ROUTE, {
@@ -41,6 +58,14 @@ export async function listFunctions(token, setFunctions, setError) {
   }
 }
 
+/**
+ * Get the details of one function.
+ *
+ * @param {number} id the id of the function
+ * @param {string} token the access token
+ * @param {function} setFunction the function to set the retrieved function
+ * @param {function} setError the function to set the error if one occurs
+ */
 export async function getFunction(id, token, setFunction, setError) {
   try {
     const response = await fetch(`${API_ROUTE}/${id}`, {
@@ -57,6 +82,15 @@ export async function getFunction(id, token, setFunction, setError) {
   }
 }
 
+/**
+ * Update an existing function.
+ *
+ * @param {number} id the id of the function
+ * @param {string} code the code to update
+ * @param {string} token the access token
+ * @param {function} setError the function to set the error if one occurs
+ * @return {Promise<boolean>} true if the request was successful
+ */
 export async function updateFunction(id, code, token, setError) {
   try {
     const response = await fetch(`${API_ROUTE}/${id}`, {
@@ -76,6 +110,14 @@ export async function updateFunction(id, code, token, setError) {
   }
 }
 
+/**
+ * Delete an existing function.
+ *
+ * @param {number} id the id of the function
+ * @param {string} token the access token
+ * @param {function} setError the function to set the error if one occurs
+ * @return {Promise<boolean>} true if the request was successful
+ */
 export async function deleteFunction(id, token, setError) {
   try {
     const response = await fetch(`${API_ROUTE}/${id}`, {

@@ -17,7 +17,7 @@ const Resources = () => {
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listResources(false, token, setResources, setError);
+      listResources(token, setResources, setError);
     }
   }, []);
 

@@ -21,7 +21,7 @@ const AddFunctionResourcesForm = ({
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listResources(false, token, setResources, setError)
+      listResources(token, setResources, setError)
           .then(() => {
             setResources((prevResources) => {
               let filteredResources = prevResources;
