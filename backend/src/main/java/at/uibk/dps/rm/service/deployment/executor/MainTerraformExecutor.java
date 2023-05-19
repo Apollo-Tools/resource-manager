@@ -11,7 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Provides the implementation of different terraform operations.
+ * Extends the default terraform executor with additional parameters
+ * for used for the deployment of the main modules.
  *
  * @author matthi-g
  */

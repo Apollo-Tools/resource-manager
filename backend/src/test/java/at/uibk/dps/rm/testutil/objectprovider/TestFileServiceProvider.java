@@ -25,18 +25,18 @@ public class TestFileServiceProvider {
         String awsRole = "LabRole";
         Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime);
         Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime);
-        FunctionResource fr1 = TestFunctionProvider.createFunctionResource(1L, f1, r1);
-        FunctionResource fr2 = TestFunctionProvider.createFunctionResource(2L, f1, r2);
-        FunctionResource fr3 = TestFunctionProvider.createFunctionResource(3L, f2, r2);
-        FunctionResource fr4 = TestFunctionProvider.createFunctionResource(4L, f1, r3);
-        List<FunctionResource> functionResources = List.of(fr1, fr2, fr3, fr4);
+        FunctionReservation fr1 = TestFunctionProvider.createFunctionReservation(1L, f1, r1);
+        FunctionReservation fr2 = TestFunctionProvider.createFunctionReservation(2L, f1, r2);
+        FunctionReservation fr3 = TestFunctionProvider.createFunctionReservation(3L, f2, r2);
+        FunctionReservation fr4 = TestFunctionProvider.createFunctionReservation(4L, f1, r3);
+        List<FunctionReservation> functionReservations = List.of(fr1, fr2, fr3, fr4);
         long reservationId = 1L;
         TerraformModule module = new TerraformModule(CloudProvider.AWS, region.getResourceProvider()
             .getProvider() + "_" + region.getName().replace("-", "_"));
         String dockerUserName = "dockerUser";
         VPC vpc = TestResourceProviderProvider.createVPC(1L, region);
         return new AWSFileService(fileSystem, rootFolder, functionsDir, region, awsRole,
-            functionResources, reservationId, module, dockerUserName, vpc);
+            functionReservations, reservationId, module, dockerUserName, vpc);
     }
 
     public static AWSFileService createAWSFileServiceFaasVMEdge(FileSystem fileSystem, Runtime runtime) {
@@ -88,14 +88,14 @@ public class TestFileServiceProvider {
         Path rootFolder = Paths.get("temp\\test");
         Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime);
         Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime);
-        FunctionResource fr1 = TestFunctionProvider.createFunctionResource(1L, f1, r1);
-        FunctionResource fr2 = TestFunctionProvider.createFunctionResource(2L, f1, r2);
-        FunctionResource fr3 = TestFunctionProvider.createFunctionResource(3L, f2, r2);
-        FunctionResource fr4 = TestFunctionProvider.createFunctionResource(4L, f1, r3);
-        List<FunctionResource> functionResources = List.of(fr1, fr2, fr3, fr4);
+        FunctionReservation fr1 = TestFunctionProvider.createFunctionReservation(1L, f1, r1);
+        FunctionReservation fr2 = TestFunctionProvider.createFunctionReservation(2L, f1, r2);
+        FunctionReservation fr3 = TestFunctionProvider.createFunctionReservation(3L, f2, r2);
+        FunctionReservation fr4 = TestFunctionProvider.createFunctionReservation(4L, f1, r3);
+        List<FunctionReservation> functionReservations = List.of(fr1, fr2, fr3, fr4);
         long reservationId = 1L;
         String dockerUserName = "dockerUser";
-        return new EdgeFileService(fileSystem, rootFolder, functionResources, reservationId, dockerUserName);
+        return new EdgeFileService(fileSystem, rootFolder, functionReservations, reservationId, dockerUserName);
     }
 
     public static EdgeFileService createEdgeFileServiceEdge(FileSystem fileSystem) {
@@ -118,23 +118,23 @@ public class TestFileServiceProvider {
 
     public static FunctionFileService createFunctionFileService(Vertx vertx, Resource r1, Resource r2, Function f1,
                                                                 Function f2) {
-        FunctionResource fr1 = TestFunctionProvider.createFunctionResource(1L, f1, r1);
-        FunctionResource fr2 = TestFunctionProvider.createFunctionResource(2L, f2, r2);
-        List<FunctionResource> functionResources = List.of(fr1, fr2);
+        FunctionReservation fr1 = TestFunctionProvider.createFunctionReservation(1L, f1, r1);
+        FunctionReservation fr2 = TestFunctionProvider.createFunctionReservation(2L, f2, r2);
+        List<FunctionReservation> functionReservations = List.of(fr1, fr2);
         DockerCredentials credentials = new DockerCredentials();
         credentials.setUsername("user");
         credentials.setAccessToken("access-token");
         Path functionsDir = Paths.get("temp\\test\\functions");
-        return new FunctionFileService(vertx, functionResources, functionsDir, credentials);
+        return new FunctionFileService(vertx, functionReservations, functionsDir, credentials);
     }
 
     public static FunctionFileService createFunctionFileServiceNoFunctions(Vertx vertx) {
-        List<FunctionResource> functionResources = new ArrayList<>();
+        List<FunctionReservation> functionReservations = new ArrayList<>();
         DockerCredentials credentials = new DockerCredentials();
         credentials.setUsername("user");
         credentials.setAccessToken("access-token");
         Path functionsDir = Paths.get("temp\\test\\functions");
-        return new FunctionFileService(vertx, functionResources, functionsDir, credentials);
+        return new FunctionFileService(vertx, functionReservations, functionsDir, credentials);
     }
 
     public static FunctionFileService createFunctionFileServiceFaasVMPython(Vertx vertx) {

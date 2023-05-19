@@ -7,6 +7,7 @@ import at.uibk.dps.rm.service.rxjava3.database.metric.ResourceTypeMetricService;
 import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -74,8 +75,8 @@ public class ResourceTypeMetricCheckerTest {
         FunctionResource fr1 = TestFunctionProvider.createFunctionResource(1L, 1L);
         FunctionResource fr2 = TestFunctionProvider.createFunctionResource(2L, 2L);
         FunctionResource fr3 = TestFunctionProvider.createFunctionResource(3L, 2L);
-        List<JsonObject> functionResources = List.of(JsonObject.mapFrom(fr1), JsonObject.mapFrom(fr2),
-            JsonObject.mapFrom(fr3));
+        JsonArray functionResources = new JsonArray(List.of(JsonObject.mapFrom(fr1), JsonObject.mapFrom(fr2),
+            JsonObject.mapFrom(fr3)));
 
         when(service.missingRequiredResourceTypeMetricsByResourceId(or(eq(1L), eq(2L))))
             .thenReturn(Single.just(false));
@@ -92,8 +93,8 @@ public class ResourceTypeMetricCheckerTest {
         FunctionResource fr1 = TestFunctionProvider.createFunctionResource(1L, 1L);
         FunctionResource fr2 = TestFunctionProvider.createFunctionResource(2L, 2L);
         FunctionResource fr3 = TestFunctionProvider.createFunctionResource(3L, 2L);
-        List<JsonObject> functionResources = List.of(JsonObject.mapFrom(fr1), JsonObject.mapFrom(fr2),
-            JsonObject.mapFrom(fr3));
+        JsonArray functionResources = new JsonArray(List.of(JsonObject.mapFrom(fr1), JsonObject.mapFrom(fr2),
+            JsonObject.mapFrom(fr3)));
 
         when(service.missingRequiredResourceTypeMetricsByResourceId(1L))
             .thenReturn(Single.just(false));

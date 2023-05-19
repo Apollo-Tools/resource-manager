@@ -127,16 +127,16 @@ public class ResourceReservationCheckerTest {
         DeploymentOutput deploymentOutput = TestDTOProvider.createDeploymentOutput();
 
         when(processOutput.getOutput()).thenReturn(JsonObject.mapFrom(deploymentOutput).encode());
-        when(resourceReservationService.updateTriggerUrl(1L, reservationId,
-            "http://localhostfaas1")).thenReturn(Completable.complete());
-        when(resourceReservationService.updateTriggerUrl(2L, reservationId,
-            "http://localhostvm1")).thenReturn(Completable.complete());
-        when(resourceReservationService.updateTriggerUrl(3L, reservationId,
-            "http://localhostvm2")).thenReturn(Completable.complete());
-        when(resourceReservationService.updateTriggerUrl(4L, reservationId,
-            "http://localhostedge1")).thenReturn(Completable.complete());
+        when(resourceReservationService.updateTriggerUrl(1L, "http://localhostfaas1"))
+            .thenReturn(Completable.complete());
+        when(resourceReservationService.updateTriggerUrl(2L, "http://localhostvm1"))
+            .thenReturn(Completable.complete());
+        when(resourceReservationService.updateTriggerUrl(3L, "http://localhostvm2"))
+            .thenReturn(Completable.complete());
+        when(resourceReservationService.updateTriggerUrl(4L, "http://localhostedge1"))
+            .thenReturn(Completable.complete());
 
-        resourceReservationChecker.storeOutputToFunctionResources(processOutput, request)
+        resourceReservationChecker.storeOutputToResourceReservations(processOutput, request)
             .blockingSubscribe(() -> {},
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
@@ -150,7 +150,7 @@ public class ResourceReservationCheckerTest {
 
         when(processOutput.getOutput()).thenReturn(JsonObject.mapFrom(deploymentOutput).encode());
 
-        resourceReservationChecker.storeOutputToFunctionResources(processOutput, request)
+        resourceReservationChecker.storeOutputToResourceReservations(processOutput, request)
             .blockingSubscribe(() -> {},
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );

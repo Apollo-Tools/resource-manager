@@ -9,7 +9,7 @@ import java.util.List;
 public class TestReservationProvider {
     public static ResourceReservation createResourceReservation(long id, FunctionResource functionResource, Reservation reservation,
                                                                 ResourceReservationStatus resourceReservationStatus) {
-        ResourceReservation resourceReservation = new ResourceReservation();
+        ResourceReservation resourceReservation = new FunctionReservation();
         resourceReservation.setResourceReservationId(id);
         resourceReservation.setFunctionResource(functionResource);
         resourceReservation.setReservation(reservation);
@@ -70,5 +70,23 @@ public class TestReservationProvider {
             reservation, new ResourceReservationStatus());
         return List.of(JsonObject.mapFrom(resourceReservation1), JsonObject.mapFrom(resourceReservation2),
             JsonObject.mapFrom(resourceReservation3));
+    }
+
+    public static FunctionReservation createFunctionReservation(long id, Reservation reservation) {
+        FunctionReservation functionReservation = new FunctionReservation();
+        functionReservation.setResourceReservationId(id);
+        functionReservation.setFunction(TestFunctionProvider.createFunction(id));
+        functionReservation.setReservation(reservation);
+        functionReservation.setStatus(createResourceReservationStatusNew());
+        return functionReservation;
+    }
+
+    public static ServiceReservation createServiceReservation(long id, Reservation reservation) {
+        ServiceReservation serviceReservation = new ServiceReservation();
+        serviceReservation.setResourceReservationId(id);
+        serviceReservation.setService(TestServiceProvider.createService(id));
+        serviceReservation.setReservation(reservation);
+        serviceReservation.setStatus(createResourceReservationStatusNew());
+        return serviceReservation;
     }
 }

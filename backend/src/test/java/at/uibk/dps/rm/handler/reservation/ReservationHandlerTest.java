@@ -46,6 +46,12 @@ public class ReservationHandlerTest {
     private ResourceReservationChecker resourceReservationChecker;
 
     @Mock
+    private FunctionReservationChecker functionReservationChecker;
+
+    @Mock
+    private ServiceReservationChecker serviceReservationChecker;
+
+    @Mock
     private ResourceReservationStatusChecker statusChecker;
 
     @Mock
@@ -64,7 +70,8 @@ public class ReservationHandlerTest {
     void initTest() {
         JsonMapperConfig.configJsonMapper();
         reservationHandler = new ReservationHandler(reservationChecker, resourceReservationChecker,
-            statusChecker, deploymentHandler, reservationErrorHandler, preconditionChecker);
+            functionReservationChecker, serviceReservationChecker, statusChecker, deploymentHandler,
+            reservationErrorHandler, preconditionChecker);
     }
 
     @Test
@@ -245,14 +252,15 @@ public class ReservationHandlerTest {
         FunctionResource fr2 = TestFunctionProvider.createFunctionResource(2L, f1, r2);
         FunctionResource fr3 = TestFunctionProvider.createFunctionResource(3L, f2, r2);
         FunctionResource fr4 = TestFunctionProvider.createFunctionResource(4L, f2, r3);
-        List<JsonObject> functionResources = List.of(JsonObject.mapFrom(fr1), JsonObject.mapFrom(fr2),
-            JsonObject.mapFrom(fr3), JsonObject.mapFrom(fr4));
+        JsonArray functionResources = new JsonArray(List.of(JsonObject.mapFrom(fr1), JsonObject.mapFrom(fr2),
+            JsonObject.mapFrom(fr3), JsonObject.mapFrom(fr4)));
         FunctionResourceIds ids1 = TestFunctionProvider.createFunctionResourceIds(fr1);
         FunctionResourceIds ids2 = TestFunctionProvider.createFunctionResourceIds(fr2);
         FunctionResourceIds ids3 = TestFunctionProvider.createFunctionResourceIds(fr3);
         FunctionResourceIds ids4 = TestFunctionProvider.createFunctionResourceIds(fr4);
         List<FunctionResourceIds> ids = List.of(ids1, ids2, ids3, ids4);
         DockerCredentials dockerCredentials = TestDTOProvider.createDockerCredentials();
+        String kubeconfig = TestDTOProvider.createKubeConfigValue();
         ReserveResourcesRequest request = TestRequestProvider.createReserveResourcesRequest(ids, dockerCredentials);
         JsonObject requestBody = JsonObject.mapFrom(request);
         Account account = TestAccountProvider.createAccount(1L);
@@ -270,7 +278,7 @@ public class ReservationHandlerTest {
         when(statusChecker.checkFindOneByStatusValue(ReservationStatusValue.NEW.name()))
             .thenReturn(Single.just(JsonObject.mapFrom(statusNew)));
         when(resourceReservationChecker.submitCreateAll(any())).thenReturn(Completable.complete());
-        when(deploymentHandler.deployResources(reservation, account.getAccountId(), dockerCredentials,
+        when(deploymentHandler.deployResources(reservation, account.getAccountId(), dockerCredentials, kubeconfig,
             new ArrayList<>()))
             .thenReturn(Completable.complete());
         when(resourceReservationChecker.submitUpdateStatus(reservation.getReservationId(), ReservationStatusValue.DEPLOYED))
@@ -302,14 +310,15 @@ public class ReservationHandlerTest {
         FunctionResource fr2 = TestFunctionProvider.createFunctionResource(2L, f1, r2);
         FunctionResource fr3 = TestFunctionProvider.createFunctionResource(3L, f2, r2);
         FunctionResource fr4 = TestFunctionProvider.createFunctionResource(4L, f2, r3);
-        List<JsonObject> functionResources = List.of(JsonObject.mapFrom(fr1), JsonObject.mapFrom(fr2),
-            JsonObject.mapFrom(fr3), JsonObject.mapFrom(fr4));
+        JsonArray functionResources = new JsonArray(List.of(JsonObject.mapFrom(fr1), JsonObject.mapFrom(fr2),
+            JsonObject.mapFrom(fr3), JsonObject.mapFrom(fr4)));
         FunctionResourceIds ids1 = TestFunctionProvider.createFunctionResourceIds(fr1);
         FunctionResourceIds ids2 = TestFunctionProvider.createFunctionResourceIds(fr2);
         FunctionResourceIds ids3 = TestFunctionProvider.createFunctionResourceIds(fr3);
         FunctionResourceIds ids4 = TestFunctionProvider.createFunctionResourceIds(fr4);
         List<FunctionResourceIds> ids = List.of(ids1, ids2, ids3, ids4);
         DockerCredentials dockerCredentials = TestDTOProvider.createDockerCredentials();
+        String kubeconfig = TestDTOProvider.createKubeConfigValue();
         ReserveResourcesRequest request = TestRequestProvider.createReserveResourcesRequest(ids, dockerCredentials);
         JsonObject requestBody = JsonObject.mapFrom(request);
         Account account = TestAccountProvider.createAccount(1L);
@@ -327,7 +336,7 @@ public class ReservationHandlerTest {
         when(statusChecker.checkFindOneByStatusValue(ReservationStatusValue.NEW.name()))
             .thenReturn(Single.just(JsonObject.mapFrom(statusNew)));
         when(resourceReservationChecker.submitCreateAll(any())).thenReturn(Completable.complete());
-        when(deploymentHandler.deployResources(reservation, account.getAccountId(), dockerCredentials,
+        when(deploymentHandler.deployResources(reservation, account.getAccountId(), dockerCredentials, kubeconfig,
             new ArrayList<>()))
             .thenReturn(Completable.error(DeploymentTerminationFailedException::new));
         when(reservationErrorHandler.onDeploymentError(eq(account.getAccountId()), eq(reservation),

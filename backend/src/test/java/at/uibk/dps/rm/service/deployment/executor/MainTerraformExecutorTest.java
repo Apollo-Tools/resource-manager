@@ -34,7 +34,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class TerraformExecutorTest {
+public class MainTerraformExecutorTest {
 
     private final JsonObject config = TestConfigProvider.getConfig();
 
@@ -59,7 +59,7 @@ public class TerraformExecutorTest {
         Buffer fileContent = Buffer.buffer("plugin_cache_dir = \"" +
             cacheFolderPath.toString().replace("\\", "/") + "\"");
         String configPath = Paths.get("terraform", "config.tfrc").toString();
-        TerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSEdge(vertx);
+        MainTerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSEdge(vertx);
         when(vertx.fileSystem()).thenReturn(fileSystem);
         when(fileSystem.mkdirs(cacheFolderPath.toString())).thenReturn(Completable.complete());
         when(fileSystem.writeFile(configPath, fileContent)).thenReturn(Completable.complete());
@@ -75,7 +75,7 @@ public class TerraformExecutorTest {
     @Test
     void init(VertxTestContext testContext) {
         DeploymentPath deploymentPath = new DeploymentPath(1L, config);
-        TerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSEdge(vertx);
+        MainTerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSEdge(vertx);
         ProcessOutput processOutput = TestDTOProvider.createProcessOutput(process, "output");
 
         try (MockedConstruction<ProcessExecutor> ignored = Mockito.mockConstruction(ProcessExecutor.class,
@@ -97,7 +97,7 @@ public class TerraformExecutorTest {
     @Test
     void apply(VertxTestContext testContext) {
         DeploymentPath deploymentPath = new DeploymentPath(1L, config);
-        TerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSEdge(vertx);
+        MainTerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSEdge(vertx);
         ProcessOutput processOutput = TestDTOProvider.createProcessOutput(process, "output");
         List<String> commands = TestExecutorProvider.tfCommandsWithCredsAWSEdge("apply");
 
@@ -120,7 +120,7 @@ public class TerraformExecutorTest {
     @Test
     void getOutput(VertxTestContext testContext) {
         DeploymentPath deploymentPath = new DeploymentPath(1L, config);
-        TerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSEdge(vertx);
+        MainTerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSEdge(vertx);
         ProcessOutput processOutput = TestDTOProvider.createProcessOutput(process, "output");
         List<String> commands = List.of("terraform", "output", "--json");
 
@@ -143,7 +143,7 @@ public class TerraformExecutorTest {
     @Test
     void destroy(VertxTestContext testContext) {
         DeploymentPath deploymentPath = new DeploymentPath(1L, config);
-        TerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSEdge(vertx);
+        MainTerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSEdge(vertx);
         ProcessOutput processOutput = TestDTOProvider.createProcessOutput(process, "output");
         List<String> commands = TestExecutorProvider.tfCommandsWithCredsAWSEdge("destroy");
 
@@ -166,7 +166,7 @@ public class TerraformExecutorTest {
     @Test
     void destroyNoEdgeCredentials(VertxTestContext testContext) {
         DeploymentPath deploymentPath = new DeploymentPath(1L, config);
-        TerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWS(vertx);
+        MainTerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWS(vertx);
         ProcessOutput processOutput = TestDTOProvider.createProcessOutput(process, "output");
         List<String> commands = TestExecutorProvider.tfCommandsWithCredsAWS("destroy");
 
@@ -193,7 +193,7 @@ public class TerraformExecutorTest {
     })
     void getEdgeCredentialsCommand(String os) {
         System.setProperty("os.name", os);
-        TerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSEdge(vertx);
+        MainTerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSEdge(vertx);
         String expectedOutput = os.equals("Windows") ? "-var=\"edge_login_data=[{auth_user=\\\"user\\\"," +
             "auth_pw=\\\"pw\\\"},]\"" : "-var=edge_login_data=[{auth_user=\"user\",auth_pw=\"pw\"},]";
 

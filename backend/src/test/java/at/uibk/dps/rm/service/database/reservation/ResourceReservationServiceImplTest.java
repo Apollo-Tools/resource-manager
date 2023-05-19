@@ -94,14 +94,14 @@ public class ResourceReservationServiceImplTest {
 
     @Test
     void updateTriggerUrl(VertxTestContext testContext) {
-        long functionResourceId = 1L, reservationId = 2L;
+        long functionResourceId = 1L;
         String triggerUrl = "url";
         CompletionStage<Integer> completionStage = CompletionStages.completedFuture(1);
 
-        when(resourceReservationRepository.updateTriggerUrl(functionResourceId, reservationId, triggerUrl))
+        when(resourceReservationRepository.updateTriggerUrl(functionResourceId, triggerUrl))
             .thenReturn(completionStage);
 
-        resourceReservationService.updateTriggerUrl(functionResourceId, reservationId, triggerUrl)
+        resourceReservationService.updateTriggerUrl(functionResourceId, triggerUrl)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
                 testContext.completeNow();

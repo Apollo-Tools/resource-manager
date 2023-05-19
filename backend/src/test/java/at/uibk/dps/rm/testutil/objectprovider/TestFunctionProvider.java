@@ -112,4 +112,45 @@ public class TestFunctionProvider {
     public static FunctionResource createFunctionResource(long id, Function function, Resource resource) {
         return createFunctionResource(id, function, resource, false);
     }
+
+    public static FunctionReservation createFunctionReservation(long id, Function function, Resource resource,
+                                                                boolean isDeployed) {
+        FunctionReservation functionReservation = new FunctionReservation();
+        functionReservation.setResourceReservationId(id);
+        functionReservation.setFunction(function);
+        functionReservation.setResource(resource);
+        functionReservation.setIsDeployed(isDeployed);
+        return functionReservation;
+    }
+
+    public static FunctionReservation createFunctionReservation(long id, long resourceId) {
+        Function function = createFunction(22L, "func-test", "false");
+        Resource resource = TestResourceProvider.createResource(resourceId);
+        return createFunctionReservation(id, function, resource, true);
+    }
+
+    public static FunctionReservation createFunctionReservation(long id, long functionId, long resourceId,
+            Region region) {
+        Function function = createFunction(functionId, "func-test", "false");
+        Resource resource = TestResourceProvider.createResource(resourceId, region);
+        return createFunctionReservation(id, function, resource, true);
+    }
+
+    public static FunctionReservation createFunctionReservation(long id) {
+        return createFunctionReservation(id, 33L);
+    }
+
+    public static FunctionReservation createFunctionReservation(long id, Function function, boolean isDeployed) {
+        Resource resource = TestResourceProvider.createResource(33L);
+        return createFunctionReservation(id, function, resource, isDeployed);
+    }
+
+    public static FunctionReservation createFunctionReservation(long id, Resource resource) {
+        Function function = createFunction(22L, "func-test", "false");
+        return createFunctionReservation(id, function, resource, true);
+    }
+
+    public static FunctionReservation createFunctionReservation(long id, Function function, Resource resource) {
+        return createFunctionReservation(id, function, resource, false);
+    }
 }

@@ -78,7 +78,7 @@ public class DeploymentHandler {
             .flatMap(credentials -> mapCredentialsAndResourcesToRequest(request, credentials))
             .flatMap(res -> deploymentChecker.deployResources(request))
             .flatMapCompletable(tfOutput -> Completable.defer(() -> resourceReservationChecker
-                .storeOutputToFunctionResources(tfOutput, request)));
+                .storeOutputToResourceReservations(tfOutput, request)));
     }
 
     /**

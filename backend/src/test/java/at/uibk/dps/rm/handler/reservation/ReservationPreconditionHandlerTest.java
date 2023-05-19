@@ -6,15 +6,19 @@ import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.entity.model.VPC;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.handler.account.CredentialsChecker;
+import at.uibk.dps.rm.handler.function.FunctionChecker;
 import at.uibk.dps.rm.handler.function.FunctionResourceChecker;
 import at.uibk.dps.rm.handler.metric.ResourceTypeMetricChecker;
+import at.uibk.dps.rm.handler.resource.ResourceChecker;
 import at.uibk.dps.rm.handler.resourceprovider.VPCChecker;
+import at.uibk.dps.rm.handler.service.ServiceChecker;
 import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestRequestProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -41,6 +45,15 @@ public class ReservationPreconditionHandlerTest {
     private FunctionResourceChecker functionResourceChecker;
 
     @Mock
+    private FunctionChecker functionChecker;
+
+    @Mock
+    private ServiceChecker serviceChecker;
+
+    @Mock
+    private ResourceChecker resourceChecker;
+
+    @Mock
     private ResourceTypeMetricChecker resourceTypeMetricChecker;
 
     @Mock
@@ -52,8 +65,8 @@ public class ReservationPreconditionHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        handler = new ReservationPreconditionHandler(functionResourceChecker, resourceTypeMetricChecker, vpcChecker,
-            credentialsChecker);
+        handler = new ReservationPreconditionHandler(functionResourceChecker, functionChecker, serviceChecker,
+            resourceChecker, resourceTypeMetricChecker, vpcChecker, credentialsChecker);
     }
 
     @Test
@@ -85,28 +98,29 @@ public class ReservationPreconditionHandlerTest {
                 ids.get(i).getResourceId())).thenReturn(Single.just(functionResources.get(i)));
         }
         when(credentialsChecker.checkExistsOneByProviderId(accountId, 1L)).thenReturn(Completable.complete());
-        when(resourceTypeMetricChecker.checkMissingRequiredMetricsByFunctionResources(functionResources))
+        when(resourceTypeMetricChecker.checkMissingRequiredMetricsByFunctionResources(new JsonArray(functionResources)))
             .thenReturn(Completable.complete());
-        when(vpcChecker.checkVPCForFunctionResources(accountId, functionResources)).thenReturn(Single.just(vpcList));
+        when(vpcChecker.checkVPCForFunctionResources(accountId, new JsonArray(functionResources)))
+            .thenReturn(Single.just(vpcList));
 
         handler.checkReservationIsValid(request, accountId, necessaryVPCs)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(4);
-                    assertThat(result.get(0).getJsonObject("function").getLong("function_id"))
+                    assertThat(result.getJsonObject(0).getJsonObject("function").getLong("function_id"))
                         .isEqualTo(1L);
-                    assertThat(result.get(0).getJsonObject("resource")
+                    assertThat(result.getJsonObject(0).getJsonObject("resource")
                         .getLong("resource_id")).isEqualTo(1L);
-                    assertThat(result.get(1).getJsonObject("function")
+                    assertThat(result.getJsonObject(1).getJsonObject("function")
                         .getLong("function_id")).isEqualTo(2L);
-                    assertThat(result.get(1).getJsonObject("resource")
+                    assertThat(result.getJsonObject(1).getJsonObject("resource")
                         .getLong("resource_id")).isEqualTo(6L);
-                    assertThat(result.get(2).getJsonObject("function")
+                    assertThat(result.getJsonObject(2).getJsonObject("function")
                         .getLong("function_id")).isEqualTo(3L);
-                    assertThat(result.get(2).getJsonObject("resource")
+                    assertThat(result.getJsonObject(2).getJsonObject("resource")
                         .getLong("resource_id")).isEqualTo(2L);
-                    assertThat(result.get(3).getJsonObject("function")
+                    assertThat(result.getJsonObject(3).getJsonObject("function")
                         .getLong("function_id")).isEqualTo(4L);
-                    assertThat(result.get(3).getJsonObject("resource")
+                    assertThat(result.getJsonObject(3).getJsonObject("resource")
                         .getLong("resource_id")).isEqualTo(1L);
                     assertThat(necessaryVPCs.size()).isEqualTo(1);
                     assertThat(necessaryVPCs.get(0).getVpcId()).isEqualTo(1L);
@@ -130,9 +144,9 @@ public class ReservationPreconditionHandlerTest {
         when(functionResourceChecker.checkFindOneByFunctionAndResource(ids1.getFunctionId(),
             ids1.getResourceId())).thenReturn(Single.just(functionResources.get(0)));
         when(credentialsChecker.checkExistsOneByProviderId(accountId, 1L)).thenReturn(Completable.complete());
-        when(resourceTypeMetricChecker.checkMissingRequiredMetricsByFunctionResources(functionResources))
+        when(resourceTypeMetricChecker.checkMissingRequiredMetricsByFunctionResources(new JsonArray(functionResources)))
             .thenReturn(Completable.complete());
-        when(vpcChecker.checkVPCForFunctionResources(accountId, functionResources))
+        when(vpcChecker.checkVPCForFunctionResources(accountId, new JsonArray(functionResources)))
             .thenReturn(Single.error(NotFoundException::new));
 
         handler.checkReservationIsValid(request, accountId, necessaryVPCs)
@@ -159,9 +173,10 @@ public class ReservationPreconditionHandlerTest {
         when(functionResourceChecker.checkFindOneByFunctionAndResource(ids1.getFunctionId(),
             ids1.getResourceId())).thenReturn(Single.just(functionResources.get(0)));
         when(credentialsChecker.checkExistsOneByProviderId(accountId, 1L)).thenReturn(Completable.complete());
-        when(resourceTypeMetricChecker.checkMissingRequiredMetricsByFunctionResources(functionResources))
+        when(resourceTypeMetricChecker.checkMissingRequiredMetricsByFunctionResources(new JsonArray(functionResources)))
             .thenReturn(Completable.error(NotFoundException::new));
-        when(vpcChecker.checkVPCForFunctionResources(accountId, functionResources)).thenReturn(Single.just(vpcList));
+        when(vpcChecker.checkVPCForFunctionResources(accountId, new JsonArray(functionResources)))
+            .thenReturn(Single.just(vpcList));
 
         handler.checkReservationIsValid(request, accountId, necessaryVPCs)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
@@ -188,9 +203,10 @@ public class ReservationPreconditionHandlerTest {
             ids1.getResourceId())).thenReturn(Single.just(functionResources.get(0)));
         when(credentialsChecker.checkExistsOneByProviderId(accountId, 1L))
             .thenReturn(Completable.error(NotFoundException::new));
-        when(resourceTypeMetricChecker.checkMissingRequiredMetricsByFunctionResources(functionResources))
+        when(resourceTypeMetricChecker.checkMissingRequiredMetricsByFunctionResources(new JsonArray(functionResources)))
             .thenReturn(Completable.error(NotFoundException::new));
-        when(vpcChecker.checkVPCForFunctionResources(accountId, functionResources)).thenReturn(Single.just(vpcList));
+        when(vpcChecker.checkVPCForFunctionResources(accountId, new JsonArray(functionResources)))
+            .thenReturn(Single.just(vpcList));
 
 
         handler.checkReservationIsValid(request, accountId, necessaryVPCs)

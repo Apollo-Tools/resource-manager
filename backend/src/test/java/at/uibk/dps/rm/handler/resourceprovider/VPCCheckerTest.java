@@ -11,6 +11,7 @@ import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -119,8 +120,8 @@ public class VPCCheckerTest {
         FunctionResource fr1 = TestFunctionProvider.createFunctionResource(1L, r1);
         FunctionResource fr2 = TestFunctionProvider.createFunctionResource(2L, r1);
         FunctionResource fr3 = TestFunctionProvider.createFunctionResource(3L, r2);
-        List<JsonObject> functionResources = List.of(JsonObject.mapFrom(fr1), JsonObject.mapFrom(fr2),
-            JsonObject.mapFrom(fr3));
+        JsonArray functionResources = new JsonArray(List.of(JsonObject.mapFrom(fr1), JsonObject.mapFrom(fr2),
+            JsonObject.mapFrom(fr3)));
         JsonObject vpc = JsonObject.mapFrom(TestResourceProviderProvider.createVPC(11L, aws));
 
         when(vpcService.findOneByRegionIdAndAccountId(1L, accountId)).thenReturn(Single.just(vpc));
@@ -142,8 +143,8 @@ public class VPCCheckerTest {
         FunctionResource fr1 = TestFunctionProvider.createFunctionResource(1L, r1);
         FunctionResource fr2 = TestFunctionProvider.createFunctionResource(2L, r1);
         FunctionResource fr3 = TestFunctionProvider.createFunctionResource(3L, r1);
-        List<JsonObject> functionResources = List.of(JsonObject.mapFrom(fr1), JsonObject.mapFrom(fr2),
-            JsonObject.mapFrom(fr3));
+        JsonArray functionResources = new JsonArray(List.of(JsonObject.mapFrom(fr1), JsonObject.mapFrom(fr2),
+            JsonObject.mapFrom(fr3)));
 
         vpcChecker.checkVPCForFunctionResources(accountId, functionResources)
             .subscribe(result -> testContext.verify(() -> {
@@ -160,7 +161,7 @@ public class VPCCheckerTest {
         Region aws = TestResourceProviderProvider.createRegion(1L, "aws");
         Resource r1 = TestResourceProvider.createResourceVM(1L, aws, "t2.micro");
         FunctionResource fr1 = TestFunctionProvider.createFunctionResource(1L, r1);
-        List<JsonObject> functionResources = List.of(JsonObject.mapFrom(fr1));
+        JsonArray functionResources = new JsonArray(List.of(JsonObject.mapFrom(fr1)));
         Single<JsonObject> handler = SingleHelper.getEmptySingle();
 
         when(vpcService.findOneByRegionIdAndAccountId(1L, accountId)).thenReturn(handler);
