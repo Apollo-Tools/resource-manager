@@ -7,11 +7,11 @@ import io.vertx.core.json.JsonObject;
 import java.util.List;
 
 public class TestReservationProvider {
-    public static ResourceReservation createResourceReservation(long id, FunctionResource functionResource, Reservation reservation,
+    public static ResourceReservation createResourceReservation(long id, Reservation reservation, Resource resource,
                                                                 ResourceReservationStatus resourceReservationStatus) {
         ResourceReservation resourceReservation = new FunctionReservation();
         resourceReservation.setResourceReservationId(id);
-        resourceReservation.setFunctionResource(functionResource);
+        resourceReservation.setResource(resource);
         resourceReservation.setReservation(reservation);
         resourceReservation.setStatus(resourceReservationStatus);
         return resourceReservation;
@@ -55,21 +55,6 @@ public class TestReservationProvider {
 
     public static ResourceReservationStatus createResourceReservationStatusTerminated() {
         return createResourceReservationStatus(5L, ReservationStatusValue.TERMINATED);
-    }
-
-    public static List<JsonObject> createResourceReservationsJson(Reservation reservation) {
-        FunctionResource functionResource1 = TestFunctionProvider.createFunctionResource(1L);
-        FunctionResource functionResource2 = TestFunctionProvider.createFunctionResource(2L);
-        FunctionResource functionResource3 = TestFunctionProvider.createFunctionResource(3L);
-
-        ResourceReservation resourceReservation1 = createResourceReservation(1L, functionResource1,
-            reservation, new ResourceReservationStatus());
-        ResourceReservation resourceReservation2 = createResourceReservation(2L, functionResource2,
-            reservation, new ResourceReservationStatus());
-        ResourceReservation resourceReservation3 = createResourceReservation(3L, functionResource3,
-            reservation, new ResourceReservationStatus());
-        return List.of(JsonObject.mapFrom(resourceReservation1), JsonObject.mapFrom(resourceReservation2),
-            JsonObject.mapFrom(resourceReservation3));
     }
 
     public static List<JsonObject> createFunctionReservationsJson(Reservation reservation) {

@@ -115,15 +115,15 @@ public class FunctionResourceCheckerTest {
         long reservationId = 1L;
         Account account = TestAccountProvider.createAccount(1L);
         Reservation reservation = TestReservationProvider.createReservation(reservationId, false, account);
-        FunctionResource functionResource1 = TestFunctionProvider.createFunctionResource(1L);
-        FunctionResource functionResource2 = TestFunctionProvider.createFunctionResource(2L);
-        FunctionResource functionResource3 = TestFunctionProvider.createFunctionResource(3L);
-        ResourceReservation resourceReservation1 = TestReservationProvider.createResourceReservation(1L, functionResource1,
-            reservation, new ResourceReservationStatus());
-        ResourceReservation resourceReservation2 = TestReservationProvider.createResourceReservation(2L, functionResource2,
-            reservation, new ResourceReservationStatus());
-        ResourceReservation resourceReservation3 = TestReservationProvider.createResourceReservation(3L, functionResource3,
-            reservation, new ResourceReservationStatus());
+        Resource r1 = TestResourceProvider.createResource(1L);
+        Resource r2 = TestResourceProvider.createResource(2L);
+        Resource r3 = TestResourceProvider.createResource(3L);
+        ResourceReservation resourceReservation1 = TestReservationProvider.createResourceReservation(1L, reservation,
+            r1, new ResourceReservationStatus());
+        ResourceReservation resourceReservation2 = TestReservationProvider.createResourceReservation(2L, reservation,
+            r2, new ResourceReservationStatus());
+        ResourceReservation resourceReservation3 = TestReservationProvider.createResourceReservation(3L, reservation,
+            r3, new ResourceReservationStatus());
         JsonArray resourceReservations = new JsonArray(List.of(JsonObject.mapFrom(resourceReservation1),
             JsonObject.mapFrom(resourceReservation2), JsonObject.mapFrom(resourceReservation3)));
 
@@ -132,12 +132,9 @@ public class FunctionResourceCheckerTest {
         functionResourceChecker.checkFindAllByReservationId(reservationId)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(3);
-                    assertThat(result.getJsonObject(0).getJsonObject("function_resource")
-                        .getLong("function_resource_id")).isEqualTo(1L);
-                    assertThat(result.getJsonObject(1).getJsonObject("function_resource")
-                        .getLong("function_resource_id")).isEqualTo(2L);
-                    assertThat(result.getJsonObject(2).getJsonObject("function_resource")
-                        .getLong("function_resource_id")).isEqualTo(3L);
+                    assertThat(result.getJsonObject(0).getLong("resource_reservation_id")).isEqualTo(1L);
+                    assertThat(result.getJsonObject(1).getLong("resource_reservation_id")).isEqualTo(2L);
+                    assertThat(result.getJsonObject(2).getLong("resource_reservation_id")).isEqualTo(3L);
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))

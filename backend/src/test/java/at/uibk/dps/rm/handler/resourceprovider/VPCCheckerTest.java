@@ -6,7 +6,6 @@ import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.VPCService;
 import at.uibk.dps.rm.testutil.SingleHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
-import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
@@ -117,16 +116,12 @@ public class VPCCheckerTest {
         Region aws = TestResourceProviderProvider.createRegion(1L, "aws");
         Resource r1 = TestResourceProvider.createResourceVM(1L, aws, "t2.micro");
         Resource r2 = TestResourceProvider.createResourceEdge(2L, "url", "user", "pw");
-        FunctionResource fr1 = TestFunctionProvider.createFunctionResource(1L, r1);
-        FunctionResource fr2 = TestFunctionProvider.createFunctionResource(2L, r1);
-        FunctionResource fr3 = TestFunctionProvider.createFunctionResource(3L, r2);
-        JsonArray functionResources = new JsonArray(List.of(JsonObject.mapFrom(fr1), JsonObject.mapFrom(fr2),
-            JsonObject.mapFrom(fr3)));
+        JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1), JsonObject.mapFrom(r2)));
         JsonObject vpc = JsonObject.mapFrom(TestResourceProviderProvider.createVPC(11L, aws));
 
         when(vpcService.findOneByRegionIdAndAccountId(1L, accountId)).thenReturn(Single.just(vpc));
 
-        vpcChecker.checkVPCForFunctionResources(accountId, functionResources)
+        vpcChecker.checkVPCForFunctionResources(accountId, resources)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(1);
                     assertThat(result.get(0).getLong("vpc_id")).isEqualTo(11L);
@@ -140,13 +135,9 @@ public class VPCCheckerTest {
     void checkVPCForFunctionResourcesOnyEdge(VertxTestContext testContext) {
         long accountId = 1L;
         Resource r1 = TestResourceProvider.createResourceEdge(2L, "url", "user", "pw");
-        FunctionResource fr1 = TestFunctionProvider.createFunctionResource(1L, r1);
-        FunctionResource fr2 = TestFunctionProvider.createFunctionResource(2L, r1);
-        FunctionResource fr3 = TestFunctionProvider.createFunctionResource(3L, r1);
-        JsonArray functionResources = new JsonArray(List.of(JsonObject.mapFrom(fr1), JsonObject.mapFrom(fr2),
-            JsonObject.mapFrom(fr3)));
+        JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1)));
 
-        vpcChecker.checkVPCForFunctionResources(accountId, functionResources)
+        vpcChecker.checkVPCForFunctionResources(accountId, resources)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(0);
                     testContext.completeNow();
@@ -160,13 +151,12 @@ public class VPCCheckerTest {
         long accountId = 1L;
         Region aws = TestResourceProviderProvider.createRegion(1L, "aws");
         Resource r1 = TestResourceProvider.createResourceVM(1L, aws, "t2.micro");
-        FunctionResource fr1 = TestFunctionProvider.createFunctionResource(1L, r1);
-        JsonArray functionResources = new JsonArray(List.of(JsonObject.mapFrom(fr1)));
+        JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1)));
         Single<JsonObject> handler = SingleHelper.getEmptySingle();
 
         when(vpcService.findOneByRegionIdAndAccountId(1L, accountId)).thenReturn(handler);
 
-        vpcChecker.checkVPCForFunctionResources(accountId, functionResources)
+        vpcChecker.checkVPCForFunctionResources(accountId, resources)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);

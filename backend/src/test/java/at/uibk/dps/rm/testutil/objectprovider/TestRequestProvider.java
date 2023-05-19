@@ -44,7 +44,8 @@ public class TestRequestProvider {
         Resource r2 = TestResourceProvider.createResourceVM(2L, region, "t2.micro");
         Resource r3 = TestResourceProvider.createResourceEdge(3L, "http://localhost:8080",
             "user", "pw");
-        Resource r4 = TestResourceProvider.createResourceContainer(3L, "http://localhost");
+        Resource r4 = TestResourceProvider.createResourceContainer(3L, "https://localhost", 1, 0.5,
+            256);
         FunctionReservation fr1 = TestFunctionProvider.createFunctionReservation(1L, f1, r1);
         FunctionReservation fr2 = TestFunctionProvider.createFunctionReservation(2L, f1, r2);
         FunctionReservation fr3 = TestFunctionProvider.createFunctionReservation(3L, f2, r2);
@@ -73,7 +74,8 @@ public class TestRequestProvider {
         Resource r1 = TestResourceProvider.createResourceFaaS(1L, region, 250.0, 512.0);
         Resource r2 = TestResourceProvider.createResourceVM(2L, region, "t2.micro");
         Resource r3 = TestResourceProvider.createResourceEdge(3L, "http://localhost:8080", "user", "pw");
-        Resource r4 = TestResourceProvider.createResourceContainer(3L, "http://localhost");
+        Resource r4 = TestResourceProvider.createResourceContainer(3L, "http://localhost", 1, 0.5,
+            256);
         FunctionReservation fr1 = TestFunctionProvider.createFunctionReservation(1L, f1, r1);
         FunctionReservation fr2 = TestFunctionProvider.createFunctionReservation(2L, f1, r2);
         FunctionReservation fr3 = TestFunctionProvider.createFunctionReservation(3L, f2, r2);

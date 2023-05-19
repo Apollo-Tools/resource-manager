@@ -3,7 +3,6 @@ package at.uibk.dps.rm.service.database.reservation;
 import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.repository.reservation.ResourceReservationRepository;
-import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
@@ -41,15 +40,12 @@ public class ResourceReservationServiceImplTest {
 
     @Test
     void findAllByResourceId(VertxTestContext testContext) {
-        long reservationId = 1L, functionResourceId = 3L;
+        long reservationId = 1L;
         Resource resource = TestResourceProvider.createResource(1L);
-        Function function = TestFunctionProvider.createFunction(2L, "func", "false");
-        FunctionResource functionResource = TestFunctionProvider
-            .createFunctionResource(functionResourceId, function, resource, false);
         ResourceReservation entity1 = TestReservationProvider
-            .createResourceReservation(4L, functionResource, new Reservation(), new ResourceReservationStatus());
+            .createResourceReservation(4L, new Reservation(), resource, new ResourceReservationStatus());
         ResourceReservation entity2 = TestReservationProvider
-            .createResourceReservation(5L, functionResource, new Reservation(), new ResourceReservationStatus());
+            .createResourceReservation(5L, new Reservation(), resource, new ResourceReservationStatus());
         List<ResourceReservation> resultList = new ArrayList<>();
         resultList.add(entity1);
         resultList.add(entity2);
@@ -64,13 +60,7 @@ public class ResourceReservationServiceImplTest {
                     JsonObject resultJson = result.getJsonObject(i);
                     assertThat(resultJson.getLong("resource_reservation_id")).isEqualTo(i + 4);
                     assertThat(resultJson.getJsonObject("reservation")).isNull();
-                    JsonObject functionResourceResult = resultJson.getJsonObject("function_resource");
-                    assertThat(functionResourceResult.getLong("function_resource_id")).isEqualTo(functionResourceId);
-                    assertThat(functionResourceResult.getJsonObject("resource").getJsonObject("resource_type"))
-                        .isNull();
-                    assertThat(functionResourceResult.getJsonObject("resource").getJsonObject("metric_values"))
-                        .isNull();
-                    assertThat(functionResourceResult.getJsonObject("function").getJsonObject("runtime"))
+                    assertThat(resultJson.getJsonObject("resource"))
                         .isNull();
                 }
                 testContext.completeNow();

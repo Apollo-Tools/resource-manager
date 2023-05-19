@@ -30,6 +30,10 @@ public class MainFileServiceTest {
             "      source  = \"hashicorp/aws\"\n" +
             "      version = \"~> 4.16\"\n" +
             "    }\n" +
+            "    kubernetes = {\n" +
+            "      source = \"hashicorp/kubernetes\"\n" +
+            "      version = \"2.20.0\"\n" +
+            "    }\n" +
             "  }\n" +
             "  required_version = \">= 1.2.0\"\n" +
             "}\n");
@@ -74,6 +78,10 @@ public class MainFileServiceTest {
                 "    aws = {\n" +
                 "      source  = \"hashicorp/aws\"\n" +
                 "      version = \"~> 4.16\"\n" +
+                "    }\n" +
+                "    kubernetes = {\n" +
+                "      source = \"hashicorp/kubernetes\"\n" +
+                "      version = \"2.20.0\"\n" +
                 "    }\n" +
                 "  }\n" +
                 "  required_version = \">= 1.2.0\"\n" +

@@ -147,8 +147,12 @@ public class DockerImageServiceTest {
     }
 
     @Test
-    void buildOpenFaasImagesBlankFunctionsString(VertxTestContext testContext) {
+    void buildOpenFaasImagesEmptyFunctionIdentifiers(VertxTestContext testContext) {
         String functionString = "";
+        List<String> functionIdentifiers = List.of();
+        functionsDir = Path.of("./functions");
+        DockerCredentials dockerCredentials = TestDTOProvider.createDockerCredentials();
+        dockerImageService = new DockerImageService(vertx, dockerCredentials, functionIdentifiers, functionsDir);
 
         dockerImageService.buildOpenFaasImages(functionString)
             .subscribe(result -> testContext.verify(() -> {

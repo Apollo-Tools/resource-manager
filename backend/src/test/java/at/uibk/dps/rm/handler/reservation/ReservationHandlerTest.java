@@ -162,14 +162,14 @@ public class ReservationHandlerTest {
         ResourceReservationStatus rrsNew = TestReservationProvider.createResourceReservationStatusNew();
         ResourceReservationStatus rrsError = TestReservationProvider.createResourceReservationStatusError();
         ResourceReservationStatus rrsDeployed = TestReservationProvider.createResourceReservationStatusDeployed();
-        FunctionResource fr1 = TestFunctionProvider.createFunctionResource(1L);
-        FunctionResource fr2 = TestFunctionProvider.createFunctionResource(2L);
-        ResourceReservation rr1 = TestReservationProvider.createResourceReservation(1L, fr1, r1, rrsNew);
-        ResourceReservation rr2 = TestReservationProvider.createResourceReservation(2L, fr2, r1, rrsNew);
-        FunctionResource fr3 = TestFunctionProvider.createFunctionResource(3L);
-        ResourceReservation rr3 = TestReservationProvider.createResourceReservation(3L, fr3, r2, rrsError);
-        FunctionResource fr4 = TestFunctionProvider.createFunctionResource(4L);
-        ResourceReservation rr4 = TestReservationProvider.createResourceReservation(4L, fr4, r3, rrsDeployed);
+        Resource resource1 = TestResourceProvider.createResource(1L);
+        Resource resource2 = TestResourceProvider.createResource(2L);
+        ResourceReservation rr1 = TestReservationProvider.createResourceReservation(1L, r1, resource1, rrsNew);
+        ResourceReservation rr2 = TestReservationProvider.createResourceReservation(2L, r1, resource2, rrsNew);
+        Resource resource3 = TestResourceProvider.createResource(3L);
+        ResourceReservation rr3 = TestReservationProvider.createResourceReservation(3L, r2, resource3, rrsError);
+        Resource resource4 = TestResourceProvider.createResource(4L);
+        ResourceReservation rr4 = TestReservationProvider.createResourceReservation(4L, r3, resource4, rrsDeployed);
         JsonArray reservations = new JsonArray(List.of(JsonObject.mapFrom(r1),
             JsonObject.mapFrom(r2), JsonObject.mapFrom(r3)));
         JsonArray rr12Json = new JsonArray(List.of(JsonObject.mapFrom(rr1), JsonObject.mapFrom(rr2)));
@@ -249,7 +249,8 @@ public class ReservationHandlerTest {
         Resource r2 = TestResourceProvider.createResourceVM(2L, reg2, "t2.micro");
         Resource r3 = TestResourceProvider.createResourceEdge(3L, "http://localhost:8080",
             "user", "pw");
-        Resource r4 = TestResourceProvider.createResourceContainer(4L, "https://localhost");
+        Resource r4 = TestResourceProvider.createResourceContainer(4L, "https://localhost", 1, 0.5,
+            256);
         JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1), JsonObject.mapFrom(r2),
             JsonObject.mapFrom(r3), JsonObject.mapFrom(r4)));
         List<FunctionResourceIds> fids = TestFunctionProvider.createFunctionResourceIdsList(r1.getResourceId(),
@@ -302,7 +303,8 @@ public class ReservationHandlerTest {
         Resource r2 = TestResourceProvider.createResourceVM(2L, reg2, "t2.micro");
         Resource r3 = TestResourceProvider.createResourceEdge(3L, "http://localhost:8080",
             "user", "pw");
-        Resource r4 = TestResourceProvider.createResourceContainer(4L, "https://localhost");
+        Resource r4 = TestResourceProvider.createResourceContainer(4L, "https://localhost", 1, 0.5,
+            256);
         JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1), JsonObject.mapFrom(r2),
             JsonObject.mapFrom(r3), JsonObject.mapFrom(r4)));
         List<FunctionResourceIds> fids = TestFunctionProvider.createFunctionResourceIdsList(r1.getResourceId(),

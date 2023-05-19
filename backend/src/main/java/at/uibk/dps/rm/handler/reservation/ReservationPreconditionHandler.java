@@ -20,6 +20,7 @@ import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -106,12 +107,13 @@ public class ReservationPreconditionHandler {
 
         return functionResourceIds
             .flatMap(ids -> {
-                List<Long> resourceIds = new ArrayList<>(ids);
+                Set<Long> resourceIds = new HashSet<>(ids);
                 return serviceResourceIds.map(ids2 -> {
                     resourceIds.addAll(ids2);
                     return resourceIds;
                 });
             })
+            .map(ArrayList::new)
             .flatMap(resourceChecker::checkFindAllByResourceIds);
     }
 
