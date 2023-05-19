@@ -8,6 +8,11 @@ import lombok.experimental.UtilityClass;
 
 import java.util.Optional;
 
+/**
+ * Utility class to check if expressions from service level objectives are valid.
+ *
+ * @author matthi-g
+ */
 @UtilityClass
 public class ExpressionValidator {
     /**

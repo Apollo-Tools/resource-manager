@@ -11,6 +11,12 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Extension of the #TerraformFileService to set up the container deployment module of service
+ * reservation.
+ *
+ * @author matthi-g
+ */
 public class ContainerDeployFileService extends TerraformFileService {
 
     private final long reservationId;
@@ -19,6 +25,14 @@ public class ContainerDeployFileService extends TerraformFileService {
 
     private final Path rootFolder;
 
+    /**
+     * Create an instance from the fileSystem, rootFolder, serviceReservation and reservationId.
+     *
+     * @param fileSystem the vertx file system
+     * @param rootFolder the root folder of the module
+     * @param serviceReservation the service reservation
+     * @param reservationId the id of the reservation
+     */
     public ContainerDeployFileService(FileSystem fileSystem, Path rootFolder, ServiceReservation serviceReservation,
             long reservationId) {
         super(fileSystem, rootFolder);
@@ -45,8 +59,13 @@ public class ContainerDeployFileService extends TerraformFileService {
         return getProviderString() + getContainerModulesString();
     }
 
+    /**
+     * Get the string that defines the container deployment from the terraform module.
+     *
+     * @return the container modules string
+     */
     private String getContainerModulesString() {
-        StringBuilder functionsString = new StringBuilder();
+        StringBuilder containerString = new StringBuilder();
         Resource resource = serviceReservation.getResource();
         Service service = serviceReservation.getService();
         String identifier = resource.getResourceId() + "_" + service.getServiceId();
@@ -69,7 +88,7 @@ public class ContainerDeployFileService extends TerraformFileService {
 
         String configPath = Path.of(rootFolder.getParent().toString(), "config").toAbsolutePath().toString()
             .replace("\\", "/");
-        functionsString.append(String.format(
+        containerString.append(String.format(
             "module \"deployment_%s\" {\n" +
             "  source = \"../../../../terraform/k8s/deployment\"\n" +
             "  config_path = \"%s\"\n" +
@@ -87,7 +106,7 @@ public class ContainerDeployFileService extends TerraformFileService {
             serviceReservation.getNamespace(), service.getName(), reservationId,
             metricValues.get("replicas").getValueNumber().longValue(), metricValues.get("cpu").getValueNumber().doubleValue(),
             metricValues.get("memory-size").getValueNumber().longValue(), ports, serviceType, externalIp));
-        return functionsString.toString();
+        return containerString.toString();
     }
 
     @Override

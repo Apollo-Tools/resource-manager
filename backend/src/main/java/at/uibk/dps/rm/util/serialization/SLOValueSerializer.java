@@ -7,15 +7,28 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
 
+/**
+ * This class can be used to serialize SLOValue instances.
+ *
+ * @author matthi-g
+ */
 public class SLOValueSerializer extends StdSerializer<SLOValue> {
 
     private static final long serialVersionUID = 190033535439232237L;
 
+    /**
+     * The serialization throws an error if this constructor is not present
+     */
     @SuppressWarnings("unused")
     public SLOValueSerializer() {
         this(null);
     }
 
+    /**
+     * Create an instance from the sloValueClass.
+     *
+     * @param sloValueClass the class of the SLOValue
+     */
     public SLOValueSerializer(Class<SLOValue> sloValueClass) {
         super(sloValueClass);
     }

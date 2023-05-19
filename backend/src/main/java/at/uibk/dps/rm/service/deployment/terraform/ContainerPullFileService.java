@@ -8,6 +8,12 @@ import io.vertx.rxjava3.core.file.FileSystem;
 import java.nio.file.Path;
 import java.util.*;
 
+/**
+ * Extension of the #TerraformFileService to set up the container pre pull module of service
+ * reservation.
+ *
+ * @author matthi-g
+ */
 public class ContainerPullFileService extends TerraformFileService {
 
     private final long reservationId;
@@ -16,6 +22,14 @@ public class ContainerPullFileService extends TerraformFileService {
 
     private final Path rootFolder;
 
+    /**
+     * Create an instance from the filesystem, rootFolder, serviceReservations and reservationId.
+     *
+     * @param fileSystem the vertx file system
+     * @param rootFolder the root folder of the module
+     * @param serviceReservations the list of service reservations
+     * @param reservationId the id of the reservation
+     */
     public ContainerPullFileService(FileSystem fileSystem, Path rootFolder, List<ServiceReservation> serviceReservations,
             long reservationId) {
         super(fileSystem, rootFolder);
@@ -34,6 +48,11 @@ public class ContainerPullFileService extends TerraformFileService {
         return getContainerModulesString();
     }
 
+    /**
+     * Get the string that defines all pre pull modules for container deployments.
+     *
+     * @return the container modules string
+     */
     private String getContainerModulesString() {
         HashMap<PrePullGroup, List<String>> prePullGroups = new HashMap<>();
         StringBuilder functionsString = new StringBuilder();

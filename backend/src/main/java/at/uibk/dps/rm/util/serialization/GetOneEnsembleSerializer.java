@@ -10,14 +10,27 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * This class can be used to serialize GetOneEnsemble instances.
+ *
+ * @author matthi-g
+ */
 public class GetOneEnsembleSerializer extends StdSerializer<GetOneEnsemble> {
     private static final long serialVersionUID = 470707283974578017L;
 
+    /**
+     * The serialization throws an error if this constructor is not present
+     */
     @SuppressWarnings("unused")
     public GetOneEnsembleSerializer() {
         this(null);
     }
 
+    /**
+     * Create an instance from the getOneEnsembleClass.
+     *
+     * @param getOneEnsembleClass the class of GetOneEnsemble
+     */
     public GetOneEnsembleSerializer(Class<GetOneEnsemble> getOneEnsembleClass) {
         super(getOneEnsembleClass);
     }
@@ -39,6 +52,13 @@ public class GetOneEnsembleSerializer extends StdSerializer<GetOneEnsemble> {
         gen.writeEndObject();
     }
 
+    /**
+     * Map non metrics (values) to slos.
+     *
+     * @param values the value of a non-metric
+     * @param sloType the slo typpe of the non-metric
+     * @param slos the service level objectives
+     */
     private void mapNonMetricToSLO(List<Long> values, SLOType sloType,
                                    List<ServiceLevelObjective> slos) {
         List<SLOValue> sloValues = values.stream().map(value -> {

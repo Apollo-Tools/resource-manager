@@ -19,6 +19,12 @@ public class MainTerraformExecutor extends TerraformExecutor{
 
     private final DeploymentCredentials credentials;
 
+    /**
+     * Create an instance from vertx and credentials
+     *
+     * @param vertx the vertx instance
+     * @param credentials the deployment credentials
+     */
     public MainTerraformExecutor(Vertx vertx, DeploymentCredentials credentials) {
         super(vertx);
         this.credentials = credentials;
