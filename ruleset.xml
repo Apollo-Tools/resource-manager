@@ -75,8 +75,4 @@
       <property name="minimum" value="2" />
     </properties>
   </rule>
-
-  <!-- Unused imports -->
-  <rule ref="category/java/codestyle.xml/UnnecessaryImport" />
-
 </ruleset>
