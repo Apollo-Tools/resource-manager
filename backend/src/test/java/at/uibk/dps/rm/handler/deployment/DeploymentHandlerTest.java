@@ -100,12 +100,17 @@ public class DeploymentHandlerTest {
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", rp);
         VPC vpc = TestResourceProviderProvider.createVPC(1L, region);
         JsonObject credentials = JsonObject.mapFrom(TestAccountProvider.createCredentials(1L, rp));
-        JsonObject fr1 = JsonObject.mapFrom(TestFunctionProvider.createFunctionResource(1L));
-        JsonObject fr2 = JsonObject.mapFrom(TestFunctionProvider.createFunctionResource(1L));
+        JsonObject sr1 = JsonObject.mapFrom(TestReservationProvider
+            .createServiceReservation(2L, reservation));
+        JsonObject sr2 = JsonObject.mapFrom(TestReservationProvider
+            .createServiceReservation(3L, reservation));
+        JsonObject fr1 = JsonObject.mapFrom(TestReservationProvider.createFunctionReservation(3L, reservation));
 
         when(credentialsChecker.checkFindAll(accountId)).thenReturn(Single.just(new JsonArray(List.of(credentials))));
-        //when(functionResourceChecker.checkFindAllByReservationId(reservation.getReservationId()))
-        //    .thenReturn(Single.just(functionResources));
+        when(functionReservationChecker.checkFindAllByReservationId(1L))
+            .thenReturn(Single.just(new JsonArray(List.of(fr1))));
+        when(serviceReservationChecker.checkFindAllByReservationId(1L))
+            .thenReturn(Single.just(new JsonArray(List.of(sr1, sr2))));
         when(deploymentChecker.deployResources(any())).thenReturn(Single.error(DeploymentTerminationFailedException::new));
 
         deploymentHandler.deployResources(reservation, accountId, dockerCredentials, kubeConfig, List.of(vpc))
@@ -118,7 +123,7 @@ public class DeploymentHandlerTest {
     }
 
     @Test
-    void deployResourcesStoreOutputFunctionResourcesNotFound(VertxTestContext testContext) {
+    void deployResourcesStoreOutputFunctionReservationsNotFound(VertxTestContext testContext) {
         long accountId = 1L;
         Reservation reservation = TestReservationProvider.createReservation(1L);
         DockerCredentials dockerCredentials = TestDTOProvider.createDockerCredentials();
@@ -129,8 +134,35 @@ public class DeploymentHandlerTest {
         JsonObject credentials = JsonObject.mapFrom(TestAccountProvider.createCredentials(1L, rp));
 
         when(credentialsChecker.checkFindAll(accountId)).thenReturn(Single.just(new JsonArray(List.of(credentials))));
-        //when(functionResourceChecker.checkFindAllByReservationId(reservation.getReservationId()))
-        //    .thenReturn(Single.error(NotFoundException::new));
+        when(functionReservationChecker.checkFindAllByReservationId(1L))
+            .thenReturn(Single.error(NotFoundException::new));
+
+        deploymentHandler.deployResources(reservation, accountId, dockerCredentials, kubeConfig, List.of(vpc))
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(NotFoundException.class);
+                    testContext.completeNow();
+                })
+            );
+    }
+
+    @Test
+    void deployResourcesStoreOutputServiceReservationsNotFound(VertxTestContext testContext) {
+        long accountId = 1L;
+        Reservation reservation = TestReservationProvider.createReservation(1L);
+        DockerCredentials dockerCredentials = TestDTOProvider.createDockerCredentials();
+        String kubeConfig = TestDTOProvider.createKubeConfigValue();
+        ResourceProvider rp = TestResourceProviderProvider.createResourceProvider(1L, "aws");
+        Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", rp);
+        VPC vpc = TestResourceProviderProvider.createVPC(1L, region);
+        JsonObject credentials = JsonObject.mapFrom(TestAccountProvider.createCredentials(1L, rp));
+        JsonObject fr1 = JsonObject.mapFrom(TestReservationProvider.createFunctionReservation(3L, reservation));
+
+        when(credentialsChecker.checkFindAll(accountId)).thenReturn(Single.just(new JsonArray(List.of(credentials))));
+        when(serviceReservationChecker.checkFindAllByReservationId(1L))
+            .thenReturn(Single.error(NotFoundException::new));
+        when(functionReservationChecker.checkFindAllByReservationId(1L))
+            .thenReturn(Single.just(new JsonArray(List.of(fr1))));
 
         deploymentHandler.deployResources(reservation, accountId, dockerCredentials, kubeConfig, List.of(vpc))
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
@@ -168,12 +200,17 @@ public class DeploymentHandlerTest {
         Reservation reservation = TestReservationProvider.createReservation(1L);
         ResourceProvider rp = TestResourceProviderProvider.createResourceProvider(1L, "aws");
         JsonObject credentials = JsonObject.mapFrom(TestAccountProvider.createCredentials(1L, rp));
-        JsonObject fr1 = JsonObject.mapFrom(TestFunctionProvider.createFunctionResource(1L));
-        JsonObject fr2 = JsonObject.mapFrom(TestFunctionProvider.createFunctionResource(1L));
+        JsonObject sr1 = JsonObject.mapFrom(TestReservationProvider
+            .createServiceReservation(2L, reservation));
+        JsonObject sr2 = JsonObject.mapFrom(TestReservationProvider
+            .createServiceReservation(3L, reservation));
+        JsonObject fr1 = JsonObject.mapFrom(TestReservationProvider.createFunctionReservation(3L, reservation));
 
         when(credentialsChecker.checkFindAll(accountId)).thenReturn(Single.just(new JsonArray(List.of(credentials))));
-        //when(functionResourceChecker.checkFindAllByReservationId(reservation.getReservationId()))
-        //    .thenReturn(Single.just(functionResources));
+        when(functionReservationChecker.checkFindAllByReservationId(1L))
+            .thenReturn(Single.just(new JsonArray(List.of(fr1))));
+        when(serviceReservationChecker.checkFindAllByReservationId(1L))
+            .thenReturn(Single.just(new JsonArray(List.of(sr1, sr2))));
         when(deploymentChecker.terminateResources(any())).thenReturn(Completable.complete());
         when(deploymentChecker.deleteTFDirs(reservation.getReservationId())).thenReturn(Completable.complete());
 
@@ -191,12 +228,17 @@ public class DeploymentHandlerTest {
         Reservation reservation = TestReservationProvider.createReservation(1L);
         ResourceProvider rp = TestResourceProviderProvider.createResourceProvider(1L, "aws");
         JsonObject credentials = JsonObject.mapFrom(TestAccountProvider.createCredentials(1L, rp));
-        JsonObject fr1 = JsonObject.mapFrom(TestFunctionProvider.createFunctionResource(1L));
-        JsonObject fr2 = JsonObject.mapFrom(TestFunctionProvider.createFunctionResource(1L));
+        JsonObject sr1 = JsonObject.mapFrom(TestReservationProvider
+            .createServiceReservation(2L, reservation));
+        JsonObject sr2 = JsonObject.mapFrom(TestReservationProvider
+            .createServiceReservation(3L, reservation));
+        JsonObject fr1 = JsonObject.mapFrom(TestReservationProvider.createFunctionReservation(3L, reservation));
 
         when(credentialsChecker.checkFindAll(accountId)).thenReturn(Single.just(new JsonArray(List.of(credentials))));
-        //when(functionResourceChecker.checkFindAllByReservationId(reservation.getReservationId()))
-        //    .thenReturn(Single.just(functionResources));
+        when(functionReservationChecker.checkFindAllByReservationId(1L))
+            .thenReturn(Single.just(new JsonArray(List.of(fr1))));
+        when(serviceReservationChecker.checkFindAllByReservationId(1L))
+            .thenReturn(Single.just(new JsonArray(List.of(sr1, sr2))));
         when(deploymentChecker.terminateResources(any())).thenReturn(Completable.error(DeploymentTerminationFailedException::new));
 
         deploymentHandler.terminateResources(reservation, accountId)
@@ -209,15 +251,38 @@ public class DeploymentHandlerTest {
     }
 
     @Test
-    void terminateResourcesFunctionResourcesNotFound(VertxTestContext testContext) {
+    void terminateResourcesFunctionReservationsNotFound(VertxTestContext testContext) {
         long accountId = 1L;
         Reservation reservation = TestReservationProvider.createReservation(1L);
         ResourceProvider rp = TestResourceProviderProvider.createResourceProvider(1L, "aws");
         JsonObject credentials = JsonObject.mapFrom(TestAccountProvider.createCredentials(1L, rp));
 
         when(credentialsChecker.checkFindAll(accountId)).thenReturn(Single.just(new JsonArray(List.of(credentials))));
-        //when(functionResourceChecker.checkFindAllByReservationId(reservation.getReservationId()))
-        //    .thenReturn(Single.error(NotFoundException::new));
+        when(functionReservationChecker.checkFindAllByReservationId(1L))
+            .thenReturn(Single.error(NotFoundException::new));
+
+        deploymentHandler.terminateResources(reservation, accountId)
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(NotFoundException.class);
+                    testContext.completeNow();
+                })
+            );
+    }
+
+    @Test
+    void terminateResourcesServiceReservationsNotFound(VertxTestContext testContext) {
+        long accountId = 1L;
+        Reservation reservation = TestReservationProvider.createReservation(1L);
+        ResourceProvider rp = TestResourceProviderProvider.createResourceProvider(1L, "aws");
+        JsonObject credentials = JsonObject.mapFrom(TestAccountProvider.createCredentials(1L, rp));
+        JsonObject fr1 = JsonObject.mapFrom(TestReservationProvider.createFunctionReservation(3L, reservation));
+
+        when(credentialsChecker.checkFindAll(accountId)).thenReturn(Single.just(new JsonArray(List.of(credentials))));
+        when(serviceReservationChecker.checkFindAllByReservationId(1L))
+            .thenReturn(Single.error(NotFoundException::new));
+        when(functionReservationChecker.checkFindAllByReservationId(1L))
+            .thenReturn(Single.just(new JsonArray(List.of(fr1))));
 
         deploymentHandler.terminateResources(reservation, accountId)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),

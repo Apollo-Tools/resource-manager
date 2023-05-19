@@ -42,8 +42,8 @@ public class GetOneEnsembleSerializer extends StdSerializer<GetOneEnsemble> {
         gen.writeNumberField("ensemble_id", getOneEnsemble.getEnsembleId());
         gen.writeStringField("name", getOneEnsemble.getName());
         gen.writeObjectField("resources", getOneEnsemble.getResources());
-        gen.writeStringField("created_at", getOneEnsemble.getCreatedAt().toString());
-        gen.writeStringField("updated_at", getOneEnsemble.getUpdatedAt().toString());
+        gen.writeObjectField("created_at", getOneEnsemble.getCreatedAt());
+        gen.writeObjectField("updated_at", getOneEnsemble.getUpdatedAt());
         List<ServiceLevelObjective> slos = getOneEnsemble.getServiceLevelObjectives();
         mapNonMetricToSLO(getOneEnsemble.getRegions(), SLOType.REGION, slos);
         mapNonMetricToSLO(getOneEnsemble.getProviders(), SLOType.RESOURCE_PROVIDER, slos);

@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
 import at.uibk.dps.rm.entity.dto.ReserveResourcesRequest;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
+import at.uibk.dps.rm.entity.dto.reservation.ServiceResourceIds;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
 import at.uibk.dps.rm.exception.NotFoundException;
@@ -79,27 +80,24 @@ public class ReservationHandlerTest {
         long reservationId = 1L;
         Account account = TestAccountProvider.createAccount(1L);
         Reservation reservation = TestReservationProvider.createReservation(1L, true, account);
-        JsonArray resourceReservations = new JsonArray(TestReservationProvider.createResourceReservationsJson(reservation));
+        JsonArray functionReservations = new JsonArray(TestReservationProvider
+            .createFunctionReservationsJson(reservation));
+        JsonArray serviceReservations = new JsonArray(TestReservationProvider
+            .createServiceReservationsJson(reservation));
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(reservationId));
         when(reservationChecker.checkFindOne(reservationId, account.getAccountId()))
             .thenReturn(Single.just(JsonObject.mapFrom(reservation)));
-        when(resourceReservationChecker.checkFindAllByReservationId(reservationId))
-            .thenReturn(Single.just(resourceReservations));
+        when(functionReservationChecker.checkFindAllByReservationId(reservationId))
+            .thenReturn(Single.just(functionReservations));
+        when(serviceReservationChecker.checkFindAllByReservationId(reservationId))
+            .thenReturn(Single.just(serviceReservations));
 
         reservationHandler.getOne(rc)
             .subscribe(result -> testContext.verify(() -> {
-                    assertThat(result.getJsonArray("resource_reservations").size()).isEqualTo(3);
-                    JsonObject functionResourceJson1 = result.getJsonArray("resource_reservations").getJsonObject(0)
-                        .getJsonObject("function_resource");
-                    JsonObject functionResourceJson2 = result.getJsonArray("resource_reservations").getJsonObject(1)
-                        .getJsonObject("function_resource");
-                    JsonObject functionResourceJson3 = result.getJsonArray("resource_reservations").getJsonObject(2)
-                        .getJsonObject("function_resource");
-                    assertThat(functionResourceJson1.getLong("function_resource_id")).isEqualTo(1L);
-                    assertThat(functionResourceJson2.getLong("function_resource_id")).isEqualTo(2L);
-                    assertThat(functionResourceJson3.getLong("function_resource_id")).isEqualTo(3L);
+                    assertThat(result.getJsonArray("function_resources").size()).isEqualTo(3);
+                    assertThat(result.getJsonArray("service_resources").size()).isEqualTo(3);
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
@@ -111,18 +109,23 @@ public class ReservationHandlerTest {
         long reservationId = 1L;
         Account account = TestAccountProvider.createAccount(1L);
         Reservation reservation = TestReservationProvider.createReservation(1L, true, account);
-        JsonArray resourceReservations = new JsonArray(new ArrayList<JsonObject>());
+        JsonArray functionReservations = new JsonArray(new ArrayList<JsonObject>());
+        JsonArray serviceReservations = new JsonArray(new ArrayList<JsonObject>());
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(reservationId));
         when(reservationChecker.checkFindOne(reservationId, account.getAccountId()))
             .thenReturn(Single.just(JsonObject.mapFrom(reservation)));
-        when(resourceReservationChecker.checkFindAllByReservationId(reservationId))
-            .thenReturn(Single.just(resourceReservations));
+        when(functionReservationChecker.checkFindAllByReservationId(reservationId))
+            .thenReturn(Single.just(functionReservations));
+        when(serviceReservationChecker.checkFindAllByReservationId(reservationId))
+            .thenReturn(Single.just(serviceReservations));
+
 
         reservationHandler.getOne(rc)
             .subscribe(result -> testContext.verify(() -> {
-                    assertThat(result.getJsonArray("resource_reservations").size()).isEqualTo(0);
+                    assertThat(result.getJsonArray("function_resources").size()).isEqualTo(0);
+                    assertThat(result.getJsonArray("service_resources").size()).isEqualTo(0);
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
@@ -246,22 +249,16 @@ public class ReservationHandlerTest {
         Resource r2 = TestResourceProvider.createResourceVM(2L, reg2, "t2.micro");
         Resource r3 = TestResourceProvider.createResourceEdge(3L, "http://localhost:8080",
             "user", "pw");
-        Function f1 = TestFunctionProvider.createFunction(1L);
-        Function f2 = TestFunctionProvider.createFunction(2L);
-        FunctionResource fr1 = TestFunctionProvider.createFunctionResource(1L, f1, r1);
-        FunctionResource fr2 = TestFunctionProvider.createFunctionResource(2L, f1, r2);
-        FunctionResource fr3 = TestFunctionProvider.createFunctionResource(3L, f2, r2);
-        FunctionResource fr4 = TestFunctionProvider.createFunctionResource(4L, f2, r3);
-        JsonArray functionResources = new JsonArray(List.of(JsonObject.mapFrom(fr1), JsonObject.mapFrom(fr2),
-            JsonObject.mapFrom(fr3), JsonObject.mapFrom(fr4)));
-        FunctionResourceIds ids1 = TestFunctionProvider.createFunctionResourceIds(fr1);
-        FunctionResourceIds ids2 = TestFunctionProvider.createFunctionResourceIds(fr2);
-        FunctionResourceIds ids3 = TestFunctionProvider.createFunctionResourceIds(fr3);
-        FunctionResourceIds ids4 = TestFunctionProvider.createFunctionResourceIds(fr4);
-        List<FunctionResourceIds> ids = List.of(ids1, ids2, ids3, ids4);
+        Resource r4 = TestResourceProvider.createResourceContainer(4L, "https://localhost");
+        JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1), JsonObject.mapFrom(r2),
+            JsonObject.mapFrom(r3), JsonObject.mapFrom(r4)));
+        List<FunctionResourceIds> fids = TestFunctionProvider.createFunctionResourceIdsList(r1.getResourceId(),
+            r2.getResourceId(), r3.getResourceId());
+        List<ServiceResourceIds> sids = TestServiceProvider.createServiceResourceIdsList(r4.getResourceId());
         DockerCredentials dockerCredentials = TestDTOProvider.createDockerCredentials();
         String kubeconfig = TestDTOProvider.createKubeConfigValue();
-        ReserveResourcesRequest request = TestRequestProvider.createReserveResourcesRequest(ids, dockerCredentials);
+        ReserveResourcesRequest request = TestRequestProvider.createReserveResourcesRequest(fids, sids,
+            dockerCredentials);
         JsonObject requestBody = JsonObject.mapFrom(request);
         Account account = TestAccountProvider.createAccount(1L);
         Reservation reservation = TestReservationProvider.createReservation(1L, true, account);
@@ -272,12 +269,13 @@ public class ReservationHandlerTest {
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         RoutingContextMockHelper.mockBody(rc, requestBody);
         when(preconditionChecker.checkReservationIsValid(request, account.getAccountId(), new ArrayList<>()))
-            .thenReturn(Single.just(functionResources));
+            .thenReturn(Single.just(resources));
         when(reservationChecker.submitCreateReservation(account.getAccountId()))
             .thenReturn(Single.just(reservationJson));
         when(statusChecker.checkFindOneByStatusValue(ReservationStatusValue.NEW.name()))
             .thenReturn(Single.just(JsonObject.mapFrom(statusNew)));
-        when(resourceReservationChecker.submitCreateAll(any())).thenReturn(Completable.complete());
+        when(functionReservationChecker.submitCreateAll(any())).thenReturn(Completable.complete());
+        when(serviceReservationChecker.submitCreateAll(any())).thenReturn(Completable.complete());
         when(deploymentHandler.deployResources(reservation, account.getAccountId(), dockerCredentials, kubeconfig,
             new ArrayList<>()))
             .thenReturn(Completable.complete());
@@ -304,22 +302,16 @@ public class ReservationHandlerTest {
         Resource r2 = TestResourceProvider.createResourceVM(2L, reg2, "t2.micro");
         Resource r3 = TestResourceProvider.createResourceEdge(3L, "http://localhost:8080",
             "user", "pw");
-        Function f1 = TestFunctionProvider.createFunction(1L);
-        Function f2 = TestFunctionProvider.createFunction(2L);
-        FunctionResource fr1 = TestFunctionProvider.createFunctionResource(1L, f1, r1);
-        FunctionResource fr2 = TestFunctionProvider.createFunctionResource(2L, f1, r2);
-        FunctionResource fr3 = TestFunctionProvider.createFunctionResource(3L, f2, r2);
-        FunctionResource fr4 = TestFunctionProvider.createFunctionResource(4L, f2, r3);
-        JsonArray functionResources = new JsonArray(List.of(JsonObject.mapFrom(fr1), JsonObject.mapFrom(fr2),
-            JsonObject.mapFrom(fr3), JsonObject.mapFrom(fr4)));
-        FunctionResourceIds ids1 = TestFunctionProvider.createFunctionResourceIds(fr1);
-        FunctionResourceIds ids2 = TestFunctionProvider.createFunctionResourceIds(fr2);
-        FunctionResourceIds ids3 = TestFunctionProvider.createFunctionResourceIds(fr3);
-        FunctionResourceIds ids4 = TestFunctionProvider.createFunctionResourceIds(fr4);
-        List<FunctionResourceIds> ids = List.of(ids1, ids2, ids3, ids4);
+        Resource r4 = TestResourceProvider.createResourceContainer(4L, "https://localhost");
+        JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1), JsonObject.mapFrom(r2),
+            JsonObject.mapFrom(r3), JsonObject.mapFrom(r4)));
+        List<FunctionResourceIds> fids = TestFunctionProvider.createFunctionResourceIdsList(r1.getResourceId(),
+            r2.getResourceId(), r3.getResourceId());
+        List<ServiceResourceIds> sids = TestServiceProvider.createServiceResourceIdsList(r4.getResourceId());
         DockerCredentials dockerCredentials = TestDTOProvider.createDockerCredentials();
         String kubeconfig = TestDTOProvider.createKubeConfigValue();
-        ReserveResourcesRequest request = TestRequestProvider.createReserveResourcesRequest(ids, dockerCredentials);
+        ReserveResourcesRequest request = TestRequestProvider.createReserveResourcesRequest(fids, sids,
+            dockerCredentials);
         JsonObject requestBody = JsonObject.mapFrom(request);
         Account account = TestAccountProvider.createAccount(1L);
         Reservation reservation = TestReservationProvider.createReservation(1L, true, account);
@@ -330,12 +322,13 @@ public class ReservationHandlerTest {
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         RoutingContextMockHelper.mockBody(rc, requestBody);
         when(preconditionChecker.checkReservationIsValid(request, account.getAccountId(), new ArrayList<>()))
-            .thenReturn(Single.just(functionResources));
+            .thenReturn(Single.just(resources));
         when(reservationChecker.submitCreateReservation(account.getAccountId()))
             .thenReturn(Single.just(reservationJson));
         when(statusChecker.checkFindOneByStatusValue(ReservationStatusValue.NEW.name()))
             .thenReturn(Single.just(JsonObject.mapFrom(statusNew)));
-        when(resourceReservationChecker.submitCreateAll(any())).thenReturn(Completable.complete());
+        when(functionReservationChecker.submitCreateAll(any())).thenReturn(Completable.complete());
+        when(serviceReservationChecker.submitCreateAll(any())).thenReturn(Completable.complete());
         when(deploymentHandler.deployResources(reservation, account.getAccountId(), dockerCredentials, kubeconfig,
             new ArrayList<>()))
             .thenReturn(Completable.error(DeploymentTerminationFailedException::new));
@@ -358,8 +351,9 @@ public class ReservationHandlerTest {
         FunctionResource functionResource = TestFunctionProvider.createFunctionResource(1L);
         FunctionResourceIds ids = TestFunctionProvider.createFunctionResourceIds(1L,
             functionResource.getResource().getResourceId());
-        List<FunctionResourceIds> functionResourceIds = List.of(ids);
-        ReserveResourcesRequest request = TestRequestProvider.createReserveResourcesRequest(functionResourceIds);
+        List<FunctionResourceIds> fids = List.of(ids);
+        List<ServiceResourceIds> sids = new ArrayList<>();
+        ReserveResourcesRequest request = TestRequestProvider.createReserveResourcesRequest(fids, sids);
         JsonObject requestBody = JsonObject.mapFrom(request);
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);

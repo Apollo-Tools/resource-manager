@@ -51,7 +51,7 @@ public class ResourceTypeMetricChecker extends EntityChecker {
      * @param resources the resources
      * @return a Completable
      */
-    public Completable checkMissingRequiredMetricsByFunctionResources(JsonArray resources) {
+    public Completable checkMissingRequiredMetricsByResources(JsonArray resources) {
         List<Completable> completables = new ArrayList<>();
         HashSet<Long> resourceIds = new HashSet<>();
         for (Object object : resources) {

@@ -5,7 +5,6 @@ import at.uibk.dps.rm.handler.account.CredentialsChecker;
 import at.uibk.dps.rm.handler.deployment.DeploymentChecker;
 import at.uibk.dps.rm.handler.deployment.DeploymentHandler;
 import at.uibk.dps.rm.handler.function.FunctionChecker;
-import at.uibk.dps.rm.handler.function.FunctionResourceChecker;
 import at.uibk.dps.rm.handler.log.LogChecker;
 import at.uibk.dps.rm.handler.log.ReservationLogChecker;
 import at.uibk.dps.rm.handler.metric.ResourceTypeMetricChecker;
@@ -33,8 +32,6 @@ public class ReservationRoute implements Route {
             serviceProxyProvider.getLogService(), serviceProxyProvider.getReservationLogService());
         CredentialsChecker credentialsChecker = new CredentialsChecker(serviceProxyProvider
             .getCredentialsService());
-        FunctionResourceChecker functionResourceChecker =
-            new FunctionResourceChecker(serviceProxyProvider.getFunctionResourceService());
         FunctionChecker functionChecker = new FunctionChecker(serviceProxyProvider.getFunctionService());
         ServiceChecker serviceChecker = new ServiceChecker(serviceProxyProvider.getServiceService());
         ResourceChecker resourceChecker = new ResourceChecker(serviceProxyProvider.getResourceService());
@@ -56,7 +53,7 @@ public class ReservationRoute implements Route {
             .getResourceTypeMetricService());
         VPCChecker vpcChecker = new VPCChecker(serviceProxyProvider.getVpcService());
         ReservationPreconditionHandler preconditionChecker =
-            new ReservationPreconditionHandler(functionResourceChecker, functionChecker, serviceChecker,
+            new ReservationPreconditionHandler(functionChecker, serviceChecker,
                 resourceChecker, resourceTypeMetricChecker, vpcChecker, credentialsChecker);
         /* Handler initialization */
         DeploymentHandler deploymentHandler = new DeploymentHandler(deploymentChecker, credentialsChecker,

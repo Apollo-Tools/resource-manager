@@ -5,6 +5,7 @@ import at.uibk.dps.rm.entity.dto.ReserveResourcesRequest;
 import at.uibk.dps.rm.entity.dto.TerminateResourcesRequest;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
+import at.uibk.dps.rm.entity.dto.reservation.ServiceResourceIds;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.model.Runtime;
 
@@ -13,15 +14,19 @@ import java.util.List;
 public class TestRequestProvider {
 
     public static ReserveResourcesRequest createReserveResourcesRequest(List<FunctionResourceIds> functionResources,
-                                                                        DockerCredentials dockerCredentials) {
+            List<ServiceResourceIds> serviceResources, DockerCredentials dockerCredentials) {
         ReserveResourcesRequest request = new ReserveResourcesRequest();
         request.setFunctionResources(functionResources);
+        request.setServiceResources(serviceResources);
         request.setDockerCredentials(dockerCredentials);
+        request.setKubeConfig(TestDTOProvider.createKubeConfigValue());
         return request;
     }
 
-    public static ReserveResourcesRequest createReserveResourcesRequest(List<FunctionResourceIds> functionResources) {
-        return createReserveResourcesRequest(functionResources, TestDTOProvider.createDockerCredentials());
+    public static ReserveResourcesRequest createReserveResourcesRequest(List<FunctionResourceIds> functionResources,
+            List<ServiceResourceIds> serviceResources) {
+        return createReserveResourcesRequest(functionResources, serviceResources,
+            TestDTOProvider.createDockerCredentials());
     }
 
     public static DeployResourcesRequest createDeployRequest() {
@@ -39,8 +44,7 @@ public class TestRequestProvider {
         Resource r2 = TestResourceProvider.createResourceVM(2L, region, "t2.micro");
         Resource r3 = TestResourceProvider.createResourceEdge(3L, "http://localhost:8080",
             "user", "pw");
-        Resource r4 = TestResourceProvider.createResourceContainer(3L, "http://localhost:8080",
-            "user", "pw");
+        Resource r4 = TestResourceProvider.createResourceContainer(3L, "http://localhost");
         FunctionReservation fr1 = TestFunctionProvider.createFunctionReservation(1L, f1, r1);
         FunctionReservation fr2 = TestFunctionProvider.createFunctionReservation(2L, f1, r2);
         FunctionReservation fr3 = TestFunctionProvider.createFunctionReservation(3L, f2, r2);
@@ -55,6 +59,7 @@ public class TestRequestProvider {
         deployRequest.setServiceReservations(serviceReservations);
         Credentials c1 = TestAccountProvider.createCredentials(1L, region.getResourceProvider());
         deployRequest.setCredentialsList(List.of(c1));
+        deployRequest.setKubeConfig(TestDTOProvider.createKubeConfigValue());
         return deployRequest;
     }
 
@@ -68,8 +73,7 @@ public class TestRequestProvider {
         Resource r1 = TestResourceProvider.createResourceFaaS(1L, region, 250.0, 512.0);
         Resource r2 = TestResourceProvider.createResourceVM(2L, region, "t2.micro");
         Resource r3 = TestResourceProvider.createResourceEdge(3L, "http://localhost:8080", "user", "pw");
-        Resource r4 = TestResourceProvider.createResourceContainer(3L, "http://localhost:8080",
-            "user", "pw");
+        Resource r4 = TestResourceProvider.createResourceContainer(3L, "http://localhost");
         FunctionReservation fr1 = TestFunctionProvider.createFunctionReservation(1L, f1, r1);
         FunctionReservation fr2 = TestFunctionProvider.createFunctionReservation(2L, f1, r2);
         FunctionReservation fr3 = TestFunctionProvider.createFunctionReservation(3L, f2, r2);

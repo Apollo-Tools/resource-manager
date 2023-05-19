@@ -72,6 +72,22 @@ public class TestReservationProvider {
             JsonObject.mapFrom(resourceReservation3));
     }
 
+    public static List<JsonObject> createFunctionReservationsJson(Reservation reservation) {
+        FunctionReservation fr1 = TestFunctionProvider.createFunctionReservation(1L, reservation);
+        FunctionReservation fr2 = TestFunctionProvider.createFunctionReservation(2L, reservation);
+        FunctionReservation fr3 = TestFunctionProvider.createFunctionReservation(3L, reservation);
+        return List.of(JsonObject.mapFrom(fr1), JsonObject.mapFrom(fr2),
+            JsonObject.mapFrom(fr3));
+    }
+
+    public static List<JsonObject> createServiceReservationsJson(Reservation reservation) {
+        ServiceReservation sr1 = TestServiceProvider.createServiceReservation(1L, reservation);
+        ServiceReservation sr2 = TestServiceProvider.createServiceReservation(2L, reservation);
+        ServiceReservation sr3 = TestServiceProvider.createServiceReservation(3L, reservation);
+        return List.of(JsonObject.mapFrom(sr1), JsonObject.mapFrom(sr2),
+            JsonObject.mapFrom(sr3));
+    }
+
     public static FunctionReservation createFunctionReservation(long id, Reservation reservation) {
         FunctionReservation functionReservation = new FunctionReservation();
         functionReservation.setResourceReservationId(id);

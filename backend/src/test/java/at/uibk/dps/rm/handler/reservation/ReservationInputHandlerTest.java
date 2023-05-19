@@ -2,9 +2,11 @@ package at.uibk.dps.rm.handler.reservation;
 
 import at.uibk.dps.rm.entity.dto.ReserveResourcesRequest;
 import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
+import at.uibk.dps.rm.entity.dto.reservation.ServiceResourceIds;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestRequestProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestServiceProvider;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -16,6 +18,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -31,12 +34,9 @@ public class ReservationInputHandlerTest {
 
     @Test
     void validateResourceArrayHasNoDuplicatesNoDuplicates(VertxTestContext testContext) {
-        FunctionResourceIds ids1 = TestFunctionProvider.createFunctionResourceIds(1L, 1L);
-        FunctionResourceIds ids2 = TestFunctionProvider.createFunctionResourceIds(2L, 6L);
-        FunctionResourceIds ids3 = TestFunctionProvider.createFunctionResourceIds(3L, 2L);
-        FunctionResourceIds ids4 = TestFunctionProvider.createFunctionResourceIds(4L, 1L);
-        List<FunctionResourceIds> functionResourceIds = List.of(ids1, ids2, ids3, ids4);
-        ReserveResourcesRequest request = TestRequestProvider.createReserveResourcesRequest(functionResourceIds);
+        List<FunctionResourceIds> fids = TestFunctionProvider.createFunctionResourceIdsList(1L, 2L, 3L);
+        List<ServiceResourceIds> sids = TestServiceProvider.createServiceResourceIdsList(4L);
+        ReserveResourcesRequest request = TestRequestProvider.createReserveResourcesRequest(fids, sids);
         JsonObject requestBody = JsonObject.mapFrom(request);
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
@@ -60,8 +60,9 @@ public class ReservationInputHandlerTest {
         FunctionResourceIds ids2 = TestFunctionProvider.createFunctionResourceIds(f2, r2);
         FunctionResourceIds ids3 = TestFunctionProvider.createFunctionResourceIds(f3, r3);
         FunctionResourceIds ids4 = TestFunctionProvider.createFunctionResourceIds(f4, r4);
-        List<FunctionResourceIds> functionResourceIds = List.of(ids1, ids2, ids3, ids4);
-        ReserveResourcesRequest request = TestRequestProvider.createReserveResourcesRequest(functionResourceIds);
+        List<FunctionResourceIds> fids = List.of(ids1, ids2, ids3, ids4);
+        List<ServiceResourceIds> sids = new ArrayList<>();
+        ReserveResourcesRequest request = TestRequestProvider.createReserveResourcesRequest(fids, sids);
         JsonObject requestBody = JsonObject.mapFrom(request);
 
         RoutingContextMockHelper.mockBody(rc, requestBody);

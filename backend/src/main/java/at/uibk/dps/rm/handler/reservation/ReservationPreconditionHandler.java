@@ -7,7 +7,6 @@ import at.uibk.dps.rm.entity.dto.resource.ResourceTypeEnum;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.handler.account.CredentialsChecker;
 import at.uibk.dps.rm.handler.function.FunctionChecker;
-import at.uibk.dps.rm.handler.function.FunctionResourceChecker;
 import at.uibk.dps.rm.handler.metric.ResourceTypeMetricChecker;
 import at.uibk.dps.rm.handler.resource.ResourceChecker;
 import at.uibk.dps.rm.handler.resourceprovider.VPCChecker;
@@ -30,8 +29,6 @@ import java.util.stream.Collectors;
  */
 public class ReservationPreconditionHandler {
 
-    private final FunctionResourceChecker functionResourceChecker;
-
     private final FunctionChecker functionChecker;
 
     private final ServiceChecker serviceChecker;
@@ -45,19 +42,20 @@ public class ReservationPreconditionHandler {
     private final CredentialsChecker credentialsChecker;
 
     /**
-     * Create an instance from the functionResourceChecker, resourceTypeMetricChecker, vpcChecker
-     * and credentialsChecker.
+     * Create an instance from the functionChecker, serviceChecker, resourceChecker, resourceTypeMetricChecker,
+     * vpcChecker and credentialsChecker.
      *
-     * @param functionResourceChecker the function resource checker
+     * @param functionChecker the function checker
+     * @param serviceChecker the service checker
+     * @param resourceChecker the resource checker
      * @param resourceTypeMetricChecker the resource type metric checker
      * @param vpcChecker the vpc checker
      * @param credentialsChecker the credentials checker
      */
-    public ReservationPreconditionHandler(FunctionResourceChecker functionResourceChecker, FunctionChecker functionChecker,
+    public ReservationPreconditionHandler(FunctionChecker functionChecker,
         ServiceChecker serviceChecker, ResourceChecker resourceChecker,
         ResourceTypeMetricChecker resourceTypeMetricChecker, VPCChecker vpcChecker,
         CredentialsChecker credentialsChecker) {
-        this.functionResourceChecker = functionResourceChecker;
         this.functionChecker = functionChecker;
         this.serviceChecker = serviceChecker;
         this.resourceChecker = resourceChecker;
@@ -82,7 +80,7 @@ public class ReservationPreconditionHandler {
                 requestDTO.getFunctionResources()))
             .andThen(Single.defer(() -> checkFindResources(requestDTO)))
             .flatMap(resources -> checkCredentialsForResources(accountId, resources)
-                .andThen(resourceTypeMetricChecker.checkMissingRequiredMetricsByFunctionResources(resources))
+                .andThen(resourceTypeMetricChecker.checkMissingRequiredMetricsByResources(resources))
                 .andThen(vpcChecker.checkVPCForFunctionResources(accountId, resources)
                     .map(vpcs -> {
                         vpcList.addAll(vpcs.stream().map(vpc -> vpc.mapTo(VPC.class)).collect(Collectors.toList()));
@@ -92,20 +90,12 @@ public class ReservationPreconditionHandler {
                 .toSingle(() -> resources));
     }
 
-    // TODO: move into functionResourceChecker
     /**
-     * Fine all function resources by functionResourceIds
+     * Find all resources of the request
      *
-     * @param functionResourceIds the function resource ids
-     * @return an Observable that emits all found function resources as JsonObjects
+     * @param request the reserve resources request
+     * @return a Single that emits an array that contains all found resources
      */
-    private Observable<JsonObject> checkFindFunctionResources(List<FunctionResourceIds> functionResourceIds) {
-        return Observable.fromIterable(functionResourceIds)
-            .flatMapSingle(ids -> functionResourceChecker
-                .checkFindOneByFunctionAndResource(ids.getFunctionId(), ids.getResourceId())
-            );
-    }
-
     private Single<JsonArray> checkFindResources(ReserveResourcesRequest request) {
         Single<List<Long>> functionResourceIds = Observable.fromIterable(request.getFunctionResources())
             .map(FunctionResourceIds::getResourceId)

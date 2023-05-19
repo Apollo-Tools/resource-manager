@@ -1,10 +1,8 @@
 package at.uibk.dps.rm.handler.metric;
 
-
-import at.uibk.dps.rm.entity.model.FunctionResource;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.rxjava3.database.metric.ResourceTypeMetricService;
-import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
@@ -72,16 +70,14 @@ public class ResourceTypeMetricCheckerTest {
 
     @Test
     void checkMissingRequiredMetricsByFunctionResources(VertxTestContext testContext) {
-        FunctionResource fr1 = TestFunctionProvider.createFunctionResource(1L, 1L);
-        FunctionResource fr2 = TestFunctionProvider.createFunctionResource(2L, 2L);
-        FunctionResource fr3 = TestFunctionProvider.createFunctionResource(3L, 2L);
-        JsonArray functionResources = new JsonArray(List.of(JsonObject.mapFrom(fr1), JsonObject.mapFrom(fr2),
-            JsonObject.mapFrom(fr3)));
+        JsonObject r1 = JsonObject.mapFrom(TestResourceProvider.createResource(1L));
+        JsonObject r2 = JsonObject.mapFrom(TestResourceProvider.createResource(2L));
+        JsonArray resources = new JsonArray(List.of(r1, r2));
 
         when(service.missingRequiredResourceTypeMetricsByResourceId(or(eq(1L), eq(2L))))
             .thenReturn(Single.just(false));
 
-        checker.checkMissingRequiredMetricsByFunctionResources(functionResources)
+        checker.checkMissingRequiredMetricsByResources(resources)
             .blockingSubscribe(() -> {},
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
@@ -90,18 +86,16 @@ public class ResourceTypeMetricCheckerTest {
 
     @Test
     void checkMissingRequiredMetricsByFunctionResourcesMissingMetric(VertxTestContext testContext) {
-        FunctionResource fr1 = TestFunctionProvider.createFunctionResource(1L, 1L);
-        FunctionResource fr2 = TestFunctionProvider.createFunctionResource(2L, 2L);
-        FunctionResource fr3 = TestFunctionProvider.createFunctionResource(3L, 2L);
-        JsonArray functionResources = new JsonArray(List.of(JsonObject.mapFrom(fr1), JsonObject.mapFrom(fr2),
-            JsonObject.mapFrom(fr3)));
+        JsonObject r1 = JsonObject.mapFrom(TestResourceProvider.createResource(1L));
+        JsonObject r2 = JsonObject.mapFrom(TestResourceProvider.createResource(2L));
+        JsonArray resources = new JsonArray(List.of(r1, r2));
 
         when(service.missingRequiredResourceTypeMetricsByResourceId(1L))
             .thenReturn(Single.just(false));
         when(service.missingRequiredResourceTypeMetricsByResourceId(2L))
             .thenReturn(Single.just(true));
 
-        checker.checkMissingRequiredMetricsByFunctionResources(functionResources)
+        checker.checkMissingRequiredMetricsByResources(resources)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);

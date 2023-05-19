@@ -83,7 +83,7 @@ public class TestResourceProvider {
         return resource;
     }
 
-    public static Resource createResourceContainer(long id, String gatewayUrl, String openFaasUser, String openfaasPw) {
+    public static Resource createResourceContainer(long id, String clusterUrl) {
         Resource resource = new Resource();
         resource.setResourceId(id);
         ResourceType rt = createResourceType(3L, "container");
@@ -93,13 +93,9 @@ public class TestResourceProvider {
         resource.setRegion(region);
         resource.setIsSelfManaged(false);
         MetricType mt = TestMetricProvider.createMetricType(1L, "string");
-        Metric m1 = TestMetricProvider.createMetric(1L, "gateway-url", mt, false);
-        Metric m2 = TestMetricProvider.createMetric(2L, "openfaas-user", mt, false);
-        Metric m3 = TestMetricProvider.createMetric(3L, "openfaas-pw", mt, false);
-        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, m1, gatewayUrl);
-        MetricValue mv2 = TestMetricProvider.createMetricValue(2L, m2, openFaasUser);
-        MetricValue mv3 = TestMetricProvider.createMetricValue(3L, m3, openfaasPw);
-        resource.setMetricValues(Set.of(mv1, mv2, mv3));
+        Metric m1 = TestMetricProvider.createMetric(1L, "cluster-url", mt, false);
+        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, m1, clusterUrl);
+        resource.setMetricValues(Set.of(mv1));
         return resource;
     }
 
