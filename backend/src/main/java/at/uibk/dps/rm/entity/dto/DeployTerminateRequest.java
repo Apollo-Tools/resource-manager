@@ -20,8 +20,6 @@ public abstract class DeployTerminateRequest {
 
     private List<Credentials> credentialsList;
 
-    private List<FunctionResource> functionResources;
-
     private List<FunctionReservation> functionReservations;
 
     private List<ServiceReservation> serviceReservations;

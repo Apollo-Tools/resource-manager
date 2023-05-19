@@ -6,17 +6,16 @@ import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.dto.TerminateResourcesRequest;
+import at.uibk.dps.rm.entity.model.ServiceReservation;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.deployment.docker.DockerImageService;
+import at.uibk.dps.rm.service.deployment.executor.MainTerraformExecutor;
 import at.uibk.dps.rm.service.deployment.executor.TerraformExecutor;
 import at.uibk.dps.rm.service.rxjava3.database.log.LogService;
 import at.uibk.dps.rm.service.rxjava3.database.log.ReservationLogService;
 import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentService;
-import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
-import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
-import at.uibk.dps.rm.testutil.objectprovider.TestLogProvider;
-import at.uibk.dps.rm.testutil.objectprovider.TestRequestProvider;
+import at.uibk.dps.rm.testutil.objectprovider.*;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
@@ -35,6 +34,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -98,7 +98,7 @@ public class DeploymentCheckerTest {
             try (MockedConstruction<DockerImageService> ignoredDocker = Mockito.mockConstruction(DockerImageService.class,
                 (mock, context) -> given(mock.buildOpenFaasImages(functionsToDeploy.getDockerFunctionsString()))
                     .willReturn(Single.just(poDocker)))) {
-                try (MockedConstruction<TerraformExecutor> ignoredTFE = Mockito.mockConstruction(TerraformExecutor.class,
+                try (MockedConstruction<MainTerraformExecutor> ignoredMTFE = Mockito.mockConstruction(MainTerraformExecutor.class,
                     (mock, context) -> {
                         given(mock.setPluginCacheFolder(deploymentPath.getTFCacheFolder()))
                             .willReturn(Completable.complete());
@@ -106,14 +106,24 @@ public class DeploymentCheckerTest {
                         given(mock.apply(deploymentPath.getRootFolder())).willReturn(Single.just(poApply));
                         given(mock.getOutput(deploymentPath.getRootFolder())).willReturn(Single.just(poOutput));
                     })) {
-                    deploymentChecker.deployResources(deployRequest)
-                        .subscribe(result -> testContext.verify(() -> {
-                                assertThat(result.getOutput()).isEqualTo("output");
-                                assertThat(result.getProcess().exitValue()).isEqualTo(0);
-                                testContext.completeNow();
-                            }),
-                            throwable -> testContext.verify(() -> fail("method has thrown exception"))
-                        );
+                    try (MockedConstruction<TerraformExecutor> ignoredTFE = Mockito.mockConstruction(TerraformExecutor.class,
+                        (mock, context) -> {
+                            for (ServiceReservation sr : deployRequest.getServiceReservations()) {
+                                Path containerPath = Path.of(deploymentPath.getRootFolder().toString(), "container",
+                                    String.valueOf(sr.getResourceReservationId()));
+                                given(mock.init(containerPath))
+                                    .willReturn(Single.just(poInit));
+                            }
+                        })) {
+                        deploymentChecker.deployResources(deployRequest)
+                            .subscribe(result -> testContext.verify(() -> {
+                                    assertThat(result.getOutput()).isEqualTo("output");
+                                    assertThat(result.getProcess().exitValue()).isEqualTo(0);
+                                    testContext.completeNow();
+                                }),
+                                throwable -> testContext.verify(() -> fail("method has thrown exception"))
+                            );
+                    }
                 }
             }
         }
@@ -143,7 +153,7 @@ public class DeploymentCheckerTest {
             try (MockedConstruction<DockerImageService> ignoredDocker = Mockito.mockConstruction(DockerImageService.class,
                 (mock, context) -> given(mock.buildOpenFaasImages(functionsToDeploy.getDockerFunctionsString()))
                     .willReturn(Single.just(poDocker)))) {
-                try (MockedConstruction<TerraformExecutor> ignoredTFE = Mockito.mockConstruction(TerraformExecutor.class,
+                try (MockedConstruction<MainTerraformExecutor> ignoredMTFE = Mockito.mockConstruction(MainTerraformExecutor.class,
                     (mock, context) -> {
                         given(mock.setPluginCacheFolder(deploymentPath.getTFCacheFolder()))
                             .willReturn(Completable.complete());
@@ -151,12 +161,22 @@ public class DeploymentCheckerTest {
                         given(mock.apply(deploymentPath.getRootFolder())).willReturn(Single.just(poApply));
                         given(mock.getOutput(deploymentPath.getRootFolder())).willReturn(Single.just(poOutput));
                     })) {
-                    deploymentChecker.deployResources(deployRequest)
-                        .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
-                            throwable -> testContext.verify(() -> {
-                                assertThat(throwable).isInstanceOf(DeploymentTerminationFailedException.class);
-                                testContext.completeNow();
-                            }));
+                    try (MockedConstruction<TerraformExecutor> ignoredTFE = Mockito.mockConstruction(TerraformExecutor.class,
+                        (mock, context) -> {
+                            for (ServiceReservation sr : deployRequest.getServiceReservations()) {
+                                Path containerPath = Path.of(deploymentPath.getRootFolder().toString(), "container",
+                                    String.valueOf(sr.getResourceReservationId()));
+                                given(mock.init(containerPath))
+                                    .willReturn(Single.just(poInit));
+                            }
+                        })) {
+                        deploymentChecker.deployResources(deployRequest)
+                            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+                                throwable -> testContext.verify(() -> {
+                                    assertThat(throwable).isInstanceOf(DeploymentTerminationFailedException.class);
+                                    testContext.completeNow();
+                                }));
+                    }
                 }
             }
         }
@@ -185,19 +205,29 @@ public class DeploymentCheckerTest {
             try (MockedConstruction<DockerImageService> ignoredDocker = Mockito.mockConstruction(DockerImageService.class,
                 (mock, context) -> given(mock.buildOpenFaasImages(functionsToDeploy.getDockerFunctionsString()))
                     .willReturn(Single.just(poDocker)))) {
-                try (MockedConstruction<TerraformExecutor> ignoredTFE = Mockito.mockConstruction(TerraformExecutor.class,
+                try (MockedConstruction<MainTerraformExecutor> ignoredMTFE = Mockito.mockConstruction(MainTerraformExecutor.class,
                     (mock, context) -> {
                         given(mock.setPluginCacheFolder(deploymentPath.getTFCacheFolder()))
                             .willReturn(Completable.complete());
                         given(mock.init(deploymentPath.getRootFolder())).willReturn(Single.just(poInit));
                         given(mock.apply(deploymentPath.getRootFolder())).willReturn(Single.just(poApply));
                     })) {
-                    deploymentChecker.deployResources(deployRequest)
-                        .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
-                            throwable -> testContext.verify(() -> {
-                                assertThat(throwable).isInstanceOf(DeploymentTerminationFailedException.class);
-                                testContext.completeNow();
-                            }));
+                    try (MockedConstruction<TerraformExecutor> ignoredTFE = Mockito.mockConstruction(TerraformExecutor.class,
+                        (mock, context) -> {
+                            for (ServiceReservation sr : deployRequest.getServiceReservations()) {
+                                Path containerPath = Path.of(deploymentPath.getRootFolder().toString(), "container",
+                                    String.valueOf(sr.getResourceReservationId()));
+                                given(mock.init(containerPath))
+                                    .willReturn(Single.just(poInit));
+                            }
+                        })) {
+                        deploymentChecker.deployResources(deployRequest)
+                            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+                                throwable -> testContext.verify(() -> {
+                                    assertThat(throwable).isInstanceOf(DeploymentTerminationFailedException.class);
+                                    testContext.completeNow();
+                                }));
+                    }
                 }
             }
         }
@@ -225,18 +255,28 @@ public class DeploymentCheckerTest {
             try (MockedConstruction<DockerImageService> ignoredDocker = Mockito.mockConstruction(DockerImageService.class,
                 (mock, context) -> given(mock.buildOpenFaasImages(functionsToDeploy.getDockerFunctionsString()))
                     .willReturn(Single.just(poDocker)))) {
-                try (MockedConstruction<TerraformExecutor> ignoredTFE = Mockito.mockConstruction(TerraformExecutor.class,
+                try (MockedConstruction<MainTerraformExecutor> ignoredMTFE = Mockito.mockConstruction(MainTerraformExecutor.class,
                     (mock, context) -> {
                         given(mock.setPluginCacheFolder(deploymentPath.getTFCacheFolder()))
                             .willReturn(Completable.complete());
                         given(mock.init(deploymentPath.getRootFolder())).willReturn(Single.just(poInit));
                     })) {
-                    deploymentChecker.deployResources(deployRequest)
-                        .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
-                            throwable -> testContext.verify(() -> {
-                                assertThat(throwable).isInstanceOf(DeploymentTerminationFailedException.class);
-                                testContext.completeNow();
-                            }));
+                    try (MockedConstruction<TerraformExecutor> ignoredTFE = Mockito.mockConstruction(TerraformExecutor.class,
+                        (mock, context) -> {
+                            for (ServiceReservation sr : deployRequest.getServiceReservations()) {
+                                Path containerPath = Path.of(deploymentPath.getRootFolder().toString(), "container",
+                                    String.valueOf(sr.getResourceReservationId()));
+                                given(mock.init(containerPath))
+                                    .willReturn(Single.just(poInit));
+                            }
+                        })) {
+                        deploymentChecker.deployResources(deployRequest)
+                            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+                                throwable -> testContext.verify(() -> {
+                                    assertThat(throwable).isInstanceOf(DeploymentTerminationFailedException.class);
+                                    testContext.completeNow();
+                                }));
+                    }
                 }
             }
         }
@@ -334,18 +374,28 @@ public class DeploymentCheckerTest {
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockito.mockConstruction(ConfigUtility.class,
             (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
-            try (MockedConstruction<TerraformExecutor> ignoredTFE = Mockito.mockConstruction(TerraformExecutor.class,
+            try (MockedConstruction<MainTerraformExecutor> ignoredMTFE = Mockito.mockConstruction(MainTerraformExecutor.class,
                 (mock, context) -> {
                     given(mock.setPluginCacheFolder(deploymentPath.getTFCacheFolder()))
                         .willReturn(Completable.complete());
                     given(mock.destroy(deploymentPath.getRootFolder())).willReturn(Single.just(poDestroy));
                 })) {
-                deploymentChecker.terminateResources(terminateRequest)
-                    .blockingSubscribe(() -> {
-                        },
-                        throwable -> testContext.verify(() -> fail("method has thrown exception"))
-                    );
-                testContext.completeNow();
+                try (MockedConstruction<TerraformExecutor> ignoredTFE = Mockito.mockConstruction(TerraformExecutor.class,
+                    (mock, context) -> {
+                        for (ServiceReservation sr : terminateRequest.getServiceReservations()) {
+                            Path containerPath = Path.of(deploymentPath.getRootFolder().toString(), "container",
+                                String.valueOf(sr.getResourceReservationId()));
+                            given(mock.destroy(containerPath))
+                                .willReturn(Single.just(poDestroy));
+                        }
+                    })) {
+                    deploymentChecker.terminateResources(terminateRequest)
+                        .blockingSubscribe(() -> {
+                            },
+                            throwable -> testContext.verify(() -> fail("method has thrown exception"))
+                        );
+                    testContext.completeNow();
+                }
             }
         }
     }
@@ -366,20 +416,30 @@ public class DeploymentCheckerTest {
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockito.mockConstruction(ConfigUtility.class,
             (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
-            try (MockedConstruction<TerraformExecutor> ignoredTFE = Mockito.mockConstruction(TerraformExecutor.class,
+            try (MockedConstruction<MainTerraformExecutor> ignoredMTFE = Mockito.mockConstruction(MainTerraformExecutor.class,
                 (mock, context) -> {
                     given(mock.setPluginCacheFolder(deploymentPath.getTFCacheFolder()))
                         .willReturn(Completable.complete());
                     given(mock.destroy(deploymentPath.getRootFolder())).willReturn(Single.just(poDestroy));
                 })) {
-                deploymentChecker.terminateResources(terminateRequest)
-                    .blockingSubscribe(() -> testContext.verify(() ->
-                            fail("method did not throw exception")),
-                        throwable -> testContext.verify(() -> {
-                            assertThat(throwable).isInstanceOf(DeploymentTerminationFailedException.class);
-                            testContext.completeNow();
-                        })
-                    );
+                try (MockedConstruction<TerraformExecutor> ignoredTFE = Mockito.mockConstruction(TerraformExecutor.class,
+                    (mock, context) -> {
+                        for (ServiceReservation sr : terminateRequest.getServiceReservations()) {
+                            Path containerPath = Path.of(deploymentPath.getRootFolder().toString(), "container",
+                                String.valueOf(sr.getResourceReservationId()));
+                            given(mock.destroy(containerPath))
+                                .willReturn(Single.just(poDestroy));
+                        }
+                    })) {
+                    deploymentChecker.terminateResources(terminateRequest)
+                        .blockingSubscribe(() -> testContext.verify(() ->
+                                fail("method did not throw exception")),
+                            throwable -> testContext.verify(() -> {
+                                assertThat(throwable).isInstanceOf(DeploymentTerminationFailedException.class);
+                                testContext.completeNow();
+                            })
+                        );
+                }
             }
         }
     }
@@ -387,18 +447,34 @@ public class DeploymentCheckerTest {
     @Test
     void terminateResourceGetCredentialsFailed(VertxTestContext testContext) {
         TerminateResourcesRequest terminateRequest = TestRequestProvider.createTerminateRequest();
+        DeploymentPath deploymentPath = new DeploymentPath(terminateRequest.getReservation().getReservationId(),
+            config);
+        ProcessOutput poDestroy = TestDTOProvider.createProcessOutput(processSuccess, "destroy");
+        JsonObject log = JsonObject.mapFrom(TestLogProvider.createLog(1L));
 
+        when(logService.save(any())).thenReturn(Single.just(log));
+        when(reservationLogService.save(any())).thenReturn(Single.just(new JsonObject()));
         when(deploymentService.getNecessaryCredentials(terminateRequest)).thenReturn(Single.error(NotFoundException::new));
 
-        try (MockedConstruction<ConfigUtility> ignoredConfig = Mockito.mockConstruction(ConfigUtility.class,
-            (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
-            deploymentChecker.terminateResources(terminateRequest)
-                .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
-                    throwable -> testContext.verify(() -> {
-                        assertThat(throwable).isInstanceOf(NotFoundException.class);
-                        testContext.completeNow();
-                    })
-                );
+        try (MockedConstruction<TerraformExecutor> ignoredTFE = Mockito.mockConstruction(TerraformExecutor.class,
+            (mock, context) -> {
+                for (ServiceReservation sr : terminateRequest.getServiceReservations()) {
+                    Path containerPath = Path.of(deploymentPath.getRootFolder().toString(), "container",
+                        String.valueOf(sr.getResourceReservationId()));
+                    given(mock.destroy(containerPath))
+                        .willReturn(Single.just(poDestroy));
+                }
+            })) {
+            try (MockedConstruction<ConfigUtility> ignoredConfig = Mockito.mockConstruction(ConfigUtility.class,
+                (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
+                deploymentChecker.terminateResources(terminateRequest)
+                    .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
+                        throwable -> testContext.verify(() -> {
+                            assertThat(throwable).isInstanceOf(NotFoundException.class);
+                            testContext.completeNow();
+                        })
+                    );
+            }
         }
     }
 
@@ -414,18 +490,28 @@ public class DeploymentCheckerTest {
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockito.mockConstruction(ConfigUtility.class,
             (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
-            try (MockedConstruction<TerraformExecutor> ignoredTFE = Mockito.mockConstruction(TerraformExecutor.class,
+            try (MockedConstruction<MainTerraformExecutor> ignoredMTFE = Mockito.mockConstruction(MainTerraformExecutor.class,
                 (mock, context) -> {
                     given(mock.setPluginCacheFolder(deploymentPath.getTFCacheFolder()))
                         .willReturn(Completable.complete());
                     given(mock.destroy(deploymentPath.getRootFolder())).willReturn(Single.just(poDestroy));
                 })) {
-                deploymentChecker.terminateResources(terminateRequest)
-                    .blockingSubscribe(() -> {
-                        },
-                        throwable -> testContext.verify(() -> fail("method has thrown exception"))
-                    );
-                testContext.completeNow();
+                try (MockedConstruction<TerraformExecutor> ignoredTFE = Mockito.mockConstruction(TerraformExecutor.class,
+                    (mock, context) -> {
+                        for (ServiceReservation sr : terminateRequest.getServiceReservations()) {
+                            Path containerPath = Path.of(deploymentPath.getRootFolder().toString(), "container",
+                                String.valueOf(sr.getResourceReservationId()));
+                            given(mock.destroy(containerPath))
+                                .willReturn(Single.just(poDestroy));
+                        }
+                    })) {
+                    deploymentChecker.terminateResources(terminateRequest)
+                        .blockingSubscribe(() -> {
+                            },
+                            throwable -> testContext.verify(() -> fail("method has thrown exception"))
+                        );
+                    testContext.completeNow();
+                }
             }
         }
     }

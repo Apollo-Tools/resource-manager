@@ -34,7 +34,6 @@ public class DeployResourcesRequest extends DeployTerminateRequest {
     public DeployResourcesRequest(JsonObject jsonObject) {
         super();
         DeployResourcesRequest request = jsonObject.mapTo(DeployResourcesRequest.class);
-        this.setFunctionResources(request.getFunctionResources());
         this.setFunctionReservations(request.getFunctionReservations());
         this.setServiceReservations(request.getServiceReservations());
         this.setCredentialsList(request.getCredentialsList());

@@ -37,13 +37,22 @@ public class TestRequestProvider {
         Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime);
         Resource r1 = TestResourceProvider.createResourceFaaS(1L, region, 250.0, 512.0);
         Resource r2 = TestResourceProvider.createResourceVM(2L, region, "t2.micro");
-        Resource r3 = TestResourceProvider.createResourceEdge(3L, "http://localhost:8080", "user", "pw");
-        FunctionResource fr1 = TestFunctionProvider.createFunctionResource(1L, f1, r1);
-        FunctionResource fr2 = TestFunctionProvider.createFunctionResource(2L, f1, r2);
-        FunctionResource fr3 = TestFunctionProvider.createFunctionResource(3L, f2, r2);
-        FunctionResource fr4 = TestFunctionProvider.createFunctionResource(4L, f1, r3);
-        List<FunctionResource> functionResources = List.of(fr1, fr2, fr3, fr4);
-        deployRequest.setFunctionResources(functionResources);
+        Resource r3 = TestResourceProvider.createResourceEdge(3L, "http://localhost:8080",
+            "user", "pw");
+        Resource r4 = TestResourceProvider.createResourceContainer(3L, "http://localhost:8080",
+            "user", "pw");
+        FunctionReservation fr1 = TestFunctionProvider.createFunctionReservation(1L, f1, r1);
+        FunctionReservation fr2 = TestFunctionProvider.createFunctionReservation(2L, f1, r2);
+        FunctionReservation fr3 = TestFunctionProvider.createFunctionReservation(3L, f2, r2);
+        FunctionReservation fr4 = TestFunctionProvider.createFunctionReservation(4L, f1, r3);
+        List<FunctionReservation> functionReservations = List.of(fr1, fr2, fr3, fr4);
+        deployRequest.setFunctionReservations(functionReservations);
+        Service s1 = TestServiceProvider.createService(1L, "s1:latest");
+        Service s2 = TestServiceProvider.createService(2L, "s2:latest");
+        ServiceReservation sr1 = TestServiceProvider.createServiceReservation(5L, s1, r4);
+        ServiceReservation sr2 = TestServiceProvider.createServiceReservation(6L, s2, r4);
+        List<ServiceReservation> serviceReservations = List.of(sr1, sr2);
+        deployRequest.setServiceReservations(serviceReservations);
         Credentials c1 = TestAccountProvider.createCredentials(1L, region.getResourceProvider());
         deployRequest.setCredentialsList(List.of(c1));
         return deployRequest;
@@ -59,12 +68,20 @@ public class TestRequestProvider {
         Resource r1 = TestResourceProvider.createResourceFaaS(1L, region, 250.0, 512.0);
         Resource r2 = TestResourceProvider.createResourceVM(2L, region, "t2.micro");
         Resource r3 = TestResourceProvider.createResourceEdge(3L, "http://localhost:8080", "user", "pw");
-        FunctionResource fr1 = TestFunctionProvider.createFunctionResource(1L, f1, r1);
-        FunctionResource fr2 = TestFunctionProvider.createFunctionResource(2L, f1, r2);
-        FunctionResource fr3 = TestFunctionProvider.createFunctionResource(3L, f2, r2);
-        FunctionResource fr4 = TestFunctionProvider.createFunctionResource(4L, f1, r3);
-        List<FunctionResource> functionResources = List.of(fr1, fr2, fr3, fr4);
-        terminateRequest.setFunctionResources(functionResources);
+        Resource r4 = TestResourceProvider.createResourceContainer(3L, "http://localhost:8080",
+            "user", "pw");
+        FunctionReservation fr1 = TestFunctionProvider.createFunctionReservation(1L, f1, r1);
+        FunctionReservation fr2 = TestFunctionProvider.createFunctionReservation(2L, f1, r2);
+        FunctionReservation fr3 = TestFunctionProvider.createFunctionReservation(3L, f2, r2);
+        FunctionReservation fr4 = TestFunctionProvider.createFunctionReservation(4L, f1, r3);
+        List<FunctionReservation> functionReservations = List.of(fr1, fr2, fr3, fr4);
+        terminateRequest.setFunctionReservations(functionReservations);
+        Service s1 = TestServiceProvider.createService(1L, "s1:latest");
+        Service s2 = TestServiceProvider.createService(2L, "s2:latest");
+        ServiceReservation sr1 = TestServiceProvider.createServiceReservation(5L, s1, r4);
+        ServiceReservation sr2 = TestServiceProvider.createServiceReservation(6L, s2, r4);
+        List<ServiceReservation> serviceReservations = List.of(sr1, sr2);
+        terminateRequest.setServiceReservations(serviceReservations);
         Credentials c1 = TestAccountProvider.createCredentials(1L, region.getResourceProvider());
         terminateRequest.setCredentialsList(List.of(c1));
         return terminateRequest;
