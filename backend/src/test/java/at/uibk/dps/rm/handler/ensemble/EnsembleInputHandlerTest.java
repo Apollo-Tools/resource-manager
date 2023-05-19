@@ -18,6 +18,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
+/**
+ * Implements tests for the {@link EnsembleInputHandler} class.
+ *
+ * @author matthi-g
+ */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
 public class EnsembleInputHandlerTest {

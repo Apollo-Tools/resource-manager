@@ -1,6 +1,5 @@
 package at.uibk.dps.rm.handler.reservation;
 
-
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
 import at.uibk.dps.rm.entity.model.Log;
@@ -37,6 +36,11 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
 
+/**
+ * Implements tests for the {@link ReservationErrorHandler} class.
+ *
+ * @author matthi-g
+ */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
 public class ReservationErrorHandlerTest {

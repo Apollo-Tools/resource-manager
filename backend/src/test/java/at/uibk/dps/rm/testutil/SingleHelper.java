@@ -6,7 +6,7 @@ import io.vertx.rxjava3.impl.AsyncResultSingle;
 import lombok.experimental.UtilityClass;
 
 /**
- * Helper class for Singles in tests.
+ * Utility class for Singles in tests.
  *
  * @author matthi-g
  */
@@ -21,7 +21,8 @@ public class SingleHelper {
      */
     public static <T> Single<T> getEmptySingle() {
         T emptyObject = null;
-        // As found in "build/generated/sources/annotationProcessor/java/Main/at.uibk.dps.rm.service/rxjava3.database/metric/MetricService"
+        // As found in "build/generated/sources/annotationProcessor/java/Main/
+        // at.uibk.dps.rm.service/rxjava3.database/metric/MetricService"
         return AsyncResultSingle.toSingle(Future.succeededFuture(emptyObject), value -> value);
     }
 }

@@ -3,9 +3,16 @@ package at.uibk.dps.rm.testutil.objectprovider;
 import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
 import at.uibk.dps.rm.entity.model.*;
 import io.vertx.core.json.JsonObject;
+import lombok.experimental.UtilityClass;
 
 import java.util.List;
 
+/**
+ * Utility class to instantiate objects that are linked to the reservation entity.
+ *
+ * @author matthi-g
+ */
+@UtilityClass
 public class TestReservationProvider {
     public static ResourceReservation createResourceReservation(long id, Reservation reservation, Resource resource,
                                                                 ResourceReservationStatus resourceReservationStatus) {

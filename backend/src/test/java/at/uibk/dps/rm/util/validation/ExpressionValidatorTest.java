@@ -14,6 +14,11 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
+/**
+ * Implements tests for the {@link ExpressionValidator} class.
+ *
+ * @author matthi-g
+ */
 @ExtendWith(VertxExtension.class)
 public class ExpressionValidatorTest {
 

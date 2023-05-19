@@ -42,6 +42,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
 
+/**
+ * Implements tests for the {@link DeploymentChecker} class.
+ *
+ * @author matthi-g
+ */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
 public class DeploymentCheckerTest {

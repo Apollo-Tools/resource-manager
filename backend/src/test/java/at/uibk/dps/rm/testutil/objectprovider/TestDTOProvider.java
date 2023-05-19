@@ -22,11 +22,18 @@ import at.uibk.dps.rm.entity.dto.slo.SLOValueType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.model.ResourceProvider;
+import lombok.experimental.UtilityClass;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Utility class to instantiate DTO objects of different types.
+ *
+ * @author matthi-g
+ */
+@UtilityClass
 public class TestDTOProvider {
     public static SLOValue createSLOValue(Number value) {
         SLOValue sloValue = new SLOValue();

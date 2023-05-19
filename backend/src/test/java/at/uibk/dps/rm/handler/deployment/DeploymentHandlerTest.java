@@ -30,6 +30,11 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+/**
+ * Implements tests for the {@link DeploymentHandler} class.
+ *
+ * @author matthi-g
+ */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
 public class DeploymentHandlerTest {

@@ -23,6 +23,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.fail;
 import static org.mockito.Mockito.when;
 
+/**
+ * Implements tests for the {@link VPCHandler} class.
+ *
+ * @author matthi-g
+ */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
 public class VPCHandlerTest {

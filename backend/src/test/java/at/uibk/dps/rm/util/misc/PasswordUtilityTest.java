@@ -8,6 +8,11 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Implements tests for the {@link PasswordUtility} class.
+ *
+ * @author matthi-g
+ */
 @ExtendWith(VertxExtension.class)
 public class PasswordUtilityTest {
 

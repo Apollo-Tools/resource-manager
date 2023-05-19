@@ -2,9 +2,16 @@ package at.uibk.dps.rm.testutil.objectprovider;
 
 import at.uibk.dps.rm.entity.dto.reservation.ServiceResourceIds;
 import at.uibk.dps.rm.entity.model.*;
+import lombok.experimental.UtilityClass;
 
 import java.util.List;
 
+/**
+ * Utility class to instantiate objects that are linked to the service entity.
+ *
+ * @author matthi-g
+ */
+@UtilityClass
 public class TestServiceProvider {
 
     public static ServiceResourceIds createServiceResourceIds(long serviceId, long resourceId) {

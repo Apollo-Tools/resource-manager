@@ -1,7 +1,5 @@
 package at.uibk.dps.rm.service;
 
-import at.uibk.dps.rm.service.ServiceInterface;
-import at.uibk.dps.rm.service.ServiceProxy;
 import io.vertx.serviceproxy.ServiceBinder;
 import lombok.AllArgsConstructor;
 

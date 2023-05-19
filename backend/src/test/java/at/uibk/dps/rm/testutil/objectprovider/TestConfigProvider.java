@@ -2,6 +2,11 @@ package at.uibk.dps.rm.testutil.objectprovider;
 
 import io.vertx.core.json.JsonObject;
 
+/**
+ * Utility class to instantiate vertx config objects.
+ *
+ * @author matthi-g
+ */
 public class TestConfigProvider {
 
     public static JsonObject getConfig() {

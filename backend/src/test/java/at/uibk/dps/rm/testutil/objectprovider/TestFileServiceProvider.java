@@ -17,6 +17,11 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Utility class to instantiate objects that are different types of file services.
+ *
+ * @author matthi-g
+ */
 public class TestFileServiceProvider {
     public static AWSFileService createAWSFileService(FileSystem fileSystem, Resource r1, Resource r2, Resource r3,
                                                       Runtime runtime, Region region) {

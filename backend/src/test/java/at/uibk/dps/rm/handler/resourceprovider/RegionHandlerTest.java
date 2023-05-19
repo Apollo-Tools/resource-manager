@@ -1,6 +1,5 @@
 package at.uibk.dps.rm.handler.resourceprovider;
 
-
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
@@ -21,6 +20,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
+/**
+ * Implements tests for the {@link RegionHandler} class.
+ *
+ * @author matthi-g
+ */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
 public class RegionHandlerTest {

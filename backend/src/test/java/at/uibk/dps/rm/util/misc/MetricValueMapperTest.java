@@ -9,6 +9,11 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Implements tests for the {@link MetricValueMapper} class.
+ *
+ * @author matthi-g
+ */
 public class MetricValueMapperTest {
 
     @Test

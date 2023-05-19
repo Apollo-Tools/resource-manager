@@ -32,6 +32,11 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
 
+/**
+ * Implements tests for the {@link MainTerraformExecutor} class.
+ *
+ * @author matthi-g
+ */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
 public class MainTerraformExecutorTest {

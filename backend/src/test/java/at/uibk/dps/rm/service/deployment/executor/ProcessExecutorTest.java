@@ -16,6 +16,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.BDDMockito.given;
 
+/**
+ * Implements tests for the {@link ProcessExecutor} class.
+ *
+ * @author matthi-g
+ */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
 public class ProcessExecutorTest {

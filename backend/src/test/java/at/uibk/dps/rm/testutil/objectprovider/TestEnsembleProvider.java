@@ -7,6 +7,11 @@ import lombok.experimental.UtilityClass;
 
 import java.util.List;
 
+/**
+ * Utility class to instantiate objects that are linked to the ensemble entity.
+ *
+ * @author matthi-g
+ */
 @UtilityClass
 public class TestEnsembleProvider {
 

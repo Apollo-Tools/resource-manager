@@ -3,10 +3,17 @@ package at.uibk.dps.rm.testutil.objectprovider;
 import at.uibk.dps.rm.entity.model.*;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import lombok.experimental.UtilityClass;
 
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Utility class to instantiate objects that are linked to the resource entity.
+ *
+ * @author matthi-g
+ */
+@UtilityClass
 public class TestResourceProvider {
     public static Resource createResource(long id, ResourceType resourceType, Region region, boolean selfManaged) {
         Resource resource = new Resource();

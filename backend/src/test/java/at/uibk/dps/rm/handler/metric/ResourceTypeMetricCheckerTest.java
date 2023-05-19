@@ -23,6 +23,11 @@ import static org.mockito.AdditionalMatchers.or;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+/**
+ * Implements tests for the {@link ResourceTypeMetricChecker} class.
+ *
+ * @author matthi-g
+ */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
 public class ResourceTypeMetricCheckerTest {

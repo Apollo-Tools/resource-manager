@@ -3,9 +3,16 @@ package at.uibk.dps.rm.testutil.objectprovider;
 import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.model.Runtime;
+import lombok.experimental.UtilityClass;
 
 import java.util.List;
 
+/**
+ * Utility class to instantiate objects that are linked to the function entity.
+ *
+ * @author matthi-g
+ */
+@UtilityClass
 public class TestFunctionProvider {
     public static FunctionResourceIds createFunctionResourceIds(long functionId, long resourceId) {
         FunctionResourceIds ids = new FunctionResourceIds();

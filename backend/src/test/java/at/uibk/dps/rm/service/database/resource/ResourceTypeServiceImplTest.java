@@ -16,6 +16,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 
+/**
+ * Implements tests for the {@link ResourceTypeServiceImpl} class.
+ *
+ * @author matthi-g
+ */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
 public class ResourceTypeServiceImplTest {

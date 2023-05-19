@@ -3,10 +3,17 @@ package at.uibk.dps.rm.testutil.objectprovider;
 import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.service.deployment.executor.MainTerraformExecutor;
 import io.vertx.rxjava3.core.Vertx;
+import lombok.experimental.UtilityClass;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Utility class to instantiate objects that are different types of executors.
+ *
+ * @author matthi-g
+ */
+@UtilityClass
 public class TestExecutorProvider {
     public static MainTerraformExecutor createTerraformExecutorAWSEdge(Vertx vertx) {
         DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWSEdge();

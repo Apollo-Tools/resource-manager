@@ -19,11 +19,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
+/**
+ * Implements tests for the {@link PackageSourceCode} class.
+ *
+ * @author matthi-g
+ */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
 public class PackageSourceCodeTest {
 
+    /**
+     * Implements a concrete class of the {@link PackageSourceCode} class.
+     */
     static class ConcretePackageSourceCode extends PackageSourceCode {
+        /**
+         * Create an instance from vertx and the fileSystem.
+         *
+         * @param vertx the vertx instance
+         * @param fileSystem the vertx file system
+         */
         protected ConcretePackageSourceCode(Vertx vertx, FileSystem fileSystem) {
             super(vertx, fileSystem);
         }

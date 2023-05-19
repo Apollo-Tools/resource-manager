@@ -21,6 +21,11 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+/**
+ * Implements tests for the {@link SLORequestDeserializer} class.
+ *
+ * @author matthi-g
+ */
 public class SLORequestDeserializerTest {
 
     private static Stream<Arguments> provideValidJsonObject() {

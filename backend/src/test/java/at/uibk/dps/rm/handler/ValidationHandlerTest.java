@@ -27,11 +27,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
+/**
+ * Implements tests for the {@link ValidationHandler} class.
+ *
+ * @author matthi-g
+ */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
 public class ValidationHandlerTest {
 
+    /**
+     * Implements a concrete class of the {@link ValidationHandler} class.
+     */
     static class ConcreteValidationHandler extends ValidationHandler {
+        /**
+         * Create an instance from the entityChecker.
+         *
+         * @param entityChecker the entity checker
+         */
         protected ConcreteValidationHandler(EntityChecker entityChecker) {
             super(entityChecker);
         }

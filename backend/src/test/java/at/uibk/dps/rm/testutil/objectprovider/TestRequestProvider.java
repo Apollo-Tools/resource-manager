@@ -8,9 +8,16 @@ import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
 import at.uibk.dps.rm.entity.dto.reservation.ServiceResourceIds;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.model.Runtime;
+import lombok.experimental.UtilityClass;
 
 import java.util.List;
 
+/**
+ * Utility class to instantiate objects that are different types of requests.
+ *
+ * @author matthi-g
+ */
+@UtilityClass
 public class TestRequestProvider {
 
     public static ReserveResourcesRequest createReserveResourcesRequest(List<FunctionResourceIds> functionResources,

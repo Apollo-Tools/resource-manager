@@ -21,6 +21,11 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Implements tests for the {@link SLOCompareUtility} class.
+ *
+ * @author matthi-g
+ */
 @ExtendWith(VertxExtension.class)
 public class SLOCompareUtilityTest {
 

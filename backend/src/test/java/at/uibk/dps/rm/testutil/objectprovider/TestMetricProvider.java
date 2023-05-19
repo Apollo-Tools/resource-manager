@@ -3,7 +3,14 @@ package at.uibk.dps.rm.testutil.objectprovider;
 import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.entity.model.MetricType;
 import at.uibk.dps.rm.entity.model.MetricValue;
+import lombok.experimental.UtilityClass;
 
+/**
+ * Utility class to instantiate objects that are linked to the metric entity.
+ *
+ * @author matthi-g
+ */
+@UtilityClass
 public class TestMetricProvider {
     public static MetricType createMetricType(long metricTypeId, String metricTypeName) {
         MetricType metricType = new MetricType();

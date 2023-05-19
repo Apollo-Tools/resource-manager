@@ -11,6 +11,11 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Implements tests for the {@link RegionMapper} class.
+ *
+ * @author matthi-g
+ */
 public class RegionMapperTest {
 
     @Test

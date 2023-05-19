@@ -22,9 +22,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
+/**
+ * Implements tests for the {@link FunctionFileService} class.
+ *
+ * @author matthi-g
+ */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class FunctionFIleServiceTest {
+public class FunctionFileServiceTest {
 
 
     @Test

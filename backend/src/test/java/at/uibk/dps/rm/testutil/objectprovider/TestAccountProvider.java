@@ -4,7 +4,14 @@ import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.entity.model.AccountCredentials;
 import at.uibk.dps.rm.entity.model.Credentials;
 import at.uibk.dps.rm.entity.model.ResourceProvider;
+import lombok.experimental.UtilityClass;
 
+/**
+ * Utility class to instantiate objects that are linked to the account entity.
+ *
+ * @author matthi-g
+ */
+@UtilityClass
 public class TestAccountProvider {
     public static Account createAccount(long accountId, String username, String password) {
         Account account = new Account();

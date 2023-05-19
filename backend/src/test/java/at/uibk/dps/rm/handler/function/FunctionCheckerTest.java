@@ -1,6 +1,5 @@
 package at.uibk.dps.rm.handler.function;
 
-
 import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.service.rxjava3.database.function.FunctionService;
@@ -21,6 +20,11 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * Implements tests for the {@link FunctionChecker} class.
+ *
+ * @author matthi-g
+ */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
 public class FunctionCheckerTest {

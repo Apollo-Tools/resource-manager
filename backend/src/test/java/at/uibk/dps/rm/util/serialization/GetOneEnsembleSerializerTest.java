@@ -10,6 +10,11 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Implements tests for the {@link GetOneEnsembleSerializer} class.
+ *
+ * @author matthi-g
+ */
 public class GetOneEnsembleSerializerTest {
 
     @BeforeEach

@@ -14,6 +14,11 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Implements tests for the {@link SLOValueSerializer} class.
+ *
+ * @author matthi-g
+ */
 public class SLOValueSerializerTest {
 
     @BeforeEach
@@ -21,6 +26,9 @@ public class SLOValueSerializerTest {
         JsonMapperConfig.configJsonMapper();
     }
 
+    /**
+     * Implements a wrapper class for a list of slo values.
+     */
     @Data
     private static class SLOValueWrapper {
         private final List<SLOValue> sloValue;

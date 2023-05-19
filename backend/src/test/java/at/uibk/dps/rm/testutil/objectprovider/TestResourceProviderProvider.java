@@ -4,7 +4,14 @@ import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.entity.model.ResourceProvider;
 import at.uibk.dps.rm.entity.model.VPC;
+import lombok.experimental.UtilityClass;
 
+/**
+ * Utility class to instantiate objects that are linked to the resource_provider entity.
+ *
+ * @author matthi-g
+ */
+@UtilityClass
 public class TestResourceProviderProvider {
     public static ResourceProvider createResourceProvider(long providerId) {
         ResourceProvider resourceProvider = new ResourceProvider();

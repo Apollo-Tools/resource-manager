@@ -24,11 +24,24 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 
+/**
+ * Implements tests for the {@link DatabaseServiceProxy} class.
+ *
+ * @author matthi-g
+ */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
 public class DatabaseServiceProxyTest {
 
+    /**
+     * Implements a concrete class of the {@link DatabaseServiceProxy} class.
+     */
     static class ConcreteServiceProxy extends DatabaseServiceProxy<ResourceType> {
+        /**
+         * Create an instance from the repository.
+         *
+         * @param repository the repository
+         */
         public ConcreteServiceProxy(Repository<ResourceType> repository) {
             super(repository, ResourceType.class);
         }

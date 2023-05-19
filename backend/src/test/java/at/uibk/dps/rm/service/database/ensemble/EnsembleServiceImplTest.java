@@ -23,9 +23,14 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
+/**
+ * Implements tests for the {@link EnsembleServiceImpl} class.
+ *
+ * @author matthi-g
+ */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class EnsembleServiceTest {
+public class EnsembleServiceImplTest {
 
     private EnsembleService ensembleService;
 
