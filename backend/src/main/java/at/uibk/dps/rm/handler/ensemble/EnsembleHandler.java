@@ -23,6 +23,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 //TODO: implement update of resources
+/**
+ * Processes the http requests that concern the ensemble entity.
+ *
+ * @author matthi-g
+ */
 public class EnsembleHandler extends ValidationHandler {
 
     private final EnsembleChecker ensembleChecker;
@@ -115,6 +120,13 @@ public class EnsembleHandler extends ValidationHandler {
             .flatMapCompletable(entityChecker::submitDelete);
     }
 
+    /**
+     * Create a new ensemble instance from the request and accountId
+     *
+     * @param request the createEnsembleRequest
+     * @param accountId the id of the account
+     * @return the new ensemble
+     */
     private Ensemble createNewEnsemble(CreateEnsembleRequest request, long accountId) {
         Account createdBy = new Account();
         createdBy.setAccountId(accountId);
@@ -128,6 +140,13 @@ public class EnsembleHandler extends ValidationHandler {
         return ensemble;
     }
 
+    /**
+     * Create and persist resource ensembles with the ensemble and resourceIds.
+     *
+     * @param ensemble the ensemble
+     * @param resourceIds the list of resource ids
+     * @return a Completable
+     */
     private Completable createResourceEnsembles(Ensemble ensemble, List<ResourceId> resourceIds) {
         return Observable.fromIterable(resourceIds)
             .map(resourceId -> {
@@ -145,6 +164,13 @@ public class EnsembleHandler extends ValidationHandler {
             });
     }
 
+    /**
+     * Create and persist ensemble slos with the ensemble and slos.
+     *
+     * @param ensemble the ensemble
+     * @param slos the list of service level objectives
+     * @return a Completable
+     */
     private Completable createEnsembleSLOs(Ensemble ensemble, List<ServiceLevelObjective> slos) {
         return Observable.fromIterable(slos)
             .map(slo -> {
@@ -178,6 +204,12 @@ public class EnsembleHandler extends ValidationHandler {
             });
     }
 
+    /**
+     * Map the ensembleSLOs model entity to the ServiceLevelObjective DTO.
+     *
+     * @param ensembleSLOs the list of ensembleSLOs
+     * @return a List of mapped ServiceLevelObjectives
+     */
     private List<ServiceLevelObjective> mapEnsembleSLOtoDTO(List<EnsembleSLO> ensembleSLOs) {
         return ensembleSLOs.stream()
             .map(ensembleSLO -> {
@@ -209,12 +241,28 @@ public class EnsembleHandler extends ValidationHandler {
             }).collect(Collectors.toList());
     }
 
+    /**
+     * Map an JsonArray of resources to the response.
+     *
+     * @param resources the resources
+     * @param response the response
+     * @throws JsonProcessingException when a json processing error occurs
+     */
     private void mapResourcesToResponse(JsonArray resources, GetOneEnsemble response)
         throws JsonProcessingException {
         List<Resource> resourceList = mapper.readValue(resources.toString(), new TypeReference<>() {});
         response.setResources(resourceList);
     }
 
+    /**
+     * Map an JsonArray of service level objectives and the regions, resource providers and
+     * resource types of the ensemble to the response.
+     *
+     * @param slos the service level objectives
+     * @param ensemble the ensemble
+     * @param response the response
+     * @throws JsonProcessingException when a json processing error occurs
+     */
     private void mapSLOsToResponse(JsonArray slos, Ensemble ensemble, GetOneEnsemble response)
         throws JsonProcessingException {
         List<EnsembleSLO> ensembleSLOs = mapper.readValue(slos.toString(), new TypeReference<>() {});

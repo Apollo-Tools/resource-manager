@@ -146,6 +146,13 @@ public class ResourceRepository extends Repository<Resource> {
         );
     }
 
+    /**
+     * Find all resources by an ensemble and fetch the resource, resourceType, region,
+     * resourceProvider, metricValues and metric.
+     *
+     * @param ensembleId the id of the ensemble
+     * @return a CompletionStage that emits a list of resources
+     */
     public CompletionStage<List<Resource>> findAllByEnsembleId(long ensembleId) {
         return sessionFactory.withSession(session ->
                 session.createQuery("select distinct r from ResourceEnsemble re " +
@@ -161,6 +168,13 @@ public class ResourceRepository extends Repository<Resource> {
         );
     }
 
+    /**
+     * Find all resources by the resourceIds and resourceTypes.
+     *
+     * @param resourceIds the list of resource ids
+     * @param resourceTypes the list resource types
+     * @return a CompletionStage that emits a list of resources
+     */
     public CompletionStage<List<Resource>> findAllByResourceIdsAndResourceTypes(Set<Long> resourceIds,
         List<String> resourceTypes) {
         if (resourceIds.isEmpty()) {
@@ -178,6 +192,13 @@ public class ResourceRepository extends Repository<Resource> {
         );
     }
 
+    /**
+     * Find all resources by the resourceIds and fetch the region, resourceProvider, resourceType,
+     * metricValues and metric.
+     *
+     * @param resourceIds the list of resource ids
+     * @return a CompletionStage that emits a list of resources
+     */
     public CompletionStage<List<Resource>> findAllByResourceIdsAndFetch(List<Long> resourceIds) {
         String resourceIdsConcat = resourceIds.stream().map(Object::toString).collect(Collectors.joining(","));
         return this.sessionFactory.withSession(session ->

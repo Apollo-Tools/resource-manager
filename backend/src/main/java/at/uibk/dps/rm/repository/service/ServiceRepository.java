@@ -11,6 +11,11 @@ import java.util.Set;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
+/**
+ * Implements database operations for the service entity.
+ *
+ * @author matthi-g
+ */
 public class ServiceRepository extends Repository<Service> {
 
     /**
@@ -22,6 +27,12 @@ public class ServiceRepository extends Repository<Service> {
         super(sessionFactory, Service.class);
     }
 
+    /**
+     * Find a service by its name.
+     *
+     * @param name the name of the service
+     * @return a CompletionStage that emits the service if it exists, else null
+     */
     public CompletionStage<Service> findOneByName(String name) {
         return sessionFactory.withSession(session -> session.createQuery(
                 "from Service s " +
@@ -31,6 +42,12 @@ public class ServiceRepository extends Repository<Service> {
         );
     }
 
+    /**
+     * Find all services by the serviceIds.
+     *
+     * @param serviceIds the list of service ids
+     * @return a CompletionStage that emits a list of services
+     */
     public CompletionStage<List<Service>> findAllByIds(Set<Long> serviceIds) {
         if (serviceIds.isEmpty()) {
             return CompletionStages.completedFuture(new ArrayList<>());

@@ -50,6 +50,12 @@ public class ResourceReservationChecker extends EntityChecker {
         return ErrorHandler.handleFindAll(findAllByResourceId);
     }
 
+    //TODO: check for status and service type
+    /**
+     * Check whether a resource reservation is ready for startup
+     *
+     * @return a Single that emits all found resource reservations as JsonArray
+     */
     public Single<Boolean> checkExistsForStartup(long reservationId,
             long resourceReservationId, long accountId) {
         Single<Boolean> exists = resourceReservationService

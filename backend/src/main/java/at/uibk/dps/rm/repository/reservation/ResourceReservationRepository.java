@@ -16,7 +16,6 @@ import java.util.concurrent.CompletionStage;
  * @author matthi-g
  */
 public class ResourceReservationRepository extends Repository<ResourceReservation> {
-
     /**
      * Create an instance from the sessionFactory.
      *
@@ -41,6 +40,14 @@ public class ResourceReservationRepository extends Repository<ResourceReservatio
         );
     }
 
+    /**
+     * Find a resource reservation by its reservation, resourceReservation and creator.
+     *
+     * @param reservationId the id of the reservation
+     * @param resourceReservationId the id of the resource reservation
+     * @param accountId the account id of the creator
+     * @return a CompletionStage that emits the resource reservation if it exists, else null
+     */
     public CompletionStage<ResourceReservation> findOneByReservationIdResourceReservationIdAndAccountId(long reservationId,
             long resourceReservationId, long accountId) {
         return sessionFactory.withSession(session ->
@@ -95,15 +102,27 @@ public class ResourceReservationRepository extends Repository<ResourceReservatio
         );
     }
 
-    public CompletionStage<Void> createAllFunctionReservations(List<FunctionReservation> entityList) {
+    /**
+     * Create all function reservations from the functionReservations.
+     *
+     * @param functionReservations the list of function reservations to create
+     * @return an empty CompletionStage
+     */
+    public CompletionStage<Void> createAllFunctionReservations(List<FunctionReservation> functionReservations) {
         return sessionFactory.withTransaction((session, tx) ->
-            session.persist(entityList.toArray())
+            session.persist(functionReservations.toArray())
         );
     }
 
-    public CompletionStage<Void> createAllServiceReservations(List<ServiceReservation> entityList) {
+    /**
+     * Create all service reservations from the serviceReservations.
+     *
+     * @param serviceReservations the list of service reservations to create
+     * @return an empty CompletionStage
+     */
+    public CompletionStage<Void> createAllServiceReservations(List<ServiceReservation> serviceReservations) {
         return sessionFactory.withTransaction((session, tx) ->
-            session.persist(entityList.toArray())
+            session.persist(serviceReservations.toArray())
         );
     }
 }

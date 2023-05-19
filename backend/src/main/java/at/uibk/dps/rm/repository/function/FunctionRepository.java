@@ -93,6 +93,12 @@ public class FunctionRepository extends Repository<Function> {
         );
     }
 
+    /**
+     * Find all functions by their ids.
+     *
+     * @param functionIds the list of function ids
+     * @return a CompletionStage that emits the list of all functions
+     */
     public CompletionStage<List<Function>> findAllByIds(Set<Long> functionIds) {
         if (functionIds.isEmpty()) {
             return CompletionStages.completedFuture(new ArrayList<>());
