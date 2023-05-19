@@ -43,8 +43,8 @@ public class ReservationPreconditionHandler {
     private final CredentialsChecker credentialsChecker;
 
     /**
-     * Create an instance from the functionChecker, serviceChecker, resourceChecker, resourceTypeMetricChecker,
-     * vpcChecker and credentialsChecker.
+     * Create an instance from the functionChecker, serviceChecker, resourceChecker,
+     * resourceTypeMetricChecker, vpcChecker and credentialsChecker.
      *
      * @param functionChecker the function checker
      * @param serviceChecker the service checker
