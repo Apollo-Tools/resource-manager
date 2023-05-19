@@ -22,8 +22,9 @@
   <exclude-pattern>.*/net/sourceforge/pmd/lang/java/ast/jdkversiontests/java10/LocalVariableTypeInference_varAsAnnotationName.java</exclude-pattern>
   <exclude-pattern>.*/net/sourceforge/pmd/lang/java/ast/jdkversiontests/java10/LocalVariableTypeInference_varAsEnumName.java</exclude-pattern>
   <exclude-pattern>.*/net/sourceforge/pmd/lang/java/ast/jdkversiontests/java10/LocalVariableTypeInference_varAsTypeIdentifier.java</exclude-pattern>
-  <!-- exclude test package from this ruleset -->
-  <exclude-pattern>.*/test/java/.*</exclude-pattern>
+  <!-- exclude main package from this ruleset -->
+  <exclude-pattern>.*/main/java/.*</exclude-pattern>
+
 
   <!-- Comment requirements -->
   <rule ref="category/java/documentation.xml/CommentRequired">
@@ -32,9 +33,9 @@
       <property name="accessorCommentRequirement" value="Ignored" />
       <property name="classCommentRequirement" value="Required" />
       <property name="fieldCommentRequirement" value="Ignored" />
-      <property name="publicMethodCommentRequirement" value="Required" />
-      <property name="protectedMethodCommentRequirement" value="Required" />
-      <property name="enumCommentRequirement" value="Required" />
+      <property name="publicMethodCommentRequirement" value="Ignored" />
+      <property name="protectedMethodCommentRequirement" value="Ignored" />
+      <property name="enumCommentRequirement" value="Ignored" />
       <property name="serialVersionUIDCommentRequired" value="Ignored" />
       <property name="serialPersistentFieldsCommentRequired" value="Ignored" />
     </properties>
@@ -43,7 +44,7 @@
   <!-- Maximum number of methods -->
   <rule ref="category/java/design.xml/TooManyMethods">
     <properties>
-      <property name="maxmethods" value="15" />
+      <property name="maxmethods" value="30" />
     </properties>
   </rule>
 
@@ -78,5 +79,4 @@
 
   <!-- Unused imports -->
   <rule ref="category/java/codestyle.xml/UnnecessaryImport" />
-
 </ruleset>

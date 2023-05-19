@@ -81,10 +81,10 @@ jacoco {
 }
 
 pmd {
-  toolVersion="6.21.0"
+  toolVersion="6.34.0"
   isConsoleOutput=true
   ruleSets = emptyList()
-  ruleSetFiles = files("../ruleset.xml")
+  ruleSetFiles = files("../ruleset.xml", "../ruleset_test.xml")
 }
 
 tasks.withType<ShadowJar> {
