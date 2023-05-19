@@ -10,6 +10,11 @@ import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.Objects;
 
+/**
+ * This is the implementation of the #EnsembleService.
+ *
+ * @author matthi-g
+ */
 public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implements EnsembleService {
 
     private final EnsembleRepository ensembleRepository;

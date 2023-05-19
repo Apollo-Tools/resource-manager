@@ -55,5 +55,11 @@ public interface FunctionService extends DatabaseServiceInterface {
      */
     Future<Boolean> existsOneByNameAndRuntimeId(String name, long runtimeId);
 
+    /**
+     * Check if function exists by the functionIds.
+     *
+     * @param functionIds a list of functionIds
+     * @return a Future that emits true if all functions exists, else false
+     */
     Future<Boolean> existsAllByIds(Set<Long> functionIds);
 }

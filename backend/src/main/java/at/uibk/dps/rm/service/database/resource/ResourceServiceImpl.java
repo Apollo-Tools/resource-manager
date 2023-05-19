@@ -88,7 +88,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     }
 
     @Override
-    public Future<JsonArray> findAllByResourceId(List<Long> resourceIds) {
+    public Future<JsonArray> findAllByResourceIds(List<Long> resourceIds) {
         return Future
             .fromCompletionStage(resourceRepository.findAllByResourceIdsAndFetch(resourceIds))
             .map(this::encodeResourceList);

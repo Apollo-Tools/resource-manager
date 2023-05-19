@@ -65,9 +65,28 @@ public interface ResourceService extends DatabaseServiceInterface {
      */
     Future<Boolean> existsOneByResourceType(long typeId);
 
+    /**
+     * Find all resources by ensembleId.
+     *
+     * @param ensembleId the id of the ensemble
+     * @return a Future that emits all resources as JsonArray
+     */
     Future<JsonArray> findAllByEnsembleId(long ensembleId);
 
+    /**
+     * Check if all resources exists by resourceIds and resourceTypes.
+     *
+     * @param resourceIds the list of resource ids
+     * @param resourceTypes the list of resource types
+     * @return a Future that emits true if all resources exist, else false
+     */
     Future<Boolean> existsAllByIdsAndResourceTypes(Set<Long> resourceIds, List<String> resourceTypes);
 
-    Future<JsonArray> findAllByResourceId(List<Long> resourceIds);
+    /**
+     * Find all resources by resourceIds.
+     *
+     * @param resourceIds the list of resource ids
+     * @return a Future that emits all resources as JsonArray
+     */
+    Future<JsonArray> findAllByResourceIds(List<Long> resourceIds);
 }

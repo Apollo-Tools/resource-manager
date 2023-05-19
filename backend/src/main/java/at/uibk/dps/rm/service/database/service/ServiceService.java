@@ -13,9 +13,15 @@ import io.vertx.core.Vertx;
 
 import java.util.Set;
 
+/**
+ * The interface of the service proxy for the service entity.
+ *
+ * @author matthi-g
+ */
 @ProxyGen
 @VertxGen
 public interface ServiceService extends DatabaseServiceInterface {
+    @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
     static ServiceService create(ServiceRepository serviceRepository) {
@@ -29,7 +35,19 @@ public interface ServiceService extends DatabaseServiceInterface {
             ServiceProxyAddress.getServiceProxyAddress(Service.class));
     }
 
+    /**
+     * Check if a service exists by name.
+     *
+     * @param name the name of the service
+     * @return a Future that emits true if it exists, else false
+     */
     Future<Boolean> existsOneByName(String name);
 
+    /**
+     * Check if all services exists by serviceIds.
+     *
+     * @param serviceIds the list of service ids
+     * @return a Future that emits true if all services exist, else false
+     */
     Future<Boolean> existsAllByIds(Set<Long> serviceIds);
 }

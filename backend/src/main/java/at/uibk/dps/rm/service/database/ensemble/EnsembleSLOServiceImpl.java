@@ -9,6 +9,11 @@ import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
 
+/**
+ * This is the implementation of the #EnsembleSLOService.
+ *
+ * @author matthi-g
+ */
 public class EnsembleSLOServiceImpl extends DatabaseServiceProxy<EnsembleSLO> implements EnsembleSLOService {
     private final EnsembleSLORepository ensembleSLORepository;
 
@@ -22,6 +27,7 @@ public class EnsembleSLOServiceImpl extends DatabaseServiceProxy<EnsembleSLO> im
         this.ensembleSLORepository = ensembleSLORepository;
     }
 
+    @Override
     public Future<JsonArray> findAllByEnsembleId(long ensembleId) {
         return Future
             .fromCompletionStage(ensembleSLORepository.findAllByEnsembleId(ensembleId))

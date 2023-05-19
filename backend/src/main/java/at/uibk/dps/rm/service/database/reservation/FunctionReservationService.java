@@ -12,6 +12,11 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 
+/**
+ * The interface of the service proxy for the function_reservation entity.
+ *
+ * @author matthi-g
+ */
 @ProxyGen
 @VertxGen
 public interface FunctionReservationService extends DatabaseServiceInterface {

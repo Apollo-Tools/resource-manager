@@ -10,9 +10,15 @@ import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
 
+/**
+ * The interface of the service proxy for the resource_ensemble entity.
+ *
+ * @author matthi-g
+ */
 @ProxyGen
 @VertxGen
 public interface ResourceEnsembleService extends DatabaseServiceInterface {
+    @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
     static ResourceEnsembleService create(ResourceEnsembleRepository repository) {

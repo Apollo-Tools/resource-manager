@@ -8,6 +8,11 @@ import io.vertx.core.Future;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * This is the implementation of the #ServiceService.
+ *
+ * @author matthi-g
+ */
 public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements ServiceService {
 
     private final ServiceRepository serviceRepository;

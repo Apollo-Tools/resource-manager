@@ -80,7 +80,7 @@ public class ResourceChecker extends EntityChecker {
      * @return a Single that emits all found resources as JsonArray
      */
     public Single<JsonArray> checkFindAllByResourceIds(List<Long> resourceIds) {
-        Single<JsonArray> findAllByResourceIds = resourceService.findAllByResourceId(resourceIds);
+        Single<JsonArray> findAllByResourceIds = resourceService.findAllByResourceIds(resourceIds);
         return ErrorHandler.handleFindAll(findAllByResourceIds);
     }
 

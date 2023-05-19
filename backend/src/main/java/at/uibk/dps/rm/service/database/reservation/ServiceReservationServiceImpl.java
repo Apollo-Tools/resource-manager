@@ -9,11 +9,21 @@ import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
 
+/**
+ * This is the implementation of the #ServiceReservationService.
+ *
+ * @author matthi-g
+ */
 public class ServiceReservationServiceImpl  extends DatabaseServiceProxy<ServiceReservation>
     implements ServiceReservationService {
 
     private final ServiceReservationRepository repository;
 
+    /**
+     * Create an instance from the repository.
+     *
+     * @param repository the service reservation repository
+     */
     public ServiceReservationServiceImpl(ServiceReservationRepository repository) {
         super(repository, ServiceReservation.class);
         this.repository = repository;

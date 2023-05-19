@@ -9,11 +9,21 @@ import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
 
+/**
+ * This is the implementation of the #FunctionReservationService.
+ *
+ * @author matthi-g
+ */
 public class FunctionReservationServiceImpl  extends DatabaseServiceProxy<FunctionReservation> implements
     FunctionReservationService {
 
     private final FunctionReservationRepository repository;
 
+    /**
+     * Create an instance from the repository.
+     *
+     * @param repository the function reservation repository
+     */
     public FunctionReservationServiceImpl(FunctionReservationRepository repository) {
         super(repository, FunctionReservation.class);
         this.repository = repository;

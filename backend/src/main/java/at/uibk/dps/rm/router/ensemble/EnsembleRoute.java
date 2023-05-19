@@ -16,6 +16,11 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
+/**
+ * Used to initialise the ensemble route.
+ *
+ * @author matthi-g
+ */
 public class EnsembleRoute implements Route {
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
