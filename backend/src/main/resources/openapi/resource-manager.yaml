@@ -2320,6 +2320,26 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
+  /service-types:
+    get:
+      description: Return details about all service types managed by the resource manager
+      operationId: listServiceTypes
+      security:
+        - bearerAuth: []
+      tags:
+        - serviceTypes
+      responses:
+        200:
+          description: Successful pull of all serviceTypes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ServiceType"
+        500:
+          $ref: "#/components/responses/500"
+
 components:
   schemas:
     Account:
@@ -2530,11 +2550,49 @@ components:
           example: 1
         name:
           type: string
-          example: user/example
+          example: service-name
+        image:
+          type: string
+          example: user/image:latest
+        replicas:
+          type: integer
+          format: int32
+          example: 1
+        ports:
+          type: array
+          items:
+            type: string
+            example: 80:8080
+        cpu:
+          type: number
+          example: 0.1
+        memory:
+          type: integer
+          format: int32
+          example: 128
+        service_type:
+          $ref: "#/components/schemas/ServiceType"
+
         created_at:
           type: integer
           format: int64
           example: 1679496667103
+
+    ServiceType:
+      type: object
+      properties:
+        service_type_id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: NodePort
+        created_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+
     VPC:
       type: object
       properties:

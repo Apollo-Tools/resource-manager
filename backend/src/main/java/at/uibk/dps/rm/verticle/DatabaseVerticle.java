@@ -22,6 +22,7 @@ import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
 import at.uibk.dps.rm.repository.service.ServiceRepository;
+import at.uibk.dps.rm.repository.service.ServiceTypeRepository;
 import at.uibk.dps.rm.service.database.account.*;
 import at.uibk.dps.rm.service.database.ensemble.*;
 import at.uibk.dps.rm.service.database.function.*;
@@ -38,6 +39,8 @@ import at.uibk.dps.rm.service.database.resource.ResourceTypeService;
 import at.uibk.dps.rm.service.database.resource.ResourceTypeServiceImpl;
 import at.uibk.dps.rm.service.database.service.ServiceService;
 import at.uibk.dps.rm.service.database.service.ServiceServiceImpl;
+import at.uibk.dps.rm.service.database.service.ServiceTypeService;
+import at.uibk.dps.rm.service.database.service.ServiceTypeServiceImpl;
 import at.uibk.dps.rm.service.util.FilePathService;
 import at.uibk.dps.rm.service.util.FilePathServiceImpl;
 import at.uibk.dps.rm.service.ServiceProxyBinder;
@@ -87,6 +90,7 @@ public class DatabaseVerticle extends AbstractVerticle {
     private RuntimeRepository runtimeRepository;
     private ServiceRepository serviceRepository;
     private ServiceReservationRepository serviceReservationRepository;
+    private ServiceTypeRepository serviceTypeRepository;
     private VPCRepository vpcRepository;
 
     @Override
@@ -152,6 +156,7 @@ public class DatabaseVerticle extends AbstractVerticle {
             runtimeRepository = new RuntimeRepository(sessionFactory);
             serviceRepository = new ServiceRepository(sessionFactory);
             serviceReservationRepository = new ServiceReservationRepository(sessionFactory);
+            serviceTypeRepository = new ServiceTypeRepository(sessionFactory);
             vpcRepository = new VPCRepository(sessionFactory);
             emitter.onComplete();
         });
@@ -203,6 +208,7 @@ public class DatabaseVerticle extends AbstractVerticle {
             serviceProxyBinder.bind(ServiceService.class, new ServiceServiceImpl(serviceRepository));
             serviceProxyBinder.bind(ServiceReservationService.class,
                 new ServiceReservationServiceImpl(serviceReservationRepository));
+            serviceProxyBinder.bind(ServiceTypeService.class, new ServiceTypeServiceImpl(serviceTypeRepository));
             serviceProxyBinder.bind(VPCService.class, new VPCServiceImpl(vpcRepository));
             serviceProxyBinder.bind(FilePathService.class, new FilePathServiceImpl(vertx.getDelegate()));
             emitter.onComplete();

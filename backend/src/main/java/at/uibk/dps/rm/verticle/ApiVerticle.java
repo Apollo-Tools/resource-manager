@@ -18,6 +18,7 @@ import at.uibk.dps.rm.router.resourceprovider.ResourceProviderRegionRoute;
 import at.uibk.dps.rm.router.resourceprovider.ResourceProviderRoute;
 import at.uibk.dps.rm.router.resourceprovider.VPCRoute;
 import at.uibk.dps.rm.router.service.ServiceRoute;
+import at.uibk.dps.rm.router.service.ServiceTypeRoute;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.util.configuration.JWTAuthProvider;
 import io.reactivex.rxjava3.core.Completable;
@@ -104,6 +105,7 @@ public class ApiVerticle extends AbstractVerticle {
         new ReservationStartupRoute().init(routerBuilder, serviceProxyProvider);
         new ResourceTypeMetricRoute().init(routerBuilder, serviceProxyProvider);
         new ServiceRoute().init(routerBuilder, serviceProxyProvider);
+        new ServiceTypeRoute().init(routerBuilder, serviceProxyProvider);
         new VPCRoute().init(routerBuilder, serviceProxyProvider);
     }
 
