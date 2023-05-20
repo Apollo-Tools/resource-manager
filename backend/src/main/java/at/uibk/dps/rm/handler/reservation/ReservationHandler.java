@@ -9,6 +9,7 @@ import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
 import at.uibk.dps.rm.entity.dto.reservation.ReservationResponse;
 import at.uibk.dps.rm.entity.dto.reservation.ServiceResourceIds;
 import at.uibk.dps.rm.entity.model.*;
+import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.handler.deployment.DeploymentChecker;
@@ -194,7 +195,7 @@ public class ReservationHandler extends ValidationHandler {
             resouceList = DatabindCodec.mapper().readValue(resources.toString(), new TypeReference<>() {});
             kubeConfig = new YAMLMapper().readValue(request.getKubeConfig(), KubeConfig.class);
         } catch (JsonProcessingException e) {
-            return Single.error(new RuntimeException("Error during deserialization of resources/kube config"));
+            return Single.error(new BadInputException("Unsupported schema of kube config"));
         }
         for (FunctionResourceIds functionResourceIds : request.getFunctionResources()) {
             Resource resource = new Resource();

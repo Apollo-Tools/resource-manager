@@ -15,4 +15,11 @@ public class BadInputException extends RuntimeException {
     public BadInputException() {
         super("bad input");
     }
+
+    /**
+     * Create an instance with the message.
+     */
+    public BadInputException(String message) {
+        super(message);
+    }
 }
