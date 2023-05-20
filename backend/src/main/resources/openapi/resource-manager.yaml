@@ -2253,14 +2253,58 @@ paths:
               type: object
               required:
                 - name
+                - image
+                - replicas
+                - ports
+                - cpu
+                - memory
+                - service_type
               additionalProperties: false
               properties:
                 name:
+                  description: the name of the service
+                  type: string
+                  minLength: 1
+                  maxLength: 4096
+                  example: servicex-highmemory
+                image:
                   description: the name of the docker image
                   type: string
                   minLength: 1
                   maxLength: 4096
                   example: user/example
+                replicas:
+                  description: the amount of replicas to deploy
+                  type: integer
+                  format: int32
+                  example: 1
+                ports:
+                  description: the ports to expose
+                  type: array
+                  items:
+                    type: string
+                    example: 80:8000
+                cpu:
+                  description: the necessary amount of cpu resources
+                  type: number
+                  format: double
+                  example: 0.1
+                memory:
+                  description: the necessary memory in megabytes
+                  type: integer
+                  format: int32
+                  example: 128
+                service_type:
+                  description: the service type of the deployment.
+                  type: object
+                  required:
+                    - service_type_id
+                  additionalProperties: false
+                  properties:
+                    service_type_id:
+                      type: integer
+                      format: int64
+                      example: 1
 
       responses:
         201:

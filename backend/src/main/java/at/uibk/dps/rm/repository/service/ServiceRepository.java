@@ -43,6 +43,22 @@ public class ServiceRepository extends Repository<Service> {
     }
 
     /**
+     * Find a service by its id and fetch the service type.
+     *
+     * @param id the id of the service
+     * @return a CompletionStage that emits the service if it exists, else null
+     */
+    public CompletionStage<Service> findByIdAndFetch(long id) {
+        return sessionFactory.withSession(session -> session.createQuery(
+                "from Service s " +
+                    "left join fetch s.serviceType " +
+                    "where s.serviceId=:serviceId", entityClass)
+            .setParameter("serviceId", id)
+            .getSingleResultOrNull()
+        );
+    }
+
+    /**
      * Find all services by the serviceIds.
      *
      * @param serviceIds the list of service ids
@@ -57,6 +73,19 @@ public class ServiceRepository extends Repository<Service> {
         return sessionFactory.withSession(session ->
             session.createQuery("select distinct s from Service s " +
                     "where s.serviceId in (" + serviceIdsConcat + ")", entityClass)
+                .getResultList()
+        );
+    }
+
+    /**
+     * Find all services and fetch the resource type.
+     *
+     * @return a CompletionStage that emits a list of all services
+     */
+    public CompletionStage<List<Service>> findAllAndFetch() {
+        return sessionFactory.withSession(session ->
+            session.createQuery("from Service s " +
+                    "left join fetch s.serviceType", entityClass)
                 .getResultList()
         );
     }

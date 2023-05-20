@@ -29,6 +29,7 @@
         <class>at.uibk.dps.rm.entity.model.Runtime</class>
         <class>at.uibk.dps.rm.entity.model.Service</class>
         <class>at.uibk.dps.rm.entity.model.ServiceReservation</class>
+        <class>at.uibk.dps.rm.entity.model.ServiceType</class>
         <class>at.uibk.dps.rm.entity.model.VPC</class>
         <properties>
             <!-- The Vert.x SQL Client connection pool size -->

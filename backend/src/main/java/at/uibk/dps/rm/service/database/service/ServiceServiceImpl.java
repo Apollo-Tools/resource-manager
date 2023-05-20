@@ -4,7 +4,10 @@ import at.uibk.dps.rm.entity.model.Service;
 import at.uibk.dps.rm.repository.service.ServiceRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Set;
 
@@ -25,6 +28,26 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
     public ServiceServiceImpl(ServiceRepository repository) {
         super(repository, Service.class);
         this.serviceRepository = repository;
+    }
+
+    @Override
+    public Future<JsonObject> findOne(long id) {
+        return Future
+            .fromCompletionStage(serviceRepository.findByIdAndFetch(id))
+            .map(JsonObject::mapFrom);
+    }
+
+    @Override
+    public Future<JsonArray> findAll() {
+        return Future
+            .fromCompletionStage(serviceRepository.findAllAndFetch())
+            .map(result -> {
+                ArrayList<JsonObject> objects = new ArrayList<>();
+                for (Service entity: result) {
+                    objects.add(JsonObject.mapFrom(entity));
+                }
+                return new JsonArray(objects);
+            });
     }
 
     @Override

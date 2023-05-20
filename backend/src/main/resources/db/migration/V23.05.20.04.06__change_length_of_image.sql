@@ -1,0 +1,2 @@
+ALTER TABLE service
+ALTER column image TYPE VARCHAR(4096);
