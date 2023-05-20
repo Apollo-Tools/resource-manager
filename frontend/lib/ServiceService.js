@@ -68,6 +68,30 @@ export async function listServices(token, setServices, setError) {
 }
 
 /**
+ * Get the details of a service.
+ *
+ * @param {number} id the id of the resource
+ * @param {string} token the access token
+ * @param {function} setService the function to set the retrieved service
+ * @param {function} setError the function to set the error if one occurred
+ */
+export async function getService(id, token, setService, setError) {
+  try {
+    const response = await fetch(`${API_ROUTE}/${id}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await response.json();
+    setService(() => data);
+  } catch (error) {
+    setError(true);
+    console.log(error);
+  }
+}
+
+/**
  * Delete an existing service.
  *
  * @param {number} id the id of the service

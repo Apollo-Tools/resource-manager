@@ -1,12 +1,13 @@
 import DateFormatter from '../misc/DateFormatter';
 import {Button, Modal, Space, Table} from 'antd';
-import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
+import {DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined} from '@ant-design/icons';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import ResourceTable from '../resources/ResourceTable';
 import PropTypes from 'prop-types';
 import {deleteService, listServices} from '../../lib/ServiceService';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
+import Link from 'next/link';
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -125,6 +126,9 @@ const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources
       {!hideDelete && <Column title="Actions" key="action"
         render={(_, record) => (
           <Space size="middle">
+            <Link href={`/services/${record.service_id}`}>
+              <Button icon={<InfoCircleOutlined />}/>
+            </Link>
             <Button onClick={() => showDeleteConfirm(record.service_id)} icon={<DeleteOutlined />}/>
           </Space>
         )}
