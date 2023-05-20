@@ -2287,7 +2287,6 @@ paths:
                 cpu:
                   description: the necessary amount of cpu resources
                   type: number
-                  format: double
                   example: 0.1
                 memory:
                   description: the necessary memory in megabytes

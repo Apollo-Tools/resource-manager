@@ -5,11 +5,18 @@ const API_ROUTE = `${env('API_URL')}/services`;
  * Create a new service.
  *
  * @param {string} name the name of the service
+ * @param {string} image the name of the image
+ * @param {number} replicas the amount of replicas
+ * @param {string[]} ports the ports to expose
+ * @param {number} cpu the necessary cpu ressources
+ * @param {number} memory the necessary memory
+ * @param {number} serviceTypeId the service type
  * @param {string} token the access token
  * @param {function} setService the function to set the created service
  * @param {function} setError the function to set the error if one occurred
  */
-export async function createService(name, token, setService, setError) {
+export async function createService(name, image, replicas, ports, cpu, memory,
+    serviceTypeId, token, setService, setError) {
   try {
     const response = await fetch(`${API_ROUTE}`, {
       method: 'POST',
@@ -19,6 +26,14 @@ export async function createService(name, token, setService, setError) {
       },
       body: JSON.stringify({
         name: name,
+        image: image,
+        replicas: replicas,
+        ports: ports,
+        cpu: cpu,
+        memory: memory,
+        service_type: {
+          service_type_id: serviceTypeId,
+        },
       }),
     });
     const data = await response.json();
