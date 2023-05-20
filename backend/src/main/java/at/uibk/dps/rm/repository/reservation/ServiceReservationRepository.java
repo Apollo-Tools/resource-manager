@@ -30,7 +30,8 @@ public class ServiceReservationRepository extends Repository<ServiceReservation>
     public CompletionStage<List<ServiceReservation>> findAllByReservationId(long reservationId) {
         return sessionFactory.withSession(session ->
             session.createQuery("select distinct sr from ServiceReservation sr " +
-                    "left join fetch sr.service " +
+                    "left join fetch sr.service s " +
+                    "left join fetch s.serviceType " +
                     "left join fetch sr.resource r " +
                     "left join fetch r.metricValues mv " +
                     "left join fetch mv.metric " +

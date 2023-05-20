@@ -70,17 +70,7 @@ public class ContainerDeployFileService extends TerraformFileService {
         Service service = serviceReservation.getService();
         String identifier = resource.getResourceId() + "_" + service.getServiceId();
         Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
-        String ports = "";
-        if (metricValues.containsKey("ports")) {
-             ports = Arrays.stream(metricValues.get("ports").getValueString().split(";"))
-                .map(port -> String.format("{container_port = %s, service_port = %s}", port.split(":")[0],
-                    port.split(":")[1]))
-                 .collect(Collectors.joining(","));
-        }
-        String serviceType = "NodePort";
-        if (metricValues.containsKey("service-type")) {
-            serviceType = metricValues.get("service-type").getValueString();
-        }
+
         String externalIp = "";
         if (metricValues.containsKey("external-ip")) {
             externalIp = metricValues.get("external-ip").getValueString();
@@ -88,6 +78,10 @@ public class ContainerDeployFileService extends TerraformFileService {
 
         String configPath = Path.of(rootFolder.getParent().toString(), "config").toAbsolutePath().toString()
             .replace("\\", "/");
+        String ports = service.getPorts().stream()
+            .map(portEntry -> String.format("{container_port = %s, service_port = %s}", portEntry.split(":")[0],
+                portEntry.split(":")[1]))
+            .collect(Collectors.joining(","));
         containerString.append(String.format(
             "module \"deployment_%s\" {\n" +
             "  source = \"../../../../terraform/k8s/deployment\"\n" +
@@ -103,9 +97,9 @@ public class ContainerDeployFileService extends TerraformFileService {
             "  service_type = \"%s\"\n" +
             "  external_ip = \"%s\"\n" +
             "}\n", identifier, configPath, serviceReservation.getContext(),
-            serviceReservation.getNamespace(), service.getName(), reservationId,
-            metricValues.get("replicas").getValueNumber().longValue(), metricValues.get("cpu").getValueNumber().doubleValue(),
-            metricValues.get("memory-size").getValueNumber().longValue(), ports, serviceType, externalIp));
+            serviceReservation.getNamespace(), service.getImage(), reservationId,
+            service.getReplicas(), service.getCpu(), service.getMemory(), ports,
+            service.getServiceType().getName(), externalIp));
         return containerString.toString();
     }
 

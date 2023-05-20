@@ -69,7 +69,7 @@ public class ContainerPullFileService extends TerraformFileService {
             } else {
                 imageList = prePullGroups.get(pullGroup);
             }
-            imageList.add("\"" + service.getName() + "\"");
+            imageList.add("\"" + service.getImage() + "\"");
         }
 
         String configPath = Path.of(rootFolder.toString(), "config").toAbsolutePath().toString()
