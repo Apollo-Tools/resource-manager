@@ -51,16 +51,15 @@ public class TestRequestProvider {
         Resource r2 = TestResourceProvider.createResourceVM(2L, region, "t2.micro");
         Resource r3 = TestResourceProvider.createResourceEdge(3L, "http://localhost:8080",
             "user", "pw");
-        Resource r4 = TestResourceProvider.createResourceContainer(3L, "https://localhost", 1, 0.5,
-            256);
+        Resource r4 = TestResourceProvider.createResourceContainer(3L, "https://localhost");
         FunctionReservation fr1 = TestFunctionProvider.createFunctionReservation(1L, f1, r1);
         FunctionReservation fr2 = TestFunctionProvider.createFunctionReservation(2L, f1, r2);
         FunctionReservation fr3 = TestFunctionProvider.createFunctionReservation(3L, f2, r2);
         FunctionReservation fr4 = TestFunctionProvider.createFunctionReservation(4L, f1, r3);
         List<FunctionReservation> functionReservations = List.of(fr1, fr2, fr3, fr4);
         deployRequest.setFunctionReservations(functionReservations);
-        Service s1 = TestServiceProvider.createService(1L, "s1:latest");
-        Service s2 = TestServiceProvider.createService(2L, "s2:latest");
+        Service s1 = TestServiceProvider.createService(1L, "s1");
+        Service s2 = TestServiceProvider.createService(2L, "s2");
         ServiceReservation sr1 = TestServiceProvider.createServiceReservation(5L, s1, r4);
         ServiceReservation sr2 = TestServiceProvider.createServiceReservation(6L, s2, r4);
         List<ServiceReservation> serviceReservations = List.of(sr1, sr2);
@@ -81,16 +80,15 @@ public class TestRequestProvider {
         Resource r1 = TestResourceProvider.createResourceFaaS(1L, region, 250.0, 512.0);
         Resource r2 = TestResourceProvider.createResourceVM(2L, region, "t2.micro");
         Resource r3 = TestResourceProvider.createResourceEdge(3L, "http://localhost:8080", "user", "pw");
-        Resource r4 = TestResourceProvider.createResourceContainer(3L, "http://localhost", 1, 0.5,
-            256);
+        Resource r4 = TestResourceProvider.createResourceContainer(3L, "http://localhost");
         FunctionReservation fr1 = TestFunctionProvider.createFunctionReservation(1L, f1, r1);
         FunctionReservation fr2 = TestFunctionProvider.createFunctionReservation(2L, f1, r2);
         FunctionReservation fr3 = TestFunctionProvider.createFunctionReservation(3L, f2, r2);
         FunctionReservation fr4 = TestFunctionProvider.createFunctionReservation(4L, f1, r3);
         List<FunctionReservation> functionReservations = List.of(fr1, fr2, fr3, fr4);
         terminateRequest.setFunctionReservations(functionReservations);
-        Service s1 = TestServiceProvider.createService(1L, "s1:latest");
-        Service s2 = TestServiceProvider.createService(2L, "s2:latest");
+        Service s1 = TestServiceProvider.createService(1L, "s1");
+        Service s2 = TestServiceProvider.createService(2L, "s2");
         ServiceReservation sr1 = TestServiceProvider.createServiceReservation(5L, s1, r4);
         ServiceReservation sr2 = TestServiceProvider.createServiceReservation(6L, s2, r4);
         List<ServiceReservation> serviceReservations = List.of(sr1, sr2);

@@ -254,8 +254,7 @@ public class ReservationHandlerTest {
         Resource r2 = TestResourceProvider.createResourceVM(2L, reg2, "t2.micro");
         Resource r3 = TestResourceProvider.createResourceEdge(3L, "http://localhost:8080",
             "user", "pw");
-        Resource r4 = TestResourceProvider.createResourceContainer(4L, "https://localhost", 1, 0.5,
-            256);
+        Resource r4 = TestResourceProvider.createResourceContainer(4L, "https://localhost");
         JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1), JsonObject.mapFrom(r2),
             JsonObject.mapFrom(r3), JsonObject.mapFrom(r4)));
         List<FunctionResourceIds> fids = TestFunctionProvider.createFunctionResourceIdsList(r1.getResourceId(),
@@ -308,8 +307,7 @@ public class ReservationHandlerTest {
         Resource r2 = TestResourceProvider.createResourceVM(2L, reg2, "t2.micro");
         Resource r3 = TestResourceProvider.createResourceEdge(3L, "http://localhost:8080",
             "user", "pw");
-        Resource r4 = TestResourceProvider.createResourceContainer(4L, "https://localhost", 1, 0.5,
-            256);
+        Resource r4 = TestResourceProvider.createResourceContainer(4L, "https://localhost");
         JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1), JsonObject.mapFrom(r2),
             JsonObject.mapFrom(r3), JsonObject.mapFrom(r4)));
         List<FunctionResourceIds> fids = TestFunctionProvider.createFunctionResourceIdsList(r1.getResourceId(),

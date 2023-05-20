@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.dto.reservation.ServiceResourceIds;
 import at.uibk.dps.rm.entity.model.*;
 import lombok.experimental.UtilityClass;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -27,15 +28,28 @@ public class TestServiceProvider {
         return List.of(ids1, ids2);
     }
 
+    public static ServiceType createServiceType(long id) {
+        ServiceType serviceType = new ServiceType();
+        serviceType.setServiceTypeId(id);
+        serviceType.setName("NodePort");
+        return serviceType;
+    }
+
     public static Service createService(long id, String name) {
         Service service = new Service();
         service.setServiceId(id);
         service.setName(name);
+        service.setImage(name + ":latest");
+        service.setServiceType(createServiceType(1L));
+        service.setCpu(new BigDecimal("0.1"));
+        service.setMemory(1024);
+        service.setPorts(List.of("80:8000"));
+        service.setReplicas(1);
         return service;
     }
 
     public static Service createService(long id) {
-        return createService(id, "test:latest");
+        return createService(id, "test");
     }
 
 
@@ -51,7 +65,7 @@ public class TestServiceProvider {
     }
 
     public static ServiceReservation createServiceReservation(long id, long resourceId, Reservation reservation) {
-        Service service = createService(22L, "test:latest");
+        Service service = createService(22L, "test");
         Resource resource = TestResourceProvider.createResource(resourceId);
         return createServiceReservation(id, service, resource, true, reservation);
     }
@@ -59,7 +73,7 @@ public class TestServiceProvider {
 
     public static ServiceReservation createServiceReservation(long id, long serviceId, long resourceId,
                                                                 Region region) {
-        Service service = createService(serviceId, "test:latest");
+        Service service = createService(serviceId, "test");
         Resource resource = TestResourceProvider.createResource(resourceId, region);
         Reservation reservation = TestReservationProvider.createReservation(1L);
         return createServiceReservation(id, service, resource, true, reservation);
@@ -76,7 +90,7 @@ public class TestServiceProvider {
     }
 
     public static ServiceReservation createServiceReservation(long id, Resource resource) {
-        Service service = createService(22L, "test:latest");
+        Service service = createService(22L, "test");
         Reservation reservation = TestReservationProvider.createReservation(1L);
         return createServiceReservation(id, service, resource, true, reservation);
     }

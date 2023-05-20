@@ -90,8 +90,7 @@ public class TestResourceProvider {
         return resource;
     }
 
-    public static Resource createResourceContainer(long id, String clusterUrl, long replicas, double cpu,
-            long memorySize) {
+    public static Resource createResourceContainer(long id, String clusterUrl) {
         Resource resource = new Resource();
         resource.setResourceId(id);
         ResourceType rt = createResourceType(3L, "container");
@@ -103,16 +102,10 @@ public class TestResourceProvider {
         MetricType mt1 = TestMetricProvider.createMetricType(1L, "string");
         MetricType mt2 = TestMetricProvider.createMetricType(1L, "number");
         Metric m1 = TestMetricProvider.createMetric(1L, "cluster-url", mt1, false);
-        Metric m2 = TestMetricProvider.createMetric(2L, "replicas", mt2, false);
-        Metric m3 = TestMetricProvider.createMetric(3L, "cpu", mt2, false);
-        Metric m4 = TestMetricProvider.createMetric(4L, "memory-size", mt2, false);
-        Metric m5 = TestMetricProvider.createMetric(4L, "pre-pull-timeout", mt2, false);
+        Metric m2 = TestMetricProvider.createMetric(4L, "pre-pull-timeout", mt2, false);
         MetricValue mv1 = TestMetricProvider.createMetricValue(1L, m1, clusterUrl);
-        MetricValue mv2 = TestMetricProvider.createMetricValue(2L, m2, replicas);
-        MetricValue mv3 = TestMetricProvider.createMetricValue(3L, m3, cpu);
-        MetricValue mv4 = TestMetricProvider.createMetricValue(4L, m4, memorySize);
-        MetricValue mv5 = TestMetricProvider.createMetricValue(5L, m5, 2);
-        resource.setMetricValues(Set.of(mv1, mv2, mv3, mv4, mv5));
+        MetricValue mv2 = TestMetricProvider.createMetricValue(2L, m2, 2);
+        resource.setMetricValues(Set.of(mv1, mv2));
 
         return resource;
     }
