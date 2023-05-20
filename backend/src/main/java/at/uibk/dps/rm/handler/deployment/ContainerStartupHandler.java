@@ -1,5 +1,7 @@
 package at.uibk.dps.rm.handler.deployment;
 
+import at.uibk.dps.rm.exception.BadInputException;
+import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
 import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.handler.reservation.ResourceReservationChecker;
 import at.uibk.dps.rm.util.misc.HttpHelper;
@@ -41,8 +43,13 @@ public class ContainerStartupHandler {
                     .checkExistsForStartup(reservationId, resourceReservationId, accountId)
                     .flatMapCompletable(result -> deploymentChecker.deployContainer(reservationId, resourceReservationId))))
             .subscribe(() -> rc.response().setStatusCode(204).end(),
-                throwable -> ResultHandler.handleRequestError(rc,
-                throwable));
+                throwable -> {
+                Throwable throwable1 = throwable;
+                if (throwable instanceof DeploymentTerminationFailedException) {
+                    throwable1 = new BadInputException("Deployment failed. See reservation logs for details.");
+                }
+                ResultHandler.handleRequestError(rc, throwable1);
+                });
     }
 
     /**
@@ -58,7 +65,12 @@ public class ContainerStartupHandler {
                     .checkExistsForStartup(reservationId, resourceReservationId, accountId)
                     .flatMapCompletable(result -> deploymentChecker.terminateContainer(reservationId, resourceReservationId))))
             .subscribe(() -> rc.response().setStatusCode(204).end(),
-                throwable -> ResultHandler.handleRequestError(rc,
-                throwable));
+                throwable -> {
+                    Throwable throwable1 = throwable;
+                    if (throwable instanceof DeploymentTerminationFailedException) {
+                        throwable1 = new BadInputException("Termination failed. See reservation logs for details.");
+                    }
+                    ResultHandler.handleRequestError(rc, throwable1);
+                });
     }
 }
