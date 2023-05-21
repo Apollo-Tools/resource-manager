@@ -29,10 +29,13 @@ const NewServiceForm = ({setNewService}) => {
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
-      const ports = values.ports.map((portEntries) => `${portEntries.servicePort}:${portEntries.containerPort}`);
+      console.log(values);
+      let ports = [];
+      if (values.ports != null) {
+        ports = values.ports.map((portEntries) => `${portEntries.servicePort}:${portEntries.containerPort}`);
+      }
       await createService(values.name, values.image, values.replicas, ports, values.cpu, values.memory,
           values.serviceType, token, setNewService, setError);
-      console.log(values);
     }
   };
   const onFinishFailed = (errorInfo) => {
