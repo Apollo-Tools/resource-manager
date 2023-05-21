@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.entity.model.usertypes;
 
 import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
 import java.util.List;
 
 /**
@@ -10,7 +9,6 @@ import java.util.List;
  * @param <T> the type of the array items
  * @author matthi-g
  */
-@Converter
 public abstract class ArrayConverter<T> implements AttributeConverter<List<T>, Object> {
     @Override
     public Object convertToDatabaseColumn(List<T> attribute) {

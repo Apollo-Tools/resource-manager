@@ -84,7 +84,7 @@ pmd {
   toolVersion="6.34.0"
   isConsoleOutput=true
   ruleSets = emptyList()
-  ruleSetFiles = files("../ruleset.xml", "../ruleset_test.xml")
+  ruleSetFiles = files("./ruleset.xml", "./ruleset_test.xml")
 }
 
 tasks.withType<ShadowJar> {

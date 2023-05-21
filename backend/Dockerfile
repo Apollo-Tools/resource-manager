@@ -1,5 +1,7 @@
 FROM gradle:7.3.2-jdk11 AS build
 COPY --chown=gradle:gradle . /home/gradle/src
+COPY ./ruleset.xml /home/gradle/src
+COPY ./ruleset_test.xml /home/gradle/src
 WORKDIR /home/gradle/src
 RUN gradle build --no-daemon
 
