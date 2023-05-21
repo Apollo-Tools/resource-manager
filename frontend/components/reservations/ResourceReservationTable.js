@@ -21,9 +21,9 @@ const ResourceReservationTable = ({resourceReservations, type}) => {
         sorter={ (a, b) => a.function.name.localeCompare(b.function.name) }
       /> }
       {type==='service' && <Column title='Service' dataIndex={['service']} key="function"
-        render={(func) =>
-          <Link href={`/functions/${func.function_id}`}>
-            <Button type="link" size="small">{func.name}</Button>
+        render={(service) =>
+          <Link href={`/services/${service.service_id}`}>
+            <Button type="link" size="small">{service.name}</Button>
           </Link>}
         sorter={ (a, b) => a.service.name.localeCompare(b.service.name) }
       />}
