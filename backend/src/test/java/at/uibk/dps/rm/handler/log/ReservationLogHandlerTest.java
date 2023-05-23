@@ -66,7 +66,7 @@ public class ReservationLogHandlerTest {
         ReservationLog rl2 = TestLogProvider.createReservationLog(2L, reservation);
         JsonArray reservationLogs = new JsonArray(List.of(JsonObject.mapFrom(rl1), JsonObject.mapFrom(rl2)));
         if (testCase.equals("empty")) {
-            reservationLogs = new JsonArray(List.of());
+            reservationLogs = new JsonArray();
         }
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
