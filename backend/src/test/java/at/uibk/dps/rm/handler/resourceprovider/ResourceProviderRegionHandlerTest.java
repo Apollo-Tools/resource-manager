@@ -47,7 +47,7 @@ public class ResourceProviderRegionHandlerTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"valid", "empty"})
-    void checkFindAllByProviderFound(String testCase, VertxTestContext testContext) {
+    void checkFindAllByProvider(String testCase, VertxTestContext testContext) {
         long providerId = 1L;
         Region region1 = TestResourceProviderProvider.createRegion(1L, "us-east");
         Region region2 = TestResourceProviderProvider.createRegion(2L, "us-west");
