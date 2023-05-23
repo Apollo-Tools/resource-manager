@@ -80,7 +80,7 @@ public class ReservationPreconditionHandler {
             .andThen(resourceChecker.checkExistAllByIdsAndResourceType(requestDTO.getServiceResources(),
                 requestDTO.getFunctionResources()))
             .andThen(Single.defer(() -> checkFindResources(requestDTO)))
-            .flatMap(resources -> checkCredentialsForResources(accountId, resources)
+            .flatMap(resources -> checkCloudCredentialsForResources(accountId, resources)
                 .andThen(resourceTypeMetricChecker.checkMissingRequiredMetricsByResources(resources))
                 .andThen(vpcChecker.checkVPCForFunctionResources(accountId, resources)
                     .map(vpcs -> {
@@ -118,13 +118,13 @@ public class ReservationPreconditionHandler {
     }
 
     /**
-     * Check if all necessary credentials exist for the resources to be deployed.
+     * Check if all necessary cloud credentials exist for the resources to be deployed.
      *
      * @param accountId the id of the account
      * @param resources the resources
      * @return a Completable
      */
-    private Completable checkCredentialsForResources(long accountId, JsonArray resources) {
+    private Completable checkCloudCredentialsForResources(long accountId, JsonArray resources) {
         List<Completable> completables = new ArrayList<>();
         HashSet<Long> resourceProviderIds = new HashSet<>();
         for (Object object: resources.getList()) {

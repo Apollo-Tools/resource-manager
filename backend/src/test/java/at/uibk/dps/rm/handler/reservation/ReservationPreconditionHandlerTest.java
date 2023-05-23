@@ -22,8 +22,9 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -70,8 +71,9 @@ public class ReservationPreconditionHandlerTest {
             resourceChecker, resourceTypeMetricChecker, vpcChecker, credentialsChecker);
     }
 
-    @Test
-    void checkReservationIsValid(VertxTestContext testContext) {
+    @ParameterizedTest
+    @ValueSource(strings = {"valid", "vpcNotFound", "missingMetrics", "noCloudResources"})
+    void checkReservationIsValid(String testCase, VertxTestContext testContext) {
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1");
         Resource r1 = TestResourceProvider.createResourceFaaS(1L, region, 250.0, 512.0);
         Resource r2 = TestResourceProvider.createResourceVM(2L, region, "t2.micro");
@@ -80,6 +82,9 @@ public class ReservationPreconditionHandlerTest {
         Resource r4 = TestResourceProvider.createResourceContainer(4L, "https://localhost");
         JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1), JsonObject.mapFrom(r2),
             JsonObject.mapFrom(r3), JsonObject.mapFrom(r4)));
+        if (testCase.equals("noCloudResources")) {
+            resources = new JsonArray(List.of(JsonObject.mapFrom(r3), JsonObject.mapFrom(r4)));
+        }
         List<FunctionResourceIds> fids = TestFunctionProvider.createFunctionResourceIdsList(r1.getResourceId(),
             r2.getResourceId(), r3.getResourceId());
         List<ServiceResourceIds> sids = TestServiceProvider.createServiceResourceIdsList(r4.getResourceId());
@@ -97,134 +102,41 @@ public class ReservationPreconditionHandlerTest {
             request.getFunctionResources())).thenReturn(Completable.complete());
         when(resourceChecker.checkFindAllByResourceIds(List.of(1L, 2L, 3L, 4L)))
             .thenReturn(Single.just(resources));
-        when(credentialsChecker.checkExistsOneByProviderId(accountId, 1L))
-            .thenReturn(Completable.complete());
+        if (!testCase.equals("noCloudResources")) {
+            when(credentialsChecker.checkExistsOneByProviderId(accountId, 1L))
+                .thenReturn(Completable.complete());
+        }
         when(resourceTypeMetricChecker.checkMissingRequiredMetricsByResources(resources))
-            .thenReturn(Completable.complete());
+            .thenReturn(testCase.equals("missingMetrics") ? Completable.error(NotFoundException::new) :
+                Completable.complete());
         when(vpcChecker.checkVPCForFunctionResources(accountId, resources))
-            .thenReturn(Single.just(vpcList));
+            .thenReturn(testCase.equals("vpcNotFound") ? Single.error(NotFoundException::new) : Single.just(vpcList));
 
         handler.checkReservationIsValid(request, accountId, necessaryVPCs)
             .subscribe(result -> testContext.verify(() -> {
-                    assertThat(result.size()).isEqualTo(4);
-                    assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
-                    assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
-                    assertThat(result.getJsonObject(2).getLong("resource_id")).isEqualTo(3L);
-                    assertThat(result.getJsonObject(3).getLong("resource_id")).isEqualTo(4L);
-                    assertThat(necessaryVPCs.size()).isEqualTo(1);
-                    assertThat(necessaryVPCs.get(0).getVpcId()).isEqualTo(1L);
+                    if (testCase.equals("valid")) {
+                        assertThat(result.size()).isEqualTo(4);
+                        assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
+                        assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
+                        assertThat(result.getJsonObject(2).getLong("resource_id")).isEqualTo(3L);
+                        assertThat(result.getJsonObject(3).getLong("resource_id")).isEqualTo(4L);
+                        assertThat(necessaryVPCs.size()).isEqualTo(1);
+                        assertThat(necessaryVPCs.get(0).getVpcId()).isEqualTo(1L);
+                    } else if (testCase.equals("noCloudResources")) {
+                        assertThat(result.size()).isEqualTo(2);
+                        assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(3L);
+                        assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(4L);
+                    } else {
+                        fail("method did not throw exception");
+                    }
                     testContext.completeNow();
-                }),
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-    }
-
-    @Test
-    void checkReservationIsValidVPCNotFound(VertxTestContext testContext) {
-        Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1");
-        Resource r1 = TestResourceProvider.createResourceFaaS(1L, region, 250.0, 512.0);
-        JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1)));
-        List<FunctionResourceIds> fids = List.of(TestFunctionProvider.createFunctionResourceIds(1L,
-            r1.getResourceId()));
-        List<ServiceResourceIds> sids = List.of();
-        ReserveResourcesRequest request = TestRequestProvider.createReserveResourcesRequest(fids, sids);
-        long accountId = 1L;
-        List<VPC> necessaryVPCs = new ArrayList<>();
-
-        when(functionChecker.checkExistAllByIds(request.getFunctionResources()))
-            .thenReturn(Completable.complete());
-        when(serviceChecker.checkExistAllByIds(request.getServiceResources()))
-            .thenReturn(Completable.complete());
-        when(resourceChecker.checkExistAllByIdsAndResourceType(request.getServiceResources(),
-            request.getFunctionResources())).thenReturn(Completable.complete());
-        when(resourceChecker.checkFindAllByResourceIds(List.of(1L)))
-            .thenReturn(Single.just(resources));
-        when(credentialsChecker.checkExistsOneByProviderId(accountId, 1L)).thenReturn(Completable.complete());
-        when(resourceTypeMetricChecker.checkMissingRequiredMetricsByResources(resources))
-            .thenReturn(Completable.complete());
-        when(vpcChecker.checkVPCForFunctionResources(accountId, resources))
-            .thenReturn(Single.error(NotFoundException::new));
-
-        handler.checkReservationIsValid(request, accountId, necessaryVPCs)
-            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(NotFoundException.class);
+                }), throwable -> testContext.verify(() -> testContext.verify(() -> {
+                    if (testCase.equals("valid")) {
+                        fail("method has thrown exception");
+                    } else {
+                        assertThat(throwable).isInstanceOf(NotFoundException.class);
+                    }
                     testContext.completeNow();
-                })
-            );
-    }
-
-    @Test
-    void checkReservationIsValidMissingMetrics(VertxTestContext testContext) {
-        Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1");
-        Resource r1 = TestResourceProvider.createResourceFaaS(1L, region, 250.0, 512.0);
-        JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1)));
-        List<FunctionResourceIds> fids = List.of(TestFunctionProvider.createFunctionResourceIds(1L,
-            r1.getResourceId()));
-        List<ServiceResourceIds> sids = List.of();
-        ReserveResourcesRequest request = TestRequestProvider.createReserveResourcesRequest(fids, sids);
-        long accountId = 1L;
-        List<VPC> necessaryVPCs = new ArrayList<>();
-        List<JsonObject> vpcList = new ArrayList<>();
-
-        when(functionChecker.checkExistAllByIds(request.getFunctionResources()))
-            .thenReturn(Completable.complete());
-        when(serviceChecker.checkExistAllByIds(request.getServiceResources()))
-            .thenReturn(Completable.complete());
-        when(resourceChecker.checkExistAllByIdsAndResourceType(request.getServiceResources(),
-            request.getFunctionResources())).thenReturn(Completable.complete());
-        when(resourceChecker.checkFindAllByResourceIds(List.of(1L)))
-            .thenReturn(Single.just(resources));
-        when(credentialsChecker.checkExistsOneByProviderId(accountId, 1L)).thenReturn(Completable.complete());
-        when(resourceTypeMetricChecker.checkMissingRequiredMetricsByResources(resources))
-            .thenReturn(Completable.error(NotFoundException::new));
-        when(vpcChecker.checkVPCForFunctionResources(accountId, resources))
-            .thenReturn(Single.just(vpcList));
-
-        handler.checkReservationIsValid(request, accountId, necessaryVPCs)
-            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(NotFoundException.class);
-                    testContext.completeNow();
-                })
-            );
-    }
-
-    @Test
-    void checkReservationIsValidMissingCredentials(VertxTestContext testContext) {
-        Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1");
-        Resource r1 = TestResourceProvider.createResourceFaaS(1L, region, 250.0, 512.0);
-        JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1)));
-        List<FunctionResourceIds> fids = List.of(TestFunctionProvider.createFunctionResourceIds(1L,
-            r1.getResourceId()));
-        List<ServiceResourceIds> sids = List.of();
-        ReserveResourcesRequest request = TestRequestProvider.createReserveResourcesRequest(fids, sids);
-        long accountId = 1L;
-        List<VPC> necessaryVPCs = new ArrayList<>();
-        List<JsonObject> vpcList = new ArrayList<>();
-
-        when(functionChecker.checkExistAllByIds(request.getFunctionResources()))
-            .thenReturn(Completable.complete());
-        when(serviceChecker.checkExistAllByIds(request.getServiceResources()))
-            .thenReturn(Completable.complete());
-        when(resourceChecker.checkExistAllByIdsAndResourceType(request.getServiceResources(),
-            request.getFunctionResources())).thenReturn(Completable.complete());
-        when(resourceChecker.checkFindAllByResourceIds(List.of(1L)))
-            .thenReturn(Single.just(resources));
-        when(credentialsChecker.checkExistsOneByProviderId(accountId, 1L))
-            .thenReturn(Completable.error(NotFoundException::new));
-        when(resourceTypeMetricChecker.checkMissingRequiredMetricsByResources(resources))
-            .thenReturn(Completable.complete());
-        when(vpcChecker.checkVPCForFunctionResources(accountId, resources))
-            .thenReturn(Single.just(vpcList));
-
-
-        handler.checkReservationIsValid(request, accountId, necessaryVPCs)
-            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(NotFoundException.class);
-                    testContext.completeNow();
-                })
-            );
+                })));
     }
 }
