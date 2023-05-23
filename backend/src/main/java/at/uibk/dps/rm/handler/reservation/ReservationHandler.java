@@ -289,7 +289,8 @@ public class ReservationHandler extends ValidationHandler {
      * @param accountId the id of the creator of the reservation
      */
     private void initiateTermination(Reservation reservation, long accountId) {
-        deploymentHandler.terminateResources(reservation, accountId)
+        reservationChecker.checkFindOne(reservation.getReservationId(), accountId)
+            .flatMapCompletable(res -> deploymentHandler.terminateResources(reservation, accountId))
             .andThen(Completable.defer(() ->
                 resourceReservationChecker.submitUpdateStatus(reservation.getReservationId(),
                     ReservationStatusValue.TERMINATED)))

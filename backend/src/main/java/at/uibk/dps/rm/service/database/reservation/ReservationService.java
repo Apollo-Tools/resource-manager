@@ -48,7 +48,7 @@ public interface ReservationService extends DatabaseServiceInterface {
      *
      * @param id the id of the reservation
      * @param accountId the id of the creator account
-     * @return a Future that emits the reservation as JsonObject if it exists, else false
+     * @return a Future that emits the reservation as JsonObject if it exists, else null
      */
     Future<JsonObject> findOneByIdAndAccountId(long id, long accountId);
 }

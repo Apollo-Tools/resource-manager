@@ -82,21 +82,9 @@ public class DeploymentCheckerTest {
         deploymentChecker = new DeploymentChecker(deploymentService, logService, reservationLogService);
     }
 
-    private static Stream<Arguments> provideDeployResources() {
-        return Stream.of(
-            Arguments.of("valid"),
-            Arguments.of("outputFailed"),
-            Arguments.of("applyFailed"),
-            Arguments.of("initFailed"),
-            Arguments.of("initContainersFailed"),
-            Arguments.of("setupTfModulesFailed"),
-            Arguments.of("buildDockerFailed"),
-            Arguments.of("packageFunctionsCodeFailed")
-        );
-    }
-
     @ParameterizedTest
-    @MethodSource("provideDeployResources")
+    @ValueSource(strings={"valid", "outputFailed", "applyFailed", "initFailed", "initContainersFailed",
+        "setupTfModulesFailed", "buildDockerFailed", "packageFunctionsCodeFailed"})
     void deployResources(String testCase, VertxTestContext testContext) {
         DeployResourcesRequest deployRequest = TestRequestProvider.createDeployRequest();
         FunctionsToDeploy functionsToDeploy = TestDTOProvider.createFunctionsToDeploy();
@@ -167,17 +155,8 @@ public class DeploymentCheckerTest {
         }
     }
 
-    private static Stream<Arguments> provideTerminateResources() {
-        return Stream.of(
-            Arguments.of("valid"),
-            Arguments.of("destroyFailed"),
-            Arguments.of("destroyContainerFailed"),
-            Arguments.of("getCredentialsFailed")
-        );
-    }
-
     @ParameterizedTest
-    @MethodSource("provideTerminateResources")
+    @ValueSource(strings = {"valid", "destroyFailed", "destroyContainerFailed", "getCredentialsFailed"})
     void terminateResource(String testCase, VertxTestContext testContext) {
         TerminateResourcesRequest terminateRequest = TestRequestProvider.createTerminateRequest();
         DeploymentPath deploymentPath = new DeploymentPath(terminateRequest.getReservation().getReservationId(),
