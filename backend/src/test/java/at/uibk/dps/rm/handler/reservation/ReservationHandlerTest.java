@@ -6,6 +6,7 @@ import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
 import at.uibk.dps.rm.entity.dto.reservation.ServiceResourceIds;
 import at.uibk.dps.rm.entity.model.*;
+import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
@@ -23,10 +24,13 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
+import java.util.InputMismatchException;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -80,86 +84,60 @@ public class ReservationHandlerTest {
             reservationErrorHandler, preconditionChecker);
     }
 
-    @Test
-    void getOneExists(VertxTestContext testContext) {
+    @ParameterizedTest
+    @ValueSource(strings = {"valid", "frEmpty", "srEmpty", "reservationNotFound"})
+    void getOneExists(String testCase, VertxTestContext testContext) {
         long reservationId = 1L;
         Account account = TestAccountProvider.createAccount(1L);
         Reservation reservation = TestReservationProvider.createReservation(1L, true, account);
         JsonArray functionReservations = new JsonArray(TestReservationProvider
             .createFunctionReservationsJson(reservation));
+        if (testCase.equals("frEmpty")) {
+            functionReservations = new JsonArray();
+        }
         JsonArray serviceReservations = new JsonArray(TestReservationProvider
             .createServiceReservationsJson(reservation));
+        if (testCase.equals("srEmpty")) {
+            serviceReservations = new JsonArray();
+        }
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(reservationId));
         when(reservationChecker.checkFindOne(reservationId, account.getAccountId()))
-            .thenReturn(Single.just(JsonObject.mapFrom(reservation)));
-        when(functionReservationChecker.checkFindAllByReservationId(reservationId))
-            .thenReturn(Single.just(functionReservations));
-        when(serviceReservationChecker.checkFindAllByReservationId(reservationId))
-            .thenReturn(Single.just(serviceReservations));
+            .thenReturn(testCase.equals("reservationNotFound") ? Single.error(NotFoundException::new) :
+                Single.just(JsonObject.mapFrom(reservation)));
+        if (!testCase.equals("reservationNotFound")) {
+            when(functionReservationChecker.checkFindAllByReservationId(reservationId))
+                .thenReturn(Single.just(functionReservations));
+            when(serviceReservationChecker.checkFindAllByReservationId(reservationId))
+                .thenReturn(Single.just(serviceReservations));
+        }
 
         reservationHandler.getOne(rc)
             .subscribe(result -> testContext.verify(() -> {
-                    assertThat(result.getJsonArray("function_resources").size()).isEqualTo(3);
-                    assertThat(result.getJsonArray("service_resources").size()).isEqualTo(3);
+                if (!testCase.equals("reservationNotFound")) {
+                    assertThat(result.getJsonArray("function_resources").size())
+                        .isEqualTo(testCase.equals("frEmpty") ? 0 : 3);
+                    assertThat(result.getJsonArray("service_resources").size())
+                        .isEqualTo(testCase.equals("srEmpty") ? 0 : 3);
+                } else {
+                    fail("method did not throw exception");
+                }
                     testContext.completeNow();
-                }),
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-    }
-
-    @Test
-    void getOneExistsResourceReservationEmpty(VertxTestContext testContext) {
-        long reservationId = 1L;
-        Account account = TestAccountProvider.createAccount(1L);
-        Reservation reservation = TestReservationProvider.createReservation(1L, true, account);
-        JsonArray functionReservations = new JsonArray(new ArrayList<JsonObject>());
-        JsonArray serviceReservations = new JsonArray(new ArrayList<JsonObject>());
-
-        RoutingContextMockHelper.mockUserPrincipal(rc, account);
-        when(rc.pathParam("id")).thenReturn(String.valueOf(reservationId));
-        when(reservationChecker.checkFindOne(reservationId, account.getAccountId()))
-            .thenReturn(Single.just(JsonObject.mapFrom(reservation)));
-        when(functionReservationChecker.checkFindAllByReservationId(reservationId))
-            .thenReturn(Single.just(functionReservations));
-        when(serviceReservationChecker.checkFindAllByReservationId(reservationId))
-            .thenReturn(Single.just(serviceReservations));
-
-
-        reservationHandler.getOne(rc)
-            .subscribe(result -> testContext.verify(() -> {
-                    assertThat(result.getJsonArray("function_resources").size()).isEqualTo(0);
-                    assertThat(result.getJsonArray("service_resources").size()).isEqualTo(0);
-                    testContext.completeNow();
-                }),
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-    }
-
-
-
-    @Test
-    void getOneNotFound(VertxTestContext testContext) {
-        long reservationId = 1L;
-        Account account = TestAccountProvider.createAccount(1L);
-
-        RoutingContextMockHelper.mockUserPrincipal(rc, account);
-        when(rc.pathParam("id")).thenReturn(String.valueOf(reservationId));
-        when(reservationChecker.checkFindOne(reservationId, account.getAccountId()))
-            .thenReturn(Single.error(NotFoundException::new));
-
-        reservationHandler.getOne(rc)
-            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(NotFoundException.class);
+                }),throwable -> testContext.verify(() -> {
+                    if (testCase.equals("reservationNotFound")) {
+                        assertThat(throwable).isInstanceOf(NotFoundException.class);
+                    } else {
+                        fail("method did not throw exception");
+                    }
                     testContext.completeNow();
                 })
             );
     }
 
-    @Test
-    void getAllValid(VertxTestContext testContext) {
+    @ParameterizedTest
+    @ValueSource(strings = {"valid", "empty"})
+    void getAll(String testCase, VertxTestContext testContext) {
         Account account = TestAccountProvider.createAccount(1L);
         Reservation r1 = TestReservationProvider.createReservation(1L, true, account);
         Reservation r2 = TestReservationProvider.createReservation(2L, true, account);
@@ -182,22 +160,27 @@ public class ReservationHandlerTest {
         JsonArray rr4Json = new JsonArray(List.of(JsonObject.mapFrom(rr4)));
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
+        if (testCase.equals("valid")) {
+            when(resourceReservationChecker.checkFindAllByReservationId(r1.getReservationId()))
+                .thenReturn(Single.just(rr12Json));
+            when(resourceReservationChecker.checkFindAllByReservationId(r2.getReservationId()))
+                .thenReturn(Single.just(rr3Json));
+            when(resourceReservationChecker.checkFindAllByReservationId(r3.getReservationId()))
+                .thenReturn(Single.just(rr4Json));
+            when(resourceReservationChecker.checkCrucialResourceReservationStatus(rr12Json))
+                .thenReturn(ReservationStatusValue.NEW);
+            when(resourceReservationChecker.checkCrucialResourceReservationStatus(rr3Json))
+                .thenReturn(ReservationStatusValue.TERMINATED);
+            when(resourceReservationChecker.checkCrucialResourceReservationStatus(rr4Json))
+                .thenReturn(ReservationStatusValue.ERROR);
+        } else {
+            reservations = new JsonArray();
+        }
         when(reservationChecker.checkFindAll(account.getAccountId())).thenReturn(Single.just(reservations));
-        when(resourceReservationChecker.checkFindAllByReservationId(r1.getReservationId()))
-            .thenReturn(Single.just(rr12Json));
-        when(resourceReservationChecker.checkFindAllByReservationId(r2.getReservationId()))
-            .thenReturn(Single.just(rr3Json));
-        when(resourceReservationChecker.checkFindAllByReservationId(r3.getReservationId()))
-            .thenReturn(Single.just(rr4Json));
-        when(resourceReservationChecker.checkCrucialResourceReservationStatus(rr12Json))
-            .thenReturn(ReservationStatusValue.NEW);
-        when(resourceReservationChecker.checkCrucialResourceReservationStatus(rr3Json))
-            .thenReturn(ReservationStatusValue.TERMINATED);
-        when(resourceReservationChecker.checkCrucialResourceReservationStatus(rr4Json))
-            .thenReturn(ReservationStatusValue.ERROR);
 
         reservationHandler.getAll(rc)
             .subscribe(result -> testContext.verify(() -> {
+                if (testCase.equals("valid")) {
                     assertThat(result.size()).isEqualTo(3);
                     assertThat(result.getJsonObject(0).getLong("reservation_id")).isEqualTo(1L);
                     assertThat(result.getJsonObject(0).getString("status_value")).isEqualTo("NEW");
@@ -205,47 +188,18 @@ public class ReservationHandlerTest {
                     assertThat(result.getJsonObject(1).getString("status_value")).isEqualTo("TERMINATED");
                     assertThat(result.getJsonObject(2).getLong("reservation_id")).isEqualTo(3L);
                     assertThat(result.getJsonObject(2).getString("status_value")).isEqualTo("ERROR");
-                    testContext.completeNow();
-                }),
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-    }
-
-    @Test
-    void getAllEmptyValid(VertxTestContext testContext) {
-        Account account = TestAccountProvider.createAccount(1L);
-        JsonArray reservations = new JsonArray(List.of());
-
-        RoutingContextMockHelper.mockUserPrincipal(rc, account);
-        when(reservationChecker.checkFindAll(account.getAccountId())).thenReturn(Single.just(reservations));
-
-        reservationHandler.getAll(rc)
-            .subscribe(result -> testContext.verify(() -> {
+                } else {
                     assertThat(result.size()).isEqualTo(0);
-                    testContext.completeNow();
-                }),
+                }
+                testContext.completeNow();
+            }),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 
-    @Test
-    void getAllNotFound(VertxTestContext testContext) {
-        Account account = TestAccountProvider.createAccount(1L);
-
-        RoutingContextMockHelper.mockUserPrincipal(rc, account);
-        when(reservationChecker.checkFindAll(account.getAccountId())).thenReturn(Single.error(NotFoundException::new));
-
-        reservationHandler.getAll(rc)
-            .subscribe(result -> testContext.verify(() -> fail("method has thrown exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(NotFoundException.class);
-                    testContext.completeNow();
-                })
-            );
-    }
-
-    @Test
-    void postOneValid(VertxTestContext testContext) {
+    @ParameterizedTest
+    @ValueSource(strings = {"valid", "deploymentFailed", "preConNotMet"})
+    void postOneValid(String testCase, VertxTestContext testContext) {
         ResourceProvider aws = TestResourceProviderProvider.createResourceProvider(1L, "aws");
         Region reg1 = TestResourceProviderProvider.createRegion(1L, "us-east-1", aws);
         Region reg2 = TestResourceProviderProvider.createRegion(2L, "us-west-1", aws);
@@ -274,105 +228,102 @@ public class ReservationHandlerTest {
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         RoutingContextMockHelper.mockBody(rc, requestBody);
         when(preconditionChecker.checkReservationIsValid(request, account.getAccountId(), new ArrayList<>()))
-            .thenReturn(Single.just(resources));
-        when(reservationChecker.submitCreateReservation(account.getAccountId()))
-            .thenReturn(Single.just(reservationJson));
-        when(statusChecker.checkFindOneByStatusValue(ReservationStatusValue.NEW.name()))
-            .thenReturn(Single.just(JsonObject.mapFrom(statusNew)));
-        when(functionReservationChecker.submitCreateAll(any())).thenReturn(Completable.complete());
-        when(serviceReservationChecker.submitCreateAll(any())).thenReturn(Completable.complete());
-        when(deploymentHandler.deployResources(reservation, account.getAccountId(), dockerCredentials, kubeconfig,
-            new ArrayList<>()))
-            .thenReturn(Completable.complete());
-        when(resourceReservationChecker.submitUpdateStatus(reservation.getReservationId(), ReservationStatusValue.DEPLOYED))
-            .thenReturn(Completable.complete());
+            .thenReturn(testCase.equals("preConNotMet") ? Single.error(UnauthorizedException::new) :
+                Single.just(resources));
+        if (!testCase.equals("preConNotMet")) {
+            when(reservationChecker.submitCreateReservation(account.getAccountId()))
+                .thenReturn(Single.just(reservationJson));
+            when(statusChecker.checkFindOneByStatusValue(ReservationStatusValue.NEW.name()))
+                .thenReturn(Single.just(JsonObject.mapFrom(statusNew)));
+            when(functionReservationChecker.submitCreateAll(any())).thenReturn(Completable.complete());
+            when(serviceReservationChecker.submitCreateAll(any())).thenReturn(Completable.complete());
+            when(deploymentHandler.deployResources(reservation, account.getAccountId(), dockerCredentials, kubeconfig,
+                new ArrayList<>()))
+                .thenReturn(testCase.equals("deploymentFailed") ?
+                    Completable.error(DeploymentTerminationFailedException::new) : Completable.complete());
+        }
+        if (testCase.equals("deploymentFailed")) {
+            when(reservationErrorHandler.onDeploymentError(eq(account.getAccountId()), eq(reservation),
+                any())).thenReturn(Completable.complete());
+        } else if (testCase.equals("valid")){
+            when(resourceReservationChecker.submitUpdateStatus(reservation.getReservationId(), ReservationStatusValue.DEPLOYED))
+                .thenReturn(Completable.complete());
+        }
 
         reservationHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> {
-                    assertThat(result.getLong("reservation_id")).isEqualTo(1L);
-                    assertThat(result.getBoolean("is_active")).isTrue();
-                    testContext.completeNow();
-                }),
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-    }
-
-    @Test
-    void postOneErrorInDeployment(VertxTestContext testContext) {
-        ResourceProvider aws = TestResourceProviderProvider.createResourceProvider(1L, "aws");
-        Region reg1 = TestResourceProviderProvider.createRegion(1L, "us-east-1", aws);
-        Region reg2 = TestResourceProviderProvider.createRegion(2L, "us-west-1", aws);
-
-        Resource r1 = TestResourceProvider.createResourceFaaS(1L, reg1, 512.0, 200.0);
-        Resource r2 = TestResourceProvider.createResourceVM(2L, reg2, "t2.micro");
-        Resource r3 = TestResourceProvider.createResourceEdge(3L, "http://localhost:8080",
-            "user", "pw");
-        Resource r4 = TestResourceProvider.createResourceContainer(4L, "https://localhost");
-        JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1), JsonObject.mapFrom(r2),
-            JsonObject.mapFrom(r3), JsonObject.mapFrom(r4)));
-        List<FunctionResourceIds> fids = TestFunctionProvider.createFunctionResourceIdsList(r1.getResourceId(),
-            r2.getResourceId(), r3.getResourceId());
-        List<ServiceResourceIds> sids = TestServiceProvider.createServiceResourceIdsList(r4.getResourceId());
-        DockerCredentials dockerCredentials = TestDTOProvider.createDockerCredentials();
-        String kubeconfig = TestDTOProvider.createKubeConfigValue();
-        ReserveResourcesRequest request = TestRequestProvider.createReserveResourcesRequest(fids, sids,
-            dockerCredentials);
-        JsonObject requestBody = JsonObject.mapFrom(request);
-        Account account = TestAccountProvider.createAccount(1L);
-        Reservation reservation = TestReservationProvider.createReservation(1L, true, account);
-        JsonObject reservationJson = JsonObject.mapFrom(reservation);
-        ResourceReservationStatus statusNew = TestReservationProvider.createResourceReservationStatusNew();
-
-
-        RoutingContextMockHelper.mockUserPrincipal(rc, account);
-        RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(preconditionChecker.checkReservationIsValid(request, account.getAccountId(), new ArrayList<>()))
-            .thenReturn(Single.just(resources));
-        when(reservationChecker.submitCreateReservation(account.getAccountId()))
-            .thenReturn(Single.just(reservationJson));
-        when(statusChecker.checkFindOneByStatusValue(ReservationStatusValue.NEW.name()))
-            .thenReturn(Single.just(JsonObject.mapFrom(statusNew)));
-        when(functionReservationChecker.submitCreateAll(any())).thenReturn(Completable.complete());
-        when(serviceReservationChecker.submitCreateAll(any())).thenReturn(Completable.complete());
-        when(deploymentHandler.deployResources(reservation, account.getAccountId(), dockerCredentials, kubeconfig,
-            new ArrayList<>()))
-            .thenReturn(Completable.error(DeploymentTerminationFailedException::new));
-        when(reservationErrorHandler.onDeploymentError(eq(account.getAccountId()), eq(reservation),
-            any())).thenReturn(Completable.complete());
-
-        reservationHandler.postOne(rc)
-            .subscribe(result -> testContext.verify(() -> {
-                    assertThat(result.getLong("reservation_id")).isEqualTo(1L);
-                    assertThat(result.getBoolean("is_active")).isTrue();
-                    testContext.completeNow();
-                }),
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-    }
-
-    @Test
-    void postOnePreconditionsNotMet(VertxTestContext testContext) {
-        Account account = TestAccountProvider.createAccount(1L);
-        FunctionResource functionResource = TestFunctionProvider.createFunctionResource(1L);
-        FunctionResourceIds ids = TestFunctionProvider.createFunctionResourceIds(1L,
-            functionResource.getResource().getResourceId());
-        List<FunctionResourceIds> fids = List.of(ids);
-        List<ServiceResourceIds> sids = new ArrayList<>();
-        ReserveResourcesRequest request = TestRequestProvider.createReserveResourcesRequest(fids, sids);
-        JsonObject requestBody = JsonObject.mapFrom(request);
-
-        RoutingContextMockHelper.mockUserPrincipal(rc, account);
-        RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(preconditionChecker.checkReservationIsValid(request, account.getAccountId(), new ArrayList<>()))
-            .thenReturn(Single.error(UnauthorizedException::new));
-
-        reservationHandler.postOne(rc)
-            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
+                assertThat(result.getLong("reservation_id")).isEqualTo(1L);
+                assertThat(result.getBoolean("is_active")).isTrue();
+                testContext.completeNow();
+            }), throwable -> testContext.verify(() -> {
+                if (!testCase.equals("preConNotMet")) {
+                    fail("method has thrown exception");
+                } else {
                     assertThat(throwable).isInstanceOf(UnauthorizedException.class);
-                    testContext.completeNow();
-                })
-            );
+                }
+                testContext.completeNow();
+            }));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"noNamespace", "invalidClusterUrl", "invalidContext", "unsupportedSchema"})
+    void postOneDifferentKubeConfigs(String testCase, VertxTestContext testContext) {
+        Resource r1 = TestResourceProvider.createResourceContainer(4L, "https://localhost");
+        JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1)));
+        List<ServiceResourceIds> sids = TestServiceProvider.createServiceResourceIdsList(r1.getResourceId());
+        String kubeconfig;
+        switch (testCase) {
+            case "noNamespace":
+                kubeconfig = TestDTOProvider.createKubeConfigValueNoNamespace();
+                break;
+            case "invalidClusterUrl":
+                kubeconfig = TestDTOProvider.createKubeConfigValue("x.x.x.x");
+                break;
+            case "invalidContext":
+                kubeconfig = TestDTOProvider.createKubeConfigValueNoMatchingKubeContext();
+                break;
+            case "unsupportedSchema":
+                kubeconfig = "kubeconfig";
+                break;
+            default:
+                kubeconfig = "";
+        }
+        ReserveResourcesRequest request = TestRequestProvider.createReserveResourcesRequest(List.of(), sids, null,
+            kubeconfig);
+        JsonObject requestBody = JsonObject.mapFrom(request);
+        Account account = TestAccountProvider.createAccount(1L);
+        Reservation reservation = TestReservationProvider.createReservation(1L, true, account);
+        JsonObject reservationJson = JsonObject.mapFrom(reservation);
+        ResourceReservationStatus statusNew = TestReservationProvider.createResourceReservationStatusNew();
+
+        RoutingContextMockHelper.mockUserPrincipal(rc, account);
+        RoutingContextMockHelper.mockBody(rc, requestBody);
+        when(preconditionChecker.checkReservationIsValid(request, account.getAccountId(), new ArrayList<>()))
+            .thenReturn(Single.just(resources));
+        when(reservationChecker.submitCreateReservation(account.getAccountId()))
+            .thenReturn(Single.just(reservationJson));
+        when(statusChecker.checkFindOneByStatusValue(ReservationStatusValue.NEW.name()))
+            .thenReturn(Single.just(JsonObject.mapFrom(statusNew)));
+        if (testCase.equals("noNamespace")) {
+            when(functionReservationChecker.submitCreateAll(any()))
+                .thenReturn(Completable.error(InputMismatchException::new));
+            when(serviceReservationChecker.submitCreateAll(any()))
+                .thenReturn(Completable.error(InputMismatchException::new));
+        }
+
+        reservationHandler.postOne(rc)
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")
+            ),throwable -> testContext.verify(() -> {
+                if (testCase.equals("noNamespace")) {
+                    assertThat(throwable).isInstanceOf(InputMismatchException.class);
+                } else if (testCase.equals("unsupportedSchema")) {
+                    assertThat(throwable).isInstanceOf(BadInputException.class);
+                    assertThat(throwable.getMessage()).isEqualTo("Unsupported schema of kube config");
+                } else {
+                    assertThat(throwable).isInstanceOf(UnauthorizedException.class);
+                }
+                testContext.completeNow();
+            }));
     }
 
     @Test

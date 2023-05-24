@@ -21,13 +21,19 @@ import java.util.List;
 public class TestRequestProvider {
 
     public static ReserveResourcesRequest createReserveResourcesRequest(List<FunctionResourceIds> functionResources,
-            List<ServiceResourceIds> serviceResources, DockerCredentials dockerCredentials) {
+            List<ServiceResourceIds> serviceResources, DockerCredentials dockerCredentials, String kubeConfig) {
         ReserveResourcesRequest request = new ReserveResourcesRequest();
         request.setFunctionResources(functionResources);
         request.setServiceResources(serviceResources);
         request.setDockerCredentials(dockerCredentials);
-        request.setKubeConfig(TestDTOProvider.createKubeConfigValue());
+        request.setKubeConfig(kubeConfig);
         return request;
+    }
+
+    public static ReserveResourcesRequest createReserveResourcesRequest(List<FunctionResourceIds> functionResources,
+            List<ServiceResourceIds> serviceResources, DockerCredentials dockerCredentials) {
+        return createReserveResourcesRequest(functionResources, serviceResources, dockerCredentials,
+            TestDTOProvider.createKubeConfigValue());
     }
 
     public static ReserveResourcesRequest createReserveResourcesRequest(List<FunctionResourceIds> functionResources,

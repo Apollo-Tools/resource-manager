@@ -9,11 +9,6 @@ import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
 import at.uibk.dps.rm.entity.dto.ListResourcesBySLOsRequest;
 import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
-import at.uibk.dps.rm.entity.dto.credentials.KubeConfig;
-import at.uibk.dps.rm.entity.dto.credentials.k8s.Cluster;
-import at.uibk.dps.rm.entity.dto.credentials.k8s.ClusterConfig;
-import at.uibk.dps.rm.entity.dto.credentials.k8s.Context;
-import at.uibk.dps.rm.entity.dto.credentials.k8s.ContextConfig;
 import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
 import at.uibk.dps.rm.entity.dto.resource.ResourceId;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
@@ -93,25 +88,6 @@ public class TestDTOProvider {
         return dockerCredentials;
     }
 
-    public static KubeConfig createKubeConfig() {
-        String clusterName = "cluster";
-        KubeConfig kubeConfig = new KubeConfig();
-        ClusterConfig clusterConfig = new ClusterConfig();
-        clusterConfig.setServer("localhost");
-        Cluster cluster = new Cluster();
-        cluster.setCluster(clusterConfig);
-        cluster.setName(clusterName);
-        kubeConfig.setClusters(List.of(cluster));
-        ContextConfig contextConfig = new ContextConfig();
-        contextConfig.setCluster(clusterName);
-        contextConfig.setNamespace("default");
-        Context context = new Context();
-        context.setName("context");
-        context.setContext(contextConfig);
-        kubeConfig.setContexts(List.of(context));
-        return kubeConfig;
-    }
-
     public static String createKubeConfigValue() {
         return "apiVersion: v1\n" +
             "clusters:\n" +
@@ -124,6 +100,74 @@ public class TestDTOProvider {
             "    cluster:  cluster\n" +
             "    user:  user\n" +
             "    namespace: default\n" +
+            "  name:  context\n" +
+            "current-context:  context\n" +
+            "kind: Config\n" +
+            "preferences: {}\n" +
+            "users:\n" +
+            "- name:  user\n" +
+            "  user:\n" +
+            "    client-certificate-data: cert-data\n" +
+            "    client-key-data: key-data\n";
+    }
+
+    public static String createKubeConfigValue(String url) {
+        return "apiVersion: v1\n" +
+            "clusters:\n" +
+            "- cluster:\n" +
+            "    certificate-authority-data: cert-data\n" +
+            "    server: " + url + "\n" +
+            "  name: cluster\n" +
+            "contexts:\n" +
+            "- context:\n" +
+            "    cluster:  cluster\n" +
+            "    user:  user\n" +
+            "    namespace: default\n" +
+            "  name:  context\n" +
+            "current-context:  context\n" +
+            "kind: Config\n" +
+            "preferences: {}\n" +
+            "users:\n" +
+            "- name:  user\n" +
+            "  user:\n" +
+            "    client-certificate-data: cert-data\n" +
+            "    client-key-data: key-data\n";
+    }
+
+    public static String createKubeConfigValueNoMatchingKubeContext() {
+        return "apiVersion: v1\n" +
+            "clusters:\n" +
+            "- cluster:\n" +
+            "    certificate-authority-data: cert-data\n" +
+            "    server: https://localhost\n" +
+            "  name: cluster\n" +
+            "contexts:\n" +
+            "- context:\n" +
+            "    cluster:  server\n" +
+            "    user:  user\n" +
+            "    namespace: default\n" +
+            "  name:  context\n" +
+            "current-context:  context\n" +
+            "kind: Config\n" +
+            "preferences: {}\n" +
+            "users:\n" +
+            "- name:  user\n" +
+            "  user:\n" +
+            "    client-certificate-data: cert-data\n" +
+            "    client-key-data: key-data\n";
+    }
+
+    public static String createKubeConfigValueNoNamespace() {
+        return "apiVersion: v1\n" +
+            "clusters:\n" +
+            "- cluster:\n" +
+            "    certificate-authority-data: cert-data\n" +
+            "    server: https://localhost\n" +
+            "  name: cluster\n" +
+            "contexts:\n" +
+            "- context:\n" +
+            "    cluster:  cluster\n" +
+            "    user:  user\n" +
             "  name:  context\n" +
             "current-context:  context\n" +
             "kind: Config\n" +

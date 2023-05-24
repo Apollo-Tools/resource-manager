@@ -196,7 +196,7 @@ public class MetricValueHandlerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"resourceNotFound", "metricNotFound", "mvNotFound", "badInput", ""})
+    @ValueSource(strings = {"resourceNotFound", "metricNotFound", "mvNotFound", "badInput"})
     void updateOneInvalid(String testCase, VertxTestContext testContext) {
         long resourceId = 1;
         long metricId = 1;

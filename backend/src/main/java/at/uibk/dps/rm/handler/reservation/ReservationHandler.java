@@ -182,7 +182,6 @@ public class ReservationHandler extends ValidationHandler {
                 return Completable.complete();
             });
     }
-    //TODO: add check for authentication in delete
 
     private Single<Map<String, List<ResourceReservation>>> createResourceReservationMap(JsonObject reservationJson,
             ReserveResourcesRequest request, ResourceReservationStatus status, JsonArray resources) {
@@ -211,8 +210,7 @@ public class ReservationHandler extends ValidationHandler {
                 .orElse(new Resource());
             resource.setResourceId(serviceResourceIds.getResourceId());
             Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
-            String clusterUrl = metricValues.containsKey("cluster-url") ?
-                metricValues.get("cluster-url").getValueString() : "";
+            String clusterUrl = metricValues.get("cluster-url").getValueString();
             Context context = getContextByClusterUrl(kubeConfig, clusterUrl);
             String namespace = context.getContext().getNamespace() != null ? context.getContext().getNamespace() :
                 "default";
