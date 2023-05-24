@@ -50,13 +50,6 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
     }
 
     @Override
-    public Future<Boolean> existsOneByNameAndRuntimeIdExcludeEntity(long excludeId, String name, long runtimeId) {
-        return Future
-            .fromCompletionStage(functionRepository.findOneByNameAndRuntimeId(excludeId, name, runtimeId))
-            .map(Objects::nonNull);
-    }
-
-    @Override
     public Future<Boolean> existsOneByNameAndRuntimeId(String name, long runtimeId) {
         return Future
             .fromCompletionStage(functionRepository.findOneByNameAndRuntimeId(name, runtimeId))

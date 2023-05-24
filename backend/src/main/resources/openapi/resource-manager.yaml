@@ -930,24 +930,10 @@ paths:
           application/json:
             schema:
               type: object
-              minProperties: 1
+              required:
+                - code
               additionalProperties: false
               properties:
-                name:
-                  type: string
-                  minLength: 1
-                  maxLength: 64
-                  example: "Multiply"
-                runtime:
-                  type: object
-                  required:
-                    - runtime_id
-                  additionalProperties: false
-                  properties:
-                    runtime_id:
-                      type: integer
-                      format: int64
-                      example: 1
                 code:
                   type: string
                   example: |

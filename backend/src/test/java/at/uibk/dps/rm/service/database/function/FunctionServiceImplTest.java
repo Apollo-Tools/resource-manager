@@ -87,37 +87,6 @@ public class FunctionServiceImplTest {
     }
 
     @Test
-    void existsOneByNameAndRuntimeIdExcludeTrue(VertxTestContext testContext) {
-        long functionId = 1L;
-        String name = "func";
-        long runtimeId = 2L;
-        Function entity = TestFunctionProvider.createFunction(functionId, name, "true");
-        CompletionStage<Function> completionStage = CompletionStages.completedFuture(entity);
-        when(functionRepository.findOneByNameAndRuntimeId(functionId, name, runtimeId)).thenReturn(completionStage);
-
-        functionService.existsOneByNameAndRuntimeIdExcludeEntity(functionId, name, runtimeId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result).isEqualTo(true);
-                testContext.completeNow();
-            })));
-    }
-
-    @Test
-    void existsOneByNameAndRuntimeIdExcludeFalse(VertxTestContext testContext) {
-        long functionId = 1L;
-        String name = "func";
-        long runtimeId = 2L;
-        CompletionStage<Function> completionStage = CompletionStages.completedFuture(null);
-        when(functionRepository.findOneByNameAndRuntimeId(functionId, name, runtimeId)).thenReturn(completionStage);
-
-        functionService.existsOneByNameAndRuntimeIdExcludeEntity(functionId, name, runtimeId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result).isEqualTo(false);
-                testContext.completeNow();
-            })));
-    }
-
-    @Test
     void existsOneByNameAndRuntimeTrue(VertxTestContext testContext) {
         String name = "func";
         long runtimeId = 2L;

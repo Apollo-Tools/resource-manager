@@ -36,17 +36,6 @@ public interface FunctionService extends DatabaseServiceInterface {
     }
 
     /**
-     * Check if a function exists by its name and runtime id but ignore it if the id of the
-     * function is equal to the excludeId.
-     *
-     * @param excludeId the id to be excluded
-     * @param name the name of the function
-     * @param runtimeId the id of the runtime
-     * @return a Future that emits true if the function exists, else false
-     */
-    Future<Boolean> existsOneByNameAndRuntimeIdExcludeEntity(long excludeId, String name, long runtimeId);
-
-    /**
      * Check if function exists by its name and runtime.
      *
      * @param name the name of the function

@@ -40,19 +40,6 @@ public class FunctionChecker extends EntityChecker {
         return ErrorHandler.handleDuplicates(existsOneByNameAndRuntimeId).ignoreElement();
     }
 
-    @Override
-    public Single<JsonObject> checkUpdateNoDuplicate(JsonObject updateEntity, JsonObject entity) {
-        if (updateEntity.containsKey("name") && updateEntity.containsKey("runtime")) {
-            Single<Boolean> existsOneByNameAndRuntimeId = functionService
-                .existsOneByNameAndRuntimeIdExcludeEntity(entity.getLong("function_id"),
-                    updateEntity.getString("name"),
-                    updateEntity.getJsonObject("runtime").getLong("runtime_id"));
-            return ErrorHandler.handleDuplicates(existsOneByNameAndRuntimeId)
-                .flatMap(result -> Single.just(entity));
-        }
-        return Single.just(entity);
-    }
-
     /**
      * Check if all functions from the given list exist by their function id.
      *
