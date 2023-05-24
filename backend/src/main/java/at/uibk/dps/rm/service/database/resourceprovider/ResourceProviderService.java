@@ -8,7 +8,6 @@ import at.uibk.dps.rm.service.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 
 /**
@@ -33,12 +32,4 @@ public interface ResourceProviderService extends DatabaseServiceInterface {
         return new ResourceProviderServiceVertxEBProxy(vertx,
             ServiceProxyAddress.getServiceProxyAddress(ResourceProvider.class));
     }
-
-    /**
-     * Check if a resource provider exists by its name.
-     *
-     * @param provider the name of the provider
-     * @return a Future that emits true if the resource provider exists, else false
-     */
-    Future<Boolean> existsOneByProvider(String provider);
 }
