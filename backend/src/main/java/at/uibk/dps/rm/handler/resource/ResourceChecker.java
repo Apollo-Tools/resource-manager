@@ -85,18 +85,6 @@ public class ResourceChecker extends EntityChecker {
     }
 
     /**
-     * Check if at least one resource is used by resource type.
-     *
-     * @param resourceTypeId the id of the resource type
-     * @return a Completable the resource is not used by another entity, else a
-     * UsedByOtherEntityException gets thrown
-     */
-    public Completable checkOneUsedByResourceType(long resourceTypeId) {
-        Single<Boolean> existsOneByResourceType = resourceService.existsOneByResourceType(resourceTypeId);
-        return ErrorHandler.handleUsedByOtherEntity(existsOneByResourceType).ignoreElement();
-    }
-
-    /**
      * Check whether all resources from the serviceResourceIds and functionResourceIds exists with
      * a suitable resource type.
      *

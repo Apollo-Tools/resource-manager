@@ -15,8 +15,6 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -84,123 +82,6 @@ public class ResourceHandlerTest {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
                 })
-            );
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"{\"resource_type\": {\"type_id\": 1}, \"is_self_managed\": false}",
-        "{\"resource_type\": {\"type_id\": 1}}",
-        "{\"is_self_managed\": false}"})
-    void updateOneValid(String jsonInput, VertxTestContext testContext) {
-        long entityId = 1L;
-        JsonObject r1 = JsonObject.mapFrom(TestResourceProvider.createResource(1L));
-        JsonObject requestBody = new JsonObject(jsonInput);
-
-        RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
-        when(resourceChecker.checkFindOne(entityId)).thenReturn(Single.just(r1));
-        if (requestBody.containsKey("resource_type")) {
-            when(resourceTypeChecker.checkExistsOne(1L)).thenReturn(Completable.complete());
-        }
-        when(resourceChecker.submitUpdate(requestBody, r1)).thenReturn(Completable.complete());
-
-        resourceHandler.updateOne(rc)
-            .blockingSubscribe(() -> {},
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-        testContext.completeNow();
-    }
-
-    @Test
-    void updateOneEntityNotFound(VertxTestContext testContext) {
-        long entityId = 1L;
-        JsonObject requestBody = new JsonObject("{\"resource_type\": {\"type_id\": 1}, \"is_self_managed\": false}");
-
-        RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
-        when(resourceChecker.checkFindOne(entityId)).thenReturn(Single.error(NotFoundException::new));
-
-        resourceHandler.updateOne(rc)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(NotFoundException.class);
-                    testContext.completeNow();
-                })
-            );
-    }
-
-    @Test
-    void updateOneResourceTypeNotFound(VertxTestContext testContext) {
-        long entityId = 1L;
-        JsonObject r1 = JsonObject.mapFrom(TestResourceProvider.createResource(1L));
-        JsonObject requestBody = new JsonObject("{\"resource_type\": {\"type_id\": 1}, \"is_self_managed\": false}");
-
-        RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
-        when(resourceChecker.checkFindOne(entityId)).thenReturn(Single.just(r1));
-        when(resourceTypeChecker.checkExistsOne(1L)).thenReturn(Completable.error(NotFoundException::new));
-
-        resourceHandler.updateOne(rc)
-           .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(NotFoundException.class);
-                    testContext.completeNow();
-                })
-            );
-    }
-
-    @Test
-    void checkUpdateResourceTypeExists(VertxTestContext testContext) {
-        long typeId = 1L;
-        ResourceType rt = TestResourceProvider.createResourceType(typeId, "vm");
-        Resource r1 = TestResourceProvider.createResource(1L, rt);
-        JsonObject r1Json = JsonObject.mapFrom(r1);
-        JsonObject requestBody = new JsonObject("{\"resource_type\": {\"type_id\": " + typeId + "}}");
-
-        when(resourceTypeChecker.checkExistsOne(typeId)).thenReturn(Completable.complete());
-
-        resourceHandler.checkUpdateResourceTypeExists(requestBody, r1Json)
-            .subscribe(result -> testContext.verify(() -> {
-                    assertThat(result.getLong("resource_id")).isEqualTo(1L);
-                    testContext.completeNow();
-                }),
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-    }
-
-    @Test
-    void checkUpdateResourceTypeNotExists(VertxTestContext testContext) {
-        long typeId = 1L;
-        ResourceType rt = TestResourceProvider.createResourceType(typeId, "vm");
-        Resource r1 = TestResourceProvider.createResource(1L, rt);
-        JsonObject r1Json = JsonObject.mapFrom(r1);
-        JsonObject requestBody = new JsonObject("{\"resource_type\": {\"type_id\": " + typeId + "}}");
-
-        when(resourceTypeChecker.checkExistsOne(typeId)).thenReturn(Completable.error(NotFoundException::new));
-
-        resourceHandler.checkUpdateResourceTypeExists(requestBody, r1Json)
-            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(NotFoundException.class);
-                    testContext.completeNow();
-                })
-            );
-    }
-
-    @Test
-    void checkUpdateResourceTypeNotInRequestBody(VertxTestContext testContext) {
-        long typeId = 1L;
-        ResourceType rt = TestResourceProvider.createResourceType(typeId, "vm");
-        Resource r1 = TestResourceProvider.createResource(1L, rt);
-        JsonObject r1Json = JsonObject.mapFrom(r1);
-        JsonObject requestBody = new JsonObject("{\"is_managed\": true}");
-
-        resourceHandler.checkUpdateResourceTypeExists(requestBody, r1Json)
-            .subscribe(result -> testContext.verify(() -> {
-                    assertThat(result.getLong("resource_id")).isEqualTo(1L);
-                    testContext.completeNow();
-                }),
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
     }
 }

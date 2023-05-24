@@ -1,6 +1,5 @@
 package at.uibk.dps.rm.handler.resource;
 
-import at.uibk.dps.rm.exception.UsedByOtherEntityException;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
@@ -11,8 +10,6 @@ import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -148,31 +145,6 @@ public class ResourceCheckerTest {
                         }),
                         throwable -> testContext.verify(() -> fail("method has thrown exception"))
                 );
-    }
-
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    void checkOneUsedByResourceType(boolean isUsed, VertxTestContext testContext) {
-        long resourceTyeId = 1L;
-
-        when(resourceService.existsOneByResourceType(resourceTyeId)).thenReturn(Single.just(isUsed));
-
-        resourceChecker.checkOneUsedByResourceType(resourceTyeId)
-            .blockingSubscribe(() -> {
-                    if (isUsed) {
-                        testContext.verify(() -> fail("method did not throw exception"));
-                    }
-                },
-                throwable -> {
-                    if (isUsed) {
-                        assertThat(throwable).isInstanceOf(UsedByOtherEntityException.class);
-                        testContext.completeNow();
-                    } else {
-                        testContext.verify(() -> fail("method has thrown exception"));
-                    }
-                }
-            );
-        testContext.completeNow();
     }
 
     private void verifyGetAllResourceRequest(JsonArray result) {

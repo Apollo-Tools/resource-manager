@@ -325,50 +325,6 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-    patch:
-      description: Update a resource
-      operationId: updateResource
-      deprecated: true
-      security:
-        - bearerAuth: []
-      tags:
-        - resources
-      parameters:
-        - $ref: "#/components/parameters/idParam"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              minProperties: 1
-              additionalProperties: false
-              properties:
-                resource_type:
-                  type: object
-                  required:
-                    - type_id
-                  additionalProperties: false
-                  properties:
-                    type_id:
-                      type: integer
-                      format: int64
-                      example: 1
-                is_self_managed:
-                  type: boolean
-                  example: false
-      responses:
-        204:
-          description: Successful update of a resource
-        400:
-          $ref: "#/components/responses/400"
-        404:
-          $ref: "#/components/responses/404"
-        409:
-          $ref: "#/components/responses/409"
-        500:
-          $ref: "#/components/responses/500"
-
     delete:
       description: Delete a resource. This is only successful, if the entity is not used by any other entity.
       operationId: deleteResource

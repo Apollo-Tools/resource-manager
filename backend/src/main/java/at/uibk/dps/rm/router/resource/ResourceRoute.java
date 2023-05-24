@@ -35,10 +35,6 @@ public class ResourceRoute implements Route {
             .handler(resultHandler::handleFindOneRequest);
 
         router
-            .operation("updateResource")
-            .handler(resultHandler::handleUpdateRequest);
-
-        router
             .operation("deleteResource")
             .handler(resultHandler::handleDeleteRequest);
     }
