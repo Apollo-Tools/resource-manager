@@ -13,8 +13,8 @@ info:
     - **serverless**: Serverless resources are cloud resources where serverless functions can be deployed. Currently 
     AWS Lambda is the only supported platform. Only functions can be deployed on serverless resources.
     - **vm**: VM resources are virtual machines that can be automatically deployed and terminated by the RM. In the 
-    deployment process, an OpenFaas instance is initialised and started. Only functions can be deployed on edge 
-    resources.
+    deployment process, an OpenFaas instance is initialised and started on the virtual machines. Only functions can be 
+    deployed on edge resources.
     - **container**: Container resources support the deployment of docker images. At the moment kubernetes instances 
     are supported as container resources. Only services can be deployed on edge resources.
     
@@ -22,7 +22,7 @@ info:
     Metrics are associated with resources and are used for deployment and monitoring. There are two types of metrics:
     - **monitored**: Monitored resources are automatically updated by the monitoring service of the RM (not 
     yet implemented). Examples of this type of metric are price, availability and the heartbeat of a resource.
-    - **non monitored**: These are user-set properties that used primarily for resource deployment. Examples
+    - **non monitored**: These are user-set properties that are used primarily for resource deployment. Examples
     for this type of metric are the memory required for serverless functions or the instance type of a virtual machine.
     
   
@@ -74,7 +74,7 @@ info:
     request contains resources of type *VM* or *Edge*, docker credentials must also be included in the request, 
     because OpenFaas uses docker images which must first be pushed to a docker repository and then pulled on the 
     concerning resources. Make sure to generate a docker access token with read and write permissions for this 
-    purpose. For resources of type *Container* a valid kube config must be provided within the request. The kube 
+    purpose. For resources of type *container* a valid kube config must be provided within the request. The kube 
     config must meet some specific requirements:
       1. The cluster array must contain the cluster(s) where you want to deploy images to. 
       2. You must provide a valid context for each cluster. The context must contain the namespace to be used. If this
@@ -105,9 +105,9 @@ info:
           client-key-data: <b64-encoded-key>
     ```
     - **Virtual Private Clouds**: In order to deploy virtual machines on AWS a Virtual Private Cloud (VPC) must be 
-    registered (see /vpcs) prior to submitting a reservation request for each region in which a virtual machines will
+    registered (see /vpcs) prior to submitting a reservation request for each region in which a virtual machine will
     be deployed. 
-    - **Output and Status**: After sucessfully submitting a reserve resource request, a reservation will be created 
+    - **Output and Status**: After successfully submitting a reserve resource request, a reservation will be created 
     with the status *NEW*. This indicates that the deployment of resources has started but is still in progress. After 
     the RM has completed all tasks associated with the new reservation, the status is changed to **DEPLOYED** and 
     the trigger url is set for all deployed resources. All function-resources and service-resources associated to the 
