@@ -21,19 +21,11 @@ public class ResourceProviderRoute implements Route {
         ResultHandler resultHandler = new ResultHandler(resourceProviderHandler);
 
         router
-            .operation("createResourceProvider")
-            .handler(resultHandler::handleSaveOneRequest);
-
-        router
             .operation("listResourceProviders")
             .handler(resultHandler::handleFindAllRequest);
 
         router
             .operation("getResourceProvider")
             .handler(resultHandler::handleFindOneRequest);
-
-        router
-            .operation("deleteResourceProvider")
-            .handler(resultHandler::handleDeleteRequest);
     }
 }

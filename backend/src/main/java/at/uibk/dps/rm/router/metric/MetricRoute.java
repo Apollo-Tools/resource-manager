@@ -22,23 +22,11 @@ public class MetricRoute implements Route {
         ResultHandler resultHandler = new ResultHandler(metricHandler);
 
         router
-            .operation("createMetric")
-            .handler(resultHandler::handleSaveOneRequest);
-
-        router
             .operation("listMetrics")
             .handler(resultHandler::handleFindAllRequest);
 
         router
             .operation("getMetric")
             .handler(resultHandler::handleFindOneRequest);
-
-        router
-            .operation("updateMetric")
-            .handler(resultHandler::handleUpdateRequest);
-
-        router
-            .operation("deleteMetric")
-            .handler(resultHandler::handleDeleteRequest);
     }
 }

@@ -22,23 +22,11 @@ public class RuntimeRoute implements Route {
         ResultHandler resultHandler = new ResultHandler(runtimeHandler);
 
         router
-            .operation("createRuntime")
-            .handler(resultHandler::handleSaveOneRequest);
-
-        router
             .operation("listRuntimes")
             .handler(resultHandler::handleFindAllRequest);
 
         router
             .operation("getRuntime")
             .handler(resultHandler::handleFindOneRequest);
-
-        router
-            .operation("updateRuntime")
-            .handler(resultHandler::handleUpdateRequest);
-
-        router
-            .operation("deleteRuntime")
-            .handler(resultHandler::handleDeleteRequest);
     }
 }

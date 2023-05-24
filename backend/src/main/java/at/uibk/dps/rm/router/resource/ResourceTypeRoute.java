@@ -23,23 +23,11 @@ public class ResourceTypeRoute implements Route {
         ResultHandler resultHandler = new ResultHandler(resourceTypeHandler);
 
         router
-            .operation("createResourceType")
-            .handler(resultHandler::handleSaveOneRequest);
-
-        router
             .operation("listResourceTypes")
             .handler(resultHandler::handleFindAllRequest);
 
         router
             .operation("getResourceType")
             .handler(resultHandler::handleFindOneRequest);
-
-        router
-            .operation("updateResourceType")
-            .handler(resultHandler::handleUpdateRequest);
-
-        router
-            .operation("deleteResourceType")
-            .handler(resultHandler::handleDeleteRequest);
     }
 }
