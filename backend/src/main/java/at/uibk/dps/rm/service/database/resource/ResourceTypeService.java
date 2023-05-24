@@ -8,7 +8,6 @@ import at.uibk.dps.rm.service.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 
 /**
@@ -32,12 +31,4 @@ public interface ResourceTypeService extends DatabaseServiceInterface {
     static ResourceTypeService createProxy(Vertx vertx) {
         return new ResourceTypeServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(ResourceType.class));
     }
-
-    /**
-     * Check if a resource type exists by its name.
-     *
-     * @param resourceType the name of the resource type
-     * @return a Future that emits true if the resource type exists, else false
-     */
-    Future<Boolean> existsOneByResourceType(String resourceType);
 }
