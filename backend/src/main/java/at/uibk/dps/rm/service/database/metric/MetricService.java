@@ -52,12 +52,4 @@ public interface MetricService extends DatabaseServiceInterface {
      * @return a Future that emits the metric as JsonObject if it exists, else null
      */
     Future<JsonObject> findOneByMetric(String metric);
-
-    /**
-     * Check if a metric exists by its name.
-     *
-     * @param metric the name of the metric
-     * @return a Future that emits true if the metric exists, else false
-     */
-    Future<Boolean> existsOneByMetric(String metric);
 }

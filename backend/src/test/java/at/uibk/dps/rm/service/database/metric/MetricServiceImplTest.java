@@ -108,33 +108,4 @@ public class MetricServiceImplTest {
                 testContext.completeNow();
         })));
     }
-
-    @Test
-    void checkMetricExistsByMetricTrue(VertxTestContext testContext) {
-        String metric = "testmetric";
-        Metric entity = new Metric();
-        CompletionStage<Metric> completionStage = CompletionStages.completedFuture(entity);
-        when(metricRepository.findByMetric(metric)).thenReturn(completionStage);
-
-        metricService.existsOneByMetric(metric)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result).isEqualTo(true);
-                verify(metricRepository).findByMetric(metric);
-                testContext.completeNow();
-        })));
-    }
-
-    @Test
-    void checkMetricExistsByMetricFalse(VertxTestContext testContext) {
-        String metric = "testmetric";
-        CompletionStage<Metric> completionStage = CompletionStages.completedFuture(null);
-        when(metricRepository.findByMetric(metric)).thenReturn(completionStage);
-
-        metricService.existsOneByMetric(metric)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result).isEqualTo(false);
-                verify(metricRepository).findByMetric(metric);
-                testContext.completeNow();
-        })));
-    }
 }

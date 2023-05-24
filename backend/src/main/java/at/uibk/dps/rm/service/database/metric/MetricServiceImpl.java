@@ -8,7 +8,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
-import java.util.Objects;
 
 /**
  * This is the implementation of the #MetricService.
@@ -47,12 +46,5 @@ public class MetricServiceImpl extends DatabaseServiceProxy<Metric> implements M
         return Future
             .fromCompletionStage(metricRepository.findByMetric(metric))
             .map(JsonObject::mapFrom);
-    }
-
-    @Override
-    public Future<Boolean> existsOneByMetric(String metric) {
-        return Future
-            .fromCompletionStage(metricRepository.findByMetric(metric))
-            .map(Objects::nonNull);
     }
 }

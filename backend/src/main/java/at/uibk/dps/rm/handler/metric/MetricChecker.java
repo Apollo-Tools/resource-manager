@@ -32,21 +32,6 @@ public class MetricChecker extends EntityChecker {
         this.metricService = metricService;
     }
 
-    @Override
-    public Completable checkForDuplicateEntity(JsonObject entity) {
-        Single<Boolean> existsOneByMetric = metricService.existsOneByMetric(entity.getString("metric"));
-        return ErrorHandler.handleDuplicates(existsOneByMetric).ignoreElement();
-    }
-
-    @Override
-    public Single<JsonObject> checkUpdateNoDuplicate(JsonObject updateEntity, JsonObject entity) {
-        if (updateEntity.containsKey("metric")) {
-            return this.checkForDuplicateEntity(updateEntity)
-                .andThen(Single.just(entity));
-        }
-        return Single.just(entity);
-    }
-
     /**
      * Find all metrics by resource type and if they are required or optional.
      *

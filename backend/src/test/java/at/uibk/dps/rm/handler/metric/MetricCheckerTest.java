@@ -5,7 +5,6 @@ import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.entity.model.MetricType;
 import at.uibk.dps.rm.entity.model.MetricValue;
-import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricService;
@@ -52,77 +51,6 @@ public class MetricCheckerTest {
     void initTest() {
         JsonMapperConfig.configJsonMapper();
         metricChecker = new MetricChecker(metricService);
-    }
-
-    @Test
-    void checkForDuplicateEntityNotExists(VertxTestContext testContext) {
-        String metricName = "region";
-        Metric metric = TestMetricProvider.createMetric(1L, metricName);
-        JsonObject entity = JsonObject.mapFrom(metric);
-
-        when(metricService.existsOneByMetric(metricName)).thenReturn(Single.just(false));
-
-        metricChecker.checkForDuplicateEntity(entity)
-            .blockingSubscribe(() -> {
-                },
-                throwable -> testContext.verify(() -> fail("mmethod has thrown exception"))
-            );
-
-        verify(metricService).existsOneByMetric(metricName);
-        testContext.completeNow();
-    }
-
-    @Test
-    void checkForDuplicateEntityExists(VertxTestContext testContext) {
-        String metricName = "region";
-        Metric metric = TestMetricProvider.createMetric(1L, metricName);
-        JsonObject entity = JsonObject.mapFrom(metric);
-
-        when(metricService.existsOneByMetric(metricName)).thenReturn(Single.just(true));
-
-        metricChecker.checkForDuplicateEntity(entity)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
-                    testContext.completeNow();
-                })
-            );
-    }
-
-    @Test
-    void checkUpdateNoDuplicateWithMetricNotExists(VertxTestContext testContext) {
-        String metricName = "region";
-        Metric metric = TestMetricProvider.createMetric(1L, metricName);
-        JsonObject entity = JsonObject.mapFrom(metric);
-
-        when(metricService.existsOneByMetric(metricName)).thenReturn(Single.just(false));
-
-        metricChecker.checkUpdateNoDuplicate(entity, entity)
-            .subscribe(result -> testContext.verify(() -> {
-                    assertThat(result.getLong("metric_id")).isEqualTo(1L);
-                    assertThat(result.getString("metric")).isEqualTo(metricName);
-                    verify(metricService).existsOneByMetric(metricName);
-                    testContext.completeNow();
-                }),
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-    }
-
-    @Test
-    void checkUpdateNoDuplicateWithMetricExists(VertxTestContext testContext) {
-        String metricName = "region";
-        Metric metric = TestMetricProvider.createMetric(1L, metricName);
-        JsonObject entity = JsonObject.mapFrom(metric);
-
-        when(metricService.existsOneByMetric(metricName)).thenReturn(Single.just(true));
-
-        metricChecker.checkUpdateNoDuplicate(entity, entity)
-            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
-                    testContext.completeNow();
-                })
-            );
     }
 
     @Test
