@@ -1,11 +1,7 @@
 package at.uibk.dps.rm.handler.function;
 
 import at.uibk.dps.rm.handler.EntityChecker;
-import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.function.RuntimeService;
-import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.json.JsonObject;
 
 /**
  * Implements methods to perform CRUD operations on the runtime entity.
@@ -15,7 +11,6 @@ import io.vertx.core.json.JsonObject;
  * @author matthi-g
  */
 public class RuntimeChecker extends EntityChecker {
-    private final RuntimeService runtimeService;
 
     /**
      * Create an instance from the RuntimeService.
@@ -24,13 +19,5 @@ public class RuntimeChecker extends EntityChecker {
      */
     public RuntimeChecker(RuntimeService runtimeService) {
         super(runtimeService);
-        this.runtimeService = runtimeService;
-    }
-
-    @Override
-    public Completable checkForDuplicateEntity(JsonObject entity) {
-        Single<Boolean> existsOneByName = runtimeService
-            .existsOneByName(entity.getString("name"));
-        return ErrorHandler.handleDuplicates(existsOneByName).ignoreElement();
     }
 }

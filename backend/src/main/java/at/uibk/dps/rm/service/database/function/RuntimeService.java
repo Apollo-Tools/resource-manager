@@ -7,7 +7,6 @@ import at.uibk.dps.rm.service.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 
 /**
@@ -31,12 +30,4 @@ public interface RuntimeService extends DatabaseServiceInterface {
     static RuntimeService createProxy(Vertx vertx) {
         return new RuntimeServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(Runtime.class));
     }
-
-    /**
-     * Check if a runtime exists by its name.
-     *
-     * @param name the name of the runtime
-     * @return a Future that emits true if the function exists, else false
-     */
-    Future<Boolean> existsOneByName(String name);
 }
