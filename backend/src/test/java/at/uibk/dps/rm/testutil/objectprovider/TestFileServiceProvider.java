@@ -204,4 +204,17 @@ public class TestFileServiceProvider {
         return new ContainerDeployFileService(fileSystem, rootFolder, serviceReservation,
             reservation.getReservationId());
     }
+
+    public static ContainerPullFileService createContainerPullFileService(FileSystem fileSystem, Path rootFolder,
+        Reservation reservation) {
+        ServiceReservation serviceReservation = TestServiceProvider.createServiceReservation(1L, reservation);
+        return new ContainerPullFileService(fileSystem, rootFolder, List.of(serviceReservation),
+            reservation.getReservationId());
+    }
+
+    public static ContainerPullFileService createContainerPullFileService(FileSystem fileSystem, Path rootFolder,
+        Reservation reservation, List<ServiceReservation> serviceReservations) {
+        return new ContainerPullFileService(fileSystem, rootFolder, serviceReservations,
+            reservation.getReservationId());
+    }
 }

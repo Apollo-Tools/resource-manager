@@ -29,7 +29,6 @@ public class ContainerDeployFileServiceTest {
 
     @Test
     void getProviderString(Vertx vertx) {
-        Reservation reservation = TestReservationProvider.createReservation(1L);
         ContainerDeployFileService service =
             TestFileServiceProvider.createContainerDeployFileService(vertx.fileSystem(), rootFolder, reservation);
         String result = service.getProviderString();
@@ -48,7 +47,6 @@ public class ContainerDeployFileServiceTest {
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void getMainFileContent(boolean hasExternalIp, Vertx vertx) {
-        Reservation reservation = TestReservationProvider.createReservation(1L);
         Resource resource = TestResourceProvider.createResourceContainer(1L, "localhost", hasExternalIp);
         ContainerDeployFileService service =
             TestFileServiceProvider.createContainerDeployFileService(vertx.fileSystem(), rootFolder, resource,
@@ -87,7 +85,6 @@ public class ContainerDeployFileServiceTest {
     }
     @Test
     void getCredentialVariablesString(Vertx vertx) {
-        Reservation reservation = TestReservationProvider.createReservation(1L);
         ContainerDeployFileService service =
             TestFileServiceProvider.createContainerDeployFileService(vertx.fileSystem(), rootFolder, reservation);
         String result = service.getCredentialVariablesString();
@@ -97,7 +94,6 @@ public class ContainerDeployFileServiceTest {
 
     @Test
     void getVariablesFileContent(Vertx vertx) {
-        Reservation reservation = TestReservationProvider.createReservation(1L);
         ContainerDeployFileService service =
             TestFileServiceProvider.createContainerDeployFileService(vertx.fileSystem(), rootFolder, reservation);
         String result = service.getVariablesFileContent();
