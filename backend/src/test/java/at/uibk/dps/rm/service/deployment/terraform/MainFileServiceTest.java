@@ -49,7 +49,9 @@ public class MainFileServiceTest {
         TerraformModule m1 = new TerraformModule(CloudProvider.AWS, "m1");
         TerraformModule m2 = new TerraformModule(CloudProvider.AWS, "m2");
         TerraformModule m3 = new TerraformModule(CloudProvider.EDGE, "m3");
-        MainFileService service = TestFileServiceProvider.createMainFileService(vertx.fileSystem(), List.of(m1, m2, m3));
+        TerraformModule m4 = new TerraformModule(CloudProvider.CONTAINER, "m4");
+        MainFileService service = TestFileServiceProvider.createMainFileService(vertx.fileSystem(),
+            List.of(m1, m2, m3, m4));
         String result = service.getLocalModulesString();
 
         assertThat(result).isEqualTo(
@@ -68,6 +70,9 @@ public class MainFileServiceTest {
                 "module \"edge\" {\n" +
                 "  source = \"./edge\"\n" +
                 "  login_data = var.edge_login_data\n" +
+                "}\n" +
+                "module \"container\" {\n" +
+                "  source = \"./container\"\n" +
                 "}\n");
     }
 

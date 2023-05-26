@@ -59,6 +59,15 @@ public class DatabaseServiceProxyTest {
     }
 
     @Test
+    void getServiceProxyAddress() {
+        String expected = "resourcetype-service-address";
+
+        String result = testClass.getServiceProxyAddress();
+
+        assertThat(result).isEqualTo(expected);
+    }
+
+    @Test
     void saveEntity(VertxTestContext testContext) {
         ResourceType entity = new ResourceType();
         entity.setTypeId(1L);

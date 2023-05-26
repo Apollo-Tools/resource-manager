@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.util;
 
+import at.uibk.dps.rm.service.ServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -39,13 +40,22 @@ public class FilePathServiceImplTest {
 
     @BeforeEach
     void initTest() {
-        when(vertx.fileSystem()).thenReturn(fileSystem);
         filePathService = new FilePathServiceImpl(vertx);
+    }
+
+    @Test
+    void getServiceProxyAddress() {
+        String expected = "filepath-service-address";
+
+        String result = ((ServiceProxy) filePathService).getServiceProxyAddress();
+
+        assertThat(result).isEqualTo(expected);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"./filepathtest/filepathtest.py"})
     void checkTemplatePathExistsValid(String templatePath, VertxTestContext testContext) {
+        when(vertx.fileSystem()).thenReturn(fileSystem);
         when(fileSystem.exists(any())).thenReturn(Future.succeededFuture(true));
 
         filePathService.templatePathExists(templatePath)
@@ -59,6 +69,7 @@ public class FilePathServiceImplTest {
     @ParameterizedTest
     @ValueSource(strings = {"./filepathtest/doesnotexist.py", ""})
     void checkTemplatePathDoesNotExist(String templatePath, VertxTestContext testContext) {
+        when(vertx.fileSystem()).thenReturn(fileSystem);
         when(fileSystem.exists(any())).thenReturn(Future.succeededFuture(false));
 
         filePathService.templatePathExists(templatePath)
@@ -73,6 +84,7 @@ public class FilePathServiceImplTest {
     @ValueSource(booleans = {true, false})
     void tfLocFileExists(boolean exists, VertxTestContext testContext) {
         String tfPath = "./tfDir";
+        when(vertx.fileSystem()).thenReturn(fileSystem);
         when(fileSystem.exists(Paths.get(tfPath, ".terraform.lock.hcl").toString()))
             .thenReturn(Future.succeededFuture(exists));
 
@@ -88,6 +100,7 @@ public class FilePathServiceImplTest {
     void getRuntimeTemplate(VertxTestContext testContext) {
         String templatePath = ".\\path";
         String content = "def main():\n\treturn -1";
+        when(vertx.fileSystem()).thenReturn(fileSystem);
         when(fileSystem.readFile(templatePath))
             .thenReturn(Future.succeededFuture(Buffer.buffer().appendString(content)));
 

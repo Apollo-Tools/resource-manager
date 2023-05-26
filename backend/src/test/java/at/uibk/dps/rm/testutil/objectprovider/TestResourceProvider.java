@@ -90,7 +90,7 @@ public class TestResourceProvider {
         return resource;
     }
 
-    public static Resource createResourceContainer(long id, String clusterUrl) {
+    public static Resource createResourceContainer(long id, String clusterUrl, boolean hasExternalIp) {
         Resource resource = new Resource();
         resource.setResourceId(id);
         ResourceType rt = createResourceType(3L, "container");
@@ -102,12 +102,22 @@ public class TestResourceProvider {
         MetricType mt1 = TestMetricProvider.createMetricType(1L, "string");
         MetricType mt2 = TestMetricProvider.createMetricType(1L, "number");
         Metric m1 = TestMetricProvider.createMetric(1L, "cluster-url", mt1, false);
-        Metric m2 = TestMetricProvider.createMetric(4L, "pre-pull-timeout", mt2, false);
+        Metric m2 = TestMetricProvider.createMetric(2L, "pre-pull-timeout", mt2, false);
+        Metric m3 = TestMetricProvider.createMetric(3L, "external-ip", mt1, false);
         MetricValue mv1 = TestMetricProvider.createMetricValue(1L, m1, clusterUrl);
         MetricValue mv2 = TestMetricProvider.createMetricValue(2L, m2, 2);
-        resource.setMetricValues(Set.of(mv1, mv2));
+        MetricValue mv3 = TestMetricProvider.createMetricValue(3L, m3, "0.0.0.0");
+        if (hasExternalIp) {
+            resource.setMetricValues(Set.of(mv1, mv2, mv3));
+        } else {
+            resource.setMetricValues(Set.of(mv1, mv2));
+        }
 
         return resource;
+    }
+
+    public static Resource createResourceContainer(long id, String clusterUrl) {
+        return createResourceContainer(id, clusterUrl, true);
     }
 
     public static ResourceType createResourceType(long resourceTypeId, String resourceTypeLabel) {

@@ -120,8 +120,10 @@ public class VPCCheckerTest {
         long accountId = 1L;
         Region aws = TestResourceProviderProvider.createRegion(1L, "aws");
         Resource r1 = TestResourceProvider.createResourceVM(1L, aws, "t2.micro");
-        Resource r2 = TestResourceProvider.createResourceEdge(2L, "url", "user", "pw");
-        JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1), JsonObject.mapFrom(r2)));
+        Resource r2 = TestResourceProvider.createResourceVM(2L, aws, "t1.mini");
+        Resource r3 = TestResourceProvider.createResourceEdge(3L, "url", "user", "pw");
+        JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1), JsonObject.mapFrom(r2),
+            JsonObject.mapFrom(r3)));
         JsonObject vpc = JsonObject.mapFrom(TestResourceProviderProvider.createVPC(11L, aws));
 
         when(vpcService.findOneByRegionIdAndAccountId(1L, accountId)).thenReturn(Single.just(vpc));
@@ -137,9 +139,24 @@ public class VPCCheckerTest {
     }
 
     @Test
-    void checkVPCForFunctionResourcesOnyEdge(VertxTestContext testContext) {
+    void checkVPCForFunctionResourcesOnlyEdge(VertxTestContext testContext) {
         long accountId = 1L;
         Resource r1 = TestResourceProvider.createResourceEdge(2L, "url", "user", "pw");
+        JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1)));
+
+        vpcChecker.checkVPCForFunctionResources(accountId, resources)
+            .subscribe(result -> testContext.verify(() -> {
+                    assertThat(result.size()).isEqualTo(0);
+                    testContext.completeNow();
+                }),
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
+            );
+    }
+
+    @Test
+    void checkVPCForFunctionResourcesOnlyContainer(VertxTestContext testContext) {
+        long accountId = 1L;
+        Resource r1 = TestResourceProvider.createResourceContainer(1L, "localhost");
         JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1)));
 
         vpcChecker.checkVPCForFunctionResources(accountId, resources)

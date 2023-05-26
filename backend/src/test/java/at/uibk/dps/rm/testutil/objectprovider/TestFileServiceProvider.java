@@ -5,10 +5,7 @@ import at.uibk.dps.rm.entity.deployment.TerraformModule;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.model.Runtime;
-import at.uibk.dps.rm.service.deployment.terraform.AWSFileService;
-import at.uibk.dps.rm.service.deployment.terraform.EdgeFileService;
-import at.uibk.dps.rm.service.deployment.terraform.FunctionFileService;
-import at.uibk.dps.rm.service.deployment.terraform.MainFileService;
+import at.uibk.dps.rm.service.deployment.terraform.*;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.file.FileSystem;
 
@@ -191,5 +188,20 @@ public class TestFileServiceProvider {
     public static MainFileService createMainFileService(FileSystem fileSystem, List<TerraformModule> terraformModules) {
         Path rootFolder = Path.of("temp","test");
         return new MainFileService(fileSystem, rootFolder, terraformModules);
+    }
+
+    public static ContainerDeployFileService createContainerDeployFileService(FileSystem fileSystem, Path rootFolder,
+            Reservation reservation) {
+        ServiceReservation serviceReservation = TestServiceProvider.createServiceReservation(1L, reservation);
+        return new ContainerDeployFileService(fileSystem, rootFolder, serviceReservation,
+            reservation.getReservationId());
+    }
+
+    public static ContainerDeployFileService createContainerDeployFileService(FileSystem fileSystem, Path rootFolder,
+            Resource resource, Reservation reservation) {
+        ServiceReservation serviceReservation =
+            TestServiceProvider.createServiceReservation(1L, resource, reservation);
+        return new ContainerDeployFileService(fileSystem, rootFolder, serviceReservation,
+            reservation.getReservationId());
     }
 }

@@ -61,12 +61,14 @@ public class TestServiceProvider {
         serviceReservation.setResource(resource);
         serviceReservation.setIsDeployed(isDeployed);
         serviceReservation.setReservation(reservation);
+        serviceReservation.setContext("k8s-context");
+        serviceReservation.setNamespace("default");
         return serviceReservation;
     }
 
     public static ServiceReservation createServiceReservation(long id, long resourceId, Reservation reservation) {
         Service service = createService(22L, "test");
-        Resource resource = TestResourceProvider.createResource(resourceId);
+        Resource resource = TestResourceProvider.createResourceContainer(resourceId, "localhost");
         return createServiceReservation(id, service, resource, true, reservation);
     }
 
@@ -81,6 +83,11 @@ public class TestServiceProvider {
 
     public static ServiceReservation createServiceReservation(long id, Reservation reservation) {
         return createServiceReservation(id, 33L, reservation);
+    }
+
+    public static ServiceReservation createServiceReservation(long id, Resource resource, Reservation reservation) {
+        Service service = createService(22L, "test");
+        return createServiceReservation(id, service, resource, false, reservation);
     }
 
     public static ServiceReservation createServiceReservation(long id, Service service, boolean isDeployed) {
