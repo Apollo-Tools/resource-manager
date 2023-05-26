@@ -3,6 +3,7 @@ package at.uibk.dps.rm.service.deployment;
 import at.uibk.dps.rm.entity.deployment.*;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.dto.TerminateResourcesRequest;
+import at.uibk.dps.rm.service.ServiceProxy;
 import at.uibk.dps.rm.service.deployment.terraform.FunctionFileService;
 import at.uibk.dps.rm.service.deployment.terraform.MainFileService;
 import at.uibk.dps.rm.service.deployment.terraform.TerraformFileService;
@@ -58,6 +59,15 @@ public class DeploymentServiceImplTest {
         System.setProperty("os.name", "Linux");
         JsonMapperConfig.configJsonMapper();
         deploymentService = new DeploymentServiceImpl();
+    }
+
+    @Test
+    void getServiceProxyAddress() {
+        String expected = "deployment-service-address";
+
+        String result = ((ServiceProxy) deploymentService).getServiceProxyAddress();
+
+        assertThat(result).isEqualTo(expected);
     }
 
     @Test

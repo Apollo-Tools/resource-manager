@@ -10,10 +10,13 @@ import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletionStage;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -111,6 +114,27 @@ public class FunctionServiceImplTest {
         functionService.existsOneByNameAndRuntimeId(name, runtimeId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isEqualTo(false);
+                testContext.completeNow();
+            })));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void existsAllByIds(boolean allExist, VertxTestContext testContext) {
+        Set<Long> functionIds = Set.of(1L, 2L);
+        Function f1 = TestFunctionProvider.createFunction(1L);
+        Function f2 = TestFunctionProvider.createFunction(2L);
+        List<Function> functions = List.of(f1, f2);
+        if (!allExist) {
+            functions = List.of(f2);
+        }
+
+        CompletionStage<List<Function>> completionStage = CompletionStages.completedFuture(functions);
+        when(functionRepository.findAllByIds(functionIds)).thenReturn(completionStage);
+
+        functionService.existsAllByIds(functionIds)
+            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result).isEqualTo(allExist);
                 testContext.completeNow();
             })));
     }

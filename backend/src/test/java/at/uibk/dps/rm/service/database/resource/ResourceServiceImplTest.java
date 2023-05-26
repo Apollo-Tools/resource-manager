@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.database.resource;
 
+import at.uibk.dps.rm.entity.dto.resource.ResourceTypeEnum;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
@@ -10,16 +11,18 @@ import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletionStage;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 /**
  * Implements tests for the {@link ResourceServiceImpl} class.
@@ -47,13 +50,12 @@ public class ResourceServiceImplTest {
         Resource entity = TestResourceProvider.createResource(resourceId);
         CompletionStage<Resource> completionStage = CompletionStages.completedFuture(entity);
 
-        doReturn(completionStage).when(resourceRepository).findByIdAndFetch(resourceId);
+        when(resourceRepository.findByIdAndFetch(resourceId)).thenReturn(completionStage);
 
         resourceService.findOne(resourceId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("resource_id")).isEqualTo(1L);
                 assertThat(result.getJsonArray("metric_values")).isNull();
-                verify(resourceRepository).findByIdAndFetch(resourceId);
                 testContext.completeNow();
         })));
     }
@@ -63,12 +65,11 @@ public class ResourceServiceImplTest {
         long resourceId = 1L;
         CompletionStage<Resource> completionStage = CompletionStages.completedFuture(null);
 
-        doReturn(completionStage).when(resourceRepository).findByIdAndFetch(resourceId);
+        when(resourceRepository.findByIdAndFetch(resourceId)).thenReturn(completionStage);
 
         resourceService.findOne(resourceId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
-                verify(resourceRepository).findByIdAndFetch(resourceId);
                 testContext.completeNow();
         })));
     }
@@ -79,12 +80,11 @@ public class ResourceServiceImplTest {
         Resource entity = new Resource();
         CompletionStage<List<Resource>> completionStage = CompletionStages.completedFuture(List.of(entity));
 
-        doReturn(completionStage).when(resourceRepository).findByResourceType(typeId);
+        when(resourceRepository.findByResourceType(typeId)).thenReturn(completionStage);
 
         resourceService.existsOneByResourceType(typeId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isEqualTo(true);
-                verify(resourceRepository).findByResourceType(typeId);
                 testContext.completeNow();
         })));
     }
@@ -94,12 +94,11 @@ public class ResourceServiceImplTest {
         long typeId = 1L;
         CompletionStage<List<Resource>> completionStage = CompletionStages.completedFuture(List.of());
 
-        doReturn(completionStage).when(resourceRepository).findByResourceType(typeId);
+        when(resourceRepository.findByResourceType(typeId)).thenReturn(completionStage);
 
         resourceService.existsOneByResourceType(typeId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isEqualTo(false);
-                verify(resourceRepository).findByResourceType(typeId);
                 testContext.completeNow();
         })));
     }
@@ -110,19 +109,17 @@ public class ResourceServiceImplTest {
         Resource r2 = TestResourceProvider.createResource(2L);
         CompletionStage<List<Resource>> completionStage = CompletionStages.completedFuture(List.of(r1, r2));
 
-        doReturn(completionStage).when(resourceRepository).findAllAndFetch();
+        when(resourceRepository.findAllAndFetch()).thenReturn(completionStage);
 
         resourceService.findAll()
-                .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                    assertThat(result.size()).isEqualTo(2);
-                    assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
-                    assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
-                    verify(resourceRepository).findAllAndFetch();
-                    testContext.completeNow();
-                })));
+            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result.size()).isEqualTo(2);
+                assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
+                assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
+                testContext.completeNow();
+            })));
     }
 
-    // TODO: refine
     @Test
     void findAllBySLOs(VertxTestContext testContext) {
         List<String> metrics = List.of("availability");
@@ -133,15 +130,15 @@ public class ResourceServiceImplTest {
         List<Long> resourceTypes = new ArrayList<>();
 
 
-        doReturn(completionStage).when(resourceRepository).findAllBySLOs(metrics, regions, resourceProviders,
-            resourceTypes);
+        when(resourceRepository.findAllBySLOs(metrics, regions, resourceProviders, resourceTypes))
+            .thenReturn(completionStage);
 
         resourceService.findAllBySLOs(metrics, regions, resourceProviders, resourceTypes)
-                .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                    assertThat(result.size()).isEqualTo(1);
-                    assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
-                    testContext.completeNow();
-                })));
+            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result.size()).isEqualTo(1);
+                assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
+                testContext.completeNow();
+            })));
     }
 
     @Test
@@ -151,14 +148,72 @@ public class ResourceServiceImplTest {
         Resource r2 = TestResourceProvider.createResource(2L);
         CompletionStage<List<Resource>> completionStage = CompletionStages.completedFuture(List.of(r1, r2));
 
-        doReturn(completionStage).when(resourceRepository).findAllByFunctionIdAndFetch(functionId);
+        when(resourceRepository.findAllByFunctionIdAndFetch(functionId)).thenReturn(completionStage);
 
         resourceService.findAllByFunctionId(functionId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
                 assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
                 assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
-                verify(resourceRepository).findAllByFunctionIdAndFetch(functionId);
+                testContext.completeNow();
+            })));
+    }
+
+    @Test
+    void findAllByEnsembleId(VertxTestContext testContext) {
+        long ensembleId = 1L;
+        Resource r1 = TestResourceProvider.createResource(1L);
+        Resource r2 = TestResourceProvider.createResource(2L);
+        CompletionStage<List<Resource>> completionStage = CompletionStages.completedFuture(List.of(r1, r2));
+
+        when(resourceRepository.findAllByEnsembleId(ensembleId)).thenReturn(completionStage);
+
+        resourceService.findAllByEnsembleId(ensembleId)
+            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result.size()).isEqualTo(2);
+                assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
+                assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
+                testContext.completeNow();
+            })));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void existsAllByIdsAndResourceTypes(boolean allExist, VertxTestContext testContext) {
+        Set<Long> resourceIds = Set.of(1L, 2L);
+        List<String> resourceTypes = List.of(ResourceTypeEnum.EDGE.getValue(), ResourceTypeEnum.VM.getValue());
+        Resource r1 = TestResourceProvider.createResource(1L);
+        Resource r2 = TestResourceProvider.createResource(2L);
+        List<Resource> resources = List.of(r1, r2);
+        if (!allExist) {
+            resources = List.of(r2);
+        }
+        CompletionStage<List<Resource>> completionStage = CompletionStages.completedFuture(resources);
+
+        when(resourceRepository.findAllByResourceIdsAndResourceTypes(resourceIds, resourceTypes))
+            .thenReturn(completionStage);
+
+        resourceService.existsAllByIdsAndResourceTypes(resourceIds, resourceTypes)
+            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result).isEqualTo(allExist);
+                testContext.completeNow();
+            })));
+    }
+
+    @Test
+    void findAllByResourceIds(VertxTestContext testContext) {
+        List<Long> resourceIds = List.of(1L, 2L);
+        Resource r1 = TestResourceProvider.createResource(1L);
+        Resource r2 = TestResourceProvider.createResource(2L);
+        CompletionStage<List<Resource>> completionStage = CompletionStages.completedFuture(List.of(r1, r2));
+
+        when(resourceRepository.findAllByResourceIdsAndFetch(resourceIds)).thenReturn(completionStage);
+
+        resourceService.findAllByResourceIds(resourceIds)
+            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result.size()).isEqualTo(2);
+                assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
+                assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
                 testContext.completeNow();
             })));
     }
