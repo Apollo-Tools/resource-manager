@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.handler.function;
+package at.uibk.dps.rm.handler.service;
 
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
@@ -25,21 +25,21 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
 /**
- * Implements tests for the {@link FunctionHandler} class.
+ * Implements tests for the {@link ServiceHandler} class.
  *
  * @author matthi-g
  */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class FunctionHandlerTest {
+public class ServiceHandlerTest {
 
-    private FunctionHandler functionHandler;
-
-    @Mock
-    private FunctionChecker functionChecker;
+    private ServiceHandler serviceHandler;
 
     @Mock
-    private RuntimeChecker runtimeChecker;
+    private ServiceChecker serviceChecker;
+
+    @Mock
+    private ServiceTypeChecker serviceTypeChecker;
 
     @Mock
     private RoutingContext rc;
@@ -47,29 +47,31 @@ public class FunctionHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        functionHandler = new FunctionHandler(functionChecker, runtimeChecker);
+        serviceHandler = new ServiceHandler(serviceChecker, serviceTypeChecker);
     }
 
     private static Stream<Arguments> provideRequestBody() {
-        String name = "func";
-        long runtimeId = 1L;
-        JsonObject requestBody = new JsonObject("{\"name\": \"" + name + "\", \"runtime\": {\"runtime_id\": "
-            + runtimeId + "}, \"code\": \"x = 10\"}");
-        return Stream.of(Arguments.of(runtimeId, requestBody));
+        String name = "servicex-highmemory";
+        long serviceTypeId = 1L;
+        JsonObject requestBody = new JsonObject("{\"name\": \"" + name + "\", \"image\": \"user/example\", " +
+            "\"replicas\": 1, \"ports\": [\"80:8000\"],\"cpu\": 0.1,\"memory\": 128,\"service_type\": {" +
+            "\"service_type_id\": " + serviceTypeId + "}}");
+        return Stream.of(Arguments.of(serviceTypeId, requestBody));
     }
 
     @ParameterizedTest
     @MethodSource("provideRequestBody")
-    void postOneValid(long runtimeId, JsonObject requestBody, VertxTestContext testContext) {
+    void postOneValid(long serviceTypeId, JsonObject requestBody, VertxTestContext testContext) {
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(runtimeChecker.checkExistsOne(runtimeId)).thenReturn(Completable.complete());
-        when(functionChecker.checkForDuplicateEntity(requestBody)).thenReturn(Completable.complete());
-        when(functionChecker.submitCreate(requestBody)).thenReturn(Single.just(requestBody));
+        when(serviceTypeChecker.checkExistsOne(serviceTypeId)).thenReturn(Completable.complete());
+        when(serviceChecker.checkForDuplicateEntity(requestBody)).thenReturn(Completable.complete());
+        when(serviceChecker.submitCreate(requestBody)).thenReturn(Single.just(requestBody));
 
-        functionHandler.postOne(rc)
+        serviceHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> {
-                    assertThat(result.getJsonObject("runtime").getLong("runtime_id")).isEqualTo(1L);
-                    assertThat(result.getString("code")).isEqualTo("x = 10");
+                    assertThat(result.getJsonObject("service_type").getLong("service_type_id"))
+                        .isEqualTo(1L);
+                    assertThat(result.getString("name")).isEqualTo("servicex-highmemory");
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
@@ -78,12 +80,12 @@ public class FunctionHandlerTest {
 
     @ParameterizedTest
     @MethodSource("provideRequestBody")
-    void postOneRuntimeNotFound(long runtimeId, JsonObject requestBody, VertxTestContext testContext) {
+    void postOneRuntimeNotFound(long serviceTypeId, JsonObject requestBody, VertxTestContext testContext) {
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(runtimeChecker.checkExistsOne(runtimeId)).thenReturn(Completable.error(NotFoundException::new));
-        when(functionChecker.checkForDuplicateEntity(requestBody)).thenReturn(Completable.complete());
+        when(serviceTypeChecker.checkExistsOne(serviceTypeId)).thenReturn(Completable.error(NotFoundException::new));
+        when(serviceChecker.checkForDuplicateEntity(requestBody)).thenReturn(Completable.complete());
 
-        functionHandler.postOne(rc)
+        serviceHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> fail("method has thrown exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
@@ -94,13 +96,12 @@ public class FunctionHandlerTest {
 
     @ParameterizedTest
     @MethodSource("provideRequestBody")
-    void postOneAlreadyExists(long runtimeId, JsonObject requestBody, VertxTestContext testContext) {
+    void postOneAlreadyExists(long serviceTypeId, JsonObject requestBody, VertxTestContext testContext) {
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(runtimeChecker.checkExistsOne(runtimeId)).thenReturn(Completable.complete());
-        when(functionChecker.checkForDuplicateEntity(requestBody))
-            .thenReturn(Completable.error(AlreadyExistsException::new));
+        when(serviceTypeChecker.checkExistsOne(serviceTypeId)).thenReturn(Completable.complete());
+        when(serviceChecker.checkForDuplicateEntity(requestBody)).thenReturn(Completable.error(AlreadyExistsException::new));
 
-        functionHandler.postOne(rc)
+        serviceHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(AlreadyExistsException.class);

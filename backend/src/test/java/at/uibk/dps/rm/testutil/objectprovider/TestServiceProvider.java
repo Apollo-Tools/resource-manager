@@ -106,4 +106,11 @@ public class TestServiceProvider {
         Reservation reservation = TestReservationProvider.createReservation(1L);
         return createServiceReservation(id, service, resource, false, reservation);
     }
+
+    public static ServiceResourceIds createFunctionResourceIds(long serviceId, long resourceId) {
+        ServiceResourceIds ids = new ServiceResourceIds();
+        ids.setServiceId(serviceId);
+        ids.setResourceId(resourceId);
+        return ids;
+    }
 }

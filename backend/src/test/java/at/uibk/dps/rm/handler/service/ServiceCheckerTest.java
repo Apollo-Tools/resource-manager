@@ -1,11 +1,11 @@
-package at.uibk.dps.rm.handler.function;
+package at.uibk.dps.rm.handler.service;
 
-import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
-import at.uibk.dps.rm.entity.model.Function;
+import at.uibk.dps.rm.entity.dto.reservation.ServiceResourceIds;
+import at.uibk.dps.rm.entity.model.Service;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.service.rxjava3.database.function.FunctionService;
-import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
+import at.uibk.dps.rm.service.rxjava3.database.service.ServiceService;
+import at.uibk.dps.rm.testutil.objectprovider.TestServiceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
@@ -22,58 +22,54 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Implements tests for the {@link FunctionChecker} class.
+ * Implements tests for the {@link ServiceChecker} class.
  *
  * @author matthi-g
  */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class FunctionCheckerTest {
+public class ServiceCheckerTest {
 
-    private FunctionChecker functionChecker;
+
+    private ServiceChecker serviceChecker;
 
     @Mock
-    private FunctionService functionService;
+    private ServiceService serviceService;
 
 
 
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        functionChecker = new FunctionChecker(functionService);
+        serviceChecker = new ServiceChecker(serviceService);
     }
 
     @Test
     void checkForDuplicateEntityFalse(VertxTestContext testContext) {
-        String name = "func";
-        long runtimeId = 1L;
-        Function function = TestFunctionProvider.createFunction(1L, name, "true", runtimeId);
+        String name = "svc";
+        Service service = TestServiceProvider.createService(1L, name);
 
-        when(functionService.existsOneByNameAndRuntimeId(name, runtimeId)).thenReturn(Single.just(false));
+        when(serviceService.existsOneByName(name)).thenReturn(Single.just(false));
 
-        functionChecker.checkForDuplicateEntity(JsonObject.mapFrom(function))
+        serviceChecker.checkForDuplicateEntity(JsonObject.mapFrom(service))
             .blockingSubscribe(() -> {
                 },
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
-
-        verify(functionService).existsOneByNameAndRuntimeId(name, runtimeId);
         testContext.completeNow();
     }
 
     @Test
     void checkForDuplicateEntityTrue(VertxTestContext testContext) {
-        String name = "func";
-        long runtimeId = 1L;
-        Function function = TestFunctionProvider.createFunction(1L, name, "true", runtimeId);
+        String name = "svc";
+        Service service = TestServiceProvider.createService(1L, name);
 
-        when(functionService.existsOneByNameAndRuntimeId(name, runtimeId)).thenReturn(Single.just(true));
+        when(serviceService.existsOneByName(name)).thenReturn(Single.just(true));
 
-        functionChecker.checkForDuplicateEntity(JsonObject.mapFrom(function))
+        serviceChecker.checkForDuplicateEntity(JsonObject.mapFrom(service))
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
@@ -84,14 +80,13 @@ public class FunctionCheckerTest {
 
     @Test
     void checkExistAllByIds(VertxTestContext testContext) {
-        FunctionResourceIds fr1 = TestFunctionProvider.createFunctionResourceIds(1L, 1L);
-        FunctionResourceIds fr2 = TestFunctionProvider.createFunctionResourceIds(2L, 1L);
-        FunctionResourceIds fr3 = TestFunctionProvider.createFunctionResourceIds(3L, 2L);
+        ServiceResourceIds sr1 = TestServiceProvider.createServiceResourceIds(1L, 1L);
+        ServiceResourceIds sr2 = TestServiceProvider.createServiceResourceIds(2L, 1L);
+        ServiceResourceIds sr3 = TestServiceProvider.createServiceResourceIds(3L, 2L);
 
-        when(functionService.existsAllByIds(Set.of(1L, 2L, 3L))).thenReturn(Single.just(true));
+        when(serviceService.existsAllByIds(Set.of(1L, 2L, 3L))).thenReturn(Single.just(true));
 
-
-        functionChecker.checkExistAllByIds(List.of(fr1, fr2, fr3))
+        serviceChecker.checkExistAllByIds(List.of(sr1, sr2, sr3))
             .blockingSubscribe(() -> {
                 },
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
@@ -101,14 +96,13 @@ public class FunctionCheckerTest {
 
     @Test
     void checkExistAllByIdsNotExists(VertxTestContext testContext) {
-        FunctionResourceIds fr1 = TestFunctionProvider.createFunctionResourceIds(1L, 1L);
-        FunctionResourceIds fr2 = TestFunctionProvider.createFunctionResourceIds(2L, 1L);
-        FunctionResourceIds fr3 = TestFunctionProvider.createFunctionResourceIds(3L, 2L);
+        ServiceResourceIds sr1 = TestServiceProvider.createServiceResourceIds(1L, 1L);
+        ServiceResourceIds sr2 = TestServiceProvider.createServiceResourceIds(2L, 1L);
+        ServiceResourceIds sr3 = TestServiceProvider.createServiceResourceIds(3L, 2L);
 
-        when(functionService.existsAllByIds(Set.of(1L, 2L, 3L))).thenReturn(Single.just(false));
+        when(serviceService.existsAllByIds(Set.of(1L, 2L, 3L))).thenReturn(Single.just(false));
 
-
-        functionChecker.checkExistAllByIds(List.of(fr1, fr2, fr3))
+        serviceChecker.checkExistAllByIds(List.of(sr1, sr2, sr3))
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
