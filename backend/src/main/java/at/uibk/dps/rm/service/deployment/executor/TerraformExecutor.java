@@ -42,7 +42,7 @@ public class TerraformExecutor {
      * @return a Single that emits the process output of the init operation
      */
     public Single<ProcessOutput> init(Path folder) {
-        ProcessExecutor processExecutor = new ProcessExecutor(folder, "terraform",  "init");
+        ProcessExecutor processExecutor = new ProcessExecutor(folder, List.of("terraform",  "init"));
         return processExecutor.executeCli();
     }
 

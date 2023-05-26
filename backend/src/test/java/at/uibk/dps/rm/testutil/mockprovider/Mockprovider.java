@@ -7,6 +7,7 @@ import at.uibk.dps.rm.entity.dto.DeployTerminateRequest;
 import at.uibk.dps.rm.entity.model.ServiceReservation;
 import at.uibk.dps.rm.service.deployment.docker.DockerImageService;
 import at.uibk.dps.rm.service.deployment.executor.MainTerraformExecutor;
+import at.uibk.dps.rm.service.deployment.executor.ProcessExecutor;
 import at.uibk.dps.rm.service.deployment.executor.TerraformExecutor;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import io.reactivex.rxjava3.core.Completable;
@@ -17,7 +18,9 @@ import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 
 import java.nio.file.Path;
+import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
 /**
@@ -75,7 +78,6 @@ public class Mockprovider {
         }
     }
 
-
     public static MockedConstruction<TerraformExecutor> mockTerraformExecutor(DeployTerminateRequest request,
             DeploymentPath deploymentPath, ProcessOutput processOutput, String mode) {
         return Mockito.mockConstruction(TerraformExecutor.class,
@@ -96,6 +98,16 @@ public class Mockprovider {
                 Path containerPath = Path.of(deploymentPath.getRootFolder().toString(), "container",
                     String.valueOf(resourceReservationId));
                 mockTerraformExecutor(mock, containerPath, mode, processOutput);
+            });
+    }
+
+    public static MockedConstruction<ProcessExecutor> mockProcessExecutor(DeploymentPath deploymentPath,
+            ProcessOutput processOutput, List<String> commands) {
+        return Mockito.mockConstruction(ProcessExecutor .class,
+            (mock, context) -> {
+                given(mock.executeCli()).willReturn(Single.just(processOutput));
+                assertThat(context.arguments().get(1)).isEqualTo(commands);
+                assertThat(context.arguments().get(0)).isEqualTo(deploymentPath.getRootFolder());
             });
     }
 }

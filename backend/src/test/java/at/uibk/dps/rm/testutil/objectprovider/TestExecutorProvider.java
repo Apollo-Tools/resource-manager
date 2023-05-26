@@ -2,6 +2,7 @@ package at.uibk.dps.rm.testutil.objectprovider;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.service.deployment.executor.MainTerraformExecutor;
+import at.uibk.dps.rm.service.deployment.executor.TerraformExecutor;
 import io.vertx.rxjava3.core.Vertx;
 import lombok.experimental.UtilityClass;
 
@@ -15,6 +16,10 @@ import java.util.List;
  */
 @UtilityClass
 public class TestExecutorProvider {
+    public static TerraformExecutor createTerraformExecutor(Vertx vertx) {
+        return new TerraformExecutor(vertx);
+    }
+
     public static MainTerraformExecutor createTerraformExecutorAWSEdge(Vertx vertx) {
         DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWSEdge();
         return new MainTerraformExecutor(vertx, deploymentCredentials);
