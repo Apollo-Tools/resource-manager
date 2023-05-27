@@ -1,6 +1,8 @@
 package at.uibk.dps.rm.handler.service;
 
+import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.handler.ValidationHandler;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
@@ -27,11 +29,30 @@ public class ServiceHandler extends ValidationHandler {
     @Override
     public Single<JsonObject> postOne(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
-        return serviceTypeChecker.checkExistsOne(requestBody
-                .getJsonObject("service_type")
+        return entityChecker.checkForDuplicateEntity(requestBody)
+            .andThen(serviceTypeChecker.checkFindOne(requestBody.getJsonObject("service_type")
                 .getLong("service_type_id"))
-            .andThen(entityChecker.checkForDuplicateEntity(requestBody))
+            )
+            .flatMapCompletable(serviceType -> checkServiceTypePorts(serviceType,
+                requestBody.getJsonArray("ports").size()))
             .andThen(Single.defer(() -> Single.just(1L)))
             .flatMap(result -> entityChecker.submitCreate(requestBody));
+    }
+
+    private Completable checkServiceTypePorts(JsonObject serviceType, int portAmount) {
+        String name = serviceType.getString("name");
+        if (checkHasNoService(name, portAmount) || checkHasService(name, portAmount)) {
+            return Completable.complete();
+        } else {
+            return Completable.error(new BadInputException("invalid ports for service selection"));
+        }
+    }
+
+    private boolean checkHasNoService(String serviceType, int portAmount) {
+        return serviceType.equals("NoService") && portAmount == 0;
+    }
+
+    private boolean checkHasService(String serviceType, int portAmount) {
+        return !serviceType.equals("NoService") && portAmount > 0;
     }
 }

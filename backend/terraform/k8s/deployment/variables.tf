@@ -64,8 +64,9 @@ variable "service_type" {
   default = "NodePort"
 
   validation {
-    condition     = var.service_type == "NodePort" || var.service_type == "LoadBalancer"
-    error_message = "The service type must be of type NodePort or LoadBalancer"
+    condition     = (var.service_type == "NodePort" || var.service_type == "LoadBalancer" ||
+      var.service_type == "NoService")
+    error_message = "The service type must be of type NodePort, LoadBalancer or NoService"
   }
 }
 

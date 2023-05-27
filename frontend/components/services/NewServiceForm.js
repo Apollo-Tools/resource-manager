@@ -12,6 +12,7 @@ const NewServiceForm = ({setNewService}) => {
   const {token, checkTokenExpired} = useAuth();
   const [error, setError] = useState();
   const [serviceTypes, setServiceTypes] = useState([]);
+  const [selectedServiceType, setSelectedServiceType] = useState(null);
 
   useEffect(() => {
     if (!checkTokenExpired()) {
@@ -27,6 +28,10 @@ const NewServiceForm = ({setNewService}) => {
     }
   }, [error]);
 
+  useEffect(() => {
+    console.log(selectedServiceType);
+  }, [selectedServiceType]);
+
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
       console.log(values);
@@ -40,6 +45,12 @@ const NewServiceForm = ({setNewService}) => {
   };
   const onFinishFailed = (errorInfo) => {
     console.log('Failed:', errorInfo);
+  };
+
+  const onChangeServiceType = (value) => {
+    const serviceType = serviceTypes.find((serviceType) => serviceType.service_type_id === value);
+    console.log(serviceType);
+    setSelectedServiceType(serviceType ? serviceType : null);
   };
 
   return (
@@ -131,7 +142,7 @@ const NewServiceForm = ({setNewService}) => {
               },
             ]}
           >
-            <Select className="w-40">
+            <Select className="w-40" onSelect={onChangeServiceType}>
               {serviceTypes.map((serviceType) => {
                 return (
                   <Select.Option
@@ -145,51 +156,55 @@ const NewServiceForm = ({setNewService}) => {
           </Form.Item>
         </div>
 
-        <Typography.Text>Ports</Typography.Text>
-        <Form.List name="ports">
-          {(fields, {add, remove}) => (
-            <>
-              {fields.map(({index, key, name, ...field}) => (
-                <Space
-                  key={key}
-                  className="flex"
-                  align="baseline"
-                >
-                  <Form.Item
-                    {...field}
-                    name={[name, 'servicePort']}
-                    rules={[
-                      {
-                        required: true,
-                        message: 'Missing service port',
-                      },
-                    ]}
-                  >
-                    <InputNumber addonBefore="Service Port" className="w-40" controls={false} min={1} precision={0}/>
+        {selectedServiceType!=null && selectedServiceType?.name !== 'NoService' &&
+          <>
+            <Typography.Text>Ports</Typography.Text>
+            <Form.List name="ports">
+              {(fields, {add, remove}) => (
+                <>
+                  {fields.map(({index, key, name, ...field}) => (
+                    <Space
+                      key={key}
+                      className="flex"
+                      align="baseline"
+                    >
+                      <Form.Item
+                        {...field}
+                        name={[name, 'servicePort']}
+                        rules={[
+                          {
+                            required: true,
+                            message: 'Missing service port',
+                          },
+                        ]}
+                      >
+                        <InputNumber addonBefore="Service Port" className="w-40" controls={false} min={1} precision={0}/>
+                      </Form.Item>
+                      <Form.Item
+                        {...field}
+                        name={[name, 'containerPort']}
+                        rules={[
+                          {
+                            required: true,
+                            message: 'Missing container port',
+                          },
+                        ]}
+                      >
+                        <InputNumber addonBefore="Container Port" className="w-40" controls={false} min={1} precision={0}/>
+                      </Form.Item>
+                      <MinusCircleOutlined onClick={() => remove(name)} />
+                    </Space>
+                  ))}
+                  <Form.Item>
+                    <Button className="w-40" type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
+                      Add Port
+                    </Button>
                   </Form.Item>
-                  <Form.Item
-                    {...field}
-                    name={[name, 'containerPort']}
-                    rules={[
-                      {
-                        required: true,
-                        message: 'Missing container port',
-                      },
-                    ]}
-                  >
-                    <InputNumber addonBefore="Container Port" className="w-40" controls={false} min={1} precision={0}/>
-                  </Form.Item>
-                  <MinusCircleOutlined onClick={() => remove(name)} />
-                </Space>
-              ))}
-              <Form.Item>
-                <Button className="w-40" type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
-                  Add Port
-                </Button>
-              </Form.Item>
-            </>
-          )}
-        </Form.List>
+                </>
+              )}
+            </Form.List>
+          </>
+        }
 
 
         <Form.Item>

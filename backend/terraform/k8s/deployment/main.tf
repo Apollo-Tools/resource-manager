@@ -8,6 +8,7 @@ locals {
 }
 
 resource "kubernetes_service_v1" "service" {
+  count = var.service_type == "NoService" ? 0 : 1
   metadata {
     name = local.name
     namespace = var.namespace
