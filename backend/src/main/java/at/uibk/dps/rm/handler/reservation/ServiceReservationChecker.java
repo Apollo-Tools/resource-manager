@@ -36,4 +36,17 @@ public class ServiceReservationChecker extends EntityChecker {
         final Single<JsonArray> findAllByResourceId = service.findAllByReservationId(id);
         return ErrorHandler.handleFindAll(findAllByResourceId);
     }
+
+    /**
+     * Check whether a service reservation is ready for startup
+     *
+     * @return a Single that emits true if the service reservation is ready, else false
+     */
+    public Single<Boolean> checkReadyForStartup(long reservationId,
+        long resourceReservationId, long accountId) {
+        Single<Boolean> exists = service.existsReadyForContainerStartupAndTermination(reservationId,
+            resourceReservationId,
+          accountId);
+        return ErrorHandler.handleExistsOne(exists);
+    }
 }

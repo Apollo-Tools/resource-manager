@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.repository.reservation;
 
+import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
 import at.uibk.dps.rm.entity.model.ServiceReservation;
 import at.uibk.dps.rm.repository.Repository;
 import org.hibernate.reactive.stage.Stage;
@@ -42,6 +43,32 @@ public class ServiceReservationRepository extends Repository<ServiceReservation>
                     "where sr.reservation.reservationId=:reservationId", entityClass)
                 .setParameter("reservationId", reservationId)
                 .getResultList()
+        );
+    }
+
+
+
+    /**
+     * Find a service reservation by its reservation, resourceReservation, creator and deployment status.
+     *
+     * @param reservationId the id of the reservation
+     * @param resourceReservationId the id of the resource reservation
+     * @param accountId the account id of the creator
+     * @return a CompletionStage that emits the resource reservation if it exists, else null
+     */
+    public CompletionStage<ServiceReservation> findOneByReservationStatus(
+            long reservationId, long resourceReservationId, long accountId, ReservationStatusValue statusValue) {
+        return sessionFactory.withSession(session ->
+            session.createQuery("from ServiceReservation sr " +
+                    "where sr.reservation.reservationId=:reservationId and " +
+                    "sr.resourceReservationId=:resourceReservationId and " +
+                    "sr.reservation.createdBy.accountId=:accountId and " +
+                    "sr.status.statusValue=:statusValue", entityClass)
+                .setParameter("reservationId", reservationId)
+                .setParameter("resourceReservationId", resourceReservationId)
+                .setParameter("accountId", accountId)
+                .setParameter("statusValue", statusValue.name())
+                .getSingleResultOrNull()
         );
     }
 }

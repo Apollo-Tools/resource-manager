@@ -41,30 +41,6 @@ public class ResourceReservationRepository extends Repository<ResourceReservatio
     }
 
     /**
-     * Find a resource reservation by its reservation, resourceReservation and creator.
-     *
-     * @param reservationId the id of the reservation
-     * @param resourceReservationId the id of the resource reservation
-     * @param accountId the account id of the creator
-     * @return a CompletionStage that emits the resource reservation if it exists, else null
-     */
-    public CompletionStage<ResourceReservation> findOneByReservationIdResourceReservationIdAndAccountId(long reservationId,
-            long resourceReservationId, long accountId) {
-        return sessionFactory.withSession(session ->
-            session.createQuery("from ResourceReservation rr " +
-                    "where rr.reservation.reservationId=:reservationId and " +
-                    "rr.resourceReservationId=:resourceReservationId and " +
-                    "rr.reservation.createdBy.accountId=:accountId", entityClass)
-                .setParameter("reservationId", reservationId)
-                .setParameter("resourceReservationId", resourceReservationId)
-                .setParameter("accountId", accountId)
-                .getSingleResultOrNull()
-        );
-    }
-
-
-    //TODO: add account id
-    /**
      * Update the trigger url of a resource reservation by its id.
      *
      * @param id the id of the resource reservation

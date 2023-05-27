@@ -17,10 +17,10 @@ public class ReservationStartupRoute implements Route {
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         DeploymentChecker deploymentChecker = new DeploymentChecker(serviceProxyProvider.getDeploymentService(),
             serviceProxyProvider.getLogService(), serviceProxyProvider.getReservationLogService());
-        ResourceReservationChecker resourceReservationChecker =
-            new ResourceReservationChecker(serviceProxyProvider.getResourceReservationService());
+        ServiceReservationChecker serviceReservationChecker =
+            new ServiceReservationChecker(serviceProxyProvider.getServiceReservationService());
         ContainerStartupHandler startupHandler = new ContainerStartupHandler(deploymentChecker,
-            resourceReservationChecker);
+            serviceReservationChecker);
 
         router
             .operation("deployResourceReservation")

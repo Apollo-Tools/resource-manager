@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.database.reservation;
 
+import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
 import at.uibk.dps.rm.entity.model.ServiceReservation;
 import at.uibk.dps.rm.repository.reservation.ServiceReservationRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
@@ -8,6 +9,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 /**
  * This is the implementation of the #ServiceReservationService.
@@ -41,5 +43,13 @@ public class ServiceReservationServiceImpl  extends DatabaseServiceProxy<Service
                 }
                 return new JsonArray(objects);
             });
+    }
+
+    @Override
+    public Future<Boolean> existsReadyForContainerStartupAndTermination(long reservationId,
+        long resourceReservationId, long accountId) {
+        return Future.fromCompletionStage(repository.findOneByReservationStatus(reservationId, resourceReservationId,
+                accountId, ReservationStatusValue.DEPLOYED))
+            .map(Objects::nonNull);
     }
 }

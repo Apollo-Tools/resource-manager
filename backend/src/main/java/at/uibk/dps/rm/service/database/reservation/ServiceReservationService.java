@@ -42,4 +42,15 @@ public interface ServiceReservationService extends DatabaseServiceInterface {
      * @return a Future that emits all service reservations as JsonArray
      */
     Future<JsonArray> findAllByReservationId(long reservationId);
+
+    /**
+     * Check if a service reservation is ready for startup or termination
+     *
+     * @param reservationId the id of the reservation
+     * @param resourceReservationId the id of the resource reservation
+     * @param accountId the account id of the creator
+     * @return a Future that emits true if the function exists, else false
+     */
+    Future<Boolean> existsReadyForContainerStartupAndTermination(long reservationId,
+        long resourceReservationId, long accountId);
 }

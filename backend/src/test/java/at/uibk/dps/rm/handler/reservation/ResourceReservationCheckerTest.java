@@ -122,6 +122,8 @@ public class ResourceReservationCheckerTest {
             );
     }
 
+
+
     @Test
     void storeOutputToFunctionResources(VertxTestContext testContext) {
         DeployResourcesRequest request = TestRequestProvider.createDeployRequest();

@@ -45,18 +45,6 @@ public interface ResourceReservationService extends DatabaseServiceInterface {
     Future<JsonArray> findAllByReservationId(long reservationId);
 
     /**
-     * Check if a function reservation exists by reservationId, resourceReservationId and
-     * accountId.
-     *
-     * @param reservationId the id of the reservation
-     * @param resourceReservationId the id of the resource reservation
-     * @param accountId the account id of the creator
-     * @return a Future that emits true if the function exists, else false
-     */
-    Future<Boolean> existsByReservationIdResourceReservationIdAndAccountId(long reservationId,
-        long resourceReservationId, long accountId);
-
-    /**
      * Update the trigger url of a resource reservation by its id.
      *
      * @param resourceReservationId the id of the resource reservation

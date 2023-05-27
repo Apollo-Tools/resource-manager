@@ -3,7 +3,7 @@ package at.uibk.dps.rm.handler.deployment;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
 import at.uibk.dps.rm.handler.ResultHandler;
-import at.uibk.dps.rm.handler.reservation.ResourceReservationChecker;
+import at.uibk.dps.rm.handler.reservation.ServiceReservationChecker;
 import at.uibk.dps.rm.util.misc.HttpHelper;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
@@ -14,20 +14,20 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
  */
 public class ContainerStartupHandler {
 
-    private final ResourceReservationChecker resourceReservationChecker;
-
     private final DeploymentChecker deploymentChecker;
+
+    private final ServiceReservationChecker serviceReservationChecker;
 
     /**
      * Create an instance from the deploymentChecker and resourceReservationChecker.
      *
      * @param deploymentChecker the deployment checker
-     * @param resourceReservationChecker the resource reservation checker
+     * @param serviceReservationChecker the service reservation checker
      */
     public ContainerStartupHandler(DeploymentChecker deploymentChecker,
-            ResourceReservationChecker resourceReservationChecker) {
+            ServiceReservationChecker serviceReservationChecker) {
         this.deploymentChecker = deploymentChecker;
-        this.resourceReservationChecker = resourceReservationChecker;
+        this.serviceReservationChecker = serviceReservationChecker;
     }
 
     /**
@@ -39,8 +39,8 @@ public class ContainerStartupHandler {
         long accountId = rc.user().principal().getLong("account_id");
         HttpHelper.getLongPathParam(rc, "reservationId")
             .flatMapCompletable(reservationId -> HttpHelper.getLongPathParam(rc, "resourceReservationId")
-                .flatMapCompletable(resourceReservationId -> resourceReservationChecker
-                    .checkExistsForStartup(reservationId, resourceReservationId, accountId)
+                .flatMapCompletable(resourceReservationId -> serviceReservationChecker
+                    .checkReadyForStartup(reservationId, resourceReservationId, accountId)
                     .flatMapCompletable(result -> deploymentChecker.deployContainer(reservationId, resourceReservationId))))
             .subscribe(() -> rc.response().setStatusCode(204).end(),
                 throwable -> {
@@ -61,8 +61,8 @@ public class ContainerStartupHandler {
         long accountId = rc.user().principal().getLong("account_id");
         HttpHelper.getLongPathParam(rc, "reservationId")
             .flatMapCompletable(reservationId -> HttpHelper.getLongPathParam(rc, "resourceReservationId")
-                .flatMapCompletable(resourceReservationId -> resourceReservationChecker
-                    .checkExistsForStartup(reservationId, resourceReservationId, accountId)
+                .flatMapCompletable(resourceReservationId -> serviceReservationChecker
+                    .checkReadyForStartup(reservationId, resourceReservationId, accountId)
                     .flatMapCompletable(result -> deploymentChecker.terminateContainer(reservationId, resourceReservationId))))
             .subscribe(() -> rc.response().setStatusCode(204).end(),
                 throwable -> {
