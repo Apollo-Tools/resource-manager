@@ -4,7 +4,6 @@ import at.uibk.dps.rm.entity.model.Reservation;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.model.Service;
 import at.uibk.dps.rm.entity.model.ServiceReservation;
-import at.uibk.dps.rm.service.database.reservation.ServiceReservationServiceImpl;
 import at.uibk.dps.rm.testutil.objectprovider.TestFileServiceProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;

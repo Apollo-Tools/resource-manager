@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.entity;
 
 import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
-import at.uibk.dps.rm.service.database.reservation.ServiceReservationServiceImpl;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.core.json.JsonObject;
 import org.junit.jupiter.api.BeforeEach;
