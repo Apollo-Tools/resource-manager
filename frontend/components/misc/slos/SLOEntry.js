@@ -66,7 +66,7 @@ const SLOEntry = ({metrics, selectedMetrics, slo, updateMetric, updateExpression
 
 SLOEntry.propTypes = {
   metrics: PropTypes.arrayOf(PropTypes.object).isRequired,
-  selectedMetrics: PropTypes.arrayOf(PropTypes.object).isRequired,
+  selectedMetrics: PropTypes.arrayOf(PropTypes.string).isRequired,
   slo: PropTypes.object.isRequired,
   updateMetric: PropTypes.func,
   updateExpression: PropTypes.func,
