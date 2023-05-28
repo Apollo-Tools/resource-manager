@@ -28,11 +28,15 @@ public class TestServiceProvider {
         return List.of(ids1, ids2);
     }
 
-    public static ServiceType createServiceType(long id) {
+    public static ServiceType createServiceType(long id, String name) {
         ServiceType serviceType = new ServiceType();
         serviceType.setServiceTypeId(id);
-        serviceType.setName("NodePort");
+        serviceType.setName(name);
         return serviceType;
+    }
+
+    public static ServiceType createServiceType(long id) {
+        return createServiceType(id, "NodePort");
     }
 
     public static Service createService(long id, String name) {
@@ -72,15 +76,6 @@ public class TestServiceProvider {
         return createServiceReservation(id, service, resource, true, reservation);
     }
 
-
-    public static ServiceReservation createServiceReservation(long id, long serviceId, long resourceId,
-                                                                Region region) {
-        Service service = createService(serviceId, "test");
-        Resource resource = TestResourceProvider.createResource(resourceId, region);
-        Reservation reservation = TestReservationProvider.createReservation(1L);
-        return createServiceReservation(id, service, resource, true, reservation);
-    }
-
     public static ServiceReservation createServiceReservation(long id, Reservation reservation) {
         return createServiceReservation(id, 33L, reservation);
     }
@@ -90,27 +85,8 @@ public class TestServiceProvider {
         return createServiceReservation(id, service, resource, false, reservation);
     }
 
-    public static ServiceReservation createServiceReservation(long id, Service service, boolean isDeployed) {
-        Resource resource = TestResourceProvider.createResource(33L);
-        Reservation reservation = TestReservationProvider.createReservation(1L);
-        return createServiceReservation(id, service, resource, isDeployed, reservation);
-    }
-
-    public static ServiceReservation createServiceReservation(long id, Resource resource) {
-        Service service = createService(22L, "test");
-        Reservation reservation = TestReservationProvider.createReservation(1L);
-        return createServiceReservation(id, service, resource, true, reservation);
-    }
-
     public static ServiceReservation createServiceReservation(long id, Service service, Resource resource) {
         Reservation reservation = TestReservationProvider.createReservation(1L);
         return createServiceReservation(id, service, resource, false, reservation);
-    }
-
-    public static ServiceResourceIds createFunctionResourceIds(long serviceId, long resourceId) {
-        ServiceResourceIds ids = new ServiceResourceIds();
-        ids.setServiceId(serviceId);
-        ids.setResourceId(resourceId);
-        return ids;
     }
 }
