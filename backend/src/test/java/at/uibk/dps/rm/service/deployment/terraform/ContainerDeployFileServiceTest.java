@@ -2,7 +2,6 @@ package at.uibk.dps.rm.service.deployment.terraform;
 
 import at.uibk.dps.rm.entity.model.Reservation;
 import at.uibk.dps.rm.entity.model.Resource;
-import at.uibk.dps.rm.service.database.reservation.ServiceReservationServiceImpl;
 import at.uibk.dps.rm.testutil.objectprovider.TestFileServiceProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
@@ -15,7 +14,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -28,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(MockitoExtension.class)
 public class ContainerDeployFileServiceTest {
 
-    private final Path rootFolder = Paths.get("temp\\reservation_1");
+    private final Path rootFolder = Path.of("temp", "reservation_1");
 
 
     private final Reservation reservation = TestReservationProvider.createReservation(1L);
@@ -61,7 +59,6 @@ public class ContainerDeployFileServiceTest {
             .replace("\\", "/");
 
         String result = service.getMainFileContent();
-
 
         assertThat(result).isEqualTo(
             "terraform {\n" +
