@@ -8,7 +8,9 @@ import at.uibk.dps.rm.service.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 
 /**
  * The interface of the service proxy for the resource_ensemble entity.
@@ -31,4 +33,10 @@ public interface ResourceEnsembleService extends DatabaseServiceInterface {
         return new ResourceEnsembleServiceVertxEBProxy(vertx,
             ServiceProxyAddress.getServiceProxyAddress(ResourceEnsemble.class));
     }
+
+    Future<JsonObject> saveByEnsembleIdAndResourceId(long ensembleId, long resourceId);
+
+    Future<Void> deleteByEnsembleIdAndResourceId(long ensembleId, long resourceId);
+
+    Future<Boolean> checkExistsByEnsembleIdAndResourceId(long ensembleId, long resourceId);
 }

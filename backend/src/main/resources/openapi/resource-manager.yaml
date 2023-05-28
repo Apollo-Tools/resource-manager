@@ -146,6 +146,7 @@ tags:
   - name: accounts
   - name: credentials
   - name: ensembles
+  - name: ensembles/resources
   - name: functions
   - name: logs
   - name: metrics
@@ -654,6 +655,77 @@ paths:
       responses:
         204:
           description: Successful deletion of an ensemble
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /ensembles/{ensembleId}/resources/{resourceId}:
+    post:
+      description: Add a resource to an existing resource ensemble
+      operationId: addResourceToEnsemble
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - ensembles/resources
+      parameters:
+        - name: ensembleId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+        - name: resourceId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        200:
+          description: Successfully added resource to existing ensemble
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ensemble"
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+    delete:
+      description: Remove a resource from an existing ensemble
+      operationId: deleteResourceFromEnsemble
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - ensembles/resources
+      parameters:
+        - name: ensembleId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+        - name: resourceId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        204:
+          description: Successful removal of resource from an ensemble
         400:
           $ref: "#/components/responses/400"
         404:

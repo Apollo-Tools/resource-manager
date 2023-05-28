@@ -3,6 +3,7 @@ package at.uibk.dps.rm.util.validation;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.SLOValue;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
+import at.uibk.dps.rm.entity.model.Ensemble;
 import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.entity.model.Resource;
@@ -84,5 +85,20 @@ public class SLOCompareUtility {
             }
         }
         return true;
+    }
+
+    public static boolean resourceValidByNonMetricSLOS(Resource resource, Ensemble ensemble) {
+        boolean validRegion = true, validResourceProvider = true, validResourceType = true;
+        if (!ensemble.getRegions().isEmpty()) {
+            validRegion = ensemble.getRegions().contains(resource.getRegion().getRegionId());
+        }
+        if (!ensemble.getProviders().isEmpty()) {
+            validResourceProvider = ensemble.getProviders()
+                .contains(resource.getRegion().getResourceProvider().getProviderId());
+        }
+        if (!ensemble.getResource_types().isEmpty()) {
+            validResourceType = ensemble.getResource_types().contains(resource.getResourceType().getTypeId());
+        }
+        return validRegion && validResourceProvider && validResourceType;
     }
 }

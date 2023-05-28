@@ -34,13 +34,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     public Future<JsonObject> findOne(long id) {
         return Future
             .fromCompletionStage(resourceRepository.findByIdAndFetch(id))
-            // TODO: fix
-            .map(result -> {
-                if (result != null) {
-                    result.setMetricValues(null);
-                }
-                return JsonObject.mapFrom(result);
-            });
+            .map(JsonObject::mapFrom);
     }
 
     @Override

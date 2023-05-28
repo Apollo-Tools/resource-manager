@@ -51,8 +51,8 @@ public class EnsembleChecker extends EntityChecker {
      * gets thrown
      */
     public Completable checkExistsOneByName(String name, long accountId) {
-        Single<Boolean> existsOneById = ensembleService.existsOneByNameAndAccountId(name, accountId);
-        return ErrorHandler.handleDuplicates(existsOneById).ignoreElement();
+        Single<Boolean> existsOneByName = ensembleService.existsOneByNameAndAccountId(name, accountId);
+        return ErrorHandler.handleDuplicates(existsOneByName).ignoreElement();
     }
 
     /**

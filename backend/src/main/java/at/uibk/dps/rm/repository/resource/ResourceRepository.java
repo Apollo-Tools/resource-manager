@@ -36,6 +36,8 @@ public class ResourceRepository extends Repository<Resource> {
     public CompletionStage<Resource> findByIdAndFetch(long id) {
         return sessionFactory.withSession(session -> session.createQuery(
                 "from Resource r " +
+                "left join fetch r.metricValues mv " +
+                "left join fetch mv.metric " +
                 "left join fetch r.resourceType " +
                 "left join fetch r.region " +
                 "left join fetch r.region.resourceProvider " +
