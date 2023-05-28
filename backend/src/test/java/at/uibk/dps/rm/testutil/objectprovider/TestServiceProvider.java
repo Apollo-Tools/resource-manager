@@ -22,9 +22,9 @@ public class TestServiceProvider {
         return ids;
     }
 
-    public static List<ServiceResourceIds> createServiceResourceIdsList(long r1) {
-        ServiceResourceIds ids1 = createServiceResourceIds(1L, r1);
-        ServiceResourceIds ids2 = createServiceResourceIds(2L, r1);
+    public static List<ServiceResourceIds> createServiceResourceIdsList(long resourceId) {
+        ServiceResourceIds ids1 = createServiceResourceIds(1L, resourceId);
+        ServiceResourceIds ids2 = createServiceResourceIds(2L, resourceId);
         return List.of(ids1, ids2);
     }
 

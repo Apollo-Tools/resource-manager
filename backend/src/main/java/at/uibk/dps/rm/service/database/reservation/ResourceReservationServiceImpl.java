@@ -11,8 +11,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * This is the implementation of the #ResourceReservationService.
@@ -31,30 +29,6 @@ public class ResourceReservationServiceImpl extends DatabaseServiceProxy<Resourc
     public ResourceReservationServiceImpl(ResourceReservationRepository resourceReservationRepository) {
         super(resourceReservationRepository, ResourceReservation.class);
         this.resourceReservationRepository = resourceReservationRepository;
-    }
-
-    @Override
-    public Future<Void> saveAll(JsonArray data) {
-        List<FunctionReservation> functionReservations = data
-            .stream()
-            .map(object -> (JsonObject) object)
-            .filter(object -> object.getJsonObject("function_reservation") != null)
-            .map(object -> object.mapTo(FunctionReservation.class))
-            .collect(Collectors.toList());
-        List<ServiceReservation> serviceReservations = data
-            .stream()
-            .map(object -> (JsonObject) object)
-            .filter(object -> object.getJsonObject("service_reservation") != null)
-            .map(object -> object.mapTo(ServiceReservation.class))
-            .collect(Collectors.toList());
-
-        Future<Void> saveFunctionReservations = Future
-            .fromCompletionStage(resourceReservationRepository.createAllFunctionReservations(functionReservations));
-        Future<Void> saveServiceReservations = Future
-            .fromCompletionStage(resourceReservationRepository.createAllServiceReservations(serviceReservations));
-
-        return saveFunctionReservations
-            .flatMap((res) -> saveServiceReservations);
     }
 
     @Override

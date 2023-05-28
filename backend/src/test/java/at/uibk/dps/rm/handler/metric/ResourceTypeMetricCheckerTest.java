@@ -77,7 +77,8 @@ public class ResourceTypeMetricCheckerTest {
     void checkMissingRequiredMetricsByFunctionResources(VertxTestContext testContext) {
         JsonObject r1 = JsonObject.mapFrom(TestResourceProvider.createResource(1L));
         JsonObject r2 = JsonObject.mapFrom(TestResourceProvider.createResource(2L));
-        JsonArray resources = new JsonArray(List.of(r1, r2));
+        JsonObject r3 = JsonObject.mapFrom(TestResourceProvider.createResource(1L));
+        JsonArray resources = new JsonArray(List.of(r1, r2, r3));
 
         when(service.missingRequiredResourceTypeMetricsByResourceId(or(eq(1L), eq(2L))))
             .thenReturn(Single.just(false));

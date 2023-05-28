@@ -37,21 +37,7 @@ public class ContainerStartupHandler {
      * @param rc the routing context
      */
     public void deployContainer(RoutingContext rc) {
-        long accountId = rc.user().principal().getLong("account_id");
-        HttpHelper.getLongPathParam(rc, "reservationId")
-            .flatMapCompletable(reservationId -> HttpHelper.getLongPathParam(rc, "resourceReservationId")
-                .flatMapCompletable(resourceReservationId -> serviceReservationChecker
-                    .checkReadyForStartup(reservationId, resourceReservationId, accountId)
-                    .andThen(Single.defer(() -> Single.just(1L)))
-                    .flatMapCompletable(result -> deploymentChecker.deployContainer(reservationId, resourceReservationId))))
-            .subscribe(() -> rc.response().setStatusCode(204).end(),
-                throwable -> {
-                Throwable throwable1 = throwable;
-                if (throwable instanceof DeploymentTerminationFailedException) {
-                    throwable1 = new BadInputException("Deployment failed. See reservation logs for details.");
-                }
-                ResultHandler.handleRequestError(rc, throwable1);
-                });
+        processDeployTerminateRequest(rc, true);
     }
 
     /**
@@ -60,18 +46,34 @@ public class ContainerStartupHandler {
      * @param rc the routing context
      */
     public void terminateContainer(RoutingContext rc) {
+        processDeployTerminateRequest(rc, false);
+    }
+
+    /**
+     * Process a deploy or terminate request for containers.
+     *
+     * @param rc the routing context
+     * @param isStartup if the request is for startup or termination of a container
+     */
+    private void processDeployTerminateRequest(RoutingContext rc, boolean isStartup) {
         long accountId = rc.user().principal().getLong("account_id");
         HttpHelper.getLongPathParam(rc, "reservationId")
             .flatMapCompletable(reservationId -> HttpHelper.getLongPathParam(rc, "resourceReservationId")
                 .flatMapCompletable(resourceReservationId -> serviceReservationChecker
                     .checkReadyForStartup(reservationId, resourceReservationId, accountId)
                     .andThen(Single.defer(() -> Single.just(1L)))
-                    .flatMapCompletable(result -> deploymentChecker.terminateContainer(reservationId, resourceReservationId))))
+                    .flatMapCompletable(result -> {
+                        if (isStartup) {
+                            return deploymentChecker.deployContainer(reservationId, resourceReservationId);
+                        } else {
+                            return deploymentChecker.terminateContainer(reservationId, resourceReservationId);
+                        }
+                    })))
             .subscribe(() -> rc.response().setStatusCode(204).end(),
                 throwable -> {
                     Throwable throwable1 = throwable;
                     if (throwable instanceof DeploymentTerminationFailedException) {
-                        throwable1 = new BadInputException("Termination failed. See reservation logs for details.");
+                        throwable1 = new BadInputException("Deployment failed. See reservation logs for details.");
                     }
                     ResultHandler.handleRequestError(rc, throwable1);
                 });

@@ -4,7 +4,6 @@ import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.repository.reservation.ResourceReservationRepository;
 import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
-import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -44,13 +43,12 @@ public class ResourceReservationServiceImplTest {
     }
 
     @Test
-    void findAllByResourceId(VertxTestContext testContext) {
+    void findAllByReservationId(VertxTestContext testContext) {
         long reservationId = 1L;
-        Resource resource = TestResourceProvider.createResource(1L);
         ResourceReservation entity1 = TestReservationProvider
-            .createResourceReservation(4L, new Reservation(), resource, new ResourceReservationStatus());
+            .createFunctionReservation(4L, new Reservation());
         ResourceReservation entity2 = TestReservationProvider
-            .createResourceReservation(5L, new Reservation(), resource, new ResourceReservationStatus());
+            .createServiceReservation(5L, new Reservation());
         List<ResourceReservation> resultList = new ArrayList<>();
         resultList.add(entity1);
         resultList.add(entity2);
@@ -73,7 +71,7 @@ public class ResourceReservationServiceImplTest {
     }
 
     @Test
-    void findAllByResourceIdEmpty(VertxTestContext testContext) {
+    void findAllByReservationIdEmpty(VertxTestContext testContext) {
         long resourceId = 1L;
         List<ResourceReservation> resultList = new ArrayList<>();
         CompletionStage<List<ResourceReservation>> completionStage = CompletionStages.completedFuture(resultList);
