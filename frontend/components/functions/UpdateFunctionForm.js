@@ -59,8 +59,6 @@ const UpdateFunctionForm = ({func, reloadFunction}) => {
 
   const checkIsModified = () => {
     const code = form.getFieldValue('code');
-
-    console.log('check ' + isModified + code);
     if (func === null) {
       return false;
     }
@@ -92,7 +90,7 @@ const UpdateFunctionForm = ({func, reloadFunction}) => {
             ]}
           >
             <CodeMirror
-              maxHeight="40vh"
+              height="500px"
               extensions={editorExtensions}
               onChange={() => setModified(checkIsModified())}
             />

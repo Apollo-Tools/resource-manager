@@ -2,14 +2,13 @@ import Head from 'next/head';
 import {siteTitle} from '../../components/misc/Sidebar';
 import {useEffect, useState} from 'react';
 import {Result, Button, Typography} from 'antd';
-import {SmileOutlined} from '@ant-design/icons';
+import {FunctionOutlined, SmileOutlined, UndoOutlined} from '@ant-design/icons';
 import NewFunctionForm from '../../components/functions/NewFunctionForm';
-import AddFunctionResourcesForm from '../../components/functions/AddFunctionResourcesForm';
+import Link from 'next/link';
 
 
 const NewFunction = () => {
   const [newFunction, setNewFunction] = useState(null);
-  const [finished, setFinished] = useState(false);
 
   useEffect(() => {
     if (newFunction != null) {
@@ -19,7 +18,6 @@ const NewFunction = () => {
 
   const onClickRestart = () => {
     setNewFunction(null);
-    setFinished(false);
   };
 
   return (
@@ -29,15 +27,20 @@ const NewFunction = () => {
       </Head>
       <div className="card container w-full md:w-11/12 max-w-7xl p-10 mt-2 mb-2">
         <Typography.Title level={2}>New Function</Typography.Title>
-        {finished ?
+        {newFunction ?
           <Result
             icon={<SmileOutlined />}
             title="The function has been created!"
-            extra={<Button type="primary" onClick={onClickRestart}>Restart</Button>}
-          />:
-          (newFunction ?
-            <AddFunctionResourcesForm func={newFunction} setFinished={setFinished} isSkipable/>:
-            <NewFunctionForm setNewFunction={setNewFunction} />)
+            extra={
+              <>
+                <Button type="primary" icon={<UndoOutlined />} onClick={onClickRestart}>Restart</Button>
+                <Link href={`/functions/functions`}>
+                  <Button type="default" icon={<FunctionOutlined />}>All Functions</Button>
+                </Link>
+              </>
+            }
+          /> :
+          <NewFunctionForm setNewFunction={setNewFunction} />
         }
       </div>
     </>
