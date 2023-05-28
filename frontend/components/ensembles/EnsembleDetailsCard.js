@@ -40,7 +40,6 @@ const EnsembleDetailsCard = ({ensemble}) => {
 
 EnsembleDetailsCard.propTypes = {
   ensemble: PropTypes.object.isRequired,
-  reloadFunction: PropTypes.func.isRequired,
 };
 
 export default EnsembleDetailsCard;

@@ -1,4 +1,4 @@
-import {Button, Checkbox, Form, Select, Input, Space, InputNumber} from 'antd';
+import {Button, Checkbox, Form, Select, Input, Space, InputNumber, Typography} from 'antd';
 import {MinusCircleOutlined, PlusOutlined} from '@ant-design/icons';
 import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
@@ -116,7 +116,7 @@ const AddMetricValuesForm = ({
 
   return (
     <>
-      <h2>Add Metric Values</h2>
+      <Typography.Title level={3}>Add Metric Values</Typography.Title>
       <Form form={form}
         name="metricValueForm"
         onFinish={onFinish}

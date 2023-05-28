@@ -12,6 +12,7 @@ const ResourceTable = ({
   onDelete,
   hasActions,
   rowSelection,
+  customButton,
 }) => {
   return (
     <Table dataSource={resources} rowKey={(record) => record.resource_id} rowSelection={rowSelection}
@@ -47,6 +48,10 @@ const ResourceTable = ({
             <Link href={`/resources/${record.resource_id}`}>
               <Button icon={<InfoCircleOutlined />}/>
             </Link>
+            {
+              customButton &&
+              (<Button onClick={() => customButton.onClick(record.resource_id)} icon={customButton.icon}/>)
+            }
             {onDelete && (<Button onClick={() => onDelete(record.resource_id)} icon={<DeleteOutlined />}/>)}
           </Space>
         )}
@@ -60,6 +65,7 @@ ResourceTable.propTypes={
   onDelete: PropTypes.func,
   hasActions: PropTypes.bool,
   rowSelection: PropTypes.object,
+  customButton: PropTypes.shape({onClick: PropTypes.func, icon: PropTypes.node}),
 };
 
 
