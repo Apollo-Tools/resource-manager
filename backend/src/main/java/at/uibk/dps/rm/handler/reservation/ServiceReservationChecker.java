@@ -3,6 +3,7 @@ package at.uibk.dps.rm.handler.reservation;
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.reservation.ServiceReservationService;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 
@@ -42,11 +43,11 @@ public class ServiceReservationChecker extends EntityChecker {
      *
      * @return a Single that emits true if the service reservation is ready, else false
      */
-    public Single<Boolean> checkReadyForStartup(long reservationId,
+    public Completable checkReadyForStartup(long reservationId,
         long resourceReservationId, long accountId) {
         Single<Boolean> exists = service.existsReadyForContainerStartupAndTermination(reservationId,
             resourceReservationId,
           accountId);
-        return ErrorHandler.handleExistsOne(exists);
+        return ErrorHandler.handleExistsOne(exists).ignoreElement();
     }
 }

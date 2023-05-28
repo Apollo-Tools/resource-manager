@@ -5,6 +5,7 @@ import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
 import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.handler.reservation.ServiceReservationChecker;
 import at.uibk.dps.rm.util.misc.HttpHelper;
+import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
 /**
@@ -41,6 +42,7 @@ public class ContainerStartupHandler {
             .flatMapCompletable(reservationId -> HttpHelper.getLongPathParam(rc, "resourceReservationId")
                 .flatMapCompletable(resourceReservationId -> serviceReservationChecker
                     .checkReadyForStartup(reservationId, resourceReservationId, accountId)
+                    .andThen(Single.defer(() -> Single.just(1L)))
                     .flatMapCompletable(result -> deploymentChecker.deployContainer(reservationId, resourceReservationId))))
             .subscribe(() -> rc.response().setStatusCode(204).end(),
                 throwable -> {
@@ -63,6 +65,7 @@ public class ContainerStartupHandler {
             .flatMapCompletable(reservationId -> HttpHelper.getLongPathParam(rc, "resourceReservationId")
                 .flatMapCompletable(resourceReservationId -> serviceReservationChecker
                     .checkReadyForStartup(reservationId, resourceReservationId, accountId)
+                    .andThen(Single.defer(() -> Single.just(1L)))
                     .flatMapCompletable(result -> deploymentChecker.terminateContainer(reservationId, resourceReservationId))))
             .subscribe(() -> rc.response().setStatusCode(204).end(),
                 throwable -> {
