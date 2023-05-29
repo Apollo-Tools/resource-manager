@@ -51,6 +51,7 @@ ENV build_directory=build
 ENV dind_directory="var/lib/apollo-rm/"
 ENV jwt_secret="**secret**"
 ENV token_minutes_valid=1080
+ENV ensemble_validation_period=60
 ENV TF_CLI_CONFIG_FILE="/terraform/config.tfrc"
 
 ENTRYPOINT ["java", "-jar" ,"/app/rm-api.jar"]

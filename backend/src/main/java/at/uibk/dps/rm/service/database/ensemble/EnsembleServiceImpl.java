@@ -30,6 +30,20 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
     }
 
     @Override
+    public Future<JsonArray> findAll() {
+        return Future
+            .fromCompletionStage(ensembleRepository.findAll())
+            .map(result -> {
+                ArrayList<JsonObject> objects = new ArrayList<>();
+                for (Ensemble entity: result) {
+                    entity.setCreatedBy(null);
+                    objects.add(JsonObject.mapFrom(entity));
+                }
+                return new JsonArray(objects);
+            });
+    }
+
+    @Override
     public Future<JsonArray> findAllByAccountId(long accountId) {
         return Future
             .fromCompletionStage(ensembleRepository.findAllByAccountId(accountId))
@@ -50,6 +64,18 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
     public Future<JsonObject> findOneByIdAndAccountId(long id, long accountId) {
         return Future
             .fromCompletionStage(ensembleRepository.findByIdAndAccountId(id, accountId))
+            .map(result -> {
+                if (result != null) {
+                    result.setCreatedBy(null);
+                }
+                return JsonObject.mapFrom(result);
+            });
+    }
+
+    @Override
+    public Future<JsonObject> findOne(long id) {
+        return Future
+            .fromCompletionStage(ensembleRepository.findById(id))
             .map(result -> {
                 if (result != null) {
                     result.setCreatedBy(null);

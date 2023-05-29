@@ -11,9 +11,12 @@ import at.uibk.dps.rm.handler.resource.ResourceChecker;
 import at.uibk.dps.rm.handler.resource.ResourceSLOHandler;
 import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
+import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 /**
@@ -74,5 +77,25 @@ public class EnsembleRoute implements Route {
                 })
                 .subscribe(res -> rc.end(new JsonArray(res).encodePrettily()).subscribe(),
                     throwable -> ResultHandler.handleRequestError(rc, throwable)));
+
+        Vertx vertx = Vertx.currentContext().owner();
+        new ConfigUtility(vertx).getConfig()
+            .map(config -> {
+                long period = Double.valueOf(config.getDouble("ensemble_validation_period") * 60 * 1000).longValue();
+                return vertx.setPeriodic(period, id -> ensembleChecker.checkFindAll()
+                    .flatMapObservable(Observable::fromIterable)
+                    .map(ensemble -> (JsonObject) ensemble)
+                    .flatMapCompletable(ensemble -> ensembleHandler.getOne(ensemble.getLong("ensemble_id"))
+                        .flatMapCompletable(ensembleJson -> {
+                            GetOneEnsemble getOneEnsemble = ensembleJson.mapTo(GetOneEnsemble.class);
+                            return resourceSLOHandler.validateExistingEnsemble(getOneEnsemble)
+                                .flatMapObservable(Observable::fromIterable)
+                                .all(ResourceEnsembleStatus::getIsValid)
+                                .flatMapCompletable(allValid -> ensembleChecker
+                                    .submitUpdateValidity(getOneEnsemble.getEnsembleId(), allValid));
+                        })
+                    ).subscribe());
+            })
+            .subscribe();
     }
 }

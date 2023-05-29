@@ -61,6 +61,9 @@ spec:
             # The time until a newly created token expires
             - name: token_minutes_valid
               value: "10080"
+            # The period of time between each validation performed on all existing ensembles
+            - name: ensemble_validation_period
+              value: "60"
           resources:
             # The resource limits
             limits:

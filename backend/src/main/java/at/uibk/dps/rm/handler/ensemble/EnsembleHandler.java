@@ -85,27 +85,34 @@ public class EnsembleHandler extends ValidationHandler {
     public Single<JsonObject> getOne(RoutingContext rc) {
         return HttpHelper.getLongPathParam(rc, "id")
             .flatMap(id -> ensembleChecker.checkFindOne(id, rc.user().principal().getLong("account_id")))
-            .flatMap(result -> {
-                GetOneEnsemble response = new GetOneEnsemble();
-                Ensemble ensemble = result.mapTo(Ensemble.class);
-                response.setEnsembleId(ensemble.getEnsembleId());
-                response.setName(ensemble.getName());
-                response.setCreatedAt(ensemble.getCreatedAt());
-                response.setUpdatedAt(ensemble.getUpdatedAt());
-                return resourceChecker.checkFindAllByEnsemble(ensemble.getEnsembleId())
-                    .flatMap(resources -> {
-                        mapResourcesToResponse(resources, response);
-                        return ensembleSLOChecker.checkFindAllByEnsemble(ensemble.getEnsembleId());
-                    })
-                    .map(slos -> {
-                        mapSLOsToResponse(slos, ensemble, response);
-                        return JsonObject.mapFrom(response);
-                    });
+            .flatMap(this::populateEnsembleDetails);
+    }
+
+    public Single<JsonObject> getOne(long id) {
+        return ensembleChecker.checkFindOne(id)
+            .flatMap(this::populateEnsembleDetails);
+    }
+
+    private Single<JsonObject> populateEnsembleDetails(JsonObject ensembleJson) {
+        GetOneEnsemble response = new GetOneEnsemble();
+        Ensemble ensemble = ensembleJson.mapTo(Ensemble.class);
+        response.setEnsembleId(ensemble.getEnsembleId());
+        response.setName(ensemble.getName());
+        response.setCreatedAt(ensemble.getCreatedAt());
+        response.setUpdatedAt(ensemble.getUpdatedAt());
+        return resourceChecker.checkFindAllByEnsemble(ensemble.getEnsembleId())
+            .flatMap(resources -> {
+                mapResourcesToResponse(resources, response);
+                return ensembleSLOChecker.checkFindAllByEnsemble(ensemble.getEnsembleId());
+            })
+            .map(slos -> {
+                mapSLOsToResponse(slos, ensemble, response);
+                return JsonObject.mapFrom(response);
             });
     }
 
     @Override
-    protected Single<JsonArray> getAll(RoutingContext rc) {
+    public Single<JsonArray> getAll(RoutingContext rc) {
         long accountId = rc.user().principal().getLong("account_id");
         return ensembleChecker.checkFindAll(accountId);
     }
