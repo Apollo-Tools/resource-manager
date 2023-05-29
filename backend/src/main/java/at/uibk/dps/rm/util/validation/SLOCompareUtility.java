@@ -87,6 +87,14 @@ public class SLOCompareUtility {
         return true;
     }
 
+    /**
+     * Check if a resource fulfills the non-metric service level objectives (region,
+     * resource provider, resource type) from an ensemble.
+     *
+     * @param resource the resource
+     * @param ensemble the ensemble
+     * @return true if the resource fulfills all non-metric service level objectives, else false
+     */
     public static boolean resourceValidByNonMetricSLOS(Resource resource, Ensemble ensemble) {
         boolean validRegion = true, validResourceProvider = true, validResourceType = true;
         if (!ensemble.getRegions().isEmpty()) {

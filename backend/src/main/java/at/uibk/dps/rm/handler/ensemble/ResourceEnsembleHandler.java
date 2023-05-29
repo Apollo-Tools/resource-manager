@@ -36,6 +36,15 @@ public class ResourceEnsembleHandler extends ValidationHandler {
     private final ResourceChecker resourceChecker;
 
 
+    /**
+     * Create an instance from the resourceEnsembleChecker, ensembleChecker, ensembleSLOChecker and
+     * resourceChecker.
+     *
+     * @param resourceEnsembleChecker the resource ensemble checker
+     * @param ensembleChecker the ensemble checker
+     * @param ensembleSLOChecker the ensemble slo checker
+     * @param resourceChecker the resource checker
+     */
     public ResourceEnsembleHandler(ResourceEnsembleChecker resourceEnsembleChecker, EnsembleChecker ensembleChecker,
         EnsembleSLOChecker ensembleSLOChecker, ResourceChecker resourceChecker) {
         super(resourceEnsembleChecker);

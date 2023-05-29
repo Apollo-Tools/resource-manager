@@ -21,6 +21,13 @@ public class ResourceEnsembleRepository extends Repository<ResourceEnsemble> {
         super(sessionFactory, ResourceEnsemble.class);
     }
 
+    /**
+     * Find a resource ensemble by its ensemble and resource.
+     *
+     * @param ensembleId the id of the ensemble
+     * @param resourceId the id of the resource
+     * @return a CompletionStage that emits the resource ensemble if it exists, else null
+     */
     public CompletionStage<ResourceEnsemble> findByEnsembleIdAndResourceId(long ensembleId, long resourceId) {
         return sessionFactory.withSession(session ->
             session.createQuery("from ResourceEnsemble re " +
@@ -30,6 +37,13 @@ public class ResourceEnsembleRepository extends Repository<ResourceEnsemble> {
                 .getSingleResultOrNull());
     }
 
+    /**
+     * Delete a resourc ensemble by its ensemble and resource.
+     *
+     * @param ensembleId the id of the ensemble
+     * @param resourceId the id of the resource
+     * @return a CompletionStage that emits the row count
+     */
     public CompletionStage<Integer> deleteEnsembleIdAndResourceId(long ensembleId, long resourceId) {
         return this.sessionFactory.withTransaction(session ->
             session.createQuery("delete from ResourceEnsemble re " +

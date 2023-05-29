@@ -62,7 +62,7 @@ public abstract class EntityChecker {
      * Check if the entity violates uniqueness constraints.
      *
      * @param entity the entity to create
-     * @return a Completable if does not violate uniqueness, else an AlreadyExistsException
+     * @return a Completable if it does not violate uniqueness, else an AlreadyExistsException
      * gets thrown.
      */
     public Completable checkForDuplicateEntity(JsonObject entity) {

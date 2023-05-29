@@ -34,9 +34,30 @@ public interface ResourceEnsembleService extends DatabaseServiceInterface {
             ServiceProxyAddress.getServiceProxyAddress(ResourceEnsemble.class));
     }
 
+    /**
+     * Save a new resource ensemble by its ensemble and resource.
+     *
+     * @param ensembleId the id of the ensemble
+     * @param resourceId the id of the resource
+     * @return a Future that emits the persisted entity as JsonObject
+     */
     Future<JsonObject> saveByEnsembleIdAndResourceId(long ensembleId, long resourceId);
 
+    /**
+     * Delete a resourc ensemble by its ensemble and resource.
+     *
+     * @param ensembleId the id of the ensemble
+     * @param resourceId the id of the resource
+     * @return an empty Future
+     */
     Future<Void> deleteByEnsembleIdAndResourceId(long ensembleId, long resourceId);
 
+    /**
+     * Check if a resource ensemble exists by its ensemble and resource.
+     *
+     * @param ensembleId the id of the ensemble
+     * @param resourceId the id of the resource
+     * @return a Future that emits true if the resource ensemble exists, else false
+     */
     Future<Boolean> checkExistsByEnsembleIdAndResourceId(long ensembleId, long resourceId);
 }

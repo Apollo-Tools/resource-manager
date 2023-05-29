@@ -9,9 +9,20 @@ import lombok.experimental.UtilityClass;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * A utility class to map entities to {@link ServiceLevelObjective}s.
+ *
+ * @author matthi-g
+ */
 @UtilityClass
 public class ServiceLevelObjectiveMapper {
 
+    /**
+     * Map an ensembleSLO to a ServiceLevelObjective.
+     *
+     * @param ensembleSLO the ensemble slo
+     * @return the mapped service level objective
+     */
     public static ServiceLevelObjective mapEnsembleSLO(EnsembleSLO ensembleSLO) {
         List<SLOValue> values;
         if (!ensembleSLO.getValueNumbers().isEmpty()) {
