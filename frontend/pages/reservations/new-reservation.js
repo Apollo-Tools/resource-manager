@@ -38,7 +38,6 @@ const NewReservation = () => {
   }));
 
   const next = () => {
-    console.log(current);
     setCurrent(current + 1);
   };
   const prev = () => {

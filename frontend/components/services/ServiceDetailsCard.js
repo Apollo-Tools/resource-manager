@@ -11,8 +11,11 @@ const ServiceDetailsCard = ({service}) => {
       <TextDataDisplay label="Replicas" value={service.replicas} className="col-span-6" />
       <TextDataDisplay label="CPU" value={service.cpu} className="col-span-6" />
       <TextDataDisplay label="Memory" value={service.memory} className="col-span-6" />
-      <TextDataDisplay label="Ports" value={service.ports.join(' | ')} className="col-span-6" />
       <TextDataDisplay label="Service Type" value={service.service_type.name} className="col-span-6" />
+      <TextDataDisplay
+        label="Ports"
+        value={service.ports?.length ? service.ports.join(' | ') : 'no ports'}
+        className="col-span-6" />
       <TextDataDisplay label="Created at" value={<DateFormatter dateTimestamp={service.created_at} />}
         className="col-span-6"/>
     </div>

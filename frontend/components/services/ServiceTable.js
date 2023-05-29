@@ -119,6 +119,14 @@ const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources
             selectedKeys={selectedKeys} confirm={confirm} columnName="name" />}
         onFilter={(value, record) => record.name.startsWith(value)}
       />
+      <Column title="Image" dataIndex="image" key="image"
+        sorter={(a, b) =>
+          a.image.localeCompare(b.image)}
+        filterDropdown={({setSelectedKeys, selectedKeys, confirm, clearFilters}) =>
+          <ColumnFilterDropdown setSelectedKeys={setSelectedKeys} clearFilters={clearFilters}
+            selectedKeys={selectedKeys} confirm={confirm} columnName="image" />}
+        onFilter={(value, record) => record.image.startsWith(value)}
+      />
       <Column title="Created at" dataIndex="created_at" key="created_at"
         render={(createdAt) => <DateFormatter dateTimestamp={createdAt}/>}
         sorter={(a, b) => a.created_at - b.created_at}

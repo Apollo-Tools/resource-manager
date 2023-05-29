@@ -4,6 +4,7 @@ import DateFormatter from '../misc/DateFormatter';
 import Link from 'next/link';
 import PropTypes from 'prop-types';
 import ReservationStatusBadge from './ReservationStatusBadge';
+import env from '@beam-australia/react-env';
 
 const {Column} = Table;
 
@@ -39,9 +40,10 @@ const ResourceReservationTable = ({resourceReservations, type}) => {
         sorter={ (a, b) => a.trigger_url.localeCompare(b.trigger_url) }
         render={(triggerUrl) => {
           if (triggerUrl!=='') {
-            return <span>{triggerUrl} <Button className="text-gray-400 ml-1.5" type="ghost" icon={<CopyOutlined />}
+            const url = (type==='service' ? env('API_URL') : '') + triggerUrl;
+            return <span>{url} <Button className="text-gray-400 ml-1.5" type="ghost" icon={<CopyOutlined />}
               onClick={async () => {
-                await navigator.clipboard.writeText(triggerUrl);
+                await navigator.clipboard.writeText(url);
               }}/></span>;
           } else {
             return <>Not available ...</>;

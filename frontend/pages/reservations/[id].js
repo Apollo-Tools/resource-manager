@@ -67,7 +67,6 @@ const ReservationDetails = () => {
 
   const checkReservationStatus = () => {
     const resourceReservations = [...reservation.function_resources, ...reservation.service_resources];
-    console.log('res', resourceReservations);
     setReservationStatus(() => {
       return {
         isNew: existResourceReservationsByStatusValue(resourceReservations, 'NEW'),

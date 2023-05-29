@@ -11,6 +11,7 @@ const ColumnFilterDropdown = ({setSelectedKeys, selectedKeys, confirm, clearFilt
   };
   const handleReset = (clearFilters) => {
     clearFilters();
+    confirm();
   };
 
   return (
