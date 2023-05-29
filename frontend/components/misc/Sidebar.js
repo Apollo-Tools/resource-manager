@@ -59,8 +59,16 @@ const Sidebar = ({children}) => {
   return (
     <Layout className="min-h-screen"
     >
-      {authenticated && <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
-        <Menu theme="dark" items={items} mode="inline" className="mt-2" selectable={false} />
+      {authenticated &&
+      <Sider collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
+        <Menu theme="dark"
+          items={items}
+          mode="inline"
+          className="mt-2"
+          selectable={false}
+          openKeys={['1', '2']}
+          expandIcon={<></>}
+        />
       </Sider>}
       <Layout className="site-layout">
         <div
