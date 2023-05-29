@@ -3,7 +3,7 @@ import {siteTitle} from '../../components/misc/Sidebar';
 import {useEffect, useState} from 'react';
 import {Result, Button, Typography} from 'antd';
 import {UndoOutlined, SmileOutlined, DeploymentUnitOutlined} from '@ant-design/icons';
-import NewServiceForm from '../../components/services/NewServiceForm';
+import NewUpdateServiceForm from '../../components/services/NewUpdateServiceForm';
 import Link from 'next/link';
 
 
@@ -40,7 +40,7 @@ const NewService = () => {
               </>
             }
           />:
-          <NewServiceForm setNewService={setNewService} />
+          <NewUpdateServiceForm setNewService={setNewService} />
         }
       </div>
     </>

@@ -2014,6 +2014,61 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
+    patch:
+      description: Update details about a service managed by the resource manager
+      operationId: updateService
+      security:
+        - bearerAuth: []
+      tags:
+        - services
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              minProperties: 1
+              properties:
+                replicas:
+                  type: integer
+                  format: int32
+                  minimum: 1
+                  example: 1
+                ports:
+                  type: array
+                  items:
+                    type: string
+                    example: 80:8080
+                cpu:
+                  type: number
+                  example: 0.1
+                memory:
+                  type: integer
+                  format: int32
+                  example: 128
+                service_type:
+                  type: object
+                  required:
+                    - service_type_id
+                  additionalProperties: false
+                  properties:
+                    service_type_id:
+                      type: integer
+                      format: int64
+                      example: 1
+      responses:
+        204:
+          description: Successful update of a function
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
     delete:
       description: Delete a service
       operationId: deleteService
@@ -2092,6 +2147,7 @@ paths:
                   description: the amount of replicas to deploy
                   type: integer
                   format: int32
+                  minimum: 1
                   example: 1
                 ports:
                   description: the ports to expose
@@ -2370,6 +2426,7 @@ components:
           example: user/image:latest
         replicas:
           type: integer
+          minimum: 1
           format: int32
           example: 1
         ports:

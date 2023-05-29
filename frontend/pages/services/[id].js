@@ -3,12 +3,13 @@ import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {Divider, Typography} from 'antd';
 import {getService} from '../../lib/ServiceService';
-import ServiceDetailsCard from '../../components/services/ServiceDetailsCard';
+import NewUpdateServiceForm from '../../components/services/NewUpdateServiceForm';
 
 const FunctionDetails = () => {
   const {token, checkTokenExpired} = useAuth();
   const [service, setService] = useState();
   const [error, setError] = useState(false);
+  const [isFinished, setFinished] = useState(false);
   const router = useRouter();
   const {id} = router.query;
 
@@ -26,12 +27,19 @@ const FunctionDetails = () => {
     }
   }, [error]);
 
+  useEffect(() => {
+    if (isFinished) {
+      setFinished(false);
+      getService(id, token, setService, setError);
+    }
+  }, [isFinished]);
+
   return (
     <div className="card container w-full md:w-11/12 w-11/12 max-w-7xl mt-2 mb-2">
       <Typography.Title level={2}>Service Details ({service?.service_id})</Typography.Title>
       <Divider />
       { service &&
-        <ServiceDetailsCard service={service}/>
+          <NewUpdateServiceForm setNewService={setService} service={service} mode='update' setFinished={setFinished}/>
       }
     </div>
   );

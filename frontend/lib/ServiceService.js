@@ -45,6 +45,45 @@ export async function createService(name, image, replicas, ports, cpu, memory,
 }
 
 /**
+ * Update an existing service.
+ *
+ * @param {number} id the id of the service
+ * @param {number} replicas the amount of replicas
+ * @param {string[]} ports the ports to expose
+ * @param {number} cpu the necessary cpu ressources
+ * @param {number} memory the necessary memory
+ * @param {number} serviceTypeId the service type
+ * @param {string} token the access token
+ * @param {function} setError the function to set the error if one occurred *
+ * @return {Promise<boolean>} true if the request was successful
+ */
+export async function updateService(id, replicas, ports, cpu, memory,
+    serviceTypeId, token, setError) {
+  try {
+    const response = await fetch(`${API_ROUTE}/${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        replicas: replicas,
+        ports: ports,
+        cpu: cpu,
+        memory: memory,
+        service_type: {
+          service_type_id: serviceTypeId,
+        },
+      }),
+    });
+    return response.ok;
+  } catch (error) {
+    setError(true);
+    console.log(error);
+  }
+}
+
+/**
  * List all existing services.
  *
  * @param {string} token the access token

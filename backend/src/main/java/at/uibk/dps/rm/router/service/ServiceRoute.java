@@ -26,6 +26,10 @@ public class ServiceRoute implements Route {
             .handler(resultHandler::handleSaveOneRequest);
 
         router
+            .operation("updateService")
+            .handler(resultHandler::handleUpdateRequest);
+
+        router
             .operation("listServices")
             .handler(resultHandler::handleFindAllRequest);
 
