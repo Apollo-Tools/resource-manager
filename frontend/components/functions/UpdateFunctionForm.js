@@ -40,7 +40,6 @@ const UpdateFunctionForm = ({func, reloadFunction}) => {
       await updateFunction(func.function_id, values.code, token, setError)
           .then(() => reloadFunction())
           .then(() => setModified(false));
-      console.log(values);
     }
   };
 

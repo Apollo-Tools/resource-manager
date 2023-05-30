@@ -39,7 +39,6 @@ const NewFunctionFrom = ({setNewFunction}) => {
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
       await createFunction(values.runtime, values.name, values.code, token, setNewFunction, setError);
-      console.log(values);
     }
   };
   const onFinishFailed = (errorInfo) => {
@@ -53,7 +52,6 @@ const NewFunctionFrom = ({setNewFunction}) => {
 
   const onChangeRuntime = () => {
     const currentRuntime = getCurrentRuntime();
-    console.log(currentRuntime);
     const extension = getEditorExtension(currentRuntime.name);
     setEditorExtensions(extension != null ? [extension] : []);
     if (!checkTokenExpired()) {

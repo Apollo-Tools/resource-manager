@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import {siteTitle} from '../../components/misc/Sidebar';
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import {Result, Button, Typography} from 'antd';
 import {UndoOutlined, SmileOutlined, DeploymentUnitOutlined} from '@ant-design/icons';
 import NewUpdateServiceForm from '../../components/services/NewUpdateServiceForm';
@@ -9,12 +9,6 @@ import Link from 'next/link';
 
 const NewService = () => {
   const [newService, setNewService] = useState(null);
-
-  useEffect(() => {
-    if (newService != null) {
-      console.log('new function ' + newService);
-    }
-  }, [newService]);
 
   const onClickRestart = () => {
     setNewService(null);

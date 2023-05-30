@@ -15,7 +15,6 @@ const signup = () => {
   const [form] = Form.useForm();
 
   useEffect(() => {
-    console.log(response);
     if (response && response.ok) {
       messageApi.open({
         type: 'success',

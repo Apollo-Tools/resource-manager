@@ -9,6 +9,22 @@
     padding: theme('spacing.6');
     box-shadow: theme('boxShadow.xl');
   }
+
+  .invalid-entry {
+    @apply bg-red-200 text-red-600;
+  }
+
+  .invalid-entry td.ant-table-column-sort {
+    @apply bg-red-200 hover:bg-red-100 !important;
+  }
+
+  .invalid-entry td.ant-table-cell-row-hover {
+    @apply bg-red-100 !important;
+  }
+
+  .invalid-entry button {
+    @apply bg-red-200 text-red-500 border-red-400 hover:text-red-500 hover:border-red-600 !important;
+  }
 }
 
 html,

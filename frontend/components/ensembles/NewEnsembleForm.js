@@ -33,7 +33,6 @@ const NewEnsembleForm = ({setNewEnsemble}) => {
         };
       });
       await createEnsemble(values.name, slos, values.resources, token, setNewEnsemble, setError);
-      console.log(values);
     }
   };
   const onFinishFailed = (errorInfo) => {
@@ -42,7 +41,6 @@ const NewEnsembleForm = ({setNewEnsemble}) => {
 
   const onClickFindResourcesBySLOs = () => {
     const slos = form.getFieldValue('slos');
-    console.log(slos);
     if (slos != null && slos.length > 0) {
       const mapped = slos
           .map((slo) => {
@@ -52,7 +50,6 @@ const NewEnsembleForm = ({setNewEnsemble}) => {
               value: slo.value,
             };
           });
-      console.log(mapped);
       form.resetFields(['resources']);
       listResourcesBySLOs(mapped, token, setResources, setError);
     } else {
@@ -98,7 +95,6 @@ const NewEnsembleForm = ({setNewEnsemble}) => {
             },
             () => ({
               validator(_, value) {
-                console.log(value);
                 if (value.length < 1) {
                   return Promise.reject(new Error('At least one SLO is required'));
                 }

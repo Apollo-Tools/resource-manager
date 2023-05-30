@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import {siteTitle} from '../../components/misc/Sidebar';
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import {Result, Button, Typography} from 'antd';
 import {DatabaseOutlined, SmileOutlined, UndoOutlined} from '@ant-design/icons';
 import NewEnsembleForm from '../../components/ensembles/NewEnsembleForm';
@@ -9,12 +9,6 @@ import Link from 'next/link';
 
 const NewEnsemble = () => {
   const [newEnsemble, setNewEnsemble] = useState(null);
-
-  useEffect(() => {
-    if (newEnsemble != null) {
-      console.log('new ensemble ' + newEnsemble);
-    }
-  }, [newEnsemble]);
 
   const onClickRestart = () => {
     setNewEnsemble(null);

@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import {siteTitle} from '../../components/misc/Sidebar';
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import {Result, Button, Typography} from 'antd';
 import {SmileOutlined} from '@ant-design/icons';
 import NewResourceForm from '../../components/resources/NewResourceForm';
@@ -10,12 +10,6 @@ import AddMetricValuesForm from '../../components/metrics/AddMetricValuesForm';
 const NewResource = () => {
   const [newResource, setNewResource] = useState(null);
   const [finished, setFinished] = useState(false);
-
-  useEffect(() => {
-    if (newResource != null) {
-      console.log('new resource ' + newResource);
-    }
-  }, [newResource]);
 
   const onClickRestart = () => {
     setNewResource(null);

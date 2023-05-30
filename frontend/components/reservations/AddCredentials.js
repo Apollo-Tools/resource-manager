@@ -76,7 +76,6 @@ const AddCredentials = ({functionResources, serviceResources, next, prev, onSubm
     requestBody.kube_config = values.kubeconfig;
     requestBody.function_resources = functionReservations;
     requestBody.service_resources = serviceReservations;
-    console.log(functionReservations);
     if (!checkTokenExpired()) {
       reserveResources(requestBody, token, setNewReservation, setError);
     }

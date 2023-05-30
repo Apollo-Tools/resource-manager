@@ -13,10 +13,20 @@ const ResourceTable = ({
   hasActions,
   rowSelection,
   customButton,
+  getRowClassname,
 }) => {
   return (
-    <Table dataSource={resources} rowKey={(record) => record.resource_id} rowSelection={rowSelection}
-      size={'small'}>
+    <Table dataSource={resources}
+      rowKey={(record) => record.resource_id}
+      rowSelection={rowSelection}
+      size={'small'}
+      rowClassName={(record) => {
+        if (getRowClassname) {
+          return getRowClassname(record);
+        }
+        return '';
+      }}
+    >
       <Column title="Id" dataIndex="resource_id" key="id"
         sorter={(a, b) => a.resource_id - b.resource_id}
         defaultSortOrder="ascend"
@@ -66,6 +76,7 @@ ResourceTable.propTypes={
   hasActions: PropTypes.bool,
   rowSelection: PropTypes.object,
   customButton: PropTypes.shape({onClick: PropTypes.func, icon: PropTypes.node}),
+  getRowClassname: PropTypes.func,
 };
 
 

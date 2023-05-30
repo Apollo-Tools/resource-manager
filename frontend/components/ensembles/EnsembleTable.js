@@ -45,7 +45,7 @@ const EnsembleTable = ({rowSelection}) => {
 
   const onClickValidate = (id) => {
     if (!checkTokenExpired()) {
-      validateEnsemble(id, token, setError)
+      validateEnsemble(id, token, null, setError)
           .then((result) => {
             setEnsembles((prevEnsembles) => {
               return prevEnsembles.map((ensemble) => {
@@ -116,7 +116,7 @@ const EnsembleTable = ({rowSelection}) => {
           }
         }}
         sorter={(a, b) =>
-          a.runtime.name.localeCompare(b.ensemble.is_valid)}
+          a.is_valid - b.is_valid}
       />
       <Column title="Created at" dataIndex="created_at" key="created_at"
         render={(createdAt) => <DateFormatter dateTimestamp={createdAt}/>}

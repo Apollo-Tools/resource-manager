@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import {siteTitle} from '../../components/misc/Sidebar';
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import {Result, Button, Typography} from 'antd';
 import {FunctionOutlined, SmileOutlined, UndoOutlined} from '@ant-design/icons';
 import NewFunctionForm from '../../components/functions/NewFunctionForm';
@@ -9,12 +9,6 @@ import Link from 'next/link';
 
 const NewFunction = () => {
   const [newFunction, setNewFunction] = useState(null);
-
-  useEffect(() => {
-    if (newFunction != null) {
-      console.log('new function ' + newFunction);
-    }
-  }, [newFunction]);
 
   const onClickRestart = () => {
     setNewFunction(null);

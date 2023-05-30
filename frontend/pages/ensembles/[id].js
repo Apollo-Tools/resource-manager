@@ -3,7 +3,7 @@ import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {Divider, Modal, Segmented, Typography} from 'antd';
 import ResourceTable from '../../components/resources/ResourceTable';
-import {getEnsemble} from '../../lib/EnsembleService';
+import {getEnsemble, validateEnsemble} from '../../lib/EnsembleService';
 import EnsembleDetailsCard from '../../components/ensembles/EnsembleDetailsCard';
 import {ExclamationCircleFilled, PlusCircleOutlined} from '@ant-design/icons';
 import {addResourceToEnsemble, deleteResourceFromEnsemble} from '../../lib/ResourceEnsembleService';
@@ -18,6 +18,8 @@ const EnsembleDetails = () => {
   const [error, setError] = useState(false);
   const [resourceToAdd, setResourcesToAdd] = useState([]);
   const [filteredResources, setFilteredResources] = useState([]);
+  const [validatedResources, setValidatedResources] = useState([]);
+  const [invalidResourceIds, setInvalidResourceIds] = useState([]);
   const router = useRouter();
   const {id} = router.query;
 
@@ -30,8 +32,17 @@ const EnsembleDetails = () => {
   useEffect(() => {
     if (!checkTokenExpired() && ensemble!=null) {
       listResourcesBySLOs(ensemble.slos, token, setResourcesToAdd, setError);
+      validateEnsemble(id, token, setValidatedResources, setError);
     }
   }, [ensemble]);
+
+  useEffect(() => {
+    if (validatedResources != null) {
+      setInvalidResourceIds(validatedResources
+          .filter((entry) => !entry.is_valid)
+          .map((entry) => entry.resource_id));
+    }
+  }, [validatedResources]);
 
   useEffect(() => {
     if (ensemble!=null && resourceToAdd.length >= 0) {
@@ -106,6 +117,13 @@ const EnsembleDetails = () => {
     });
   };
 
+  const setInvalidRowClasses = (resource) => {
+    if (invalidResourceIds.includes(resource.resource_id)) {
+      return 'invalid-entry';
+    }
+    return '';
+  };
+
   return (
     <div className="card container w-full md:w-11/12 w-11/12 max-w-7xl mt-2 mb-2">
       <Typography.Title level={2}>Ensemble Details ({ensemble?.ensemble_id})</Typography.Title>
@@ -121,12 +139,16 @@ const EnsembleDetails = () => {
         selectedSegment === 'Resources' && ensemble && (
           <>
             <div>
-              <ResourceTable resources={ensemble.resources} hasActions onDelete={showDeleteConfirm}/>
+              <ResourceTable
+                resources={ensemble.resources}
+                hasActions onDelete={showDeleteConfirm}
+                getRowClassname={setInvalidRowClasses}
+              />
             </div>
           </>)
       }
       {
-        selectedSegment === 'Add Resources' && ensemble && (
+        selectedSegment === 'Add Resources' && ensemble && invalidResourceIds && (
           <>
             <Typography.Title level={3}>Add Resources</Typography.Title>
             <ResourceTable

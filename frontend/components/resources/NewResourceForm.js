@@ -46,7 +46,6 @@ const NewResourceForm = ({setNewResource}) => {
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
       await createResource(values.resourceType, values.isSelfManaged, values.region, token, setNewResource, setError);
-      console.log(values);
     }
   };
   const onFinishFailed = (errorInfo) => {
