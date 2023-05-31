@@ -88,6 +88,12 @@ public class EnsembleHandler extends ValidationHandler {
             .flatMap(this::populateEnsembleDetails);
     }
 
+    /**
+     * Get one ensemble by it's id.
+     *
+     * @param id the id of the ensemble
+     * @return a JsonObject that emits the ensemble if it exists, else a NotFoundException is emitted
+     */
     public Single<JsonObject> getOne(long id) {
         return ensembleChecker.checkFindOne(id)
             .flatMap(this::populateEnsembleDetails);
