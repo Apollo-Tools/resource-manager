@@ -177,3 +177,9 @@ nbdist/
 
 # Temp folder
 */temp/
+
+# Kubernetes local copys
+*/local.rm-api.yaml
+*/local.rm-db.yaml
+*/local.rm-gui.yaml
+
