@@ -227,6 +227,6 @@ public class SLOCompareUtilityTest {
 
         boolean result = SLOCompareUtility.resourceFilterBySLOValueType(resource, serviceLevelObjectives);
 
-        assertThat(result).isTrue();
+        assertThat(result).isFalse();
     }
 }

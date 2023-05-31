@@ -74,14 +74,22 @@ public class SLOCompareUtility {
      * @return true if all service level objectives are adhered else false
      */
     public static boolean resourceFilterBySLOValueType(Resource resource, List<ServiceLevelObjective> slos) {
+        boolean sloFulfilled;
         for (ServiceLevelObjective slo : slos) {
+            sloFulfilled = false;
             for (MetricValue metricValue : resource.getMetricValues()) {
                 Metric metric = metricValue.getMetric();
                 if (metric.getMetric().equals(slo.getName())) {
                     if (!SLOCompareUtility.compareMetricValueWithSLO(metricValue, slo)) {
                         return false;
+                    } else {
+                        sloFulfilled = true;
+                        break;
                     }
                 }
+            }
+            if (!sloFulfilled) {
+                return false;
             }
         }
         return true;
