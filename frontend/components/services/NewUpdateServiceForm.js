@@ -7,6 +7,7 @@ import {listServiceTypes} from '../../lib/ServiceTypeService';
 import {MinusCircleOutlined, PlusOutlined} from '@ant-design/icons';
 import TextDataDisplay from '../misc/TextDataDisplay';
 import DateFormatter from '../misc/DateFormatter';
+import TooltipIcon from '../misc/TooltipIcon';
 
 
 const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished}) => {
@@ -113,7 +114,10 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
               </Form.Item>
 
               <Form.Item
-                label="Image"
+                label={<>
+                  Image
+                  <TooltipIcon text="the title of the docker image (image:tag)" />
+                </>}
                 name="image"
                 rules={[
                   {
@@ -136,7 +140,10 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
           }
 
           <Form.Item
-            label="Replicas"
+            label={<>
+              Replicas
+              <TooltipIcon text="the amount of replicas to deploy" />
+            </>}
             name="replicas"
             rules={[
               {
@@ -151,7 +158,10 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
           </Form.Item>
 
           <Form.Item
-            label="CPU"
+            label={<>
+              CPU
+              <TooltipIcon text="required cpu resource units (xx.xxx)" />
+            </>}
             name="cpu"
             rules={[
               {
@@ -166,7 +176,10 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
           </Form.Item>
 
           <Form.Item
-            label="Memory"
+            label={<>
+              Memory
+              <TooltipIcon text="required memory resource units in megabytes" />
+            </>}
             name="memory"
             rules={[
               {
@@ -181,7 +194,10 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
           </Form.Item>
 
           <Form.Item
-            label="Service Type"
+            label={<>
+              Service Type
+              <TooltipIcon text="the k8s service type" />
+            </>}
             name="serviceType"
             initialValue={service?.service_type.service_type_id}
             rules={[
@@ -209,6 +225,13 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
         {selectedServiceType!=null && selectedServiceType?.name !== 'NoService' &&
           <div className="col-span-6">
             <Typography.Text>Ports</Typography.Text>
+            <TooltipIcon text={
+              <div className="m-0 text-start">
+                the ports to expose: <br />
+                - Service Port = port exposed by pod <br />
+                - Container Port = service port mapping to external port
+              </div>
+            } />
             <Form.Item
               name="portsList"
               rules={[{
@@ -274,7 +297,7 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
         }
         <Form.Item>
           <Space size={'large'}>
-            <Button type="primary" htmlType="submit" disabled={!isModified}>
+            <Button type="primary" htmlType="submit" disabled={!isModified && mode === 'update'}>
               {mode === 'new' ? 'Create' : 'Update'}
             </Button>
             {

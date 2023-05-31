@@ -154,7 +154,7 @@ const EnsembleDetails = () => {
             <ResourceTable
               resources={filteredResources}
               hasActions
-              customButton={{icon: <PlusCircleOutlined />, onClick: showAddConfirm}}
+              customButton={{icon: <PlusCircleOutlined />, onClick: showAddConfirm, tooltip: 'Add'}}
             />
           </>
         )

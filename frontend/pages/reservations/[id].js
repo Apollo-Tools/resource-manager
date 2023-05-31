@@ -1,4 +1,4 @@
-import {Button, Divider, Modal, Typography} from 'antd';
+import {Button, Divider, Modal, Tooltip, Typography} from 'antd';
 import {useRouter} from 'next/router';
 import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
@@ -120,10 +120,17 @@ const ReservationDetails = () => {
         />
         Reservation Details ({ id })
         <div className="float-right">
-          <Button icon={<ReloadOutlined />} className="bg-yellow-50 text-yellow-500 border-yellow-500" onClick={refreshReservation}/>
+          <Tooltip title="Refresh">
+            <Button icon={<ReloadOutlined />}
+              className="bg-yellow-50 text-yellow-500 border-yellow-500"
+              onClick={refreshReservation}
+            />
+          </Tooltip>
           {reservationStatus.isDeployed &&
-          <Button disabled={!reservation.is_active} onClick={ () => showCancelConfirm(id) }
-            icon={ <DisconnectOutlined/> } className="ml-2 bg-red-50 text-red-500 border-red-500"/>
+          <Tooltip title="Cancel Reservation">
+            <Button disabled={!reservation.is_active} onClick={ () => showCancelConfirm(id) }
+              icon={ <DisconnectOutlined/> } className="ml-2 bg-red-50 text-red-500 border-red-500"/>
+          </Tooltip>
           }
         </div>
       </Typography.Title>

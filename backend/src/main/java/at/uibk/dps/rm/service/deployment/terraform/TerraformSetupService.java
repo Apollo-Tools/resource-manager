@@ -98,7 +98,9 @@ public class TerraformSetupService {
                 composeCloudLoginData(deployRequest.getCredentialsList(), region);
             }
         }
-        singles.add(containerDeployment(deployRequest.getServiceReservations()));
+        if (!deployRequest.getServiceReservations().isEmpty()) {
+            singles.add(containerDeployment(deployRequest.getServiceReservations()));
+        }
 
         return Single.zip(singles, objects -> Arrays.stream(objects).map(object -> (TerraformModule) object)
             .collect(Collectors.toList()));

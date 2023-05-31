@@ -71,7 +71,7 @@ const NewResourceReservations = ({ensembleId, functionResources, setFunctionReso
         resources={functionResourceChoice}
         onChange={onFunctionResourcesSelected}/> :
         <Typography.Text>
-          Not suitable resources for function deployment available...
+          No suitable resources for function deployment available...
         </Typography.Text>
       }
       <Typography.Title level={2}>Services</Typography.Title>
@@ -82,7 +82,7 @@ const NewResourceReservations = ({ensembleId, functionResources, setFunctionReso
         resources={serviceResourceChoice}
         onChange={onServiceResourcesSelected}/> :
         <Typography.Text className="block mb-10">
-          Not suitable resources for service deployment available...
+          No suitable resources for service deployment available...
         </Typography.Text>
       }
       <Button type="primary" onClick={next} disabled={!selected} className="float-right">Next</Button>

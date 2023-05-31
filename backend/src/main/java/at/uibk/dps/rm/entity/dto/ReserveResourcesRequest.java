@@ -18,7 +18,7 @@ public class ReserveResourcesRequest {
 
     private List<ServiceResourceIds> serviceResources;
 
-    private DockerCredentials dockerCredentials;
+    private DockerCredentials dockerCredentials = new DockerCredentials();
 
-    private String kubeConfig;
+    private String kubeConfig = "";
 }

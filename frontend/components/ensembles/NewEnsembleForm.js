@@ -84,7 +84,9 @@ const NewEnsembleForm = ({setNewEnsemble}) => {
           <Input className="w-40" />
         </Form.Item>
         <Form.Item
-          label="Service Level Objectives"
+          label={(<>
+            Service Level Objectives
+          </>)}
           name="slos"
           validateStatus="success"
           validateTrigger=''

@@ -1,4 +1,4 @@
-import {Button, Checkbox, Form, Select} from 'antd';
+import {Button, Form, Select} from 'antd';
 import {createResource} from '../../lib/ResourceService';
 import {useEffect, useState} from 'react';
 import {listResourceTypes} from '../../lib/ResourceTypeService';
@@ -45,7 +45,7 @@ const NewResourceForm = ({setNewResource}) => {
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
-      await createResource(values.resourceType, values.isSelfManaged, values.region, token, setNewResource, setError);
+      await createResource(values.resourceType, false, values.region, token, setNewResource, setError);
     }
   };
   const onFinishFailed = (errorInfo) => {
@@ -73,14 +73,6 @@ const NewResourceForm = ({setNewResource}) => {
         autoComplete="off"
         layout="vertical"
       >
-        <Form.Item
-          label="Is self managed?"
-          name="isSelfManaged"
-          valuePropName="checked"
-        >
-          <Checkbox defaultChecked={false}/>
-        </Form.Item>
-
         <Form.Item
           label="Resource Type"
           name="resourceType"

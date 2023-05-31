@@ -1,10 +1,11 @@
-import {Button, Checkbox, Form, Select, Input, Space, InputNumber, Typography} from 'antd';
+import {Button, Checkbox, Form, Select, Input, InputNumber, Typography} from 'antd';
 import {MinusCircleOutlined, PlusOutlined} from '@ant-design/icons';
 import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {listResourceTypeMetrics} from '../../lib/ResourceTypeMetricService';
 import {addResourceMetrics} from '../../lib/ResourceService';
 import PropTypes from 'prop-types';
+import TooltipIcon from '../misc/TooltipIcon';
 
 const getMetricById = (metrics, metricId) => {
   return metrics
@@ -16,6 +17,13 @@ const checkMetricType = (metrics, form, name, metricType) => {
   return getMetricById(metrics,
       form.getFieldValue('metricValues')[name]?.metric)
       ?.metric.metric_type.type === metricType;
+};
+
+
+const getMetricDescription = (metrics, form, name) => {
+  return getMetricById(metrics,
+      form.getFieldValue('metricValues')[name]?.metric)
+      ?.metric.description;
 };
 
 const checkMetricIsMonitored = (metrics, form, name) => {
@@ -125,12 +133,11 @@ const AddMetricValuesForm = ({
       >
         <Form.List name="metricValues">
           {(fields, {add, remove}) => (
-            <>
+            <div className="grid grid-cols-1 content-between">
               {fields.map(({index, key, name, ...field}) => (
-                <Space
+                <div
                   key={key}
-                  className="flex"
-                  align="baseline"
+                  className="flex gap-2 content-center py-2"
                 >
                   <Form.Item
                     {...field}
@@ -141,6 +148,7 @@ const AddMetricValuesForm = ({
                         message: 'Missing metric',
                       },
                     ]}
+                    className="w-40 mb-0"
                   >
                     <Select className="w-40" placeholder="Metric" onChange={onChangeMetric}>
                       {metrics.map((metric) => {
@@ -160,7 +168,7 @@ const AddMetricValuesForm = ({
                     name={[name, 'value']}
                     valuePropName={ checkMetricType(metrics, form, name, 'boolean') ?
                                             'checked' : 'value' }
-                    className="w-40"
+                    className="w-40 mb-0"
                     rules={[
                       {
                         required: !checkMetricType(metrics, form, name, 'boolean') &&
@@ -172,18 +180,22 @@ const AddMetricValuesForm = ({
                                             !checkMetricIsSelected(metrics, form, name)}
                   >
                     {checkMetricType(metrics, form, name, 'boolean') ?
-                                            <Checkbox className="w-full">
-                                                Value
-                                            </Checkbox>:
-                                            checkMetricType(metrics, form, name, 'number') ?
-                                                <InputNumber placeholder='0.00' controls={false} className="w-full"/>:
-                                                <Input placeholder='value' className="w-full"/>
+                      <Checkbox className="w-full">
+                          Value
+                      </Checkbox>:
+                      (checkMetricType(metrics, form, name, 'number') ?
+                          <InputNumber placeholder='0.00' controls={false} className="w-full"/>:
+                          <Input placeholder='value' classNames="w-full"/>
+                      )
 
                     }
 
                   </Form.Item>
-                  <MinusCircleOutlined onClick={() => onRemoveMetricValue(remove, name)} />
-                </Space>
+                  { checkMetricIsSelected(metrics, form, name) &&
+                    <TooltipIcon text={getMetricDescription(metrics, form, name)}/>
+                  }
+                  <MinusCircleOutlined onClick={() => onRemoveMetricValue(remove, name)}/>
+                </div>
               ))}
               <Form.Item>
                 <Button disabled={metrics.length === 0 ||
@@ -192,7 +204,7 @@ const AddMetricValuesForm = ({
                                     Add Metric Value
                 </Button>
               </Form.Item>
-            </>
+            </div>
           )}
         </Form.List>
 

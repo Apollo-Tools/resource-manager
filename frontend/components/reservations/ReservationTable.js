@@ -2,7 +2,7 @@ import {
   InfoCircleOutlined,
 } from '@ant-design/icons';
 import DateFormatter from '../misc/DateFormatter';
-import {Button, Table, Space} from 'antd';
+import {Button, Table, Space, Tooltip} from 'antd';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import {listMyReservations} from '../../lib/ReservationService';
@@ -40,7 +40,7 @@ const ReservationTable = () => {
   }, [error]);
 
   return (
-    <Table dataSource={ reservations } rowKey={ (record) => record.reservation_id }>
+    <Table dataSource={ reservations } rowKey={ (record) => record.reservation_id } size="small">
       <Column title="Id" dataIndex="reservation_id" key="id"
         sorter={ (a, b) => a.reservation_id - b.reservation_id }
       />
@@ -58,9 +58,11 @@ const ReservationTable = () => {
       <Column title="Action at" key="action"
         render={ (_, record) => (
           <Space size="middle">
-            <Link href={ `/reservations/${ record.reservation_id }` }>
-              <Button icon={ <InfoCircleOutlined/> }/>
-            </Link>
+            <Tooltip title="Details">
+              <Link href={ `/reservations/${ record.reservation_id }` }>
+                <Button icon={ <InfoCircleOutlined/> }/>
+              </Link>
+            </Tooltip>
           </Space>
         ) }
       />

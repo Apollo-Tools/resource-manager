@@ -1,5 +1,5 @@
 import DateFormatter from '../misc/DateFormatter';
-import {Button, Modal, Space, Table} from 'antd';
+import {Button, Modal, Space, Table, Tooltip} from 'antd';
 import {DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined} from '@ant-design/icons';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
@@ -134,10 +134,14 @@ const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources
       {!hideDelete && <Column title="Actions" key="action"
         render={(_, record) => (
           <Space size="middle">
-            <Link href={`/services/${record.service_id}`}>
-              <Button icon={<InfoCircleOutlined />}/>
-            </Link>
-            <Button onClick={() => showDeleteConfirm(record.service_id)} icon={<DeleteOutlined />}/>
+            <Tooltip title="Details">
+              <Link href={`/services/${record.service_id}`}>
+                <Button icon={<InfoCircleOutlined />}/>
+              </Link>
+            </Tooltip>
+            <Tooltip title="Delete">
+              <Button onClick={() => showDeleteConfirm(record.service_id)} icon={<DeleteOutlined />}/>
+            </Tooltip>
           </Space>
         )}
       />}

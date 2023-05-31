@@ -1,5 +1,5 @@
 import DateFormatter from '../misc/DateFormatter';
-import {Button, Modal, Space, Table} from 'antd';
+import {Button, Modal, Space, Table, Tooltip} from 'antd';
 import Link from 'next/link';
 import {DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined} from '@ant-design/icons';
 import {useAuth} from '../../lib/AuthenticationProvider';
@@ -129,10 +129,15 @@ const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resource
       <Column title="Actions" key="action"
         render={(_, record) => (
           <Space size="middle">
-            <Link href={`/functions/${record.function_id}`}>
-              <Button icon={<InfoCircleOutlined />}/>
-            </Link>
-            {!hideDelete && (<Button onClick={() => showDeleteConfirm(record.function_id)} icon={<DeleteOutlined />}/>)}
+            <Tooltip title="Details">
+              <Link href={`/functions/${record.function_id}`}>
+                <Button icon={<InfoCircleOutlined />}/>
+              </Link>
+            </Tooltip>
+            {!hideDelete && (
+              <Tooltip title="Delete">
+                <Button onClick={() => showDeleteConfirm(record.function_id)} icon={<DeleteOutlined />}/>
+              </Tooltip>)}
           </Space>
         )}
       />

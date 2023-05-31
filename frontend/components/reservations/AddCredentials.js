@@ -4,6 +4,8 @@ import {LockOutlined, UserOutlined} from '@ant-design/icons';
 import {reserveResources} from '../../lib/ReservationService';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import PropTypes from 'prop-types';
+import TooltipIcon from '../misc/TooltipIcon';
+import Link from 'next/link';
 
 
 const AddCredentials = ({functionResources, serviceResources, next, prev, onSubmit}) => {
@@ -124,7 +126,14 @@ const AddCredentials = ({functionResources, serviceResources, next, prev, onSubm
         </Form.Item>
 
         <Form.Item
-          label="Kubeconfig"
+          label={<>
+            Kube Config
+            <TooltipIcon text={<>see section
+              <Link legacyBehavior={true} href="https://github.com/Apollo-Tools/resource-manager/blob/main/backend/src/main/resources/openapi/resource-manager.yaml">
+                Reservations / Deployment
+              </Link> for an example
+            </>} />
+          </>}
           name="kubeconfig"
           hidden={!needsK8SCreds}
           rules={[

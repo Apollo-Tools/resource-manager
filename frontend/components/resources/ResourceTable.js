@@ -1,5 +1,5 @@
 import DateFormatter from '../misc/DateFormatter';
-import {Button, Space, Table} from 'antd';
+import {Button, Space, Table, Tooltip} from 'antd';
 import Link from 'next/link';
 import {DeleteOutlined, InfoCircleOutlined} from '@ant-design/icons';
 import ProviderIcon from '../misc/ProviderIcon';
@@ -45,9 +45,6 @@ const ResourceTable = ({
           a.region.resource_provider.provider.localeCompare(b.region.resource_provider.provider) ||
           a.region.name.localeCompare(b.region.name)}
       />
-      <Column title="Self managed" dataIndex="is_self_managed" key="is_self_managed"
-        render={(isSelfManaged) => isSelfManaged.toString()}
-      />
       <Column title="Created at" dataIndex="created_at" key="created_at"
         render={(createdAt) => <DateFormatter dateTimestamp={createdAt}/>}
         sorter={(a, b) => a.created_at - b.created_at}
@@ -55,14 +52,21 @@ const ResourceTable = ({
       {hasActions && (<Column title="Actions" key="action"
         render={(_, record) => (
           <Space size="middle">
-            <Link href={`/resources/${record.resource_id}`}>
-              <Button icon={<InfoCircleOutlined />}/>
-            </Link>
+            <Tooltip title="Details">
+              <Link href={`/resources/${record.resource_id}`}>
+                <Button icon={<InfoCircleOutlined />}/>
+              </Link>
+            </Tooltip>
             {
               customButton &&
-              (<Button onClick={() => customButton.onClick(record.resource_id)} icon={customButton.icon}/>)
+              (<Tooltip title={customButton?.tooltip}>
+                <Button onClick={() => customButton.onClick(record.resource_id)} icon={customButton.icon}/>
+              </Tooltip>)
             }
-            {onDelete && (<Button onClick={() => onDelete(record.resource_id)} icon={<DeleteOutlined />}/>)}
+            {onDelete && (
+              <Tooltip title="Delete">
+                <Button onClick={() => onDelete(record.resource_id)} icon={<DeleteOutlined />}/>
+              </Tooltip>)}
           </Space>
         )}
       />)}
@@ -75,7 +79,7 @@ ResourceTable.propTypes={
   onDelete: PropTypes.func,
   hasActions: PropTypes.bool,
   rowSelection: PropTypes.object,
-  customButton: PropTypes.shape({onClick: PropTypes.func, icon: PropTypes.node}),
+  customButton: PropTypes.shape({onClick: PropTypes.func, icon: PropTypes.node, tooltip: PropTypes.node}),
   getRowClassname: PropTypes.func,
 };
 

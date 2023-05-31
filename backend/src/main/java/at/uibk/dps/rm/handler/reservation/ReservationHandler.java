@@ -189,10 +189,12 @@ public class ReservationHandler extends ValidationHandler {
         List<ResourceReservation> serviceReservations = new ArrayList<>();
         Reservation reservation = reservationJson.mapTo(Reservation.class);
         List<Resource> resouceList;
-        KubeConfig kubeConfig;
+        KubeConfig kubeConfig = new KubeConfig();
         try {
             resouceList = DatabindCodec.mapper().readValue(resources.toString(), new TypeReference<>() {});
-            kubeConfig = new YAMLMapper().readValue(request.getKubeConfig(), KubeConfig.class);
+            if (!request.getServiceResources().isEmpty()) {
+                kubeConfig = new YAMLMapper().readValue(request.getKubeConfig(), KubeConfig.class);
+            }
         } catch (JsonProcessingException e) {
             return Single.error(new BadInputException("Unsupported schema of kube config"));
         }

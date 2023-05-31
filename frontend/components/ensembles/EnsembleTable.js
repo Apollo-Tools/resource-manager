@@ -1,5 +1,5 @@
 import DateFormatter from '../misc/DateFormatter';
-import {Button, Modal, Space, Table} from 'antd';
+import {Button, Modal, Space, Table, Tooltip} from 'antd';
 import Link from 'next/link';
 import {
   DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined, CloseCircleTwoTone, CheckCircleTwoTone, SyncOutlined,
@@ -129,11 +129,17 @@ const EnsembleTable = ({rowSelection}) => {
       <Column title="Actions" key="action"
         render={(_, record) => (
           <Space size="middle">
-            <Link href={`/ensembles/${record.ensemble_id}`}>
-              <Button icon={<InfoCircleOutlined />}/>
-            </Link>
-            <Button icon={<SyncOutlined />} onClick={() => showValidateConfirm(record.ensemble_id)}/>
-            <Button onClick={() => showDeleteConfirm(record.function_id)} icon={<DeleteOutlined />}/>
+            <Tooltip title="Details">
+              <Link href={`/ensembles/${record.ensemble_id}`}>
+                <Button icon={<InfoCircleOutlined />}/>
+              </Link>
+            </Tooltip>
+            <Tooltip title="Validate">
+              <Button icon={<SyncOutlined />} onClick={() => showValidateConfirm(record.ensemble_id)}/>
+            </Tooltip>
+            <Tooltip title="Delete">
+              <Button onClick={() => showDeleteConfirm(record.function_id)} icon={<DeleteOutlined />}/>
+            </Tooltip>
           </Space>
         )}
       />
