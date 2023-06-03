@@ -9,6 +9,7 @@
         <class>at.uibk.dps.rm.entity.model.Credentials</class>
         <class>at.uibk.dps.rm.entity.model.Ensemble</class>
         <class>at.uibk.dps.rm.entity.model.EnsembleSLO</class>
+        <class>at.uibk.dps.rm.entity.model.Environment</class>
         <class>at.uibk.dps.rm.entity.model.Function</class>
         <class>at.uibk.dps.rm.entity.model.FunctionReservation</class>
         <class>at.uibk.dps.rm.entity.model.FunctionResource</class>
@@ -16,6 +17,7 @@
         <class>at.uibk.dps.rm.entity.model.Metric</class>
         <class>at.uibk.dps.rm.entity.model.MetricType</class>
         <class>at.uibk.dps.rm.entity.model.MetricValue</class>
+        <class>at.uibk.dps.rm.entity.model.Platform</class>
         <class>at.uibk.dps.rm.entity.model.Region</class>
         <class>at.uibk.dps.rm.entity.model.Reservation</class>
         <class>at.uibk.dps.rm.entity.model.ReservationLog</class>

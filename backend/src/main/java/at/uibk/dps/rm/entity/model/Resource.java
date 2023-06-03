@@ -32,6 +32,7 @@ public class Resource {
     @Column(insertable = false, updatable = false)
     private @Setter(AccessLevel.NONE) Timestamp updatedAt;
 
+    // TODO: remove
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resource_type")
     private ResourceType resourceType;
@@ -39,6 +40,10 @@ public class Resource {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "region_id")
     private Region region;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "platform_id")
+    private Platform platform;
 
     @OneToMany
     @JoinColumn(name="resource_id")

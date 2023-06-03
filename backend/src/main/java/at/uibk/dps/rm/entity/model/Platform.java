@@ -9,23 +9,23 @@ import javax.persistence.*;
 import java.sql.Timestamp;
 
 /**
- * Represents the resource_provider entity.
+ * Represents the platform entity.
  *
  * @author matthi-g
  */
 @Entity
 @Getter
 @Setter
-public class ResourceProvider {
+public class Platform {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long providerId;
+    private Long platformId;
 
-    private String provider;
+    private String platform;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "environment_id")
-    private Environment environment;
+    @JoinColumn(name = "resource_type_id")
+    private ResourceType resourceType;
 
     @Column(insertable = false, updatable = false)
     private @Setter(AccessLevel.NONE)
@@ -40,13 +40,13 @@ public class ResourceProvider {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        ResourceProvider resourceProvider = (ResourceProvider) obj;
-        return providerId.equals(resourceProvider.providerId);
+        Platform platform = (Platform) obj;
+        return platformId.equals(platform.platformId);
     }
 
     @Override
     @Generated
     public int hashCode() {
-        return providerId.hashCode();
+        return platformId.hashCode();
     }
 }
