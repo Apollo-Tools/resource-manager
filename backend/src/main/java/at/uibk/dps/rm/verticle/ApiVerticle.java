@@ -11,6 +11,7 @@ import at.uibk.dps.rm.router.metric.ResourceMetricRoute;
 import at.uibk.dps.rm.router.metric.ResourceTypeMetricRoute;
 import at.uibk.dps.rm.router.reservation.ReservationRoute;
 import at.uibk.dps.rm.router.reservation.ReservationStartupRoute;
+import at.uibk.dps.rm.router.resource.PlatformRoute;
 import at.uibk.dps.rm.router.resource.ResourceRoute;
 import at.uibk.dps.rm.router.resource.ResourceSLORoute;
 import at.uibk.dps.rm.router.resource.ResourceTypeRoute;
@@ -100,6 +101,7 @@ public class ApiVerticle extends AbstractVerticle {
         new RuntimeTemplateRoute().init(routerBuilder, serviceProxyProvider);
         new FunctionRoute().init(routerBuilder, serviceProxyProvider);
         new FunctionResourceRoute().init(routerBuilder, serviceProxyProvider);
+        new PlatformRoute().init(routerBuilder, serviceProxyProvider);
         new ResourceEnsembleRoute().init(routerBuilder, serviceProxyProvider);
         new ResourceSLORoute().init(routerBuilder, serviceProxyProvider);
         new ReservationRoute().init(routerBuilder, serviceProxyProvider);

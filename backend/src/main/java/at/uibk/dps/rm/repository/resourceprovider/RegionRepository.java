@@ -24,7 +24,7 @@ public class RegionRepository extends Repository<Region> {
     }
 
     /**
-     * Finda a region by its id and fetch the resource provider.
+     * Finda a region by its id and fetch the resource provider and environment.
      *
      * @param id the id of the resource provider
      * @return a CompletionStage that emits the region if it exists, else null
@@ -32,7 +32,8 @@ public class RegionRepository extends Repository<Region> {
     public CompletionStage<Region> findByIdAndFetch(long id) {
         return sessionFactory.withSession(session -> session.createQuery(
                 "from Region r " +
-                    "left join fetch r.resourceProvider " +
+                    "left join fetch r.resourceProvider rp " +
+                    "left join fetch rp.environment " +
                     "where r.regionId =:id", entityClass)
             .setParameter("id", id)
             .getSingleResultOrNull()
@@ -50,6 +51,7 @@ public class RegionRepository extends Repository<Region> {
         return sessionFactory.withSession(session -> session.createQuery(
                 "from Region r " +
                     "left join fetch r.resourceProvider rp " +
+                    "left join fetch rp.environment " +
                     "where r.name=:name and rp.providerId =:providerId", entityClass)
             .setParameter("name", name)
             .setParameter("providerId", providerId)
@@ -58,15 +60,15 @@ public class RegionRepository extends Repository<Region> {
     }
 
     /**
-     * Find all regions and fetch the resource provider.
+     * Find all regions and fetch the resource provider and environment.
      *
      * @return a CompletionStage that emits a list of all regions
      */
     public CompletionStage<List<Region>> findAllAndFetch() {
         return sessionFactory.withSession(session ->
             session.createQuery("select distinct r from Region r " +
-                        "left join fetch r.resourceProvider",
-                    entityClass)
+                        "left join fetch r.resourceProvider rp " +
+                        "left join fetch rp.environment ", entityClass)
                 .getResultList()
         );
     }

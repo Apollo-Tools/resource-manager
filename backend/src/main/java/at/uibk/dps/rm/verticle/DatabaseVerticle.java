@@ -16,6 +16,7 @@ import at.uibk.dps.rm.repository.metric.MetricTypeRepository;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.repository.metric.ResourceTypeMetricRepository;
 import at.uibk.dps.rm.repository.reservation.*;
+import at.uibk.dps.rm.repository.resource.PlatformRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resource.ResourceTypeRepository;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
@@ -31,12 +32,9 @@ import at.uibk.dps.rm.service.database.log.LogServiceImpl;
 import at.uibk.dps.rm.service.database.log.ReservationLogService;
 import at.uibk.dps.rm.service.database.log.ReservationLogServiceImpl;
 import at.uibk.dps.rm.service.database.reservation.*;
+import at.uibk.dps.rm.service.database.resource.*;
 import at.uibk.dps.rm.service.database.resourceprovider.*;
 import at.uibk.dps.rm.service.database.metric.*;
-import at.uibk.dps.rm.service.database.resource.ResourceService;
-import at.uibk.dps.rm.service.database.resource.ResourceServiceImpl;
-import at.uibk.dps.rm.service.database.resource.ResourceTypeService;
-import at.uibk.dps.rm.service.database.resource.ResourceTypeServiceImpl;
 import at.uibk.dps.rm.service.database.service.ServiceService;
 import at.uibk.dps.rm.service.database.service.ServiceServiceImpl;
 import at.uibk.dps.rm.service.database.service.ServiceTypeService;
@@ -77,6 +75,7 @@ public class DatabaseVerticle extends AbstractVerticle {
     private MetricRepository metricRepository;
     private MetricTypeRepository metricTypeRepository;
     private MetricValueRepository metricValueRepository;
+    private PlatformRepository platformRepository;
     private RegionRepository regionRepository;
     private ReservationRepository reservationRepository;
     private ReservationLogRepository reservationLogRepository;
@@ -143,6 +142,7 @@ public class DatabaseVerticle extends AbstractVerticle {
             metricRepository = new MetricRepository(sessionFactory);
             metricTypeRepository = new MetricTypeRepository(sessionFactory);
             metricValueRepository = new MetricValueRepository(sessionFactory);
+            platformRepository = new PlatformRepository(sessionFactory);
             regionRepository = new RegionRepository(sessionFactory);
             reservationRepository = new ReservationRepository(sessionFactory);
             reservationLogRepository = new ReservationLogRepository(sessionFactory);
@@ -188,6 +188,7 @@ public class DatabaseVerticle extends AbstractVerticle {
             serviceProxyBinder.bind(MetricService.class, new MetricServiceImpl(metricRepository));
             serviceProxyBinder.bind(MetricTypeService.class, new MetricTypeServiceImpl(metricTypeRepository));
             serviceProxyBinder.bind(MetricValueService.class, new MetricValueServiceImpl(metricValueRepository));
+            serviceProxyBinder.bind(PlatformService.class, new PlatformServiceImpl(platformRepository));
             serviceProxyBinder.bind(RegionService.class, new RegionServiceImpl(regionRepository));
             serviceProxyBinder.bind(ReservationService.class, new ReservationServiceImpl(reservationRepository));
             serviceProxyBinder.bind(ReservationLogService.class,

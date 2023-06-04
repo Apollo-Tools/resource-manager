@@ -28,7 +28,8 @@ public class ResourceRepository extends Repository<Resource> {
     }
 
     /**
-     * Find a resource by its id and fetch the resource type, region and resource provider.
+     * Find a resource by its id and fetch the resource type, platform, environment, region, metric values and
+     * resource provider.
      *
      * @param id the id of the resource
      * @return a CompletionStage that emits the resource if it exists, else null
@@ -38,9 +39,12 @@ public class ResourceRepository extends Repository<Resource> {
                 "from Resource r " +
                 "left join fetch r.metricValues mv " +
                 "left join fetch mv.metric " +
+                "left join fetch r.region reg " +
+                "left join fetch reg.resourceProvider rp " +
+                "left join fetch rp.environment " +
                 "left join fetch r.resourceType " +
-                "left join fetch r.region " +
-                "left join fetch r.region.resourceProvider " +
+                "left join fetch r.platform p " +
+                "left join fetch p.resourceType " +
                 "where r.resourceId =:id", entityClass)
                 .setParameter("id", id)
                 .getSingleResultOrNull()
@@ -48,7 +52,8 @@ public class ResourceRepository extends Repository<Resource> {
     }
 
     /**
-     * Find all resources and fetch the metric values, metric, region and resource provider.
+     * Find all resources and fetch the resource type, platform, environment, region, metric values and
+     * resource provider.
      *
      * @return a CompletionStage that emits a list of all resources
      */
@@ -58,8 +63,11 @@ public class ResourceRepository extends Repository<Resource> {
                     "left join fetch r.metricValues mv " +
                     "left join fetch mv.metric " +
                     "left join fetch r.region reg " +
-                    "left join fetch reg.resourceProvider " +
-                    "left join fetch r.resourceType ", entityClass)
+                    "left join fetch reg.resourceProvider rp " +
+                    "left join fetch rp.environment " +
+                    "left join fetch r.resourceType " +
+                    "left join fetch r.platform p " +
+                    "left join fetch p.resourceType ", entityClass)
                 .getResultList()
             );
     }
@@ -99,10 +107,13 @@ public class ResourceRepository extends Repository<Resource> {
 
         String query = "select distinct r from Resource r " +
             "left join fetch r.metricValues mv " +
-            "left join fetch r.resourceType rt " +
+            "left join fetch mv.metric " +
             "left join fetch r.region reg " +
-            "left join fetch reg.resourceProvider " +
-            "left join fetch mv.metric m " +
+            "left join fetch reg.resourceProvider rp " +
+            "left join fetch rp.environment " +
+            "left join fetch r.resourceType " +
+            "left join fetch r.platform p " +
+            "left join fetch p.resourceType " +
             conditionString;
 
         return this.sessionFactory.withSession(session ->
@@ -126,8 +137,8 @@ public class ResourceRepository extends Repository<Resource> {
     }
 
     /**
-     * Find all resources by their function and fetch the region, resource provider, resource type,
-     * metric values and metrics.
+     * Find all resources by their function and fetch the region, resource provider, platform,
+     * environment, resource type, metric values and metrics.
      *
      * @param functionId the id of the function
      * @return a CompletionStage that emits a list of all resources
@@ -138,10 +149,13 @@ public class ResourceRepository extends Repository<Resource> {
                     "left join fr.function f " +
                     "left join fr.resource r " +
                     "left join fetch r.region reg " +
-                    "left join fetch reg.resourceProvider " +
+                    "left join fetch reg.resourceProvider rp " +
+                    "left join fetch rp.environment " +
                     "left join fetch r.resourceType " +
                     "left join fetch r.metricValues mv " +
                     "left join fetch mv.metric " +
+                    "left join fetch r.platform " +
+                    "left join fetch r.platform.resourceType " +
                     "where f.functionId=:functionId", Resource.class)
                 .setParameter("functionId", functionId)
                 .getResultList()
@@ -150,7 +164,7 @@ public class ResourceRepository extends Repository<Resource> {
 
     /**
      * Find all resources by an ensemble and fetch the resource, resourceType, region,
-     * resourceProvider, metricValues and metric.
+     * resourceProvider, platform, environment, metricValues and metric.
      *
      * @param ensembleId the id of the ensemble
      * @return a CompletionStage that emits a list of resources
@@ -159,11 +173,14 @@ public class ResourceRepository extends Repository<Resource> {
         return sessionFactory.withSession(session ->
                 session.createQuery("select distinct r from ResourceEnsemble re " +
                                 "left join re.resource r " +
-                                "left join fetch r.resourceType rt " +
-                                "left join fetch r.region reg " +
-                                "left join fetch reg.resourceProvider " +
                                 "left join fetch r.metricValues mv " +
                                 "left join fetch mv.metric " +
+                                "left join fetch r.region reg " +
+                                "left join fetch reg.resourceProvider rp " +
+                                "left join fetch rp.environment " +
+                                "left join fetch r.resourceType " +
+                                "left join fetch r.platform p " +
+                                "left join fetch p.resourceType " +
                                 "where re.ensemble.ensembleId=:ensembleId", entityClass)
                         .setParameter("ensembleId", ensembleId)
                         .getResultList()
@@ -196,7 +213,7 @@ public class ResourceRepository extends Repository<Resource> {
 
     /**
      * Find all resources by the resourceIds and fetch the region, resourceProvider, resourceType,
-     * metricValues and metric.
+     * platform, environment, metricValues and metric.
      *
      * @param resourceIds the list of resource ids
      * @return a CompletionStage that emits a list of resources
@@ -205,11 +222,14 @@ public class ResourceRepository extends Repository<Resource> {
         String resourceIdsConcat = resourceIds.stream().map(Object::toString).collect(Collectors.joining(","));
         return this.sessionFactory.withSession(session ->
             session.createQuery("select distinct r from Resource r " +
-                    "left join fetch r.region reg " +
-                    "left join fetch reg.resourceProvider " +
-                    "left join fetch r.resourceType " +
                     "left join fetch r.metricValues mv " +
                     "left join fetch mv.metric " +
+                    "left join fetch r.region reg " +
+                    "left join fetch reg.resourceProvider rp " +
+                    "left join fetch rp.environment " +
+                    "left join fetch r.resourceType " +
+                    "left join fetch r.platform p " +
+                    "left join fetch p.resourceType " +
                     "where r.resourceId in (" + resourceIdsConcat + ")", Resource.class)
                 .getResultList()
         );

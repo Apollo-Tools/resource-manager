@@ -13,6 +13,7 @@ import at.uibk.dps.rm.service.rxjava3.database.function.FunctionResourceService;
 import at.uibk.dps.rm.service.rxjava3.database.function.FunctionService;
 import at.uibk.dps.rm.service.rxjava3.database.function.RuntimeService;
 import at.uibk.dps.rm.service.rxjava3.database.log.LogService;
+import at.uibk.dps.rm.service.rxjava3.database.resource.PlatformService;
 import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.RegionService;
 import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.ResourceProviderService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricTypeService;
@@ -50,6 +51,7 @@ public class ServiceProxyProvider {
     private final MetricService metricService;
     private final MetricTypeService metricTypeService;
     private final MetricValueService metricValueService;
+    private final PlatformService platformService;
     private final RegionService regionService;
     private final ReservationService reservationService;
     private final ReservationLogService reservationLogService;
@@ -87,6 +89,7 @@ public class ServiceProxyProvider {
         metricService = MetricService.createProxy(vertx);
         metricTypeService = MetricTypeService.createProxy(vertx);
         metricValueService = MetricValueService.createProxy(vertx);
+        platformService = PlatformService.createProxy(vertx);
         regionService = RegionService.createProxy(vertx);
         reservationService = ReservationService.createProxy(vertx);
         reservationLogService = ReservationLogService.createProxy(vertx);

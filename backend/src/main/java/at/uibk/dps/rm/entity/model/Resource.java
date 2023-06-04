@@ -23,6 +23,7 @@ public class Resource {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long resourceId;
 
+    // TODO: remove
     @JsonProperty("is_self_managed")
     private Boolean isSelfManaged = false;
 
