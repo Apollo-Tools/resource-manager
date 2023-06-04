@@ -380,21 +380,10 @@ paths:
             schema:
               type: object
               required:
-                - resource_type
                 - region
                 - platform
               additionalProperties: false
               properties:
-                resource_type:
-                  type: object
-                  required:
-                    - type_id
-                  additionalProperties: false
-                  properties:
-                    type_id:
-                      type: integer
-                      format: int64
-                      example: 1
                 region:
                   type: object
                   required:
@@ -2314,8 +2303,6 @@ components:
           type: integer
           format: int64
           example: 1
-        resource_type:
-          $ref: "#/components/schemas/ResourceType"
         is_self_managed:
           type: boolean
           example: true

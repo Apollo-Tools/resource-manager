@@ -74,7 +74,7 @@ public class VPCChecker extends EntityChecker {
         for (Object object: resources) {
             Resource resource = ((JsonObject) object).mapTo(Resource.class);
             long regionId = resource.getRegion().getRegionId();
-            String resourceType = resource.getResourceType().getResourceType();
+            String resourceType = resource.getPlatform().getResourceType().getResourceType();
             if (!regionIds.contains(regionId) && !resourceType.equals(ResourceTypeEnum.EDGE.getValue()) &&
                     !resourceType.equals(ResourceTypeEnum.CONTAINER.getValue())) {
                 singles.add(this.checkFindOneByRegionIdAndAccountId(regionId, accountId));

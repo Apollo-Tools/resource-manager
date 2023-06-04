@@ -42,7 +42,6 @@ public class ResourceRepository extends Repository<Resource> {
                 "left join fetch r.region reg " +
                 "left join fetch reg.resourceProvider rp " +
                 "left join fetch rp.environment " +
-                "left join fetch r.resourceType " +
                 "left join fetch r.platform p " +
                 "left join fetch p.resourceType " +
                 "where r.resourceId =:id", entityClass)
@@ -65,7 +64,6 @@ public class ResourceRepository extends Repository<Resource> {
                     "left join fetch r.region reg " +
                     "left join fetch reg.resourceProvider rp " +
                     "left join fetch rp.environment " +
-                    "left join fetch r.resourceType " +
                     "left join fetch r.platform p " +
                     "left join fetch p.resourceType ", entityClass)
                 .getResultList()
@@ -111,7 +109,6 @@ public class ResourceRepository extends Repository<Resource> {
             "left join fetch r.region reg " +
             "left join fetch reg.resourceProvider rp " +
             "left join fetch rp.environment " +
-            "left join fetch r.resourceType " +
             "left join fetch r.platform p " +
             "left join fetch p.resourceType " +
             conditionString;
@@ -131,7 +128,7 @@ public class ResourceRepository extends Repository<Resource> {
     public CompletionStage<List<Resource>> findByResourceType(long typeId) {
         return sessionFactory.withSession(session ->
             session.createQuery("from Resource r " +
-                    "where r.resourceType.typeId=:typeId", entityClass)
+                    "where r.platform.resourceType.typeId=:typeId", entityClass)
                 .setParameter("typeId", typeId)
                 .getResultList());
     }
@@ -151,7 +148,6 @@ public class ResourceRepository extends Repository<Resource> {
                     "left join fetch r.region reg " +
                     "left join fetch reg.resourceProvider rp " +
                     "left join fetch rp.environment " +
-                    "left join fetch r.resourceType " +
                     "left join fetch r.metricValues mv " +
                     "left join fetch mv.metric " +
                     "left join fetch r.platform " +
@@ -178,7 +174,6 @@ public class ResourceRepository extends Repository<Resource> {
                                 "left join fetch r.region reg " +
                                 "left join fetch reg.resourceProvider rp " +
                                 "left join fetch rp.environment " +
-                                "left join fetch r.resourceType " +
                                 "left join fetch r.platform p " +
                                 "left join fetch p.resourceType " +
                                 "where re.ensemble.ensembleId=:ensembleId", entityClass)
@@ -205,7 +200,7 @@ public class ResourceRepository extends Repository<Resource> {
         return sessionFactory.withSession(session ->
             session.createQuery("select distinct r from Resource r " +
                     "where r.resourceId in (" + resourceIdsConcat + ") and " +
-                        "r.resourceType.resourceType in ('" + resourceTypesConcat + "')",
+                        "r.platform.resourceType.resourceType in ('" + resourceTypesConcat + "')",
                     entityClass)
                 .getResultList()
         );
@@ -227,7 +222,6 @@ public class ResourceRepository extends Repository<Resource> {
                     "left join fetch r.region reg " +
                     "left join fetch reg.resourceProvider rp " +
                     "left join fetch rp.environment " +
-                    "left join fetch r.resourceType " +
                     "left join fetch r.platform p " +
                     "left join fetch p.resourceType " +
                     "where r.resourceId in (" + resourceIdsConcat + ")", Resource.class)

@@ -39,7 +39,6 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
             .map(object -> {
                 JsonObject metricValueJson = (JsonObject) object;
                 Resource resource = metricValueJson.getJsonObject("resource").mapTo(Resource.class);
-                resource.setIsSelfManaged(null);
                 MetricValue metricValue = metricValueJson.mapTo(MetricValue.class);
                 metricValue.setResource(resource);
                 return metricValue;

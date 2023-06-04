@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler.resource;
 
 import at.uibk.dps.rm.handler.*;
+import at.uibk.dps.rm.handler.resourceprovider.RegionChecker;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
@@ -12,17 +13,21 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
  */
 public class ResourceHandler extends ValidationHandler {
 
-    private final ResourceTypeChecker resourceTypeChecker;
+    private final PlatformChecker platformChecker;
+
+    private final RegionChecker regionChecker;
 
     /**
-     * Create an instance from the resourceChecker and resourceTypeChecker
+     * Create an instance from the resourceChecker, platformChecker and regionChecker.
      *
      * @param resourceChecker the resource checker
-     * @param resourceTypeChecker the resource type checker
+     * @param platformChecker the platform checker
+     * @param regionChecker the region checker
      */
-    public ResourceHandler(ResourceChecker resourceChecker, ResourceTypeChecker resourceTypeChecker) {
+    public ResourceHandler(ResourceChecker resourceChecker, PlatformChecker platformChecker, RegionChecker regionChecker) {
         super(resourceChecker);
-        this.resourceTypeChecker = resourceTypeChecker;
+        this.platformChecker = platformChecker;
+        this.regionChecker = regionChecker;
     }
 
     // TODO: delete metric values on delete check if resource has metric values
@@ -30,9 +35,8 @@ public class ResourceHandler extends ValidationHandler {
     @Override
     public Single<JsonObject> postOne(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
-        return resourceTypeChecker.checkExistsOne(requestBody
-                .getJsonObject("resource_type")
-                .getLong("type_id"))
+        return platformChecker.checkExistsOne(requestBody.getJsonObject("platform").getLong("platform_id"))
+            .andThen(regionChecker.checkExistsOne(requestBody.getJsonObject("region").getLong("region_id")))
             .andThen(Single.defer(() -> Single.just(1L)))
             .flatMap(result -> entityChecker.submitCreate(requestBody));
     }

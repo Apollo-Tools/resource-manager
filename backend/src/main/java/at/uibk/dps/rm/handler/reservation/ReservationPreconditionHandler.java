@@ -130,7 +130,7 @@ public class ReservationPreconditionHandler {
         for (Object object: resources.getList()) {
             Resource resource = ((JsonObject) object).mapTo(Resource.class);
             long providerId = resource.getRegion().getResourceProvider().getProviderId();
-            String resourceType = resource.getResourceType().getResourceType();
+            String resourceType = resource.getPlatform().getResourceType().getResourceType();
             if (!resourceProviderIds.contains(providerId) && !resourceType.equals(ResourceTypeEnum.EDGE.getValue()) &&
                     !resourceType.equals(ResourceTypeEnum.CONTAINER.getValue())) {
                 completables.add(credentialsChecker.checkExistsOneByProviderId(accountId, providerId));

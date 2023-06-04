@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.entity.model;
 
 import at.uibk.dps.rm.annotations.Generated;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,20 +22,11 @@ public class Resource {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long resourceId;
 
-    // TODO: remove
-    @JsonProperty("is_self_managed")
-    private Boolean isSelfManaged = false;
-
     @Column(insertable = false, updatable = false)
     private @Setter(AccessLevel.NONE) Timestamp createdAt;
 
     @Column(insertable = false, updatable = false)
     private @Setter(AccessLevel.NONE) Timestamp updatedAt;
-
-    // TODO: remove
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "resource_type")
-    private ResourceType resourceType;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "region_id")

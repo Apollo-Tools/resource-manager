@@ -107,7 +107,7 @@ public class FunctionFileService {
      */
     private boolean deployFunctionOnVMOrEdge(Function function) {
         return functionReservations.stream().anyMatch(functionReservation -> {
-            String resourceType = functionReservation.getResource().getResourceType().getResourceType();
+            String resourceType = functionReservation.getResource().getPlatform().getResourceType().getResourceType();
             return functionReservation.getFunction().equals(function) &&
                 (resourceType.equals("edge") || resourceType.equals("vm"));
         });

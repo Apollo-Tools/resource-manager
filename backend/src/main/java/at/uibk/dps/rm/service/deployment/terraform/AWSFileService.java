@@ -85,7 +85,7 @@ public class AWSFileService extends ModuleFileService {
             functionLayers = new StringBuilder();
         for (FunctionReservation functionReservation: functionReservations) {
             Resource resource = functionReservation.getResource();
-            if (!resource.getResourceType().getResourceType().equals("faas")) {
+            if (!resource.getPlatform().getResourceType().getResourceType().equals("faas")) {
                 continue;
             }
             Function function = functionReservation.getFunction();
@@ -138,7 +138,7 @@ public class AWSFileService extends ModuleFileService {
         for (FunctionReservation functionReservation: functionReservations) {
             Resource resource = functionReservation.getResource();
             Function function = functionReservation.getFunction();
-            if (!resource.getResourceType().getResourceType().equals("vm")) {
+            if (!resource.getPlatform().getResourceType().getResourceType().equals("vm")) {
                 continue;
             }
             String resourceName = "resource_" + resource.getResourceId();
@@ -236,7 +236,7 @@ public class AWSFileService extends ModuleFileService {
                 Resource resource = functionReservation.getResource();
                 Function function = functionReservation.getFunction();
                 String functionIdentifier = function.getFunctionDeploymentId();
-                if (resource.getResourceType().getResourceType().equals("vm")) {
+                if (resource.getPlatform().getResourceType().getResourceType().equals("vm")) {
                     vmUrls.append(String.format("module.r%s_%s.function_url,",
                         resource.getResourceId(), functionIdentifier));
                     vmFunctionIds.append(String.format("\"r%s_%s\",",

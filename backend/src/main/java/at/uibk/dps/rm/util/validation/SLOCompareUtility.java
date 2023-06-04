@@ -113,7 +113,8 @@ public class SLOCompareUtility {
                 .contains(resource.getRegion().getResourceProvider().getProviderId());
         }
         if (!ensemble.getResource_types().isEmpty()) {
-            validResourceType = ensemble.getResource_types().contains(resource.getResourceType().getTypeId());
+            validResourceType = ensemble.getResource_types()
+                .contains(resource.getPlatform().getResourceType().getTypeId());
         }
         return validRegion && validResourceProvider && validResourceType;
     }

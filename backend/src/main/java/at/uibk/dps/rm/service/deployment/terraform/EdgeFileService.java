@@ -59,7 +59,7 @@ public class EdgeFileService extends TerraformFileService {
         for (FunctionReservation functionReservation : functionReservations) {
             Resource resource = functionReservation.getResource();
             Function function = functionReservation.getFunction();
-            if (!resource.getResourceType().getResourceType().equals("edge")) {
+            if (!resource.getPlatform().getResourceType().getResourceType().equals("edge")) {
                 continue;
             }
             Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
@@ -106,7 +106,7 @@ public class EdgeFileService extends TerraformFileService {
         for (FunctionReservation functionReservation : functionReservations) {
             Resource resource = functionReservation.getResource();
             Function function = functionReservation.getFunction();
-            if (!resource.getResourceType().getResourceType().equals("edge")) {
+            if (!resource.getPlatform().getResourceType().getResourceType().equals("edge")) {
                 continue;
             }
             edgeCount ++;

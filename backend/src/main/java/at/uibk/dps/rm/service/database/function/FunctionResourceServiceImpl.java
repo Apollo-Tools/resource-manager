@@ -34,7 +34,7 @@ public class FunctionResourceServiceImpl extends DatabaseServiceProxy<FunctionRe
             .fromCompletionStage(functionResourceRepository.findByFunctionAndResource(functionId, resourceId))
             .map(functionResource -> {
                 if (functionResource != null) {
-                    functionResource.getResource().setResourceType(null);
+                    functionResource.getResource().setPlatform(null);
                     functionResource.getResource().setMetricValues(null);
                     functionResource.setFunction(null);
                 }
