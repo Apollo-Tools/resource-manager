@@ -1,26 +1,25 @@
 import {Button, Form, Select} from 'antd';
 import {createResource} from '../../lib/ResourceService';
 import {useEffect, useState} from 'react';
-import {listResourceTypes} from '../../lib/ResourceTypeService';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import PropTypes from 'prop-types';
 import {listRegions} from '../../lib/RegionService';
 import ProviderIcon from '../misc/ProviderIcon';
+import {listPlatforms} from '../../lib/PlatformService';
 
 
 const NewResourceForm = ({setNewResource}) => {
   const [form] = Form.useForm();
   const {token, checkTokenExpired} = useAuth();
   const [error, setError] = useState();
-  const [resourceTypes, setResourceTypes] = useState([]);
+  const [platforms, setPlatforms] = useState([]);
   const [regions, setRegions] = useState([]);
-  const [regionSelectables, setRegionSelectables] = useState([]);
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listResourceTypes(token, setResourceTypes, setError)
-          .then(() => setResourceTypes((prevTypes) =>
-            prevTypes.sort((a, b) => a.resource_type.localeCompare(b.resource_type)),
+      listPlatforms(token, setPlatforms, setError)
+          .then(() => setPlatforms((prevTypes) =>
+            prevTypes.sort((a, b) => a.platform.localeCompare(b.platform)),
           ));
       listRegions(token, setRegions, setError)
           .then(() => setRegions((prevRegions) => {
@@ -30,10 +29,6 @@ const NewResourceForm = ({setNewResource}) => {
           }));
     }
   }, []);
-
-  useEffect(() => {
-    setRegionSelectables(regions);
-  }, [regions]);
 
   // TODO: improve error handling
   useEffect(() => {
@@ -45,22 +40,11 @@ const NewResourceForm = ({setNewResource}) => {
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
-      await createResource(values.resourceType, false, values.region, token, setNewResource, setError);
+      await createResource(values.platform, values.region, token, setNewResource, setError);
     }
   };
   const onFinishFailed = (errorInfo) => {
     console.log('Failed:', errorInfo);
-  };
-
-  const onChangeResourceType = (typeId) => {
-    if (resourceTypes.filter((type) => type.type_id === typeId)[0].resource_type === 'edge') {
-      setRegionSelectables(() => regions.filter((region) => region.name === 'edge'));
-    } else if (resourceTypes.filter((type) => type.type_id === typeId)[0].resource_type === 'container') {
-      setRegionSelectables(() => regions.filter((region) => region.name === 'k8s'));
-    } else {
-      setRegionSelectables(() => regions.filter((region) => !['edge', 'k8s'].includes(region.name)));
-    }
-    form.resetFields(['region']);
   };
 
   return (
@@ -74,20 +58,21 @@ const NewResourceForm = ({setNewResource}) => {
         layout="vertical"
       >
         <Form.Item
-          label="Resource Type"
-          name="resourceType"
+          label="Platform"
+          name="platform"
           rules={[
             {
               required: true,
-              message: 'Missing resource type',
+              message: 'Missing platform',
             },
           ]}
         >
-          <Select className="w-40" onChange={onChangeResourceType}>
-            {resourceTypes.map((resourceType) => {
+          <Select className="w-40">
+            {platforms.map((platform) => {
               return (
-                <Select.Option value={resourceType.type_id} key={resourceType.type_id}>
-                  {resourceType.resource_type}
+                <Select.Option value={platform.platform_id} key={platform.platform_id}>
+                  <span>{platform.platform}</span> -
+                  <span> ({platform.resource_type.resource_type})</span>
                 </Select.Option>
               );
             })}
@@ -104,8 +89,8 @@ const NewResourceForm = ({setNewResource}) => {
             },
           ]}
         >
-          <Select className="w-40" disabled={form.getFieldValue(['resourceType']) === undefined}>
-            {regionSelectables.map((region) => {
+          <Select className="w-40">
+            {regions.map((region) => {
               return (
                 <Select.Option value={region.region_id} key={region.region_id}>
                   <ProviderIcon provider={region.resource_provider.provider} className="mr-1"/> {region.name}
@@ -114,6 +99,7 @@ const NewResourceForm = ({setNewResource}) => {
             })}
           </Select>
         </Form.Item>
+
 
         <Form.Item>
           <Button type="primary" htmlType="submit">

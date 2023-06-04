@@ -50,7 +50,7 @@ const AddMetricValuesForm = ({
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listResourceTypeMetrics(token, resource.resource_type.type_id, setMetrics, setError)
+      listResourceTypeMetrics(token, resource.platform.resource_type.type_id, setMetrics, setError)
           .then(() => {
             setMetrics((prevMetrics) => {
               let filteredMetrics = prevMetrics;
