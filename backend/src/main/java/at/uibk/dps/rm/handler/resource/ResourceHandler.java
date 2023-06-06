@@ -13,20 +13,16 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
  */
 public class ResourceHandler extends ValidationHandler {
 
-    private final PlatformChecker platformChecker;
-
     private final RegionChecker regionChecker;
 
     /**
      * Create an instance from the resourceChecker, platformChecker and regionChecker.
      *
      * @param resourceChecker the resource checker
-     * @param platformChecker the platform checker
      * @param regionChecker the region checker
      */
-    public ResourceHandler(ResourceChecker resourceChecker, PlatformChecker platformChecker, RegionChecker regionChecker) {
+    public ResourceHandler(ResourceChecker resourceChecker, RegionChecker regionChecker) {
         super(resourceChecker);
-        this.platformChecker = platformChecker;
         this.regionChecker = regionChecker;
     }
 
@@ -35,8 +31,9 @@ public class ResourceHandler extends ValidationHandler {
     @Override
     public Single<JsonObject> postOne(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
-        return platformChecker.checkExistsOne(requestBody.getJsonObject("platform").getLong("platform_id"))
-            .andThen(regionChecker.checkExistsOne(requestBody.getJsonObject("region").getLong("region_id")))
+        long regionId = requestBody.getJsonObject("region").getLong("region_id");
+        long platformId = requestBody.getJsonObject("platform").getLong("platform_id");
+        return regionChecker.checkExistsByPlatform(regionId, platformId)
             .andThen(Single.defer(() -> Single.just(1L)))
             .flatMap(result -> entityChecker.submitCreate(requestBody));
     }

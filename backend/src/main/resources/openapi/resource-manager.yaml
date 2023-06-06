@@ -2228,6 +2228,28 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
+  /platforms/{id}/regions:
+    get:
+      description: List all regions where the platform is supported
+      operationId: listPlatformRegions
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - platforms/regions
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of all regions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Region"
+        500:
+          $ref: "#/components/responses/500"
+
 components:
   schemas:
     Account:
@@ -2291,7 +2313,7 @@ components:
           type: string
           example: us-east
         resource_provider:
-          $ref: "#/components/schemas/Runtime"
+          $ref: "#/components/schemas/ResourceProvider"
         created_at:
           type: integer
           format: int64

@@ -3,9 +3,8 @@ import {createResource} from '../../lib/ResourceService';
 import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import PropTypes from 'prop-types';
-import {listRegions} from '../../lib/RegionService';
 import ProviderIcon from '../misc/ProviderIcon';
-import {listPlatforms} from '../../lib/PlatformService';
+import {listPlatforms, listRegionsByPlatform} from '../../lib/PlatformService';
 
 
 const NewResourceForm = ({setNewResource}) => {
@@ -21,12 +20,6 @@ const NewResourceForm = ({setNewResource}) => {
           .then(() => setPlatforms((prevTypes) =>
             prevTypes.sort((a, b) => a.platform.localeCompare(b.platform)),
           ));
-      listRegions(token, setRegions, setError)
-          .then(() => setRegions((prevRegions) => {
-            return prevRegions.sort((a, b) =>
-              a.resource_provider.provider.localeCompare(b.resource_provider.provider) ||
-                a.name.localeCompare(b.name));
-          }));
     }
   }, []);
 
@@ -45,6 +38,13 @@ const NewResourceForm = ({setNewResource}) => {
   };
   const onFinishFailed = (errorInfo) => {
     console.log('Failed:', errorInfo);
+  };
+
+  const onChangePlatform = async (platformId) => {
+    if (!checkTokenExpired()) {
+      await listRegionsByPlatform(platformId, token, setRegions, setError);
+    }
+    form.resetFields(['region']);
   };
 
   return (
@@ -67,7 +67,7 @@ const NewResourceForm = ({setNewResource}) => {
             },
           ]}
         >
-          <Select className="w-40">
+          <Select className="w-40" onChange={onChangePlatform}>
             {platforms.map((platform) => {
               return (
                 <Select.Option value={platform.platform_id} key={platform.platform_id}>

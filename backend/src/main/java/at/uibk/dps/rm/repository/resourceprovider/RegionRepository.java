@@ -88,4 +88,40 @@ public class RegionRepository extends Repository<Region> {
                 .getResultList()
         );
     }
+
+    /**
+     * Find all regions by their supported platform.
+     *
+     * @param platformId the id of the platform
+     * @return a CompletionStage that emits a list of all regions
+     */
+    public CompletionStage<List<Region>> findAllByPlatformId(long platformId) {
+        return sessionFactory.withSession(session ->
+            session.createQuery("SELECT reg FROM Region reg " +
+                    "LEFT JOIN fetch reg.resourceProvider rp " +
+                    "LEFT JOIN rp.providerPlatforms pp " +
+                    "WHERE pp.platform.platformId = :platformId", entityClass)
+                .setParameter("platformId", platformId)
+                .getResultList()
+        );
+    }
+
+    /**
+     * Find region by its id and the supported platform.
+     *
+     * @param regionId the id of the region
+     * @param platformId the id of the platform
+     * @return a CompletionStage that emits a list of all regions
+     */
+    public CompletionStage<Region> findByRegionIdAndPlatformId(long regionId, long platformId) {
+        return sessionFactory.withSession(session ->
+            session.createQuery("SELECT reg FROM Region reg " +
+                    "LEFT JOIN reg.resourceProvider rp " +
+                    "LEFT JOIN rp.providerPlatforms pp " +
+                    "WHERE reg.regionId=:regionId and pp.platform.platformId=:platformId", entityClass)
+                .setParameter("regionId", regionId)
+                .setParameter("platformId", platformId)
+                .getSingleResultOrNull()
+        );
+    }
 }

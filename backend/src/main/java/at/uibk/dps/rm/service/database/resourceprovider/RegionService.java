@@ -50,4 +50,8 @@ public interface RegionService extends DatabaseServiceInterface {
      * @return a Future that emits true if the region exists, else false
      */
     Future<Boolean> existsOneByNameAndProviderId(String name, long providerId);
+
+    Future<JsonArray> findAllByPlatformId(long platformId);
+
+    Future<Boolean> existsByPlatformId(long regionId, long platformId);
 }

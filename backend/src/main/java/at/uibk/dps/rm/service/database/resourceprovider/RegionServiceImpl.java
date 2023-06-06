@@ -68,4 +68,26 @@ public class RegionServiceImpl extends DatabaseServiceProxy<Region> implements R
             .fromCompletionStage(regionRepository.findOneByNameAndProviderId(name, providerId))
             .map(Objects::nonNull);
     }
+
+    @Override
+    public Future<JsonArray> findAllByPlatformId(long platformId) {
+        return Future
+            .fromCompletionStage(regionRepository.findAllByPlatformId(platformId))
+            .map(result -> {
+                ArrayList<JsonObject> objects = new ArrayList<>();
+                for (Region entity: result) {
+                    entity.getResourceProvider().setProviderPlatforms(null);
+                    entity.getResourceProvider().setEnvironment(null);
+                    objects.add(JsonObject.mapFrom(entity));
+                }
+                return new JsonArray(objects);
+            });
+    }
+
+    @Override
+    public Future<Boolean> existsByPlatformId(long regionId, long platformId) {
+        return Future
+            .fromCompletionStage(regionRepository.findByRegionIdAndPlatformId(regionId, platformId))
+            .map(Objects::nonNull);
+    }
 }

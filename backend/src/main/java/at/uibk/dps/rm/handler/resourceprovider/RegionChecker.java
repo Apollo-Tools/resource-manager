@@ -40,6 +40,16 @@ public class RegionChecker extends EntityChecker {
         return ErrorHandler.handleFindAll(checkFindAllByProviderId);
     }
 
+    public Single<JsonArray> checkFindAllByPlatform(long platformId) {
+        Single<JsonArray> checkFindAllByPlatform = regionService.findAllByPlatformId(platformId);
+        return ErrorHandler.handleFindAll(checkFindAllByPlatform);
+    }
+
+    public Completable checkExistsByPlatform(long regionId, long platformId) {
+        Single<Boolean> checkExistsByPlatform = regionService.existsByPlatformId(regionId, platformId);
+        return ErrorHandler.handleExistsOne(checkExistsByPlatform).ignoreElement();
+    }
+
     @Override
     public Completable checkForDuplicateEntity(JsonObject entity) {
         Single<Boolean> existsOneByNameAndProviderId = regionService

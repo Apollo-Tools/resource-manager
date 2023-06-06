@@ -3,6 +3,11 @@ package at.uibk.dps.rm.service.database.resourceprovider;
 import at.uibk.dps.rm.entity.model.ResourceProvider;
 import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import io.vertx.core.Future;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+
+import java.util.ArrayList;
 
 /**
  * This is the implementation of the #ResourceProviderService.
@@ -11,6 +16,8 @@ import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
  */
 public class ResourceProviderServiceImpl extends DatabaseServiceProxy<ResourceProvider> implements ResourceProviderService {
 
+    private final ResourceProviderRepository repository;
+
     /**
      * Create an instance from the repository.
      *
@@ -18,5 +25,26 @@ public class ResourceProviderServiceImpl extends DatabaseServiceProxy<ResourcePr
      */
     public ResourceProviderServiceImpl(ResourceProviderRepository repository) {
         super(repository, ResourceProvider.class);
+        this.repository = repository;
+    }
+
+    @Override
+    public Future<JsonObject> findOne(long id) {
+        return Future
+            .fromCompletionStage(repository.findByIdAndFetch(id))
+            .map(JsonObject::mapFrom);
+    }
+
+    @Override
+    public Future<JsonArray> findAll() {
+        return Future
+            .fromCompletionStage(repository.findAllAndFetch())
+            .map(result -> {
+                ArrayList<JsonObject> objects = new ArrayList<>();
+                for (ResourceProvider entity: result) {
+                    objects.add(JsonObject.mapFrom(entity));
+                }
+                return new JsonArray(objects);
+            });
     }
 }

@@ -7,34 +7,30 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
- * Represents the resource_provider entity.
+ * Represents the provider_platform entity.
  *
  * @author matthi-g
  */
 @Entity
 @Getter
 @Setter
-public class ResourceProvider {
+public class ProviderPlatform {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long providerId;
-
-    private String provider;
-
-    @OneToMany(mappedBy = "resourceProvider")
-    private Set<ProviderPlatform> providerPlatforms = new HashSet<>();
+    private Long providerPlatformId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "environment_id")
-    private Environment environment;
+    @JoinColumn(name = "provider_id")
+    private ResourceProvider resourceProvider;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "platform_id")
+    private Platform platform;
 
     @Column(insertable = false, updatable = false)
-    private @Setter(AccessLevel.NONE)
-    Timestamp createdAt;
+    private  @Setter(AccessLevel.NONE) Timestamp createdAt;
 
     @Override
     @Generated
@@ -45,13 +41,13 @@ public class ResourceProvider {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        ResourceProvider resourceProvider = (ResourceProvider) obj;
-        return providerId.equals(resourceProvider.providerId);
+        ProviderPlatform that = (ProviderPlatform) obj;
+        return providerPlatformId.equals(that.providerPlatformId);
     }
 
     @Override
     @Generated
     public int hashCode() {
-        return providerId.hashCode();
+        return providerPlatformId.hashCode();
     }
 }

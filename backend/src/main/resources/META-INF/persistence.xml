@@ -18,6 +18,7 @@
         <class>at.uibk.dps.rm.entity.model.MetricType</class>
         <class>at.uibk.dps.rm.entity.model.MetricValue</class>
         <class>at.uibk.dps.rm.entity.model.Platform</class>
+        <class>at.uibk.dps.rm.entity.model.ProviderPlatform</class>
         <class>at.uibk.dps.rm.entity.model.Region</class>
         <class>at.uibk.dps.rm.entity.model.Reservation</class>
         <class>at.uibk.dps.rm.entity.model.ReservationLog</class>
