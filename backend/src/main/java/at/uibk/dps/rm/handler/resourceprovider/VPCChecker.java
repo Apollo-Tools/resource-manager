@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.handler.resourceprovider;
 
-import at.uibk.dps.rm.entity.dto.resource.ResourceTypeEnum;
+import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
@@ -74,9 +74,8 @@ public class VPCChecker extends EntityChecker {
         for (Object object: resources) {
             Resource resource = ((JsonObject) object).mapTo(Resource.class);
             long regionId = resource.getRegion().getRegionId();
-            String resourceType = resource.getPlatform().getResourceType().getResourceType();
-            if (!regionIds.contains(regionId) && !resourceType.equals(ResourceTypeEnum.EDGE.getValue()) &&
-                    !resourceType.equals(ResourceTypeEnum.CONTAINER.getValue())) {
+            String platform = resource.getPlatform().getPlatform();
+            if (!regionIds.contains(regionId) && platform.equals(PlatformEnum.EC2.getValue())) {
                 singles.add(this.checkFindOneByRegionIdAndAccountId(regionId, accountId));
                 regionIds.add(regionId);
             }

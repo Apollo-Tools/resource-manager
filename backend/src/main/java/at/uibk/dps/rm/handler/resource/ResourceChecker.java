@@ -94,8 +94,7 @@ public class ResourceChecker extends EntityChecker {
      */
     public Completable checkExistAllByIdsAndResourceType(List<ServiceResourceIds> serviceResourceIds,
         List<FunctionResourceIds> functionResourceIds) {
-        List<String> functionResourceTypes = List.of(ResourceTypeEnum.EDGE.getValue(), ResourceTypeEnum.FAAS.getValue(),
-            ResourceTypeEnum.VM.getValue());
+        List<String> functionResourceTypes = List.of(ResourceTypeEnum.FAAS.getValue());
         List<String> serviceResourceTypes = List.of(ResourceTypeEnum.CONTAINER.getValue());
 
         Single<Boolean> existsAllServiceResources = Observable.fromIterable(serviceResourceIds)

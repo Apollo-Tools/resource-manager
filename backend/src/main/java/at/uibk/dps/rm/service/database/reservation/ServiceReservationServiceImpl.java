@@ -38,6 +38,7 @@ public class ServiceReservationServiceImpl  extends DatabaseServiceProxy<Service
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (ServiceReservation entity: result) {
+                    entity.getResource().getRegion().getResourceProvider().setProviderPlatforms(null);
                     entity.setReservation(null);
                     objects.add(JsonObject.mapFrom(entity));
                 }

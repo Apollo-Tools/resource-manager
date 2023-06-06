@@ -34,6 +34,8 @@ public class VPCServiceImpl extends DatabaseServiceProxy<VPC> implements VPCServ
             .fromCompletionStage(vpcRepository.findByIdAndFetch(id))
             .map(result -> {
                 if (result != null) {
+                    result.getRegion().getResourceProvider().setProviderPlatforms(null);
+                    result.getRegion().getResourceProvider().setEnvironment(null);
                     result.setCreatedBy(null);
                 }
                 return JsonObject.mapFrom(result);
@@ -47,6 +49,8 @@ public class VPCServiceImpl extends DatabaseServiceProxy<VPC> implements VPCServ
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (VPC entity: result) {
+                    entity.getRegion().getResourceProvider().setProviderPlatforms(null);
+                    entity.getRegion().getResourceProvider().setEnvironment(null);
                     entity.setCreatedBy(null);
                     objects.add(JsonObject.mapFrom(entity));
                 }
@@ -61,6 +65,8 @@ public class VPCServiceImpl extends DatabaseServiceProxy<VPC> implements VPCServ
             .fromCompletionStage(vpcRepository.findByRegionIdAndAccountId(regionId, accountId))
             .map(result -> {
                 if (result != null) {
+                    result.getRegion().getResourceProvider().setProviderPlatforms(null);
+                    result.getRegion().getResourceProvider().setEnvironment(null);
                     result.setCreatedBy(null);
                 }
                 return JsonObject.mapFrom(result);

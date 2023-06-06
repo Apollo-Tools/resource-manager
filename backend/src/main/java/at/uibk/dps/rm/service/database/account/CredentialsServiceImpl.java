@@ -34,7 +34,13 @@ public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> im
     public Future<JsonObject> findOne(long id) {
         return Future
             .fromCompletionStage(credentialsRepository.findByIdAndFetch(id))
-            .map(JsonObject::mapFrom);
+            .map(result -> {
+                if (result != null) {
+                    result.getResourceProvider().setProviderPlatforms(null);
+                    result.getResourceProvider().setEnvironment(null);
+                }
+                return JsonObject.mapFrom(result);
+            });
     }
 
     @Override

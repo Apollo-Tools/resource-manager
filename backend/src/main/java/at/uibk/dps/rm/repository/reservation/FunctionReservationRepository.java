@@ -38,7 +38,8 @@ public class FunctionReservationRepository extends Repository<FunctionReservatio
                     "left join fetch r.platform p " +
                     "left join fetch p.resourceType " +
                     "left join fetch r.region reg " +
-                    "left join fetch reg.resourceProvider " +
+                    "left join fetch reg.resourceProvider rp " +
+                    "left join fetch rp.environment " +
                     "left join fetch fr.status " +
                     "where fr.reservation.reservationId=:reservationId", entityClass)
                 .setParameter("reservationId", reservationId)

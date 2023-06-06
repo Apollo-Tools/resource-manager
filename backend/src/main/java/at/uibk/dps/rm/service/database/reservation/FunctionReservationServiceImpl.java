@@ -37,6 +37,7 @@ public class FunctionReservationServiceImpl  extends DatabaseServiceProxy<Functi
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (FunctionReservation entity: result) {
                     entity.setReservation(null);
+                    entity.getResource().getRegion().getResourceProvider().setProviderPlatforms(null);
                     objects.add(JsonObject.mapFrom(entity));
                 }
                 return new JsonArray(objects);

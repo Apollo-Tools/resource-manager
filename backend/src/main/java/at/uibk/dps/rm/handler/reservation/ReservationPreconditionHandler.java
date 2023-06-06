@@ -3,7 +3,7 @@ package at.uibk.dps.rm.handler.reservation;
 import at.uibk.dps.rm.entity.dto.ReserveResourcesRequest;
 import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
 import at.uibk.dps.rm.entity.dto.reservation.ServiceResourceIds;
-import at.uibk.dps.rm.entity.dto.resource.ResourceTypeEnum;
+import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.handler.account.CredentialsChecker;
 import at.uibk.dps.rm.handler.function.FunctionChecker;
@@ -129,9 +129,9 @@ public class ReservationPreconditionHandler {
         for (Object object: resources.getList()) {
             Resource resource = ((JsonObject) object).mapTo(Resource.class);
             long providerId = resource.getRegion().getResourceProvider().getProviderId();
-            String resourceType = resource.getPlatform().getResourceType().getResourceType();
-            if (!resourceProviderIds.contains(providerId) && !resourceType.equals(ResourceTypeEnum.EDGE.getValue()) &&
-                    !resourceType.equals(ResourceTypeEnum.CONTAINER.getValue())) {
+            String platform = resource.getPlatform().getPlatform();
+            if (!resourceProviderIds.contains(providerId) && (platform.equals(PlatformEnum.LAMBDA.getValue()) ||
+                    platform.equals(PlatformEnum.EC2.getValue())))  {
                 completables.add(credentialsChecker.checkExistsOneByProviderId(accountId, providerId));
                 resourceProviderIds.add(providerId);
             }

@@ -34,9 +34,9 @@ const NewResourceReservations = ({ensembleId, functionResources, setFunctionReso
   useEffect(() => {
     if (ensemble != null) {
       setfunctionResourceChoice(ensemble?.resources
-          .filter((resource) => resource.resource_type.resource_type !== 'container'));
+          .filter((resource) => resource.platform.resource_type.resource_type !== 'container'));
       setserviceResourceChoice(ensemble?.resources
-          .filter((resource) => resource.resource_type.resource_type === 'container'));
+          .filter((resource) => resource.platform.resource_type.resource_type === 'container'));
     }
   }, [ensemble]);
 
