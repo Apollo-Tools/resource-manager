@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.handler.metric;
 
 import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.service.rxjava3.database.metric.ResourceTypeMetricService;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
@@ -24,7 +23,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 /**
- * Implements tests for the {@link ResourceTypeMetricChecker} class.
+ * Implements tests for the {@link PlatformMetricChecker} class.
  *
  * @author matthi-g
  */
@@ -32,7 +31,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class ResourceTypeMetricCheckerTest {
 
-    private ResourceTypeMetricChecker checker;
+    private PlatformMetricChecker checker;
 
     @Mock
     private ResourceTypeMetricService service;
@@ -40,7 +39,7 @@ public class ResourceTypeMetricCheckerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        checker = new ResourceTypeMetricChecker(service);
+        checker = new PlatformMetricChecker(service);
     }
 
     @Test
@@ -50,7 +49,7 @@ public class ResourceTypeMetricCheckerTest {
         when(service.missingRequiredResourceTypeMetricsByResourceId(resourceId))
             .thenReturn(Single.just(false));
 
-        checker.checkMissingRequiredResourceTypeMetricsByResource(resourceId)
+        checker.checkMissingRequiredPlatformMetricsByResource(resourceId)
             .blockingSubscribe(() -> {},
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
@@ -64,7 +63,7 @@ public class ResourceTypeMetricCheckerTest {
         when(service.missingRequiredResourceTypeMetricsByResourceId(resourceId))
             .thenReturn(Single.just(true));
 
-        checker.checkMissingRequiredResourceTypeMetricsByResource(resourceId)
+        checker.checkMissingRequiredPlatformMetricsByResource(resourceId)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);

@@ -34,7 +34,12 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     public Future<JsonObject> findOne(long id) {
         return Future
             .fromCompletionStage(resourceRepository.findByIdAndFetch(id))
-            .map(JsonObject::mapFrom);
+            .map(resource -> {
+                if (resource != null) {
+                    resource.getRegion().getResourceProvider().setProviderPlatforms(null);
+                }
+                return JsonObject.mapFrom(resource);
+            });
     }
 
     @Override
@@ -91,6 +96,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     private JsonArray encodeResourceList(List<Resource> resourceList) {
         ArrayList<JsonObject> objects = new ArrayList<>();
         for (Resource resource: resourceList) {
+            resource.getRegion().getResourceProvider().setProviderPlatforms(null);
             objects.add(JsonObject.mapFrom(resource));
         }
         return new JsonArray(objects);

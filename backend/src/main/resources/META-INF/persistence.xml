@@ -18,6 +18,7 @@
         <class>at.uibk.dps.rm.entity.model.MetricType</class>
         <class>at.uibk.dps.rm.entity.model.MetricValue</class>
         <class>at.uibk.dps.rm.entity.model.Platform</class>
+        <class>at.uibk.dps.rm.entity.model.PlatformMetric</class>
         <class>at.uibk.dps.rm.entity.model.ProviderPlatform</class>
         <class>at.uibk.dps.rm.entity.model.Region</class>
         <class>at.uibk.dps.rm.entity.model.Reservation</class>
@@ -28,7 +29,6 @@
         <class>at.uibk.dps.rm.entity.model.ResourceReservation</class>
         <class>at.uibk.dps.rm.entity.model.ResourceReservationStatus</class>
         <class>at.uibk.dps.rm.entity.model.ResourceType</class>
-        <class>at.uibk.dps.rm.entity.model.ResourceTypeMetric</class>
         <class>at.uibk.dps.rm.entity.model.Runtime</class>
         <class>at.uibk.dps.rm.entity.model.Service</class>
         <class>at.uibk.dps.rm.entity.model.ServiceReservation</class>

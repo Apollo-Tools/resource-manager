@@ -1,8 +1,8 @@
 package at.uibk.dps.rm.service.database.metric;
 
 import at.uibk.dps.rm.annotations.Generated;
-import at.uibk.dps.rm.entity.model.ResourceTypeMetric;
-import at.uibk.dps.rm.repository.metric.ResourceTypeMetricRepository;
+import at.uibk.dps.rm.entity.model.PlatformMetric;
+import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -18,20 +18,20 @@ import io.vertx.core.Vertx;
  */
 @ProxyGen
 @VertxGen
-public interface ResourceTypeMetricService extends DatabaseServiceInterface {
+public interface PlatformMetricService extends DatabaseServiceInterface {
 
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static ResourceTypeMetricService create(ResourceTypeMetricRepository repository) {
-        return new ResourceTypeMetricServiceImpl(repository);
+    static PlatformMetricService create(PlatformMetricRepository repository) {
+        return new PlatformMetricServiceImpl(repository);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
-    static ResourceTypeMetricService createProxy(Vertx vertx) {
-        return new ResourceTypeMetricServiceVertxEBProxy(vertx,
-            ServiceProxyAddress.getServiceProxyAddress(ResourceTypeMetric.class));
+    static PlatformMetricService createProxy(Vertx vertx) {
+        return new PlatformMetricServiceVertxEBProxy(vertx,
+            ServiceProxyAddress.getServiceProxyAddress(PlatformMetric.class));
     }
 
     /**
@@ -40,5 +40,5 @@ public interface ResourceTypeMetricService extends DatabaseServiceInterface {
      * @param resourceId the id of the resource
      * @return a Future that emits true if the resource is missing required metrics, else false
      */
-    Future<Boolean> missingRequiredResourceTypeMetricsByResourceId(long resourceId);
+    Future<Boolean> missingRequiredPlatformMetricsByResourceId(long resourceId);
 }

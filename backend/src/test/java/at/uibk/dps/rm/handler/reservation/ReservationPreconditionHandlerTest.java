@@ -9,7 +9,7 @@ import at.uibk.dps.rm.entity.model.VPC;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.handler.account.CredentialsChecker;
 import at.uibk.dps.rm.handler.function.FunctionChecker;
-import at.uibk.dps.rm.handler.metric.ResourceTypeMetricChecker;
+import at.uibk.dps.rm.handler.metric.PlatformMetricChecker;
 import at.uibk.dps.rm.handler.resource.ResourceChecker;
 import at.uibk.dps.rm.handler.resourceprovider.VPCChecker;
 import at.uibk.dps.rm.handler.service.ServiceChecker;
@@ -56,7 +56,7 @@ public class ReservationPreconditionHandlerTest {
     private ResourceChecker resourceChecker;
 
     @Mock
-    private ResourceTypeMetricChecker resourceTypeMetricChecker;
+    private PlatformMetricChecker resourceTypeMetricChecker;
 
     @Mock
     private VPCChecker vpcChecker;

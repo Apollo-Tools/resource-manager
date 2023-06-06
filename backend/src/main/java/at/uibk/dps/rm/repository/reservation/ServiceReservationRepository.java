@@ -36,7 +36,8 @@ public class ServiceReservationRepository extends Repository<ServiceReservation>
                     "left join fetch sr.resource r " +
                     "left join fetch r.metricValues mv " +
                     "left join fetch mv.metric " +
-                    "left join fetch r.resourceType " +
+                    "left join fetch r.platform p " +
+                    "left join fetch p.resourceType " +
                     "left join fetch r.region reg " +
                     "left join fetch reg.resourceProvider " +
                     "left join fetch sr.status " +

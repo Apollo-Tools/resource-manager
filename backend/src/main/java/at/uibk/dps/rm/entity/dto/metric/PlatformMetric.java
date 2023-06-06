@@ -4,12 +4,12 @@ import at.uibk.dps.rm.entity.model.Metric;
 import lombok.Data;
 
 /**
- * Represents metrics that are used for the respon
+ * Represents metrics that are used for the response
  *
  * @author matthi-g
  */
 @Data
-public class ResourceTypeMetric {
+public class PlatformMetric {
     private Metric metric;
     private boolean required;
 }

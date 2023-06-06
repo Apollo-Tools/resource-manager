@@ -35,7 +35,8 @@ public class FunctionReservationRepository extends Repository<FunctionReservatio
                     "left join fetch fr.resource r " +
                     "left join fetch r.metricValues mv " +
                     "left join fetch mv.metric " +
-                    "left join fetch r.resourceType " +
+                    "left join fetch r.platform p " +
+                    "left join fetch p.resourceType " +
                     "left join fetch r.region reg " +
                     "left join fetch reg.resourceProvider " +
                     "left join fetch fr.status " +

@@ -49,9 +49,9 @@ public class MetricServiceImplTest {
         Metric m3 = TestMetricProvider.createMetric(3L, "m3");
         CompletionStage<List<Metric>> completionStage = CompletionStages.completedFuture(List.of(m1, m2, m3));
 
-        when(metricRepository.findAllByResourceTypeId(resourceTypeId, required)).thenReturn(completionStage);
+        when(metricRepository.findAllByPlatformId(resourceTypeId, required)).thenReturn(completionStage);
 
-        metricService.findAllByResourceTypeId(resourceTypeId, required)
+        metricService.findAllByPlatformId(resourceTypeId, required)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(3);
                 assertThat(result.getJsonObject(0).getLong("metric_id")).isEqualTo(1L);
@@ -67,9 +67,9 @@ public class MetricServiceImplTest {
         boolean required = true;
         CompletionStage<List<Metric>> completionStage = CompletionStages.completedFuture(new ArrayList<>());
 
-        when(metricRepository.findAllByResourceTypeId(resourceTypeId, required)).thenReturn(completionStage);
+        when(metricRepository.findAllByPlatformId(resourceTypeId, required)).thenReturn(completionStage);
 
-        metricService.findAllByResourceTypeId(resourceTypeId, required)
+        metricService.findAllByPlatformId(resourceTypeId, required)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(0);
                 testContext.completeNow();

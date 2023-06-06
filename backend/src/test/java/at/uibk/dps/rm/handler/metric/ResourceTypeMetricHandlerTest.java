@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.handler.metric;
 
 import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.handler.resource.ResourceTypeChecker;
+import at.uibk.dps.rm.handler.resource.PlatformChecker;
 import at.uibk.dps.rm.testutil.objectprovider.TestMetricProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
 /**
- * Implements tests for the {@link ResourceTypeMetricHandler} class.
+ * Implements tests for the {@link PlatformMetricHandler} class.
  *
  * @author matthi-g
  */
@@ -32,13 +32,13 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class ResourceTypeMetricHandlerTest {
 
-    private ResourceTypeMetricHandler handler;
+    private PlatformMetricHandler handler;
 
     @Mock
     private MetricChecker metricChecker;
 
     @Mock
-    private ResourceTypeChecker resourceTypeChecker;
+    private PlatformChecker platformChecker;
 
     @Mock
     private RoutingContext rc;
@@ -46,7 +46,7 @@ public class ResourceTypeMetricHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        handler = new ResourceTypeMetricHandler(metricChecker, resourceTypeChecker);
+        handler = new PlatformMetricHandler(metricChecker, platformChecker);
     }
 
     @Test
@@ -60,9 +60,9 @@ public class ResourceTypeMetricHandlerTest {
         JsonArray optional = new JsonArray(List.of(m3));
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(typeId));
-        when(resourceTypeChecker.checkFindOne(typeId)).thenReturn(Single.just(rt1));
-        when(metricChecker.checkFindAllByResourceTypeId(typeId, true)).thenReturn(Single.just(required));
-        when(metricChecker.checkFindAllByResourceTypeId(typeId, false)).thenReturn(Single.just(optional));
+        when(platformChecker.checkFindOne(typeId)).thenReturn(Single.just(rt1));
+        when(metricChecker.checkFindAllByPlatform(typeId, true)).thenReturn(Single.just(required));
+        when(metricChecker.checkFindAllByPlatform(typeId, false)).thenReturn(Single.just(optional));
 
         handler.getAll(rc)
             .subscribe(result -> testContext.verify(() -> {
@@ -88,9 +88,9 @@ public class ResourceTypeMetricHandlerTest {
         JsonArray required = new JsonArray(List.of(m1, m2));
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(typeId));
-        when(resourceTypeChecker.checkFindOne(typeId)).thenReturn(Single.just(rt1));
-        when(metricChecker.checkFindAllByResourceTypeId(typeId, true)).thenReturn(Single.just(required));
-        when(metricChecker.checkFindAllByResourceTypeId(typeId, false))
+        when(platformChecker.checkFindOne(typeId)).thenReturn(Single.just(rt1));
+        when(metricChecker.checkFindAllByPlatform(typeId, true)).thenReturn(Single.just(required));
+        when(metricChecker.checkFindAllByPlatform(typeId, false))
             .thenReturn(Single.error(NotFoundException::new));
 
         handler.getAll(rc)
@@ -107,8 +107,8 @@ public class ResourceTypeMetricHandlerTest {
         JsonObject rt1 = JsonObject.mapFrom(TestResourceProvider.createResourceType(typeId, "vm"));
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(typeId));
-        when(resourceTypeChecker.checkFindOne(typeId)).thenReturn(Single.just(rt1));
-        when(metricChecker.checkFindAllByResourceTypeId(typeId, true))
+        when(platformChecker.checkFindOne(typeId)).thenReturn(Single.just(rt1));
+        when(metricChecker.checkFindAllByPlatform(typeId, true))
             .thenReturn(Single.error(NotFoundException::new));
 
         handler.getAll(rc)
@@ -124,7 +124,7 @@ public class ResourceTypeMetricHandlerTest {
         long typeId = 1L;
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(typeId));
-        when(resourceTypeChecker.checkFindOne(typeId)).thenReturn(Single.error(NotFoundException::new));
+        when(platformChecker.checkFindOne(typeId)).thenReturn(Single.error(NotFoundException::new));
 
         handler.getAll(rc)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),

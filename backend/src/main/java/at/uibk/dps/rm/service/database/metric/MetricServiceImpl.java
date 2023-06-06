@@ -29,9 +29,9 @@ public class MetricServiceImpl extends DatabaseServiceProxy<Metric> implements M
     }
 
     @Override
-    public Future<JsonArray> findAllByResourceTypeId(long resourceTypeId, boolean required) {
+    public Future<JsonArray> findAllByPlatformId(long resourceTypeId, boolean required) {
         return Future
-            .fromCompletionStage(metricRepository.findAllByResourceTypeId(resourceTypeId, required))
+            .fromCompletionStage(metricRepository.findAllByPlatformId(resourceTypeId, required))
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Metric entity: result) {

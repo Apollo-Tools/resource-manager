@@ -1913,37 +1913,6 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /resource-types/{id}/metrics:
-    get:
-      description: Return all metrics that are available for the selected resource type
-      operationId: listResourceTypeMetrics
-      security:
-        - bearerAuth: []
-      tags:
-        - resourceTypes
-      parameters:
-        - $ref: "#/components/parameters/idParam"
-      responses:
-        200:
-          description: Successful pull of all metrics for the selected resource type
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    metric:
-                      $ref: "#/components/schemas/Metric"
-                    required:
-                      description: whether to return the required or optional metrics
-                      type: boolean
-                      example: true
-        400:
-          $ref: "#/components/responses/400"
-        500:
-          $ref: "#/components/responses/500"
-
   /metrics/{id}:
     get:
       description: Return details about a metric managed by the resource manager
@@ -2228,6 +2197,38 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
+
+  /platforms/{id}/metrics:
+    get:
+      description: Return all metrics that are available for the selected platform
+      operationId: listPlatformMetrics
+      security:
+        - bearerAuth: []
+      tags:
+        - platforms
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of all metrics for the platform
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    metric:
+                      $ref: "#/components/schemas/Metric"
+                    required:
+                      description: whether to return the required or optional metrics
+                      type: boolean
+                      example: true
+        400:
+          $ref: "#/components/responses/400"
+        500:
+          $ref: "#/components/responses/500"
+
   /platforms/{id}/regions:
     get:
       description: List all regions where the platform is supported
@@ -2235,7 +2236,7 @@ paths:
       security:
         - bearerAuth: [ ]
       tags:
-        - platforms/regions
+        - platforms
       parameters:
         - $ref: "#/components/parameters/idParam"
       responses:

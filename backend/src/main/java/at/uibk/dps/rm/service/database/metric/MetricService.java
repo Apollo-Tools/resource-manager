@@ -43,7 +43,7 @@ public interface MetricService extends DatabaseServiceInterface {
      * @param required wether required or optional metrics should be returned
      * @return a Future that emits all metrics as JsonArray
      */
-    Future<JsonArray> findAllByResourceTypeId(long resourceTypeId, boolean required);
+    Future<JsonArray> findAllByPlatformId(long resourceTypeId, boolean required);
 
     /**
      * Find a metric by its name.

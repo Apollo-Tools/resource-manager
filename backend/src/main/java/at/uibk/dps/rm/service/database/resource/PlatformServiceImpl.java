@@ -23,6 +23,18 @@ public class PlatformServiceImpl extends DatabaseServiceProxy<Platform> implemen
     }
 
     @Override
+    public Future<JsonObject> findOne(long id) {
+        return Future
+            .fromCompletionStage(platformRepository.findById(id))
+            .map(platform -> {
+                if (platform != null) {
+                    platform.setResourceType(null);
+                }
+                return JsonObject.mapFrom(platform);
+            });
+    }
+
+    @Override
     public Future<JsonArray> findAll() {
         return Future
             .fromCompletionStage(platformRepository.findAllAndFetch())

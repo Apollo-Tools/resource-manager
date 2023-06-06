@@ -14,7 +14,7 @@ import at.uibk.dps.rm.repository.log.ReservationLogRepository;
 import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.metric.MetricTypeRepository;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
-import at.uibk.dps.rm.repository.metric.ResourceTypeMetricRepository;
+import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.repository.reservation.*;
 import at.uibk.dps.rm.repository.resource.PlatformRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
@@ -85,7 +85,7 @@ public class DatabaseVerticle extends AbstractVerticle {
     private ResourceReservationRepository resourceReservationRepository;
     private ResourceReservationStatusRepository statusRepository;
     private ResourceTypeRepository resourceTypeRepository;
-    private ResourceTypeMetricRepository resourceTypeMetricRepository;
+    private PlatformMetricRepository platformMetricRepository;
     private RuntimeRepository runtimeRepository;
     private ServiceRepository serviceRepository;
     private ServiceReservationRepository serviceReservationRepository;
@@ -152,7 +152,7 @@ public class DatabaseVerticle extends AbstractVerticle {
             resourceReservationRepository = new ResourceReservationRepository(sessionFactory);
             statusRepository = new ResourceReservationStatusRepository(sessionFactory);
             resourceTypeRepository = new ResourceTypeRepository(sessionFactory);
-            resourceTypeMetricRepository = new ResourceTypeMetricRepository(sessionFactory);
+            platformMetricRepository = new PlatformMetricRepository(sessionFactory);
             runtimeRepository = new RuntimeRepository(sessionFactory);
             serviceRepository = new ServiceRepository(sessionFactory);
             serviceReservationRepository = new ServiceReservationRepository(sessionFactory);
@@ -203,8 +203,8 @@ public class DatabaseVerticle extends AbstractVerticle {
             serviceProxyBinder.bind(ResourceReservationStatusService.class,
                 new ResourceReservationStatusServiceImpl(statusRepository));
             serviceProxyBinder.bind(ResourceTypeService.class, new ResourceTypeServiceImpl(resourceTypeRepository));
-            serviceProxyBinder.bind(ResourceTypeMetricService.class,
-                new ResourceTypeMetricServiceImpl(resourceTypeMetricRepository));
+            serviceProxyBinder.bind(PlatformMetricService.class,
+                new PlatformMetricServiceImpl(platformMetricRepository));
             serviceProxyBinder.bind(RuntimeService.class, new RuntimeServiceImpl(runtimeRepository));
             serviceProxyBinder.bind(ServiceService.class, new ServiceServiceImpl(serviceRepository));
             serviceProxyBinder.bind(ServiceReservationService.class,

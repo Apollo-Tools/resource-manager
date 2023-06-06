@@ -1,9 +1,9 @@
 package at.uibk.dps.rm.handler.metric;
 
-import at.uibk.dps.rm.entity.dto.metric.ResourceTypeMetric;
+import at.uibk.dps.rm.entity.dto.metric.PlatformMetric;
 import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.handler.ValidationHandler;
-import at.uibk.dps.rm.handler.resource.ResourceTypeChecker;
+import at.uibk.dps.rm.handler.resource.PlatformChecker;
 import at.uibk.dps.rm.util.misc.HttpHelper;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
@@ -18,43 +18,43 @@ import java.util.List;
  *
  * @author matthi-g
  */
-public class ResourceTypeMetricHandler extends ValidationHandler {
+public class PlatformMetricHandler extends ValidationHandler {
 
     private final MetricChecker metricChecker;
 
-    private final ResourceTypeChecker resourceTypeChecker;
+    private final PlatformChecker platformChecker;
 
     /**
      * Create an instance from the metricChecker and resourceTypeChecker.
      *
      * @param metricChecker the metric checker
-     * @param resourceTypeChecker the resource type checker
+     * @param platformChecker the platform checker
      */
-    public ResourceTypeMetricHandler(MetricChecker metricChecker, ResourceTypeChecker resourceTypeChecker) {
+    public PlatformMetricHandler(MetricChecker metricChecker, PlatformChecker platformChecker) {
         super(metricChecker);
         this.metricChecker = metricChecker;
-        this.resourceTypeChecker = resourceTypeChecker;
+        this.platformChecker = platformChecker;
     }
 
     @Override
     protected Single<JsonArray> getAll(RoutingContext rc) {
-        List<ResourceTypeMetric> response = new ArrayList<>();
+        List<PlatformMetric> response = new ArrayList<>();
         return HttpHelper.getLongPathParam(rc, "id")
-            .flatMap(id -> resourceTypeChecker.checkFindOne(id)
+            .flatMap(id -> platformChecker.checkFindOne(id)
                 .map(res -> id))
             .flatMap(id ->
-                metricChecker.checkFindAllByResourceTypeId(id, true)
+                metricChecker.checkFindAllByPlatform(id, true)
                     .flatMap(requiredMetrics -> {
-                        mapResourceTypeMetricsToResponse(requiredMetrics, response, true);
-                        return metricChecker.checkFindAllByResourceTypeId(id, false);
+                        mapPlatformMetricsToResponse(requiredMetrics, response, true);
+                        return metricChecker.checkFindAllByPlatform(id, false);
                     })
                     .map(optionalMetrics -> {
-                        mapResourceTypeMetricsToResponse(optionalMetrics, response, false);
+                        mapPlatformMetricsToResponse(optionalMetrics, response, false);
                         return response;
                     })
                     .map(res ->{
                         JsonArray result = new JsonArray();
-                        for (ResourceTypeMetric entity : res) {
+                        for (PlatformMetric entity : res) {
                             result.add(JsonObject.mapFrom(entity));
                         }
                         return result;
@@ -63,20 +63,20 @@ public class ResourceTypeMetricHandler extends ValidationHandler {
     }
 
     /**
-     * Map the metrics to the list of resourceTypeMetrics that is used for the response.
+     * Map the metrics to the list of platformMetrics that is used for the response.
      *
      * @param metrics the metrics
-     * @param response the resulting resource type metrics
-     * @param required if the resource type metrics are required or optional
+     * @param response the resulting platform metrics
+     * @param required if the platform metrics are required or optional
      */
-    private void mapResourceTypeMetricsToResponse(JsonArray metrics, List<ResourceTypeMetric> response,
+    private void mapPlatformMetricsToResponse(JsonArray metrics, List<PlatformMetric> response,
                                                   boolean required) {
         for (Object entity: metrics.getList()) {
             Metric metric = ((JsonObject) entity).mapTo(Metric.class);
-            ResourceTypeMetric resourceTypeMetric = new ResourceTypeMetric();
-            resourceTypeMetric.setMetric(metric);
-            resourceTypeMetric.setRequired(required);
-            response.add(resourceTypeMetric);
+            PlatformMetric platformMetric = new PlatformMetric();
+            platformMetric.setMetric(metric);
+            platformMetric.setRequired(required);
+            response.add(platformMetric);
         }
     }
 }

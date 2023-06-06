@@ -3,7 +3,7 @@ package at.uibk.dps.rm.handler.metric;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
-import at.uibk.dps.rm.service.rxjava3.database.metric.ResourceTypeMetricService;
+import at.uibk.dps.rm.service.rxjava3.database.metric.PlatformMetricService;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
@@ -14,22 +14,22 @@ import java.util.HashSet;
 import java.util.List;
 
 /**
- * Implements methods to perform CRUD operations on the resource_type_metric entity.
+ * Implements methods to perform CRUD operations on the platform_metric entity.
  *
  * @see EntityChecker
  *
  * @author matthi-g
  */
-public class ResourceTypeMetricChecker extends EntityChecker {
+public class PlatformMetricChecker extends EntityChecker {
 
-    private final ResourceTypeMetricService service;
+    private final PlatformMetricService service;
 
     /**
-     * Create an instance from the resourceTypeMetricService.
+     * Create an instance from the platformMetricService.
      *
-     * @param service the resource type metric service
+     * @param service the platform metric service
      */
-    public ResourceTypeMetricChecker(ResourceTypeMetricService service) {
+    public PlatformMetricChecker(PlatformMetricService service) {
         super(service);
         this.service = service;
     }
@@ -40,8 +40,8 @@ public class ResourceTypeMetricChecker extends EntityChecker {
      * @param resourceId the id of the resource
      * @return a Completable
      */
-    public Completable checkMissingRequiredResourceTypeMetricsByResource(long resourceId) {
-        Single<Boolean> checkMissingMetrics = service.missingRequiredResourceTypeMetricsByResourceId(resourceId);
+    public Completable checkMissingRequiredPlatformMetricsByResource(long resourceId) {
+        Single<Boolean> checkMissingMetrics = service.missingRequiredPlatformMetricsByResourceId(resourceId);
         return ErrorHandler.handleMissingRequiredMetrics(checkMissingMetrics).ignoreElement();
     }
 
@@ -57,7 +57,7 @@ public class ResourceTypeMetricChecker extends EntityChecker {
         for (Object object : resources) {
             Resource resource = ((JsonObject) object).mapTo(Resource.class);
             if (!resourceIds.contains(resource.getResourceId())) {
-                completables.add(this.checkMissingRequiredResourceTypeMetricsByResource(resource.getResourceId()));
+                completables.add(this.checkMissingRequiredPlatformMetricsByResource(resource.getResourceId()));
                 resourceIds.add(resource.getResourceId());
             }
         }

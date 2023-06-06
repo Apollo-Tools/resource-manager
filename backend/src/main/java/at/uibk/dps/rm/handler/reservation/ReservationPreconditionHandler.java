@@ -7,7 +7,7 @@ import at.uibk.dps.rm.entity.dto.resource.ResourceTypeEnum;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.handler.account.CredentialsChecker;
 import at.uibk.dps.rm.handler.function.FunctionChecker;
-import at.uibk.dps.rm.handler.metric.ResourceTypeMetricChecker;
+import at.uibk.dps.rm.handler.metric.PlatformMetricChecker;
 import at.uibk.dps.rm.handler.resource.ResourceChecker;
 import at.uibk.dps.rm.handler.resourceprovider.VPCChecker;
 import at.uibk.dps.rm.handler.service.ServiceChecker;
@@ -36,7 +36,7 @@ public class ReservationPreconditionHandler {
 
     private final ResourceChecker resourceChecker;
 
-    private final ResourceTypeMetricChecker resourceTypeMetricChecker;
+    private final PlatformMetricChecker platformMetricChecker;
 
     private final VPCChecker vpcChecker;
 
@@ -44,23 +44,22 @@ public class ReservationPreconditionHandler {
 
     /**
      * Create an instance from the functionChecker, serviceChecker, resourceChecker,
-     * resourceTypeMetricChecker, vpcChecker and credentialsChecker.
+     * platformMetricChecker, vpcChecker and credentialsChecker.
      *
      * @param functionChecker the function checker
      * @param serviceChecker the service checker
      * @param resourceChecker the resource checker
-     * @param resourceTypeMetricChecker the resource type metric checker
+     * @param platformMetricChecker the platform metric checker
      * @param vpcChecker the vpc checker
      * @param credentialsChecker the credentials checker
      */
-    public ReservationPreconditionHandler(FunctionChecker functionChecker,
-        ServiceChecker serviceChecker, ResourceChecker resourceChecker,
-        ResourceTypeMetricChecker resourceTypeMetricChecker, VPCChecker vpcChecker,
-        CredentialsChecker credentialsChecker) {
+    public ReservationPreconditionHandler(FunctionChecker functionChecker, ServiceChecker serviceChecker,
+            ResourceChecker resourceChecker, PlatformMetricChecker platformMetricChecker, VPCChecker vpcChecker,
+            CredentialsChecker credentialsChecker) {
         this.functionChecker = functionChecker;
         this.serviceChecker = serviceChecker;
         this.resourceChecker = resourceChecker;
-        this.resourceTypeMetricChecker = resourceTypeMetricChecker;
+        this.platformMetricChecker = platformMetricChecker;
         this.vpcChecker = vpcChecker;
         this.credentialsChecker = credentialsChecker;
     }
@@ -81,7 +80,7 @@ public class ReservationPreconditionHandler {
                 requestDTO.getFunctionResources()))
             .andThen(Single.defer(() -> checkFindResources(requestDTO)))
             .flatMap(resources -> checkCloudCredentialsForResources(accountId, resources)
-                .andThen(resourceTypeMetricChecker.checkMissingRequiredMetricsByResources(resources))
+                .andThen(platformMetricChecker.checkMissingRequiredMetricsByResources(resources))
                 .andThen(vpcChecker.checkVPCForFunctionResources(accountId, resources)
                     .map(vpcs -> {
                         vpcList.addAll(vpcs.stream().map(vpc -> vpc.mapTo(VPC.class)).collect(Collectors.toList()));

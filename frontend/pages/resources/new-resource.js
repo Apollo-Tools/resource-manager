@@ -2,9 +2,10 @@ import Head from 'next/head';
 import {siteTitle} from '../../components/misc/Sidebar';
 import {useState} from 'react';
 import {Result, Button, Typography} from 'antd';
-import {SmileOutlined} from '@ant-design/icons';
+import {CloudServerOutlined, SmileOutlined, UndoOutlined} from '@ant-design/icons';
 import NewResourceForm from '../../components/resources/NewResourceForm';
 import AddMetricValuesForm from '../../components/metrics/AddMetricValuesForm';
+import Link from 'next/link';
 
 
 const NewResource = () => {
@@ -27,8 +28,15 @@ const NewResource = () => {
                     <Result
                       icon={<SmileOutlined />}
                       title="The resource has been created!"
-                      extra={<Button type="primary" onClick={onClickRestart}>Restart</Button>}
-                    />:
+                      extra={
+                        <>
+                          <Button type="primary" icon={<UndoOutlined />} onClick={onClickRestart}>Restart</Button>
+                          <Link href={`/resources/resources`}>
+                            <Button type="default" icon={<CloudServerOutlined />}>All Services</Button>
+                          </Link>
+                        </>
+                      }
+                    /> :
                     (newResource ?
                     <AddMetricValuesForm resource={newResource} setFinished={setFinished} />:
                     <NewResourceForm setNewResource={setNewResource} />)

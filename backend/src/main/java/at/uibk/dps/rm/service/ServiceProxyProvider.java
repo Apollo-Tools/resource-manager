@@ -4,7 +4,7 @@ import at.uibk.dps.rm.service.rxjava3.database.ensemble.EnsembleSLOService;
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.EnsembleService;
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.ResourceEnsembleService;
 import at.uibk.dps.rm.service.rxjava3.database.log.ReservationLogService;
-import at.uibk.dps.rm.service.rxjava3.database.metric.ResourceTypeMetricService;
+import at.uibk.dps.rm.service.rxjava3.database.metric.PlatformMetricService;
 import at.uibk.dps.rm.service.rxjava3.database.reservation.*;
 import at.uibk.dps.rm.service.rxjava3.database.account.AccountCredentialsService;
 import at.uibk.dps.rm.service.rxjava3.database.account.AccountService;
@@ -62,7 +62,7 @@ public class ServiceProxyProvider {
     @SuppressWarnings("PMD.LongVariable")
     private final ResourceReservationStatusService resourceReservationStatusService;
     private final ResourceTypeService resourceTypeService;
-    private final ResourceTypeMetricService resourceTypeMetricService;
+    private final PlatformMetricService platformMetricService;
     private final RuntimeService runtimeService;
     private final ServiceReservationService serviceReservationService;
     private final ServiceService serviceService;
@@ -90,6 +90,7 @@ public class ServiceProxyProvider {
         metricTypeService = MetricTypeService.createProxy(vertx);
         metricValueService = MetricValueService.createProxy(vertx);
         platformService = PlatformService.createProxy(vertx);
+        platformMetricService = PlatformMetricService.createProxy(vertx);
         regionService = RegionService.createProxy(vertx);
         reservationService = ReservationService.createProxy(vertx);
         reservationLogService = ReservationLogService.createProxy(vertx);
@@ -99,7 +100,6 @@ public class ServiceProxyProvider {
         resourceReservationService = ResourceReservationService.createProxy(vertx);
         resourceReservationStatusService = ResourceReservationStatusService.createProxy(vertx);
         resourceTypeService = ResourceTypeService.createProxy(vertx);
-        resourceTypeMetricService = ResourceTypeMetricService.createProxy(vertx);
         runtimeService = RuntimeService.createProxy(vertx);
         serviceReservationService = ServiceReservationService.createProxy(vertx);
         serviceService = ServiceService.createProxy(vertx);

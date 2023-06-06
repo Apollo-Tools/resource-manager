@@ -9,22 +9,22 @@ import javax.persistence.*;
 import java.sql.Timestamp;
 
 /**
- * Represents the resource_type_metric entity.
+ * Represents the platform_metric entity.
  *
  * @author matthi-g
  */
 @Entity
 @Getter
 @Setter
-public class ResourceTypeMetric {
+public class PlatformMetric {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long resourceTypeMetricId;
+    private Long platformMetricId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "resource_type_id")
-    private ResourceType resourceType;
+    @JoinColumn(name = "platform_id")
+    private Platform platform;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "metric_id")
@@ -44,13 +44,13 @@ public class ResourceTypeMetric {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        ResourceTypeMetric rtm = (ResourceTypeMetric) obj;
-        return resourceTypeMetricId.equals(rtm.resourceTypeMetricId);
+        PlatformMetric pm = (PlatformMetric) obj;
+        return platformMetricId.equals(pm.platformMetricId);
     }
 
     @Override
     @Generated
     public int hashCode() {
-        return resourceTypeMetricId.hashCode();
+        return platformMetricId.hashCode();
     }
 }

@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.service.database.metric;
 
-import at.uibk.dps.rm.repository.metric.ResourceTypeMetricRepository;
+import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 /**
- * Implements tests for the {@link ResourceTypeMetricServiceImpl} class.
+ * Implements tests for the {@link PlatformMetricServiceImpl} class.
  *
  * @author matthi-g
  */
@@ -26,15 +26,15 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class ResourceTypeMetricServiceImplTest {
 
-    private ResourceTypeMetricService service;
+    private PlatformMetricService service;
 
     @Mock
-    private ResourceTypeMetricRepository repository;
+    private PlatformMetricRepository repository;
 
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        service = new ResourceTypeMetricServiceImpl(repository);
+        service = new PlatformMetricServiceImpl(repository);
     }
 
     @ParameterizedTest
@@ -48,7 +48,7 @@ public class ResourceTypeMetricServiceImplTest {
         CompletionStage<Long> completionStage = CompletionStages.completedFuture(missingRtms);
         when(repository.countMissingRequiredMetricValuesByResourceId(resourceId)).thenReturn(completionStage);
 
-        service.missingRequiredResourceTypeMetricsByResourceId(resourceId)
+        service.missingRequiredPlatformMetricsByResourceId(resourceId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isEqualTo(expectedResult);
                 testContext.completeNow();

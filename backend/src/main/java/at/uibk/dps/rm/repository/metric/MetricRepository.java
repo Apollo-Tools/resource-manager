@@ -24,18 +24,18 @@ public class MetricRepository extends Repository<Metric> {
     }
 
     /**
-     * Find all metrics by their resource type and if they are required or optional.
+     * Find all metrics by their platform and if they are required or optional.
      *
-     * @param resourceTypeId the id of the resource type
+     * @param platformId the id of the platform
      * @param required whether the metrics are required or optional
      * @return a CompletionStage that emits a list of all metrics
      */
-    public CompletionStage<List<Metric>> findAllByResourceTypeId(long resourceTypeId, boolean required) {
+    public CompletionStage<List<Metric>> findAllByPlatformId(long platformId, boolean required) {
         return this.sessionFactory.withSession(session ->
-            session.createQuery("select distinct m from ResourceTypeMetric rtm " +
-                "left join rtm.metric m " +
-                "where rtm.resourceType.typeId=:resourceTypeId and rtm.required=:required", entityClass)
-                .setParameter("resourceTypeId", resourceTypeId)
+            session.createQuery("select distinct m from PlatformMetric pm " +
+                "left join pm.metric m " +
+                "where pm.platform.platformId=:platformId and pm.required=:required", entityClass)
+                .setParameter("platformId", platformId)
                 .setParameter("required", required)
                 .getResultList()
         );
