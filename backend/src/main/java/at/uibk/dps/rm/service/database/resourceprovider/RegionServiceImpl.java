@@ -32,7 +32,12 @@ public class RegionServiceImpl extends DatabaseServiceProxy<Region> implements R
     public Future<JsonObject> findOne(long id) {
         return Future
             .fromCompletionStage(regionRepository.findByIdAndFetch(id))
-            .map(JsonObject::mapFrom);
+            .map(result -> {
+                if (result != null) {
+                    result.getResourceProvider().setProviderPlatforms(null);
+                }
+                return JsonObject.mapFrom(result);
+            });
     }
 
     @Override
@@ -42,6 +47,7 @@ public class RegionServiceImpl extends DatabaseServiceProxy<Region> implements R
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Region entity: result) {
+                    entity.getResourceProvider().setProviderPlatforms(null);
                     objects.add(JsonObject.mapFrom(entity));
                 }
                 return new JsonArray(objects);

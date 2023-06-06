@@ -44,6 +44,8 @@ public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> im
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Credentials entity: result) {
+                    entity.getResourceProvider().setProviderPlatforms(null);
+                    entity.getResourceProvider().setEnvironment(null);
                     objects.add(JsonObject.mapFrom(entity));
                 }
                 return new JsonArray(objects);

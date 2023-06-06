@@ -47,7 +47,8 @@ public class ResourceProviderRepository extends Repository<ResourceProvider> {
     public CompletionStage<List<ResourceProvider>> findAllAndFetch() {
         return sessionFactory.withSession(session ->
             session.createQuery("select distinct rp from ResourceProvider rp " +
-                    "left join fetch rp.environment", entityClass)
+                    "left join fetch rp.environment " +
+                    "order by rp.provider", entityClass)
                 .getResultList()
         );
     }

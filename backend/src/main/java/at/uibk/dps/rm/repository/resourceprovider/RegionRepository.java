@@ -67,8 +67,9 @@ public class RegionRepository extends Repository<Region> {
     public CompletionStage<List<Region>> findAllAndFetch() {
         return sessionFactory.withSession(session ->
             session.createQuery("select distinct r from Region r " +
-                        "left join fetch r.resourceProvider rp " +
-                        "left join fetch rp.environment ", entityClass)
+                    "left join fetch r.resourceProvider rp " +
+                    "left join fetch rp.environment " +
+                    "order by rp.provider", entityClass)
                 .getResultList()
         );
     }

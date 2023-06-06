@@ -47,8 +47,9 @@ public class CredentialsRepository  extends Repository<Credentials> {
         return sessionFactory.withSession(session ->
             session.createQuery("select c from AccountCredentials ac " +
                     "left join ac.credentials c " +
-                    "left join fetch c.resourceProvider " +
-                    "where ac.account.accountId=:accountId", entityClass)
+                    "left join fetch c.resourceProvider rp " +
+                    "where ac.account.accountId=:accountId " +
+                    "order by rp.provider", entityClass)
                 .setParameter("accountId", accountId)
                 .getResultList()
         );

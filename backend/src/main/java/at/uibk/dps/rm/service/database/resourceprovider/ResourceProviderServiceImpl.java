@@ -32,7 +32,12 @@ public class ResourceProviderServiceImpl extends DatabaseServiceProxy<ResourcePr
     public Future<JsonObject> findOne(long id) {
         return Future
             .fromCompletionStage(repository.findByIdAndFetch(id))
-            .map(JsonObject::mapFrom);
+            .map(obj -> {
+                if (obj != null) {
+                    obj.setProviderPlatforms(null);
+                }
+                return JsonObject.mapFrom(obj);
+            });
     }
 
     @Override
@@ -42,6 +47,7 @@ public class ResourceProviderServiceImpl extends DatabaseServiceProxy<ResourcePr
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (ResourceProvider entity: result) {
+                    entity.setProviderPlatforms(null);
                     objects.add(JsonObject.mapFrom(entity));
                 }
                 return new JsonArray(objects);

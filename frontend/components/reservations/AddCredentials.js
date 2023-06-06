@@ -38,9 +38,9 @@ const AddCredentials = ({functionResources, serviceResources, next, prev, onSubm
 
   const atLeastOneEdgeOrVMPresent = () => {
     for (const entry of functionResources.entries()) {
-      const vmEdgeResources = entry[1].filter((resource) => ['vm', 'edge']
-          .includes(resource.resource_type.resource_type));
-      if (vmEdgeResources.length > 0) {
+      const openfaasResources = entry[1].filter((resource) => ['openfaas']
+          .includes(resource.platform.platform));
+      if (openfaasResources.length > 0) {
         setNeedsDockerCreds(true);
         break;
       }
