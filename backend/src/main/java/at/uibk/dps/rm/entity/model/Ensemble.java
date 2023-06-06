@@ -28,6 +28,18 @@ public class Ensemble {
 
     private String name;
 
+    @Column(name="environments", columnDefinition = "_int8")
+    @Type(type="long-array")
+    private List<Long> environments;
+
+    @Column(name="resource_types", columnDefinition = "_int8")
+    @Type(type="long-array")
+    private List<Long> resource_types;
+
+    @Column(name="platforms", columnDefinition = "_int8")
+    @Type(type="long-array")
+    private List<Long> platforms;
+
     @Column(name="regions", columnDefinition = "_int8")
     @Type(type="long-array")
     private List<Long> regions;
@@ -35,10 +47,6 @@ public class Ensemble {
     @Column(name="providers", columnDefinition = "_int8")
     @Type(type="long-array")
     private List<Long> providers;
-
-    @Column(name="resource_types", columnDefinition = "_int8")
-    @Type(type="long-array")
-    private List<Long> resource_types;
 
     private Boolean isValid;
 

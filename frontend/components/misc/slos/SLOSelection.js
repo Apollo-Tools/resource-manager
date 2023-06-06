@@ -35,7 +35,9 @@ const SLOSelection = ({onChange}) => {
       setMetrics((prevMetrics) =>
         [...prevMetrics, {metric_id: -1, metric: 'region', metric_type: {type: 'number'}},
           {metric_id: -2, metric: 'resource_provider', metric_type: {type: 'number'}},
-          {metric_id: -3, metric: 'resource_type', metric_type: {type: 'number'}}]);
+          {metric_id: -3, metric: 'resource_type', metric_type: {type: 'number'}},
+          {metric_id: -4, metric: 'environment', metric_type: {type: 'number'}},
+          {metric_id: -5, metric: 'platform', metric_type: {type: 'number'}}]);
       setMetricsInitialised(true);
     }
   }, [metrics]);

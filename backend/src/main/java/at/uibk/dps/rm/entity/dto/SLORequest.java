@@ -21,9 +21,10 @@ public abstract class SLORequest {
     @JsonProperty("slos")
     private List<ServiceLevelObjective> serviceLevelObjectives =new ArrayList<>();
 
+    private List<Long> environments = new ArrayList<>();
+    private List<Long> resourceTypes = new ArrayList<>();
+    private List<Long> platforms = new ArrayList<>();
     private List<Long> regions = new ArrayList<>();
-
     private List<Long> providers = new ArrayList<>();
 
-    private List<Long> resourceTypes = new ArrayList<>();
 }

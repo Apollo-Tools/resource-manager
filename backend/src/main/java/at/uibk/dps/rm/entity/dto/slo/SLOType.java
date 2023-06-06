@@ -12,6 +12,18 @@ import lombok.Getter;
 @Getter
 public enum SLOType {
     /**
+     * Environment
+     */
+    ENVIRONMENT("environment"),
+    /**
+     * Resource type
+     */
+    RESOURCE_TYPE("resource_type"),
+    /**
+     * Platform
+     */
+    PLATFORM("platform"),
+    /**
      * Region
      */
     REGION("region"),
@@ -19,10 +31,6 @@ public enum SLOType {
      * Resource provider
      */
     RESOURCE_PROVIDER("resource_provider"),
-    /**
-     * Resource type
-     */
-    RESOURCE_TYPE("resource_type"),
     /**
      * Metric
      */

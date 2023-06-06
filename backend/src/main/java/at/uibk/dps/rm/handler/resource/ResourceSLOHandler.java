@@ -105,8 +105,9 @@ public class ResourceSLOHandler {
             .andThen(Observable.fromIterable(serviceLevelObjectives)
                 .map(ServiceLevelObjective::getName)
                 .toList()
-                .flatMap(metrics -> resourceChecker.checkFindAllBySLOs(metrics, sloRequest.getRegions(),
-                        sloRequest.getProviders(), sloRequest.getResourceTypes())))
+                .flatMap(metrics -> resourceChecker.checkFindAllBySLOs(metrics, sloRequest.getEnvironments(),
+                    sloRequest.getResourceTypes(), sloRequest.getPlatforms(), sloRequest.getRegions(),
+                    sloRequest.getProviders())))
             .flatMap(this::mapMetricValuesToResources)
             .map(this::mapJsonListToResourceList)
             .map(resources -> filterAndSortResultList(resources, serviceLevelObjectives));

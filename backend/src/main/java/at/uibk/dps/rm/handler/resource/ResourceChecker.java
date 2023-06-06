@@ -44,10 +44,10 @@ public class ResourceChecker extends EntityChecker {
      * @param resourceTypeIds the list of resource type ids
      * @return a Single that emits all found resources as JsonArray
      */
-    public Single<JsonArray> checkFindAllBySLOs(List<String> metrics,
-        List<Long> regionIds, List<Long> providerIds, List<Long> resourceTypeIds) {
-        Single<JsonArray> findAllByMultipleMetrics = resourceService.findAllBySLOs(metrics, regionIds, providerIds,
-                resourceTypeIds);
+    public Single<JsonArray> checkFindAllBySLOs(List<String> metrics, List<Long> environmentIds,
+            List<Long> resourceTypeIds, List<Long> platformIds, List<Long> regionIds, List<Long> providerIds) {
+        Single<JsonArray> findAllByMultipleMetrics = resourceService.findAllBySLOs(metrics, environmentIds,
+            resourceTypeIds, platformIds, regionIds, providerIds);
         return ErrorHandler.handleFindAll(findAllByMultipleMetrics);
     }
 

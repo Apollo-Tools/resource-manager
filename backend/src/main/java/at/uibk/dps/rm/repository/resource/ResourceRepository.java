@@ -79,20 +79,29 @@ public class ResourceRepository extends Repository<Resource> {
      * @param resourceTypeIds the ids of the resource types
      * @return a CompletionStage that emits a list of all resources
      */
-    public CompletionStage<List<Resource>> findAllBySLOs(List<String> metrics, List<Long> regionIds,
-            List<Long> providerIds, List<Long> resourceTypeIds) {
+    public CompletionStage<List<Resource>> findAllBySLOs(List<String> metrics, List<Long> environmentIds,
+            List<Long> resourceTypeIds, List<Long> platformIds, List<Long> regionIds, List<Long> providerIds) {
         List<String> conditions = new ArrayList<>();
-        if (!regionIds.isEmpty()) {
-            conditions.add("reg.regionId in (" +
-                    regionIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ")");
-        }
-        if (!providerIds.isEmpty()) {
-            conditions.add("reg.resourceProvider.providerId in (" +
-                providerIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ")");
+
+        if (!environmentIds.isEmpty()) {
+            conditions.add("e.environmentId in (" +
+                environmentIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ")");
         }
         if (!resourceTypeIds.isEmpty()) {
             conditions.add("rt.typeId in (" +
                 resourceTypeIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ")");
+        }
+        if (!platformIds.isEmpty()) {
+            conditions.add("p.platformId in (" +
+                platformIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ")");
+        }
+        if (!regionIds.isEmpty()) {
+            conditions.add("reg.regionId in (" +
+                regionIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ")");
+        }
+        if (!providerIds.isEmpty()) {
+            conditions.add("rp.providerId in (" +
+                providerIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ")");
         }
         if (!metrics.isEmpty()) {
             conditions.add("m.metric in (" +
@@ -105,12 +114,12 @@ public class ResourceRepository extends Repository<Resource> {
 
         String query = "select distinct r from Resource r " +
             "left join fetch r.metricValues mv " +
-            "left join fetch mv.metric " +
+            "left join fetch mv.metric m " +
             "left join fetch r.region reg " +
             "left join fetch reg.resourceProvider rp " +
-            "left join fetch rp.environment " +
+            "left join fetch rp.environment e " +
             "left join fetch r.platform p " +
-            "left join fetch p.resourceType " +
+            "left join fetch p.resourceType rt " +
             conditionString;
 
         return this.sessionFactory.withSession(session ->

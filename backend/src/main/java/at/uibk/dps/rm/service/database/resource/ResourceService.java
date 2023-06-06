@@ -41,13 +41,15 @@ public interface ResourceService extends DatabaseServiceInterface {
      * Find all resources based on the metrics, regions, resource providers and resource types.
      *
      * @param metrics the names of the metrics
+     * @param environmentIds the ids of the environments
+     * @param resourceTypeIds the ids of the resource types
+     * @param platformIds the ids of the platforms
      * @param regionIds the ids of the regions
      * @param providerIds the ids of the resource providers
-     * @param resourceTypeIds the ids of the resource types
      * @return a Future that emits all resource as JsonArray
      */
-    Future<JsonArray> findAllBySLOs(List<String> metrics, List<Long> regionIds, List<Long> providerIds,
-            List<Long> resourceTypeIds);
+    Future<JsonArray> findAllBySLOs(List<String> metrics, List<Long> environmentIds, List<Long> resourceTypeIds,
+        List<Long> platformIds, List<Long> regionIds, List<Long> providerIds);
 
     /**
      * Find all resources where a specific function may be deployed.
