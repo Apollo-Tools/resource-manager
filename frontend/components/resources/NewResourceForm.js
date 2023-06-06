@@ -89,7 +89,7 @@ const NewResourceForm = ({setNewResource}) => {
             },
           ]}
         >
-          <Select className="w-40">
+          <Select className="w-40" disabled={regions.length === 0}>
             {regions.map((region) => {
               return (
                 <Select.Option value={region.region_id} key={region.region_id}>

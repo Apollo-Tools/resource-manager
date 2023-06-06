@@ -32,7 +32,7 @@ const NewResource = () => {
                         <>
                           <Button type="primary" icon={<UndoOutlined />} onClick={onClickRestart}>Restart</Button>
                           <Link href={`/resources/resources`}>
-                            <Button type="default" icon={<CloudServerOutlined />}>All Services</Button>
+                            <Button type="default" icon={<CloudServerOutlined />}>All Resources</Button>
                           </Link>
                         </>
                       }
