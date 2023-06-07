@@ -2,6 +2,7 @@ package at.uibk.dps.rm.service.deployment.terraform;
 
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
+import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.entity.model.FunctionReservation;
 import at.uibk.dps.rm.exception.RuntimeNotSupportedException;
@@ -74,7 +75,7 @@ public class FunctionFileService {
                 packageSourceCode = new PackagePythonCode(vertx, fileSystem);
                 completables.add(packageSourceCode.composeSourceCode(functionsDir, functionIdentifier,
                     function.getCode()));
-                if (deployFunctionOnVMOrEdge(function)) {
+                if (deployFunctionOnOpenFaaS(function)) {
                     functionsString.append(String.format(
                         "  %s:\n" +
                             "    lang: python3-flask-debian\n" +
@@ -105,11 +106,12 @@ public class FunctionFileService {
      * @param function the function
      * @return true if the function has to be deployed on a vm or edge device, else false
      */
-    private boolean deployFunctionOnVMOrEdge(Function function) {
+    private boolean deployFunctionOnOpenFaaS(Function function) {
         return functionReservations.stream().anyMatch(functionReservation -> {
-            String resourceType = functionReservation.getResource().getPlatform().getResourceType().getResourceType();
+            PlatformEnum platform = PlatformEnum.fromString(
+                functionReservation.getResource().getPlatform().getPlatform());
             return functionReservation.getFunction().equals(function) &&
-                (resourceType.equals("edge") || resourceType.equals("vm"));
+                (platform.equals(PlatformEnum.OPENFAAS) || platform.equals(PlatformEnum.EC2));
         });
     }
 }

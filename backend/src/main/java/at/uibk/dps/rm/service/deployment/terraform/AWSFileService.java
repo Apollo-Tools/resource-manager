@@ -157,12 +157,12 @@ public class AWSFileService extends ModuleFileService {
             String functionIdentifier =  function.getFunctionDeploymentId();
             functionsString.append(String.format(
                 "module \"r%s_%s\" {\n" +
-                    "  openfaas_depends_on = module.vm\n" +
+                    "  openfaas_depends_on = module.ec2\n" +
                     "  source = \"../../../terraform/openfaas\"\n" +
                     "  name = \"r%s_%s_%s\"\n" +
                     "  image = \"%s/%s\"\n" +
                     "  basic_auth_user = \"admin\"\n" +
-                    "  vm_props = module.vm.vm_props[\"%s\"]\n" +
+                    "  vm_props = module.ec2.vm_props[\"%s\"]\n" +
                     "}\n", resource.getResourceId(), functionIdentifier, resource.getResourceId(),
                 functionIdentifier, reservationId, dockerUserName,
                 functionIdentifier, resourceName
@@ -174,7 +174,7 @@ public class AWSFileService extends ModuleFileService {
             return "";
         }
         vmString.append(String.format(
-                "module \"vm\" {\n" +
+                "module \"ec2\" {\n" +
                 "  source         = \"../../../terraform/aws/vm\"\n" +
                 "  reservation    = \"%s\"\n" +
                 "  names          = [%s]\n" +
@@ -226,7 +226,7 @@ public class AWSFileService extends ModuleFileService {
         if (!this.vmResourceIds.isEmpty()) {
             String vmProps =
                 "output \"vm_props\" {\n" +
-                "  value = module.vm.vm_props\n" +
+                "  value = module.ec2.vm_props\n" +
                 "  sensitive = true\n" +
                 "}\n";
             outputString.append(vmProps);
@@ -237,7 +237,7 @@ public class AWSFileService extends ModuleFileService {
                 Resource resource = functionReservation.getResource();
                 Function function = functionReservation.getFunction();
                 String functionIdentifier = function.getFunctionDeploymentId();
-                if (resource.getPlatform().getResourceType().getResourceType().equals("vm")) {
+                if (resource.getPlatform().getPlatform().equals(PlatformEnum.EC2.getValue())) {
                     vmUrls.append(String.format("module.r%s_%s.function_url,",
                         resource.getResourceId(), functionIdentifier));
                     vmFunctionIds.append(String.format("\"r%s_%s\",",

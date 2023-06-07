@@ -3,6 +3,8 @@ package at.uibk.dps.rm.entity.dto.resource;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Arrays;
+
 /**
  * Represents the supported platforms.
  *
@@ -29,4 +31,20 @@ public enum PlatformEnum {
     K8S("k8s");
 
     private final String value;
+
+    /**
+     * Create an instance from a string platform. This is necessary because a public method is not
+     * allowed.
+     * <p>
+     * ref: <a href="https://stackoverflow.com/a/45082346/13164629">Source</a>
+     *
+     * @param platform the platform
+     * @return the created object
+     */
+    public static PlatformEnum fromString(String platform) {
+        return Arrays.stream(PlatformEnum.values())
+            .filter(value -> value.value.equals(platform))
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("unknown value: " + platform));
+    }
 }
