@@ -36,7 +36,7 @@ public class MainTerraformExecutor extends TerraformExecutor{
         List<String> cloudCredentials = getCloudCredentialsCommands();
         List<String> commands = new ArrayList<>(List.of("terraform", "apply", "-auto-approve"));
         commands.addAll(cloudCredentials);
-        commands.add(getEdgeCredentialsCommand());
+        commands.add(getOpenFaasCredentialsCommand());
         ProcessExecutor processExecutor = new ProcessExecutor(folder, commands);
         return processExecutor.executeCli();
     }
@@ -52,7 +52,7 @@ public class MainTerraformExecutor extends TerraformExecutor{
         List<String> cloudCredentials = getCloudCredentialsCommands();
         List<String> commands = new ArrayList<>(List.of("terraform", "destroy", "-auto-approve"));
         commands.addAll(cloudCredentials);
-        commands.add(getEdgeCredentialsCommand());
+        commands.add(getOpenFaasCredentialsCommand());
         ProcessExecutor processExecutor = new ProcessExecutor(folder, commands);
         return processExecutor.executeCli();
     }
@@ -80,13 +80,14 @@ public class MainTerraformExecutor extends TerraformExecutor{
      *
      * @return the edge credentials formatted as terraform variables
      */
-    protected String getEdgeCredentialsCommand() {
-        String edgeLogin = credentials.getEdgeLoginCredentials();
-        if (edgeLogin.isBlank()) {
+    protected String getOpenFaasCredentialsCommand() {
+        String openFaasCredentials = credentials.getOpenFaasCredentialsString();
+        if (openFaasCredentials.isBlank()) {
             return "";
         }
+        System.out.println(openFaasCredentials);
         String separator = getOsVariableSeparator();
-        return "-var=" + separator + edgeLogin + separator;
+        return "-var=" + separator + openFaasCredentials + separator;
     }
 
     /**

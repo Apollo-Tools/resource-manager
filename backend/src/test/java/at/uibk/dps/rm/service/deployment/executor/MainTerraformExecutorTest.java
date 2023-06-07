@@ -132,7 +132,7 @@ public class MainTerraformExecutorTest {
         String expectedOutput = os.equals("Windows") ? "-var=\"edge_login_data=[{auth_user=\\\"user\\\"," +
             "auth_pw=\\\"pw\\\"},]\"" : "-var=edge_login_data=[{auth_user=\"user\",auth_pw=\"pw\"},]";
 
-        String result = terraformExecutor.getEdgeCredentialsCommand();
+        String result = terraformExecutor.getOpenFaasCredentialsCommand();
 
         assertThat(result).isEqualTo(expectedOutput);
     }

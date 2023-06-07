@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.entity.deployment;
 
 import at.uibk.dps.rm.entity.model.Credentials;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import lombok.Data;
@@ -19,6 +20,8 @@ import java.util.List;
 @DataObject
 public class DeploymentCredentials {
 
+    private final List<String> openFaasCredentials = new ArrayList<>();
+
     private String edgeLoginCredentials = "";
 
     private final List<Credentials> cloudCredentials = new ArrayList<>();
@@ -33,6 +36,7 @@ public class DeploymentCredentials {
         final DeploymentCredentials credentials = jsonObject.mapTo(DeploymentCredentials.class);
         this.edgeLoginCredentials = credentials.getEdgeLoginCredentials();
         this.cloudCredentials.addAll(credentials.getCloudCredentials());
+        this.openFaasCredentials.addAll(credentials.getOpenFaasCredentials());
     }
 
     /**
@@ -42,5 +46,13 @@ public class DeploymentCredentials {
      */
     public JsonObject toJson() {
         return JsonObject.mapFrom(this);
+    }
+
+    @JsonIgnore
+    public String getOpenFaasCredentialsString() {
+        if (openFaasCredentials.isEmpty()) {
+            return "";
+        }
+        return "openfaas_login_data={" + String.join(",", openFaasCredentials) + "}";
     }
 }

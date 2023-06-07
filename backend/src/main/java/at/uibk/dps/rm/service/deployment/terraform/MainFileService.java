@@ -57,12 +57,12 @@ public class MainFileService extends TerraformFileService {
             }
             if (cloudProvider.equals(CloudProvider.EDGE)) {
                 variables.append(
-                "variable \"edge_login_data\" {\n" +
-                "  type = list(object({\n" +
-                "    auth_user = string\n" +
-                "    auth_pw = string\n" +
-                "  }))\n" +
-                "}\n"
+                "variable openfaas_login_data {\n" +
+                "  type = list(map(object({\n" +
+                "      auth_user = string\n" +
+                "      auth_pw = string\n" +
+                "  })))\n" +
+                "}"
                 );
                 continue;
             }
@@ -70,18 +70,28 @@ public class MainFileService extends TerraformFileService {
             String preFix = cloudProvider.toString().toLowerCase();
             variables.append(String.format(
                 "variable \"%s_access_key\" {\n" +
-                    "  type = string\n" +
-                    "  default = \"\"\n" +
-                    "}\n" +
-                    "variable \"%s_secret_access_key\" {\n" +
-                    "  type = string\n" +
-                    "  default = \"\"\n" +
-                    "}\n" +
-                    "variable \"%s_session_token\" {\n" +
-                    "  type = string\n" +
-                    "  default = \"\"\n" +
-                    "}\n", preFix, preFix, preFix));
+                "  type = string\n" +
+                "  default = \"\"\n" +
+                "}\n" +
+                "variable \"%s_secret_access_key\" {\n" +
+                "  type = string\n" +
+                "  default = \"\"\n" +
+                "}\n" +
+                "variable \"%s_session_token\" {\n" +
+                "  type = string\n" +
+                "  default = \"\"\n" +
+                "}\n", preFix, preFix, preFix));
         }
+        variables.append(
+            "variable \"openfaas_login_data\" {\n" +
+            "  type = map(object({\n" +
+            "      auth_user = string\n" +
+            "      auth_pw = string\n" +
+            "  }))\n" +
+            "  default = {}\n" +
+            "}\n"
+        );
+
         return variables.toString();
     }
 
@@ -108,6 +118,7 @@ public class MainFileService extends TerraformFileService {
                     "  access_key = var.%s_access_key\n" +
                     "  secret_access_key = var.%s_secret_access_key\n" +
                     "  session_token = var.%s_session_token\n" +
+                    "  openfaas_login_data = var.openfaas_login_data\n" +
                     "}\n", moduleName, moduleName, prefix, prefix, prefix));
             } else {
                 moduleString.append(

@@ -2,6 +2,7 @@ package at.uibk.dps.rm.service.deployment.terraform;
 
 import at.uibk.dps.rm.entity.deployment.EC2DeploymentData;
 import at.uibk.dps.rm.entity.deployment.LambdaDeploymentData;
+import at.uibk.dps.rm.entity.deployment.OpenFaasDeploymentData;
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.deployment.TerraformModule;
@@ -29,15 +30,11 @@ public class AWSFileService extends ModuleFileService {
 
     private final long reservationId;
 
-    private final Set<Long> faasFunctionIds = new HashSet<>();
-
-    private final Set<Long> vmResourceIds = new HashSet<>();
-
-    private final Set<Long> vmFunctionIds = new HashSet<>();
-
     private final LambdaDeploymentData lambdaDeploymentData;
 
     private final EC2DeploymentData ec2DeploymentData;
+
+    private final OpenFaasDeploymentData openFaasDeploymentData;
 
     /**
      * Create an instance from the fileSystem, rootFolder, functionsDir, region, awsRole,
@@ -65,6 +62,7 @@ public class AWSFileService extends ModuleFileService {
         this.lambdaDeploymentData = new LambdaDeploymentData();
         this.lambdaDeploymentData.setAwsRole(awsRole);
         this.ec2DeploymentData = new EC2DeploymentData(reservationId, vpc, dockerUserName);
+        this.openFaasDeploymentData = new OpenFaasDeploymentData(reservationId, dockerUserName);
     }
 
 
@@ -92,10 +90,14 @@ public class AWSFileService extends ModuleFileService {
                 case EC2:
                     composeEC2DeploymentData(resource, function, ec2DeploymentData);
                     break;
+                case OPENFAAS:
+                    composeOpenFassDeploymentData(resource, function, openFaasDeploymentData);
+                    break;
             }
         }
 
-        return lambdaDeploymentData.getModuleString() + ec2DeploymentData.getModuleString();
+        return lambdaDeploymentData.getModuleString() + ec2DeploymentData.getModuleString() +
+            openFaasDeploymentData.getModuleString();
     }
 
     private void composeLambdaDeploymentData(Resource resource, Function function,
@@ -110,7 +112,6 @@ public class AWSFileService extends ModuleFileService {
             .append(functionIdentifier).append(".zip");
         if (runtime.startsWith("python")) {
             functionHandler = "main.handler";
-            faasFunctionIds.add(function.getFunctionId());
         } else {
             throw new RuntimeNotSupportedException();
         }
@@ -127,16 +128,22 @@ public class AWSFileService extends ModuleFileService {
             .stream()
             .collect(Collectors.toMap(metricValue -> metricValue.getMetric().getMetric(),
                 metricValue -> metricValue));
-        // TODO: swap with check, if vm is already deployed
         String functionIdentifier =  function.getFunctionDeploymentId();
-        if (checkMustDeployVM(resource)) {
+        // TODO: swap with check, if vm is already deployed
+        if (checkMustDeployVM(resource, deploymentData)) {
             String instanceType = metricValues.get("instance-type").getValueString();
             deploymentData.appendValues(resourceName, instanceType, resource.getResourceId(), functionIdentifier);
-            vmResourceIds.add(resource.getResourceId());
         } else {
             deploymentData.appendValues(resourceName, resource.getResourceId(), functionIdentifier);
         }
-        vmFunctionIds.add(function.getFunctionId());
+    }
+
+    private void composeOpenFassDeploymentData(Resource resource, Function function,
+            OpenFaasDeploymentData deploymentData) {
+        String functionIdentifier =  function.getFunctionDeploymentId();
+        Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
+        String gatewayUrl = metricValues.get("gateway-url").getValueString();
+        deploymentData.appendValues(resource.getResourceId(), functionIdentifier, gatewayUrl);
     }
 
     @Override
@@ -146,13 +153,13 @@ public class AWSFileService extends ModuleFileService {
     }
 
     /**
-     * Check whether a new virtual machine has to deployed or not.
+     * Check whether a new virtual machine has to be deployed or not.
      *
      * @param resource the virtual machine
      * @return true if a new virtua machine has to be deployed, else false
      */
-    private boolean checkMustDeployVM(Resource resource) {
-        return !vmResourceIds.contains(resource.getResourceId());
+    private boolean checkMustDeployVM(Resource resource, EC2DeploymentData deploymentData) {
+        return !deploymentData.getResourceIds().contains(resource.getResourceId());
     }
 
     @Override
@@ -168,53 +175,57 @@ public class AWSFileService extends ModuleFileService {
             "variable \"session_token\" {\n" +
             "  type = string\n" +
             "  default = \"\"\n" +
+            "}\n" +
+            "variable \"openfaas_login_data\" {\n" +
+            "  type = map(object({\n" +
+            "      auth_user = string\n" +
+            "      auth_pw = string\n" +
+            "  }))\n" +
+            "  default = {}\n" +
             "}\n";
     }
 
     @Override
     protected String getOutputString() {
         StringBuilder outputString = new StringBuilder();
-        if (!this.faasFunctionIds.isEmpty()) {
-            String functionUrl =
-                "output \"function_urls\" {\n" +
-                "  value = module.lambda.function_urls\n" +
-                "}\n";
-            outputString.append(functionUrl);
+        String lambdaUrls = "{}", openFaasUrls = "{}";
+        if (this.lambdaDeploymentData.getFunctionCount() > 0) {
+            lambdaUrls = "module.lambda.function_urls";
         }
-        if (!this.vmFunctionIds.isEmpty()) {
+        if (this.ec2DeploymentData.getFunctionCount() > 0 || this.openFaasDeploymentData.getFunctionCount() > 0) {
             StringBuilder vmUrls = new StringBuilder(), vmFunctionIds = new StringBuilder();
             for (FunctionReservation functionReservation: functionReservations) {
                 Resource resource = functionReservation.getResource();
                 Function function = functionReservation.getFunction();
                 String functionIdentifier = function.getFunctionDeploymentId();
-                if (resource.getPlatform().getPlatform().equals(PlatformEnum.EC2.getValue())) {
+                PlatformEnum platformEnum = PlatformEnum.fromString(resource.getPlatform().getPlatform());
+                if (platformEnum.equals(PlatformEnum.EC2) || platformEnum.equals(PlatformEnum.OPENFAAS)) {
                     vmUrls.append(String.format("module.r%s_%s.function_url,",
                         resource.getResourceId(), functionIdentifier));
-                    vmFunctionIds.append(String.format("\"r%s_%s\",",
-                        resource.getResourceId(), functionIdentifier));
+                    vmFunctionIds.append(String.format("\"r%s_%s_%s\",",
+                        resource.getResourceId(), functionIdentifier, reservationId));
                 }
             }
-            outputString.append(String.format(
-                "output \"vm_urls\" {\n" +
-                "  value = zipmap([%s], [%s])\n" +
-                "}\n", vmFunctionIds, vmUrls
-            ));
-
+            openFaasUrls = String.format("zipmap([%s], [%s])", vmFunctionIds, vmUrls);
         }
+        outputString.append(String.format(
+            "output \"temp\" {\n" +
+            "  value = merge(%s, %s)\n" +
+            "}\n", lambdaUrls, openFaasUrls
+        ));
         setModuleResourceTypes();
         return outputString.toString();
     }
 
     @Override
     protected void setModuleResourceTypes() {
-        getModule().setHasFaas(!faasFunctionIds.isEmpty());
-        getModule().setHasVM(!vmResourceIds.isEmpty());
+        getModule().setHasFaas(lambdaDeploymentData.getFunctionCount() > 0);
+        getModule().setHasVM(ec2DeploymentData.getFunctionCount() > 0);
     }
 
     @Override
     protected String getMainFileContent() {
-        return this.getProviderString() +
-            this.getFunctionsModulString();
+        return this.getProviderString() + this.getFunctionsModulString();
     }
 
     @Override

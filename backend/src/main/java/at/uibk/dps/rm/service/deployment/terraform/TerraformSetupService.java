@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.deployment.CloudProvider;
 import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.dto.TerminateResourcesRequest;
+import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.deployment.TerraformModule;
@@ -16,10 +17,7 @@ import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.file.FileSystem;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -88,16 +86,10 @@ public class TerraformSetupService {
         List<Single<TerraformModule>> singles = new ArrayList<>();
         for (Region region: functionReservations.keySet()) {
             List<FunctionReservation> regionFunctionReservations = functionReservations.get(region);
-            if (region.getName().equals("edge")) {
-                // TF: Edge resources
-                singles.add(edgeDeployment(regionFunctionReservations));
-                // Create edge login data
-                composeEdgeLoginData(regionFunctionReservations);
-            } else {
-                // TF: Cloud resources
-                singles.add(cloudDeployment(region, regionFunctionReservations, regionVPCMap));
-                composeCloudLoginData(deployRequest.getCredentialsList(), region);
-            }
+            // TF: Cloud resources
+            singles.add(cloudDeployment(region, regionFunctionReservations, regionVPCMap));
+            composeCloudLoginData(deployRequest.getCredentialsList(), region);
+            composeOpenFaasLoginData(regionFunctionReservations);
         }
         if (!deployRequest.getServiceReservations().isEmpty()) {
             singles.add(containerDeployment(deployRequest.getServiceReservations()));
@@ -120,12 +112,8 @@ public class TerraformSetupService {
             .mapFunctionReservations(terminateRequest.getFunctionReservations());
         for (Region region: functionReservations.keySet()) {
             List<FunctionReservation> regionFunctionReservations = functionReservations.get(region);
-            if (region.getName().equals("edge")) {
-                // Get edge login data
-                composeEdgeLoginData(regionFunctionReservations);
-            } else {
-                composeCloudLoginData(terminateRequest.getCredentialsList(), region);
-            }
+            composeCloudLoginData(terminateRequest.getCredentialsList(), region);
+            composeOpenFaasLoginData(regionFunctionReservations);
         }
         return Single.just(this.credentials);
     }
@@ -136,28 +124,28 @@ public class TerraformSetupService {
      *
      * @param regionFunctionReservations the function reservations grouped by region
      */
-    private void composeEdgeLoginData(List<FunctionReservation> regionFunctionReservations) {
-        StringBuilder edgeCredentials = new StringBuilder();
-        edgeCredentials.append("edge_login_data=[");
+    private void composeOpenFaasLoginData(List<FunctionReservation> regionFunctionReservations) {
         String escapeString = "\"";
         if (System.getProperty("os.name").toLowerCase().contains("windows")) {
             escapeString = "\\\"";
         }
+        Set<Long> credentialResources = new HashSet<>();
         for (FunctionReservation functionReservation : regionFunctionReservations) {
             Resource resource = functionReservation.getResource();
+            if (credentialResources.contains(resource.getResourceId()) ||
+                !resource.getPlatform().getPlatform().equals(PlatformEnum.OPENFAAS.getValue())) {
+                continue;
+            }
             Map<String, MetricValue> metricValues = resource.getMetricValues()
                 .stream()
                 .collect(Collectors.toMap(metricValue -> metricValue.getMetric().getMetric(),
                     metricValue -> metricValue));
-            edgeCredentials.append("{auth_user=").append(escapeString)
-                .append(metricValues.get("openfaas-user").getValueString())
-                .append(escapeString).append(",auth_pw=").append(escapeString)
-                .append(metricValues.get("openfaas-pw").getValueString())
-                .append(escapeString)
-                .append("},");
+            String openFaasCredentials = "r" + resource.getResourceId() + "={auth_user=" + escapeString +
+                metricValues.get("openfaas-user").getValueString() + escapeString + ",auth_pw=" + escapeString +
+                metricValues.get("openfaas-pw").getValueString() + escapeString + "}";
+            credentials.getOpenFaasCredentials().add(openFaasCredentials);
+            credentialResources.add(resource.getResourceId());
         }
-        edgeCredentials.append("]");
-        credentials.setEdgeLoginCredentials(edgeCredentials.toString());
     }
 
     /**
