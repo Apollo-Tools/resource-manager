@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.deployment.CloudProvider;
 import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.dto.TerminateResourcesRequest;
+import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.deployment.TerraformModule;
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
@@ -187,8 +188,8 @@ public class TerraformSetupService {
         //TODO: get rid of hard coded labRole
         String awsRole = "LabRole";
         String provider = region.getResourceProvider().getProvider();
-        TerraformModule module = new TerraformModule(CloudProvider.AWS, provider + "_" +
-            region.getName().replace("-", "_"));
+        ResourceProviderEnum resourceProvider = ResourceProviderEnum.fromString(provider);
+        TerraformModule module = new TerraformModule(resourceProvider, region);
         Path awsFolder = deploymentPath.getModuleFolder(module);
         AWSFileService fileService = new AWSFileService(vertx.fileSystem(), awsFolder, deploymentPath.getFunctionsFolder(),
             region, awsRole, regionFunctionReservations, deployRequest.getReservation().getReservationId(), module,

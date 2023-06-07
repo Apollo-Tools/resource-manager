@@ -1,6 +1,8 @@
 package at.uibk.dps.rm.entity.deployment;
 
 import at.uibk.dps.rm.annotations.Generated;
+import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
+import at.uibk.dps.rm.entity.model.Region;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -36,6 +38,18 @@ public class TerraformModule {
         this.cloudProvider = cloudProvider;
         this.moduleName = moduleName;
         this.hasEdge = cloudProvider.equals(CloudProvider.EDGE);
+    }
+
+    /**
+     * Create an instance from a cloud provider and module name.
+     *
+     * @param resourceProvider the resource provider
+     * @param region the region of the module
+     */
+    public TerraformModule(ResourceProviderEnum resourceProvider, Region region) {
+        // TODO: remove cloud provider
+        this.cloudProvider = CloudProvider.AWS;
+        this.moduleName = resourceProvider.getValue() + "_" + region.getName().replace("-", "_");
     }
 
     @Override

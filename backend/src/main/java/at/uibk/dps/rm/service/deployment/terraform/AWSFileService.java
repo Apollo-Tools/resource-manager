@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
+import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.deployment.TerraformModule;
 import at.uibk.dps.rm.exception.RuntimeNotSupportedException;
@@ -85,7 +86,7 @@ public class AWSFileService extends ModuleFileService {
             functionLayers = new StringBuilder();
         for (FunctionReservation functionReservation: functionReservations) {
             Resource resource = functionReservation.getResource();
-            if (!resource.getPlatform().getResourceType().getResourceType().equals("faas")) {
+            if (!resource.getPlatform().getPlatform().equals(PlatformEnum.LAMBDA.getValue())) {
                 continue;
             }
             Function function = functionReservation.getFunction();
@@ -115,7 +116,7 @@ public class AWSFileService extends ModuleFileService {
         }
 
         return String.format(
-            "module \"faas\" {\n" +
+            "module \"lambda\" {\n" +
                 "  source = \"../../../terraform/aws/faas\"\n" +
                 "  names = [%s]\n" +
                 "  paths = [%s]\n" +
@@ -138,7 +139,7 @@ public class AWSFileService extends ModuleFileService {
         for (FunctionReservation functionReservation: functionReservations) {
             Resource resource = functionReservation.getResource();
             Function function = functionReservation.getFunction();
-            if (!resource.getPlatform().getResourceType().getResourceType().equals("vm")) {
+            if (!resource.getPlatform().getPlatform().equals(PlatformEnum.EC2.getValue())) {
                 continue;
             }
             String resourceName = "resource_" + resource.getResourceId();
@@ -218,7 +219,7 @@ public class AWSFileService extends ModuleFileService {
         if (!this.faasFunctionIds.isEmpty()) {
             String functionUrl =
                 "output \"function_urls\" {\n" +
-                "  value = module.faas.function_urls\n" +
+                "  value = module.lambda.function_urls\n" +
                 "}\n";
             outputString.append(functionUrl);
         }
