@@ -40,8 +40,7 @@ public class TestFileServiceProvider {
         String dockerUserName = "dockerUser";
         VPC vpc = TestResourceProviderProvider.createVPC(1L, region);
         return new RegionFaasFileService(fileSystem, rootFolder, functionsDir, region, awsRole,
-            functionReservations, reservationId, module, dockerUserName, vpc, Set.of(PlatformEnum.LAMBDA,
-                PlatformEnum.EC2, PlatformEnum.OPENFAAS, PlatformEnum.K8S));
+            functionReservations, reservationId, module, dockerUserName, vpc);
     }
 
     public static RegionFaasFileService createAWSFileServiceFaasVMEdge(FileSystem fileSystem, Runtime runtime) {

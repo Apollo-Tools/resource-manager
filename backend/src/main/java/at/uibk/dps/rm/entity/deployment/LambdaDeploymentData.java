@@ -2,7 +2,6 @@ package at.uibk.dps.rm.entity.deployment;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.math.BigDecimal;
 
@@ -16,16 +15,13 @@ public class LambdaDeploymentData {
     private String memorySizes = "";
     private String layers = "";
     private String runtimes = "";
-
-    @Setter
-    @Getter
-    private String awsRole = "";
+    private String deploymentRoles = "";
 
     @Getter
     private long functionCount = 0;
 
-    public void appendValues(String functionName, String path, String handler,
-        BigDecimal timeout, BigDecimal memorySize, String layer, String runtime) {
+    public void appendValues(String functionName, String path, String handler, BigDecimal timeout,
+            BigDecimal memorySize, String layer, String runtime, String deploymentRole) {
         this.functionNames += addQuotes(functionName);
         this.paths += addQuotes(path);
         this.handlers += addQuotes(handler);
@@ -33,6 +29,7 @@ public class LambdaDeploymentData {
         this.memorySizes += memorySize + ",";
         this.layers += layer + ",";
         this.runtimes += addQuotes(runtime);
+        this.deploymentRoles += addQuotes(deploymentRole);
         functionCount++;
     }
 
@@ -55,9 +52,9 @@ public class LambdaDeploymentData {
                 "  memory_sizes = [%s]\n" +
                 "  layers = [%s]\n" +
                 "  runtimes = [%s]\n" +
-                "  aws_role = \"%s\"\n" +
+                "  deployment_roles = [%s]\n" +
                 "}\n", functionNames, paths, handlers, timeouts,
-            memorySizes, layers, runtimes, awsRole
+            memorySizes, layers, runtimes, deploymentRoles
         );
     }
 }

@@ -36,8 +36,9 @@ public class ComposeDeploymentDataUtility {
         Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
         BigDecimal timeout =  metricValues.get("timeout").getValueNumber();
         BigDecimal memorySize = metricValues.get("memory-size").getValueNumber();
+        String deploymentRole = metricValues.get("deployment-role").getValueString();
         deploymentData.appendValues(functionName.toString(), functionPath.toString(), functionHandler, timeout,
-            memorySize, "[]", runtime);
+            memorySize, "[]", runtime, deploymentRole);
     }
 
     public static void composeEC2DeploymentData(Resource resource, Function function, EC2DeploymentData deploymentData) {

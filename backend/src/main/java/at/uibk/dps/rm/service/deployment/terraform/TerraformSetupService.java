@@ -160,8 +160,6 @@ public class TerraformSetupService {
             .ifPresent(foundCredentials -> credentials.getCloudCredentials().add(foundCredentials));
     }
 
-    //TODO: Rework for other cloud providers
-
     /**
      * Setup everything necessary for cloud deployment in the region.
      *
@@ -172,15 +170,16 @@ public class TerraformSetupService {
      */
     private Single<TerraformModule> functionDeployment(Region region, List<FunctionReservation> regionFunctionReservations,
                                                     Map<Region, VPC> regionVPCMap) {
-        //TODO: get rid of hard coded labRole
-        String awsRole = "LabRole";
         String provider = region.getResourceProvider().getProvider();
         ResourceProviderEnum resourceProvider = ResourceProviderEnum.fromString(provider);
         TerraformModule module = new TerraformModule(resourceProvider, region);
         Path moduleFolder = deploymentPath.getModuleFolder(module);
-        RegionFaasFileService fileService = new RegionFaasFileService(vertx.fileSystem(), moduleFolder, deploymentPath.getFunctionsFolder(),
-            region, awsRole, regionFunctionReservations, deployRequest.getReservation().getReservationId(), module,
-            deployRequest.getDockerCredentials().getUsername(), regionVPCMap.get(region));
+        Path functionsFolder = deploymentPath.getFunctionsFolder();
+        long reservationId = deployRequest.getReservation().getReservationId();
+        String dockerUsername = deployRequest.getDockerCredentials().getUsername();
+        RegionFaasFileService fileService = new RegionFaasFileService(vertx.fileSystem(), moduleFolder,
+            functionsFolder, region, regionFunctionReservations, reservationId, module, dockerUsername,
+            regionVPCMap.get(region));
         return fileService.setUpDirectory()
             .toSingle(() -> module);
     }

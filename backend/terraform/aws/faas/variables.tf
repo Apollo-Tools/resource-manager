@@ -33,7 +33,7 @@ variable "runtimes" {
   type        = list(string)
 }
 
-variable "aws_role" {
-  description = "The aws user role to use."
-  type        = string
+variable "deployment_roles" {
+  description = "The user roles to use."
+  type        = list(string)
 }

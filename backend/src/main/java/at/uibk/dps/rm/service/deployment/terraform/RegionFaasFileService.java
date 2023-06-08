@@ -45,14 +45,13 @@ public class RegionFaasFileService extends TerraformFileService {
      * @param rootFolder the root folder of the module
      * @param functionsDir the path to the packaged functions
      * @param region the region where the resources are deployed
-     * @param awsRole the aws role to use
      * @param functionReservations the list of function reservations
      * @param reservationId the id of the reservation
      * @param module the terraform module
      * @param dockerUserName the docker username
      * @param vpc the virtual private cloud to use for the deployment
      */
-    public RegionFaasFileService(FileSystem fileSystem, Path rootFolder, Path functionsDir, Region region, String awsRole,
+    public RegionFaasFileService(FileSystem fileSystem, Path rootFolder, Path functionsDir, Region region,
                           List<FunctionReservation> functionReservations, long reservationId, TerraformModule module,
                           String dockerUserName, VPC vpc) {
         super(fileSystem, rootFolder);
@@ -62,7 +61,6 @@ public class RegionFaasFileService extends TerraformFileService {
         this.functionReservations = functionReservations;
         this.reservationId = reservationId;
         this.lambdaDeploymentData = new LambdaDeploymentData();
-        this.lambdaDeploymentData.setAwsRole(awsRole);
         this.ec2DeploymentData = new EC2DeploymentData(reservationId, vpc, dockerUserName);
         this.openFaasDeploymentData = new OpenFaasDeploymentData(reservationId, dockerUserName);
     }

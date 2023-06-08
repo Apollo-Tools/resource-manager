@@ -1,12 +1,13 @@
-data "aws_iam_role" "awsRole" {
-  name = var.aws_role
+data "aws_iam_role" "iam_role" {
+  count = length(var.deployment_roles)
+  name  = var.deployment_roles[count.index]
 }
 
 resource "aws_lambda_function" "lambda" {
   count            = length(var.names)
   filename         = var.paths[count.index]
   function_name    = var.names[count.index]
-  role             = data.aws_iam_role.awsRole.arn
+  role             = data.aws_iam_role.iam_role[count.index].arn
   handler          = var.handlers[count.index]
   timeout          = var.timeouts[count.index]
   memory_size      = var.memory_sizes[count.index]
