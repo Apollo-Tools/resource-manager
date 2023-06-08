@@ -147,6 +147,7 @@ tags:
   - name: credentials
   - name: ensembles
   - name: ensembles/resources
+  - name: environments
   - name: functions
   - name: logs
   - name: metrics
@@ -2248,6 +2249,26 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Region"
+        500:
+          $ref: "#/components/responses/500"
+
+  /environments:
+    get:
+      description: Return details about all environments available for resource deployments
+      operationId: listEnvironments
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - environments
+      responses:
+        200:
+          description: Successful pull of all environments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Environment"
         500:
           $ref: "#/components/responses/500"
 

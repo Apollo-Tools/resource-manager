@@ -19,6 +19,7 @@ import at.uibk.dps.rm.repository.reservation.*;
 import at.uibk.dps.rm.repository.resource.PlatformRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resource.ResourceTypeRepository;
+import at.uibk.dps.rm.repository.resourceprovider.EnvironmentRepository;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
@@ -68,6 +69,7 @@ public class DatabaseVerticle extends AbstractVerticle {
     private CredentialsRepository credentialsRepository;
     private EnsembleRepository ensembleRepository;
     private EnsembleSLORepository ensembleSLORepository;
+    private EnvironmentRepository environmentRepository;
     private FunctionRepository functionRepository;
     private FunctionReservationRepository functionReservationRepository;
     private FunctionResourceRepository functionResourceRepository;
@@ -135,6 +137,7 @@ public class DatabaseVerticle extends AbstractVerticle {
             credentialsRepository = new CredentialsRepository(sessionFactory);
             ensembleRepository = new EnsembleRepository(sessionFactory);
             ensembleSLORepository = new EnsembleSLORepository(sessionFactory);
+            environmentRepository = new EnvironmentRepository(sessionFactory);
             functionRepository = new FunctionRepository(sessionFactory);
             functionReservationRepository = new FunctionReservationRepository(sessionFactory);
             functionResourceRepository = new FunctionResourceRepository(sessionFactory);
@@ -179,6 +182,7 @@ public class DatabaseVerticle extends AbstractVerticle {
             serviceProxyBinder.bind(CredentialsService.class, new CredentialsServiceImpl(credentialsRepository));
             serviceProxyBinder.bind(EnsembleService.class, new EnsembleServiceImpl(ensembleRepository));
             serviceProxyBinder.bind(EnsembleSLOService.class, new EnsembleSLOServiceImpl(ensembleSLORepository));
+            serviceProxyBinder.bind(EnvironmentService.class, new EnvironmentServiceImpl(environmentRepository));
             serviceProxyBinder.bind(FunctionService.class, new FunctionServiceImpl(functionRepository));
             serviceProxyBinder.bind(FunctionReservationService.class,
                 new FunctionReservationServiceImpl(functionReservationRepository));
