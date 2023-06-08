@@ -71,11 +71,7 @@ public class ResourceReservationChecker extends EntityChecker {
     public Completable storeOutputToResourceReservations(ProcessOutput processOutput, DeployResourcesRequest request) {
         DeploymentOutput deploymentOutput = DeploymentOutput.fromJson(new JsonObject(processOutput.getOutput()));
         List<Completable> completables = new ArrayList<>();
-        completables.addAll(setTriggerUrlsByResourceTypeSet(deploymentOutput.getEdgeUrls().getValue().entrySet(),
-            request));
         completables.addAll(setTriggerUrlsByResourceTypeSet(deploymentOutput.getFunctionUrls().getValue().entrySet(),
-            request));
-        completables.addAll(setTriggerUrlsByResourceTypeSet(deploymentOutput.getVmUrls().getValue().entrySet(),
             request));
         completables.addAll(setTriggerUrlForContainers(request));
         return Completable.merge(completables);

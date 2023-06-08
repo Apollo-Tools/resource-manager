@@ -6,6 +6,7 @@ import at.uibk.dps.rm.entity.deployment.OpenFaasDeploymentData;
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.deployment.TerraformModule;
+import at.uibk.dps.rm.exception.PlatformNotSupportedException;
 import at.uibk.dps.rm.exception.RuntimeNotSupportedException;
 import at.uibk.dps.rm.util.misc.MetricValueMapper;
 import io.vertx.rxjava3.core.file.FileSystem;
@@ -93,6 +94,9 @@ public class AWSFileService extends ModuleFileService {
                 case OPENFAAS:
                     composeOpenFassDeploymentData(resource, function, openFaasDeploymentData);
                     break;
+                default:
+                    throw new PlatformNotSupportedException("platform " + platform.getValue() + " not supported on " +
+                        getModule().getResourceProvider().getValue());
             }
         }
 
@@ -209,7 +213,7 @@ public class AWSFileService extends ModuleFileService {
             openFaasUrls = String.format("zipmap([%s], [%s])", vmFunctionIds, vmUrls);
         }
         outputString.append(String.format(
-            "output \"temp\" {\n" +
+            "output \"function_urls\" {\n" +
             "  value = merge(%s, %s)\n" +
             "}\n", lambdaUrls, openFaasUrls
         ));
@@ -219,8 +223,8 @@ public class AWSFileService extends ModuleFileService {
 
     @Override
     protected void setModuleResourceTypes() {
-        getModule().setHasFaas(lambdaDeploymentData.getFunctionCount() > 0);
-        getModule().setHasVM(ec2DeploymentData.getFunctionCount() > 0);
+        getModule().setHasFaas(lambdaDeploymentData.getFunctionCount() + ec2DeploymentData.getFunctionCount() +
+            openFaasDeploymentData.getFunctionCount() > 0);
     }
 
     @Override

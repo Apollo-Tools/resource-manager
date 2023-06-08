@@ -17,16 +17,11 @@ import java.util.Objects;
 @Getter()
 public class TerraformModule {
     private final CloudProvider cloudProvider;
+    private final ResourceProviderEnum resourceProvider;
     private final String moduleName;
 
     @Setter
     private boolean hasFaas;
-
-    @Setter
-    private boolean hasVM;
-
-    @Setter
-    private boolean hasEdge;
 
     /**
      * Create an instance from a cloud provider and module name.
@@ -36,8 +31,8 @@ public class TerraformModule {
      */
     public TerraformModule(CloudProvider cloudProvider, String moduleName) {
         this.cloudProvider = cloudProvider;
+        this.resourceProvider = ResourceProviderEnum.AWS;
         this.moduleName = moduleName;
-        this.hasEdge = cloudProvider.equals(CloudProvider.EDGE);
     }
 
     /**
@@ -49,6 +44,7 @@ public class TerraformModule {
     public TerraformModule(ResourceProviderEnum resourceProvider, Region region) {
         // TODO: remove cloud provider
         this.cloudProvider = CloudProvider.AWS;
+        this.resourceProvider = resourceProvider;
         this.moduleName = resourceProvider.getValue() + "_" + region.getName().replace("-", "_");
     }
 
@@ -77,33 +73,6 @@ public class TerraformModule {
      * @return the functions string if present, else a blank string
      */
     public String getFunctionsString() {
-        if (this.hasFaas) {
-            return String.format("module.%s.function_urls,", this.moduleName);
-        }
-        return "";
-    }
-
-    /**
-     * Get the vm string of the module that is used in the terraform output.
-     *
-     * @return the vm string if present, else a blank string
-     */
-    public String getVMString() {
-        if (this.hasVM) {
-            return String.format("module.%s.vm_urls,", this.moduleName);
-        }
-        return "";
-    }
-
-    /**
-     * Get the vm string of the module that is used in the terraform output.
-     *
-     * @return the edge string if present, else a blank string
-     */
-    public String getEdgeString() {
-        if (this.hasEdge) {
-            return "module.edge.edge_urls";
-        }
-        return "";
+        return String.format("module.%s.function_urls,", this.moduleName);
     }
 }

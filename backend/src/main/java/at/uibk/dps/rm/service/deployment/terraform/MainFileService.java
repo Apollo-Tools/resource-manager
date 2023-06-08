@@ -132,27 +132,17 @@ public class MainFileService extends TerraformFileService {
 
     @Override
     public String getOutputString() {
-        StringBuilder functionsOutput = new StringBuilder(), vmOutput = new StringBuilder();
-        String edgeOutput = "";
+        StringBuilder functionsOutput = new StringBuilder();
         for (TerraformModule module : modules) {
-            functionsOutput.append(module.getFunctionsString());
-            vmOutput.append(module.getVMString());
-            edgeOutput = module.getEdgeString();
-        }
-        if (edgeOutput.isBlank()) {
-            edgeOutput = "{}";
+            if (module.getHasFaas()) {
+                functionsOutput.append(module.getFunctionsString());
+            }
         }
 
         return String.format(
             "output \"function_urls\" {\n" +
             "   value = merge(%s)\n" +
-            "}\n" +
-            "output \"vm_urls\" {\n" +
-            "  value = merge(%s)\n" +
-            "}\n" +
-            "output \"edge_urls\" {\n" +
-            "  value = %s\n" +
-            "}\n", functionsOutput, vmOutput, edgeOutput
+            "}\n", functionsOutput
         );
     }
 

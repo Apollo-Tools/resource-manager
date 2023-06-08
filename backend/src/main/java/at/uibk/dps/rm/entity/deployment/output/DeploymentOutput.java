@@ -13,11 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class DeploymentOutput {
 
-    private TFOutput edgeUrls;
-
     private TFOutput functionUrls;
-
-    private TFOutput vmUrls;
 
     /**
      * Create an instance from the terraform output in JSON-format.
@@ -26,7 +22,7 @@ public class DeploymentOutput {
      * @return the new object
      */
     public static DeploymentOutput fromJson(JsonObject jsonObject) {
-        for (String type : new String[]{"edge_urls", "function_urls", "vm_urls"}) {
+        for (String type : new String[]{"function_urls"}) {
             JsonObject typeUrls = jsonObject.getJsonObject(type);
             typeUrls.remove("sensitive");
             typeUrls.remove("type");
