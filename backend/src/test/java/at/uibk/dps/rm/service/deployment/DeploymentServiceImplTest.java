@@ -4,7 +4,7 @@ import at.uibk.dps.rm.entity.deployment.*;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.dto.TerminateResourcesRequest;
 import at.uibk.dps.rm.service.ServiceProxy;
-import at.uibk.dps.rm.service.deployment.terraform.FunctionFileService;
+import at.uibk.dps.rm.service.deployment.terraform.FunctionPrepareService;
 import at.uibk.dps.rm.service.deployment.terraform.MainFileService;
 import at.uibk.dps.rm.service.deployment.terraform.TerraformFileService;
 import at.uibk.dps.rm.service.deployment.terraform.TerraformSetupService;
@@ -77,7 +77,7 @@ public class DeploymentServiceImplTest {
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockito.mockConstruction(ConfigUtility.class,
             (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
-            try (MockedConstruction<FunctionFileService> ignored = Mockito.mockConstruction(FunctionFileService.class,
+            try (MockedConstruction<FunctionPrepareService> ignored = Mockito.mockConstruction(FunctionPrepareService.class,
                 (mock, context) -> given(mock.packageCode()).willReturn(Single.just(functionsToDeploy)))) {
                 deploymentService.packageFunctionsCode(deployRequest)
                     .onComplete(testContext.succeeding(result -> testContext.verify(() -> {

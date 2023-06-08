@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
- * Implements tests for the {@link AWSFileService} class.
+ * Implements tests for the {@link RegionFaasFileService} class.
  *
  * @author matthi-g
  */
@@ -26,7 +26,7 @@ public class AWSFileServiceTest {
 
     @Test
     void getProviderString(Vertx vertx) {
-        AWSFileService service = TestFileServiceProvider.createAWSFileServiceFaasVMEdge(vertx.fileSystem());
+        RegionFaasFileService service = TestFileServiceProvider.createAWSFileServiceFaasVMEdge(vertx.fileSystem());
         String result = service.getProviderString();
 
         assertThat(result).isEqualTo("provider \"aws\" {\n" +
@@ -39,8 +39,8 @@ public class AWSFileServiceTest {
 
     @Test
     void getFunctionsModuleStringFaasVM(Vertx vertx) {
-        AWSFileService service = TestFileServiceProvider.createAWSFileServiceFaasVMEdge(vertx.fileSystem());
-        String result = service.getFunctionsModulString();
+        RegionFaasFileService service = TestFileServiceProvider.createAWSFileServiceFaasVMEdge(vertx.fileSystem());
+        String result = service.getFunctionsModuleString();
 
         String f1 = "foo1_python39";
         String r1f1 = "r1_" + f1 + "_1";
@@ -61,21 +61,21 @@ public class AWSFileServiceTest {
 
     @Test
     void getFunctionsModuleStringNoFaas(Vertx vertx) {
-        AWSFileService service = TestFileServiceProvider.createAWSFileServiceVMEdge(vertx.fileSystem());
-        String result = service.getFunctionsModulString();
+        RegionFaasFileService service = TestFileServiceProvider.createAWSFileServiceVMEdge(vertx.fileSystem());
+        String result = service.getFunctionsModuleString();
         assertThat(result).isEqualTo("");
     }
 
     @Test
     void getFunctionsModuleStringUnsupportedRuntime(Vertx vertx) {
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "unknown");
-        AWSFileService service = TestFileServiceProvider.createAWSFileServiceFaasVMEdge(vertx.fileSystem(),runtime);
-        assertThrows(RuntimeNotSupportedException.class, service::getFunctionsModulString);
+        RegionFaasFileService service = TestFileServiceProvider.createAWSFileServiceFaasVMEdge(vertx.fileSystem(),runtime);
+        assertThrows(RuntimeNotSupportedException.class, service::getFunctionsModuleString);
     }
 
     @Test
     void getVMModulesString(Vertx vertx) {
-        AWSFileService service = TestFileServiceProvider.createAWSFileServiceFaasVMEdge(vertx.fileSystem());
+        RegionFaasFileService service = TestFileServiceProvider.createAWSFileServiceFaasVMEdge(vertx.fileSystem());
 
         String f1 = "foo1_python39", f2 = "foo2_python39";
         String r2f1 = "r2_" + f1, r2f2 = "r2_" + f2;
@@ -109,14 +109,14 @@ public class AWSFileServiceTest {
 
     @Test
     void getVMModulesStringNoVM(Vertx vertx) {
-        AWSFileService service = TestFileServiceProvider.createAWSFileServiceFaasEdge(vertx.fileSystem());
+        RegionFaasFileService service = TestFileServiceProvider.createAWSFileServiceFaasEdge(vertx.fileSystem());
         String result = service.getVmModulesString();
         assertThat(result).isEqualTo("");
     }
 
     @Test
     void getVariablesFileContent(Vertx vertx) {
-        AWSFileService service = TestFileServiceProvider.createAWSFileServiceFaasVMEdge(vertx.fileSystem());
+        RegionFaasFileService service = TestFileServiceProvider.createAWSFileServiceFaasVMEdge(vertx.fileSystem());
         String result = service.getVariablesFileContent();
 
         assertThat(result).isEqualTo(
@@ -137,7 +137,7 @@ public class AWSFileServiceTest {
 
     @Test
     void getOutputsFileContentFaasVM(Vertx vertx) {
-        AWSFileService service = TestFileServiceProvider.createAWSFileServiceFaasVMEdge(vertx.fileSystem());
+        RegionFaasFileService service = TestFileServiceProvider.createAWSFileServiceFaasVMEdge(vertx.fileSystem());
         service.getMainFileContent();
         String result = service.getOutputsFileContent();
 
@@ -158,7 +158,7 @@ public class AWSFileServiceTest {
 
     @Test
     void getOutputsFileContentFaasEdge(Vertx vertx) {
-        AWSFileService service = TestFileServiceProvider.createAWSFileServiceFaasEdge(vertx.fileSystem());
+        RegionFaasFileService service = TestFileServiceProvider.createAWSFileServiceFaasEdge(vertx.fileSystem());
         service.getMainFileContent();
         String result = service.getOutputsFileContent();
 
@@ -171,7 +171,7 @@ public class AWSFileServiceTest {
 
     @Test
     void getOutputsFileContentVMEdge(Vertx vertx) {
-        AWSFileService service = TestFileServiceProvider.createAWSFileServiceVMEdge(vertx.fileSystem());
+        RegionFaasFileService service = TestFileServiceProvider.createAWSFileServiceVMEdge(vertx.fileSystem());
         service.getMainFileContent();
         String result = service.getOutputsFileContent();
 
@@ -190,7 +190,7 @@ public class AWSFileServiceTest {
 
     @Test
     void getOutputsFileContentEdge(Vertx vertx) {
-        AWSFileService service = TestFileServiceProvider.createAWSFileServiceEdge(vertx.fileSystem());
+        RegionFaasFileService service = TestFileServiceProvider.createAWSFileServiceEdge(vertx.fileSystem());
         service.getMainFileContent();
         String result = service.getOutputsFileContent();
 
@@ -200,7 +200,7 @@ public class AWSFileServiceTest {
     @Test
     void getMainFileContent(Vertx vertx) {
         String rootFolder = Paths.get("temp\\test").toAbsolutePath().toString().replace("\\", "/");
-        AWSFileService service = TestFileServiceProvider.createAWSFileServiceFaasVMEdge(vertx.fileSystem());
+        RegionFaasFileService service = TestFileServiceProvider.createAWSFileServiceFaasVMEdge(vertx.fileSystem());
         String result = service.getMainFileContent();
         assertThat(result).isEqualTo(
             "provider \"aws\" {\n" +

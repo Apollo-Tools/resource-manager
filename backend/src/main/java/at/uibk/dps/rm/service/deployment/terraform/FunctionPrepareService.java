@@ -22,7 +22,7 @@ import java.util.*;
  *
  * @author matthi-g
  */
-public class FunctionFileService {
+public class FunctionPrepareService {
 
     private final Vertx vertx;
 
@@ -46,7 +46,7 @@ public class FunctionFileService {
      * @param functionsDir the directory where everything related to the functions is stored
      * @param dockerCredentials the credentials of the docker user
      */
-    public FunctionFileService(Vertx vertx, List<FunctionReservation> functionReservations, Path functionsDir,
+    public FunctionPrepareService(Vertx vertx, List<FunctionReservation> functionReservations, Path functionsDir,
                                DockerCredentials dockerCredentials) {
         this.vertx = vertx;
         this.fileSystem = vertx.fileSystem();

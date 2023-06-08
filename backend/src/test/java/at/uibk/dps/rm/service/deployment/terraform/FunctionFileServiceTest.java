@@ -23,7 +23,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
 /**
- * Implements tests for the {@link FunctionFileService} class.
+ * Implements tests for the {@link FunctionPrepareService} class.
  *
  * @author matthi-g
  */
@@ -34,7 +34,7 @@ public class FunctionFileServiceTest {
 
     @Test
     void packageCodeFaasVM(Vertx vertx, VertxTestContext testContext) {
-        FunctionFileService service = TestFileServiceProvider.createFunctionFileServiceFaasVMPython(vertx);
+        FunctionPrepareService service = TestFileServiceProvider.createFunctionFileServiceFaasVMPython(vertx);
         Path functionsDir = Paths.get("temp\\test\\functions");
         try (MockedConstruction<PackagePythonCode> ignored = Mockito.mockConstruction(PackagePythonCode.class,
             (mock, context) -> given(mock.composeSourceCode(eq(functionsDir), any(), any()))
@@ -57,7 +57,7 @@ public class FunctionFileServiceTest {
 
     @Test
     void packageCodeVMEdge(Vertx vertx, VertxTestContext testContext) {
-        FunctionFileService service = TestFileServiceProvider.createFunctionFileServiceVMEdgePython(vertx);
+        FunctionPrepareService service = TestFileServiceProvider.createFunctionFileServiceVMEdgePython(vertx);
         Path functionsDir = Paths.get("temp\\test\\functions");
         try (MockedConstruction<PackagePythonCode> ignored = Mockito.mockConstruction(PackagePythonCode.class,
             (mock, context) -> given(mock.composeSourceCode(eq(functionsDir), any(), any()))
@@ -84,7 +84,7 @@ public class FunctionFileServiceTest {
 
     @Test
     void packageCodeFunctionTwice(Vertx vertx, VertxTestContext testContext) {
-        FunctionFileService service = TestFileServiceProvider.createFunctionFileServiceFunctionTwicePython(vertx);
+        FunctionPrepareService service = TestFileServiceProvider.createFunctionFileServiceFunctionTwicePython(vertx);
         Path functionsDir = Paths.get("temp\\test\\functions");
         try (MockedConstruction<PackagePythonCode> ignored = Mockito.mockConstruction(PackagePythonCode.class,
             (mock, context) -> given(mock.composeSourceCode(eq(functionsDir), any(), any()))
@@ -106,7 +106,7 @@ public class FunctionFileServiceTest {
 
     @Test
     void packageCodeNoFunctions(Vertx vertx, VertxTestContext testContext) {
-        FunctionFileService service = TestFileServiceProvider.createFunctionFileServiceNoFunctions(vertx);
+        FunctionPrepareService service = TestFileServiceProvider.createFunctionFileServiceNoFunctions(vertx);
         Path functionsDir = Paths.get("temp\\test\\functions");
         try (MockedConstruction<PackagePythonCode> ignored = Mockito.mockConstruction(PackagePythonCode.class,
             (mock, context) -> given(mock.composeSourceCode(eq(functionsDir), any(), any()))
@@ -124,7 +124,7 @@ public class FunctionFileServiceTest {
 
     @Test
     void packageCodeFaasInvalidRuntime(Vertx vertx, VertxTestContext testContext) {
-        FunctionFileService service = TestFileServiceProvider.createFunctionFileServiceVMEdgeInvalidRuntime(vertx);
+        FunctionPrepareService service = TestFileServiceProvider.createFunctionFileServiceVMEdgeInvalidRuntime(vertx);
         Path functionsDir = Paths.get("temp\\test\\functions");
         try (MockedConstruction<PackagePythonCode> ignored = Mockito.mockConstruction(PackagePythonCode.class,
             (mock, context) -> given(mock.composeSourceCode(eq(functionsDir), any(), any()))

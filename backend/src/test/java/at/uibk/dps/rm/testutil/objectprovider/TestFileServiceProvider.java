@@ -3,6 +3,7 @@ package at.uibk.dps.rm.testutil.objectprovider;
 import at.uibk.dps.rm.entity.deployment.CloudProvider;
 import at.uibk.dps.rm.entity.deployment.TerraformModule;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
+import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.model.Runtime;
 import at.uibk.dps.rm.service.deployment.terraform.*;
@@ -13,6 +14,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Utility class to instantiate objects that are different types of file services.
@@ -20,7 +22,7 @@ import java.util.List;
  * @author matthi-g
  */
 public class TestFileServiceProvider {
-    public static AWSFileService createAWSFileService(FileSystem fileSystem, Resource r1, Resource r2, Resource r3,
+    public static RegionFaasFileService createAWSFileService(FileSystem fileSystem, Resource r1, Resource r2, Resource r3,
                                                       Runtime runtime, Region region) {
         Path rootFolder = Paths.get("temp\\test");
         Path functionsDir = Path.of(String.valueOf(rootFolder), "functions");
@@ -37,11 +39,12 @@ public class TestFileServiceProvider {
             .getProvider() + "_" + region.getName().replace("-", "_"));
         String dockerUserName = "dockerUser";
         VPC vpc = TestResourceProviderProvider.createVPC(1L, region);
-        return new AWSFileService(fileSystem, rootFolder, functionsDir, region, awsRole,
-            functionReservations, reservationId, module, dockerUserName, vpc);
+        return new RegionFaasFileService(fileSystem, rootFolder, functionsDir, region, awsRole,
+            functionReservations, reservationId, module, dockerUserName, vpc, Set.of(PlatformEnum.LAMBDA,
+                PlatformEnum.EC2, PlatformEnum.OPENFAAS, PlatformEnum.K8S));
     }
 
-    public static AWSFileService createAWSFileServiceFaasVMEdge(FileSystem fileSystem, Runtime runtime) {
+    public static RegionFaasFileService createAWSFileServiceFaasVMEdge(FileSystem fileSystem, Runtime runtime) {
         ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
         Resource r1 = TestResourceProvider.createResourceFaaS(1L, region, 250.0, 512.0);
@@ -50,12 +53,12 @@ public class TestFileServiceProvider {
         return createAWSFileService(fileSystem, r1, r2, r3, runtime, region);
     }
 
-    public static AWSFileService createAWSFileServiceFaasVMEdge(FileSystem fileSystem) {
+    public static RegionFaasFileService createAWSFileServiceFaasVMEdge(FileSystem fileSystem) {
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");
         return createAWSFileServiceFaasVMEdge(fileSystem, runtime);
     }
 
-    public static AWSFileService createAWSFileServiceFaasEdge(FileSystem fileSystem) {
+    public static RegionFaasFileService createAWSFileServiceFaasEdge(FileSystem fileSystem) {
         ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");
@@ -65,7 +68,7 @@ public class TestFileServiceProvider {
         return createAWSFileService(fileSystem, r1, r2, r3, runtime, region);
     }
 
-    public static AWSFileService createAWSFileServiceVMEdge(FileSystem fileSystem) {
+    public static RegionFaasFileService createAWSFileServiceVMEdge(FileSystem fileSystem) {
         ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");
@@ -75,7 +78,7 @@ public class TestFileServiceProvider {
         return createAWSFileService(fileSystem, r1, r2, r3, runtime, region);
     }
 
-    public static AWSFileService createAWSFileServiceEdge(FileSystem fileSystem) {
+    public static RegionFaasFileService createAWSFileServiceEdge(FileSystem fileSystem) {
         ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");
@@ -118,7 +121,7 @@ public class TestFileServiceProvider {
         return createEdgeFileService(fileSystem, r1, r2, r3, runtime);
     }
 
-    public static FunctionFileService createFunctionFileService(Vertx vertx, Resource r1, Resource r2, Function f1,
+    public static FunctionPrepareService createFunctionFileService(Vertx vertx, Resource r1, Resource r2, Function f1,
                                                                 Function f2) {
         FunctionReservation fr1 = TestFunctionProvider.createFunctionReservation(1L, f1, r1);
         FunctionReservation fr2 = TestFunctionProvider.createFunctionReservation(2L, f2, r2);
@@ -127,19 +130,19 @@ public class TestFileServiceProvider {
         credentials.setUsername("user");
         credentials.setAccessToken("access-token");
         Path functionsDir = Paths.get("temp\\test\\functions");
-        return new FunctionFileService(vertx, functionReservations, functionsDir, credentials);
+        return new FunctionPrepareService(vertx, functionReservations, functionsDir, credentials);
     }
 
-    public static FunctionFileService createFunctionFileServiceNoFunctions(Vertx vertx) {
+    public static FunctionPrepareService createFunctionFileServiceNoFunctions(Vertx vertx) {
         List<FunctionReservation> functionReservations = new ArrayList<>();
         DockerCredentials credentials = new DockerCredentials();
         credentials.setUsername("user");
         credentials.setAccessToken("access-token");
         Path functionsDir = Paths.get("temp\\test\\functions");
-        return new FunctionFileService(vertx, functionReservations, functionsDir, credentials);
+        return new FunctionPrepareService(vertx, functionReservations, functionsDir, credentials);
     }
 
-    public static FunctionFileService createFunctionFileServiceFaasVMPython(Vertx vertx) {
+    public static FunctionPrepareService createFunctionFileServiceFaasVMPython(Vertx vertx) {
         ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");
@@ -150,7 +153,7 @@ public class TestFileServiceProvider {
         return createFunctionFileService(vertx, r1, r2, f1, f2);
     }
 
-    public static FunctionFileService createFunctionFileServiceVMEdgePython(Vertx vertx) {
+    public static FunctionPrepareService createFunctionFileServiceVMEdgePython(Vertx vertx) {
         ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");
@@ -162,7 +165,7 @@ public class TestFileServiceProvider {
         return createFunctionFileService(vertx, r1, r2, f1, f2);
     }
 
-    public static FunctionFileService createFunctionFileServiceVMEdgeInvalidRuntime(Vertx vertx) {
+    public static FunctionPrepareService createFunctionFileServiceVMEdgeInvalidRuntime(Vertx vertx) {
         ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "invalid");
@@ -174,7 +177,7 @@ public class TestFileServiceProvider {
         return createFunctionFileService(vertx, r1, r2, f1, f2);
     }
 
-    public static FunctionFileService createFunctionFileServiceFunctionTwicePython(Vertx vertx) {
+    public static FunctionPrepareService createFunctionFileServiceFunctionTwicePython(Vertx vertx) {
         ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");

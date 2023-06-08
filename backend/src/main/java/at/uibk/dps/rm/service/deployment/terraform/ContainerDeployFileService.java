@@ -104,22 +104,12 @@ public class ContainerDeployFileService extends TerraformFileService {
     }
 
     @Override
-    protected String getCredentialVariablesString() {
-        return "";
-    }
-
-    @Override
     protected String getVariablesFileContent() {
         return "";
     }
 
     @Override
-    protected String getOutputString() {
-        return "";
-    }
-
-    @Override
     protected String getOutputsFileContent() {
-        return this.getOutputString();
+        return "";
     }
 }

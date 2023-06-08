@@ -42,7 +42,7 @@ public class TerraformSetupServiceTest {
         TerraformSetupService service = new TerraformSetupService(vertx, deployRequest, deploymentPath,
             deploymentCredentials);
         System.setProperty("os.name", "Linux");
-        try (MockedConstruction<AWSFileService> ignoredAWS = Mockito.mockConstruction(AWSFileService.class,
+        try (MockedConstruction<RegionFaasFileService> ignoredAWS = Mockito.mockConstruction(RegionFaasFileService.class,
             (mock, context) -> given(mock.setUpDirectory())
                 .willReturn(Completable.complete()))) {
             try (MockedConstruction<EdgeFileService> ignoredEdge = Mockito.mockConstruction(EdgeFileService.class,

@@ -85,7 +85,6 @@ public class MainTerraformExecutor extends TerraformExecutor{
         if (openFaasCredentials.isBlank()) {
             return "";
         }
-        System.out.println(openFaasCredentials);
         String separator = getOsVariableSeparator();
         return "-var=" + separator + openFaasCredentials + separator;
     }

@@ -4,24 +4,24 @@ import at.uibk.dps.rm.entity.deployment.EC2DeploymentData;
 import at.uibk.dps.rm.entity.deployment.LambdaDeploymentData;
 import at.uibk.dps.rm.entity.deployment.OpenFaasDeploymentData;
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
+import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.deployment.TerraformModule;
 import at.uibk.dps.rm.exception.PlatformNotSupportedException;
-import at.uibk.dps.rm.exception.RuntimeNotSupportedException;
-import at.uibk.dps.rm.util.misc.MetricValueMapper;
+import at.uibk.dps.rm.service.deployment.util.ComposeDeploymentDataUtility;
 import io.vertx.rxjava3.core.file.FileSystem;
 
-import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Extension of the #ModuleFileService to set up an AWS module of a deployment.
  *
  * @author matthi-g
  */
-public class AWSFileService extends ModuleFileService {
+public class RegionFaasFileService extends TerraformFileService {
+
+    private final TerraformModule module;
 
     private final Path functionsDir;
 
@@ -52,10 +52,11 @@ public class AWSFileService extends ModuleFileService {
      * @param dockerUserName the docker username
      * @param vpc the virtual private cloud to use for the deployment
      */
-    public AWSFileService(FileSystem fileSystem, Path rootFolder, Path functionsDir, Region region, String awsRole,
+    public RegionFaasFileService(FileSystem fileSystem, Path rootFolder, Path functionsDir, Region region, String awsRole,
                           List<FunctionReservation> functionReservations, long reservationId, TerraformModule module,
                           String dockerUserName, VPC vpc) {
-        super(fileSystem, rootFolder, module);
+        super(fileSystem, rootFolder);
+        this.module = module;
         this.functionsDir = functionsDir;
         this.region = region;
         this.functionReservations = functionReservations;
@@ -69,34 +70,38 @@ public class AWSFileService extends ModuleFileService {
 
     @Override
     protected String getProviderString() {
-        return String.format(
-            "provider \"aws\" {\n" +
-                "  access_key = var.access_key\n" +
-                "  secret_key = var.secret_access_key\n" +
-                "  token = var.session_token\n" +
-                "  region = \"%s\"\n" +
-                "}\n", region.getName());
+        String providerString = "";
+        if (region.getResourceProvider().getProvider().equals(ResourceProviderEnum.AWS.getValue())) {
+            providerString = String.format(
+                "provider \"aws\" {\n" +
+                    "  access_key = var.access_key\n" +
+                    "  secret_key = var.secret_access_key\n" +
+                    "  token = var.session_token\n" +
+                    "  region = \"%s\"\n" +
+                    "}\n", region.getName());
+        }
+        return providerString;
     }
 
-    @Override
-    protected String getFunctionsModulString() {
+    protected String getFunctionsModuleString() {
         for (FunctionReservation functionReservation: functionReservations) {
             Resource resource = functionReservation.getResource();
             Function function = functionReservation.getFunction();
             PlatformEnum platform = PlatformEnum.fromString(resource.getPlatform().getPlatform());
             switch (platform) {
                 case LAMBDA:
-                    composeLambdaDeploymentData(resource, function, lambdaDeploymentData);
+                    ComposeDeploymentDataUtility.composeLambdaDeploymentData(resource, function, reservationId,
+                        functionsDir, lambdaDeploymentData);
                     break;
                 case EC2:
-                    composeEC2DeploymentData(resource, function, ec2DeploymentData);
+                    ComposeDeploymentDataUtility.composeEC2DeploymentData(resource, function, ec2DeploymentData);
                     break;
                 case OPENFAAS:
-                    composeOpenFassDeploymentData(resource, function, openFaasDeploymentData);
+                    ComposeDeploymentDataUtility.composeOpenFassDeploymentData(resource, function, openFaasDeploymentData);
                     break;
                 default:
                     throw new PlatformNotSupportedException("platform " + platform.getValue() + " not supported on " +
-                        getModule().getResourceProvider().getValue());
+                        this.module.getResourceProvider().getValue());
             }
         }
 
@@ -104,70 +109,18 @@ public class AWSFileService extends ModuleFileService {
             openFaasDeploymentData.getModuleString();
     }
 
-    private void composeLambdaDeploymentData(Resource resource, Function function,
-            LambdaDeploymentData deploymentData) {
-        StringBuilder functionName = new StringBuilder(), functionPath = new StringBuilder();
-        String runtime = function.getRuntime().getName();
-        String functionIdentifier =  function.getFunctionDeploymentId();
-        String functionHandler;
-        functionName.append("r").append(resource.getResourceId()).append("_")
-            .append(functionIdentifier).append("_").append(reservationId);
-        functionPath.append(functionsDir.toAbsolutePath().toString().replace("\\","/")).append("/")
-            .append(functionIdentifier).append(".zip");
-        if (runtime.startsWith("python")) {
-            functionHandler = "main.handler";
-        } else {
-            throw new RuntimeNotSupportedException();
-        }
-        Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
-        BigDecimal timeout =  metricValues.get("timeout").getValueNumber();
-        BigDecimal memorySize = metricValues.get("memory-size").getValueNumber();
-        deploymentData.appendValues(functionName.toString(), functionPath.toString(), functionHandler, timeout,
-            memorySize, "[]", runtime);
-    }
-
-    private void composeEC2DeploymentData(Resource resource, Function function, EC2DeploymentData deploymentData) {
-        String resourceName = "resource_" + resource.getResourceId();
-        Map<String, MetricValue> metricValues = resource.getMetricValues()
-            .stream()
-            .collect(Collectors.toMap(metricValue -> metricValue.getMetric().getMetric(),
-                metricValue -> metricValue));
-        String functionIdentifier =  function.getFunctionDeploymentId();
-        // TODO: swap with check, if vm is already deployed
-        if (checkMustDeployVM(resource, deploymentData)) {
-            String instanceType = metricValues.get("instance-type").getValueString();
-            deploymentData.appendValues(resourceName, instanceType, resource.getResourceId(), functionIdentifier);
-        } else {
-            deploymentData.appendValues(resourceName, resource.getResourceId(), functionIdentifier);
-        }
-    }
-
-    private void composeOpenFassDeploymentData(Resource resource, Function function,
-            OpenFaasDeploymentData deploymentData) {
-        String functionIdentifier =  function.getFunctionDeploymentId();
-        Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
-        String gatewayUrl = metricValues.get("gateway-url").getValueString();
-        deploymentData.appendValues(resource.getResourceId(), functionIdentifier, gatewayUrl);
+    protected void setModuleResourceTypes() {
+        this.module.setHasFaas(lambdaDeploymentData.getFunctionCount() + ec2DeploymentData.getFunctionCount() +
+            openFaasDeploymentData.getFunctionCount() > 0);
     }
 
     @Override
-    protected String getVmModulesString() {
-        //TODO: remove
-        return "";
-    }
-
-    /**
-     * Check whether a new virtual machine has to be deployed or not.
-     *
-     * @param resource the virtual machine
-     * @return true if a new virtua machine has to be deployed, else false
-     */
-    private boolean checkMustDeployVM(Resource resource, EC2DeploymentData deploymentData) {
-        return !deploymentData.getResourceIds().contains(resource.getResourceId());
+    protected String getMainFileContent() {
+        return this.getProviderString() + this.getFunctionsModuleString();
     }
 
     @Override
-    protected String getCredentialVariablesString() {
+    protected String getVariablesFileContent() {
         return "variable \"access_key\" {\n" +
             "  type = string\n" +
             "  default = \"\"\n" +
@@ -190,7 +143,7 @@ public class AWSFileService extends ModuleFileService {
     }
 
     @Override
-    protected String getOutputString() {
+    protected String getOutputsFileContent() {
         StringBuilder outputString = new StringBuilder();
         String lambdaUrls = "{}", openFaasUrls = "{}";
         if (this.lambdaDeploymentData.getFunctionCount() > 0) {
@@ -214,31 +167,10 @@ public class AWSFileService extends ModuleFileService {
         }
         outputString.append(String.format(
             "output \"function_urls\" {\n" +
-            "  value = merge(%s, %s)\n" +
-            "}\n", lambdaUrls, openFaasUrls
+                "  value = merge(%s, %s)\n" +
+                "}\n", lambdaUrls, openFaasUrls
         ));
         setModuleResourceTypes();
         return outputString.toString();
-    }
-
-    @Override
-    protected void setModuleResourceTypes() {
-        getModule().setHasFaas(lambdaDeploymentData.getFunctionCount() + ec2DeploymentData.getFunctionCount() +
-            openFaasDeploymentData.getFunctionCount() > 0);
-    }
-
-    @Override
-    protected String getMainFileContent() {
-        return this.getProviderString() + this.getFunctionsModulString();
-    }
-
-    @Override
-    protected String getVariablesFileContent() {
-        return this.getCredentialVariablesString();
-    }
-
-    @Override
-    protected String getOutputsFileContent() {
-        return this.getOutputString();
     }
 }

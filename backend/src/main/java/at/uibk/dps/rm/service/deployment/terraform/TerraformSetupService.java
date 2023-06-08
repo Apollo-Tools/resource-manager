@@ -86,8 +86,7 @@ public class TerraformSetupService {
         List<Single<TerraformModule>> singles = new ArrayList<>();
         for (Region region: functionReservations.keySet()) {
             List<FunctionReservation> regionFunctionReservations = functionReservations.get(region);
-            // TF: Cloud resources
-            singles.add(cloudDeployment(region, regionFunctionReservations, regionVPCMap));
+            singles.add(functionDeployment(region, regionFunctionReservations, regionVPCMap));
             composeCloudLoginData(deployRequest.getCredentialsList(), region);
             composeOpenFaasLoginData(regionFunctionReservations);
         }
@@ -171,33 +170,18 @@ public class TerraformSetupService {
      * @param regionVPCMap all available vpc grouped by region
      * @return a Single that emits the created terraform module
      */
-    private Single<TerraformModule> cloudDeployment(Region region, List<FunctionReservation> regionFunctionReservations,
+    private Single<TerraformModule> functionDeployment(Region region, List<FunctionReservation> regionFunctionReservations,
                                                     Map<Region, VPC> regionVPCMap) {
         //TODO: get rid of hard coded labRole
         String awsRole = "LabRole";
         String provider = region.getResourceProvider().getProvider();
         ResourceProviderEnum resourceProvider = ResourceProviderEnum.fromString(provider);
         TerraformModule module = new TerraformModule(resourceProvider, region);
-        Path awsFolder = deploymentPath.getModuleFolder(module);
-        AWSFileService fileService = new AWSFileService(vertx.fileSystem(), awsFolder, deploymentPath.getFunctionsFolder(),
+        Path moduleFolder = deploymentPath.getModuleFolder(module);
+        RegionFaasFileService fileService = new RegionFaasFileService(vertx.fileSystem(), moduleFolder, deploymentPath.getFunctionsFolder(),
             region, awsRole, regionFunctionReservations, deployRequest.getReservation().getReservationId(), module,
             deployRequest.getDockerCredentials().getUsername(), regionVPCMap.get(region));
         return fileService.setUpDirectory()
-            .toSingle(() -> module);
-    }
-
-    /**
-     * Setup everything necessary for edge deployment.
-     *
-     * @param edgeFunctionReservations the function reservations for edge deployment
-     * @return a Single that emits the created terraform module
-     */
-    private Single<TerraformModule> edgeDeployment(List<FunctionReservation> edgeFunctionReservations) {
-        TerraformModule module = new TerraformModule(CloudProvider.EDGE, "edge");
-        Path edgeFolder = deploymentPath.getModuleFolder(module);
-        EdgeFileService edgeService = new EdgeFileService(vertx.fileSystem(), edgeFolder, edgeFunctionReservations,
-            deployRequest.getReservation().getReservationId(), deployRequest.getDockerCredentials().getUsername());
-        return edgeService.setUpDirectory()
             .toSingle(() -> module);
     }
 

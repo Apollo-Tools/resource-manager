@@ -36,12 +36,6 @@ public abstract class TerraformFileService {
     protected abstract String getMainFileContent();
 
     //*** variables.tf ***//
-    /**
-     * Get the string that defines the credentials variables used in the terraform module.
-     *
-     * @return the credential variables string
-     */
-    protected abstract String getCredentialVariablesString();
 
     /**
      * Get the content of the variables file of the terraform module.
@@ -51,13 +45,6 @@ public abstract class TerraformFileService {
     protected abstract String getVariablesFileContent();
 
     //*** outputs.tf ***//
-    /**
-     * Get the string that defines output variables in the terraform module.
-     *
-     * @return the output variables string
-     */
-    protected abstract String getOutputString();
-
     /**
      * Get the file content of the outputs file of the terraform module.
      *

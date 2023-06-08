@@ -46,55 +46,6 @@ public class MainFileService extends TerraformFileService {
             "}\n";
     }
 
-    @Override
-    public String getCredentialVariablesString() {
-        HashSet<CloudProvider> cloudProviders = new HashSet<>();
-        StringBuilder variables = new StringBuilder();
-        for (TerraformModule module : modules) {
-            CloudProvider cloudProvider = module.getCloudProvider();
-            if (!cloudProviders.add(cloudProvider)) {
-                continue;
-            }
-            if (cloudProvider.equals(CloudProvider.EDGE)) {
-                variables.append(
-                "variable openfaas_login_data {\n" +
-                "  type = list(map(object({\n" +
-                "      auth_user = string\n" +
-                "      auth_pw = string\n" +
-                "  })))\n" +
-                "}"
-                );
-                continue;
-            }
-
-            String preFix = cloudProvider.toString().toLowerCase();
-            variables.append(String.format(
-                "variable \"%s_access_key\" {\n" +
-                "  type = string\n" +
-                "  default = \"\"\n" +
-                "}\n" +
-                "variable \"%s_secret_access_key\" {\n" +
-                "  type = string\n" +
-                "  default = \"\"\n" +
-                "}\n" +
-                "variable \"%s_session_token\" {\n" +
-                "  type = string\n" +
-                "  default = \"\"\n" +
-                "}\n", preFix, preFix, preFix));
-        }
-        variables.append(
-            "variable \"openfaas_login_data\" {\n" +
-            "  type = map(object({\n" +
-            "      auth_user = string\n" +
-            "      auth_pw = string\n" +
-            "  }))\n" +
-            "  default = {}\n" +
-            "}\n"
-        );
-
-        return variables.toString();
-    }
-
     /**
      * Get the string that defines all submodules of the deployment.
      *
@@ -131,7 +82,61 @@ public class MainFileService extends TerraformFileService {
     }
 
     @Override
-    public String getOutputString() {
+    protected String getMainFileContent() {
+        return this.getProviderString() + this.getLocalModulesString();
+    }
+
+    @Override
+    protected String getVariablesFileContent() {
+        HashSet<CloudProvider> cloudProviders = new HashSet<>();
+        StringBuilder variables = new StringBuilder();
+        for (TerraformModule module : modules) {
+            CloudProvider cloudProvider = module.getCloudProvider();
+            if (!cloudProviders.add(cloudProvider)) {
+                continue;
+            }
+            if (cloudProvider.equals(CloudProvider.EDGE)) {
+                variables.append(
+                    "variable openfaas_login_data {\n" +
+                        "  type = list(map(object({\n" +
+                        "      auth_user = string\n" +
+                        "      auth_pw = string\n" +
+                        "  })))\n" +
+                        "}"
+                );
+                continue;
+            }
+
+            String preFix = cloudProvider.toString().toLowerCase();
+            variables.append(String.format(
+                "variable \"%s_access_key\" {\n" +
+                    "  type = string\n" +
+                    "  default = \"\"\n" +
+                    "}\n" +
+                    "variable \"%s_secret_access_key\" {\n" +
+                    "  type = string\n" +
+                    "  default = \"\"\n" +
+                    "}\n" +
+                    "variable \"%s_session_token\" {\n" +
+                    "  type = string\n" +
+                    "  default = \"\"\n" +
+                    "}\n", preFix, preFix, preFix));
+        }
+        variables.append(
+            "variable \"openfaas_login_data\" {\n" +
+                "  type = map(object({\n" +
+                "      auth_user = string\n" +
+                "      auth_pw = string\n" +
+                "  }))\n" +
+                "  default = {}\n" +
+                "}\n"
+        );
+
+        return variables.toString();
+    }
+
+    @Override
+    protected String getOutputsFileContent() {
         StringBuilder functionsOutput = new StringBuilder();
         for (TerraformModule module : modules) {
             if (module.getHasFaas()) {
@@ -141,23 +146,8 @@ public class MainFileService extends TerraformFileService {
 
         return String.format(
             "output \"function_urls\" {\n" +
-            "   value = merge(%s)\n" +
-            "}\n", functionsOutput
+                "   value = merge(%s)\n" +
+                "}\n", functionsOutput
         );
-    }
-
-    @Override
-    protected String getMainFileContent() {
-        return this.getProviderString() + this.getLocalModulesString();
-    }
-
-    @Override
-    protected String getVariablesFileContent() {
-        return this.getCredentialVariablesString();
-    }
-
-    @Override
-    protected String getOutputsFileContent() {
-        return this.getOutputString();
     }
 }

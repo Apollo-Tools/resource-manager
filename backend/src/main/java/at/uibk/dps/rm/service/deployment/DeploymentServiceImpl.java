@@ -5,7 +5,7 @@ import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.dto.TerminateResourcesRequest;
 import at.uibk.dps.rm.service.ServiceProxy;
-import at.uibk.dps.rm.service.deployment.terraform.FunctionFileService;
+import at.uibk.dps.rm.service.deployment.terraform.FunctionPrepareService;
 import at.uibk.dps.rm.service.deployment.terraform.MainFileService;
 import at.uibk.dps.rm.service.deployment.terraform.TerraformFileService;
 import at.uibk.dps.rm.service.deployment.terraform.TerraformSetupService;
@@ -37,7 +37,7 @@ public class DeploymentServiceImpl extends ServiceProxy implements DeploymentSer
         Single<FunctionsToDeploy> packageFunctions = new ConfigUtility(vertx).getConfig().flatMap(config -> {
             DeploymentPath deploymentPath = new DeploymentPath(deployRequest.getReservation().getReservationId(),
                 config);
-            FunctionFileService functionFileService = new FunctionFileService(vertx,
+            FunctionPrepareService functionFileService = new FunctionPrepareService(vertx,
                 deployRequest.getFunctionReservations(), deploymentPath.getFunctionsFolder(),
                 deployRequest.getDockerCredentials());
             return functionFileService.packageCode();
