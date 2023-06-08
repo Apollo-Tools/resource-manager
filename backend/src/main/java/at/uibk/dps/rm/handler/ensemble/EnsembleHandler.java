@@ -149,6 +149,8 @@ public class EnsembleHandler extends ValidationHandler {
         ensemble.setRegions(request.getRegions());
         ensemble.setProviders(request.getProviders());
         ensemble.setResource_types(request.getResourceTypes());
+        ensemble.setPlatforms(request.getPlatforms());
+        ensemble.setEnvironments(request.getEnvironments());
         return ensemble;
     }
 
@@ -283,5 +285,7 @@ public class EnsembleHandler extends ValidationHandler {
         response.setRegions(ensemble.getRegions());
         response.setProviders(ensemble.getProviders());
         response.setResourceTypes(ensemble.getResource_types());
+        response.setPlatforms(ensemble.getPlatforms());
+        response.setEnvironments(ensemble.getEnvironments());
     }
 }
