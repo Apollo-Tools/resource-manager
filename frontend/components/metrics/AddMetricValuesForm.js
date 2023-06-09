@@ -185,7 +185,7 @@ const AddMetricValuesForm = ({
                       </Checkbox>:
                       (checkMetricType(metrics, form, name, 'number') ?
                           <InputNumber placeholder='0.00' controls={false} className="w-full"/>:
-                          <Input placeholder='value' classNames="w-full"/>
+                          <Input placeholder='value' className="w-full"/>
                       )
 
                     }

@@ -1,27 +1,35 @@
 import {Radio, Select, Space} from 'antd';
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import SLOValue from './SLOValue';
 import PropTypes from 'prop-types';
+import TooltipIcon from '../TooltipIcon';
 
 const {Option} = Select;
 
-const SLOEntry = ({metrics, selectedMetrics, slo, updateMetric, updateExpression, updateValue}) => {
+const SLOEntry = ({metrics, selectedMetrics, slo, selectables, updateMetric, updateExpression, updateValue}) => {
   const [expression, setExpression] = useState('');
+  const [selectedMetric, setSelecteMetric] = useState();
 
   const expressions = {
     number: ['==', '<', '>'],
     boolean: ['=='],
     string: ['=='],
+    selectable: ['=='],
   };
+
+  useEffect(() => {
+    console.log(selectables);
+  }, [selectables]);
 
   const onChangeMetric = (value) => {
     updateMetric?.(value, slo.id);
-    if (expressions[slo.metricType].length === 1) {
-      onChangeExpression(expressions[slo.metricType][0]);
-    } else {
-      onChangeExpression('');
-    }
+    setSelecteMetric(metrics.find((metric) => metric.metric_id === value));
+    onChangeExpression('');
   };
+
+  useEffect(() => {
+    console.log(selectedMetric);
+  }, [selectedMetric]);
 
   const onChangeExpression = (value) => {
     updateExpression?.(value, slo.id);
@@ -52,14 +60,18 @@ const SLOEntry = ({metrics, selectedMetrics, slo, updateMetric, updateExpression
           </Option>
         ))}
       </Select>
+      <span className={selectedMetric?.description ? 'flex content-center h-[32px]' : 'invisible' }>
+        <TooltipIcon text={selectedMetric?.description}/>
+      </span>
       <Radio.Group name="radiogroup" value={expression}
         onChange={(e) => onChangeExpression(e.target.value)} className="w-32"
       >
-        {expressions[slo.metricType].map((exp, idx) => {
+        {(selectables ? expressions.selectable : expressions[slo.metricType]).map((exp, idx) => {
           return <Radio.Button key={idx} value={exp}>{exp}</Radio.Button>;
         })}
       </Radio.Group>
-      <SLOValue expression={expression} metricType={slo.metricType} onChange={onChangeValue}/>
+      <SLOValue expression={expression} metricType={selectables ? 'selectable' : slo.metricType} onChange={onChangeValue}
+        selectables={selectables}/>
     </Space>
   );
 };
@@ -68,6 +80,7 @@ SLOEntry.propTypes = {
   metrics: PropTypes.arrayOf(PropTypes.object).isRequired,
   selectedMetrics: PropTypes.arrayOf(PropTypes.string).isRequired,
   slo: PropTypes.object.isRequired,
+  selectables: PropTypes.arrayOf(PropTypes.shape({id: PropTypes.number.isRequired, name: PropTypes.string.isRequired})),
   updateMetric: PropTypes.func,
   updateExpression: PropTypes.func,
   updateValue: PropTypes.func,

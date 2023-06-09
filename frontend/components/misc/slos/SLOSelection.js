@@ -5,11 +5,21 @@ import {CloseSquareOutlined, PlusSquareOutlined} from '@ant-design/icons';
 import {listMetrics} from '../../../lib/MetricService';
 import {useAuth} from '../../../lib/AuthenticationProvider';
 import PropTypes from 'prop-types';
+import {listRegions} from '../../../lib/RegionService';
+import {listResourceTypes} from '../../../lib/ResourceTypeService';
+import {listPlatforms} from '../../../lib/PlatformService';
+import {listResourceProviders} from '../../../lib/ResourceProviderService';
+import {listEnvironments} from '../../../lib/EnvironmentService';
 
 
 const SLOSelection = ({onChange}) => {
   const {token, checkTokenExpired} = useAuth();
   const [metrics, setMetrics] = useState([]);
+  const [regions, setRegions] = useState([]);
+  const [providers, setProviders] = useState([]);
+  const [resourceTypes, setResourceTypes] = useState([]);
+  const [environments, setEnvironments] = useState([]);
+  const [platforms, setPlatforms] = useState([]);
   const [sloId, setSloId] = useState(0);
   const [error, setError] = useState();
   const [metricsInitialised, setMetricsInitialised] = useState(false);
@@ -27,17 +37,25 @@ const SLOSelection = ({onChange}) => {
   useEffect(() => {
     if (!checkTokenExpired()) {
       listMetrics(token, setMetrics, setError);
+      listRegions(token, setRegions, setError);
+      listResourceTypes(token, setResourceTypes, setError);
+      listPlatforms(token, setPlatforms, setError);
+      listResourceProviders(token, setProviders, setError);
+      listEnvironments(token, setEnvironments, setError);
     }
   }, []);
 
   useEffect(() => {
     if (metrics.length > 0 && !metricsInitialised) {
       setMetrics((prevMetrics) =>
-        [...prevMetrics, {metric_id: -1, metric: 'region', metric_type: {type: 'number'}},
-          {metric_id: -2, metric: 'resource_provider', metric_type: {type: 'number'}},
-          {metric_id: -3, metric: 'resource_type', metric_type: {type: 'number'}},
-          {metric_id: -4, metric: 'environment', metric_type: {type: 'number'}},
-          {metric_id: -5, metric: 'platform', metric_type: {type: 'number'}}]);
+        [...prevMetrics, {metric_id: -1, metric: 'region', metric_type: {type: 'number'}, description: 'the' +
+            ' cloud/edge region'},
+        {metric_id: -2, metric: 'resource_provider', metric_type: {type: 'number'}, description: 'the resource' +
+              ' provider'},
+        {metric_id: -3, metric: 'resource_type', metric_type: {type: 'number'}, description: 'the resource type'},
+        {metric_id: -4, metric: 'environment', metric_type: {type: 'number'}, description: 'the deployment' +
+              ' environment'},
+        {metric_id: -5, metric: 'platform', metric_type: {type: 'number'}, description: 'the deployment platform'}]);
       setMetricsInitialised(true);
     }
   }, [metrics]);
@@ -102,6 +120,33 @@ const SLOSelection = ({onChange}) => {
     });
   };
 
+  const getSelectables = (sloName) => {
+    switch (sloName) {
+      case 'region':
+        return regions.map((region) => {
+          return {id: region.region_id, name: region.name};
+        });
+      case 'resource_type':
+        return resourceTypes.map((type) => {
+          return {id: type.type_id, name: type.resource_type};
+        });
+      case 'platform':
+        return platforms.map((platform) => {
+          return {id: platform.platform_id, name: platform.platform};
+        });
+      case 'resource_provider':
+        return providers.map((provider) => {
+          return {id: provider.provider_id, name: provider.provider};
+        });
+      case 'environment':
+        return environments.map((environment) => {
+          return {id: environment.environment_id, name: environment.environment};
+        });
+      default:
+        return null;
+    }
+  };
+
 
   return (<div>
     {slos.map((slo) => {
@@ -111,6 +156,7 @@ const SLOSelection = ({onChange}) => {
             metrics={metrics}
             selectedMetrics={slos.map((metricSlo) => metricSlo.name)}
             slo={slo}
+            selectables={getSelectables(slo.name)}
             updateMetric={onChangeMetricSelect}
             updateExpression={onChangeExpressionSelect}
             updateValue={onChangeValue}
