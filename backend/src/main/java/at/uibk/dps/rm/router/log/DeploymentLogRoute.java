@@ -19,10 +19,9 @@ public class DeploymentLogRoute implements Route {
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         DeploymentLogChecker deploymentLogChecker =
-            new DeploymentLogChecker(serviceProxyProvider.getReservationLogService());
+            new DeploymentLogChecker(serviceProxyProvider.getDeploymentLogService());
         LogChecker logChecker = new LogChecker(serviceProxyProvider.getLogService());
-        DeploymentChecker deploymentChecker = new DeploymentChecker(serviceProxyProvider
-            .getReservationService());
+        DeploymentChecker deploymentChecker = new DeploymentChecker(serviceProxyProvider.getDeploymentService());
         DeploymentLogHandler deploymentLogHandler = new DeploymentLogHandler(deploymentLogChecker, logChecker,
             deploymentChecker);
         ResultHandler resultHandler = new ResultHandler(deploymentLogHandler);

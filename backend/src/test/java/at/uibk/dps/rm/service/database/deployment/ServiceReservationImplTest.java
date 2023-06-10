@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.service.database.reservation;
+package at.uibk.dps.rm.service.database.deployment;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.model.Deployment;
@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 /**
- * Implements tests for the {@link ServiceReservationServiceImpl} class.
+ * Implements tests for the {@link ServiceDeploymentServiceImpl} class.
  *
  * @author matthi-g
  */
@@ -34,7 +34,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class ServiceReservationImplTest {
 
-    private ServiceReservationService service;
+    private ServiceDeploymentService service;
 
     @Mock
     ServiceDeploymentRepository repository;
@@ -42,7 +42,7 @@ public class ServiceReservationImplTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        service = new ServiceReservationServiceImpl(repository);
+        service = new ServiceDeploymentServiceImpl(repository);
     }
 
     @Test
@@ -58,7 +58,7 @@ public class ServiceReservationImplTest {
         CompletionStage<List<ServiceDeployment>> completionStage = CompletionStages.completedFuture(resultList);
         when(repository.findAllByDeploymentId(reservationId)).thenReturn(completionStage);
 
-        service.findAllByReservationId(reservationId)
+        service.findAllByDeploymentId(reservationId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
 
@@ -80,7 +80,7 @@ public class ServiceReservationImplTest {
         CompletionStage<List<ServiceDeployment>> completionStage = CompletionStages.completedFuture(resultList);
         when(repository.findAllByDeploymentId(resourceId)).thenReturn(completionStage);
 
-        service.findAllByReservationId(resourceId)
+        service.findAllByDeploymentId(resourceId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(0);
                 testContext.completeNow();

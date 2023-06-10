@@ -9,7 +9,7 @@ import java.util.*;
 @Getter
 public class OpenFaasDeploymentData {
 
-    private final long reservationId;
+    private final long deploymentId;
     private final String dockerUserName;
     private final List<Long> resourceIds = new ArrayList<>();
     private final List<String> functionIdentifiers = new ArrayList<>();
@@ -35,7 +35,7 @@ public class OpenFaasDeploymentData {
                 "    gateway_url = \"%s\"\n" +
                 "    auth_password = var.openfaas_login_data[\"r%s\"].auth_pw\n" +
                 "  }\n" +
-                "}\n", resourceId, functionIdentifier, resourceId, functionIdentifier, reservationId, dockerUserName,
+                "}\n", resourceId, functionIdentifier, resourceId, functionIdentifier, deploymentId, dockerUserName,
             functionIdentifier, resourceId, gatewayUrl, resourceId
         );
     }

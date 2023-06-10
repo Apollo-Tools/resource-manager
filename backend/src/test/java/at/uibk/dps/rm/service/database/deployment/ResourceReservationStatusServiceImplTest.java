@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.service.database.reservation;
+package at.uibk.dps.rm.service.database.deployment;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.model.ResourceDeploymentStatus;
@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 /**
- * Implements tests for the {@link ResourceReservationStatusServiceImpl} class.
+ * Implements tests for the {@link ResourceDeploymentStatusServiceImpl} class.
  *
  * @author matthi-g
  */
@@ -28,7 +28,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class ResourceReservationStatusServiceImplTest {
 
-    private ResourceReservationStatusService service;
+    private ResourceDeploymentStatusService service;
 
     @Mock
     private ResourceDeploymentStatusRepository repository;
@@ -36,7 +36,7 @@ public class ResourceReservationStatusServiceImplTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        service = new ResourceReservationStatusServiceImpl(repository);
+        service = new ResourceDeploymentStatusServiceImpl(repository);
     }
 
     @Test

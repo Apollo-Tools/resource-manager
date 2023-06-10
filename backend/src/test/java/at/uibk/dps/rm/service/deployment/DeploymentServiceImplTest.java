@@ -38,7 +38,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
 /**
- * Implements tests for the {@link DeploymentServiceImpl} class.
+ * Implements tests for the {@link DeploymentExecutionServiceImpl} class.
  *
  * @author matthi-g
  */
@@ -46,7 +46,7 @@ import static org.mockito.BDDMockito.given;
 @ExtendWith(MockitoExtension.class)
 public class DeploymentServiceImplTest {
 
-    private DeploymentService deploymentService;
+    private DeploymentExecutionService deploymentService;
 
     @RegisterExtension
     private static final RunTestOnContext rtoc = new RunTestOnContext();
@@ -58,7 +58,7 @@ public class DeploymentServiceImplTest {
         rtoc.vertx();
         System.setProperty("os.name", "Linux");
         JsonMapperConfig.configJsonMapper();
-        deploymentService = new DeploymentServiceImpl();
+        deploymentService = new DeploymentExecutionServiceImpl();
     }
 
     @Test

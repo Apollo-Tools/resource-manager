@@ -50,7 +50,7 @@ public class LogServiceImplTest {
 
         when(logRepository.findAllByDeploymentIdAndAccountId(reservationId, accountId)).thenReturn(completionStage);
 
-        logService.findAllByReservationIdAndAccountId(reservationId, accountId)
+        logService.findAllByDeploymentIdAndAccountId(reservationId, accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
                 assertThat(result.getJsonObject(0).getLong("log_id")).isEqualTo(1L);
@@ -67,7 +67,7 @@ public class LogServiceImplTest {
 
         when(logRepository.findAllByDeploymentIdAndAccountId(reservationId, accountId)).thenReturn(completionStage);
 
-        logService.findAllByReservationIdAndAccountId(reservationId, accountId)
+        logService.findAllByDeploymentIdAndAccountId(reservationId, accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(0);
                 testContext.completeNow();

@@ -18,14 +18,14 @@ import java.util.stream.Collectors;
 @UtilityClass
 public class ComposeDeploymentDataUtility {
 
-    public static void composeLambdaDeploymentData(Resource resource, Function function, long reservationId,
+    public static void composeLambdaDeploymentData(Resource resource, Function function, long deploymentId,
             Path functionsDir, LambdaDeploymentData deploymentData) {
         StringBuilder functionName = new StringBuilder(), functionPath = new StringBuilder();
         String runtime = function.getRuntime().getName();
         String functionIdentifier =  function.getFunctionDeploymentId();
         String functionHandler;
         functionName.append("r").append(resource.getResourceId()).append("_")
-            .append(functionIdentifier).append("_").append(reservationId);
+            .append(functionIdentifier).append("_").append(deploymentId);
         functionPath.append(functionsDir.toAbsolutePath().toString().replace("\\","/")).append("/")
             .append(functionIdentifier).append(".zip");
         if (runtime.startsWith("python")) {

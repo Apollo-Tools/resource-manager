@@ -80,15 +80,15 @@ public class TerraformSetupService {
         if (deployRequest == null) {
             return Single.error(new IllegalStateException("deployRequest must not be null"));
         }
-        Map<Region, List<FunctionDeployment>> functionReservations = RegionMapper
+        Map<Region, List<FunctionDeployment>> functionDeployments = RegionMapper
             .mapFunctionDeployments(deployRequest.getFunctionDeployments());
         Map<Region, VPC> regionVPCMap = RegionMapper.mapVPCs(deployRequest.getVpcList());
         List<Single<TerraformModule>> singles = new ArrayList<>();
-        for (Region region: functionReservations.keySet()) {
-            List<FunctionDeployment> regionFunctionReservations = functionReservations.get(region);
-            singles.add(functionDeployment(region, regionFunctionReservations, regionVPCMap));
+        for (Region region: functionDeployments.keySet()) {
+            List<FunctionDeployment> regionFunctionDeployments = functionDeployments.get(region);
+            singles.add(functionDeployment(region, regionFunctionDeployments, regionVPCMap));
             composeCloudLoginData(deployRequest.getCredentialsList(), region);
-            composeOpenFaasLoginData(regionFunctionReservations);
+            composeOpenFaasLoginData(regionFunctionDeployments);
         }
         if (!deployRequest.getServiceDeployments().isEmpty()) {
             singles.add(containerDeployment(deployRequest.getServiceDeployments()));
@@ -107,30 +107,30 @@ public class TerraformSetupService {
         if (terminateRequest == null) {
             return Single.error(new IllegalStateException("terminateRequest must not be null"));
         }
-        Map<Region, List<FunctionDeployment>> functionReservations = RegionMapper
+        Map<Region, List<FunctionDeployment>> functionDeployments = RegionMapper
             .mapFunctionDeployments(terminateRequest.getFunctionDeployments());
-        for (Region region: functionReservations.keySet()) {
-            List<FunctionDeployment> regionFunctionReservations = functionReservations.get(region);
+        for (Region region: functionDeployments.keySet()) {
+            List<FunctionDeployment> regionFunctionDeployments = functionDeployments.get(region);
             composeCloudLoginData(terminateRequest.getCredentialsList(), region);
-            composeOpenFaasLoginData(regionFunctionReservations);
+            composeOpenFaasLoginData(regionFunctionDeployments);
         }
         return Single.just(this.credentials);
     }
 
     /**
-     * Compose the edge login data that is necessary for deployment. It is formatted to be used as
-     * command line parameter of the terraform cli.
+     * Compose the OpenFaaS login data that is necessary for deployment. It is formatted to be used
+     * as command line parameters of the terraform cli.
      *
-     * @param regionFunctionReservations the function reservations grouped by region
+     * @param regionFunctionDeployments the function deployments grouped by region
      */
-    private void composeOpenFaasLoginData(List<FunctionDeployment> regionFunctionReservations) {
+    private void composeOpenFaasLoginData(List<FunctionDeployment> regionFunctionDeployments) {
         String escapeString = "\"";
         if (System.getProperty("os.name").toLowerCase().contains("windows")) {
             escapeString = "\\\"";
         }
         Set<Long> credentialResources = new HashSet<>();
-        for (FunctionDeployment functionReservation : regionFunctionReservations) {
-            Resource resource = functionReservation.getResource();
+        for (FunctionDeployment functionDeployment : regionFunctionDeployments) {
+            Resource resource = functionDeployment.getResource();
             if (credentialResources.contains(resource.getResourceId()) ||
                 !resource.getPlatform().getPlatform().equals(PlatformEnum.OPENFAAS.getValue())) {
                 continue;
@@ -161,42 +161,48 @@ public class TerraformSetupService {
     }
 
     /**
-     * Setup everything necessary for cloud deployment in the region.
+     * Setup everything necessary for deployment in the region.
      *
      * @param region the region
-     * @param regionFunctionReservations the function reservations of the region
+     * @param regionFunctionDeployments the function deployments of the region
      * @param regionVPCMap all available vpc grouped by region
      * @return a Single that emits the created terraform module
      */
-    private Single<TerraformModule> functionDeployment(Region region, List<FunctionDeployment> regionFunctionReservations,
+    private Single<TerraformModule> functionDeployment(Region region, List<FunctionDeployment> regionFunctionDeployments,
                                                     Map<Region, VPC> regionVPCMap) {
         String provider = region.getResourceProvider().getProvider();
         ResourceProviderEnum resourceProvider = ResourceProviderEnum.fromString(provider);
         TerraformModule module = new TerraformModule(resourceProvider, region);
         Path moduleFolder = deploymentPath.getModuleFolder(module);
         Path functionsFolder = deploymentPath.getFunctionsFolder();
-        long reservationId = deployRequest.getDeployment().getDeploymentId();
+        long deploymentId = deployRequest.getDeployment().getDeploymentId();
         String dockerUsername = deployRequest.getDockerCredentials().getUsername();
         RegionFaasFileService fileService = new RegionFaasFileService(vertx.fileSystem(), moduleFolder,
-            functionsFolder, region, regionFunctionReservations, reservationId, module, dockerUsername,
+            functionsFolder, region, regionFunctionDeployments, deploymentId, module, dockerUsername,
             regionVPCMap.get(region));
         return fileService.setUpDirectory()
             .toSingle(() -> module);
     }
 
-    private Single<TerraformModule> containerDeployment(List<ServiceDeployment> serviceReservations) {
+    /**
+     * Setup everything necessary for container deployments.
+     *
+     * @param serviceDeployments the service deployments
+     * @return a Single that emits the created terraform module
+     */
+    private Single<TerraformModule> containerDeployment(List<ServiceDeployment> serviceDeployments) {
         FileSystem fileSystem = vertx.fileSystem();
-        long reservationId = deployRequest.getDeployment().getDeploymentId();
+        long deploymentId = deployRequest.getDeployment().getDeploymentId();
         TerraformModule module = new TerraformModule(CloudProvider.CONTAINER, "container");
         Path containerFolder = deploymentPath.getModuleFolder(module);
         Path configPath = Path.of(containerFolder.toString(), "config");
         ContainerPullFileService containerFileService = new ContainerPullFileService(fileSystem, containerFolder,
-            serviceReservations, reservationId);
+            serviceDeployments, deploymentId);
         List<Completable> completables = new ArrayList<>();
-        for (ServiceDeployment serviceReservation : serviceReservations) {
-            Path deployFolder = Path.of(containerFolder.toString(),  serviceReservation.getResourceDeploymentId().toString());
+        for (ServiceDeployment serviceDeployment : serviceDeployments) {
+            Path deployFolder = Path.of(containerFolder.toString(),  serviceDeployment.getResourceDeploymentId().toString());
             ContainerDeployFileService containerDeployFileService = new ContainerDeployFileService(fileSystem,
-                deployFolder, serviceReservation, reservationId);
+                deployFolder, serviceDeployment, deploymentId);
             completables.add(containerDeployFileService.setUpDirectory());
         }
 

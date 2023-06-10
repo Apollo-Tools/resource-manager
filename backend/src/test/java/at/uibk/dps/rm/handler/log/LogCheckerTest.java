@@ -56,7 +56,7 @@ public class LogCheckerTest {
         when(logService.findAllByReservationIdAndAccountId(reservationId, accountId))
             .thenReturn(Single.just(reservationLogs));
 
-        logChecker.checkFindAllByReservationId(reservationId, accountId)
+        logChecker.checkFindAllByDeploymentId(reservationId, accountId)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(2);
                     assertThat(result.getJsonObject(0).getLong("reservation_log_id")).isEqualTo(1L);
@@ -75,7 +75,7 @@ public class LogCheckerTest {
         when(logService.findAllByReservationIdAndAccountId(reservationId, accountId))
             .thenReturn(handler);
 
-        logChecker.checkFindAllByReservationId(reservationId, accountId)
+        logChecker.checkFindAllByDeploymentId(reservationId, accountId)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);

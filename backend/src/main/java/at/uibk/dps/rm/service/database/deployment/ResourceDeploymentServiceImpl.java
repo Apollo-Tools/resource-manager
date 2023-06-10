@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.service.database.reservation;
+package at.uibk.dps.rm.service.database.deployment;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
@@ -13,28 +13,28 @@ import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 
 /**
- * This is the implementation of the #ResourceReservationService.
+ * This is the implementation of the #ResourceDeploymentService.
  *
  * @author matthi-g
  */
-public class ResourceReservationServiceImpl extends DatabaseServiceProxy<ResourceDeployment> implements ResourceReservationService {
+public class ResourceDeploymentServiceImpl extends DatabaseServiceProxy<ResourceDeployment> implements ResourceDeploymentService {
 
-    private final ResourceDeploymentRepository resourceReservationRepository;
+    private final ResourceDeploymentRepository repository;
 
     /**
-     * Create aninstance from the resourceReservationRepositry.
+     * Create an instance from the resourceDeploymentRepository.
      *
-     * @param resourceReservationRepository the resource reservation repository
+     * @param repository the resource deployment repository
      */
-    public ResourceReservationServiceImpl(ResourceDeploymentRepository resourceReservationRepository) {
-        super(resourceReservationRepository, ResourceDeployment.class);
-        this.resourceReservationRepository = resourceReservationRepository;
+    public ResourceDeploymentServiceImpl(ResourceDeploymentRepository repository) {
+        super(repository, ResourceDeployment.class);
+        this.repository = repository;
     }
 
     @Override
-    public Future<JsonArray> findAllByReservationId(long reservationId) {
+    public Future<JsonArray> findAllByDeploymentId(long deploymentId) {
         return Future
-                .fromCompletionStage(resourceReservationRepository.findAllByDeploymentId(reservationId))
+                .fromCompletionStage(repository.findAllByDeploymentId(deploymentId))
                 .map(result -> {
                     ArrayList<JsonObject> objects = new ArrayList<>();
                     for (ResourceDeployment entity: result) {
@@ -53,17 +53,17 @@ public class ResourceReservationServiceImpl extends DatabaseServiceProxy<Resourc
     }
 
     @Override
-    public Future<Void> updateTriggerUrl(long id, String triggerUrl) {
+    public Future<Void> updateTriggerUrl(long resourceDeploymentId, String triggerUrl) {
         return Future
-            .fromCompletionStage(resourceReservationRepository.updateTriggerUrl(id, triggerUrl))
+            .fromCompletionStage(repository.updateTriggerUrl(resourceDeploymentId, triggerUrl))
             .mapEmpty();
     }
 
     @Override
-    public Future<Void> updateSetStatusByReservationId(long reservationId, DeploymentStatusValue reservationStatusValue) {
+    public Future<Void> updateSetStatusByDeploymentId(long deploymentId, DeploymentStatusValue deploymentStatusValue) {
         return Future
-            .fromCompletionStage(resourceReservationRepository
-                .updateDeploymentStatusByDeploymentId(reservationId, reservationStatusValue))
+            .fromCompletionStage(repository
+                .updateDeploymentStatusByDeploymentId(deploymentId, deploymentStatusValue))
             .mapEmpty();
     }
 }

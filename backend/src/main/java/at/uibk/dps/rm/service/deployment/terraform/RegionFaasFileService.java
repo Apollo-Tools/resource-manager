@@ -27,9 +27,9 @@ public class RegionFaasFileService extends TerraformFileService {
 
     private final Region region;
 
-    private final List<FunctionDeployment> functionReservations;
+    private final List<FunctionDeployment> functionDeployments;
 
-    private final long reservationId;
+    private final long deploymentId;
 
     private final LambdaDeploymentData lambdaDeploymentData;
 
@@ -39,30 +39,30 @@ public class RegionFaasFileService extends TerraformFileService {
 
     /**
      * Create an instance from the fileSystem, rootFolder, functionsDir, region, awsRole,
-     * functionReservations, reservationId, module, dockerUserName and vpc.
+     * functionDeployments, deploymentId, module, dockerUserName and vpc.
      *
      * @param fileSystem the vertx file system
      * @param rootFolder the root folder of the module
      * @param functionsDir the path to the packaged functions
      * @param region the region where the resources are deployed
-     * @param functionReservations the list of function reservations
-     * @param reservationId the id of the reservation
+     * @param functionDeployments the list of function deployments
+     * @param deploymentId the id of the deployment
      * @param module the terraform module
      * @param dockerUserName the docker username
      * @param vpc the virtual private cloud to use for the deployment
      */
     public RegionFaasFileService(FileSystem fileSystem, Path rootFolder, Path functionsDir, Region region,
-                          List<FunctionDeployment> functionReservations, long reservationId, TerraformModule module,
+                          List<FunctionDeployment> functionDeployments, long deploymentId, TerraformModule module,
                           String dockerUserName, VPC vpc) {
         super(fileSystem, rootFolder);
         this.module = module;
         this.functionsDir = functionsDir;
         this.region = region;
-        this.functionReservations = functionReservations;
-        this.reservationId = reservationId;
+        this.functionDeployments = functionDeployments;
+        this.deploymentId = deploymentId;
         this.lambdaDeploymentData = new LambdaDeploymentData();
-        this.ec2DeploymentData = new EC2DeploymentData(reservationId, vpc, dockerUserName);
-        this.openFaasDeploymentData = new OpenFaasDeploymentData(reservationId, dockerUserName);
+        this.ec2DeploymentData = new EC2DeploymentData(deploymentId, vpc, dockerUserName);
+        this.openFaasDeploymentData = new OpenFaasDeploymentData(deploymentId, dockerUserName);
     }
 
 
@@ -82,13 +82,13 @@ public class RegionFaasFileService extends TerraformFileService {
     }
 
     protected String getFunctionsModuleString() {
-        for (FunctionDeployment functionReservation: functionReservations) {
-            Resource resource = functionReservation.getResource();
-            Function function = functionReservation.getFunction();
+        for (FunctionDeployment functionDeployment: functionDeployments) {
+            Resource resource = functionDeployment.getResource();
+            Function function = functionDeployment.getFunction();
             PlatformEnum platform = PlatformEnum.fromString(resource.getPlatform().getPlatform());
             switch (platform) {
                 case LAMBDA:
-                    ComposeDeploymentDataUtility.composeLambdaDeploymentData(resource, function, reservationId,
+                    ComposeDeploymentDataUtility.composeLambdaDeploymentData(resource, function, deploymentId,
                         functionsDir, lambdaDeploymentData);
                     break;
                 case EC2:
@@ -149,16 +149,16 @@ public class RegionFaasFileService extends TerraformFileService {
         }
         if (this.ec2DeploymentData.getFunctionCount() > 0 || this.openFaasDeploymentData.getFunctionCount() > 0) {
             StringBuilder vmUrls = new StringBuilder(), vmFunctionIds = new StringBuilder();
-            for (FunctionDeployment functionReservation: functionReservations) {
-                Resource resource = functionReservation.getResource();
-                Function function = functionReservation.getFunction();
+            for (FunctionDeployment functionDeployment: functionDeployments) {
+                Resource resource = functionDeployment.getResource();
+                Function function = functionDeployment.getFunction();
                 String functionIdentifier = function.getFunctionDeploymentId();
                 PlatformEnum platformEnum = PlatformEnum.fromString(resource.getPlatform().getPlatform());
                 if (platformEnum.equals(PlatformEnum.EC2) || platformEnum.equals(PlatformEnum.OPENFAAS)) {
                     vmUrls.append(String.format("module.r%s_%s.function_url,",
                         resource.getResourceId(), functionIdentifier));
                     vmFunctionIds.append(String.format("\"r%s_%s_%s\",",
-                        resource.getResourceId(), functionIdentifier, reservationId));
+                        resource.getResourceId(), functionIdentifier, deploymentId));
                 }
             }
             openFaasUrls = String.format("zipmap([%s], [%s])", vmFunctionIds, vmUrls);

@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.service.database.reservation;
+package at.uibk.dps.rm.service.database.deployment;
 
 import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.repository.deployment.DeploymentRepository;
@@ -10,28 +10,28 @@ import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 
 /**
- * This is the implementation of the #ReservationService.
+ * This is the implementation of the #DeploymentService.
  *
  * @author matthi-g
  */
-public class ReservationServiceImpl extends DatabaseServiceProxy<Deployment> implements ReservationService {
+public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> implements DeploymentService {
 
-    private final DeploymentRepository reservationRepository;
+    private final DeploymentRepository deploymentRepository;
 
     /**
-     * Create an instance from the reservationRepository.
+     * Create an instance from the deploymentRepository.
      *
-     * @param reservationRepository the reservation repository
+     * @param deploymentRepository the deployment repository
      */
-    public ReservationServiceImpl(DeploymentRepository reservationRepository) {
-        super(reservationRepository, Deployment.class);
-        this.reservationRepository = reservationRepository;
+    public DeploymentServiceImpl(DeploymentRepository deploymentRepository) {
+        super(deploymentRepository, Deployment.class);
+        this.deploymentRepository = deploymentRepository;
     }
 
     @Override
     public Future<JsonArray> findAllByAccountId(long accountId) {
         return Future
-            .fromCompletionStage(reservationRepository.findAllByAccountId(accountId))
+            .fromCompletionStage(deploymentRepository.findAllByAccountId(accountId))
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Deployment entity: result) {
@@ -45,7 +45,7 @@ public class ReservationServiceImpl extends DatabaseServiceProxy<Deployment> imp
     @Override
     public Future<JsonObject> findOneByIdAndAccountId(long id, long accountId) {
         return Future
-            .fromCompletionStage(reservationRepository.findByIdAndAccountId(id, accountId))
+            .fromCompletionStage(deploymentRepository.findByIdAndAccountId(id, accountId))
             .map(result -> {
                 if (result != null) {
                     result.setCreatedBy(null);

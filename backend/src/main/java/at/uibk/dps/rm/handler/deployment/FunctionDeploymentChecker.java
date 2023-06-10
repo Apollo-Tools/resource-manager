@@ -2,7 +2,7 @@ package at.uibk.dps.rm.handler.deployment;
 
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
-import at.uibk.dps.rm.service.rxjava3.database.reservation.FunctionReservationService;
+import at.uibk.dps.rm.service.rxjava3.database.deployment.FunctionDeploymentService;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 
@@ -15,14 +15,14 @@ import io.vertx.core.json.JsonArray;
  */
 public class FunctionDeploymentChecker extends EntityChecker {
 
-    private final FunctionReservationService service;
+    private final FunctionDeploymentService service;
 
     /**
      * Create an instance from the service.
      *
      * @param service the function deployment service
      */
-    public FunctionDeploymentChecker(FunctionReservationService service) {
+    public FunctionDeploymentChecker(FunctionDeploymentService service) {
         super(service);
         this.service = service;
     }
@@ -33,7 +33,7 @@ public class FunctionDeploymentChecker extends EntityChecker {
      * @return a Single that emits all found resource deployments as JsonArray
      */
     public Single<JsonArray> checkFindAllByDeploymentId(long id) {
-        final Single<JsonArray> findAllByDeploymentId = service.findAllByReservationId(id);
+        final Single<JsonArray> findAllByDeploymentId = service.findAllByDeploymentId(id);
         return ErrorHandler.handleFindAll(findAllByDeploymentId);
     }
 }

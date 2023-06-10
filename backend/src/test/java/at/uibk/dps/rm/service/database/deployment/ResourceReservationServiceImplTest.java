@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.service.database.reservation;
+package at.uibk.dps.rm.service.database.deployment;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.model.*;
@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 /**
- * Implements tests for the {@link ResourceReservationServiceImpl} class.
+ * Implements tests for the {@link ResourceDeploymentServiceImpl} class.
  *
  * @author matthi-g
  */
@@ -31,7 +31,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class ResourceReservationServiceImplTest {
 
-    private ResourceReservationService resourceReservationService;
+    private ResourceDeploymentService resourceReservationService;
 
     @Mock
     ResourceDeploymentRepository resourceReservationRepository;
@@ -39,7 +39,7 @@ public class ResourceReservationServiceImplTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        resourceReservationService = new ResourceReservationServiceImpl(resourceReservationRepository);
+        resourceReservationService = new ResourceDeploymentServiceImpl(resourceReservationRepository);
     }
 
     @Test
@@ -55,7 +55,7 @@ public class ResourceReservationServiceImplTest {
         CompletionStage<List<ResourceDeployment>> completionStage = CompletionStages.completedFuture(resultList);
         when(resourceReservationRepository.findAllByDeploymentId(reservationId)).thenReturn(completionStage);
 
-        resourceReservationService.findAllByReservationId(reservationId)
+        resourceReservationService.findAllByDeploymentId(reservationId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
 
@@ -77,7 +77,7 @@ public class ResourceReservationServiceImplTest {
         CompletionStage<List<ResourceDeployment>> completionStage = CompletionStages.completedFuture(resultList);
         when(resourceReservationRepository.findAllByDeploymentId(resourceId)).thenReturn(completionStage);
 
-        resourceReservationService.findAllByReservationId(resourceId)
+        resourceReservationService.findAllByDeploymentId(resourceId)
                 .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(0);
                     verify(resourceReservationRepository).findAllByDeploymentId(resourceId);
@@ -110,7 +110,7 @@ public class ResourceReservationServiceImplTest {
         when(resourceReservationRepository.updateDeploymentStatusByDeploymentId(reservationId, statusValue))
             .thenReturn(completionStage);
 
-        resourceReservationService.updateSetStatusByReservationId(reservationId, statusValue)
+        resourceReservationService.updateSetStatusByDeploymentId(reservationId, statusValue)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
                 testContext.completeNow();

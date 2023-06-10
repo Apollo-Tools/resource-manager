@@ -28,7 +28,7 @@ public class FunctionPrepareService {
 
     private final FileSystem fileSystem;
 
-    private final List<FunctionDeployment> functionReservations;
+    private final List<FunctionDeployment> functionDeployments;
 
     private final Path functionsDir;
 
@@ -39,18 +39,18 @@ public class FunctionPrepareService {
     private FunctionsToDeploy functionsToDeploy = new FunctionsToDeploy();
 
     /**
-     * Create an instance from vertx, functionResources, functionsDir and dockerCredentials.
+     * Create an instance from vertx, functionDeployments, functionsDir and dockerCredentials.
      *
      * @param vertx the vertx instance
-     * @param functionReservations the list of function reservations
+     * @param functionDeployments the list of function deployments
      * @param functionsDir the directory where everything related to the functions is stored
      * @param dockerCredentials the credentials of the docker user
      */
-    public FunctionPrepareService(Vertx vertx, List<FunctionDeployment> functionReservations, Path functionsDir,
+    public FunctionPrepareService(Vertx vertx, List<FunctionDeployment> functionDeployments, Path functionsDir,
                                DockerCredentials dockerCredentials) {
         this.vertx = vertx;
         this.fileSystem = vertx.fileSystem();
-        this.functionReservations = functionReservations;
+        this.functionDeployments = functionDeployments;
         this.functionsDir = functionsDir;
         this.dockerCredentials = dockerCredentials;
     }
@@ -65,7 +65,7 @@ public class FunctionPrepareService {
         PackageSourceCode packageSourceCode;
         StringBuilder functionsString = new StringBuilder();
         List<Completable> completables = new ArrayList<>();
-        for (FunctionDeployment fr : functionReservations) {
+        for (FunctionDeployment fr : functionDeployments) {
             Function function = fr.getFunction();
             if (functionIds.contains(function.getFunctionId())) {
                 continue;
@@ -107,10 +107,10 @@ public class FunctionPrepareService {
      * @return true if the function has to be deployed on a vm or edge device, else false
      */
     private boolean deployFunctionOnOpenFaaS(Function function) {
-        return functionReservations.stream().anyMatch(functionReservation -> {
+        return functionDeployments.stream().anyMatch(functionDeployment -> {
             PlatformEnum platform = PlatformEnum.fromString(
-                functionReservation.getResource().getPlatform().getPlatform());
-            return functionReservation.getFunction().equals(function) &&
+                functionDeployment.getResource().getPlatform().getPlatform());
+            return functionDeployment.getFunction().equals(function) &&
                 (platform.equals(PlatformEnum.OPENFAAS) || platform.equals(PlatformEnum.EC2));
         });
     }

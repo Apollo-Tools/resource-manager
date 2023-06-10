@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.service.database.reservation;
+package at.uibk.dps.rm.service.database.deployment;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
@@ -12,29 +12,29 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 /**
- * This is the implementation of the #ServiceReservationService.
+ * This is the implementation of the #ServiceDeploymentService.
  *
  * @author matthi-g
  */
-public class ServiceReservationServiceImpl  extends DatabaseServiceProxy<ServiceDeployment>
-    implements ServiceReservationService {
+public class ServiceDeploymentServiceImpl extends DatabaseServiceProxy<ServiceDeployment>
+    implements ServiceDeploymentService {
 
     private final ServiceDeploymentRepository repository;
 
     /**
      * Create an instance from the repository.
      *
-     * @param repository the service reservation repository
+     * @param repository the service deployment repository
      */
-    public ServiceReservationServiceImpl(ServiceDeploymentRepository repository) {
+    public ServiceDeploymentServiceImpl(ServiceDeploymentRepository repository) {
         super(repository, ServiceDeployment.class);
         this.repository = repository;
     }
 
     @Override
-    public Future<JsonArray> findAllByReservationId(long reservationId) {
+    public Future<JsonArray> findAllByDeploymentId(long deploymentId) {
         return Future
-            .fromCompletionStage(repository.findAllByDeploymentId(reservationId))
+            .fromCompletionStage(repository.findAllByDeploymentId(deploymentId))
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (ServiceDeployment entity: result) {
@@ -47,9 +47,9 @@ public class ServiceReservationServiceImpl  extends DatabaseServiceProxy<Service
     }
 
     @Override
-    public Future<Boolean> existsReadyForContainerStartupAndTermination(long reservationId,
-        long resourceReservationId, long accountId) {
-        return Future.fromCompletionStage(repository.findOneByDeploymentStatus(reservationId, resourceReservationId,
+    public Future<Boolean> existsReadyForContainerStartupAndTermination(long deploymentId,
+        long resourceDeploymentId, long accountId) {
+        return Future.fromCompletionStage(repository.findOneByDeploymentStatus(deploymentId, resourceDeploymentId,
                 accountId, DeploymentStatusValue.DEPLOYED))
             .map(Objects::nonNull);
     }

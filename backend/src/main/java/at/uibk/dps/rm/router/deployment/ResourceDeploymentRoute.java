@@ -15,10 +15,11 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 public class ResourceDeploymentRoute implements Route {
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
-        DeploymentExecutionChecker deploymentChecker = new DeploymentExecutionChecker(serviceProxyProvider.getDeploymentService(),
-            serviceProxyProvider.getLogService(), serviceProxyProvider.getReservationLogService());
+        DeploymentExecutionChecker deploymentChecker = new DeploymentExecutionChecker(serviceProxyProvider
+            .getDeploymentExecutionService(), serviceProxyProvider.getLogService(), serviceProxyProvider
+            .getDeploymentLogService());
         ServiceDeploymentChecker serviceDeploymentChecker =
-            new ServiceDeploymentChecker(serviceProxyProvider.getServiceReservationService());
+            new ServiceDeploymentChecker(serviceProxyProvider.getServiceDeploymentService());
         ContainerStartupHandler startupHandler = new ContainerStartupHandler(deploymentChecker,
             serviceDeploymentChecker);
 

@@ -27,11 +27,11 @@ import at.uibk.dps.rm.repository.service.ServiceTypeRepository;
 import at.uibk.dps.rm.service.database.account.*;
 import at.uibk.dps.rm.service.database.ensemble.*;
 import at.uibk.dps.rm.service.database.function.*;
+import at.uibk.dps.rm.service.database.log.DeploymentLogService;
 import at.uibk.dps.rm.service.database.log.LogService;
 import at.uibk.dps.rm.service.database.log.LogServiceImpl;
-import at.uibk.dps.rm.service.database.log.ReservationLogService;
-import at.uibk.dps.rm.service.database.log.ReservationLogServiceImpl;
-import at.uibk.dps.rm.service.database.reservation.*;
+import at.uibk.dps.rm.service.database.log.DeploymentLogServiceImpl;
+import at.uibk.dps.rm.service.database.deployment.*;
 import at.uibk.dps.rm.service.database.resource.*;
 import at.uibk.dps.rm.service.database.resourceprovider.*;
 import at.uibk.dps.rm.service.database.metric.*;
@@ -181,33 +181,33 @@ public class DatabaseVerticle extends AbstractVerticle {
             serviceProxyBinder.bind(EnsembleSLOService.class, new EnsembleSLOServiceImpl(ensembleSLORepository));
             serviceProxyBinder.bind(EnvironmentService.class, new EnvironmentServiceImpl(environmentRepository));
             serviceProxyBinder.bind(FunctionService.class, new FunctionServiceImpl(functionRepository));
-            serviceProxyBinder.bind(FunctionReservationService.class,
-                new FunctionReservationServiceImpl(functionDeploymentRepository));
+            serviceProxyBinder.bind(FunctionDeploymentService.class,
+                new FunctionDeploymentServiceImpl(functionDeploymentRepository));
             serviceProxyBinder.bind(LogService.class, new LogServiceImpl(logRepository));
             serviceProxyBinder.bind(MetricService.class, new MetricServiceImpl(metricRepository));
             serviceProxyBinder.bind(MetricTypeService.class, new MetricTypeServiceImpl(metricTypeRepository));
             serviceProxyBinder.bind(MetricValueService.class, new MetricValueServiceImpl(metricValueRepository));
             serviceProxyBinder.bind(PlatformService.class, new PlatformServiceImpl(platformRepository));
             serviceProxyBinder.bind(RegionService.class, new RegionServiceImpl(regionRepository));
-            serviceProxyBinder.bind(ReservationService.class, new ReservationServiceImpl(deploymentRepository));
-            serviceProxyBinder.bind(ReservationLogService.class,
-                new ReservationLogServiceImpl(deploymentLogRepository));
+            serviceProxyBinder.bind(DeploymentService.class, new DeploymentServiceImpl(deploymentRepository));
+            serviceProxyBinder.bind(DeploymentLogService.class,
+                new DeploymentLogServiceImpl(deploymentLogRepository));
             serviceProxyBinder.bind(ResourceEnsembleService.class,
                 new ResourceEnsembleServiceImpl(resourceEnsembleRepository));
             serviceProxyBinder.bind(ResourceService.class, new ResourceServiceImpl(resourceRepository));
             serviceProxyBinder.bind(ResourceProviderService.class,
                 new ResourceProviderServiceImpl(resourceProviderRepository));
-            serviceProxyBinder.bind(ResourceReservationService.class,
-                new ResourceReservationServiceImpl(resourceDeploymentRepository));
-            serviceProxyBinder.bind(ResourceReservationStatusService.class,
-                new ResourceReservationStatusServiceImpl(statusRepository));
+            serviceProxyBinder.bind(ResourceDeploymentService.class,
+                new ResourceDeploymentServiceImpl(resourceDeploymentRepository));
+            serviceProxyBinder.bind(ResourceDeploymentStatusService.class,
+                new ResourceDeploymentStatusServiceImpl(statusRepository));
             serviceProxyBinder.bind(ResourceTypeService.class, new ResourceTypeServiceImpl(resourceTypeRepository));
             serviceProxyBinder.bind(PlatformMetricService.class,
                 new PlatformMetricServiceImpl(platformMetricRepository));
             serviceProxyBinder.bind(RuntimeService.class, new RuntimeServiceImpl(runtimeRepository));
             serviceProxyBinder.bind(ServiceService.class, new ServiceServiceImpl(serviceRepository));
-            serviceProxyBinder.bind(ServiceReservationService.class,
-                new ServiceReservationServiceImpl(serviceDeploymentRepository));
+            serviceProxyBinder.bind(ServiceDeploymentService.class,
+                new ServiceDeploymentServiceImpl(serviceDeploymentRepository));
             serviceProxyBinder.bind(ServiceTypeService.class, new ServiceTypeServiceImpl(serviceTypeRepository));
             serviceProxyBinder.bind(VPCService.class, new VPCServiceImpl(vpcRepository));
             serviceProxyBinder.bind(FilePathService.class, new FilePathServiceImpl(vertx.getDelegate()));

@@ -2,7 +2,7 @@ package at.uibk.dps.rm.handler.deployment;
 
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
-import at.uibk.dps.rm.service.rxjava3.database.reservation.ResourceReservationStatusService;
+import at.uibk.dps.rm.service.rxjava3.database.deployment.ResourceDeploymentStatusService;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 
@@ -14,14 +14,14 @@ import io.vertx.core.json.JsonObject;
  * @author matthi-g
  */
 public class ResourceDeploymentStatusChecker extends EntityChecker {
-    private final ResourceReservationStatusService service;
+    private final ResourceDeploymentStatusService service;
 
     /**
      * Create an instance from the service
      *
      * @param service the resource deployment status service
      */
-    public ResourceDeploymentStatusChecker(ResourceReservationStatusService service) {
+    public ResourceDeploymentStatusChecker(ResourceDeploymentStatusService service) {
         super(service);
         this.service = service;
     }

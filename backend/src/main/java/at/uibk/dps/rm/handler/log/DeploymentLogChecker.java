@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.handler.log;
 
 import at.uibk.dps.rm.handler.EntityChecker;
-import at.uibk.dps.rm.service.rxjava3.database.log.ReservationLogService;
+import at.uibk.dps.rm.service.rxjava3.database.log.DeploymentLogService;
 
 /**
  * Implements methods to perform CRUD operations on the deployment_log entity.
@@ -17,7 +17,7 @@ public class DeploymentLogChecker extends EntityChecker {
      *
      * @param deploymentLogService the deployment log service
      */
-    public DeploymentLogChecker(ReservationLogService deploymentLogService) {
+    public DeploymentLogChecker(DeploymentLogService deploymentLogService) {
         super(deploymentLogService);
     }
 }

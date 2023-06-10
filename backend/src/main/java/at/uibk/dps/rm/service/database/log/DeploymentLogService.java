@@ -11,25 +11,25 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
 
 /**
- * The interface of the service proxy for the reservation_log entity.
+ * The interface of the service proxy for the deployment_log entity.
  *
  * @author matthi-g
  */
 @ProxyGen
 @VertxGen
-public interface ReservationLogService extends DatabaseServiceInterface {
+public interface DeploymentLogService extends DatabaseServiceInterface {
 
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static ReservationLogService create(DeploymentLogRepository reservationLogRepository) {
-        return new ReservationLogServiceImpl(reservationLogRepository);
+    static DeploymentLogService create(DeploymentLogRepository repository) {
+        return new DeploymentLogServiceImpl(repository);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
-    static ReservationLogService createProxy(Vertx vertx) {
-        return new ReservationLogServiceVertxEBProxy(vertx,
+    static DeploymentLogService createProxy(Vertx vertx) {
+        return new DeploymentLogServiceVertxEBProxy(vertx,
             ServiceProxyAddress.getServiceProxyAddress(DeploymentLog.class));
     }
 }

@@ -2,7 +2,7 @@ package at.uibk.dps.rm.handler.deployment;
 
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
 import at.uibk.dps.rm.entity.model.Deployment;
-import at.uibk.dps.rm.service.rxjava3.database.reservation.FunctionReservationService;
+import at.uibk.dps.rm.service.rxjava3.database.reservation.FunctionDeploymentService;
 import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
@@ -34,7 +34,7 @@ public class FunctionReservationCheckerTest {
     private FunctionDeploymentChecker checker;
 
     @Mock
-    private FunctionReservationService service;
+    private FunctionDeploymentService service;
 
     @BeforeEach
     void initTest() {
@@ -51,7 +51,7 @@ public class FunctionReservationCheckerTest {
         FunctionDeployment fr2 = TestReservationProvider.createFunctionReservation(2L, reservation);
         JsonArray reservations = new JsonArray(List.of(JsonObject.mapFrom(fr1), JsonObject.mapFrom(fr2)));
 
-        when(service.findAllByReservationId(reservation.getDeploymentId())).thenReturn(Single.just(reservations));
+        when(service.findAllByDeploymentId(reservation.getDeploymentId())).thenReturn(Single.just(reservations));
 
         checker.checkFindAllByDeploymentId(reservation.getDeploymentId())
             .subscribe(result -> testContext.verify(() -> {
@@ -69,7 +69,7 @@ public class FunctionReservationCheckerTest {
         Deployment reservation = TestReservationProvider.createReservation(1L);
         JsonArray reservations = new JsonArray();
 
-        when(service.findAllByReservationId(reservation.getDeploymentId())).thenReturn(Single.just(reservations));
+        when(service.findAllByDeploymentId(reservation.getDeploymentId())).thenReturn(Single.just(reservations));
 
         checker.checkFindAllByDeploymentId(reservation.getDeploymentId())
             .subscribe(result -> testContext.verify(() -> {

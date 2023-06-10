@@ -35,11 +35,11 @@ public interface LogService extends DatabaseServiceInterface {
     }
 
     /**
-     * Find all logs that belong to a reservation and creator account.
+     * Find all logs that belong to a deployment and creator account.
      *
-     * @param reservationId the id of the reservation
+     * @param deploymentId the id of the deployment
      * @param accountId the id of the creator account
      * @return a Future that emits all logs as JsonArray
      */
-    Future<JsonArray> findAllByReservationIdAndAccountId(long reservationId, long accountId);
+    Future<JsonArray> findAllByDeploymentIdAndAccountId(long deploymentId, long accountId);
 }

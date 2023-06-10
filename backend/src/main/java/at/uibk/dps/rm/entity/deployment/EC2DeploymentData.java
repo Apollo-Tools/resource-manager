@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 @Getter
 public class EC2DeploymentData {
 
-    private final long reservationId;
+    private final long deploymentId;
     private final VPC vpc;
     private final String dockerUserName;
     private final List<Long> resourceIds = new ArrayList<>();
@@ -50,7 +50,7 @@ public class EC2DeploymentData {
                 "  image = \"%s/%s\"\n" +
                 "  basic_auth_user = \"admin\"\n" +
                 "  vm_props = module.ec2.vm_props[\"%s\"]\n" +
-                "}\n", resourceId, functionIdentifier, resourceId, functionIdentifier, reservationId, dockerUserName,
+                "}\n", resourceId, functionIdentifier, resourceId, functionIdentifier, deploymentId, dockerUserName,
             functionIdentifier, resourceName
         );
     }
@@ -76,7 +76,7 @@ public class EC2DeploymentData {
                 "  instance_types = [%s]\n" +
                 "  vpc_id         = \"%s\"\n" +
                 "  subnet_id      = \"%s\"\n" +
-                "}\n", reservationId, names, instanceTypes, vpc.getVpcIdValue(),
+                "}\n", deploymentId, names, instanceTypes, vpc.getVpcIdValue(),
             vpc.getSubnetIdValue()) + openFaaS;
     }
 }

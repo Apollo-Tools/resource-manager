@@ -28,27 +28,27 @@ public class DeploymentRoute implements Route {
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         /* Checker initialization */
-        DeploymentExecutionChecker deploymentExecutionChecker = new DeploymentExecutionChecker(serviceProxyProvider.getDeploymentService(),
-            serviceProxyProvider.getLogService(), serviceProxyProvider.getReservationLogService());
+        DeploymentExecutionChecker deploymentExecutionChecker =
+            new DeploymentExecutionChecker(serviceProxyProvider.getDeploymentExecutionService(),
+            serviceProxyProvider.getLogService(), serviceProxyProvider.getDeploymentLogService());
         CredentialsChecker credentialsChecker = new CredentialsChecker(serviceProxyProvider
             .getCredentialsService());
         FunctionChecker functionChecker = new FunctionChecker(serviceProxyProvider.getFunctionService());
         ServiceChecker serviceChecker = new ServiceChecker(serviceProxyProvider.getServiceService());
         ResourceChecker resourceChecker = new ResourceChecker(serviceProxyProvider.getResourceService());
         ResourceDeploymentChecker resourceDeploymentChecker =
-            new ResourceDeploymentChecker(serviceProxyProvider.getResourceReservationService());
+            new ResourceDeploymentChecker(serviceProxyProvider.getResourceDeploymentService());
         FunctionDeploymentChecker functionDeploymentChecker = new FunctionDeploymentChecker(serviceProxyProvider
-            .getFunctionReservationService());
+            .getFunctionDeploymentService());
         ServiceDeploymentChecker serviceDeploymentChecker = new ServiceDeploymentChecker(serviceProxyProvider
-            .getServiceReservationService());
+            .getServiceDeploymentService());
         LogChecker logChecker = new LogChecker(serviceProxyProvider.getLogService());
         DeploymentLogChecker deploymentLogChecker = new DeploymentLogChecker(serviceProxyProvider
-            .getReservationLogService());
+            .getDeploymentLogService());
         FileSystemChecker fileSystemChecker = new FileSystemChecker(serviceProxyProvider.getFilePathService());
-        DeploymentChecker deploymentChecker = new DeploymentChecker(serviceProxyProvider
-            .getReservationService());
+        DeploymentChecker deploymentChecker = new DeploymentChecker(serviceProxyProvider.getDeploymentService());
         ResourceDeploymentStatusChecker statusChecker = new ResourceDeploymentStatusChecker(serviceProxyProvider
-            .getResourceReservationStatusService());
+            .getResourceDeploymentStatusService());
         PlatformMetricChecker platformMetricChecker = new PlatformMetricChecker(serviceProxyProvider
             .getPlatformMetricService());
         VPCChecker vpcChecker = new VPCChecker(serviceProxyProvider.getVpcService());

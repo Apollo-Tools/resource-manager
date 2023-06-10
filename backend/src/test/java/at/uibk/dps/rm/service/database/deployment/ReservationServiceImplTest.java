@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.service.database.reservation;
+package at.uibk.dps.rm.service.database.deployment;
 
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.repository.deployment.DeploymentRepository;
@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 /**
- * Implements tests for the {@link ReservationServiceImpl} class.
+ * Implements tests for the {@link DeploymentServiceImpl} class.
  *
  * @author matthi-g
  */
@@ -29,7 +29,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class ReservationServiceImplTest {
 
-    private ReservationService reservationService;
+    private DeploymentService reservationService;
 
     @Mock
     DeploymentRepository reservationRepository;
@@ -37,7 +37,7 @@ public class ReservationServiceImplTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        reservationService = new ReservationServiceImpl(reservationRepository);
+        reservationService = new DeploymentServiceImpl(reservationRepository);
     }
 
     @Test

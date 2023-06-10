@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.service.database.reservation;
+package at.uibk.dps.rm.service.database.deployment;
 
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.ResourceDeploymentStatus;
@@ -13,33 +13,33 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 
 /**
- * The interface of the service proxy for the resource_reservation_status entity.
+ * The interface of the service proxy for the resource_deployment_status entity.
  *
  * @author matthi-g
  */
 @ProxyGen
 @VertxGen
-public interface ResourceReservationStatusService extends DatabaseServiceInterface {
+public interface ResourceDeploymentStatusService extends DatabaseServiceInterface {
 
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static ResourceReservationStatusService create(ResourceDeploymentStatusRepository repository) {
-        return new ResourceReservationStatusServiceImpl(repository);
+    static ResourceDeploymentStatusService create(ResourceDeploymentStatusRepository repository) {
+        return new ResourceDeploymentStatusServiceImpl(repository);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
-    static ResourceReservationStatusService createProxy(Vertx vertx) {
-        return new ResourceReservationStatusServiceVertxEBProxy(vertx,
+    static ResourceDeploymentStatusService createProxy(Vertx vertx) {
+        return new ResourceDeploymentStatusServiceVertxEBProxy(vertx,
             ServiceProxyAddress.getServiceProxyAddress(ResourceDeploymentStatus.class));
     }
 
     /**
-     * Find a resource reservation status by its value.
+     * Find a resource deployment status by its value.
      *
      * @param statusValue the value of the status
-     * @return a Future that emits the resource reservation status as JsonObject if it exists, else
+     * @return a Future that emits the resource deployment status as JsonObject if it exists, else
      * null
      */
     Future<JsonObject> findOneByStatusValue(String statusValue);

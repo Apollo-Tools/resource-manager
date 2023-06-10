@@ -19,11 +19,11 @@ import io.vertx.rxjava3.SingleHelper;
 import io.vertx.rxjava3.core.Vertx;
 
 /**
- * This is the implementation of the #DeploymentService.
+ * This is the implementation of the #DeploymentExecutionService.
  *
  * @author matthi-g
  */
-public class DeploymentServiceImpl extends ServiceProxy implements DeploymentService {
+public class DeploymentExecutionServiceImpl extends ServiceProxy implements DeploymentExecutionService {
 
     private final Vertx vertx = Vertx.currentContext().owner();
 
@@ -69,9 +69,9 @@ public class DeploymentServiceImpl extends ServiceProxy implements DeploymentSer
     @Override
     public Future<DeploymentCredentials> getNecessaryCredentials(TerminateResourcesDAO terminateRequest) {
         DeploymentCredentials credentials = new DeploymentCredentials();
-        long reservationId = terminateRequest.getDeployment().getDeploymentId();
+        long deploymentId = terminateRequest.getDeployment().getDeploymentId();
         Single<DeploymentCredentials> getNecessaryCredentials = new ConfigUtility(vertx).getConfig().flatMap(config -> {
-            DeploymentPath deploymentPath = new DeploymentPath(reservationId, config);
+            DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
             TerraformSetupService tfSetupService = new TerraformSetupService(vertx, terminateRequest, deploymentPath,
                 credentials);
             return tfSetupService.getTerminationCredentials();
@@ -80,9 +80,9 @@ public class DeploymentServiceImpl extends ServiceProxy implements DeploymentSer
     }
 
     @Override
-    public Future<Void> deleteTFDirs(long reservationId) {
+    public Future<Void> deleteTFDirs(long deploymentId) {
         Completable deleteTFDirs = new ConfigUtility(vertx).getConfig().flatMapCompletable(config -> {
-            DeploymentPath deploymentPath = new DeploymentPath(reservationId, config);
+            DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
             return TerraformFileService.deleteAllDirs(vertx.fileSystem(), deploymentPath.getRootFolder());
         });
         return CompletableHelper.toFuture(deleteTFDirs);

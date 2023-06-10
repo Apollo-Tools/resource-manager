@@ -72,7 +72,7 @@ public class ReservationLogHandlerTest {
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(reservation.getDeploymentId()));
         when(reservationChecker.checkFindOne(11L, 22L)).thenReturn(Single.just(JsonObject.mapFrom(reservation)));
-        when(logChecker.checkFindAllByReservationId(11L, 22L))
+        when(logChecker.checkFindAllByDeploymentId(11L, 22L))
             .thenReturn(Single.just(reservationLogs));
 
         handler.getAll(rc)

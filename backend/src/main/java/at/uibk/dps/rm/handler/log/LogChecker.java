@@ -34,9 +34,8 @@ public class LogChecker extends EntityChecker {
      * @param accountId the id of the account
      * @return a Single that emits all found logs as JsonArray
      */
-    public Single<JsonArray> checkFindAllByReservationId(long deploymentId, long accountId) {
-        Single<JsonArray> findAllByDeploymentId = logService
-            .findAllByReservationIdAndAccountId(deploymentId, accountId);
+    public Single<JsonArray> checkFindAllByDeploymentId(long deploymentId, long accountId) {
+        Single<JsonArray> findAllByDeploymentId = logService.findAllByDeploymentIdAndAccountId(deploymentId, accountId);
         return ErrorHandler.handleFindAll(findAllByDeploymentId);
     }
 }

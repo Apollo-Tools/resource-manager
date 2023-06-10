@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.service.database.reservation;
+package at.uibk.dps.rm.service.database.deployment;
 
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
 import at.uibk.dps.rm.repository.deployment.FunctionDeploymentRepository;
@@ -10,29 +10,29 @@ import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 
 /**
- * This is the implementation of the #FunctionReservationService.
+ * This is the implementation of the #FunctionDeploymentService.
  *
  * @author matthi-g
  */
-public class FunctionReservationServiceImpl  extends DatabaseServiceProxy<FunctionDeployment> implements
-    FunctionReservationService {
+public class FunctionDeploymentServiceImpl extends DatabaseServiceProxy<FunctionDeployment> implements
+    FunctionDeploymentService {
 
     private final FunctionDeploymentRepository repository;
 
     /**
      * Create an instance from the repository.
      *
-     * @param repository the function reservation repository
+     * @param repository the function deployment repository
      */
-    public FunctionReservationServiceImpl(FunctionDeploymentRepository repository) {
+    public FunctionDeploymentServiceImpl(FunctionDeploymentRepository repository) {
         super(repository, FunctionDeployment.class);
         this.repository = repository;
     }
 
     @Override
-    public Future<JsonArray> findAllByReservationId(long reservationId) {
+    public Future<JsonArray> findAllByDeploymentId(long deploymentId) {
         return Future
-            .fromCompletionStage(repository.findAllByDeploymentId(reservationId))
+            .fromCompletionStage(repository.findAllByDeploymentId(deploymentId))
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (FunctionDeployment entity: result) {

@@ -37,6 +37,6 @@ public class DeploymentLogHandler extends ValidationHandler {
         long accountId = rc.user().principal().getLong("account_id");
         return HttpHelper.getLongPathParam(rc, "id")
             .flatMap(id -> deploymentChecker.checkFindOne(id, accountId).map(res -> id))
-            .flatMap(id -> logChecker.checkFindAllByReservationId(id, accountId));
+            .flatMap(id -> logChecker.checkFindAllByDeploymentId(id, accountId));
     }
 }

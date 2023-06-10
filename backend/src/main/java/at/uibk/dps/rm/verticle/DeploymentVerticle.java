@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.verticle;
 
-import at.uibk.dps.rm.service.deployment.DeploymentServiceImpl;
-import at.uibk.dps.rm.service.deployment.DeploymentService;
+import at.uibk.dps.rm.service.deployment.DeploymentExecutionServiceImpl;
+import at.uibk.dps.rm.service.deployment.DeploymentExecutionService;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.core.impl.logging.Logger;
@@ -30,11 +30,11 @@ public class DeploymentVerticle extends AbstractVerticle {
      */
     private Completable setupEventBus() {
         Maybe<Void> setupEventBus = Maybe.create(emitter -> {
-            DeploymentService deploymentService =
-                new DeploymentServiceImpl();
+            DeploymentExecutionService deploymentService =
+                new DeploymentExecutionServiceImpl();
             new ServiceBinder(vertx.getDelegate())
-                .setAddress("deployment-service-address")
-                .register(DeploymentService.class, deploymentService);
+                .setAddress("deployment-execution-service-address")
+                .register(DeploymentExecutionService.class, deploymentService);
             emitter.onComplete();
         });
         return Completable.fromMaybe(setupEventBus);

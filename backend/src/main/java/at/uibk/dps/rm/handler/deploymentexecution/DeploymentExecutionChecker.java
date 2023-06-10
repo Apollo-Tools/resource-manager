@@ -12,8 +12,8 @@ import at.uibk.dps.rm.service.deployment.docker.DockerImageService;
 import at.uibk.dps.rm.service.deployment.executor.MainTerraformExecutor;
 import at.uibk.dps.rm.service.deployment.executor.TerraformExecutor;
 import at.uibk.dps.rm.service.rxjava3.database.log.LogService;
-import at.uibk.dps.rm.service.rxjava3.database.log.ReservationLogService;
-import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentService;
+import at.uibk.dps.rm.service.rxjava3.database.log.DeploymentLogService;
+import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentExecutionService;
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import at.uibk.dps.rm.util.misc.ConsoleOutputUtility;
@@ -32,11 +32,11 @@ import java.nio.file.Path;
  */
 public class DeploymentExecutionChecker {
 
-    private final DeploymentService deploymentService;
+    private final DeploymentExecutionService deploymentService;
 
     private final LogService logService;
 
-    private final ReservationLogService deploymentLogService;
+    private final DeploymentLogService deploymentLogService;
 
     /**
     * Create an instance from the deploymentService, logService and deploymentLogService.
@@ -45,8 +45,8 @@ public class DeploymentExecutionChecker {
     * @param logService the log service
     * @param deploymentLogService the deployment log service
     */
-    public DeploymentExecutionChecker(DeploymentService deploymentService, LogService logService,
-      ReservationLogService deploymentLogService) {
+    public DeploymentExecutionChecker(DeploymentExecutionService deploymentService, LogService logService,
+      DeploymentLogService deploymentLogService) {
     this.deploymentService = deploymentService;
     this.logService = logService;
     this.deploymentLogService = deploymentLogService;

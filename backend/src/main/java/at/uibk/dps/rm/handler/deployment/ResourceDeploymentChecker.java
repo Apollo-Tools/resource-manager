@@ -8,7 +8,7 @@ import at.uibk.dps.rm.entity.model.FunctionDeployment;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
-import at.uibk.dps.rm.service.rxjava3.database.reservation.ResourceReservationService;
+import at.uibk.dps.rm.service.rxjava3.database.deployment.ResourceDeploymentService;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
@@ -28,14 +28,14 @@ import java.util.Set;
  */
 public class ResourceDeploymentChecker extends EntityChecker {
 
-    private final ResourceReservationService resourceDeploymentService;
+    private final ResourceDeploymentService resourceDeploymentService;
 
     /**
      * Create an instance from the resourceDeploymentService.
      *
      * @param resourceDeploymentService the resource deployment service
      */
-    public ResourceDeploymentChecker(ResourceReservationService resourceDeploymentService) {
+    public ResourceDeploymentChecker(ResourceDeploymentService resourceDeploymentService) {
         super(resourceDeploymentService);
         this.resourceDeploymentService = resourceDeploymentService;
     }
@@ -47,7 +47,7 @@ public class ResourceDeploymentChecker extends EntityChecker {
      * @return a Single that emits all found resource deployments as JsonArray
      */
     public Single<JsonArray> checkFindAllByDeploymentId(long id) {
-        Single<JsonArray> findAllByDeploymentId = resourceDeploymentService.findAllByReservationId(id);
+        Single<JsonArray> findAllByDeploymentId = resourceDeploymentService.findAllByDeploymentId(id);
         return ErrorHandler.handleFindAll(findAllByDeploymentId);
     }
 
@@ -59,7 +59,7 @@ public class ResourceDeploymentChecker extends EntityChecker {
      * @return a Completable
      */
     public Completable submitUpdateStatus(long deploymentId, DeploymentStatusValue statusValue) {
-        return resourceDeploymentService.updateSetStatusByReservationId(deploymentId, statusValue);
+        return resourceDeploymentService.updateSetStatusByDeploymentId(deploymentId, statusValue);
     }
 
     /**

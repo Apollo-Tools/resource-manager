@@ -19,19 +19,20 @@ import io.vertx.core.Vertx;
  */
 @ProxyGen
 @VertxGen
-public interface DeploymentService {
+public interface DeploymentExecutionService {
 
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static DeploymentService create() {
-        return new DeploymentServiceImpl();
+    static DeploymentExecutionService create() {
+        return new DeploymentExecutionServiceImpl();
     }
 
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
-    static DeploymentService createProxy(Vertx vertx) {
-        return new DeploymentServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress("deployment"));
+    static DeploymentExecutionService createProxy(Vertx vertx) {
+        return new DeploymentExecutionServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(
+            "deployment-execution"));
     }
 
     /**
@@ -60,10 +61,10 @@ public interface DeploymentService {
     Future<DeploymentCredentials> getNecessaryCredentials(TerminateResourcesDAO terminateRequest);
 
     /**
-     * Delete all terraform directories that exist for a reservation.
+     * Delete all terraform directories that exist for a deployment.
      *
-     * @param reservationId the id of the reservation
+     * @param deploymentId the id of the deployment
      * @return an empty Future
      */
-    Future<Void> deleteTFDirs(long reservationId);
+    Future<Void> deleteTFDirs(long deploymentId);
 }
