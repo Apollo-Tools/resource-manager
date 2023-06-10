@@ -3,16 +3,16 @@ import {CopyOutlined} from '@ant-design/icons';
 import DateFormatter from '../misc/DateFormatter';
 import Link from 'next/link';
 import PropTypes from 'prop-types';
-import ReservationStatusBadge from './ReservationStatusBadge';
+import DeploymentStatusBadge from './DeploymentStatusBadge';
 import env from '@beam-australia/react-env';
 
 const {Column} = Table;
 
-const ResourceReservationTable = ({resourceReservations, type}) => {
+const ResourceDeploymentTable = ({resourceDeployments, type}) => {
   return (
-    <Table dataSource={ resourceReservations } rowKey={ (record) => record.resource_reservation_id } size="small">
-      <Column title="Id" dataIndex="resource_reservation_id" key="resource_reservation_id"
-        sorter={ (a, b) => a.resource_reservation_id - b.resource_reservation_id }
+    <Table dataSource={ resourceDeployments } rowKey={ (record) => record.resource_reservation_id } size="small">
+      <Column title="Id" dataIndex="resource_deployment_id" key="resource_deployment_id"
+        sorter={ (a, b) => a.resource_deployment_id - b.resource_deployment_id }
       />
       {type === 'function' &&<Column title='Function' dataIndex={['function']} key="function"
         render={(func) =>
@@ -53,9 +53,9 @@ const ResourceReservationTable = ({resourceReservations, type}) => {
       />
       <Column title="Status" dataIndex="status" key="status"
         render={(status) =>
-          <ReservationStatusBadge status={status.status_value}>
+          <DeploymentStatusBadge status={status.status_value}>
             {status.status_value}
-          </ReservationStatusBadge>
+          </DeploymentStatusBadge>
         }
         sorter={ (a, b) => a.status_value - b.status_value }
       />
@@ -66,9 +66,9 @@ const ResourceReservationTable = ({resourceReservations, type}) => {
     </Table>);
 };
 
-ResourceReservationTable.propTypes = {
-  resourceReservations: PropTypes.array.isRequired,
+ResourceDeploymentTable.propTypes = {
+  resourceDeployments: PropTypes.array.isRequired,
   type: PropTypes.oneOf(['function', 'service']),
 };
 
-export default ResourceReservationTable;
+export default ResourceDeploymentTable;

@@ -2,9 +2,9 @@ import {useEffect, useState} from 'react';
 import Head from 'next/head';
 import {siteTitle} from '../../components/misc/Sidebar';
 import {Button, message, Result, Space, Steps, Typography} from 'antd';
-import NewReservationEnsemble from '../../components/reservations/NewReservationEnsemble';
-import NewResourceReservations from '../../components/reservations/NewResourceReservations';
-import AddCredentials from '../../components/reservations/AddCredentials';
+import NewReservationEnsemble from '../../components/deployments/NewReservationEnsemble';
+import NewResourceDeployments from '../../components/deployments/NewResourceDeployments';
+import AddCredentials from '../../components/deployments/AddCredentials';
 import {GroupOutlined, SmileOutlined, UndoOutlined} from '@ant-design/icons';
 import Link from 'next/link';
 
@@ -23,7 +23,7 @@ const steps = [
   },
 ];
 
-const NewReservation = () => {
+const NewDeployment = () => {
   const [error, setError] = useState(false);
   const [newReservation, setNewReservation] = useState();
   const [selectedEnsembleId, setSelectedEnsembleId] = useState();
@@ -82,7 +82,7 @@ const NewReservation = () => {
         {current === 0 &&
           <NewReservationEnsemble value={selectedEnsembleId} next={next} setSelectedEnsemble={setSelectedEnsembleId} />}
         {current === 1 &&
-          <NewResourceReservations
+          <NewResourceDeployments
             functionResources={functionResources}
             serviceResources={serviceResources}
             ensembleId={selectedEnsembleId}
@@ -120,4 +120,4 @@ const NewReservation = () => {
   );
 };
 
-export default NewReservation;
+export default NewDeployment;

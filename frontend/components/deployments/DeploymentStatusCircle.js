@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-const ReservationStatusCircle = ({isNew, isError, isTerminating, isDeployed, isTerminated}) => {
+const DeploymentStatusCircle = ({isNew, isError, isTerminating, isDeployed, isTerminated}) => {
   let color = '';
   let animation = '';
   if (isError) {
@@ -20,7 +20,7 @@ const ReservationStatusCircle = ({isNew, isError, isTerminating, isDeployed, isT
   return <span className={className} />;
 };
 
-ReservationStatusCircle.propTypes = {
+DeploymentStatusCircle.propTypes = {
   isNew: PropTypes.bool,
   isDeployed: PropTypes.bool,
   isTerminating: PropTypes.bool,
@@ -28,4 +28,4 @@ ReservationStatusCircle.propTypes = {
   isError: PropTypes.bool,
 };
 
-export default ReservationStatusCircle;
+export default DeploymentStatusCircle;

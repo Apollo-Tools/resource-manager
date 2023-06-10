@@ -1,7 +1,7 @@
 // Inspired by: https://flowbite.com/docs/components/badge/
 import PropTypes from 'prop-types';
 
-const ReservationStatusBadge = ({status, children}) => {
+const DeploymentStatusBadge = ({status, children}) => {
   let bgColor;
   let textColor;
   // bgColor and textColor have to be set this way because tailwind generates the necessary css classes only if it can
@@ -34,9 +34,9 @@ const ReservationStatusBadge = ({status, children}) => {
   return <span className={className}>{ children }</span>;
 };
 
-ReservationStatusBadge.propTypes = {
+DeploymentStatusBadge.propTypes = {
   status: PropTypes.oneOf(['NEW', 'DEPLOYED', 'TERMINATING', 'TERMINATED', 'ERROR']),
   children: PropTypes.node.isRequired,
 };
 
-export default ReservationStatusBadge;
+export default DeploymentStatusBadge;

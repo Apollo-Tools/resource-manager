@@ -7,7 +7,7 @@ import {Button, Typography} from 'antd';
 import PropTypes from 'prop-types';
 
 
-const NewResourceReservations = ({ensembleId, functionResources, setFunctionResources, serviceResources,
+const NewResourceDeployments = ({ensembleId, functionResources, setFunctionResources, serviceResources,
   setServiceResources, next, prev}) => {
   const {token, checkTokenExpired} = useAuth();
   const [ensemble, setEnsemble] = useState();
@@ -91,7 +91,7 @@ const NewResourceReservations = ({ensembleId, functionResources, setFunctionReso
   );
 };
 
-NewResourceReservations.propTypes = {
+NewResourceDeployments.propTypes = {
   ensembleId: PropTypes.number.isRequired,
   functionResources: PropTypes.instanceOf(Map).isRequired,
   setFunctionResources: PropTypes.func.isRequired,
@@ -101,4 +101,4 @@ NewResourceReservations.propTypes = {
   prev: PropTypes.func.isRequired,
 };
 
-export default NewResourceReservations;
+export default NewResourceDeployments;

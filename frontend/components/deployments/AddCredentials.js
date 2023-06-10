@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react';
 import {Button, Form, Input} from 'antd';
 import {LockOutlined, UserOutlined} from '@ant-design/icons';
-import {reserveResources} from '../../lib/ReservationService';
+import {deployResources} from '../../lib/DeploymentService';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import PropTypes from 'prop-types';
 import TooltipIcon from '../misc/TooltipIcon';
@@ -79,7 +79,7 @@ const AddCredentials = ({functionResources, serviceResources, next, prev, onSubm
     requestBody.function_resources = functionReservations;
     requestBody.service_resources = serviceReservations;
     if (!checkTokenExpired()) {
-      reserveResources(requestBody, token, setNewReservation, setError);
+      deployResources(requestBody, token, setNewReservation, setError);
     }
   };
 
@@ -146,7 +146,7 @@ const AddCredentials = ({functionResources, serviceResources, next, prev, onSubm
           <Input.TextArea className="h-[400px]" style={{resize: 'none'}}/>
         </Form.Item>
         <Form.Item>
-          <Button type="primary" htmlType="submit" className="float-right">Reserve</Button>
+          <Button type="primary" htmlType="submit" className="float-right">Deploy</Button>
           <Button type="default" onClick={prev} className="float-left">Back</Button>
         </Form.Item>
       </Form>

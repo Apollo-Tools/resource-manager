@@ -5,31 +5,31 @@ import DateFormatter from '../misc/DateFormatter';
 import {Button, Table, Space, Tooltip} from 'antd';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
-import {listMyReservations} from '../../lib/ReservationService';
+import {listMyDeployments} from '../../lib/DeploymentService';
 import Link from 'next/link';
-import ReservationStatusBadge from './ReservationStatusBadge';
+import DeploymentStatusBadge from './DeploymentStatusBadge';
 
 const {Column} = Table;
 
-const ReservationTable = () => {
+const DeploymentTable = () => {
   const {token, checkTokenExpired} = useAuth();
-  const [reservations, setReservations] = useState([]);
+  const [deployments, setDeployments] = useState([]);
   const [statusFilter, setStatusFilter] = useState([]);
   const [error, setError] = useState(false);
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listMyReservations(token, setReservations, setError);
+      listMyDeployments(token, setDeployments, setError);
     }
   }, []);
 
   useEffect(() => {
     setStatusFilter(() =>
-      [...new Set(reservations.map((reservation) => reservation.status_value))]
+      [...new Set(deployments.map((deployment) => deployment.status_value))]
           .map((item) => {
             return {text: item, value: item};
           }));
-  }, [reservations]);
+  }, [deployments]);
 
   // TODO: improve error handling
   useEffect(() => {
@@ -40,12 +40,12 @@ const ReservationTable = () => {
   }, [error]);
 
   return (
-    <Table dataSource={ reservations } rowKey={ (record) => record.reservation_id } size="small">
-      <Column title="Id" dataIndex="reservation_id" key="id"
-        sorter={ (a, b) => a.reservation_id - b.reservation_id }
+    <Table dataSource={ deployments } rowKey={ (record) => record.deployment_id } size="small">
+      <Column title="Id" dataIndex="deployment_id" key="id"
+        sorter={ (a, b) => a.deployment_id - b.deployment_id }
       />
       <Column title="Status" dataIndex="status_value" key="status_value"
-        render={ (statusValue) => <ReservationStatusBadge status={statusValue}>{statusValue}</ReservationStatusBadge> }
+        render={ (statusValue) => <DeploymentStatusBadge status={statusValue}>{statusValue}</DeploymentStatusBadge> }
         sorter={(a, b) =>
           a.status_value.localeCompare(b.status_value)}
         filters={statusFilter}
@@ -54,12 +54,13 @@ const ReservationTable = () => {
       <Column title="Created at" dataIndex="created_at" key="created_at"
         render={ (createdAt) => <DateFormatter dateTimestamp={ createdAt }/> }
         sorter={ (a, b) => a.created_at - b.created_at }
+        defaultSortOrder='descend'
       />
       <Column title="Action at" key="action"
         render={ (_, record) => (
           <Space size="middle">
             <Tooltip title="Details">
-              <Link href={ `/reservations/${ record.reservation_id }` }>
+              <Link href={ `/deployments/${ record.deployment_id }` }>
                 <Button icon={ <InfoCircleOutlined/> }/>
               </Link>
             </Tooltip>
@@ -70,4 +71,4 @@ const ReservationTable = () => {
   );
 };
 
-export default ReservationTable;
+export default DeploymentTable;

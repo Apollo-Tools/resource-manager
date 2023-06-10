@@ -1,14 +1,14 @@
 import env from '@beam-australia/react-env';
-const API_ROUTE = `${env('API_URL')}/reservations`;
+const API_ROUTE = `${env('API_URL')}/deployments`;
 
 /**
- * List all reservations of the currently logged-in user.
+ * List all deployments of the currently logged-in user.
  *
  * @param {string} token the access token
- * @param {function} setReservations the function to set the retrieved reservations
+ * @param {function} setDeployments the function to set the retrieved deployments
  * @param {function} setError the function to set the error if one occurred
  */
-export async function listMyReservations(token, setReservations, setError) {
+export async function listMyDeployments(token, setDeployments, setError) {
   try {
     const response = await fetch(`${API_ROUTE}`, {
       method: 'GET',
@@ -17,7 +17,7 @@ export async function listMyReservations(token, setReservations, setError) {
       },
     });
     const data = await response.json();
-    setReservations(() => data);
+    setDeployments(() => data);
   } catch (error) {
     setError(true);
     console.log(error);
@@ -25,23 +25,23 @@ export async function listMyReservations(token, setReservations, setError) {
 }
 
 /**
- * List all logs from a reservation
+ * List all logs from a deployment
  *
- * @param {number} reservationId the id of the reservation
+ * @param {number} deploymentId the id of the deployment
  * @param {string} token the access token
- * @param {function} setReservationLogs the function to set the retrieved logs
+ * @param {function} setDeploymentLogs the function to set the retrieved logs
  * @param {function} setError the function to set the error if one occurred
  */
-export async function listReservationLogs(reservationId, token, setReservationLogs, setError) {
+export async function listDeploymentLogs(deploymentId, token, setDeploymentLogs, setError) {
   try {
-    const response = await fetch(`${API_ROUTE}/${reservationId}/logs`, {
+    const response = await fetch(`${API_ROUTE}/${deploymentId}/logs`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
     const data = await response.json();
-    setReservationLogs(() => data);
+    setDeploymentLogs(() => data);
   } catch (error) {
     setError(true);
     console.log(error);
@@ -49,17 +49,17 @@ export async function listReservationLogs(reservationId, token, setReservationLo
 }
 
 /**
- * Reserve resources for deployment.
+ * Deploy resources.
  *
  * @param {object} requestBody the request body
  * @param {string} token the access token
- * @param {function} setNewReservation the function to set the created reservation
+ * @param {function} setNewDeployment the function to set the created deployment
  * @param {function} setError the function to set the error if one occurred
  */
-export async function reserveResources(
+export async function deployResources(
     requestBody,
     token,
-    setNewReservation,
+    setNewDeployment,
     setError,
 ) {
   try {
@@ -72,7 +72,7 @@ export async function reserveResources(
       body: JSON.stringify(requestBody),
     });
     const data = await response.json();
-    setNewReservation(() => data);
+    setNewDeployment(() => data);
   } catch (error) {
     setError(true);
     console.log(error);
@@ -80,14 +80,14 @@ export async function reserveResources(
 }
 
 /**
- * Get the details of a reservation.
+ * Get the details of a deployment.
  *
- * @param {number} id the id of the reservation
+ * @param {number} id the id of the deployment
  * @param {string} token the access token
- * @param {function} setReservation the function to set the reservation
+ * @param {function} setDeployment the function to set the deployment
  * @param {function} setError the function to set the error if one occurred
  */
-export async function getReservation(id, token, setReservation, setError) {
+export async function getDeployment(id, token, setDeployment, setError) {
   try {
     const response = await fetch(`${API_ROUTE}/${id}`, {
       method: 'GET',
@@ -96,7 +96,7 @@ export async function getReservation(id, token, setReservation, setError) {
       },
     });
     const data = await response.json();
-    setReservation(() => data);
+    setDeployment(() => data);
   } catch (error) {
     setError(true);
     console.log(error);
@@ -104,14 +104,14 @@ export async function getReservation(id, token, setReservation, setError) {
 }
 
 /**
- * Cancel an existing reservation
+ * Cancel an existing deployment
  *
- * @param {number} id the number of the reservation
+ * @param {number} id the number of the deployment
  * @param {string} token the access token
  * @param {function} setError the function to set the error if one occurred
  * @return {Promise<boolean>} true if the request was successful
  */
-export async function cancelReservation(id, token, setError) {
+export async function cancelDeployment(id, token, setError) {
   try {
     const response = await fetch(`${API_ROUTE}/${id}/cancel`, {
       method: 'PATCH',
