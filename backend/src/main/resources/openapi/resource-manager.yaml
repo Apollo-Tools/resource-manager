@@ -8,15 +8,19 @@ info:
     and automatically deploy and terminate resources. 
     
     ## Resource Types
-    - **edge**: Edge resources must have a running instance of OpenFaas to be used for deployment. Only functions can
-    be deployed on edge resources.
-    - **serverless**: Serverless resources are cloud resources where serverless functions can be deployed. Currently 
-    AWS Lambda is the only supported platform. Only functions can be deployed on serverless resources.
-    - **vm**: VM resources are virtual machines that can be automatically deployed and terminated by the RM. In the 
-    deployment process, an OpenFaas instance is initialised and started on the virtual machines. Only functions can be 
-    deployed on edge resources.
-    - **container**: Container resources support the deployment of docker images. At the moment kubernetes instances 
-    are supported as container resources. Only services can be deployed on edge resources.
+    - **faas**: Resources of this type support the deployment of functions (serverless functions).
+    - **container**: Container resources support the deployment of docker images.
+    
+    ## Platforms
+    - **lambda**: AWS Lambda is a serverless compute platform hosted by Amazon Web Services. This platform supports 
+      the deployment of **faas** resources.
+    - **ec2**: AWC EC2 (Elastic Compute Cloud) offers virtual machines for rental to users and is hosted by Amazon 
+      Web Services. This platform supports the deployment of **faas** resources.
+    - **openfaas**: [OpenFaaS](https://www.openfaas.com/) is a serverless framework that can be self-hosted on 
+      kubernetes or faasd. If this platform is selected for a resource, it is required that the concerning resource has
+      an up and running instannce of OpenFaaS. This platform supports the deployment of **faas** resources.
+    - **k8s**: [Kubernetes](https://kubernetes.io) is a container orchestration system that is expected to be 
+    self-hosted by the user. This platform supports the deployment of **container** resources.
     
     ## Metrics
     Metrics are associated with resources and are used for deployment and monitoring. There are two types of metrics:
@@ -26,25 +30,24 @@ info:
     for this type of metric are the memory required for serverless functions or the instance type of a virtual machine.
     
   
-    Not all resource types support all metrics. The /resource-types/{id}/metrics route can be used to get all metrics 
-    that are supported for a particular resource type. The value types for metrics are *string*, *number* and 
+    Not all platform support/require the same metrics. The /platforms/{id}/metrics route can be used to get all 
+    metrics that are supported for a particular platform. The value types for metrics can be *string*, *number* and 
     *boolean*.
     
     ## Resources
-    Resources consist of a resource type and a region. The *is_self_managed* currently has no functionality.
-    It is also possible to add metrics to resources in the form of metric values (see /resources/metrics). For 
-    future deployments, it is necessary for a resource to have a metric value for all metrics that are required for
-    the resource's platform. Otherwise the deployment will fail.    
+    Resources consist of a platform and a region. It is also possible to add metrics to resources in the form of metric
+    values (see /resources/metrics). For future deployments, it is necessary for a resource to have a metric value for 
+    all metrics that are required by the resource's platform. Otherwise the deployment will fail.
     
     ## Service Level Objectives and Resource Ensembles
     It is possible to retrieve resources filtered by service level objectives (see resources/slo). If you  are 
     satisfied with the resulting resources or if you only need a subset of the retrieved resources you can store them 
     with a name and the service level objectives as a *resource ensemble* (see /ensemble). The resources of the 
     ensemble can be validated with /ensembles/{id}/validate. Supported metrics as service level objectives are all 
-    metrics that are managed by the RM as well as resource_type, region and resource_provider. For the latter three 
-    properties the values must be the ids of the entities. For example the service level objective for all resource 
-    types of type container would look like this:
-    
+    metrics that are managed by the RM as well as resource_type, platform, region, resource_provider and 
+    environment. For the latter five properties the values must be the ids of the entities. For example the service 
+    level objective for all resource types of type container would look like this if the *resource_type_id* of the 
+    *container* resource type equals 4:    
     ```
     {
       name: resource_type,
@@ -53,26 +56,27 @@ info:
     }
     ```    
     
-    As you can see the type of the value property of the service level objective is array. Therefore, it is possible 
+    As you can see the type of the value property of the service level objective is an array. Therefore, it is possible 
     for service level objectives with the expression '==' to specify multiple values as valid options. For '<' or '>' 
     expressions the value array must be of size one.
     
     ## Functions and Services
     Functions and Services represent the two different deployable entities in the context of the rm. They don't have 
-    the same structure and are only available for deployment on predefined resource types as described in the 
-    resource types section.
+    the same structure and are only available for deployment on predefined platforms as described in the 
+    platforms section.
     - **functions**: Function entities consist of a name, a runtime and a function code that can be executed by that 
     runtime. Currently python3.8 is the only supported runtime.
     - **services**: Service entities consist of a name, the title of the docker image, the number of replicas for that 
     service, the ports that should be exposed, the required cpu amount, the required memory amount and the k8s 
-    service type. Currently only *NodePort* and *LoadBalancer* are supported service types.    
+    service type. Currently only *NodePort*, *LoadBalancer*, *NoService* are supported service types. If *NoService*
+    is the selected service type no ports are allowed.
     
     ## Deployment
     Deployments consist of mappings of functions and services to resources and the necessary credentials. 
-    - **Credentials**: If deployment to a cloud provider is part of the deploy resources request, credentials (access 
+    - **Credentials**: If a deployment to a cloud provider is part of the deploy resources request, credentials (access 
     token, secret token, session token) must be stored on the account (see /credentials). In addition if the 
     request contains resources of platform *EC2* or *OpenFaaS*, docker credentials must also be included in the 
-    request, because OpenFaas uses docker images which must first be pushed to a docker repository and then pulled on 
+    request, because OpenFaaS uses docker images which must first be pushed to a docker repository and then pulled on 
     the concerning resources. Make sure to generate a docker access token with read and write permissions for this 
     purpose. For resources of type *container* a valid kube config must be provided within the request. The kube 
     config must meet some specific requirements:
@@ -106,7 +110,7 @@ info:
           client-certificate-data: <b64-encoded-cert>
           client-key-data: <b64-encoded-key>
     ```
-    - **Virtual Private Clouds**: In order to deploy virtual machines on AWS a Virtual Private Cloud (VPC) must be 
+    - **Virtual Private Clouds**: In order to deploy virtual machines on AWS EC2 a Virtual Private Cloud (VPC) must be 
     registered (see /vpcs) prior to submitting a deployment request for each region in which a virtual machine will
     be deployed. 
     - **Output and Status**: After successfully submitting a deploy resources request, a deployment will be created 
@@ -119,9 +123,10 @@ info:
     /deployments/{deploymentId}/{resourceDeploymentId}/start. It is also possible to stop the container with 
     the endpoint /deployments/{deploymentId}/{resourceDeploymentId}/stop. 
     When a deployment is cancelled, the status is changed to *TERMINATING*. After the termination 
-    of all the resources associated with the deployment, the status changes to *TERMINATED*. If an error occurs in
-    any of these steps, the status is set to *ERROR*. In order to observe what has happened during the deployment and 
-    termination, it is possible to retrieve logs for each deployment using the /deployments/{id}/logs endpoint.
+    of all the resources associated with the deployment is finished, the status changes to *TERMINATED*. If an error 
+    occurs in any of these steps, the status is set to *ERROR*. In order to observe what has happened during the 
+    deployment and termination, it is possible to retrieve logs for each deployment using the 
+    /deployments/{id}/logs endpoint.
     
     ## Authentication
     The RM uses **Bearer tokens** for authentication because it's a simple authentication method. 
@@ -129,7 +134,7 @@ info:
     route.  
     
     ## Note 
-    Please be aware that the API provided is in the early stages of development and is subject to change in the near
+    Please be aware that the API provided is in the early stage of development and is subject to change in the near
     future. As the development progresses, updates and improvements may be made to the API, including modifications 
     to the structure, behavior, or available functionality. These changes could potentially impact the integration 
     and usage of the API in your application.
