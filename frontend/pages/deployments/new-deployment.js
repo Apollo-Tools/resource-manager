@@ -2,7 +2,7 @@ import {useEffect, useState} from 'react';
 import Head from 'next/head';
 import {siteTitle} from '../../components/misc/Sidebar';
 import {Button, message, Result, Space, Steps, Typography} from 'antd';
-import NewReservationEnsemble from '../../components/deployments/NewReservationEnsemble';
+import NewDeploymentEnsemble from '../../components/deployments/NewDeploymentEnsemble';
 import NewResourceDeployments from '../../components/deployments/NewResourceDeployments';
 import AddCredentials from '../../components/deployments/AddCredentials';
 import {GroupOutlined, SmileOutlined, UndoOutlined} from '@ant-design/icons';
@@ -25,7 +25,7 @@ const steps = [
 
 const NewDeployment = () => {
   const [error, setError] = useState(false);
-  const [newReservation, setNewReservation] = useState();
+  const [newDeployment, setNewDeployment] = useState();
   const [selectedEnsembleId, setSelectedEnsembleId] = useState();
   const [messageApi, contextHolder] = message.useMessage();
   const [current, setCurrent] = useState(0);
@@ -46,13 +46,13 @@ const NewDeployment = () => {
 
 
   useEffect(() => {
-    if (newReservation != null) {
+    if (newDeployment != null) {
       messageApi.open({
         type: 'success',
-        content: `Reservation with id '${newReservation.reservation_id}' has been created!`,
+        content: `Deployment with id '${newDeployment.deployment_id}' has been created!`,
       });
     }
-  }, [newReservation]);
+  }, [newDeployment]);
 
   // TODO: improve error handling
   useEffect(() => {
@@ -64,7 +64,7 @@ const NewDeployment = () => {
 
   const onClickRestart = () => {
     setCurrent(0);
-    setNewReservation(null);
+    setNewDeployment(null);
     setSelectedEnsembleId(null);
     setServiceResources(() => new Map());
     setFunctionResources(() => new Map());
@@ -77,10 +77,10 @@ const NewDeployment = () => {
         <title>{`${siteTitle}: Resources`}</title>
       </Head>
       <div className="card container w-11/12 max-w-7xl p-10 ">
-        <Typography.Title level={2}>New Reservation</Typography.Title>
+        <Typography.Title level={2}>New Deployment</Typography.Title>
         <Steps current={current} items={items} className="mb-1 p-5 shadow-lg bg-cyan-50"/>
         {current === 0 &&
-          <NewReservationEnsemble value={selectedEnsembleId} next={next} setSelectedEnsemble={setSelectedEnsembleId} />}
+          <NewDeploymentEnsemble value={selectedEnsembleId} next={next} setSelectedEnsemble={setSelectedEnsembleId} />}
         {current === 1 &&
           <NewResourceDeployments
             functionResources={functionResources}
@@ -98,16 +98,16 @@ const NewDeployment = () => {
             functionResources={functionResources}
             next={next}
             prev={prev}
-            onSubmit={setNewReservation}
+            onSubmit={setNewDeployment}
           />
         }
         {
           current === 3 &&
           <Result
             icon={<SmileOutlined />}
-            title="The reservation has been created!"
+            title="The deployment has been created!"
             extra={(<Space size={100}>
-              <Link href={ `/reservations/${ newReservation?.reservation_id }` }>
+              <Link href={ `/deployments/${ newDeployment?.deployment_id }` }>
                 <Button type="primary" icon={<GroupOutlined />}>Show</Button>
               </Link>
               <Button type="default" icon={<UndoOutlined />} onClick={onClickRestart}>Restart</Button>

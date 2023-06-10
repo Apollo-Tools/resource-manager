@@ -14,7 +14,7 @@ const AddCredentials = ({functionResources, serviceResources, next, prev, onSubm
   const [error, setError] = useState(false);
   const [needsDockerCreds, setNeedsDockerCreds] = useState(false);
   const [needsK8SCreds, setNeedsK8SCreds] = useState(false);
-  const [newReservation, setNewReservation] = useState();
+  const [newDeployment, setNewDeployment] = useState();
 
   useEffect(() => {
     atLeastOneEdgeOrVMPresent();
@@ -30,11 +30,11 @@ const AddCredentials = ({functionResources, serviceResources, next, prev, onSubm
   }, [error]);
 
   useEffect(() => {
-    if (newReservation != null) {
-      onSubmit?.(newReservation);
+    if (newDeployment != null) {
+      onSubmit?.(newDeployment);
       next();
     }
-  }, [newReservation]);
+  }, [newDeployment]);
 
   const atLeastOneEdgeOrVMPresent = () => {
     for (const entry of functionResources.entries()) {
@@ -53,11 +53,11 @@ const AddCredentials = ({functionResources, serviceResources, next, prev, onSubm
 
   const onFinish = async (values) => {
     const requestBody = {};
-    const functionReservations = [];
-    const serviceReservations = [];
+    const functionDeployments = [];
+    const serviceDeployments = [];
     functionResources.forEach((resources, functionId) => {
       resources.forEach((resource) => {
-        functionReservations.push({
+        functionDeployments.push({
           function_id: functionId,
           resource_id: resource.resource_id,
         });
@@ -65,7 +65,7 @@ const AddCredentials = ({functionResources, serviceResources, next, prev, onSubm
     });
     serviceResources.forEach((resources, serviceId) => {
       resources.forEach((resource) => {
-        serviceReservations.push({
+        serviceDeployments.push({
           service_id: serviceId,
           resource_id: resource.resource_id,
         });
@@ -76,10 +76,10 @@ const AddCredentials = ({functionResources, serviceResources, next, prev, onSubm
       access_token: needsDockerCreds ? values.dockerAccessToken : '',
     };
     requestBody.kube_config = values.kubeconfig;
-    requestBody.function_resources = functionReservations;
-    requestBody.service_resources = serviceReservations;
+    requestBody.function_resources = functionDeployments;
+    requestBody.service_resources = serviceDeployments;
     if (!checkTokenExpired()) {
-      deployResources(requestBody, token, setNewReservation, setError);
+      deployResources(requestBody, token, setNewDeployment, setError);
     }
   };
 
@@ -130,7 +130,7 @@ const AddCredentials = ({functionResources, serviceResources, next, prev, onSubm
             Kube Config
             <TooltipIcon text={<>see section
               <Link legacyBehavior={true} href="https://github.com/Apollo-Tools/resource-manager/blob/main/backend/src/main/resources/openapi/resource-manager.yaml">
-                Reservations / Deployment
+                Deployments
               </Link> for an example
             </>} />
           </>}

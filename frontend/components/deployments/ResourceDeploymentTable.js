@@ -10,7 +10,7 @@ const {Column} = Table;
 
 const ResourceDeploymentTable = ({resourceDeployments, type}) => {
   return (
-    <Table dataSource={ resourceDeployments } rowKey={ (record) => record.resource_reservation_id } size="small">
+    <Table dataSource={ resourceDeployments } rowKey={ (record) => record.resource_deployment_id } size="small">
       <Column title="Id" dataIndex="resource_deployment_id" key="resource_deployment_id"
         sorter={ (a, b) => a.resource_deployment_id - b.resource_deployment_id }
       />

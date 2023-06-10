@@ -4,7 +4,7 @@ import {useState} from 'react';
 import PropTypes from 'prop-types';
 
 
-const NewReservationEnsemble = ({value, next, setSelectedEnsemble}) => {
+const NewDeploymentEnsemble = ({value, next, setSelectedEnsemble}) => {
   const [selected, setSelected] = useState(value!=null);
 
   const rowSelection = {
@@ -22,10 +22,10 @@ const NewReservationEnsemble = ({value, next, setSelectedEnsemble}) => {
   </>;
 };
 
-NewReservationEnsemble.propTypes = {
+NewDeploymentEnsemble.propTypes = {
   value: PropTypes.number,
   next: PropTypes.func.isRequired,
   setSelectedEnsemble: PropTypes.func.isRequired,
 };
 
-export default NewReservationEnsemble;
+export default NewDeploymentEnsemble;
