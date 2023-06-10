@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.util.misc;
 
-import at.uibk.dps.rm.entity.model.FunctionReservation;
+import at.uibk.dps.rm.entity.model.FunctionDeployment;
 import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.entity.model.VPC;
 import lombok.experimental.UtilityClass;
@@ -18,15 +18,15 @@ import java.util.stream.Collectors;
 public class RegionMapper {
 
     /**
-     * Map and group function reservations to their region.
+     * Map and group function deployments by their region.
      *
-     * @param functionReservations the function reservations
-     * @return the mapped/grouped function reservations
+     * @param functionDeployments the function deployments
+     * @return the mapped/grouped function deployments
      */
-    public static Map<Region, List<FunctionReservation>> mapFunctionReservations(List<FunctionReservation>
-            functionReservations) {
-        return functionReservations.stream()
-            .collect(Collectors.groupingBy(functionReservation -> functionReservation.getResource().getRegion()));
+    public static Map<Region, List<FunctionDeployment>> mapFunctionDeployments(List<FunctionDeployment>
+            functionDeployments) {
+        return functionDeployments.stream()
+            .collect(Collectors.groupingBy(functionDeployment -> functionDeployment.getResource().getRegion()));
     }
 
     /**

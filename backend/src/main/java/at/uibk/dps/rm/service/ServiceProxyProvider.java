@@ -9,7 +9,6 @@ import at.uibk.dps.rm.service.rxjava3.database.reservation.*;
 import at.uibk.dps.rm.service.rxjava3.database.account.AccountCredentialsService;
 import at.uibk.dps.rm.service.rxjava3.database.account.AccountService;
 import at.uibk.dps.rm.service.rxjava3.database.account.CredentialsService;
-import at.uibk.dps.rm.service.rxjava3.database.function.FunctionResourceService;
 import at.uibk.dps.rm.service.rxjava3.database.function.FunctionService;
 import at.uibk.dps.rm.service.rxjava3.database.function.RuntimeService;
 import at.uibk.dps.rm.service.rxjava3.database.log.LogService;
@@ -48,7 +47,6 @@ public class ServiceProxyProvider {
     private final EnvironmentService environmentService;
     private final FunctionService functionService;
     private final FunctionReservationService functionReservationService;
-    private final FunctionResourceService functionResourceService;
     private final LogService logService;
     private final MetricService metricService;
     private final MetricTypeService metricTypeService;
@@ -87,7 +85,6 @@ public class ServiceProxyProvider {
         environmentService = EnvironmentService.createProxy(vertx);
         functionService = FunctionService.createProxy(vertx);
         functionReservationService = FunctionReservationService.createProxy(vertx);
-        functionResourceService = FunctionResourceService.createProxy(vertx);
         logService = LogService.createProxy(vertx);
         metricService = MetricService.createProxy(vertx);
         metricTypeService = MetricTypeService.createProxy(vertx);

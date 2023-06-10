@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.testutil.objectprovider;
 
-import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
+import at.uibk.dps.rm.entity.dto.deployment.FunctionResourceIds;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.model.Runtime;
 import lombok.experimental.UtilityClass;
@@ -73,107 +73,51 @@ public class TestFunctionProvider {
         return createFunction(id, "foo", "false");
     }
 
-    public static FunctionResource createFunctionResource(long id, long resourceId) {
-        FunctionResource functionResource = new FunctionResource();
-        functionResource.setFunctionResourceId(id);
-        Function function = createFunction(22L, "func-test", "false");
-        functionResource.setFunction(function);
-        Resource resource = TestResourceProvider.createResource(resourceId);
-        functionResource.setResource(resource);
-        return functionResource;
-    }
 
-    public static FunctionResource createFunctionResource(long id, long functionId, long resourceId, Region region) {
-        FunctionResource functionResource = new FunctionResource();
-        functionResource.setFunctionResourceId(id);
-        Function function = createFunction(functionId, "func-test", "false");
-        functionResource.setFunction(function);
-        Resource resource = TestResourceProvider.createResource(resourceId, region);
-        functionResource.setResource(resource);
-        return functionResource;
-    }
-
-    public static FunctionResource createFunctionResource(long id) {
-        return createFunctionResource(id, 33L);
-    }
-
-    public static FunctionResource createFunctionResource(long id, Function function, boolean isDeployed) {
-        FunctionResource functionResource = new FunctionResource();
-        functionResource.setFunctionResourceId(id);
-        functionResource.setFunction(function);
-        Resource resource = TestResourceProvider.createResource(33L);
-        functionResource.setResource(resource);
-        functionResource.setIsDeployed(isDeployed);
-        return functionResource;
-    }
-
-    public static FunctionResource createFunctionResource(long id, Resource resource) {
-        FunctionResource functionResource = new FunctionResource();
-        functionResource.setFunctionResourceId(id);
-        Function function = createFunction(22L, "func-test", "false");
-        functionResource.setFunction(function);
-        functionResource.setResource(resource);
-        functionResource.setIsDeployed(true);
-        return functionResource;
-    }
-
-    public static FunctionResource createFunctionResource(long id, Function function, Resource resource, boolean isDeployed) {
-        FunctionResource functionResource = new FunctionResource();
-        functionResource.setFunctionResourceId(id);
-        functionResource.setFunction(function);
-        functionResource.setResource(resource);
-        functionResource.setIsDeployed(isDeployed);
-        return functionResource;
-    }
-
-    public static FunctionResource createFunctionResource(long id, Function function, Resource resource) {
-        return createFunctionResource(id, function, resource, false);
-    }
-
-    public static FunctionReservation createFunctionReservation(long id, Function function, Resource resource,
-                                                                boolean isDeployed, Reservation reservation) {
-        FunctionReservation functionReservation = new FunctionReservation();
-        functionReservation.setResourceReservationId(id);
+    public static FunctionDeployment createFunctionReservation(long id, Function function, Resource resource,
+                                                                boolean isDeployed, Deployment reservation) {
+        FunctionDeployment functionReservation = new FunctionDeployment();
+        functionReservation.setResourceDeploymentId(id);
         functionReservation.setFunction(function);
         functionReservation.setResource(resource);
         functionReservation.setIsDeployed(isDeployed);
         functionReservation.setStatus(TestReservationProvider.createResourceReservationStatusNew());
-        functionReservation.setReservation(reservation);
+        functionReservation.setDeployment(reservation);
         return functionReservation;
     }
 
-    public static FunctionReservation createFunctionReservation(long id, long resourceId, Reservation reservation) {
+    public static FunctionDeployment createFunctionReservation(long id, long resourceId, Deployment reservation) {
         Function function = createFunction(22L, "func-test", "false");
         Resource resource = TestResourceProvider.createResource(resourceId);
         return createFunctionReservation(id, function, resource, true, reservation);
     }
 
-    public static FunctionReservation createFunctionReservation(long id, long functionId, long resourceId,
+    public static FunctionDeployment createFunctionReservation(long id, long functionId, long resourceId,
             Region region) {
         Function function = createFunction(functionId, "func-test", "false");
         Resource resource = TestResourceProvider.createResource(resourceId, region);
-        Reservation reservation = TestReservationProvider.createReservation(1L);
+        Deployment reservation = TestReservationProvider.createReservation(1L);
         return createFunctionReservation(id, function, resource, true, reservation);
     }
 
-    public static FunctionReservation createFunctionReservation(long id, Reservation reservation) {
+    public static FunctionDeployment createFunctionReservation(long id, Deployment reservation) {
         return createFunctionReservation(id, 33L, reservation);
     }
 
-    public static FunctionReservation createFunctionReservation(long id, Function function, boolean isDeployed) {
+    public static FunctionDeployment createFunctionReservation(long id, Function function, boolean isDeployed) {
         Resource resource = TestResourceProvider.createResource(33L);
-        Reservation reservation = TestReservationProvider.createReservation(1L);
+        Deployment reservation = TestReservationProvider.createReservation(1L);
         return createFunctionReservation(id, function, resource, isDeployed, reservation);
     }
 
-    public static FunctionReservation createFunctionReservation(long id, Resource resource) {
+    public static FunctionDeployment createFunctionReservation(long id, Resource resource) {
         Function function = createFunction(22L, "func-test", "false");
-        Reservation reservation = TestReservationProvider.createReservation(1L);
+        Deployment reservation = TestReservationProvider.createReservation(1L);
         return createFunctionReservation(id, function, resource, true, reservation);
     }
 
-    public static FunctionReservation createFunctionReservation(long id, Function function, Resource resource) {
-        Reservation reservation = TestReservationProvider.createReservation(1L);
+    public static FunctionDeployment createFunctionReservation(long id, Function function, Resource resource) {
+        Deployment reservation = TestReservationProvider.createReservation(1L);
         return createFunctionReservation(id, function, resource, false, reservation);
     }
 }

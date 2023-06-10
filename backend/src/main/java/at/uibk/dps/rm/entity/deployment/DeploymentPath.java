@@ -21,14 +21,14 @@ public class DeploymentPath {
     private final Path buildFolder;
 
     /**
-     * Create a new instance from the reservationId and vertx config.
+     * Create a new instance from the deploymentId and vertx config.
      *
-     * @param reservationId the id of the reservation
+     * @param deploymentId the id of the deployment
      * @param config the vertx config
      */
-    public DeploymentPath(long reservationId, JsonObject config) {
+    public DeploymentPath(long deploymentId, JsonObject config) {
         this.buildFolder = Path.of(config.getString("build_directory"));
-        this.rootFolder = Path.of(buildFolder.toString(), "reservation_" + reservationId);
+        this.rootFolder = Path.of(buildFolder.toString(), "deployment_" + deploymentId);
         this.functionsFolder = Path.of(rootFolder.toString(), "functions");
     }
 

@@ -1,8 +1,8 @@
 package at.uibk.dps.rm.service.database.reservation;
 
 import at.uibk.dps.rm.annotations.Generated;
-import at.uibk.dps.rm.entity.model.ResourceReservationStatus;
-import at.uibk.dps.rm.repository.reservation.ResourceReservationStatusRepository;
+import at.uibk.dps.rm.entity.model.ResourceDeploymentStatus;
+import at.uibk.dps.rm.repository.deployment.ResourceDeploymentStatusRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -24,7 +24,7 @@ public interface ResourceReservationStatusService extends DatabaseServiceInterfa
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static ResourceReservationStatusService create(ResourceReservationStatusRepository repository) {
+    static ResourceReservationStatusService create(ResourceDeploymentStatusRepository repository) {
         return new ResourceReservationStatusServiceImpl(repository);
     }
 
@@ -32,7 +32,7 @@ public interface ResourceReservationStatusService extends DatabaseServiceInterfa
     @Generated
     static ResourceReservationStatusService createProxy(Vertx vertx) {
         return new ResourceReservationStatusServiceVertxEBProxy(vertx,
-            ServiceProxyAddress.getServiceProxyAddress(ResourceReservationStatus.class));
+            ServiceProxyAddress.getServiceProxyAddress(ResourceDeploymentStatus.class));
     }
 
     /**

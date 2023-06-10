@@ -1,9 +1,9 @@
 package at.uibk.dps.rm.handler.log;
 
 import at.uibk.dps.rm.entity.model.Account;
-import at.uibk.dps.rm.entity.model.Reservation;
-import at.uibk.dps.rm.entity.model.ReservationLog;
-import at.uibk.dps.rm.handler.reservation.ReservationChecker;
+import at.uibk.dps.rm.entity.model.Deployment;
+import at.uibk.dps.rm.entity.model.DeploymentLog;
+import at.uibk.dps.rm.handler.deployment.DeploymentChecker;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestLogProvider;
@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
 /**
- * Implements tests for the {@link ReservationLogHandler} class.
+ * Implements tests for the {@link DeploymentLogHandler} class.
  *
  * @author matthi-g
  */
@@ -37,16 +37,16 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class ReservationLogHandlerTest {
 
-    private ReservationLogHandler handler;
+    private DeploymentLogHandler handler;
 
     @Mock
-    private ReservationLogChecker reservationLogChecker;
+    private DeploymentLogChecker reservationLogChecker;
 
     @Mock
     private LogChecker logChecker;
 
     @Mock
-    private ReservationChecker reservationChecker;
+    private DeploymentChecker reservationChecker;
 
     @Mock
     private RoutingContext rc;
@@ -54,23 +54,23 @@ public class ReservationLogHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        handler = new ReservationLogHandler(reservationLogChecker, logChecker, reservationChecker);
+        handler = new DeploymentLogHandler(reservationLogChecker, logChecker, reservationChecker);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"valid", "empty"})
     void getAll(String testCase, VertxTestContext testContext) {
         Account account = TestAccountProvider.createAccount(22L);
-        Reservation reservation = TestReservationProvider.createReservation(11L);
-        ReservationLog rl1 = TestLogProvider.createReservationLog(1L, reservation);
-        ReservationLog rl2 = TestLogProvider.createReservationLog(2L, reservation);
+        Deployment reservation = TestReservationProvider.createReservation(11L);
+        DeploymentLog rl1 = TestLogProvider.createReservationLog(1L, reservation);
+        DeploymentLog rl2 = TestLogProvider.createReservationLog(2L, reservation);
         JsonArray reservationLogs = new JsonArray(List.of(JsonObject.mapFrom(rl1), JsonObject.mapFrom(rl2)));
         if (testCase.equals("empty")) {
             reservationLogs = new JsonArray();
         }
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
-        when(rc.pathParam("id")).thenReturn(String.valueOf(reservation.getReservationId()));
+        when(rc.pathParam("id")).thenReturn(String.valueOf(reservation.getDeploymentId()));
         when(reservationChecker.checkFindOne(11L, 22L)).thenReturn(Single.just(JsonObject.mapFrom(reservation)));
         when(logChecker.checkFindAllByReservationId(11L, 22L))
             .thenReturn(Single.just(reservationLogs));

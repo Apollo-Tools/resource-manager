@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.service.database.reservation;
 
-import at.uibk.dps.rm.entity.model.FunctionReservation;
-import at.uibk.dps.rm.repository.reservation.FunctionReservationRepository;
+import at.uibk.dps.rm.entity.model.FunctionDeployment;
+import at.uibk.dps.rm.repository.deployment.FunctionDeploymentRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
@@ -14,29 +14,29 @@ import java.util.ArrayList;
  *
  * @author matthi-g
  */
-public class FunctionReservationServiceImpl  extends DatabaseServiceProxy<FunctionReservation> implements
+public class FunctionReservationServiceImpl  extends DatabaseServiceProxy<FunctionDeployment> implements
     FunctionReservationService {
 
-    private final FunctionReservationRepository repository;
+    private final FunctionDeploymentRepository repository;
 
     /**
      * Create an instance from the repository.
      *
      * @param repository the function reservation repository
      */
-    public FunctionReservationServiceImpl(FunctionReservationRepository repository) {
-        super(repository, FunctionReservation.class);
+    public FunctionReservationServiceImpl(FunctionDeploymentRepository repository) {
+        super(repository, FunctionDeployment.class);
         this.repository = repository;
     }
 
     @Override
     public Future<JsonArray> findAllByReservationId(long reservationId) {
         return Future
-            .fromCompletionStage(repository.findAllByReservationId(reservationId))
+            .fromCompletionStage(repository.findAllByDeploymentId(reservationId))
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
-                for (FunctionReservation entity: result) {
-                    entity.setReservation(null);
+                for (FunctionDeployment entity: result) {
+                    entity.setDeployment(null);
                     entity.getResource().getRegion().getResourceProvider().setProviderPlatforms(null);
                     objects.add(JsonObject.mapFrom(entity));
                 }

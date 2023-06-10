@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.service.database.reservation;
 
-import at.uibk.dps.rm.entity.model.ResourceReservationStatus;
-import at.uibk.dps.rm.repository.reservation.ResourceReservationStatusRepository;
+import at.uibk.dps.rm.entity.model.ResourceDeploymentStatus;
+import at.uibk.dps.rm.repository.deployment.ResourceDeploymentStatusRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
@@ -11,18 +11,18 @@ import io.vertx.core.json.JsonObject;
  *
  * @author matthi-g
  */
-public class ResourceReservationStatusServiceImpl  extends DatabaseServiceProxy<ResourceReservationStatus>
+public class ResourceReservationStatusServiceImpl  extends DatabaseServiceProxy<ResourceDeploymentStatus>
     implements ResourceReservationStatusService {
 
-    private final ResourceReservationStatusRepository repository;
+    private final ResourceDeploymentStatusRepository repository;
 
     /**
      * Create an instance from the repository.
      *
      * @param repository the resource reservation status repository
      */
-    public ResourceReservationStatusServiceImpl(ResourceReservationStatusRepository repository) {
-        super(repository, ResourceReservationStatus.class);
+    public ResourceReservationStatusServiceImpl(ResourceDeploymentStatusRepository repository) {
+        super(repository, ResourceDeploymentStatus.class);
         this.repository = repository;
     }
 

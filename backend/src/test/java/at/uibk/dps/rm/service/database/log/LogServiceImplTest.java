@@ -48,7 +48,7 @@ public class LogServiceImplTest {
         List<Log> logs = List.of(log1, log2);
         CompletionStage<List<Log>> completionStage = CompletionStages.completedFuture(logs);
 
-        when(logRepository.findAllByReservationIdAndAccountId(reservationId, accountId)).thenReturn(completionStage);
+        when(logRepository.findAllByDeploymentIdAndAccountId(reservationId, accountId)).thenReturn(completionStage);
 
         logService.findAllByReservationIdAndAccountId(reservationId, accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -65,7 +65,7 @@ public class LogServiceImplTest {
         List<Log> logs = new ArrayList<>();
         CompletionStage<List<Log>> completionStage = CompletionStages.completedFuture(logs);
 
-        when(logRepository.findAllByReservationIdAndAccountId(reservationId, accountId)).thenReturn(completionStage);
+        when(logRepository.findAllByDeploymentIdAndAccountId(reservationId, accountId)).thenReturn(completionStage);
 
         logService.findAllByReservationIdAndAccountId(reservationId, accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {

@@ -142,24 +142,6 @@ public class ResourceServiceImplTest {
     }
 
     @Test
-    void findAllByFunctionId(VertxTestContext testContext) {
-        long functionId = 1L;
-        Resource r1 = TestResourceProvider.createResource(1L);
-        Resource r2 = TestResourceProvider.createResource(2L);
-        CompletionStage<List<Resource>> completionStage = CompletionStages.completedFuture(List.of(r1, r2));
-
-        when(resourceRepository.findAllByFunctionIdAndFetch(functionId)).thenReturn(completionStage);
-
-        resourceService.findAllByFunctionId(functionId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result.size()).isEqualTo(2);
-                assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
-                assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
-                testContext.completeNow();
-            })));
-    }
-
-    @Test
     void findAllByEnsembleId(VertxTestContext testContext) {
         long ensembleId = 1L;
         Resource r1 = TestResourceProvider.createResource(1L);

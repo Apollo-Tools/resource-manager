@@ -24,19 +24,19 @@ public class LogRepository extends Repository<Log> {
     }
 
     /**
-     * Find all logs by their reservation and account.
+     * Find all logs by their deployment and account.
      *
-     * @param reservationId the id of the reservation
+     * @param deploymentId the id of the deployment
      * @param accountId the id of the creator account
      * @return a CompletionStage that emits a list of all logs
      */
-    public CompletionStage<List<Log>> findAllByReservationIdAndAccountId(long reservationId, long accountId) {
+    public CompletionStage<List<Log>> findAllByDeploymentIdAndAccountId(long deploymentId, long accountId) {
         return sessionFactory.withSession(session ->
-            session.createQuery("select distinct l from ReservationLog rl " +
-                    "left join rl.log l " +
-                    "where rl.reservation.reservationId=:reservationId " +
-                    "and rl.reservation.createdBy.accountId=:accountId", entityClass)
-                .setParameter("reservationId", reservationId)
+            session.createQuery("select distinct l from DeploymentLog dl " +
+                    "left join dl.log l " +
+                    "where dl.deployment.deploymentId=:deploymentId " +
+                    "and dl.deployment.createdBy.accountId=:accountId", entityClass)
+                .setParameter("deploymentId", deploymentId)
                 .setParameter("accountId", accountId)
                 .getResultList()
         );

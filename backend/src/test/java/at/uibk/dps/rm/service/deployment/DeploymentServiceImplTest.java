@@ -1,8 +1,8 @@
 package at.uibk.dps.rm.service.deployment;
 
 import at.uibk.dps.rm.entity.deployment.*;
-import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
-import at.uibk.dps.rm.entity.dto.TerminateResourcesRequest;
+import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDAO;
+import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDAO;
 import at.uibk.dps.rm.service.ServiceProxy;
 import at.uibk.dps.rm.service.deployment.terraform.FunctionPrepareService;
 import at.uibk.dps.rm.service.deployment.terraform.MainFileService;
@@ -72,7 +72,7 @@ public class DeploymentServiceImplTest {
 
     @Test
     void packageFunctionsCode(VertxTestContext testContext) {
-        DeployResourcesRequest deployRequest = TestRequestProvider.createDeployRequest();
+        DeployResourcesDAO deployRequest = TestRequestProvider.createDeployRequest();
         FunctionsToDeploy functionsToDeploy = TestDTOProvider.createFunctionsToDeploy();
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockito.mockConstruction(ConfigUtility.class,
@@ -96,7 +96,7 @@ public class DeploymentServiceImplTest {
 
     @Test
     void setUpTFModules(VertxTestContext testContext) {
-        DeployResourcesRequest deployRequest = TestRequestProvider.createDeployRequest();
+        DeployResourcesDAO deployRequest = TestRequestProvider.createDeployRequest();
         TerraformModule tfm1 = new TerraformModule(CloudProvider.AWS, "m1");
         TerraformModule tfm2 = new TerraformModule(CloudProvider.EDGE, "m2");
 
@@ -120,7 +120,7 @@ public class DeploymentServiceImplTest {
 
     @Test
     void setUpTFModulesMainFileServiceFailed(VertxTestContext testContext) {
-        DeployResourcesRequest deployRequest = TestRequestProvider.createDeployRequest();
+        DeployResourcesDAO deployRequest = TestRequestProvider.createDeployRequest();
         TerraformModule tfm1 = new TerraformModule(CloudProvider.AWS, "m1");
         TerraformModule tfm2 = new TerraformModule(CloudProvider.EDGE, "m2");
 
@@ -143,7 +143,7 @@ public class DeploymentServiceImplTest {
 
     @Test
     void setUpTFModulesTerraformSetupServiceFailed(VertxTestContext testContext) {
-        DeployResourcesRequest deployRequest = TestRequestProvider.createDeployRequest();
+        DeployResourcesDAO deployRequest = TestRequestProvider.createDeployRequest();
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockito.mockConstruction(ConfigUtility.class,
             (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
@@ -161,7 +161,7 @@ public class DeploymentServiceImplTest {
 
     @Test
     void getNecessaryCredentials(VertxTestContext testContext) {
-        TerminateResourcesRequest terminateRequest = TestRequestProvider.createTerminateRequest();
+        TerminateResourcesDAO terminateRequest = TestRequestProvider.createTerminateRequest();
         DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWSEdge();
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockito.mockConstruction(ConfigUtility.class,
@@ -183,7 +183,7 @@ public class DeploymentServiceImplTest {
 
     @Test
     void getNecessaryCredentialsFailed(VertxTestContext testContext) {
-        TerminateResourcesRequest terminateRequest = TestRequestProvider.createTerminateRequest();
+        TerminateResourcesDAO terminateRequest = TestRequestProvider.createTerminateRequest();
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockito.mockConstruction(ConfigUtility.class,
             (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {

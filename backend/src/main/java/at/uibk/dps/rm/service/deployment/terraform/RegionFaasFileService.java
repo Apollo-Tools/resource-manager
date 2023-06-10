@@ -27,7 +27,7 @@ public class RegionFaasFileService extends TerraformFileService {
 
     private final Region region;
 
-    private final List<FunctionReservation> functionReservations;
+    private final List<FunctionDeployment> functionReservations;
 
     private final long reservationId;
 
@@ -52,7 +52,7 @@ public class RegionFaasFileService extends TerraformFileService {
      * @param vpc the virtual private cloud to use for the deployment
      */
     public RegionFaasFileService(FileSystem fileSystem, Path rootFolder, Path functionsDir, Region region,
-                          List<FunctionReservation> functionReservations, long reservationId, TerraformModule module,
+                          List<FunctionDeployment> functionReservations, long reservationId, TerraformModule module,
                           String dockerUserName, VPC vpc) {
         super(fileSystem, rootFolder);
         this.module = module;
@@ -82,7 +82,7 @@ public class RegionFaasFileService extends TerraformFileService {
     }
 
     protected String getFunctionsModuleString() {
-        for (FunctionReservation functionReservation: functionReservations) {
+        for (FunctionDeployment functionReservation: functionReservations) {
             Resource resource = functionReservation.getResource();
             Function function = functionReservation.getFunction();
             PlatformEnum platform = PlatformEnum.fromString(resource.getPlatform().getPlatform());
@@ -149,7 +149,7 @@ public class RegionFaasFileService extends TerraformFileService {
         }
         if (this.ec2DeploymentData.getFunctionCount() > 0 || this.openFaasDeploymentData.getFunctionCount() > 0) {
             StringBuilder vmUrls = new StringBuilder(), vmFunctionIds = new StringBuilder();
-            for (FunctionReservation functionReservation: functionReservations) {
+            for (FunctionDeployment functionReservation: functionReservations) {
                 Resource resource = functionReservation.getResource();
                 Function function = functionReservation.getFunction();
                 String functionIdentifier = function.getFunctionDeploymentId();

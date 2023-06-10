@@ -1,9 +1,9 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
-import at.uibk.dps.rm.entity.model.Reservation;
+import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.model.Service;
-import at.uibk.dps.rm.entity.model.ServiceReservation;
+import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.testutil.objectprovider.TestFileServiceProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
@@ -32,7 +32,7 @@ public class ContainerPullFileServiceTest {
     private final Path rootFolder = Paths.get("temp\\reservation_1");
 
 
-    private final Reservation reservation = TestReservationProvider.createReservation(1L);
+    private final Deployment reservation = TestReservationProvider.createReservation(1L);
 
     @Test
     void getProviderString(Vertx vertx) {
@@ -49,9 +49,9 @@ public class ContainerPullFileServiceTest {
         Resource r2 = TestResourceProvider.createResourceContainer(2L, "10.0.0.1");
         Service s1 = TestServiceProvider.createService(1L, "test1");
         Service s2 = TestServiceProvider.createService(1L, "test2");
-        ServiceReservation sr1 = TestServiceProvider.createServiceReservation(1L, s1, r1);
-        ServiceReservation sr2 = TestServiceProvider.createServiceReservation(1L, s2, r1);
-        ServiceReservation sr3 = TestServiceProvider.createServiceReservation(1L, s1, r2);
+        ServiceDeployment sr1 = TestServiceProvider.createServiceReservation(1L, s1, r1);
+        ServiceDeployment sr2 = TestServiceProvider.createServiceReservation(1L, s2, r1);
+        ServiceDeployment sr3 = TestServiceProvider.createServiceReservation(1L, s1, r2);
         ContainerPullFileService service =
             TestFileServiceProvider.createContainerPullFileService(vertx.fileSystem(), rootFolder, reservation,
                 List.of(sr1, sr2, sr3));

@@ -1,8 +1,8 @@
 package at.uibk.dps.rm.service.database.reservation;
 
-import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
-import at.uibk.dps.rm.entity.model.ServiceReservation;
-import at.uibk.dps.rm.repository.reservation.ServiceReservationRepository;
+import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
+import at.uibk.dps.rm.entity.model.ServiceDeployment;
+import at.uibk.dps.rm.repository.deployment.ServiceDeploymentRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
@@ -16,30 +16,30 @@ import java.util.Objects;
  *
  * @author matthi-g
  */
-public class ServiceReservationServiceImpl  extends DatabaseServiceProxy<ServiceReservation>
+public class ServiceReservationServiceImpl  extends DatabaseServiceProxy<ServiceDeployment>
     implements ServiceReservationService {
 
-    private final ServiceReservationRepository repository;
+    private final ServiceDeploymentRepository repository;
 
     /**
      * Create an instance from the repository.
      *
      * @param repository the service reservation repository
      */
-    public ServiceReservationServiceImpl(ServiceReservationRepository repository) {
-        super(repository, ServiceReservation.class);
+    public ServiceReservationServiceImpl(ServiceDeploymentRepository repository) {
+        super(repository, ServiceDeployment.class);
         this.repository = repository;
     }
 
     @Override
     public Future<JsonArray> findAllByReservationId(long reservationId) {
         return Future
-            .fromCompletionStage(repository.findAllByReservationId(reservationId))
+            .fromCompletionStage(repository.findAllByDeploymentId(reservationId))
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
-                for (ServiceReservation entity: result) {
+                for (ServiceDeployment entity: result) {
                     entity.getResource().getRegion().getResourceProvider().setProviderPlatforms(null);
-                    entity.setReservation(null);
+                    entity.setDeployment(null);
                     objects.add(JsonObject.mapFrom(entity));
                 }
                 return new JsonArray(objects);
@@ -49,8 +49,8 @@ public class ServiceReservationServiceImpl  extends DatabaseServiceProxy<Service
     @Override
     public Future<Boolean> existsReadyForContainerStartupAndTermination(long reservationId,
         long resourceReservationId, long accountId) {
-        return Future.fromCompletionStage(repository.findOneByReservationStatus(reservationId, resourceReservationId,
-                accountId, ReservationStatusValue.DEPLOYED))
+        return Future.fromCompletionStage(repository.findOneByDeploymentStatus(reservationId, resourceReservationId,
+                accountId, DeploymentStatusValue.DEPLOYED))
             .map(Objects::nonNull);
     }
 }

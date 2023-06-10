@@ -1,8 +1,8 @@
 package at.uibk.dps.rm.service.database.reservation;
 
 import at.uibk.dps.rm.annotations.Generated;
-import at.uibk.dps.rm.entity.model.FunctionReservation;
-import at.uibk.dps.rm.repository.reservation.FunctionReservationRepository;
+import at.uibk.dps.rm.entity.model.FunctionDeployment;
+import at.uibk.dps.rm.repository.deployment.FunctionDeploymentRepository;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
 import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -24,7 +24,7 @@ public interface FunctionReservationService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static FunctionReservationService create(FunctionReservationRepository repository) {
+    static FunctionReservationService create(FunctionDeploymentRepository repository) {
         return new FunctionReservationServiceImpl(repository);
     }
 
@@ -32,7 +32,7 @@ public interface FunctionReservationService extends DatabaseServiceInterface {
     @Generated
     static FunctionReservationService createProxy(Vertx vertx) {
         return new FunctionReservationServiceVertxEBProxy(vertx,
-            ServiceProxyAddress.getServiceProxyAddress(FunctionReservation.class));
+            ServiceProxyAddress.getServiceProxyAddress(FunctionDeployment.class));
     }
 
     /**

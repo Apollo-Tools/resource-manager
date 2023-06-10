@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.handler.resource;
 
-import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
-import at.uibk.dps.rm.entity.dto.reservation.ServiceResourceIds;
+import at.uibk.dps.rm.entity.dto.deployment.FunctionResourceIds;
+import at.uibk.dps.rm.entity.dto.deployment.ServiceResourceIds;
 import at.uibk.dps.rm.entity.dto.resource.ResourceTypeEnum;
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
@@ -49,17 +49,6 @@ public class ResourceChecker extends EntityChecker {
         Single<JsonArray> findAllByMultipleMetrics = resourceService.findAllBySLOs(metrics, environmentIds,
             resourceTypeIds, platformIds, regionIds, providerIds);
         return ErrorHandler.handleFindAll(findAllByMultipleMetrics);
-    }
-
-    /**
-     * Find all resources by function.
-     *
-     * @param functionId the id of the function
-     * @return a Single that emits all found resources as JsonArray
-     */
-    public Single<JsonArray> checkFindAllByFunction(long functionId) {
-        Single<JsonArray> findAllByFunction = resourceService.findAllByFunctionId(functionId);
-        return ErrorHandler.handleFindAll(findAllByFunction);
     }
 
     /**

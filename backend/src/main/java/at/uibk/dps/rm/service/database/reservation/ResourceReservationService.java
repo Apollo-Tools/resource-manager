@@ -1,9 +1,9 @@
 package at.uibk.dps.rm.service.database.reservation;
 
 import at.uibk.dps.rm.annotations.Generated;
-import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
-import at.uibk.dps.rm.entity.model.ResourceReservation;
-import at.uibk.dps.rm.repository.reservation.ResourceReservationRepository;
+import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
+import at.uibk.dps.rm.entity.model.ResourceDeployment;
+import at.uibk.dps.rm.repository.deployment.ResourceDeploymentRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -25,7 +25,7 @@ public interface ResourceReservationService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static ResourceReservationService create(ResourceReservationRepository resourceReservationRepository) {
+    static ResourceReservationService create(ResourceDeploymentRepository resourceReservationRepository) {
         return new ResourceReservationServiceImpl(resourceReservationRepository);
     }
 
@@ -33,7 +33,7 @@ public interface ResourceReservationService extends DatabaseServiceInterface {
     @Generated
     static ResourceReservationService createProxy(Vertx vertx) {
         return new ResourceReservationServiceVertxEBProxy(vertx,
-            ServiceProxyAddress.getServiceProxyAddress(ResourceReservation.class));
+            ServiceProxyAddress.getServiceProxyAddress(ResourceDeployment.class));
     }
 
     /**
@@ -60,5 +60,5 @@ public interface ResourceReservationService extends DatabaseServiceInterface {
      * @param reservationStatusValue the new status
      * @return an empty Future
      */
-    Future<Void> updateSetStatusByReservationId(long reservationId, ReservationStatusValue reservationStatusValue);
+    Future<Void> updateSetStatusByReservationId(long reservationId, DeploymentStatusValue reservationStatusValue);
 }

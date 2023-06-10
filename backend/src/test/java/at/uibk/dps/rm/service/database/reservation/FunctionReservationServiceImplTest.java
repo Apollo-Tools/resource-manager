@@ -1,8 +1,8 @@
 package at.uibk.dps.rm.service.database.reservation;
 
-import at.uibk.dps.rm.entity.model.FunctionReservation;
-import at.uibk.dps.rm.entity.model.Reservation;
-import at.uibk.dps.rm.repository.reservation.FunctionReservationRepository;
+import at.uibk.dps.rm.entity.model.FunctionDeployment;
+import at.uibk.dps.rm.entity.model.Deployment;
+import at.uibk.dps.rm.repository.deployment.FunctionDeploymentRepository;
 import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.core.json.JsonObject;
@@ -34,7 +34,7 @@ public class FunctionReservationServiceImplTest {
     private FunctionReservationService service;
 
     @Mock
-    FunctionReservationRepository repository;
+    FunctionDeploymentRepository repository;
 
     @BeforeEach
     void initTest() {
@@ -45,15 +45,15 @@ public class FunctionReservationServiceImplTest {
     @Test
     void findAllByReservationId(VertxTestContext testContext) {
         long reservationId = 1L;
-        FunctionReservation entity1 = TestReservationProvider
-            .createFunctionReservation(4L, new Reservation());
-        FunctionReservation entity2 = TestReservationProvider
-            .createFunctionReservation(5L, new Reservation());
-        List<FunctionReservation> resultList = new ArrayList<>();
+        FunctionDeployment entity1 = TestReservationProvider
+            .createFunctionReservation(4L, new Deployment());
+        FunctionDeployment entity2 = TestReservationProvider
+            .createFunctionReservation(5L, new Deployment());
+        List<FunctionDeployment> resultList = new ArrayList<>();
         resultList.add(entity1);
         resultList.add(entity2);
-        CompletionStage<List<FunctionReservation>> completionStage = CompletionStages.completedFuture(resultList);
-        when(repository.findAllByReservationId(reservationId)).thenReturn(completionStage);
+        CompletionStage<List<FunctionDeployment>> completionStage = CompletionStages.completedFuture(resultList);
+        when(repository.findAllByDeploymentId(reservationId)).thenReturn(completionStage);
 
         service.findAllByReservationId(reservationId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -73,9 +73,9 @@ public class FunctionReservationServiceImplTest {
     @Test
     void findAllByReservationIdEmpty(VertxTestContext testContext) {
         long resourceId = 1L;
-        List<FunctionReservation> resultList = new ArrayList<>();
-        CompletionStage<List<FunctionReservation>> completionStage = CompletionStages.completedFuture(resultList);
-        when(repository.findAllByReservationId(resourceId)).thenReturn(completionStage);
+        List<FunctionDeployment> resultList = new ArrayList<>();
+        CompletionStage<List<FunctionDeployment>> completionStage = CompletionStages.completedFuture(resultList);
+        when(repository.findAllByDeploymentId(resourceId)).thenReturn(completionStage);
 
         service.findAllByReservationId(resourceId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {

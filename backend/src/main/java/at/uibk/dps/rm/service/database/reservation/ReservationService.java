@@ -1,8 +1,8 @@
 package at.uibk.dps.rm.service.database.reservation;
 
 import at.uibk.dps.rm.annotations.Generated;
-import at.uibk.dps.rm.entity.model.Reservation;
-import at.uibk.dps.rm.repository.reservation.ReservationRepository;
+import at.uibk.dps.rm.entity.model.Deployment;
+import at.uibk.dps.rm.repository.deployment.DeploymentRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -25,14 +25,14 @@ public interface ReservationService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static ReservationService create(ReservationRepository reservationRepository) {
+    static ReservationService create(DeploymentRepository reservationRepository) {
         return new ReservationServiceImpl(reservationRepository);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     static ReservationService createProxy(Vertx vertx) {
-        return new ReservationServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(Reservation.class));
+        return new ReservationServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(Deployment.class));
     }
 
     /**

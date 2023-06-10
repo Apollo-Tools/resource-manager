@@ -1,10 +1,10 @@
 package at.uibk.dps.rm.service.database.reservation;
 
-import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
-import at.uibk.dps.rm.entity.model.FunctionReservation;
-import at.uibk.dps.rm.entity.model.ResourceReservation;
-import at.uibk.dps.rm.entity.model.ServiceReservation;
-import at.uibk.dps.rm.repository.reservation.ResourceReservationRepository;
+import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
+import at.uibk.dps.rm.entity.model.FunctionDeployment;
+import at.uibk.dps.rm.entity.model.ResourceDeployment;
+import at.uibk.dps.rm.entity.model.ServiceDeployment;
+import at.uibk.dps.rm.repository.deployment.ResourceDeploymentRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
@@ -17,34 +17,34 @@ import java.util.ArrayList;
  *
  * @author matthi-g
  */
-public class ResourceReservationServiceImpl extends DatabaseServiceProxy<ResourceReservation> implements ResourceReservationService {
+public class ResourceReservationServiceImpl extends DatabaseServiceProxy<ResourceDeployment> implements ResourceReservationService {
 
-    private final ResourceReservationRepository resourceReservationRepository;
+    private final ResourceDeploymentRepository resourceReservationRepository;
 
     /**
      * Create aninstance from the resourceReservationRepositry.
      *
      * @param resourceReservationRepository the resource reservation repository
      */
-    public ResourceReservationServiceImpl(ResourceReservationRepository resourceReservationRepository) {
-        super(resourceReservationRepository, ResourceReservation.class);
+    public ResourceReservationServiceImpl(ResourceDeploymentRepository resourceReservationRepository) {
+        super(resourceReservationRepository, ResourceDeployment.class);
         this.resourceReservationRepository = resourceReservationRepository;
     }
 
     @Override
     public Future<JsonArray> findAllByReservationId(long reservationId) {
         return Future
-                .fromCompletionStage(resourceReservationRepository.findAllByReservationId(reservationId))
+                .fromCompletionStage(resourceReservationRepository.findAllByDeploymentId(reservationId))
                 .map(result -> {
                     ArrayList<JsonObject> objects = new ArrayList<>();
-                    for (ResourceReservation entity: result) {
+                    for (ResourceDeployment entity: result) {
                         // TODO: fix
-                        if (entity instanceof ServiceReservation) {
-                            ((ServiceReservation) entity).setService(null);
-                        } else if (entity instanceof FunctionReservation) {
-                            ((FunctionReservation) entity).setFunction(null);
+                        if (entity instanceof ServiceDeployment) {
+                            ((ServiceDeployment) entity).setService(null);
+                        } else if (entity instanceof FunctionDeployment) {
+                            ((FunctionDeployment) entity).setFunction(null);
                         }
-                        entity.setReservation(null);
+                        entity.setDeployment(null);
                         entity.setResource(null);
                         objects.add(JsonObject.mapFrom(entity));
                     }
@@ -60,10 +60,10 @@ public class ResourceReservationServiceImpl extends DatabaseServiceProxy<Resourc
     }
 
     @Override
-    public Future<Void> updateSetStatusByReservationId(long reservationId, ReservationStatusValue reservationStatusValue) {
+    public Future<Void> updateSetStatusByReservationId(long reservationId, DeploymentStatusValue reservationStatusValue) {
         return Future
             .fromCompletionStage(resourceReservationRepository
-                .updateReservationStatusByReservationId(reservationId, reservationStatusValue))
+                .updateDeploymentStatusByDeploymentId(reservationId, reservationStatusValue))
             .mapEmpty();
     }
 }

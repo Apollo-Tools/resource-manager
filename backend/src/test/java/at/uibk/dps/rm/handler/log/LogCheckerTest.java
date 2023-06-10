@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.handler.log;
 
-import at.uibk.dps.rm.entity.model.Reservation;
-import at.uibk.dps.rm.entity.model.ReservationLog;
+import at.uibk.dps.rm.entity.model.Deployment;
+import at.uibk.dps.rm.entity.model.DeploymentLog;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.rxjava3.database.log.LogService;
 import at.uibk.dps.rm.testutil.SingleHelper;
@@ -48,9 +48,9 @@ public class LogCheckerTest {
     @Test
     void checkFindAllByReservationId(VertxTestContext testContext) {
         long reservationId = 11L, accountId = 22L;
-        Reservation reservation = TestReservationProvider.createReservation(reservationId);
-        ReservationLog rl1 = TestLogProvider.createReservationLog(1L, reservation);
-        ReservationLog rl2 = TestLogProvider.createReservationLog(2L, reservation);
+        Deployment reservation = TestReservationProvider.createReservation(reservationId);
+        DeploymentLog rl1 = TestLogProvider.createReservationLog(1L, reservation);
+        DeploymentLog rl2 = TestLogProvider.createReservationLog(2L, reservation);
         JsonArray reservationLogs = new JsonArray(List.of(JsonObject.mapFrom(rl1), JsonObject.mapFrom(rl2)));
 
         when(logService.findAllByReservationIdAndAccountId(reservationId, accountId))

@@ -1,0 +1,54 @@
+ALTER TABLE reservation RENAME TO deployment;
+ALTER TABLE deployment
+RENAME COLUMN reservation_id TO deployment_id;
+ALTER TABLE deployment
+RENAME CONSTRAINT reservation_pkey TO deployment_pkey;
+
+
+ALTER TABLE reservation_log RENAME TO deployment_log;
+ALTER TABLE deployment_log
+RENAME COLUMN reservation_log_id to deployment_log_id;
+ALTER TABLE deployment_log
+RENAME COLUMN reservation_id TO deployment_id;
+ALTER TABLE deployment_log
+RENAME CONSTRAINT reservation_log_pkey TO deployment_log_pkey;
+ALTER TABLE deployment_log
+RENAME CONSTRAINT reservation_log_log_id_reservation_id_key TO deployment_log_log_id_deployment_id_key;
+ALTER TABLE deployment_log
+RENAME CONSTRAINT reservation_log_log_id_fkey TO deployment_log_log_id_fkey;
+ALTER TABLE deployment_log
+RENAME CONSTRAINT reservation_log_reservation_id_fkey TO deployment_log_deployment_id_fkey;
+
+
+UPDATE resource_reservation SET function_resource_id = null;
+ALTER TABLE resource_reservation RENAME TO resource_deployment;
+ALTER TABLE resource_deployment
+RENAME COLUMN resource_reservation_id TO resource_deployment_id;
+ALTER TABLE resource_deployment
+RENAME COLUMN reservation_id TO deployment_id;
+ALTER TABLE resource_deployment
+RENAME COLUMN reservation_status_id TO deployment_status_id;
+ALTER TABLE resource_deployment
+RENAME COLUMN reservation_type TO deployment_type;
+ALTER TABLE resource_deployment
+RENAME CONSTRAINT resource_reservation_pkey TO resource_deployment_pkey;
+ALTER TABLE resource_deployment
+RENAME CONSTRAINT unique_resource_reservation TO unique_resource_deployment;
+ALTER TABLE resource_deployment
+RENAME CONSTRAINT fk_reservation_status TO deployment_status_id_fkey;
+ALTER TABLE resource_deployment
+RENAME CONSTRAINT resource_reservation_function_id_fkey TO resource_deployment_function_id_fkey;
+ALTER TABLE resource_deployment
+RENAME CONSTRAINT resource_reservation_reservation_id_fkey TO resource_deployment_deployment_id_fkey;
+ALTER TABLE resource_deployment
+RENAME CONSTRAINT resource_reservation_resource_id_fkey TO resource_deployment_resource_id_fkey;
+ALTER TABLE resource_deployment
+RENAME CONSTRAINT resource_reservation_servie_id_fkey TO resource_deployment_service_id_fkey;
+ALTER TABLE resource_deployment
+DROP COLUMN function_resource_id;
+DROP TABLE function_resource;
+
+
+ALTER TABLE resource_reservation_status RENAME TO resource_deployment_status;
+ALTER TABLE resource_deployment_status
+RENAME CONSTRAINT resource_reservation_status_pkey TO resource_deployment_status_pkey;

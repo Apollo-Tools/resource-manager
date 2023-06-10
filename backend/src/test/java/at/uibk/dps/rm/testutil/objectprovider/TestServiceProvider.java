@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.testutil.objectprovider;
 
-import at.uibk.dps.rm.entity.dto.reservation.ServiceResourceIds;
+import at.uibk.dps.rm.entity.dto.deployment.ServiceResourceIds;
 import at.uibk.dps.rm.entity.model.*;
 import lombok.experimental.UtilityClass;
 
@@ -57,36 +57,36 @@ public class TestServiceProvider {
     }
 
 
-    public static ServiceReservation createServiceReservation(long id, Service service, Resource resource,
-            boolean isDeployed, Reservation reservation) {
-        ServiceReservation serviceReservation = new ServiceReservation();
-        serviceReservation.setResourceReservationId(id);
+    public static ServiceDeployment createServiceReservation(long id, Service service, Resource resource,
+            boolean isDeployed, Deployment reservation) {
+        ServiceDeployment serviceReservation = new ServiceDeployment();
+        serviceReservation.setResourceDeploymentId(id);
         serviceReservation.setService(service);
         serviceReservation.setResource(resource);
         serviceReservation.setIsDeployed(isDeployed);
-        serviceReservation.setReservation(reservation);
+        serviceReservation.setDeployment(reservation);
         serviceReservation.setContext("k8s-context");
         serviceReservation.setNamespace("default");
         return serviceReservation;
     }
 
-    public static ServiceReservation createServiceReservation(long id, long resourceId, Reservation reservation) {
+    public static ServiceDeployment createServiceReservation(long id, long resourceId, Deployment reservation) {
         Service service = createService(22L, "test");
         Resource resource = TestResourceProvider.createResourceContainer(resourceId, "localhost");
         return createServiceReservation(id, service, resource, true, reservation);
     }
 
-    public static ServiceReservation createServiceReservation(long id, Reservation reservation) {
+    public static ServiceDeployment createServiceReservation(long id, Deployment reservation) {
         return createServiceReservation(id, 33L, reservation);
     }
 
-    public static ServiceReservation createServiceReservation(long id, Resource resource, Reservation reservation) {
+    public static ServiceDeployment createServiceReservation(long id, Resource resource, Deployment reservation) {
         Service service = createService(22L, "test");
         return createServiceReservation(id, service, resource, false, reservation);
     }
 
-    public static ServiceReservation createServiceReservation(long id, Service service, Resource resource) {
-        Reservation reservation = TestReservationProvider.createReservation(1L);
+    public static ServiceDeployment createServiceReservation(long id, Service service, Resource resource) {
+        Deployment reservation = TestReservationProvider.createReservation(1L);
         return createServiceReservation(id, service, resource, false, reservation);
     }
 }

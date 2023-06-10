@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.service.database.reservation;
 
 import at.uibk.dps.rm.entity.model.*;
-import at.uibk.dps.rm.repository.reservation.ReservationRepository;
+import at.uibk.dps.rm.repository.deployment.DeploymentRepository;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
@@ -32,7 +32,7 @@ public class ReservationServiceImplTest {
     private ReservationService reservationService;
 
     @Mock
-    ReservationRepository reservationRepository;
+    DeploymentRepository reservationRepository;
 
     @BeforeEach
     void initTest() {
@@ -44,10 +44,10 @@ public class ReservationServiceImplTest {
     void findAllByAccountId(VertxTestContext testContext) {
         long accountId = 1L;
         Account account = TestAccountProvider.createAccount(accountId);
-        Reservation r1 = TestReservationProvider.createReservation(1L, true, account);
-        Reservation r2 = TestReservationProvider.createReservation(2L, true, account);
-        Reservation r3 = TestReservationProvider.createReservation(3L, true, account);
-        CompletionStage<List<Reservation>> completionStage = CompletionStages.completedFuture(List.of(r1, r2, r3));
+        Deployment r1 = TestReservationProvider.createReservation(1L, true, account);
+        Deployment r2 = TestReservationProvider.createReservation(2L, true, account);
+        Deployment r3 = TestReservationProvider.createReservation(3L, true, account);
+        CompletionStage<List<Deployment>> completionStage = CompletionStages.completedFuture(List.of(r1, r2, r3));
 
         when(reservationRepository.findAllByAccountId(accountId)).thenReturn(completionStage);
 
@@ -67,9 +67,9 @@ public class ReservationServiceImplTest {
         long reservationId = 1L;
         long accountId = 2L;
         Account account = TestAccountProvider.createAccount(accountId);
-        Reservation entity = TestReservationProvider.createReservation(reservationId, true, account);
+        Deployment entity = TestReservationProvider.createReservation(reservationId, true, account);
 
-        CompletionStage<Reservation> completionStage = CompletionStages.completedFuture(entity);
+        CompletionStage<Deployment> completionStage = CompletionStages.completedFuture(entity);
         when(reservationRepository.findByIdAndAccountId(reservationId, accountId)).thenReturn(completionStage);
 
         reservationService.findOneByIdAndAccountId(reservationId, accountId)
@@ -84,7 +84,7 @@ public class ReservationServiceImplTest {
     void findOneByIdAndAccountNotExists(VertxTestContext testContext) {
         long reservationId = 1L;
         long accountId = 2L;
-        CompletionStage<Reservation> completionStage = CompletionStages.completedFuture(null);
+        CompletionStage<Deployment> completionStage = CompletionStages.completedFuture(null);
 
         when(reservationRepository.findByIdAndAccountId(reservationId, accountId)).thenReturn(completionStage);
 

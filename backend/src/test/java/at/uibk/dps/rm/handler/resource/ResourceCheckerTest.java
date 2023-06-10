@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.handler.resource;
 
-import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
-import at.uibk.dps.rm.entity.dto.reservation.ServiceResourceIds;
+import at.uibk.dps.rm.entity.dto.deployment.FunctionResourceIds;
+import at.uibk.dps.rm.entity.dto.deployment.ServiceResourceIds;
 import at.uibk.dps.rm.entity.dto.resource.ResourceTypeEnum;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;

@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.service.database.log;
 
-import at.uibk.dps.rm.entity.model.ReservationLog;
-import at.uibk.dps.rm.repository.log.ReservationLogRepository;
+import at.uibk.dps.rm.entity.model.DeploymentLog;
+import at.uibk.dps.rm.repository.log.DeploymentLogRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 
 /**
@@ -9,13 +9,13 @@ import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
  *
  * @author matthi-g
  */
-public class ReservationLogServiceImpl extends DatabaseServiceProxy<ReservationLog> implements ReservationLogService {
+public class ReservationLogServiceImpl extends DatabaseServiceProxy<DeploymentLog> implements ReservationLogService {
     /**
      * Create an instance from the reservationLogRepository.
      *
      * @param reservationLogRepository the reservation log repository
      */
-    public ReservationLogServiceImpl(ReservationLogRepository reservationLogRepository) {
-        super(reservationLogRepository, ReservationLog.class);
+    public ReservationLogServiceImpl(DeploymentLogRepository reservationLogRepository) {
+        super(reservationLogRepository, DeploymentLog.class);
     }
 }

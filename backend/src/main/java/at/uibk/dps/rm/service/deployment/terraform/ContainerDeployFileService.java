@@ -3,7 +3,7 @@ package at.uibk.dps.rm.service.deployment.terraform;
 import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.model.Service;
-import at.uibk.dps.rm.entity.model.ServiceReservation;
+import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.util.misc.MetricValueMapper;
 import io.vertx.rxjava3.core.file.FileSystem;
 
@@ -21,7 +21,7 @@ public class ContainerDeployFileService extends TerraformFileService {
 
     private final long reservationId;
 
-    private final ServiceReservation serviceReservation;
+    private final ServiceDeployment serviceReservation;
 
     private final Path rootFolder;
 
@@ -33,7 +33,7 @@ public class ContainerDeployFileService extends TerraformFileService {
      * @param serviceReservation the service reservation
      * @param reservationId the id of the reservation
      */
-    public ContainerDeployFileService(FileSystem fileSystem, Path rootFolder, ServiceReservation serviceReservation,
+    public ContainerDeployFileService(FileSystem fileSystem, Path rootFolder, ServiceDeployment serviceReservation,
             long reservationId) {
         super(fileSystem, rootFolder);
         this.rootFolder = rootFolder;

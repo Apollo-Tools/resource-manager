@@ -7,15 +7,14 @@ import at.uibk.dps.rm.repository.ensemble.EnsembleRepository;
 import at.uibk.dps.rm.repository.ensemble.EnsembleSLORepository;
 import at.uibk.dps.rm.repository.ensemble.ResourceEnsembleRepository;
 import at.uibk.dps.rm.repository.function.FunctionRepository;
-import at.uibk.dps.rm.repository.function.FunctionResourceRepository;
 import at.uibk.dps.rm.repository.function.RuntimeRepository;
 import at.uibk.dps.rm.repository.log.LogRepository;
-import at.uibk.dps.rm.repository.log.ReservationLogRepository;
+import at.uibk.dps.rm.repository.log.DeploymentLogRepository;
 import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.metric.MetricTypeRepository;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
-import at.uibk.dps.rm.repository.reservation.*;
+import at.uibk.dps.rm.repository.deployment.*;
 import at.uibk.dps.rm.repository.resource.PlatformRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resource.ResourceTypeRepository;
@@ -71,26 +70,25 @@ public class DatabaseVerticle extends AbstractVerticle {
     private EnsembleSLORepository ensembleSLORepository;
     private EnvironmentRepository environmentRepository;
     private FunctionRepository functionRepository;
-    private FunctionReservationRepository functionReservationRepository;
-    private FunctionResourceRepository functionResourceRepository;
+    private FunctionDeploymentRepository functionDeploymentRepository;
     private LogRepository logRepository;
     private MetricRepository metricRepository;
     private MetricTypeRepository metricTypeRepository;
     private MetricValueRepository metricValueRepository;
     private PlatformRepository platformRepository;
     private RegionRepository regionRepository;
-    private ReservationRepository reservationRepository;
-    private ReservationLogRepository reservationLogRepository;
+    private DeploymentRepository deploymentRepository;
+    private DeploymentLogRepository deploymentLogRepository;
     private ResourceEnsembleRepository resourceEnsembleRepository;
     private ResourceRepository resourceRepository;
     private ResourceProviderRepository resourceProviderRepository;
-    private ResourceReservationRepository resourceReservationRepository;
-    private ResourceReservationStatusRepository statusRepository;
+    private ResourceDeploymentRepository resourceDeploymentRepository;
+    private ResourceDeploymentStatusRepository statusRepository;
     private ResourceTypeRepository resourceTypeRepository;
     private PlatformMetricRepository platformMetricRepository;
     private RuntimeRepository runtimeRepository;
     private ServiceRepository serviceRepository;
-    private ServiceReservationRepository serviceReservationRepository;
+    private ServiceDeploymentRepository serviceDeploymentRepository;
     private ServiceTypeRepository serviceTypeRepository;
     private VPCRepository vpcRepository;
 
@@ -139,26 +137,25 @@ public class DatabaseVerticle extends AbstractVerticle {
             ensembleSLORepository = new EnsembleSLORepository(sessionFactory);
             environmentRepository = new EnvironmentRepository(sessionFactory);
             functionRepository = new FunctionRepository(sessionFactory);
-            functionReservationRepository = new FunctionReservationRepository(sessionFactory);
-            functionResourceRepository = new FunctionResourceRepository(sessionFactory);
+            functionDeploymentRepository = new FunctionDeploymentRepository(sessionFactory);
             logRepository = new LogRepository(sessionFactory);
             metricRepository = new MetricRepository(sessionFactory);
             metricTypeRepository = new MetricTypeRepository(sessionFactory);
             metricValueRepository = new MetricValueRepository(sessionFactory);
             platformRepository = new PlatformRepository(sessionFactory);
             regionRepository = new RegionRepository(sessionFactory);
-            reservationRepository = new ReservationRepository(sessionFactory);
-            reservationLogRepository = new ReservationLogRepository(sessionFactory);
+            deploymentRepository = new DeploymentRepository(sessionFactory);
+            deploymentLogRepository = new DeploymentLogRepository(sessionFactory);
             resourceEnsembleRepository = new ResourceEnsembleRepository(sessionFactory);
             resourceRepository = new ResourceRepository(sessionFactory);
             resourceProviderRepository = new ResourceProviderRepository(sessionFactory);
-            resourceReservationRepository = new ResourceReservationRepository(sessionFactory);
-            statusRepository = new ResourceReservationStatusRepository(sessionFactory);
+            resourceDeploymentRepository = new ResourceDeploymentRepository(sessionFactory);
+            statusRepository = new ResourceDeploymentStatusRepository(sessionFactory);
             resourceTypeRepository = new ResourceTypeRepository(sessionFactory);
             platformMetricRepository = new PlatformMetricRepository(sessionFactory);
             runtimeRepository = new RuntimeRepository(sessionFactory);
             serviceRepository = new ServiceRepository(sessionFactory);
-            serviceReservationRepository = new ServiceReservationRepository(sessionFactory);
+            serviceDeploymentRepository = new ServiceDeploymentRepository(sessionFactory);
             serviceTypeRepository = new ServiceTypeRepository(sessionFactory);
             vpcRepository = new VPCRepository(sessionFactory);
             emitter.onComplete();
@@ -185,25 +182,23 @@ public class DatabaseVerticle extends AbstractVerticle {
             serviceProxyBinder.bind(EnvironmentService.class, new EnvironmentServiceImpl(environmentRepository));
             serviceProxyBinder.bind(FunctionService.class, new FunctionServiceImpl(functionRepository));
             serviceProxyBinder.bind(FunctionReservationService.class,
-                new FunctionReservationServiceImpl(functionReservationRepository));
-            serviceProxyBinder.bind(FunctionResourceService.class,
-                new FunctionResourceServiceImpl(functionResourceRepository));
+                new FunctionReservationServiceImpl(functionDeploymentRepository));
             serviceProxyBinder.bind(LogService.class, new LogServiceImpl(logRepository));
             serviceProxyBinder.bind(MetricService.class, new MetricServiceImpl(metricRepository));
             serviceProxyBinder.bind(MetricTypeService.class, new MetricTypeServiceImpl(metricTypeRepository));
             serviceProxyBinder.bind(MetricValueService.class, new MetricValueServiceImpl(metricValueRepository));
             serviceProxyBinder.bind(PlatformService.class, new PlatformServiceImpl(platformRepository));
             serviceProxyBinder.bind(RegionService.class, new RegionServiceImpl(regionRepository));
-            serviceProxyBinder.bind(ReservationService.class, new ReservationServiceImpl(reservationRepository));
+            serviceProxyBinder.bind(ReservationService.class, new ReservationServiceImpl(deploymentRepository));
             serviceProxyBinder.bind(ReservationLogService.class,
-                new ReservationLogServiceImpl(reservationLogRepository));
+                new ReservationLogServiceImpl(deploymentLogRepository));
             serviceProxyBinder.bind(ResourceEnsembleService.class,
                 new ResourceEnsembleServiceImpl(resourceEnsembleRepository));
             serviceProxyBinder.bind(ResourceService.class, new ResourceServiceImpl(resourceRepository));
             serviceProxyBinder.bind(ResourceProviderService.class,
                 new ResourceProviderServiceImpl(resourceProviderRepository));
             serviceProxyBinder.bind(ResourceReservationService.class,
-                new ResourceReservationServiceImpl(resourceReservationRepository));
+                new ResourceReservationServiceImpl(resourceDeploymentRepository));
             serviceProxyBinder.bind(ResourceReservationStatusService.class,
                 new ResourceReservationStatusServiceImpl(statusRepository));
             serviceProxyBinder.bind(ResourceTypeService.class, new ResourceTypeServiceImpl(resourceTypeRepository));
@@ -212,7 +207,7 @@ public class DatabaseVerticle extends AbstractVerticle {
             serviceProxyBinder.bind(RuntimeService.class, new RuntimeServiceImpl(runtimeRepository));
             serviceProxyBinder.bind(ServiceService.class, new ServiceServiceImpl(serviceRepository));
             serviceProxyBinder.bind(ServiceReservationService.class,
-                new ServiceReservationServiceImpl(serviceReservationRepository));
+                new ServiceReservationServiceImpl(serviceDeploymentRepository));
             serviceProxyBinder.bind(ServiceTypeService.class, new ServiceTypeServiceImpl(serviceTypeRepository));
             serviceProxyBinder.bind(VPCService.class, new VPCServiceImpl(vpcRepository));
             serviceProxyBinder.bind(FilePathService.class, new FilePathServiceImpl(vertx.getDelegate()));

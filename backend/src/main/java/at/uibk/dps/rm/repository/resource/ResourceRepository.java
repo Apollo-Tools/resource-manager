@@ -143,31 +143,6 @@ public class ResourceRepository extends Repository<Resource> {
     }
 
     /**
-     * Find all resources by their function and fetch the region, resource provider, platform,
-     * environment, resource type, metric values and metrics.
-     *
-     * @param functionId the id of the function
-     * @return a CompletionStage that emits a list of all resources
-     */
-    public CompletionStage<List<Resource>> findAllByFunctionIdAndFetch(long functionId) {
-        return this.sessionFactory.withSession(session ->
-            session.createQuery("select distinct r from FunctionResource fr " +
-                    "left join fr.function f " +
-                    "left join fr.resource r " +
-                    "left join fetch r.region reg " +
-                    "left join fetch reg.resourceProvider rp " +
-                    "left join fetch rp.environment " +
-                    "left join fetch r.metricValues mv " +
-                    "left join fetch mv.metric " +
-                    "left join fetch r.platform " +
-                    "left join fetch r.platform.resourceType " +
-                    "where f.functionId=:functionId", Resource.class)
-                .setParameter("functionId", functionId)
-                .getResultList()
-        );
-    }
-
-    /**
      * Find all resources by an ensemble and fetch the resource, resourceType, region,
      * resourceProvider, platform, environment, metricValues and metric.
      *

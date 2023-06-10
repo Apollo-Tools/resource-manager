@@ -2,8 +2,8 @@ package at.uibk.dps.rm.service.deployment;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
-import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
-import at.uibk.dps.rm.entity.dto.TerminateResourcesRequest;
+import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDAO;
+import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDAO;
 import at.uibk.dps.rm.service.ServiceProxy;
 import at.uibk.dps.rm.service.deployment.terraform.FunctionPrepareService;
 import at.uibk.dps.rm.service.deployment.terraform.MainFileService;
@@ -33,12 +33,12 @@ public class DeploymentServiceImpl extends ServiceProxy implements DeploymentSer
     }
 
     @Override
-    public Future<FunctionsToDeploy> packageFunctionsCode(DeployResourcesRequest deployRequest) {
+    public Future<FunctionsToDeploy> packageFunctionsCode(DeployResourcesDAO deployRequest) {
         Single<FunctionsToDeploy> packageFunctions = new ConfigUtility(vertx).getConfig().flatMap(config -> {
-            DeploymentPath deploymentPath = new DeploymentPath(deployRequest.getReservation().getReservationId(),
+            DeploymentPath deploymentPath = new DeploymentPath(deployRequest.getDeployment().getDeploymentId(),
                 config);
             FunctionPrepareService functionFileService = new FunctionPrepareService(vertx,
-                deployRequest.getFunctionReservations(), deploymentPath.getFunctionsFolder(),
+                deployRequest.getFunctionDeployments(), deploymentPath.getFunctionsFolder(),
                 deployRequest.getDockerCredentials());
             return functionFileService.packageCode();
         });
@@ -46,10 +46,10 @@ public class DeploymentServiceImpl extends ServiceProxy implements DeploymentSer
     }
 
     @Override
-    public Future<DeploymentCredentials> setUpTFModules(DeployResourcesRequest deployRequest) {
+    public Future<DeploymentCredentials> setUpTFModules(DeployResourcesDAO deployRequest) {
         DeploymentCredentials credentials = new DeploymentCredentials();
         Single<DeploymentCredentials> createTFDirs = new ConfigUtility(vertx).getConfig().flatMap(config -> {
-            DeploymentPath deploymentPath = new DeploymentPath(deployRequest.getReservation().getReservationId(),
+            DeploymentPath deploymentPath = new DeploymentPath(deployRequest.getDeployment().getDeploymentId(),
                 config);
             TerraformSetupService tfSetupService = new TerraformSetupService(vertx, deployRequest,
                 deploymentPath, credentials);
@@ -67,9 +67,9 @@ public class DeploymentServiceImpl extends ServiceProxy implements DeploymentSer
     }
 
     @Override
-    public Future<DeploymentCredentials> getNecessaryCredentials(TerminateResourcesRequest terminateRequest) {
+    public Future<DeploymentCredentials> getNecessaryCredentials(TerminateResourcesDAO terminateRequest) {
         DeploymentCredentials credentials = new DeploymentCredentials();
-        long reservationId = terminateRequest.getReservation().getReservationId();
+        long reservationId = terminateRequest.getDeployment().getDeploymentId();
         Single<DeploymentCredentials> getNecessaryCredentials = new ConfigUtility(vertx).getConfig().flatMap(config -> {
             DeploymentPath deploymentPath = new DeploymentPath(reservationId, config);
             TerraformSetupService tfSetupService = new TerraformSetupService(vertx, terminateRequest, deploymentPath,

@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.testutil.objectprovider;
 
-import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
+import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.model.*;
 import io.vertx.core.json.JsonObject;
 import lombok.experimental.UtilityClass;
@@ -14,86 +14,86 @@ import java.util.List;
  */
 @UtilityClass
 public class TestReservationProvider {
-    public static ResourceReservation createResourceReservation(long id, Reservation reservation, Resource resource,
-                                                                ResourceReservationStatus resourceReservationStatus) {
-        ResourceReservation resourceReservation = new FunctionReservation();
-        resourceReservation.setResourceReservationId(id);
+    public static ResourceDeployment createResourceReservation(long id, Deployment reservation, Resource resource,
+                                                                ResourceDeploymentStatus resourceReservationStatus) {
+        ResourceDeployment resourceReservation = new FunctionDeployment();
+        resourceReservation.setResourceDeploymentId(id);
         resourceReservation.setResource(resource);
-        resourceReservation.setReservation(reservation);
+        resourceReservation.setDeployment(reservation);
         resourceReservation.setStatus(resourceReservationStatus);
         return resourceReservation;
     }
 
-    public static Reservation createReservation(long id, boolean isActive, Account account) {
-        Reservation reservation = new Reservation();
-        reservation.setReservationId(id);
+    public static Deployment createReservation(long id, boolean isActive, Account account) {
+        Deployment reservation = new Deployment();
+        reservation.setDeploymentId(id);
         reservation.setIsActive(isActive);
         reservation.setCreatedBy(account);
         return  reservation;
     }
 
-    public static Reservation createReservation(long id) {
+    public static Deployment createReservation(long id) {
         Account account = TestAccountProvider.createAccount(1L);
         return createReservation(id, true, account);
     }
 
-    public static ResourceReservationStatus createResourceReservationStatus(long id, ReservationStatusValue status) {
-        ResourceReservationStatus rrs = new ResourceReservationStatus();
+    public static ResourceDeploymentStatus createResourceReservationStatus(long id, DeploymentStatusValue status) {
+        ResourceDeploymentStatus rrs = new ResourceDeploymentStatus();
         rrs.setStatusId(id);
         rrs.setStatusValue(status.name());
         return rrs;
     }
 
-    public static ResourceReservationStatus createResourceReservationStatusNew() {
-        return createResourceReservationStatus(1L, ReservationStatusValue.NEW);
+    public static ResourceDeploymentStatus createResourceReservationStatusNew() {
+        return createResourceReservationStatus(1L, DeploymentStatusValue.NEW);
     }
 
-    public static ResourceReservationStatus createResourceReservationStatusError() {
-        return createResourceReservationStatus(2L, ReservationStatusValue.ERROR);
+    public static ResourceDeploymentStatus createResourceReservationStatusError() {
+        return createResourceReservationStatus(2L, DeploymentStatusValue.ERROR);
     }
 
-    public static ResourceReservationStatus createResourceReservationStatusDeployed() {
-        return createResourceReservationStatus(3L, ReservationStatusValue.DEPLOYED);
+    public static ResourceDeploymentStatus createResourceReservationStatusDeployed() {
+        return createResourceReservationStatus(3L, DeploymentStatusValue.DEPLOYED);
     }
 
-    public static ResourceReservationStatus createResourceReservationStatusTerminating() {
-        return createResourceReservationStatus(4L, ReservationStatusValue.TERMINATING);
+    public static ResourceDeploymentStatus createResourceReservationStatusTerminating() {
+        return createResourceReservationStatus(4L, DeploymentStatusValue.TERMINATING);
     }
 
-    public static ResourceReservationStatus createResourceReservationStatusTerminated() {
-        return createResourceReservationStatus(5L, ReservationStatusValue.TERMINATED);
+    public static ResourceDeploymentStatus createResourceReservationStatusTerminated() {
+        return createResourceReservationStatus(5L, DeploymentStatusValue.TERMINATED);
     }
 
-    public static List<JsonObject> createFunctionReservationsJson(Reservation reservation) {
-        FunctionReservation fr1 = TestFunctionProvider.createFunctionReservation(1L, reservation);
-        FunctionReservation fr2 = TestFunctionProvider.createFunctionReservation(2L, reservation);
-        FunctionReservation fr3 = TestFunctionProvider.createFunctionReservation(3L, reservation);
+    public static List<JsonObject> createFunctionReservationsJson(Deployment reservation) {
+        FunctionDeployment fr1 = TestFunctionProvider.createFunctionReservation(1L, reservation);
+        FunctionDeployment fr2 = TestFunctionProvider.createFunctionReservation(2L, reservation);
+        FunctionDeployment fr3 = TestFunctionProvider.createFunctionReservation(3L, reservation);
         return List.of(JsonObject.mapFrom(fr1), JsonObject.mapFrom(fr2),
             JsonObject.mapFrom(fr3));
     }
 
-    public static List<JsonObject> createServiceReservationsJson(Reservation reservation) {
-        ServiceReservation sr1 = TestServiceProvider.createServiceReservation(1L, reservation);
-        ServiceReservation sr2 = TestServiceProvider.createServiceReservation(2L, reservation);
-        ServiceReservation sr3 = TestServiceProvider.createServiceReservation(3L, reservation);
+    public static List<JsonObject> createServiceReservationsJson(Deployment reservation) {
+        ServiceDeployment sr1 = TestServiceProvider.createServiceReservation(1L, reservation);
+        ServiceDeployment sr2 = TestServiceProvider.createServiceReservation(2L, reservation);
+        ServiceDeployment sr3 = TestServiceProvider.createServiceReservation(3L, reservation);
         return List.of(JsonObject.mapFrom(sr1), JsonObject.mapFrom(sr2),
             JsonObject.mapFrom(sr3));
     }
 
-    public static FunctionReservation createFunctionReservation(long id, Reservation reservation) {
-        FunctionReservation functionReservation = new FunctionReservation();
-        functionReservation.setResourceReservationId(id);
+    public static FunctionDeployment createFunctionReservation(long id, Deployment reservation) {
+        FunctionDeployment functionReservation = new FunctionDeployment();
+        functionReservation.setResourceDeploymentId(id);
         functionReservation.setFunction(TestFunctionProvider.createFunction(id));
-        functionReservation.setReservation(reservation);
+        functionReservation.setDeployment(reservation);
         functionReservation.setStatus(createResourceReservationStatusNew());
         return functionReservation;
     }
 
-    public static ServiceReservation createServiceReservation(long id, Reservation reservation) {
-        ServiceReservation serviceReservation = new ServiceReservation();
-        serviceReservation.setResourceReservationId(id);
+    public static ServiceDeployment createServiceReservation(long id, Deployment reservation) {
+        ServiceDeployment serviceReservation = new ServiceDeployment();
+        serviceReservation.setResourceDeploymentId(id);
         serviceReservation.setService(TestServiceProvider.createService(id));
-        serviceReservation.setReservation(reservation);
+        serviceReservation.setDeployment(reservation);
         serviceReservation.setStatus(createResourceReservationStatusNew());
         return serviceReservation;
     }

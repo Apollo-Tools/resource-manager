@@ -1,8 +1,8 @@
 package at.uibk.dps.rm.service.database.reservation;
 
-import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
+import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.model.*;
-import at.uibk.dps.rm.repository.reservation.ResourceReservationRepository;
+import at.uibk.dps.rm.repository.deployment.ResourceDeploymentRepository;
 import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.core.json.JsonObject;
@@ -34,7 +34,7 @@ public class ResourceReservationServiceImplTest {
     private ResourceReservationService resourceReservationService;
 
     @Mock
-    ResourceReservationRepository resourceReservationRepository;
+    ResourceDeploymentRepository resourceReservationRepository;
 
     @BeforeEach
     void initTest() {
@@ -45,15 +45,15 @@ public class ResourceReservationServiceImplTest {
     @Test
     void findAllByReservationId(VertxTestContext testContext) {
         long reservationId = 1L;
-        ResourceReservation entity1 = TestReservationProvider
-            .createFunctionReservation(4L, new Reservation());
-        ResourceReservation entity2 = TestReservationProvider
-            .createServiceReservation(5L, new Reservation());
-        List<ResourceReservation> resultList = new ArrayList<>();
+        ResourceDeployment entity1 = TestReservationProvider
+            .createFunctionReservation(4L, new Deployment());
+        ResourceDeployment entity2 = TestReservationProvider
+            .createServiceReservation(5L, new Deployment());
+        List<ResourceDeployment> resultList = new ArrayList<>();
         resultList.add(entity1);
         resultList.add(entity2);
-        CompletionStage<List<ResourceReservation>> completionStage = CompletionStages.completedFuture(resultList);
-        when(resourceReservationRepository.findAllByReservationId(reservationId)).thenReturn(completionStage);
+        CompletionStage<List<ResourceDeployment>> completionStage = CompletionStages.completedFuture(resultList);
+        when(resourceReservationRepository.findAllByDeploymentId(reservationId)).thenReturn(completionStage);
 
         resourceReservationService.findAllByReservationId(reservationId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -73,14 +73,14 @@ public class ResourceReservationServiceImplTest {
     @Test
     void findAllByReservationIdEmpty(VertxTestContext testContext) {
         long resourceId = 1L;
-        List<ResourceReservation> resultList = new ArrayList<>();
-        CompletionStage<List<ResourceReservation>> completionStage = CompletionStages.completedFuture(resultList);
-        when(resourceReservationRepository.findAllByReservationId(resourceId)).thenReturn(completionStage);
+        List<ResourceDeployment> resultList = new ArrayList<>();
+        CompletionStage<List<ResourceDeployment>> completionStage = CompletionStages.completedFuture(resultList);
+        when(resourceReservationRepository.findAllByDeploymentId(resourceId)).thenReturn(completionStage);
 
         resourceReservationService.findAllByReservationId(resourceId)
                 .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(0);
-                    verify(resourceReservationRepository).findAllByReservationId(resourceId);
+                    verify(resourceReservationRepository).findAllByDeploymentId(resourceId);
                     testContext.completeNow();
                 })));
     }
@@ -104,10 +104,10 @@ public class ResourceReservationServiceImplTest {
     @Test
     void updateSetStatusByReservationId(VertxTestContext testContext) {
         long reservationId = 1L;
-        ReservationStatusValue statusValue = ReservationStatusValue.NEW;
+        DeploymentStatusValue statusValue = DeploymentStatusValue.NEW;
         CompletionStage<Integer> completionStage = CompletionStages.completedFuture(1);
 
-        when(resourceReservationRepository.updateReservationStatusByReservationId(reservationId, statusValue))
+        when(resourceReservationRepository.updateDeploymentStatusByDeploymentId(reservationId, statusValue))
             .thenReturn(completionStage);
 
         resourceReservationService.updateSetStatusByReservationId(reservationId, statusValue)

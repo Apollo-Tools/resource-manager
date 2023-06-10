@@ -4,7 +4,7 @@ import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.model.Function;
-import at.uibk.dps.rm.entity.model.FunctionReservation;
+import at.uibk.dps.rm.entity.model.FunctionDeployment;
 import at.uibk.dps.rm.exception.RuntimeNotSupportedException;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackagePythonCode;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackageSourceCode;
@@ -28,7 +28,7 @@ public class FunctionPrepareService {
 
     private final FileSystem fileSystem;
 
-    private final List<FunctionReservation> functionReservations;
+    private final List<FunctionDeployment> functionReservations;
 
     private final Path functionsDir;
 
@@ -46,7 +46,7 @@ public class FunctionPrepareService {
      * @param functionsDir the directory where everything related to the functions is stored
      * @param dockerCredentials the credentials of the docker user
      */
-    public FunctionPrepareService(Vertx vertx, List<FunctionReservation> functionReservations, Path functionsDir,
+    public FunctionPrepareService(Vertx vertx, List<FunctionDeployment> functionReservations, Path functionsDir,
                                DockerCredentials dockerCredentials) {
         this.vertx = vertx;
         this.fileSystem = vertx.fileSystem();
@@ -65,7 +65,7 @@ public class FunctionPrepareService {
         PackageSourceCode packageSourceCode;
         StringBuilder functionsString = new StringBuilder();
         List<Completable> completables = new ArrayList<>();
-        for (FunctionReservation fr : functionReservations) {
+        for (FunctionDeployment fr : functionReservations) {
             Function function = fr.getFunction();
             if (functionIds.contains(function.getFunctionId())) {
                 continue;

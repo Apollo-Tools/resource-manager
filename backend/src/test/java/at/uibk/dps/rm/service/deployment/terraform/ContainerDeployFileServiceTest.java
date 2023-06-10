@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
-import at.uibk.dps.rm.entity.model.Reservation;
+import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.testutil.objectprovider.TestFileServiceProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
@@ -29,7 +29,7 @@ public class ContainerDeployFileServiceTest {
     private final Path rootFolder = Path.of("temp", "reservation_1");
 
 
-    private final Reservation reservation = TestReservationProvider.createReservation(1L);
+    private final Deployment reservation = TestReservationProvider.createReservation(1L);
 
     @Test
     void getProviderString(Vertx vertx) {

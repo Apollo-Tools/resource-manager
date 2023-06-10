@@ -1,9 +1,9 @@
 package at.uibk.dps.rm.service.database.reservation;
 
-import at.uibk.dps.rm.entity.deployment.ReservationStatusValue;
-import at.uibk.dps.rm.entity.model.Reservation;
-import at.uibk.dps.rm.entity.model.ServiceReservation;
-import at.uibk.dps.rm.repository.reservation.ServiceReservationRepository;
+import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
+import at.uibk.dps.rm.entity.model.Deployment;
+import at.uibk.dps.rm.entity.model.ServiceDeployment;
+import at.uibk.dps.rm.repository.deployment.ServiceDeploymentRepository;
 import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.core.json.JsonObject;
@@ -37,7 +37,7 @@ public class ServiceReservationImplTest {
     private ServiceReservationService service;
 
     @Mock
-    ServiceReservationRepository repository;
+    ServiceDeploymentRepository repository;
 
     @BeforeEach
     void initTest() {
@@ -48,15 +48,15 @@ public class ServiceReservationImplTest {
     @Test
     void findAllByReservationId(VertxTestContext testContext) {
         long reservationId = 1L;
-        ServiceReservation entity1 = TestReservationProvider
-            .createServiceReservation(4L, new Reservation());
-        ServiceReservation entity2 = TestReservationProvider
-            .createServiceReservation(5L, new Reservation());
-        List<ServiceReservation> resultList = new ArrayList<>();
+        ServiceDeployment entity1 = TestReservationProvider
+            .createServiceReservation(4L, new Deployment());
+        ServiceDeployment entity2 = TestReservationProvider
+            .createServiceReservation(5L, new Deployment());
+        List<ServiceDeployment> resultList = new ArrayList<>();
         resultList.add(entity1);
         resultList.add(entity2);
-        CompletionStage<List<ServiceReservation>> completionStage = CompletionStages.completedFuture(resultList);
-        when(repository.findAllByReservationId(reservationId)).thenReturn(completionStage);
+        CompletionStage<List<ServiceDeployment>> completionStage = CompletionStages.completedFuture(resultList);
+        when(repository.findAllByDeploymentId(reservationId)).thenReturn(completionStage);
 
         service.findAllByReservationId(reservationId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -76,9 +76,9 @@ public class ServiceReservationImplTest {
     @Test
     void findAllByReservationIdEmpty(VertxTestContext testContext) {
         long resourceId = 1L;
-        List<ServiceReservation> resultList = new ArrayList<>();
-        CompletionStage<List<ServiceReservation>> completionStage = CompletionStages.completedFuture(resultList);
-        when(repository.findAllByReservationId(resourceId)).thenReturn(completionStage);
+        List<ServiceDeployment> resultList = new ArrayList<>();
+        CompletionStage<List<ServiceDeployment>> completionStage = CompletionStages.completedFuture(resultList);
+        when(repository.findAllByDeploymentId(resourceId)).thenReturn(completionStage);
 
         service.findAllByReservationId(resourceId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -91,11 +91,11 @@ public class ServiceReservationImplTest {
     @ValueSource(booleans = {true, false})
     void existsReadyForContainerStartupAndTermination(boolean exists, VertxTestContext testContext) {
         long reservationId = 1L, resourceReservationId = 2L, accountId = 3L;
-        CompletionStage<ServiceReservation> completionStage = CompletionStages.completedFuture(exists ?
-            new ServiceReservation() : null);
+        CompletionStage<ServiceDeployment> completionStage = CompletionStages.completedFuture(exists ?
+            new ServiceDeployment() : null);
 
-        when(repository.findOneByReservationStatus(reservationId, resourceReservationId, accountId,
-            ReservationStatusValue.DEPLOYED)).thenReturn(completionStage);
+        when(repository.findOneByDeploymentStatus(reservationId, resourceReservationId, accountId,
+            DeploymentStatusValue.DEPLOYED)).thenReturn(completionStage);
 
         service.existsReadyForContainerStartupAndTermination(reservationId, resourceReservationId, accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {

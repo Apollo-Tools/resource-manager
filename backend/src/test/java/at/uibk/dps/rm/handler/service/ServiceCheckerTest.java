@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.handler.service;
 
-import at.uibk.dps.rm.entity.dto.reservation.ServiceResourceIds;
+import at.uibk.dps.rm.entity.dto.deployment.ServiceResourceIds;
 import at.uibk.dps.rm.entity.model.Service;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;

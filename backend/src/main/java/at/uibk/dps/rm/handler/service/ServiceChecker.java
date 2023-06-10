@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.handler.service;
 
-import at.uibk.dps.rm.entity.dto.reservation.ServiceResourceIds;
+import at.uibk.dps.rm.entity.dto.deployment.ServiceResourceIds;
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.service.ServiceService;

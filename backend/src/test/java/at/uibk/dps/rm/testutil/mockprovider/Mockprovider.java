@@ -3,8 +3,8 @@ package at.uibk.dps.rm.testutil.mockprovider;
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
-import at.uibk.dps.rm.entity.dto.DeployTerminateRequest;
-import at.uibk.dps.rm.entity.model.ServiceReservation;
+import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateDAO;
+import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.service.deployment.docker.DockerImageService;
 import at.uibk.dps.rm.service.deployment.executor.MainTerraformExecutor;
 import at.uibk.dps.rm.service.deployment.executor.ProcessExecutor;
@@ -78,13 +78,13 @@ public class Mockprovider {
         }
     }
 
-    public static MockedConstruction<TerraformExecutor> mockTerraformExecutor(DeployTerminateRequest request,
+    public static MockedConstruction<TerraformExecutor> mockTerraformExecutor(DeployTerminateDAO request,
             DeploymentPath deploymentPath, ProcessOutput processOutput, String mode) {
         return Mockito.mockConstruction(TerraformExecutor.class,
             (mock, context) -> {
-                for (ServiceReservation sr : request.getServiceReservations()) {
+                for (ServiceDeployment sr : request.getServiceDeployments()) {
                     Path containerPath = Path.of(deploymentPath.getRootFolder().toString(), "container",
-                        String.valueOf(sr.getResourceReservationId()));
+                        String.valueOf(sr.getResourceDeploymentId()));
                     mockTerraformExecutor(mock, containerPath, mode, processOutput);
                 }
             });

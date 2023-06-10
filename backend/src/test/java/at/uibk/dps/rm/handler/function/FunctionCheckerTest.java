@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.handler.function;
 
-import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
+import at.uibk.dps.rm.entity.dto.deployment.FunctionResourceIds;
 import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;

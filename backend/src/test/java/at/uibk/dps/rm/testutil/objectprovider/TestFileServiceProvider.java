@@ -3,7 +3,6 @@ package at.uibk.dps.rm.testutil.objectprovider;
 import at.uibk.dps.rm.entity.deployment.CloudProvider;
 import at.uibk.dps.rm.entity.deployment.TerraformModule;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
-import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.model.Runtime;
 import at.uibk.dps.rm.service.deployment.terraform.*;
@@ -14,7 +13,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Utility class to instantiate objects that are different types of file services.
@@ -29,11 +27,11 @@ public class TestFileServiceProvider {
         String awsRole = "LabRole";
         Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime);
         Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime);
-        FunctionReservation fr1 = TestFunctionProvider.createFunctionReservation(1L, f1, r1);
-        FunctionReservation fr2 = TestFunctionProvider.createFunctionReservation(2L, f1, r2);
-        FunctionReservation fr3 = TestFunctionProvider.createFunctionReservation(3L, f2, r2);
-        FunctionReservation fr4 = TestFunctionProvider.createFunctionReservation(4L, f1, r3);
-        List<FunctionReservation> functionReservations = List.of(fr1, fr2, fr3, fr4);
+        FunctionDeployment fr1 = TestFunctionProvider.createFunctionReservation(1L, f1, r1);
+        FunctionDeployment fr2 = TestFunctionProvider.createFunctionReservation(2L, f1, r2);
+        FunctionDeployment fr3 = TestFunctionProvider.createFunctionReservation(3L, f2, r2);
+        FunctionDeployment fr4 = TestFunctionProvider.createFunctionReservation(4L, f1, r3);
+        List<FunctionDeployment> functionReservations = List.of(fr1, fr2, fr3, fr4);
         long reservationId = 1L;
         TerraformModule module = new TerraformModule(CloudProvider.AWS, region.getResourceProvider()
             .getProvider() + "_" + region.getName().replace("-", "_"));
@@ -92,11 +90,11 @@ public class TestFileServiceProvider {
         Path rootFolder = Paths.get("temp\\test");
         Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime);
         Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime);
-        FunctionReservation fr1 = TestFunctionProvider.createFunctionReservation(1L, f1, r1);
-        FunctionReservation fr2 = TestFunctionProvider.createFunctionReservation(2L, f1, r2);
-        FunctionReservation fr3 = TestFunctionProvider.createFunctionReservation(3L, f2, r2);
-        FunctionReservation fr4 = TestFunctionProvider.createFunctionReservation(4L, f1, r3);
-        List<FunctionReservation> functionReservations = List.of(fr1, fr2, fr3, fr4);
+        FunctionDeployment fr1 = TestFunctionProvider.createFunctionReservation(1L, f1, r1);
+        FunctionDeployment fr2 = TestFunctionProvider.createFunctionReservation(2L, f1, r2);
+        FunctionDeployment fr3 = TestFunctionProvider.createFunctionReservation(3L, f2, r2);
+        FunctionDeployment fr4 = TestFunctionProvider.createFunctionReservation(4L, f1, r3);
+        List<FunctionDeployment> functionReservations = List.of(fr1, fr2, fr3, fr4);
         long reservationId = 1L;
         String dockerUserName = "dockerUser";
         return new EdgeFileService(fileSystem, rootFolder, functionReservations, reservationId, dockerUserName);
@@ -122,9 +120,9 @@ public class TestFileServiceProvider {
 
     public static FunctionPrepareService createFunctionFileService(Vertx vertx, Resource r1, Resource r2, Function f1,
                                                                 Function f2) {
-        FunctionReservation fr1 = TestFunctionProvider.createFunctionReservation(1L, f1, r1);
-        FunctionReservation fr2 = TestFunctionProvider.createFunctionReservation(2L, f2, r2);
-        List<FunctionReservation> functionReservations = List.of(fr1, fr2);
+        FunctionDeployment fr1 = TestFunctionProvider.createFunctionReservation(1L, f1, r1);
+        FunctionDeployment fr2 = TestFunctionProvider.createFunctionReservation(2L, f2, r2);
+        List<FunctionDeployment> functionReservations = List.of(fr1, fr2);
         DockerCredentials credentials = new DockerCredentials();
         credentials.setUsername("user");
         credentials.setAccessToken("access-token");
@@ -133,7 +131,7 @@ public class TestFileServiceProvider {
     }
 
     public static FunctionPrepareService createFunctionFileServiceNoFunctions(Vertx vertx) {
-        List<FunctionReservation> functionReservations = new ArrayList<>();
+        List<FunctionDeployment> functionReservations = new ArrayList<>();
         DockerCredentials credentials = new DockerCredentials();
         credentials.setUsername("user");
         credentials.setAccessToken("access-token");
@@ -193,30 +191,30 @@ public class TestFileServiceProvider {
     }
 
     public static ContainerDeployFileService createContainerDeployFileService(FileSystem fileSystem, Path rootFolder,
-            Reservation reservation) {
-        ServiceReservation serviceReservation = TestServiceProvider.createServiceReservation(1L, reservation);
+            Deployment reservation) {
+        ServiceDeployment serviceReservation = TestServiceProvider.createServiceReservation(1L, reservation);
         return new ContainerDeployFileService(fileSystem, rootFolder, serviceReservation,
-            reservation.getReservationId());
+            reservation.getDeploymentId());
     }
 
     public static ContainerDeployFileService createContainerDeployFileService(FileSystem fileSystem, Path rootFolder,
-            Resource resource, Reservation reservation) {
-        ServiceReservation serviceReservation =
+            Resource resource, Deployment reservation) {
+        ServiceDeployment serviceReservation =
             TestServiceProvider.createServiceReservation(1L, resource, reservation);
         return new ContainerDeployFileService(fileSystem, rootFolder, serviceReservation,
-            reservation.getReservationId());
+            reservation.getDeploymentId());
     }
 
     public static ContainerPullFileService createContainerPullFileService(FileSystem fileSystem, Path rootFolder,
-        Reservation reservation) {
-        ServiceReservation serviceReservation = TestServiceProvider.createServiceReservation(1L, reservation);
+        Deployment reservation) {
+        ServiceDeployment serviceReservation = TestServiceProvider.createServiceReservation(1L, reservation);
         return new ContainerPullFileService(fileSystem, rootFolder, List.of(serviceReservation),
-            reservation.getReservationId());
+            reservation.getDeploymentId());
     }
 
     public static ContainerPullFileService createContainerPullFileService(FileSystem fileSystem, Path rootFolder,
-        Reservation reservation, List<ServiceReservation> serviceReservations) {
+        Deployment reservation, List<ServiceDeployment> serviceReservations) {
         return new ContainerPullFileService(fileSystem, rootFolder, serviceReservations,
-            reservation.getReservationId());
+            reservation.getDeploymentId());
     }
 }

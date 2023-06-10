@@ -52,14 +52,6 @@ public interface ResourceService extends DatabaseServiceInterface {
         List<Long> platformIds, List<Long> regionIds, List<Long> providerIds);
 
     /**
-     * Find all resources where a specific function may be deployed.
-     *
-     * @param functionId the id of the function
-     * @return a Future that emits all resources as JsonArray
-     */
-    Future<JsonArray> findAllByFunctionId(long functionId);
-
-    /**
      * Check if a resource exists by its resource type.
      *
      * @param typeId the id of the resource type

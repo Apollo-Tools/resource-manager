@@ -8,7 +8,7 @@ import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 /**
- * Used to initialise the reservation route.
+ * Used to initialise the resource type route.
  *
  * @author matthi-g
  */

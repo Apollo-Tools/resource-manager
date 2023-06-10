@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.service.database.reservation;
 
-import at.uibk.dps.rm.entity.model.Reservation;
-import at.uibk.dps.rm.repository.reservation.ReservationRepository;
+import at.uibk.dps.rm.entity.model.Deployment;
+import at.uibk.dps.rm.repository.deployment.DeploymentRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
@@ -14,17 +14,17 @@ import java.util.ArrayList;
  *
  * @author matthi-g
  */
-public class ReservationServiceImpl extends DatabaseServiceProxy<Reservation> implements ReservationService {
+public class ReservationServiceImpl extends DatabaseServiceProxy<Deployment> implements ReservationService {
 
-    private final ReservationRepository reservationRepository;
+    private final DeploymentRepository reservationRepository;
 
     /**
      * Create an instance from the reservationRepository.
      *
      * @param reservationRepository the reservation repository
      */
-    public ReservationServiceImpl(ReservationRepository reservationRepository) {
-        super(reservationRepository, Reservation.class);
+    public ReservationServiceImpl(DeploymentRepository reservationRepository) {
+        super(reservationRepository, Deployment.class);
         this.reservationRepository = reservationRepository;
     }
 
@@ -34,7 +34,7 @@ public class ReservationServiceImpl extends DatabaseServiceProxy<Reservation> im
             .fromCompletionStage(reservationRepository.findAllByAccountId(accountId))
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
-                for (Reservation entity: result) {
+                for (Deployment entity: result) {
                     entity.setCreatedBy(null);
                     objects.add(JsonObject.mapFrom(entity));
                 }

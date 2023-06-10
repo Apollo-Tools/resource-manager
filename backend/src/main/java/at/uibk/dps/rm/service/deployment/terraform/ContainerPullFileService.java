@@ -18,7 +18,7 @@ public class ContainerPullFileService extends TerraformFileService {
 
     private final long reservationId;
 
-    private final List<ServiceReservation> serviceReservations;
+    private final List<ServiceDeployment> serviceReservations;
 
     private final Path rootFolder;
 
@@ -30,7 +30,7 @@ public class ContainerPullFileService extends TerraformFileService {
      * @param serviceReservations the list of service reservations
      * @param reservationId the id of the reservation
      */
-    public ContainerPullFileService(FileSystem fileSystem, Path rootFolder, List<ServiceReservation> serviceReservations,
+    public ContainerPullFileService(FileSystem fileSystem, Path rootFolder, List<ServiceDeployment> serviceReservations,
             long reservationId) {
         super(fileSystem, rootFolder);
         this.rootFolder = rootFolder;
@@ -56,7 +56,7 @@ public class ContainerPullFileService extends TerraformFileService {
     private String getContainerModulesString() {
         HashMap<PrePullGroup, List<String>> prePullGroups = new HashMap<>();
         StringBuilder functionsString = new StringBuilder();
-        for (ServiceReservation serviceReservation : serviceReservations) {
+        for (ServiceDeployment serviceReservation : serviceReservations) {
             List<String> imageList;
             Resource resource = serviceReservation.getResource();
             Service service = serviceReservation.getService();

@@ -31,7 +31,7 @@ public class LogServiceImpl extends DatabaseServiceProxy<Log> implements LogServ
     @Override
     public Future<JsonArray> findAllByReservationIdAndAccountId(long reservationId, long accountId) {
         return Future
-            .fromCompletionStage(logRepository.findAllByReservationIdAndAccountId(reservationId, accountId))
+            .fromCompletionStage(logRepository.findAllByDeploymentIdAndAccountId(reservationId, accountId))
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Log entity: result) {
