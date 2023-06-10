@@ -89,7 +89,7 @@ public class ContainerDeployFileService extends TerraformFileService {
             "  config_context = \"%s\"\n" +
             "  namespace = \"%s\"\n" +
             "  image = \"%s\"\n" +
-            "  reservation_id = %s\n" +
+            "  deployment_id = %s\n" +
             "  replicas = %s\n" +
             "  cpu = \"%s\"\n" +
             "  memory = \"%sM\"\n" +

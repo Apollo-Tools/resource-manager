@@ -28,6 +28,7 @@ public class OpenFaasDeploymentData {
             "module \"r%s_%s\" {\n" +
                 "  openfaas_depends_on = 0\n" +
                 "  source = \"../../../terraform/openfaas\"\n" +
+                "  deployment_id = %s\n" +
                 "  name = \"r%s_%s_%s\"\n" +
                 "  image = \"%s/%s\"\n" +
                 "  basic_auth_user = var.openfaas_login_data[\"r%s\"].auth_user\n" +
@@ -35,8 +36,8 @@ public class OpenFaasDeploymentData {
                 "    gateway_url = \"%s\"\n" +
                 "    auth_password = var.openfaas_login_data[\"r%s\"].auth_pw\n" +
                 "  }\n" +
-                "}\n", resourceId, functionIdentifier, resourceId, functionIdentifier, deploymentId, dockerUserName,
-            functionIdentifier, resourceId, gatewayUrl, resourceId
+                "}\n", resourceId, functionIdentifier, deploymentId, resourceId, functionIdentifier, deploymentId,
+            dockerUserName, functionIdentifier, resourceId, gatewayUrl, resourceId
         );
     }
 

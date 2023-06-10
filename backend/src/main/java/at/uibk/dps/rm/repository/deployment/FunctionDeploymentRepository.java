@@ -29,7 +29,7 @@ public class FunctionDeploymentRepository extends Repository<FunctionDeployment>
      */
     public CompletionStage<List<FunctionDeployment>> findAllByDeploymentId(long deploymentId) {
         return sessionFactory.withSession(session ->
-            session.createQuery("select distinct fr from FunctionDeployment fd " +
+            session.createQuery("select distinct fd from FunctionDeployment fd " +
                     "left join fetch fd.function f " +
                     "left join fetch f.runtime " +
                     "left join fetch fd.resource r " +

@@ -16,7 +16,7 @@ code by adding a `module` configuration and setting its `source` parameter to th
 ```hcl
 module "k8s_pre_pull" {
   source = "../../terraform/k8s/prepull"
-  reservation_id = 1
+  deployment_id = 1
   config_path = "~/.kube/config"
   namespace = "default"
   config_context = "context"
@@ -49,7 +49,7 @@ module "k8s_pre_pull" {
 | Name           | Description                                                             | Type                                                           | Default            | Required |
 |----------------|-------------------------------------------------------------------------|----------------------------------------------------------------|--------------------|:--------:|
 | name           | The name of the service                                                 | `string`                                                       | `"service"`        |    no    |
-| reservation_id | The id of the reservation.                                              | `number`                                                       | n/a                |   yes    |
+| deployment_id  | The id of the deployment.                                               | `number`                                                       | n/a                |   yes    |
 | namespace      | The k8s namespace that should be used.                                  | `string`                                                       | `"default"`        |    no    |
 | config_path    | The path to the k8s config                                              | `string`                                                       | `"~/.kube/config"` |    no    |
 | config_context | The selected k8s context                                                | `string`                                                       | n/a                |   yes    |

@@ -1,3 +1,8 @@
+variable "deployment_id" {
+  description = "The id of the deployment."
+  type        = number
+}
+
 variable "names" {
   description = "The names of the functions to deploy."
   type        = list(string)

@@ -1,13 +1,14 @@
 package at.uibk.dps.rm.entity.deployment;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
 
-@NoArgsConstructor
+@RequiredArgsConstructor
 @Getter
 public class LambdaDeploymentData {
+    private final long deploymentId;
     private String functionNames = "";
     private String paths = "";
     private String handlers = "";
@@ -45,6 +46,7 @@ public class LambdaDeploymentData {
         return String.format(
             "module \"lambda\" {\n" +
                 "  source = \"../../../terraform/aws/faas\"\n" +
+                "  deployment_id = %s\n" +
                 "  names = [%s]\n" +
                 "  paths = [%s]\n" +
                 "  handlers = [%s]\n" +
@@ -53,7 +55,7 @@ public class LambdaDeploymentData {
                 "  layers = [%s]\n" +
                 "  runtimes = [%s]\n" +
                 "  deployment_roles = [%s]\n" +
-                "}\n", functionNames, paths, handlers, timeouts,
+                "}\n", deploymentId, functionNames, paths, handlers, timeouts,
             memorySizes, layers, runtimes, deploymentRoles
         );
     }

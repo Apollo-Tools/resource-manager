@@ -1,5 +1,5 @@
-variable "reservation_id" {
-  description = "The id of the reservation."
+variable "deployment_id" {
+  description = "The id of the deployment."
   type        = number
 }
 

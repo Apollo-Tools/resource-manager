@@ -78,7 +78,7 @@ public class ContainerPullFileService extends TerraformFileService {
             functionsString.append(String.format(
                 "module \"pre_pull_%s\" {\n" +
                     "  source = \"../../../terraform/k8s/prepull\"\n" +
-                    "  reservation_id = %s\n" +
+                    "  deployment_id = %s\n" +
                     "  config_path = \"%s\"\n" +
                     "  namespace = \"%s\"\n" +
                     "  config_context = \"%s\"\n" +

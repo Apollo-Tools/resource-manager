@@ -60,7 +60,7 @@ public class RegionFaasFileService extends TerraformFileService {
         this.region = region;
         this.functionDeployments = functionDeployments;
         this.deploymentId = deploymentId;
-        this.lambdaDeploymentData = new LambdaDeploymentData();
+        this.lambdaDeploymentData = new LambdaDeploymentData(deploymentId);
         this.ec2DeploymentData = new EC2DeploymentData(deploymentId, vpc, dockerUserName);
         this.openFaasDeploymentData = new OpenFaasDeploymentData(deploymentId, dockerUserName);
     }

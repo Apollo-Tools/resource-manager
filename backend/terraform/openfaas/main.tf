@@ -10,7 +10,8 @@ resource "openfaas_function" "function" {
   image     = "${var.image}:latest"
 
   labels = {
-    System = "Apollo"
+    System = "Apollo Resource Manager"
+    Deployment = var.deployment_id
     Name = var.name
   }
 }

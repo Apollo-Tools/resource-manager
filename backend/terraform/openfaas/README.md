@@ -18,6 +18,7 @@ code by adding a `module` configuration and setting its `source` parameter to th
 ```hcl
 module "openfaas" {
   source = "../../../terraform/openfaas"
+  deployment_id = 1
   name = "add"
   image = "duser/add"
   basic_auth_user = "admin"
@@ -47,12 +48,14 @@ module "openfaas" {
 
 ## Inputs
 
-| Name            | Description                                                                 | Type     | Default | Required |
-|-----------------|-----------------------------------------------------------------------------|----------|---------|:--------:|
-| name            | The name of the function.                                                   | `string` | n/a     |   yes    |
-| image           | The docker image to use.                                                    | `string` | n/a     |   yes    |
-| vm\_props       | A map containing the gateway url and auth password of the deployed resource | `object` | n/a     |   yes    |
-| basic_auth_user | The basic auth user name.                                                   | `string` | "admin" |   yes    |
+| Name                | Description                                                                 | Type     | Default | Required |
+|---------------------|-----------------------------------------------------------------------------|----------|---------|:--------:|
+| deployment_id       | The id of the deployment.                                                   | `number` | n/a     |   yes    |
+| name                | The name of the function.                                                   | `string` | n/a     |   yes    |
+| image               | The docker image to use.                                                    | `string` | n/a     |   yes    |
+| vm\_props           | A map containing the gateway url and auth password of the deployed resource | `object` | n/a     |   yes    |
+| basic_auth_user     | The basic auth user name.                                                   | `string` | "admin" |    no    |
+| openfaas_depends_on | A dependency to wait for. This can be used to wait for a vm startup.        | `any`    | 0       |    no    |
 
 ## Outputs
 

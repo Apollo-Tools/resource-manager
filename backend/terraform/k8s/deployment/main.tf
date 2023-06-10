@@ -4,7 +4,7 @@ provider "kubernetes" {
 }
 
 locals {
-  name = "${replace(var.name, "-", "_")}-${var.reservation_id}-${formatdate("YYYY-MM-DD-hh-mm-ss", timestamp())}"
+  name = "${replace(var.name, "-", "_")}-${var.deployment_id}-${formatdate("YYYY-MM-DD-hh-mm-ss", timestamp())}"
 }
 
 resource "kubernetes_service_v1" "service" {

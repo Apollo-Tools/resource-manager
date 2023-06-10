@@ -47,11 +47,12 @@ public class EC2DeploymentData {
                 "  openfaas_depends_on = module.ec2\n" +
                 "  source = \"../../../terraform/openfaas\"\n" +
                 "  name = \"r%s_%s_%s\"\n" +
+                "  deployment_id = %s\n" +
                 "  image = \"%s/%s\"\n" +
                 "  basic_auth_user = \"admin\"\n" +
                 "  vm_props = module.ec2.vm_props[\"%s\"]\n" +
-                "}\n", resourceId, functionIdentifier, resourceId, functionIdentifier, deploymentId, dockerUserName,
-            functionIdentifier, resourceName
+                "}\n", resourceId, functionIdentifier, deploymentId, resourceId, functionIdentifier, deploymentId,
+            dockerUserName, functionIdentifier, resourceName
         );
     }
 
@@ -71,7 +72,7 @@ public class EC2DeploymentData {
         return String.format(
             "module \"ec2\" {\n" +
                 "  source         = \"../../../terraform/aws/vm\"\n" +
-                "  reservation    = \"%s\"\n" +
+                "  deployment_id  = %s\n" +
                 "  names          = [%s]\n" +
                 "  instance_types = [%s]\n" +
                 "  vpc_id         = \"%s\"\n" +
