@@ -87,6 +87,7 @@ public class MainFileService extends TerraformFileService {
         HashSet<ResourceProviderEnum> resourceProviders = new HashSet<>();
         StringBuilder variables = new StringBuilder();
         for (TerraformModule module : modules) {
+            // Exclude container and non custom resource providers
             if (!module.getHasFaas()) {
                 continue;
             }
@@ -96,7 +97,7 @@ public class MainFileService extends TerraformFileService {
                 continue;
             }
 
-            String preFix = resourceProvider.getValue().toLowerCase();
+            String preFix = resourceProvider.getValue().toLowerCase().replace("-", "_");
             variables.append(String.format(
                 "variable \"%s_access_key\" {\n" +
                     "  type = string\n" +

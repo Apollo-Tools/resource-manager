@@ -101,7 +101,7 @@ public class ResourceDeploymentChecker extends EntityChecker {
     private List<Completable> setTriggerUrlForContainers(DeployResourcesDAO request) {
         List<Completable> completables = new ArrayList<>();
         for (ServiceDeployment serviceDeployment : request.getServiceDeployments()) {
-            String triggerUrl = String.format("/deployments/%s/%s/deploy",
+            String triggerUrl = String.format("/deployments/%s/%s/startup",
                 request.getDeployment().getDeploymentId(),
                 serviceDeployment.getResourceDeploymentId()) ;
             completables.add(resourceDeploymentService.updateTriggerUrl(serviceDeployment.getResourceDeploymentId(),
