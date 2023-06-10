@@ -3,7 +3,7 @@ package at.uibk.dps.rm.handler.deployment;
 import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.service.rxjava3.database.reservation.ServiceReservationService;
+import at.uibk.dps.rm.service.rxjava3.database.deployment.ServiceDeploymentService;
 import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
@@ -32,12 +32,12 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class ServiceReservationCheckerTest {
+public class ServiceDeploymentCheckerTest {
 
     private ServiceDeploymentChecker checker;
 
     @Mock
-    private ServiceReservationService service;
+    private ServiceDeploymentService service;
 
     @BeforeEach
     void initTest() {
@@ -47,18 +47,18 @@ public class ServiceReservationCheckerTest {
 
     @Test
     void checkFindAll(VertxTestContext testContext) {
-        Deployment reservation = TestReservationProvider.createReservation(1L);
-        ServiceDeployment sr1 = TestReservationProvider.createServiceReservation(1L, reservation);
-        ServiceDeployment sr2 = TestReservationProvider.createServiceReservation(2L, reservation);
-        JsonArray reservations = new JsonArray(List.of(JsonObject.mapFrom(sr1), JsonObject.mapFrom(sr2)));
+        Deployment deployment = TestReservationProvider.createReservation(1L);
+        ServiceDeployment sd1 = TestReservationProvider.createServiceReservation(1L, deployment);
+        ServiceDeployment sd2 = TestReservationProvider.createServiceReservation(2L, deployment);
+        JsonArray deployments = new JsonArray(List.of(JsonObject.mapFrom(sd1), JsonObject.mapFrom(sd2)));
 
-        when(service.findAllByReservationId(reservation.getDeploymentId())).thenReturn(Single.just(reservations));
+        when(service.findAllByDeploymentId(deployment.getDeploymentId())).thenReturn(Single.just(deployments));
 
-        checker.checkFindAllByDeploymentId(reservation.getDeploymentId())
+        checker.checkFindAllByDeploymentId(deployment.getDeploymentId())
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(2);
-                    assertThat(result.getJsonObject(0).getLong("resource_reservation_id")).isEqualTo(1L);
-                    assertThat(result.getJsonObject(1).getLong("resource_reservation_id")).isEqualTo(2L);
+                    assertThat(result.getJsonObject(0).getLong("resource_deployment_id")).isEqualTo(1L);
+                    assertThat(result.getJsonObject(1).getLong("resource_deployment_id")).isEqualTo(2L);
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
@@ -67,12 +67,12 @@ public class ServiceReservationCheckerTest {
 
     @Test
     void checkFindAllEmptyList(VertxTestContext testContext) {
-        Deployment reservation = TestReservationProvider.createReservation(1L);
-        JsonArray reservations = new JsonArray();
+        Deployment deployment = TestReservationProvider.createReservation(1L);
+        JsonArray deployments = new JsonArray();
 
-        when(service.findAllByReservationId(reservation.getDeploymentId())).thenReturn(Single.just(reservations));
+        when(service.findAllByDeploymentId(deployment.getDeploymentId())).thenReturn(Single.just(deployments));
 
-        checker.checkFindAllByDeploymentId(reservation.getDeploymentId())
+        checker.checkFindAllByDeploymentId(deployment.getDeploymentId())
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(0);
                     testContext.completeNow();
@@ -84,12 +84,12 @@ public class ServiceReservationCheckerTest {
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void checkReadyForStartup(boolean isReady, VertxTestContext testContext) {
-        long reservationId = 1L, resourceReservationId = 2L, accountId = 3L;
+        long deploymentId = 1L, resourceDeploymentId = 2L, accountId = 3L;
 
-        when(service.existsReadyForContainerStartupAndTermination(reservationId, resourceReservationId, accountId))
+        when(service.existsReadyForContainerStartupAndTermination(deploymentId, resourceDeploymentId, accountId))
             .thenReturn(Single.just(isReady));
 
-        checker.checkReadyForStartup(reservationId, resourceReservationId, accountId)
+        checker.checkReadyForStartup(deploymentId, resourceDeploymentId, accountId)
             .blockingSubscribe(() -> testContext.verify(() -> {
                     if (!isReady) {
                         fail("method did not throw exception");

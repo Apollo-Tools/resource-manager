@@ -3,10 +3,10 @@ package at.uibk.dps.rm.service.deployment.terraform;
 import at.uibk.dps.rm.entity.deployment.EC2DeploymentData;
 import at.uibk.dps.rm.entity.deployment.LambdaDeploymentData;
 import at.uibk.dps.rm.entity.deployment.OpenFaasDeploymentData;
+import at.uibk.dps.rm.entity.deployment.module.FaasModule;
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
 import at.uibk.dps.rm.entity.model.*;
-import at.uibk.dps.rm.entity.deployment.TerraformModule;
 import at.uibk.dps.rm.exception.PlatformNotSupportedException;
 import at.uibk.dps.rm.service.deployment.util.ComposeDeploymentDataUtility;
 import io.vertx.rxjava3.core.file.FileSystem;
@@ -21,7 +21,7 @@ import java.util.*;
  */
 public class RegionFaasFileService extends TerraformFileService {
 
-    private final TerraformModule module;
+    private final FaasModule module;
 
     private final Path functionsDir;
 
@@ -52,7 +52,7 @@ public class RegionFaasFileService extends TerraformFileService {
      * @param vpc the virtual private cloud to use for the deployment
      */
     public RegionFaasFileService(FileSystem fileSystem, Path rootFolder, Path functionsDir, Region region,
-                          List<FunctionDeployment> functionDeployments, long deploymentId, TerraformModule module,
+                          List<FunctionDeployment> functionDeployments, long deploymentId, FaasModule module,
                           String dockerUserName, VPC vpc) {
         super(fileSystem, rootFolder);
         this.module = module;
@@ -105,11 +105,6 @@ public class RegionFaasFileService extends TerraformFileService {
 
         return lambdaDeploymentData.getModuleString() + ec2DeploymentData.getModuleString() +
             openFaasDeploymentData.getModuleString();
-    }
-
-    protected void setModuleResourceTypes() {
-        this.module.setHasFaas(lambdaDeploymentData.getFunctionCount() + ec2DeploymentData.getFunctionCount() +
-            openFaasDeploymentData.getFunctionCount() > 0);
     }
 
     @Override
@@ -168,7 +163,6 @@ public class RegionFaasFileService extends TerraformFileService {
                 "  value = merge(%s, %s)\n" +
                 "}\n", lambdaUrls, openFaasUrls
         ));
-        setModuleResourceTypes();
         return outputString.toString();
     }
 }

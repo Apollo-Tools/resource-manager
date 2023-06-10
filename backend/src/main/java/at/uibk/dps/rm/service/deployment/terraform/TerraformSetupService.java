@@ -1,13 +1,14 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
-import at.uibk.dps.rm.entity.deployment.CloudProvider;
 import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
+import at.uibk.dps.rm.entity.deployment.module.ContainerModule;
+import at.uibk.dps.rm.entity.deployment.module.FaasModule;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDAO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDAO;
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
 import at.uibk.dps.rm.entity.model.*;
-import at.uibk.dps.rm.entity.deployment.TerraformModule;
+import at.uibk.dps.rm.entity.deployment.module.TerraformModule;
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.util.misc.RegionMapper;
 import io.reactivex.rxjava3.core.Completable;
@@ -172,7 +173,7 @@ public class TerraformSetupService {
                                                     Map<Region, VPC> regionVPCMap) {
         String provider = region.getResourceProvider().getProvider();
         ResourceProviderEnum resourceProvider = ResourceProviderEnum.fromString(provider);
-        TerraformModule module = new TerraformModule(resourceProvider, region);
+        FaasModule module = new FaasModule(resourceProvider, region);
         Path moduleFolder = deploymentPath.getModuleFolder(module);
         Path functionsFolder = deploymentPath.getFunctionsFolder();
         long deploymentId = deployRequest.getDeployment().getDeploymentId();
@@ -193,7 +194,7 @@ public class TerraformSetupService {
     private Single<TerraformModule> containerDeployment(List<ServiceDeployment> serviceDeployments) {
         FileSystem fileSystem = vertx.fileSystem();
         long deploymentId = deployRequest.getDeployment().getDeploymentId();
-        TerraformModule module = new TerraformModule(CloudProvider.CONTAINER, "container");
+        TerraformModule module = new ContainerModule();
         Path containerFolder = deploymentPath.getModuleFolder(module);
         Path configPath = Path.of(containerFolder.toString(), "config");
         ContainerPullFileService containerFileService = new ContainerPullFileService(fileSystem, containerFolder,

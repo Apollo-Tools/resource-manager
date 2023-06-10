@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler.metric;
 
 import at.uibk.dps.rm.exception.NotFoundException;
+import at.uibk.dps.rm.service.rxjava3.database.metric.PlatformMetricService;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
@@ -34,7 +35,7 @@ public class ResourceTypeMetricCheckerTest {
     private PlatformMetricChecker checker;
 
     @Mock
-    private ResourceTypeMetricService service;
+    private PlatformMetricService service;
 
     @BeforeEach
     void initTest() {
@@ -43,10 +44,10 @@ public class ResourceTypeMetricCheckerTest {
     }
 
     @Test
-    void checkMissingRequiredResourceTypeMetricsFalse(VertxTestContext testContext) {
+    void checkMissingRequiredPlatformMetricsFalse(VertxTestContext testContext) {
         long resourceId = 1L;
 
-        when(service.missingRequiredResourceTypeMetricsByResourceId(resourceId))
+        when(service.missingRequiredPlatformMetricsByResourceId(resourceId))
             .thenReturn(Single.just(false));
 
         checker.checkMissingRequiredPlatformMetricsByResource(resourceId)
@@ -57,10 +58,10 @@ public class ResourceTypeMetricCheckerTest {
     }
 
     @Test
-    void checkMissingRequiredResourceTypeMetricsTrue(VertxTestContext testContext) {
+    void checkMissingRequiredPlatformMetricsTrue(VertxTestContext testContext) {
         long resourceId = 1L;
 
-        when(service.missingRequiredResourceTypeMetricsByResourceId(resourceId))
+        when(service.missingRequiredPlatformMetricsByResourceId(resourceId))
             .thenReturn(Single.just(true));
 
         checker.checkMissingRequiredPlatformMetricsByResource(resourceId)
@@ -79,7 +80,7 @@ public class ResourceTypeMetricCheckerTest {
         JsonObject r3 = JsonObject.mapFrom(TestResourceProvider.createResource(1L));
         JsonArray resources = new JsonArray(List.of(r1, r2, r3));
 
-        when(service.missingRequiredResourceTypeMetricsByResourceId(or(eq(1L), eq(2L))))
+        when(service.missingRequiredPlatformMetricsByResourceId(or(eq(1L), eq(2L))))
             .thenReturn(Single.just(false));
 
         checker.checkMissingRequiredMetricsByResources(resources)
@@ -95,9 +96,9 @@ public class ResourceTypeMetricCheckerTest {
         JsonObject r2 = JsonObject.mapFrom(TestResourceProvider.createResource(2L));
         JsonArray resources = new JsonArray(List.of(r1, r2));
 
-        when(service.missingRequiredResourceTypeMetricsByResourceId(1L))
+        when(service.missingRequiredPlatformMetricsByResourceId(1L))
             .thenReturn(Single.just(false));
-        when(service.missingRequiredResourceTypeMetricsByResourceId(2L))
+        when(service.missingRequiredPlatformMetricsByResourceId(2L))
             .thenReturn(Single.just(true));
 
         checker.checkMissingRequiredMetricsByResources(resources)

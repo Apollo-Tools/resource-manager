@@ -3,6 +3,7 @@ package at.uibk.dps.rm.handler.resource;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.model.ResourceType;
 import at.uibk.dps.rm.exception.NotFoundException;
+import at.uibk.dps.rm.handler.resourceprovider.RegionChecker;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
@@ -37,7 +38,7 @@ public class ResourceHandlerTest {
     private ResourceChecker resourceChecker;
 
     @Mock
-    private ResourceTypeChecker resourceTypeChecker;
+    private RegionChecker regionChecker;
 
     @Mock
     private RoutingContext rc;
@@ -45,7 +46,7 @@ public class ResourceHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        resourceHandler = new ResourceHandler(resourceChecker, resourceTypeChecker);
+        resourceHandler = new ResourceHandler(resourceChecker, regionChecker);
     }
 
     @Test
@@ -56,7 +57,7 @@ public class ResourceHandlerTest {
         requestBody.remove("resource_id");
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(resourceTypeChecker.checkExistsOne(1L)).thenReturn(Completable.complete());
+        when(regionChecker.checkExistsOne(1L)).thenReturn(Completable.complete());
         when(resourceChecker.submitCreate(requestBody)).thenReturn(Single.just(JsonObject.mapFrom(resource)));
 
         resourceHandler.postOne(rc)
@@ -74,7 +75,7 @@ public class ResourceHandlerTest {
         JsonObject jsonObject = new JsonObject("{\"resource_type\": {\"type_id\": 1}, \"is_self_managed\": false}");
 
         RoutingContextMockHelper.mockBody(rc, jsonObject);
-        when(resourceTypeChecker.checkExistsOne(1L)).thenReturn(Completable.error(NotFoundException::new));
+        when(regionChecker.checkExistsOne(1L)).thenReturn(Completable.error(NotFoundException::new));
 
         resourceHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),

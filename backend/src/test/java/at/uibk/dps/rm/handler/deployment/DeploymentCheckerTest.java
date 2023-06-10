@@ -2,7 +2,7 @@ package at.uibk.dps.rm.handler.deployment;
 
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.service.rxjava3.database.reservation.ReservationService;
+import at.uibk.dps.rm.service.rxjava3.database.deployment.DeploymentService;
 import at.uibk.dps.rm.testutil.SingleHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
@@ -31,17 +31,17 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class ReservationCheckerTest {
+public class DeploymentCheckerTest {
 
-    private DeploymentChecker reservationChecker;
+    private DeploymentChecker deploymentChecker;
 
     @Mock
-    private ReservationService reservationService;
+    private DeploymentService deploymentService;
 
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        reservationChecker = new DeploymentChecker(reservationService);
+        deploymentChecker = new DeploymentChecker(deploymentService);
     }
 
     @Test
@@ -50,17 +50,17 @@ public class ReservationCheckerTest {
         Deployment r1 = TestReservationProvider.createReservation(1L, true, account);
         Deployment r2 = TestReservationProvider.createReservation(2L, true, account);
         Deployment r3 = TestReservationProvider.createReservation(3L, true, account);
-        JsonArray reservations = new JsonArray(List.of(JsonObject.mapFrom(r1),
+        JsonArray deployments = new JsonArray(List.of(JsonObject.mapFrom(r1),
             JsonObject.mapFrom(r2), JsonObject.mapFrom(r3)));
 
-        when(reservationService.findAllByAccountId(account.getAccountId())).thenReturn(Single.just(reservations));
+        when(deploymentService.findAllByAccountId(account.getAccountId())).thenReturn(Single.just(deployments));
 
-        reservationChecker.checkFindAll(account.getAccountId())
+        deploymentChecker.checkFindAll(account.getAccountId())
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(3);
-                    assertThat(result.getJsonObject(0).getLong("reservation_id")).isEqualTo(1L);
-                    assertThat(result.getJsonObject(1).getLong("reservation_id")).isEqualTo(2L);
-                    assertThat(result.getJsonObject(2).getLong("reservation_id")).isEqualTo(3L);
+                    assertThat(result.getJsonObject(0).getLong("deployment_id")).isEqualTo(1L);
+                    assertThat(result.getJsonObject(1).getLong("deployment_id")).isEqualTo(2L);
+                    assertThat(result.getJsonObject(2).getLong("deployment_id")).isEqualTo(3L);
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
@@ -72,9 +72,9 @@ public class ReservationCheckerTest {
         Account account = TestAccountProvider.createAccount(1L);
         Single<JsonArray> handler = SingleHelper.getEmptySingle();
 
-        when(reservationService.findAllByAccountId(account.getAccountId())).thenReturn(handler);
+        when(deploymentService.findAllByAccountId(account.getAccountId())).thenReturn(handler);
 
-        reservationChecker.checkFindAll(account.getAccountId())
+        deploymentChecker.checkFindAll(account.getAccountId())
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
@@ -84,15 +84,15 @@ public class ReservationCheckerTest {
 
     @Test
     void checkFindOne(VertxTestContext testContext) {
-        long accountId = 2L, reservationId = 1L;
-        Deployment r1 = TestReservationProvider.createReservation(reservationId);
+        long accountId = 2L, deploymentId = 1L;
+        Deployment r1 = TestReservationProvider.createReservation(deploymentId);
 
-        when(reservationService.findOneByIdAndAccountId(reservationId, accountId))
+        when(deploymentService.findOneByIdAndAccountId(deploymentId, accountId))
             .thenReturn(Single.just(JsonObject.mapFrom(r1)));
 
-        reservationChecker.checkFindOne(reservationId, accountId)
+        deploymentChecker.checkFindOne(deploymentId, accountId)
             .subscribe(result -> testContext.verify(() -> {
-                    assertThat(result.getLong("reservation_id")).isEqualTo(1L);
+                    assertThat(result.getLong("deployment_id")).isEqualTo(1L);
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
@@ -101,13 +101,13 @@ public class ReservationCheckerTest {
 
     @Test
     void checkFindOneNotFound(VertxTestContext testContext) {
-        long accountId = 2L, reservationId = 1L;
+        long accountId = 2L, deploymentId = 1L;
         Single<JsonObject> handler = SingleHelper.getEmptySingle();
 
-        when(reservationService.findOneByIdAndAccountId(reservationId, accountId))
+        when(deploymentService.findOneByIdAndAccountId(deploymentId, accountId))
             .thenReturn(handler);
 
-        reservationChecker.checkFindOne(reservationId, accountId)
+        deploymentChecker.checkFindOne(deploymentId, accountId)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
@@ -116,21 +116,21 @@ public class ReservationCheckerTest {
     }
 
     @Test
-    void submitCreateReservation(VertxTestContext testContext) {
+    void submitCreateDeployment(VertxTestContext testContext) {
         long accountId = 1L;
-        Deployment reservation = new Deployment();
-        reservation.setIsActive(true);
+        Deployment deployment = new Deployment();
+        deployment.setIsActive(true);
         Account account = new Account();
         account.setAccountId(accountId);
-        reservation.setCreatedBy(account);
-        JsonObject persistedReservation = JsonObject.mapFrom(TestReservationProvider.createReservation(1L));
+        deployment.setCreatedBy(account);
+        JsonObject persistedDeployment = JsonObject.mapFrom(TestReservationProvider.createReservation(1L));
 
-        when(reservationService.save(JsonObject.mapFrom(reservation)))
-            .thenReturn(Single.just(persistedReservation));
+        when(deploymentService.save(JsonObject.mapFrom(deployment)))
+            .thenReturn(Single.just(persistedDeployment));
 
-        reservationChecker.submitCreateDeployment(accountId)
+        deploymentChecker.submitCreateDeployment(accountId)
             .subscribe(result -> testContext.verify(() -> {
-                    assertThat(result.getLong("reservation_id")).isEqualTo(1L);
+                    assertThat(result.getLong("deployment_id")).isEqualTo(1L);
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))

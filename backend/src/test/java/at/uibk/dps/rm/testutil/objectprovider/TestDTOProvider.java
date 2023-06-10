@@ -224,10 +224,6 @@ public class TestDTOProvider {
         return  tfOutput;
     }
 
-    public static TFOutput createTFOutputFaas() {
-        return createTFOutputFaas("python39");
-    }
-
     public static TFOutput createTFOutputFaas(String runtime) {
         TFOutput tfOutput = new TFOutput();
         Map<String, String> valueMap = new HashMap<>();
@@ -236,7 +232,7 @@ public class TestDTOProvider {
         return tfOutput;
     }
 
-    public static TFOutput createTFOutputVM() {
+    public static TFOutput createTFOutput() {
         TFOutput tfOutput = new TFOutput();
         Map<String, String> valueMap = new HashMap<>();
         valueMap.put("r2_foo1_python39", "http://localhostvm1");
@@ -245,27 +241,15 @@ public class TestDTOProvider {
         return tfOutput;
     }
 
-    public static TFOutput createTFOutputEdge() {
-        TFOutput tfOutput = new TFOutput();
-        Map<String, String> valueMap = new HashMap<>();
-        valueMap.put("r3_foo1_python39", "http://localhostedge1");
-        tfOutput.setValue(valueMap);
-        return tfOutput;
-    }
-
     public static DeploymentOutput createDeploymentOutput() {
         DeploymentOutput deploymentOutput = new DeploymentOutput();
-        deploymentOutput.setEdgeUrls(createTFOutputEdge());
-        deploymentOutput.setVmUrls(createTFOutputVM());
-        deploymentOutput.setFunctionUrls(createTFOutputFaas());
+        deploymentOutput.setFunctionUrls(createTFOutput());
         return deploymentOutput;
     }
 
     public static DeploymentOutput createDeploymentOutputUnknownFunction() {
         DeploymentOutput deploymentOutput = new DeploymentOutput();
-        deploymentOutput.setFunctionUrls(createTFOutputFaas("python10"));
-        deploymentOutput.setEdgeUrls(createEmptyTFOutput());
-        deploymentOutput.setVmUrls(createEmptyTFOutput());
+        deploymentOutput.setFunctionUrls(createTFOutput());
         return deploymentOutput;
     }
 

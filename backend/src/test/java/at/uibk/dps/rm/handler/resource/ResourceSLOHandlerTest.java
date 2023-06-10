@@ -134,8 +134,8 @@ public class ResourceSLOHandlerTest {
 
         when(metricChecker.checkServiceLevelObjectives(any(ServiceLevelObjective.class)))
             .thenReturn(Completable.complete());
-        when(resourceChecker.checkFindAllBySLOs(List.of("availability"), List.of(3L, 4L), List.of(1L, 2L),
-                List.of(5L))).thenReturn(Single.just(resourcesJson));
+        when(resourceChecker.checkFindAllBySLOs(List.of("availability"), List.of(1L), List.of(5L),
+            List.of(3L, 4L), List.of(1L, 2L), List.of(5L))).thenReturn(Single.just(resourcesJson));
         when(metricValueChecker.checkFindOne(mv1.getMetricValueId())).thenReturn(Single.error(NotFoundException::new));
 
         handler.getResourcesBySLOs(sloRequest)
@@ -153,8 +153,8 @@ public class ResourceSLOHandlerTest {
 
         when(metricChecker.checkServiceLevelObjectives(any(ServiceLevelObjective.class)))
             .thenReturn(Completable.complete());
-        when(resourceChecker.checkFindAllBySLOs(List.of("availability"), List.of(3L, 4L), List.of(1L, 2L),
-                List.of(5L))).thenReturn(Single.error(NotFoundException::new));
+        when(resourceChecker.checkFindAllBySLOs(List.of("availability"), List.of(1L), List.of(5L),
+            List.of(3L, 4L), List.of(1L, 2L), List.of(5L))).thenReturn(Single.error(NotFoundException::new));
 
         handler.getResourcesBySLOs(sloRequest)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
@@ -369,8 +369,8 @@ public class ResourceSLOHandlerTest {
 
         when(metricChecker.checkServiceLevelObjectives(any(ServiceLevelObjective.class)))
                 .thenReturn(Completable.complete());
-        when(resourceChecker.checkFindAllBySLOs(List.of("availability"), List.of(3L, 4L), List.of(1L, 2L),
-                List.of(5L))).thenReturn(Single.just(resourcesJson));
+        when(resourceChecker.checkFindAllBySLOs(List.of("availability"), List.of(1L), List.of(5L),
+            List.of(3L, 4L), List.of(1L, 2L), List.of(5L))).thenReturn(Single.just(resourcesJson));
         when(metricValueChecker.checkFindOne(mv1.getMetricValueId())).thenReturn(Single.just(JsonObject.mapFrom(mv1)));
         when(metricValueChecker.checkFindOne(mv2.getMetricValueId())).thenReturn(Single.just(JsonObject.mapFrom(mv2)));
         when(metricValueChecker.checkFindOne(mv3.getMetricValueId())).thenReturn(Single.just(JsonObject.mapFrom(mv3)));

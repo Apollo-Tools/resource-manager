@@ -1,7 +1,8 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
-import at.uibk.dps.rm.entity.deployment.CloudProvider;
-import at.uibk.dps.rm.entity.deployment.TerraformModule;
+import at.uibk.dps.rm.entity.deployment.module.FaasModule;
+import at.uibk.dps.rm.entity.deployment.module.TerraformModule;
+import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
 import io.vertx.rxjava3.core.file.FileSystem;
 
 import java.nio.file.Path;
@@ -54,15 +55,10 @@ public class MainFileService extends TerraformFileService {
     public String getLocalModulesString() {
         StringBuilder moduleString = new StringBuilder();
         for (TerraformModule module : modules) {
-            if (module.getCloudProvider().equals(CloudProvider.EDGE)) {
-                moduleString.append(
-                    "module \"edge\" {\n" +
-                    "  source = \"./edge\"\n" +
-                    "  login_data = var.edge_login_data\n" +
-                    "}\n");
-            } else if (module.getCloudProvider().equals(CloudProvider.AWS)){
+            if (module.getHasFaas()){
                 String moduleName = module.getModuleName();
-                String prefix = module.getCloudProvider().toString().toLowerCase();
+                FaasModule faasModule = (FaasModule) module;
+                String prefix = faasModule.getResourceProvider().toString().toLowerCase();
                 moduleString.append(String.format(
                     "module \"%s\" {\n" +
                     "  source = \"./%s\"\n" +
@@ -88,26 +84,19 @@ public class MainFileService extends TerraformFileService {
 
     @Override
     protected String getVariablesFileContent() {
-        HashSet<CloudProvider> cloudProviders = new HashSet<>();
+        HashSet<ResourceProviderEnum> resourceProviders = new HashSet<>();
         StringBuilder variables = new StringBuilder();
         for (TerraformModule module : modules) {
-            CloudProvider cloudProvider = module.getCloudProvider();
-            if (!cloudProviders.add(cloudProvider)) {
+            if (!module.getHasFaas()) {
                 continue;
             }
-            if (cloudProvider.equals(CloudProvider.EDGE)) {
-                variables.append(
-                    "variable openfaas_login_data {\n" +
-                        "  type = list(map(object({\n" +
-                        "      auth_user = string\n" +
-                        "      auth_pw = string\n" +
-                        "  })))\n" +
-                        "}"
-                );
+            FaasModule faasModule = (FaasModule) module;
+            ResourceProviderEnum resourceProvider = ((FaasModule) module).getResourceProvider();
+            if (!resourceProviders.add(faasModule.getResourceProvider())) {
                 continue;
             }
 
-            String preFix = cloudProvider.toString().toLowerCase();
+            String preFix = resourceProvider.getValue().toLowerCase();
             variables.append(String.format(
                 "variable \"%s_access_key\" {\n" +
                     "  type = string\n" +
@@ -140,7 +129,7 @@ public class MainFileService extends TerraformFileService {
         StringBuilder functionsOutput = new StringBuilder();
         for (TerraformModule module : modules) {
             if (module.getHasFaas()) {
-                functionsOutput.append(module.getFunctionsString());
+                functionsOutput.append(((FaasModule)module).getFunctionsString());
             }
         }
 

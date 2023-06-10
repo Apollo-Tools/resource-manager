@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.entity.deployment;
 
+import at.uibk.dps.rm.entity.deployment.module.TerraformModule;
 import io.vertx.core.json.JsonObject;
 import lombok.Getter;
 

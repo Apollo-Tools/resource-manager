@@ -1,8 +1,11 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
-import at.uibk.dps.rm.entity.deployment.CloudProvider;
-import at.uibk.dps.rm.entity.deployment.TerraformModule;
+import at.uibk.dps.rm.entity.deployment.module.FaasModule;
+import at.uibk.dps.rm.entity.deployment.module.TerraformModule;
+import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
+import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.testutil.objectprovider.TestFileServiceProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -34,7 +37,8 @@ public class TerraformFileServiceTest {
 
     @Test
     void setupDirectory(VertxTestContext testContext) {
-        TerraformModule m1 = new TerraformModule(CloudProvider.AWS, "m1");
+        Region r1 = TestResourceProviderProvider.createRegion(1L, "r1");
+        TerraformModule m1 = new FaasModule(ResourceProviderEnum.AWS, r1);
         MainFileService service = TestFileServiceProvider.createMainFileService(fileSystem, List.of(m1));
         Path rootFolder = Path.of("temp", "test");
         when(fileSystem.mkdirs(rootFolder.toString())).thenReturn(Completable.complete());

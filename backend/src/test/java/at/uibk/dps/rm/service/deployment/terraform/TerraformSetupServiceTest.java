@@ -42,12 +42,8 @@ public class TerraformSetupServiceTest {
         TerraformSetupService service = new TerraformSetupService(vertx, deployRequest, deploymentPath,
             deploymentCredentials);
         System.setProperty("os.name", "Linux");
-        try (MockedConstruction<RegionFaasFileService> ignoredAWS = Mockito.mockConstruction(RegionFaasFileService.class,
-            (mock, context) -> given(mock.setUpDirectory())
-                .willReturn(Completable.complete()))) {
-            try (MockedConstruction<EdgeFileService> ignoredEdge = Mockito.mockConstruction(EdgeFileService.class,
-                (mock, context) -> given(mock.setUpDirectory())
-                    .willReturn(Completable.complete()))) {
+        try (MockedConstruction<RegionFaasFileService> ignoredFassFileService = Mockito.mockConstruction(RegionFaasFileService.class,
+            (mock, context) -> given(mock.setUpDirectory()).willReturn(Completable.complete()))) {
                 service.setUpTFModuleDirs()
                     .subscribe(result -> testContext.verify(() -> {
                             assertThat(result.size()).isEqualTo(3);
@@ -63,7 +59,6 @@ public class TerraformSetupServiceTest {
                         }),
                         throwable -> testContext.verify(() -> fail("method has thrown exception"))
                     );
-            }
         }
     }
 

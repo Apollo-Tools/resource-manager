@@ -72,16 +72,16 @@ public class MetricCheckerTest {
     }
 
     @Test
-    void checkFindAllByResourceTypeId(VertxTestContext testContext) {
-        long resourceTypeId = 1L;
+    void checkFindAllByPlatformId(VertxTestContext testContext) {
+        long platformId = 1L;
         boolean required = false;
         JsonObject m1 = JsonObject.mapFrom(TestMetricProvider.createMetric(1L, "cpu"));
         JsonObject m2 = JsonObject.mapFrom(TestMetricProvider.createMetric(2L, "memory"));
         JsonArray metrics = new JsonArray(List.of(m1, m2));
 
-        when(metricService.findAllByResourceTypeId(resourceTypeId, required)).thenReturn(Single.just(metrics));
+        when(metricService.findAllByPlatformId(platformId, required)).thenReturn(Single.just(metrics));
 
-        metricChecker.checkFindAllByPlatform(resourceTypeId, required)
+        metricChecker.checkFindAllByPlatform(platformId, required)
             .subscribe(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
                 assertThat(result.getJsonObject(0).getLong("metric_id")).isEqualTo(1L);
@@ -94,14 +94,14 @@ public class MetricCheckerTest {
 
 
     @Test
-    void checkFindAllByResourceTypeIdNotFound(VertxTestContext testContext) {
-        long resourceTypeId = 1L;
+    void checkFindAllByPlatformIdNotFound(VertxTestContext testContext) {
+        long platformId = 1L;
         boolean required = false;
 
-        when(metricService.findAllByResourceTypeId(resourceTypeId, required))
+        when(metricService.findAllByPlatformId(platformId, required))
             .thenReturn(Single.error(NotFoundException::new));
 
-        metricChecker.checkFindAllByPlatform(resourceTypeId, required)
+        metricChecker.checkFindAllByPlatform(platformId, required)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);

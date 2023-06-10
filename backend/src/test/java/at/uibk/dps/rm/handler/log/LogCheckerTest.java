@@ -46,21 +46,21 @@ public class LogCheckerTest {
     }
 
     @Test
-    void checkFindAllByReservationId(VertxTestContext testContext) {
-        long reservationId = 11L, accountId = 22L;
-        Deployment reservation = TestReservationProvider.createReservation(reservationId);
-        DeploymentLog rl1 = TestLogProvider.createReservationLog(1L, reservation);
-        DeploymentLog rl2 = TestLogProvider.createReservationLog(2L, reservation);
-        JsonArray reservationLogs = new JsonArray(List.of(JsonObject.mapFrom(rl1), JsonObject.mapFrom(rl2)));
+    void checkFindAllByDeploymentId(VertxTestContext testContext) {
+        long deploymentId = 11L, accountId = 22L;
+        Deployment deployment = TestReservationProvider.createReservation(deploymentId);
+        DeploymentLog rl1 = TestLogProvider.createReservationLog(1L, deployment);
+        DeploymentLog rl2 = TestLogProvider.createReservationLog(2L, deployment);
+        JsonArray deploymentLogs = new JsonArray(List.of(JsonObject.mapFrom(rl1), JsonObject.mapFrom(rl2)));
 
-        when(logService.findAllByReservationIdAndAccountId(reservationId, accountId))
-            .thenReturn(Single.just(reservationLogs));
+        when(logService.findAllByDeploymentIdAndAccountId(deploymentId, accountId))
+            .thenReturn(Single.just(deploymentLogs));
 
-        logChecker.checkFindAllByDeploymentId(reservationId, accountId)
+        logChecker.checkFindAllByDeploymentId(deploymentId, accountId)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(2);
-                    assertThat(result.getJsonObject(0).getLong("reservation_log_id")).isEqualTo(1L);
-                    assertThat(result.getJsonObject(1).getLong("reservation_log_id")).isEqualTo(2L);
+                    assertThat(result.getJsonObject(0).getLong("deployment_log_id")).isEqualTo(1L);
+                    assertThat(result.getJsonObject(1).getLong("deployment_log_id")).isEqualTo(2L);
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
@@ -68,14 +68,14 @@ public class LogCheckerTest {
     }
 
     @Test
-    void checkFindAllByReservationIdNotFound(VertxTestContext testContext) {
-        long reservationId = 11L, accountId = 22L;
+    void checkFindAllByDeploymentIdNotFound(VertxTestContext testContext) {
+        long deploymentId = 11L, accountId = 22L;
         Single<JsonArray> handler = SingleHelper.getEmptySingle();
 
-        when(logService.findAllByReservationIdAndAccountId(reservationId, accountId))
+        when(logService.findAllByDeploymentIdAndAccountId(deploymentId, accountId))
             .thenReturn(handler);
 
-        logChecker.checkFindAllByDeploymentId(reservationId, accountId)
+        logChecker.checkFindAllByDeploymentId(deploymentId, accountId)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);

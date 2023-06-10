@@ -1,8 +1,12 @@
 package at.uibk.dps.rm.service.deployment;
 
 import at.uibk.dps.rm.entity.deployment.*;
+import at.uibk.dps.rm.entity.deployment.module.FaasModule;
+import at.uibk.dps.rm.entity.deployment.module.TerraformModule;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDAO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDAO;
+import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
+import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.service.ServiceProxy;
 import at.uibk.dps.rm.service.deployment.terraform.FunctionPrepareService;
 import at.uibk.dps.rm.service.deployment.terraform.MainFileService;
@@ -11,6 +15,7 @@ import at.uibk.dps.rm.service.deployment.terraform.TerraformSetupService;
 import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestRequestProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
@@ -97,14 +102,16 @@ public class DeploymentServiceImplTest {
     @Test
     void setUpTFModules(VertxTestContext testContext) {
         DeployResourcesDAO deployRequest = TestRequestProvider.createDeployRequest();
-        TerraformModule tfm1 = new TerraformModule(CloudProvider.AWS, "m1");
-        TerraformModule tfm2 = new TerraformModule(CloudProvider.EDGE, "m2");
+        Region r1 = TestResourceProviderProvider.createRegion(1L, "r1");
+        Region r2 = TestResourceProviderProvider.createRegion(2L, "r2");
+        TerraformModule m1 = new FaasModule(ResourceProviderEnum.AWS, r1);
+        TerraformModule m2 = new FaasModule(ResourceProviderEnum.AWS, r2);
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockito.mockConstruction(ConfigUtility.class,
             (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
             try (MockedConstruction<TerraformSetupService> ignoredTFS =
                      Mockito.mockConstruction(TerraformSetupService.class, (mock, context) ->
-                         given(mock.setUpTFModuleDirs()).willReturn(Single.just(List.of(tfm1, tfm2))))) {
+                         given(mock.setUpTFModuleDirs()).willReturn(Single.just(List.of(m1, m2))))) {
                 try (MockedConstruction<MainFileService> ignoredMFS = Mockito.mockConstruction(MainFileService.class,
                     (mock, context) -> given(mock.setUpDirectory()).willReturn(Completable.complete()))) {
                     deploymentService.setUpTFModules(deployRequest)
@@ -121,14 +128,16 @@ public class DeploymentServiceImplTest {
     @Test
     void setUpTFModulesMainFileServiceFailed(VertxTestContext testContext) {
         DeployResourcesDAO deployRequest = TestRequestProvider.createDeployRequest();
-        TerraformModule tfm1 = new TerraformModule(CloudProvider.AWS, "m1");
-        TerraformModule tfm2 = new TerraformModule(CloudProvider.EDGE, "m2");
+        Region r1 = TestResourceProviderProvider.createRegion(1L, "r1");
+        Region r2 = TestResourceProviderProvider.createRegion(2L, "r2");
+        TerraformModule m1 = new FaasModule(ResourceProviderEnum.AWS, r1);
+        TerraformModule m2 = new FaasModule(ResourceProviderEnum.AWS, r2);
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockito.mockConstruction(ConfigUtility.class,
             (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
             try (MockedConstruction<TerraformSetupService> ignoredTFS =
                      Mockito.mockConstruction(TerraformSetupService.class, (mock, context) ->
-                         given(mock.setUpTFModuleDirs()).willReturn(Single.just(List.of(tfm1, tfm2))))) {
+                         given(mock.setUpTFModuleDirs()).willReturn(Single.just(List.of(m1, m2))))) {
                 try (MockedConstruction<MainFileService> ignoredMFS = Mockito.mockConstruction(MainFileService.class,
                     (mock, context) -> given(mock.setUpDirectory()).willReturn(Completable.error(RuntimeException::new)))) {
                     deploymentService.setUpTFModules(deployRequest)

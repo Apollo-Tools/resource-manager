@@ -11,9 +11,9 @@ import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.deployment.docker.DockerImageService;
 import at.uibk.dps.rm.service.deployment.executor.MainTerraformExecutor;
 import at.uibk.dps.rm.service.deployment.executor.TerraformExecutor;
+import at.uibk.dps.rm.service.rxjava3.database.log.DeploymentLogService;
 import at.uibk.dps.rm.service.rxjava3.database.log.LogService;
-import at.uibk.dps.rm.service.rxjava3.database.log.ReservationLogService;
-import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentService;
+import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentExecutionService;
 import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.*;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
@@ -61,13 +61,13 @@ public class DeploymentCheckerTest {
     private final JsonObject config = TestConfigProvider.getConfig();
 
     @Mock
-    private DeploymentService deploymentService;
+    private DeploymentExecutionService deploymentExecutionService;
 
     @Mock
     private LogService logService;
 
     @Mock
-    private ReservationLogService reservationLogService;
+    private DeploymentLogService deploymentLogService;
 
     @Mock
     private Process processMainTF;
@@ -79,7 +79,7 @@ public class DeploymentCheckerTest {
     void initTest() {
         rtoc.vertx();
         JsonMapperConfig.configJsonMapper();
-        deploymentChecker = new DeploymentExecutionChecker(deploymentService, logService, reservationLogService);
+        deploymentChecker = new DeploymentExecutionChecker(deploymentExecutionService, logService, deploymentLogService);
     }
 
     @ParameterizedTest
@@ -97,15 +97,15 @@ public class DeploymentCheckerTest {
         ProcessOutput poOutput = TestDTOProvider.createProcessOutput(processMainTF, "output");
         ProcessOutput poContainer = TestDTOProvider.createProcessOutput(processContainer, "container");
 
-        when(deploymentService.packageFunctionsCode(deployRequest))
+        when(deploymentExecutionService.packageFunctionsCode(deployRequest))
             .thenReturn(testCase.equals("packageFunctionsCodeFailed") ? Single.error(IOException::new) :
                 Single.just(functionsToDeploy));
-        when(deploymentService.setUpTFModules(deployRequest)).thenReturn(testCase.equals("setupTfModulesFailed") ?
+        when(deploymentExecutionService.setUpTFModules(deployRequest)).thenReturn(testCase.equals("setupTfModulesFailed") ?
             Single.error(IOException::new) : Single.just(deploymentCredentials));
 
         if (!testCase.equals("packageFunctionsCodeFailed")) {
             when(logService.save(any())).thenReturn(Single.just(log));
-            when(reservationLogService.save(any())).thenReturn(Single.just(new JsonObject()));
+            when(deploymentLogService.save(any())).thenReturn(Single.just(new JsonObject()));
             when(processMainTF.exitValue()).thenReturn(testCase.equals("buildDockerFailed") ? -1 : 0)
                 .thenReturn(testCase.equals("initFailed") ? -1 : 0)
                 .thenReturn(testCase.equals("applyFailed") ? -1 : 0)
@@ -166,11 +166,11 @@ public class DeploymentCheckerTest {
         ProcessOutput poDestroy = TestDTOProvider.createProcessOutput(processMainTF, "destroy");
         ProcessOutput poContainer = TestDTOProvider.createProcessOutput(processContainer, "container");
 
-        when(deploymentService.getNecessaryCredentials(terminateRequest))
+        when(deploymentExecutionService.getNecessaryCredentials(terminateRequest))
             .thenReturn(testCase.equals("getCredentialsFailed") ? Single.error(NotFoundException::new) :
                 Single.just(deploymentCredentials));
         when(logService.save(any())).thenReturn(Single.just(log));
-        when(reservationLogService.save(any())).thenReturn(Single.just(new JsonObject()));
+        when(deploymentLogService.save(any())).thenReturn(Single.just(new JsonObject()));
         when(processContainer.exitValue()).thenReturn(testCase.equals("destroyContainerFailed") ? -1 : 0);
         if (!testCase.equals("getCredentialsFailed") && !testCase.equals("destroyContainerFailed")) {
             when(processMainTF.exitValue()).thenReturn(testCase.equals("destroyFailed") ? -1 : 0);
@@ -216,7 +216,7 @@ public class DeploymentCheckerTest {
         DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWSEdge();
         ProcessOutput poDestroy = TestDTOProvider.createProcessOutput(null, "destroy");
 
-        when(deploymentService.getNecessaryCredentials(terminateRequest)).thenReturn(Single.just(deploymentCredentials));
+        when(deploymentExecutionService.getNecessaryCredentials(terminateRequest)).thenReturn(Single.just(deploymentCredentials));
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
              MockedConstruction<MainTerraformExecutor> ignoredMTFE =
@@ -236,12 +236,12 @@ public class DeploymentCheckerTest {
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void deleteTFDirs(boolean isValid, VertxTestContext testContext) {
-        long reservationId = 1L;
+        long deploymentId = 1L;
 
-        when(deploymentService.deleteTFDirs(reservationId))
+        when(deploymentExecutionService.deleteTFDirs(deploymentId))
             .thenReturn(isValid ? Completable.complete() : Completable.error(IOException::new));
 
-        deploymentChecker.deleteTFDirs(reservationId)
+        deploymentChecker.deleteTFDirs(deploymentId)
             .blockingSubscribe(() -> testContext.verify(() -> {
                 if (!isValid) {
                     fail("method did not throw exception");
@@ -269,24 +269,24 @@ public class DeploymentCheckerTest {
     @ParameterizedTest
     @MethodSource("provideDeployTerminateContainer")
     void deployTerminateContainer(String testCase, boolean isValid, VertxTestContext testContext) {
-        long reservationId = 1L, resourceReservationId = 2L;
-        DeploymentPath deploymentPath = new DeploymentPath(reservationId, config);
+        long deploymentId = 1L, resourceDeploymentId = 2L;
+        DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
         ProcessOutput processOutput = TestDTOProvider.createProcessOutput(processContainer, testCase);
         JsonObject log = JsonObject.mapFrom(TestLogProvider.createLog(1L));
 
         when(processContainer.exitValue()).thenReturn(isValid ? 0 : -1);
         when(logService.save(any())).thenReturn(Single.just(log));
-        when(reservationLogService.save(any())).thenReturn(Single.just(new JsonObject()));
+        when(deploymentLogService.save(any())).thenReturn(Single.just(new JsonObject()));
 
         try(MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
             MockedConstruction<TerraformExecutor> ignoredTFE = Mockprovider.mockTerraformExecutor(deploymentPath,
-                resourceReservationId, processOutput, testCase)
+                resourceDeploymentId, processOutput, testCase)
         ) {
             Completable completable;
             if (testCase.equals("apply")) {
-                completable = deploymentChecker.startContainer(reservationId, resourceReservationId);
+                completable = deploymentChecker.startContainer(deploymentId, resourceDeploymentId);
             } else {
-                completable = deploymentChecker.stopContainer(reservationId, resourceReservationId);
+                completable = deploymentChecker.stopContainer(deploymentId, resourceDeploymentId);
             }
             completable.blockingSubscribe(() -> testContext.verify(() -> {
                 if (!isValid) {

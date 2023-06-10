@@ -82,14 +82,6 @@ public class ContainerPullFileServiceTest {
                 "}\n"
         );
     }
-    @Test
-    void getCredentialVariablesString(Vertx vertx) {
-        ContainerPullFileService service =
-            TestFileServiceProvider.createContainerPullFileService(vertx.fileSystem(), rootFolder, reservation);
-        String result = service.getCredentialVariablesString();
-
-        assertThat(result).isEqualTo("");
-    }
 
     @Test
     void getVariablesFileContent(Vertx vertx) {

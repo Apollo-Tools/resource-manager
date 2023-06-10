@@ -2,7 +2,7 @@ package at.uibk.dps.rm.handler.deployment;
 
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
 import at.uibk.dps.rm.entity.model.Deployment;
-import at.uibk.dps.rm.service.rxjava3.database.reservation.FunctionDeploymentService;
+import at.uibk.dps.rm.service.rxjava3.database.deployment.FunctionDeploymentService;
 import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;

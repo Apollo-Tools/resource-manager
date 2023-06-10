@@ -26,12 +26,11 @@ public class DeploymentOutputTest {
     }
 
     public static Stream<Arguments> provideJsonObject() {
-        JsonObject jo1 = new JsonObject("{\"edge_urls\": {\"sensitive\": true, \"type\": \"string\", \"value\": " +
-            "{\"value\": \"localhost\"}},\"function_urls\": {\"sensitive\": true,\"type\": \"string\", \"value\": " +
-            "{}},\"vm_urls\": {\"sensitive\": true,\"type\": \"string\", \"value\":{}}}");
-        JsonObject jo2 = new JsonObject("{\"edge_urls\": {\"sensitive\": true, \"type\": \"string\"}}");
-        JsonObject jo3 = new JsonObject("{\"edge_urls\": {\"sensitive\": true, \"type\": \"string\", \"value\": {}, " +
-            "\"invalid\": 1}}");
+        JsonObject jo1 = new JsonObject("{\"function_urls\": {\"sensitive\": true,\"type\": \"string\", \"value\": " +
+            "{}}");
+        JsonObject jo2 = new JsonObject("{\"function_urls\": {\"sensitive\": true, \"type\": \"string\"}}");
+        JsonObject jo3 = new JsonObject("{\"function_urls\": {\"sensitive\": true, \"type\": \"string\", \"value\": " +
+            "{}, \"invalid\": 1}}");
 
         return Stream.of(
             Arguments.of(jo1, true),
@@ -45,7 +44,7 @@ public class DeploymentOutputTest {
     void fromJsonValid(JsonObject jsonObject, boolean isValid) {
         if (isValid) {
             DeploymentOutput expected = DeploymentOutput.fromJson(jsonObject);
-            assertThat(expected.getEdgeUrls().getValue().get("value")).isEqualTo("localhost");
+            assertThat(expected.getFunctionUrls().getValue().get("value")).isEqualTo("localhost");
         } else {
             assertThrows(IllegalArgumentException.class, () -> DeploymentOutput.fromJson(jsonObject));
         }

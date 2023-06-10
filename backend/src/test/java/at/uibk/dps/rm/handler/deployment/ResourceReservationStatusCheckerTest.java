@@ -2,7 +2,7 @@ package at.uibk.dps.rm.handler.deployment;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.service.rxjava3.database.reservation.ResourceReservationStatusService;
+import at.uibk.dps.rm.service.rxjava3.database.deployment.ResourceDeploymentStatusService;
 import at.uibk.dps.rm.testutil.SingleHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
@@ -32,7 +32,7 @@ public class ResourceReservationStatusCheckerTest {
     private ResourceDeploymentStatusChecker statusChecker;
 
     @Mock
-    private ResourceReservationStatusService statusService;
+    private ResourceDeploymentStatusService statusService;
 
     @BeforeEach
     void initTest() {

@@ -6,7 +6,7 @@ import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDAO;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.service.rxjava3.database.reservation.ResourceReservationService;
+import at.uibk.dps.rm.service.rxjava3.database.deployment.ResourceDeploymentService;
 import at.uibk.dps.rm.testutil.SingleHelper;
 import at.uibk.dps.rm.testutil.objectprovider.*;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
@@ -31,7 +31,6 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -41,12 +40,12 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class ResourceReservationCheckerTest {
+public class ResourceDeploymentCheckerTest {
 
-    private ResourceDeploymentChecker resourceReservationChecker;
+    private ResourceDeploymentChecker resourceDeploymentChecker;
 
     @Mock
-    ResourceReservationService resourceReservationService;
+    ResourceDeploymentService resourceDeploymentService;
 
     @Mock
     ProcessOutput processOutput;
@@ -54,35 +53,34 @@ public class ResourceReservationCheckerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        resourceReservationChecker = new ResourceDeploymentChecker(resourceReservationService);
+        resourceDeploymentChecker = new ResourceDeploymentChecker(resourceDeploymentService);
     }
 
     @Test
-    void checkFindAllByReservationIdValid(VertxTestContext testContext) {
-        long reservationId = 1L;
+    void checkFindAllByDeploymentIdValid(VertxTestContext testContext) {
+        long deploymentId = 1L;
         Account account = TestAccountProvider.createAccount(1L);
-        Deployment reservation = TestReservationProvider.createReservation(reservationId, false, account);
+        Deployment deployment = TestReservationProvider.createReservation(deploymentId, false, account);
         Resource r1 = TestResourceProvider.createResource(1L);
         Resource r2 = TestResourceProvider.createResource(2L);
         Resource r3 = TestResourceProvider.createResource(3L);
-        ResourceDeployment resourceReservation1 = TestReservationProvider.createResourceReservation(1L, reservation,
+        ResourceDeployment rd1 = TestReservationProvider.createResourceReservation(1L, deployment,
             r1, new ResourceDeploymentStatus());
-        ResourceDeployment resourceReservation2 = TestReservationProvider.createResourceReservation(2L, reservation,
+        ResourceDeployment rd2 = TestReservationProvider.createResourceReservation(2L, deployment,
             r2, new ResourceDeploymentStatus());
-        ResourceDeployment resourceReservation3 = TestReservationProvider.createResourceReservation(3L, reservation,
+        ResourceDeployment rd3 = TestReservationProvider.createResourceReservation(3L, deployment,
             r3, new ResourceDeploymentStatus());
-        JsonArray resourceReservations = new JsonArray(List.of(JsonObject.mapFrom(resourceReservation1),
-            JsonObject.mapFrom(resourceReservation2), JsonObject.mapFrom(resourceReservation3)));
+        JsonArray resourceDeployments = new JsonArray(List.of(JsonObject.mapFrom(rd1),
+            JsonObject.mapFrom(rd2), JsonObject.mapFrom(rd3)));
 
-        when(resourceReservationService.findAllByReservationId(reservationId)).thenReturn(Single.just(resourceReservations));
+        when(resourceDeploymentService.findAllByDeploymentId(deploymentId)).thenReturn(Single.just(resourceDeployments));
 
-        resourceReservationChecker.checkFindAllByDeploymentId(reservationId)
+        resourceDeploymentChecker.checkFindAllByDeploymentId(deploymentId)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(3);
-                    assertThat(result.getJsonObject(0).getLong("resource_reservation_id")).isEqualTo(1L);
-                    assertThat(result.getJsonObject(1).getLong("resource_reservation_id")).isEqualTo(2L);
-                    assertThat(result.getJsonObject(2).getLong("resource_reservation_id")).isEqualTo(3L);
-                    verify(resourceReservationService).findAllByReservationId(reservationId);
+                    assertThat(result.getJsonObject(0).getLong("resource_deployment_id")).isEqualTo(1L);
+                    assertThat(result.getJsonObject(1).getLong("resource_deployment_id")).isEqualTo(2L);
+                    assertThat(result.getJsonObject(2).getLong("resource_deployment_id")).isEqualTo(3L);
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
@@ -90,16 +88,16 @@ public class ResourceReservationCheckerTest {
     }
 
     @Test
-    void checkFindAllByReservationIdEmptyList(VertxTestContext testContext) {
-        long reservationId = 1L;
-        JsonArray resourceReservations = new JsonArray(new ArrayList<JsonObject>());
+    void checkFindAllByDeploymentIdEmptyList(VertxTestContext testContext) {
+        long deploymentId = 1L;
+        JsonArray resourceDeployments = new JsonArray(new ArrayList<JsonObject>());
 
-        when(resourceReservationService.findAllByReservationId(reservationId)).thenReturn(Single.just(resourceReservations));
+        when(resourceDeploymentService.findAllByDeploymentId(deploymentId))
+            .thenReturn(Single.just(resourceDeployments));
 
-        resourceReservationChecker.checkFindAllByDeploymentId(reservationId)
+        resourceDeploymentChecker.checkFindAllByDeploymentId(deploymentId)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(0);
-                    verify(resourceReservationService).findAllByReservationId(reservationId);
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
@@ -107,13 +105,13 @@ public class ResourceReservationCheckerTest {
     }
 
     @Test
-    void checkFindAllByReservationIdNotFound(VertxTestContext testContext) {
-        long reservationId = 1L;
+    void checkFindAllByDeploymentIdNotFound(VertxTestContext testContext) {
+        long deploymentId = 1L;
         Single<JsonArray> handler = SingleHelper.getEmptySingle();
 
-        when(resourceReservationService.findAllByReservationId(reservationId)).thenReturn(handler);
+        when(resourceDeploymentService.findAllByDeploymentId(deploymentId)).thenReturn(handler);
 
-        resourceReservationChecker.checkFindAllByDeploymentId(reservationId)
+        resourceDeploymentChecker.checkFindAllByDeploymentId(deploymentId)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
@@ -130,20 +128,20 @@ public class ResourceReservationCheckerTest {
         DeploymentOutput deploymentOutput = TestDTOProvider.createDeploymentOutput();
 
         when(processOutput.getOutput()).thenReturn(JsonObject.mapFrom(deploymentOutput).encode());
-        when(resourceReservationService.updateTriggerUrl(1L, "http://localhostfaas1"))
+        when(resourceDeploymentService.updateTriggerUrl(1L, "http://localhostfaas1"))
             .thenReturn(Completable.complete());
-        when(resourceReservationService.updateTriggerUrl(2L, "http://localhostvm1"))
+        when(resourceDeploymentService.updateTriggerUrl(2L, "http://localhostvm1"))
             .thenReturn(Completable.complete());
-        when(resourceReservationService.updateTriggerUrl(3L, "http://localhostvm2"))
+        when(resourceDeploymentService.updateTriggerUrl(3L, "http://localhostvm2"))
             .thenReturn(Completable.complete());
-        when(resourceReservationService.updateTriggerUrl(4L, "http://localhostedge1"))
+        when(resourceDeploymentService.updateTriggerUrl(4L, "http://localhostedge1"))
             .thenReturn(Completable.complete());
-        when(resourceReservationService.updateTriggerUrl(5L, "/reservations/1/5/deploy"))
+        when(resourceDeploymentService.updateTriggerUrl(5L, "/deployments/1/5/deploy"))
             .thenReturn(Completable.complete());
-        when(resourceReservationService.updateTriggerUrl(6L, "/reservations/1/6/deploy"))
+        when(resourceDeploymentService.updateTriggerUrl(6L, "/deployments/1/6/deploy"))
             .thenReturn(Completable.complete());
 
-        resourceReservationChecker.storeOutputToResourceDeployments(processOutput, request)
+        resourceDeploymentChecker.storeOutputToResourceDeployments(processOutput, request)
             .blockingSubscribe(() -> {},
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
@@ -156,12 +154,12 @@ public class ResourceReservationCheckerTest {
         DeploymentOutput deploymentOutput = TestDTOProvider.createDeploymentOutputUnknownFunction();
 
         when(processOutput.getOutput()).thenReturn(JsonObject.mapFrom(deploymentOutput).encode());
-        when(resourceReservationService.updateTriggerUrl(5L, "/reservations/1/5/deploy"))
+        when(resourceDeploymentService.updateTriggerUrl(5L, "/deployments/1/5/deploy"))
             .thenReturn(Completable.complete());
-        when(resourceReservationService.updateTriggerUrl(6L, "/reservations/1/6/deploy"))
+        when(resourceDeploymentService.updateTriggerUrl(6L, "/deployments/1/6/deploy"))
             .thenReturn(Completable.complete());
 
-        resourceReservationChecker.storeOutputToResourceDeployments(processOutput, request)
+        resourceDeploymentChecker.storeOutputToResourceDeployments(processOutput, request)
             .blockingSubscribe(() -> {},
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
@@ -189,16 +187,16 @@ public class ResourceReservationCheckerTest {
 
     @ParameterizedTest
     @MethodSource("provideStatusValue")
-    void checkCrucialReservationStatus(ResourceDeploymentStatus expectedStatus) {
-        Deployment reservation = TestReservationProvider.createReservation(1L);
-        ResourceDeployment rr1 = TestReservationProvider.createResourceReservation(1L, reservation,
+    void checkCrucialDeploymentStatus(ResourceDeploymentStatus expectedStatus) {
+        Deployment deployment = TestReservationProvider.createReservation(1L);
+        ResourceDeployment rd1 = TestReservationProvider.createResourceReservation(1L, deployment,
             new Resource(), TestReservationProvider.createResourceReservationStatusTerminated());
-        ResourceDeployment rr2 = TestReservationProvider.createResourceReservation(2L, reservation, new Resource()
+        ResourceDeployment rd2 = TestReservationProvider.createResourceReservation(2L, deployment, new Resource()
             , expectedStatus);
-        JsonArray resourceReservations = new JsonArray(List.of(JsonObject.mapFrom(rr1), JsonObject.mapFrom(rr2)));
+        JsonArray resourceDeployments = new JsonArray(List.of(JsonObject.mapFrom(rd1), JsonObject.mapFrom(rd2)));
 
-        DeploymentStatusValue result = resourceReservationChecker
-            .checkCrucialResourceDeploymentStatus(resourceReservations);
+        DeploymentStatusValue result = resourceDeploymentChecker
+            .checkCrucialResourceDeploymentStatus(resourceDeployments);
 
         assertThat(result.name()).isEqualTo(expectedStatus.getStatusValue());
     }

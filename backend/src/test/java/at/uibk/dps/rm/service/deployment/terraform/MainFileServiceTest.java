@@ -1,8 +1,12 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
-import at.uibk.dps.rm.entity.deployment.CloudProvider;
-import at.uibk.dps.rm.entity.deployment.TerraformModule;
+import at.uibk.dps.rm.entity.deployment.module.ContainerModule;
+import at.uibk.dps.rm.entity.deployment.module.FaasModule;
+import at.uibk.dps.rm.entity.deployment.module.TerraformModule;
+import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
+import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.testutil.objectprovider.TestFileServiceProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.rxjava3.core.Vertx;
 import org.junit.jupiter.api.Test;
@@ -46,10 +50,13 @@ public class MainFileServiceTest {
 
     @Test
     void getLocalModulesString(Vertx vertx) {
-        TerraformModule m1 = new TerraformModule(CloudProvider.AWS, "m1");
-        TerraformModule m2 = new TerraformModule(CloudProvider.AWS, "m2");
-        TerraformModule m3 = new TerraformModule(CloudProvider.EDGE, "m3");
-        TerraformModule m4 = new TerraformModule(CloudProvider.CONTAINER, "m4");
+        Region r1 = TestResourceProviderProvider.createRegion(1L, "r1");
+        Region r2 = TestResourceProviderProvider.createRegion(2L, "r2");
+        Region r3 = TestResourceProviderProvider.createRegion(3L, "r3");
+        TerraformModule m1 = new FaasModule(ResourceProviderEnum.AWS, r1);
+        TerraformModule m2 = new FaasModule(ResourceProviderEnum.AWS, r2);
+        TerraformModule m3 = new FaasModule(ResourceProviderEnum.CUSTOM_EDGE, r3);
+        TerraformModule m4 = new ContainerModule();
         MainFileService service = TestFileServiceProvider.createMainFileService(vertx.fileSystem(),
             List.of(m1, m2, m3, m4));
         String result = service.getLocalModulesString();
@@ -78,7 +85,8 @@ public class MainFileServiceTest {
 
     @Test
     void getMainFileContent(Vertx vertx) {
-        TerraformModule m1 = new TerraformModule(CloudProvider.AWS, "m1");
+        Region r1 = TestResourceProviderProvider.createRegion(1L, "r1");
+        TerraformModule m1 = new FaasModule(ResourceProviderEnum.AWS, r1);
         MainFileService service = TestFileServiceProvider.createMainFileService(vertx.fileSystem(), List.of(m1));
         String result = service.getMainFileContent();
 
@@ -107,9 +115,12 @@ public class MainFileServiceTest {
 
     @Test
     void getVariablesFileContent(Vertx vertx) {
-        TerraformModule m1 = new TerraformModule(CloudProvider.AWS, "m1");
-        TerraformModule m2 = new TerraformModule(CloudProvider.AWS, "m2");
-        TerraformModule m3 = new TerraformModule(CloudProvider.EDGE, "m3");
+        Region r1 = TestResourceProviderProvider.createRegion(1L, "r1");
+        Region r2 = TestResourceProviderProvider.createRegion(2L, "r2");
+        Region r3 = TestResourceProviderProvider.createRegion(3L, "r3");
+        TerraformModule m1 = new FaasModule(ResourceProviderEnum.AWS, r1);
+        TerraformModule m2 = new FaasModule(ResourceProviderEnum.AWS, r2);
+        TerraformModule m3 = new FaasModule(ResourceProviderEnum.CUSTOM_EDGE, r3);
         MainFileService service = TestFileServiceProvider.createMainFileService(vertx.fileSystem(), List.of(m1, m2, m3));
         String result = service.getVariablesFileContent();
 
@@ -138,11 +149,12 @@ public class MainFileServiceTest {
 
     @Test
     public void getOutputsFileContentAllTypes(Vertx vertx) {
-        TerraformModule m1 = new TerraformModule(CloudProvider.AWS, "m1");
-        m1.setHasVM(true);
-        TerraformModule m2 = new TerraformModule(CloudProvider.AWS, "m2");
-        m2.setHasFaas(true);
-        TerraformModule m3 = new TerraformModule(CloudProvider.EDGE, "m3");
+        Region r1 = TestResourceProviderProvider.createRegion(1L, "r1");
+        Region r2 = TestResourceProviderProvider.createRegion(2L, "r2");
+        Region r3 = TestResourceProviderProvider.createRegion(3L, "r3");
+        TerraformModule m1 = new FaasModule(ResourceProviderEnum.AWS, r1);
+        TerraformModule m2 = new FaasModule(ResourceProviderEnum.AWS, r2);
+        TerraformModule m3 = new FaasModule(ResourceProviderEnum.CUSTOM_EDGE, r3);
         MainFileService service = TestFileServiceProvider.createMainFileService(vertx.fileSystem(), List.of(m1, m2, m3));
         String result = service.getOutputsFileContent();
 
@@ -160,11 +172,14 @@ public class MainFileServiceTest {
 
     @Test
     public void getOutputsFileContentNone(Vertx vertx) {
-        TerraformModule m1 = new TerraformModule(CloudProvider.AWS, "m1");
-        TerraformModule m2 = new TerraformModule(CloudProvider.AWS, "m2");
-        TerraformModule m3 = new TerraformModule(CloudProvider.AWS, "m3");
+        Region r1 = TestResourceProviderProvider.createRegion(1L, "r1");
+        Region r2 = TestResourceProviderProvider.createRegion(2L, "r2");
+        Region r3 = TestResourceProviderProvider.createRegion(3L, "r3");
+        TerraformModule m1 = new FaasModule(ResourceProviderEnum.AWS, r1);
+        TerraformModule m2 = new FaasModule(ResourceProviderEnum.AWS, r2);
+        TerraformModule m3 = new FaasModule(ResourceProviderEnum.CUSTOM_EDGE, r3);
         MainFileService service = TestFileServiceProvider.createMainFileService(vertx.fileSystem(), List.of(m1, m2, m3));
-        String result = service.getOutputString();
+        String result = service.getOutputsFileContent();
 
         assertThat(result).isEqualTo(
             "output \"function_urls\" {\n" +

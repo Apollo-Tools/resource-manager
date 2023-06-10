@@ -16,7 +16,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletionStage;
@@ -125,15 +124,16 @@ public class ResourceServiceImplTest {
         List<String> metrics = List.of("availability");
         Resource entity1 = TestResourceProvider.createResource(1L);
         CompletionStage<List<Resource>> completionStage = CompletionStages.completedFuture(List.of(entity1));
-        List<Long> regions = new ArrayList<>();
-        List<Long> resourceProviders = new ArrayList<>();
-        List<Long> resourceTypes = new ArrayList<>();
+        List<Long> regions = List.of();
+        List<Long> resourceProviders = List.of();
+        List<Long> resourceTypes = List.of();
+        List<Long> platforms = List.of();
+        List<Long> environments = List.of();
 
-
-        when(resourceRepository.findAllBySLOs(metrics, regions, resourceProviders, resourceTypes))
+        when(resourceRepository.findAllBySLOs(metrics, environments, resourceTypes, platforms, regions, resourceProviders))
             .thenReturn(completionStage);
 
-        resourceService.findAllBySLOs(metrics, regions, resourceProviders, resourceTypes)
+        resourceService.findAllBySLOs(metrics, environments, resourceTypes, platforms, regions, resourceProviders)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(1);
                 assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
@@ -163,7 +163,7 @@ public class ResourceServiceImplTest {
     @ValueSource(booleans = {true, false})
     void existsAllByIdsAndResourceTypes(boolean allExist, VertxTestContext testContext) {
         Set<Long> resourceIds = Set.of(1L, 2L);
-        List<String> resourceTypes = List.of(ResourceTypeEnum.EDGE.getValue(), ResourceTypeEnum.VM.getValue());
+        List<String> resourceTypes = List.of(ResourceTypeEnum.FAAS.getValue());
         Resource r1 = TestResourceProvider.createResource(1L);
         Resource r2 = TestResourceProvider.createResource(2L);
         List<Resource> resources = List.of(r1, r2);
