@@ -82,7 +82,7 @@ public class DeploymentHandlerTest {
         JsonObject credentials = JsonObject.mapFrom(TestAccountProvider.createCredentials(1L, rp));
 
         when(credentialsChecker.checkFindAll(accountId)).thenReturn(Single.just(new JsonArray(List.of(credentials))));
-        when(functionDeploymentChecker.checkFindAllByDeploymentId(1L)).thenReturn(testCase.startsWith("functionRes") ?
+        when(functionDeploymentChecker.checkFindAllByDeploymentId(1L)).thenReturn(testCase.startsWith("functionDep") ?
             Single.error(NotFoundException::new) : Single.just(new JsonArray(List.of(fr1))));
         if (!testCase.equals("functionDeploymentsNotFound")) {
             when(serviceDeploymentChecker.checkFindAllByDeploymentId(1L))

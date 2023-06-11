@@ -2,15 +2,14 @@ package at.uibk.dps.rm.service.deployment.terraform;
 
 import at.uibk.dps.rm.exception.RuntimeNotSupportedException;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackagePythonCode;
+import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.TestFileServiceProvider;
-import io.reactivex.rxjava3.core.Completable;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedConstruction;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.file.Path;
@@ -18,9 +17,6 @@ import java.nio.file.Paths;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
 
 /**
  * Implements tests for the {@link FunctionPrepareService} class.
@@ -36,9 +32,7 @@ public class FunctionFileServiceTest {
     void packageCodeLambdaEC2(Vertx vertx, VertxTestContext testContext) {
         FunctionPrepareService service = TestFileServiceProvider.createFunctionFileServiceLambdaEc2Python(vertx);
         Path functionsDir = Paths.get("temp\\test\\functions");
-        try (MockedConstruction<PackagePythonCode> ignored = Mockito.mockConstruction(PackagePythonCode.class,
-            (mock, context) -> given(mock.composeSourceCode(eq(functionsDir), any(), any()))
-                .willReturn(Completable.complete()))) {
+        try (MockedConstruction<PackagePythonCode> ignored = Mockprovider.mockPackagePythonCode(functionsDir)) {
             service.packageCode()
                 .subscribe(result -> testContext.verify(() -> {
                         assertThat(result.getFunctionIdentifiers().size()).isEqualTo(2);
@@ -59,9 +53,7 @@ public class FunctionFileServiceTest {
     void packageCodeEC2OpenFaas(Vertx vertx, VertxTestContext testContext) {
         FunctionPrepareService service = TestFileServiceProvider.createFunctionFileServiceEC2OpenFaasPython(vertx);
         Path functionsDir = Paths.get("temp\\test\\functions");
-        try (MockedConstruction<PackagePythonCode> ignored = Mockito.mockConstruction(PackagePythonCode.class,
-            (mock, context) -> given(mock.composeSourceCode(eq(functionsDir), any(), any()))
-                .willReturn(Completable.complete()))) {
+        try (MockedConstruction<PackagePythonCode> ignored = Mockprovider.mockPackagePythonCode(functionsDir)) {
             service.packageCode()
                 .subscribe(result -> testContext.verify(() -> {
                         assertThat(result.getFunctionIdentifiers().size()).isEqualTo(2);
@@ -86,9 +78,7 @@ public class FunctionFileServiceTest {
     void packageCodeFunctionTwice(Vertx vertx, VertxTestContext testContext) {
         FunctionPrepareService service = TestFileServiceProvider.createFunctionFileServiceFunctionTwicePython(vertx);
         Path functionsDir = Paths.get("temp\\test\\functions");
-        try (MockedConstruction<PackagePythonCode> ignored = Mockito.mockConstruction(PackagePythonCode.class,
-            (mock, context) -> given(mock.composeSourceCode(eq(functionsDir), any(), any()))
-                .willReturn(Completable.complete()))) {
+        try (MockedConstruction<PackagePythonCode> ignored = Mockprovider.mockPackagePythonCode(functionsDir)) {
             service.packageCode()
                 .subscribe(result -> testContext.verify(() -> {
                         assertThat(result.getFunctionIdentifiers().size()).isEqualTo(1);
@@ -108,9 +98,7 @@ public class FunctionFileServiceTest {
     void packageCodeNoFunctions(Vertx vertx, VertxTestContext testContext) {
         FunctionPrepareService service = TestFileServiceProvider.createFunctionFileServiceNoFunctions(vertx);
         Path functionsDir = Paths.get("temp\\test\\functions");
-        try (MockedConstruction<PackagePythonCode> ignored = Mockito.mockConstruction(PackagePythonCode.class,
-            (mock, context) -> given(mock.composeSourceCode(eq(functionsDir), any(), any()))
-                .willReturn(Completable.complete()))) {
+        try (MockedConstruction<PackagePythonCode> ignored = Mockprovider.mockPackagePythonCode(functionsDir)) {
             service.packageCode()
                 .subscribe(result -> testContext.verify(() -> {
                         assertThat(result.getFunctionIdentifiers().size()).isEqualTo(0);
@@ -126,9 +114,7 @@ public class FunctionFileServiceTest {
     void packageCodeFaasInvalidRuntime(Vertx vertx, VertxTestContext testContext) {
         FunctionPrepareService service = TestFileServiceProvider.createFunctionFileServiceEC2OpenFaasInvalidRuntime(vertx);
         Path functionsDir = Paths.get("temp\\test\\functions");
-        try (MockedConstruction<PackagePythonCode> ignored = Mockito.mockConstruction(PackagePythonCode.class,
-            (mock, context) -> given(mock.composeSourceCode(eq(functionsDir), any(), any()))
-                .willReturn(Completable.complete()))) {
+        try (MockedConstruction<PackagePythonCode> ignored = Mockprovider.mockPackagePythonCode(functionsDir)) {
             service.packageCode()
                 .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                     throwable -> testContext.verify(() -> {

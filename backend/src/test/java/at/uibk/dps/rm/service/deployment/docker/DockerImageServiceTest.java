@@ -3,11 +3,11 @@ package at.uibk.dps.rm.service.deployment.docker;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.service.deployment.executor.ProcessExecutor;
+import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -21,7 +21,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
@@ -32,7 +31,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.when;
 
@@ -87,10 +85,8 @@ public class DockerImageServiceTest {
             .thenCallRealMethod();
         when(process.exitValue()).thenReturn(0).thenReturn(exitValue);
 
-        try (MockedConstruction<ConfigUtility> ignoredConfig = Mockito.mockConstruction(ConfigUtility.class,
-            (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
-            try (MockedConstruction<ProcessExecutor> ignored = Mockito.mockConstruction(ProcessExecutor.class,
-                (mock, context) -> given(mock.executeCli()).willReturn(Single.just(processOutput)))) {
+        try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
+             MockedConstruction<ProcessExecutor> ignored = Mockprovider.mockProcessExecutor(processOutput)) {
                 dockerImageService.buildOpenFaasImages(functionString)
                     .subscribe(result -> testContext.verify(() -> {
                             assertThat(result.getOutput()).isEqualTo("build output\npush output\n");
@@ -99,7 +95,6 @@ public class DockerImageServiceTest {
                         }),
                         throwable -> testContext.verify(() -> fail("method has thrown exception"))
                     );
-            }
         }
     }
 
@@ -115,10 +110,8 @@ public class DockerImageServiceTest {
             .thenReturn("build output\n");
         when(process.exitValue()).thenReturn(-1);
 
-        try (MockedConstruction<ConfigUtility> ignoredConfig = Mockito.mockConstruction(ConfigUtility.class,
-            (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
-            try (MockedConstruction<ProcessExecutor> ignored = Mockito.mockConstruction(ProcessExecutor.class,
-                (mock, context) -> given(mock.executeCli()).willReturn(Single.just(processOutput)))) {
+        try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
+             MockedConstruction<ProcessExecutor> ignored = Mockprovider.mockProcessExecutor(processOutput)) {
                 dockerImageService.buildOpenFaasImages(functionString)
                     .subscribe(result -> testContext.verify(() -> {
                             assertThat(result.getOutput()).isEqualTo("build output\n");
@@ -127,7 +120,6 @@ public class DockerImageServiceTest {
                         }),
                         throwable -> testContext.verify(() -> fail("method has thrown exception"))
                     );
-            }
         }
     }
 
@@ -139,8 +131,7 @@ public class DockerImageServiceTest {
         when(fileSystem.writeFile(eq(Path.of(functionsDir.toString(), "stack.yml").toString()), any(Buffer.class)))
             .thenReturn(Completable.error(IOException::new));
 
-        try(MockedConstruction<ProcessExecutor> ignored = Mockito.mockConstruction(ProcessExecutor.class,
-            (mock, context) -> given(mock.executeCli()).willReturn(Single.just(processOutput)))) {
+        try(MockedConstruction<ProcessExecutor> ignored = Mockprovider.mockProcessExecutor(processOutput)) {
             dockerImageService.buildOpenFaasImages(functionString)
                 .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                     throwable -> testContext.verify(() -> {

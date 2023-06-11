@@ -1,14 +1,18 @@
 package at.uibk.dps.rm.testutil.mockprovider;
 
+import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
+import at.uibk.dps.rm.entity.deployment.module.TerraformModule;
 import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateDAO;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.service.deployment.docker.DockerImageService;
 import at.uibk.dps.rm.service.deployment.executor.MainTerraformExecutor;
 import at.uibk.dps.rm.service.deployment.executor.ProcessExecutor;
 import at.uibk.dps.rm.service.deployment.executor.TerraformExecutor;
+import at.uibk.dps.rm.service.deployment.sourcecode.PackagePythonCode;
+import at.uibk.dps.rm.service.deployment.terraform.*;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -17,10 +21,13 @@ import lombok.experimental.UtilityClass;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
 /**
@@ -109,5 +116,52 @@ public class Mockprovider {
                 assertThat(context.arguments().get(1)).isEqualTo(commands);
                 assertThat(context.arguments().get(0)).isEqualTo(deploymentPath.getRootFolder());
             });
+    }
+
+    public static MockedConstruction<ProcessExecutor> mockProcessExecutor(ProcessOutput processOutput) {
+        return Mockito.mockConstruction(ProcessExecutor.class,
+            (mock, context) -> given(mock.executeCli()).willReturn(Single.just(processOutput)));
+    }
+
+    public static MockedConstruction<PackagePythonCode> mockPackagePythonCode(Path functionsDir) {
+        return Mockito.mockConstruction(PackagePythonCode.class,
+            (mock, context) -> given(mock.composeSourceCode(eq(functionsDir), any(), any()))
+                .willReturn(Completable.complete()));
+    }
+
+    public static MockedConstruction<ProcessBuilder> mockProcessBuilderIOException(Path workingDir) {
+        return Mockito.mockConstruction(ProcessBuilder.class,
+            (mock, context) -> {
+                given(mock.directory(workingDir.toFile())).willCallRealMethod();
+                given(mock.redirectErrorStream(true)).willCallRealMethod();
+                given(mock.start()).willThrow(new IOException());
+            });
+    }
+
+    public static MockedConstruction<FunctionPrepareService> mockFunctionPrepareService(FunctionsToDeploy functionsToDeploy) {
+        return Mockito.mockConstruction(FunctionPrepareService.class,
+            (mock, context) -> given(mock.packageCode()).willReturn(Single.just(functionsToDeploy)));
+    }
+
+    public static MockedConstruction<TerraformSetupService> mockTFSetupServiceSetupModuleDirs(
+            Single<List<TerraformModule>> result) {
+        return Mockito.mockConstruction(TerraformSetupService.class, (mock, context) ->
+            given(mock.setUpTFModuleDirs()).willReturn(result));
+    }
+
+    public static MockedConstruction<TerraformSetupService> mockTFSetupServiceGetTerminationCreds(
+            Single<DeploymentCredentials> result) {
+        return Mockito.mockConstruction(TerraformSetupService.class, (mock, context) ->
+            given(mock.getTerminationCredentials()).willReturn(result));
+    }
+
+    public static MockedConstruction<MainFileService> mockMainFileService(Completable result) {
+        return Mockito.mockConstruction(MainFileService.class,
+            (mock, context) -> given(mock.setUpDirectory()).willReturn(result));
+    }
+
+    public static MockedConstruction<RegionFaasFileService> mockRegionFaasFileService(Completable result) {
+        return Mockito.mockConstruction(RegionFaasFileService.class,
+            (mock, context) -> given(mock.setUpDirectory()).willReturn(result));
     }
 }

@@ -10,6 +10,7 @@ import at.uibk.dps.rm.handler.deploymentexecution.DeploymentExecutionHandler;
 import at.uibk.dps.rm.handler.log.LogChecker;
 import at.uibk.dps.rm.handler.log.DeploymentLogChecker;
 import at.uibk.dps.rm.handler.util.FileSystemChecker;
+import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestLogProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestDeploymentProvider;
@@ -29,11 +30,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
 
 /**
@@ -101,8 +100,7 @@ public class DeploymentErrorHandlerTest {
                 .thenReturn(Completable.complete());
         }
 
-        try (MockedConstruction<ConfigUtility> ignoredConfig = Mockito.mockConstruction(ConfigUtility.class,
-            (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
+        try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config)) {
             errorHandler.onDeploymentError(accountId, deployment, exc)
                 .blockingSubscribe(() -> {
                     },

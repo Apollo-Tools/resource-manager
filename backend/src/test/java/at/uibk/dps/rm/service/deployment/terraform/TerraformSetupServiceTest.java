@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDAO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDAO;
+import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestRequestProvider;
 import io.reactivex.rxjava3.core.Completable;
@@ -16,12 +17,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedConstruction;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.BDDMockito.given;
 
 /**
  * Implements tests for the {@link TerraformSetupService} class.
@@ -42,8 +41,8 @@ public class TerraformSetupServiceTest {
         TerraformSetupService service = new TerraformSetupService(vertx, deployRequest, deploymentPath,
             deploymentCredentials);
         System.setProperty("os.name", "Linux");
-        try (MockedConstruction<RegionFaasFileService> ignoredFassFileService = Mockito.mockConstruction(RegionFaasFileService.class,
-            (mock, context) -> given(mock.setUpDirectory()).willReturn(Completable.complete()))) {
+        try (MockedConstruction<RegionFaasFileService> ignored = Mockprovider
+            .mockRegionFaasFileService(Completable.complete())) {
                 service.setUpTFModuleDirs()
                     .subscribe(result -> testContext.verify(() -> {
                             assertThat(result.size()).isEqualTo(2);
