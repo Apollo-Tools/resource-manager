@@ -33,8 +33,8 @@ public class FunctionFileServiceTest {
 
 
     @Test
-    void packageCodeFaasVM(Vertx vertx, VertxTestContext testContext) {
-        FunctionPrepareService service = TestFileServiceProvider.createFunctionFileServiceFaasVMPython(vertx);
+    void packageCodeLambdaEC2(Vertx vertx, VertxTestContext testContext) {
+        FunctionPrepareService service = TestFileServiceProvider.createFunctionFileServiceLambdaEc2Python(vertx);
         Path functionsDir = Paths.get("temp\\test\\functions");
         try (MockedConstruction<PackagePythonCode> ignored = Mockito.mockConstruction(PackagePythonCode.class,
             (mock, context) -> given(mock.composeSourceCode(eq(functionsDir), any(), any()))
@@ -56,8 +56,8 @@ public class FunctionFileServiceTest {
     }
 
     @Test
-    void packageCodeVMEdge(Vertx vertx, VertxTestContext testContext) {
-        FunctionPrepareService service = TestFileServiceProvider.createFunctionFileServiceVMEdgePython(vertx);
+    void packageCodeEC2OpenFaas(Vertx vertx, VertxTestContext testContext) {
+        FunctionPrepareService service = TestFileServiceProvider.createFunctionFileServiceEC2OpenFaasPython(vertx);
         Path functionsDir = Paths.get("temp\\test\\functions");
         try (MockedConstruction<PackagePythonCode> ignored = Mockito.mockConstruction(PackagePythonCode.class,
             (mock, context) -> given(mock.composeSourceCode(eq(functionsDir), any(), any()))
@@ -124,7 +124,7 @@ public class FunctionFileServiceTest {
 
     @Test
     void packageCodeFaasInvalidRuntime(Vertx vertx, VertxTestContext testContext) {
-        FunctionPrepareService service = TestFileServiceProvider.createFunctionFileServiceVMEdgeInvalidRuntime(vertx);
+        FunctionPrepareService service = TestFileServiceProvider.createFunctionFileServiceEC2OpenFaasInvalidRuntime(vertx);
         Path functionsDir = Paths.get("temp\\test\\functions");
         try (MockedConstruction<PackagePythonCode> ignored = Mockito.mockConstruction(PackagePythonCode.class,
             (mock, context) -> given(mock.composeSourceCode(eq(functionsDir), any(), any()))

@@ -26,7 +26,7 @@ public class RegionFaasFileServiceTest {
 
     @Test
     void getProviderString(Vertx vertx) {
-        RegionFaasFileService service = TestFileServiceProvider.createRegionFaasFileServiceFaasVMEdge(vertx.fileSystem());
+        RegionFaasFileService service = TestFileServiceProvider.createRegionFaasFileServiceAllFaas(vertx.fileSystem());
         String result = service.getProviderString();
 
         assertThat(result).isEqualTo("provider \"aws\" {\n" +
@@ -38,44 +38,72 @@ public class RegionFaasFileServiceTest {
     }
 
     @Test
-    void getFunctionsModuleStringFaasVM(Vertx vertx) {
-        RegionFaasFileService service = TestFileServiceProvider.createRegionFaasFileServiceFaasVMEdge(vertx.fileSystem());
+    void getFunctionsModuleStringAllFaas(Vertx vertx) {
+        RegionFaasFileService service = TestFileServiceProvider.createRegionFaasFileServiceAllFaas(vertx.fileSystem());
         String result = service.getFunctionsModuleString();
 
-        String f1 = "foo1_python39";
-        String r1f1 = "r1_" + f1 + "_1";
-        String functionsPath = Paths.get("temp\\test\\functions").toAbsolutePath().toString();
-        String r1f1Path = (functionsPath + "\\" + f1 + ".zip").replace("\\", "/");
-        assertThat(result).isEqualTo(String.format("module \"faas\" {\n" +
+        assertThat(result).isEqualTo("module \"lambda\" {\n" +
             "  source = \"../../../terraform/aws/faas\"\n" +
-            "  names = [\"%s\",]\n" +
-            "  paths = [\"%s\",]\n" +
+            "  deployment_id = 1\n" +
+            "  names = [\"r1_foo1_python39_1\",]\n" +
+            "  paths = [\"D:/Unistuff/Masterarbeit/resource-manager/backend/temp/test/functions/foo1_python39.zip\",]\n" +
             "  handlers = [\"main.handler\",]\n" +
             "  timeouts = [250.0,]\n" +
             "  memory_sizes = [512.0,]\n" +
             "  layers = [[],]\n" +
             "  runtimes = [\"python39\",]\n" +
-            "  aws_role = \"LabRole\"\n" +
-            "}\n", r1f1, r1f1Path));
-    }
-
-    @Test
-    void getFunctionsModuleStringNoFaas(Vertx vertx) {
-        RegionFaasFileService service = TestFileServiceProvider.createRegionFaasFileServiceVMEdge(vertx.fileSystem());
-        String result = service.getFunctionsModuleString();
-        assertThat(result).isEqualTo("");
+            "  deployment_roles = [\"labRole\",]\n" +
+            "}\n" +
+            "module \"ec2\" {\n" +
+            "  source         = \"../../../terraform/aws/vm\"\n" +
+            "  deployment_id  = 1\n" +
+            "  names          = [\"resource_2\",]\n" +
+            "  instance_types = [\"t2.micro\",]\n" +
+            "  vpc_id         = \"vpc-id\"\n" +
+            "  subnet_id      = \"subnet-id\"\n" +
+            "}\n" +
+            "module \"r2_foo1_python39\" {\n" +
+            "  openfaas_depends_on = module.ec2\n" +
+            "  source = \"../../../terraform/openfaas\"\n" +
+            "  name = \"r2_foo1_python39_1\"\n" +
+            "  deployment_id = 1\n" +
+            "  image = \"dockerUser/foo1_python39\"\n" +
+            "  basic_auth_user = \"admin\"\n" +
+            "  vm_props = module.ec2.vm_props[\"resource_2\"]\n" +
+            "}\n" +
+            "module \"r2_foo2_python39\" {\n" +
+            "  openfaas_depends_on = module.ec2\n" +
+            "  source = \"../../../terraform/openfaas\"\n" +
+            "  name = \"r2_foo2_python39_1\"\n" +
+            "  deployment_id = 1\n" +
+            "  image = \"dockerUser/foo2_python39\"\n" +
+            "  basic_auth_user = \"admin\"\n" +
+            "  vm_props = module.ec2.vm_props[\"resource_2\"]\n" +
+            "}\n" +
+            "module \"r3_foo1_python39\" {\n" +
+            "  openfaas_depends_on = 0\n" +
+            "  source = \"../../../terraform/openfaas\"\n" +
+            "  deployment_id = 1\n" +
+            "  name = \"r3_foo1_python39_1\"\n" +
+            "  image = \"dockerUser/foo1_python39\"\n" +
+            "  basic_auth_user = var.openfaas_login_data[\"r3\"].auth_user\n" +
+            "  vm_props = {\n" +
+            "    gateway_url = \"http://localhost:8080\"\n" +
+            "    auth_password = var.openfaas_login_data[\"r3\"].auth_pw\n" +
+            "  }\n" +
+            "}\n");
     }
 
     @Test
     void getFunctionsModuleStringUnsupportedRuntime(Vertx vertx) {
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "unknown");
-        RegionFaasFileService service = TestFileServiceProvider.createRegionFaasFileServiceFaasVMEdge(vertx.fileSystem(),runtime);
+        RegionFaasFileService service = TestFileServiceProvider.createRegionFaasFileServiceAllFaas(vertx.fileSystem(),runtime);
         assertThrows(RuntimeNotSupportedException.class, service::getFunctionsModuleString);
     }
 
     @Test
     void getVariablesFileContent(Vertx vertx) {
-        RegionFaasFileService service = TestFileServiceProvider.createRegionFaasFileServiceFaasVMEdge(vertx.fileSystem());
+        RegionFaasFileService service = TestFileServiceProvider.createRegionFaasFileServiceAllFaas(vertx.fileSystem());
         String result = service.getVariablesFileContent();
 
         assertThat(result).isEqualTo(
@@ -90,76 +118,36 @@ public class RegionFaasFileServiceTest {
             "variable \"session_token\" {\n" +
             "  type = string\n" +
             "  default = \"\"\n" +
+            "}\n" +
+            "variable \"openfaas_login_data\" {\n" +
+            "  type = map(object({\n" +
+            "      auth_user = string\n" +
+            "      auth_pw = string\n" +
+            "  }))\n" +
+            "  default = {}\n" +
             "}\n"
         );
     }
 
     @Test
-    void getOutputsFileContentFaasVM(Vertx vertx) {
-        RegionFaasFileService service = TestFileServiceProvider.createRegionFaasFileServiceFaasVMEdge(vertx.fileSystem());
+    void getOutputsFileContentAllFaas(Vertx vertx) {
+        RegionFaasFileService service = TestFileServiceProvider.createRegionFaasFileServiceAllFaas(vertx.fileSystem());
         service.getMainFileContent();
         String result = service.getOutputsFileContent();
 
         assertThat(result).isEqualTo(
             "output \"function_urls\" {\n" +
-            "  value = module.faas.function_urls\n" +
-            "}\n" +
-            "output \"vm_props\" {\n" +
-            "  value = module.vm.vm_props\n" +
-            "  sensitive = true\n" +
-            "}\n" +
-            "output \"vm_urls\" {\n" +
-            "  value = zipmap([\"r2_foo1_python39\",\"r2_foo2_python39\",], " +
-                "[module.r2_foo1_python39.function_url,module.r2_foo2_python39.function_url,])\n" +
+            "  value = merge(module.lambda.function_urls, zipmap([\"r2_foo1_python39_1\",\"r2_foo2_python39_1\"," +
+                "\"r3_foo1_python39_1\",], [module.r2_foo1_python39.function_url,module.r2_foo2_python39.function_url," +
+                "module.r3_foo1_python39.function_url,]))\n" +
             "}\n"
         );
-    }
-
-    @Test
-    void getOutputsFileContentFaasEdge(Vertx vertx) {
-        RegionFaasFileService service = TestFileServiceProvider.createRegionFaasFileServiceFaasEdge(vertx.fileSystem());
-        service.getMainFileContent();
-        String result = service.getOutputsFileContent();
-
-        assertThat(result).isEqualTo(
-            "output \"function_urls\" {\n" +
-            "  value = module.faas.function_urls\n" +
-            "}\n"
-        );
-    }
-
-    @Test
-    void getOutputsFileContentVMEdge(Vertx vertx) {
-        RegionFaasFileService service = TestFileServiceProvider.createRegionFaasFileServiceVMEdge(vertx.fileSystem());
-        service.getMainFileContent();
-        String result = service.getOutputsFileContent();
-
-        assertThat(result).isEqualTo(
-        "output \"vm_props\" {\n" +
-            "  value = module.vm.vm_props\n" +
-            "  sensitive = true\n" +
-            "}\n" +
-            "output \"vm_urls\" {\n" +
-            "  value = zipmap([\"r2_foo1_python39\",\"r2_foo2_python39\",\"r3_foo1_python39\",], [module" +
-                ".r2_foo1_python39.function_url,module.r2_foo2_python39.function_url,module.r3_foo1_python39" +
-            ".function_url,])\n" +
-            "}\n"
-        );
-    }
-
-    @Test
-    void getOutputsFileContentEdge(Vertx vertx) {
-        RegionFaasFileService service = TestFileServiceProvider.createRegionFaasFileServiceEdge(vertx.fileSystem());
-        service.getMainFileContent();
-        String result = service.getOutputsFileContent();
-
-        assertThat(result).isEqualTo("");
     }
 
     @Test
     void getMainFileContent(Vertx vertx) {
         String rootFolder = Paths.get("temp\\test").toAbsolutePath().toString().replace("\\", "/");
-        RegionFaasFileService service = TestFileServiceProvider.createRegionFaasFileServiceFaasVMEdge(vertx.fileSystem());
+        RegionFaasFileService service = TestFileServiceProvider.createRegionFaasFileServiceAllFaas(vertx.fileSystem());
         String result = service.getMainFileContent();
         assertThat(result).isEqualTo(
             "provider \"aws\" {\n" +
@@ -168,8 +156,9 @@ public class RegionFaasFileServiceTest {
             "  token = var.session_token\n" +
             "  region = \"us-east-1\"\n" +
             "}\n" +
-            "module \"faas\" {\n" +
+            "module \"lambda\" {\n" +
             "  source = \"../../../terraform/aws/faas\"\n" +
+            "  deployment_id = 1\n" +
             "  names = [\"r1_foo1_python39_1\",]\n" +
             "  paths = [\"" + rootFolder + "/functions/foo1_python39.zip\",]\n" +
             "  handlers = [\"main.handler\",]\n" +
@@ -177,31 +166,45 @@ public class RegionFaasFileServiceTest {
             "  memory_sizes = [512.0,]\n" +
             "  layers = [[],]\n" +
             "  runtimes = [\"python39\",]\n" +
-            "  aws_role = \"LabRole\"\n" +
+            "  deployment_roles = [\"labRole\",]\n" +
             "}\n" +
-            "module \"vm\" {\n" +
+            "module \"ec2\" {\n" +
             "  source         = \"../../../terraform/aws/vm\"\n" +
-            "  reservation    = \"1\"\n" +
+            "  deployment_id  = 1\n" +
             "  names          = [\"resource_2\",]\n" +
             "  instance_types = [\"t2.micro\",]\n" +
             "  vpc_id         = \"vpc-id\"\n" +
             "  subnet_id      = \"subnet-id\"\n" +
             "}\n" +
             "module \"r2_foo1_python39\" {\n" +
-            "  openfaas_depends_on = module.vm\n" +
+            "  openfaas_depends_on = module.ec2\n" +
             "  source = \"../../../terraform/openfaas\"\n" +
             "  name = \"r2_foo1_python39_1\"\n" +
+            "  deployment_id = 1\n" +
             "  image = \"dockerUser/foo1_python39\"\n" +
             "  basic_auth_user = \"admin\"\n" +
-            "  vm_props = module.vm.vm_props[\"resource_2\"]\n" +
+            "  vm_props = module.ec2.vm_props[\"resource_2\"]\n" +
             "}\n" +
             "module \"r2_foo2_python39\" {\n" +
-            "  openfaas_depends_on = module.vm\n" +
+            "  openfaas_depends_on = module.ec2\n" +
             "  source = \"../../../terraform/openfaas\"\n" +
             "  name = \"r2_foo2_python39_1\"\n" +
+            "  deployment_id = 1\n" +
             "  image = \"dockerUser/foo2_python39\"\n" +
             "  basic_auth_user = \"admin\"\n" +
-            "  vm_props = module.vm.vm_props[\"resource_2\"]\n" +
+            "  vm_props = module.ec2.vm_props[\"resource_2\"]\n" +
+            "}\n" +
+            "module \"r3_foo1_python39\" {\n" +
+            "  openfaas_depends_on = 0\n" +
+            "  source = \"../../../terraform/openfaas\"\n" +
+            "  deployment_id = 1\n" +
+            "  name = \"r3_foo1_python39_1\"\n" +
+            "  image = \"dockerUser/foo1_python39\"\n" +
+            "  basic_auth_user = var.openfaas_login_data[\"r3\"].auth_user\n" +
+            "  vm_props = {\n" +
+            "    gateway_url = \"http://localhost:8080\"\n" +
+            "    auth_password = var.openfaas_login_data[\"r3\"].auth_pw\n" +
+            "  }\n" +
             "}\n"
         );
     }

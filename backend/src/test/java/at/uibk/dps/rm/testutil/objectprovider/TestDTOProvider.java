@@ -189,15 +189,15 @@ public class TestDTOProvider {
         return functionsToDeploy;
     }
 
-    public static DeploymentCredentials createDeploymentCredentialsAWSEdge() {
+    public static DeploymentCredentials createDeploymentCredentialsAWSOpenfaas() {
         ResourceProvider rp = TestResourceProviderProvider.createResourceProvider(1L);
         DeploymentCredentials deploymentCredentials = new DeploymentCredentials();
         if (System.getProperty("os.name").toLowerCase().contains("windows")) {
             deploymentCredentials
-                .setEdgeLoginCredentials("edge_login_data=[{auth_user=\\\"user\\\",auth_pw=\\\"pw\\\"},]");
+                .getOpenFaasCredentials().add("r1={auth_user=\\\"user\\\", auth_pw=\\\"pw\\\"}");
         } else {
             deploymentCredentials
-                .setEdgeLoginCredentials("edge_login_data=[{auth_user=\"user\",auth_pw=\"pw\"},]");
+                .getOpenFaasCredentials().add("r1={auth_user=\"user\", auth_pw=\"pw\"}");
         }
         deploymentCredentials.getCloudCredentials().add(TestAccountProvider.createCredentials(1L, rp));
         return deploymentCredentials;
@@ -216,12 +216,6 @@ public class TestDTOProvider {
         processOutput.setProcess(process);
         processOutput.setOutput(output);
         return processOutput;
-    }
-
-    public static TFOutput createEmptyTFOutput() {
-        TFOutput tfOutput = new TFOutput();
-        tfOutput.setValue(new HashMap<>());
-        return  tfOutput;
     }
 
     public static TFOutput createTFOutputFaas(String runtime) {

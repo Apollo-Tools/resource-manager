@@ -84,9 +84,10 @@ public class TestRequestProvider {
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");
         Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime);
         Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime);
-        Resource r1 = TestResourceProvider.createResourceFaaS(1L, region, 250.0, 512.0);
-        Resource r2 = TestResourceProvider.createResourceVM(2L, region, "t2.micro");
-        Resource r3 = TestResourceProvider.createResourceEdge(3L, "http://localhost:8080", "user", "pw");
+        Resource r1 = TestResourceProvider.createResourceLambda(1L, region, 250.0, 512.0);
+        Resource r2 = TestResourceProvider.createResourceEC2(2L, region, 100.0, 1024.0, "t2.micro");
+        Resource r3 = TestResourceProvider.createResourceOpenFaas(3L, 100.0, 512.0, "http://localhost:8080", "user",
+            "pw");
         Resource r4 = TestResourceProvider.createResourceContainer(3L, "http://localhost", true);
         FunctionDeployment fr1 = TestFunctionProvider.createFunctionDeployment(1L, f1, r1);
         FunctionDeployment fr2 = TestFunctionProvider.createFunctionDeployment(2L, f1, r2);

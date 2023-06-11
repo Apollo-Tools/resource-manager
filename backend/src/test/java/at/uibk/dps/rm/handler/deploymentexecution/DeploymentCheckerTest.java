@@ -89,7 +89,7 @@ public class DeploymentCheckerTest {
         DeployResourcesDAO deployRequest = TestRequestProvider.createDeployRequest();
         FunctionsToDeploy functionsToDeploy = TestDTOProvider.createFunctionsToDeploy();
         JsonObject log = JsonObject.mapFrom(TestLogProvider.createLog(1L));
-        DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWSEdge();
+        DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWSOpenfaas();
         DeploymentPath deploymentPath = new DeploymentPath(deployRequest.getDeployment().getDeploymentId(), config);
         ProcessOutput poDocker = TestDTOProvider.createProcessOutput(processMainTF, "docker");
         ProcessOutput poInit = TestDTOProvider.createProcessOutput(processMainTF, "init");
@@ -161,7 +161,7 @@ public class DeploymentCheckerTest {
         TerminateResourcesDAO terminateRequest = TestRequestProvider.createTerminateRequest();
         DeploymentPath deploymentPath = new DeploymentPath(terminateRequest.getDeployment().getDeploymentId(),
             config);
-        DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWSEdge();
+        DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWSOpenfaas();
         JsonObject log = JsonObject.mapFrom(TestLogProvider.createLog(1L));
         ProcessOutput poDestroy = TestDTOProvider.createProcessOutput(processMainTF, "destroy");
         ProcessOutput poContainer = TestDTOProvider.createProcessOutput(processContainer, "container");
@@ -213,7 +213,7 @@ public class DeploymentCheckerTest {
         TerminateResourcesDAO terminateRequest = TestRequestProvider.createTerminateRequest();
         DeploymentPath deploymentPath = new DeploymentPath(terminateRequest.getDeployment().getDeploymentId(),
             config);
-        DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWSEdge();
+        DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWSOpenfaas();
         ProcessOutput poDestroy = TestDTOProvider.createProcessOutput(null, "destroy");
 
         when(deploymentExecutionService.getNecessaryCredentials(terminateRequest)).thenReturn(Single.just(deploymentCredentials));

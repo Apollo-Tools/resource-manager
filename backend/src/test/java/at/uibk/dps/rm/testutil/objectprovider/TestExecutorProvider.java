@@ -20,8 +20,8 @@ public class TestExecutorProvider {
         return new TerraformExecutor(vertx);
     }
 
-    public static MainTerraformExecutor createTerraformExecutorAWSEdge(Vertx vertx) {
-        DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWSEdge();
+    public static MainTerraformExecutor createTerraformExecutorAWSOpenFaas(Vertx vertx) {
+        DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWSOpenfaas();
         return new MainTerraformExecutor(vertx, deploymentCredentials);
     }
 
@@ -30,15 +30,16 @@ public class TestExecutorProvider {
         return new MainTerraformExecutor(vertx, deploymentCredentials);
     }
 
-    public static List<String> tfCommandsWithCredsAWSEdge(String mainCommand) {
+    public static List<String> tfCommandsWithCredsAWSOpenFaas(String mainCommand) {
         List<String> commands = tfCommandsWithCredsAWS(mainCommand);
         String varSeparator = "", stringSperator = "\"";
         if (System.getProperty("os.name").toLowerCase().contains("windows")) {
             varSeparator = "\"";
             stringSperator = "\\\"";
         }
-        commands.set(commands.size() - 1, "-var="+ varSeparator + "edge_login_data=[{auth_user=" + stringSperator +
-            "user" + stringSperator +",auth_pw=" + stringSperator + "pw" + stringSperator + "}," + "]" + varSeparator);
+        commands.set(commands.size() - 1,
+            "-var="+ varSeparator + "openfaas_login_data={r1={auth_user=" + stringSperator + "user" + stringSperator +
+            ", auth_pw=" + stringSperator + "pw" + stringSperator + "}}" + varSeparator);
         return commands;
     }
 

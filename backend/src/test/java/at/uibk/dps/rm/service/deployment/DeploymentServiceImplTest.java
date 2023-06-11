@@ -51,7 +51,7 @@ import static org.mockito.BDDMockito.given;
 @ExtendWith(MockitoExtension.class)
 public class DeploymentServiceImplTest {
 
-    private DeploymentExecutionService deploymentService;
+    private DeploymentExecutionService deploymentExecutionService;
 
     @RegisterExtension
     private static final RunTestOnContext rtoc = new RunTestOnContext();
@@ -63,14 +63,14 @@ public class DeploymentServiceImplTest {
         rtoc.vertx();
         System.setProperty("os.name", "Linux");
         JsonMapperConfig.configJsonMapper();
-        deploymentService = new DeploymentExecutionServiceImpl();
+        deploymentExecutionService = new DeploymentExecutionServiceImpl();
     }
 
     @Test
     void getServiceProxyAddress() {
-        String expected = "deployment-service-address";
+        String expected = "deployment-execution-service-address";
 
-        String result = ((ServiceProxy) deploymentService).getServiceProxyAddress();
+        String result = ((ServiceProxy) deploymentExecutionService).getServiceProxyAddress();
 
         assertThat(result).isEqualTo(expected);
     }
@@ -84,7 +84,7 @@ public class DeploymentServiceImplTest {
             (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
             try (MockedConstruction<FunctionPrepareService> ignored = Mockito.mockConstruction(FunctionPrepareService.class,
                 (mock, context) -> given(mock.packageCode()).willReturn(Single.just(functionsToDeploy)))) {
-                deploymentService.packageFunctionsCode(deployRequest)
+                deploymentExecutionService.packageFunctionsCode(deployRequest)
                     .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                         assertThat(result.getFunctionIdentifiers().size()).isEqualTo(2);
                         assertThat(result.getFunctionIdentifiers().get(0)).isEqualTo("foo1_python39");
@@ -114,7 +114,7 @@ public class DeploymentServiceImplTest {
                          given(mock.setUpTFModuleDirs()).willReturn(Single.just(List.of(m1, m2))))) {
                 try (MockedConstruction<MainFileService> ignoredMFS = Mockito.mockConstruction(MainFileService.class,
                     (mock, context) -> given(mock.setUpDirectory()).willReturn(Completable.complete()))) {
-                    deploymentService.setUpTFModules(deployRequest)
+                    deploymentExecutionService.setUpTFModules(deployRequest)
                         .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                             assertThat(result.getEdgeLoginCredentials()).isEqualTo("");
                             assertThat(result.getCloudCredentials().size()).isEqualTo(0);
@@ -140,7 +140,7 @@ public class DeploymentServiceImplTest {
                          given(mock.setUpTFModuleDirs()).willReturn(Single.just(List.of(m1, m2))))) {
                 try (MockedConstruction<MainFileService> ignoredMFS = Mockito.mockConstruction(MainFileService.class,
                     (mock, context) -> given(mock.setUpDirectory()).willReturn(Completable.error(RuntimeException::new)))) {
-                    deploymentService.setUpTFModules(deployRequest)
+                    deploymentExecutionService.setUpTFModules(deployRequest)
                         .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
                             assertThat(throwable).isInstanceOf(RuntimeException.class);
                             testContext.completeNow();
@@ -159,7 +159,7 @@ public class DeploymentServiceImplTest {
             try (MockedConstruction<TerraformSetupService> ignoredTFS =
                      Mockito.mockConstruction(TerraformSetupService.class, (mock, context) ->
                          given(mock.setUpTFModuleDirs()).willReturn(Single.error(RuntimeException::new)))) {
-                deploymentService.setUpTFModules(deployRequest)
+                deploymentExecutionService.setUpTFModules(deployRequest)
                     .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
                         assertThat(throwable).isInstanceOf(RuntimeException.class);
                         testContext.completeNow();
@@ -171,17 +171,17 @@ public class DeploymentServiceImplTest {
     @Test
     void getNecessaryCredentials(VertxTestContext testContext) {
         TerminateResourcesDAO terminateRequest = TestRequestProvider.createTerminateRequest();
-        DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWSEdge();
+        DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWSOpenfaas();
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockito.mockConstruction(ConfigUtility.class,
             (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
             try (MockedConstruction<TerraformSetupService> ignoredTFS =
                      Mockito.mockConstruction(TerraformSetupService.class, (mock, context) ->
                          given(mock.getTerminationCredentials()).willReturn(Single.just(deploymentCredentials)))) {
-                deploymentService.getNecessaryCredentials(terminateRequest)
+                deploymentExecutionService.getNecessaryCredentials(terminateRequest)
                     .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                        assertThat(result.getEdgeLoginCredentials())
-                            .isEqualTo("edge_login_data=[{auth_user=\"user\",auth_pw=\"pw\"},]");
+                        assertThat(result.getOpenFaasCredentialsString())
+                            .isEqualTo("openfaas_login_data={r1={auth_user=\"user\", auth_pw=\"pw\"}}");
                         assertThat(result.getCloudCredentials().size()).isEqualTo(1);
                         assertThat(result.getCloudCredentials().get(0).getCredentialsId()).isEqualTo(1L);
                         testContext.completeNow();
@@ -199,7 +199,7 @@ public class DeploymentServiceImplTest {
             try (MockedConstruction<TerraformSetupService> ignoredTFS =
                      Mockito.mockConstruction(TerraformSetupService.class, (mock, context) ->
                          given(mock.getTerminationCredentials()).willReturn(Single.error(IllegalStateException::new)))) {
-                deploymentService.getNecessaryCredentials(terminateRequest)
+                deploymentExecutionService.getNecessaryCredentials(terminateRequest)
                     .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
                         assertThat(throwable).isInstanceOf(IllegalStateException.class);
                         testContext.completeNow();
@@ -218,7 +218,7 @@ public class DeploymentServiceImplTest {
             try (MockedStatic<TerraformFileService> mockedStatic = Mockito.mockStatic(TerraformFileService.class)) {
                 mockedStatic.when(() -> TerraformFileService.deleteAllDirs(any(), eq(rootFolder)))
                     .thenReturn(Completable.complete());
-                deploymentService.deleteTFDirs(reservationId)
+                deploymentExecutionService.deleteTFDirs(reservationId)
                     .onComplete(testContext.succeedingThenComplete());
             }
         }
@@ -236,7 +236,7 @@ public class DeploymentServiceImplTest {
             try (MockedStatic<TerraformFileService> mockedStatic = Mockito.mockStatic(TerraformFileService.class)) {
                 mockedStatic.when(() -> TerraformFileService.deleteAllDirs(any(), eq(rootFolder)))
                     .thenReturn(Completable.error(IOException::new));
-                deploymentService.deleteTFDirs(reservationId)
+                deploymentExecutionService.deleteTFDirs(reservationId)
                     .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
                         assertThat(throwable).isInstanceOf(IOException.class);
                         testContext.completeNow();

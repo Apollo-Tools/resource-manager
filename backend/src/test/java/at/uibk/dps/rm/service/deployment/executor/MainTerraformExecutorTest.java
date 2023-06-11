@@ -48,9 +48,9 @@ public class MainTerraformExecutorTest {
     @Test
     void apply(VertxTestContext testContext) {
         DeploymentPath deploymentPath = new DeploymentPath(1L, config);
-        MainTerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSEdge(vertx);
+        MainTerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSOpenFaas(vertx);
         ProcessOutput processOutput = TestDTOProvider.createProcessOutput(process, "output");
-        List<String> commands = TestExecutorProvider.tfCommandsWithCredsAWSEdge("apply");
+        List<String> commands = TestExecutorProvider.tfCommandsWithCredsAWSOpenFaas("apply");
 
         try (MockedConstruction<ProcessExecutor> ignored = Mockprovider.mockProcessExecutor(deploymentPath,
                 processOutput, commands)) {
@@ -67,7 +67,7 @@ public class MainTerraformExecutorTest {
     @Test
     void getOutput(VertxTestContext testContext) {
         DeploymentPath deploymentPath = new DeploymentPath(1L, config);
-        MainTerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSEdge(vertx);
+        MainTerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSOpenFaas(vertx);
         ProcessOutput processOutput = TestDTOProvider.createProcessOutput(process, "output");
         List<String> commands = List.of("terraform", "output", "--json");
 
@@ -86,9 +86,9 @@ public class MainTerraformExecutorTest {
     @Test
     void destroy(VertxTestContext testContext) {
         DeploymentPath deploymentPath = new DeploymentPath(1L, config);
-        MainTerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSEdge(vertx);
+        MainTerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSOpenFaas(vertx);
         ProcessOutput processOutput = TestDTOProvider.createProcessOutput(process, "output");
-        List<String> commands = TestExecutorProvider.tfCommandsWithCredsAWSEdge("destroy");
+        List<String> commands = TestExecutorProvider.tfCommandsWithCredsAWSOpenFaas("destroy");
 
         try (MockedConstruction<ProcessExecutor> ignored = Mockprovider.mockProcessExecutor(deploymentPath,
                 processOutput, commands)) {
@@ -126,11 +126,11 @@ public class MainTerraformExecutorTest {
         "Windows, \"\"",
         "Linux, \"\"",
     })
-    void getEdgeCredentialsCommand(String os) {
+    void getOpenFaasCredentialsCommand(String os) {
         System.setProperty("os.name", os);
-        MainTerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSEdge(vertx);
-        String expectedOutput = os.equals("Windows") ? "-var=\"edge_login_data=[{auth_user=\\\"user\\\"," +
-            "auth_pw=\\\"pw\\\"},]\"" : "-var=edge_login_data=[{auth_user=\"user\",auth_pw=\"pw\"},]";
+        MainTerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSOpenFaas(vertx);
+        String expectedOutput = os.equals("Windows") ? "-var=\"openfaas_login_data={r1={auth_user=\\\"user\\\", " +
+            "auth_pw=\\\"pw\\\"}}\"" : "-var=openfaas_login_data={r1={auth_user=\"user\", auth_pw=\"pw\"}}";
 
         String result = terraformExecutor.getOpenFaasCredentialsCommand();
 

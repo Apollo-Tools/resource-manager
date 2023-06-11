@@ -51,7 +51,7 @@ public class EC2DeploymentData {
                 "  image = \"%s/%s\"\n" +
                 "  basic_auth_user = \"admin\"\n" +
                 "  vm_props = module.ec2.vm_props[\"%s\"]\n" +
-                "}\n", resourceId, functionIdentifier, deploymentId, resourceId, functionIdentifier, deploymentId,
+                "}\n", resourceId, functionIdentifier, resourceId, functionIdentifier, deploymentId, deploymentId,
             dockerUserName, functionIdentifier, resourceName
         );
     }

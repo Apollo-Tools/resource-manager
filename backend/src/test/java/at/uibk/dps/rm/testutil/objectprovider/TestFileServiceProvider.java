@@ -40,50 +40,20 @@ public class TestFileServiceProvider {
             reservationId, module, dockerUserName, vpc);
     }
 
-    public static RegionFaasFileService createRegionFaasFileServiceFaasVMEdge(FileSystem fileSystem, Runtime runtime) {
+    public static RegionFaasFileService createRegionFaasFileServiceAllFaas(FileSystem fileSystem, Runtime runtime) {
         ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
-        Resource r1 = TestResourceProvider.createResourceFaaS(1L, region, 250.0, 512.0);
-        Resource r2 = TestResourceProvider.createResourceVM(2L, region, "t2.micro");
-        Resource r3 = TestResourceProvider.createResourceEdge(3L, "http://localhost:8080", "user", "pw");
+        Resource r1 = TestResourceProvider.createResourceLambda(1L, region, 250.0, 512.0);
+        Resource r2 = TestResourceProvider.createResourceEC2(2L, region, 100.0, 1024.0, "t2.micro");
+        Resource r3 = TestResourceProvider.createResourceOpenFaas(3L, region, 100.0, 512.0, "http://localhost:8080",
+            "user", "pw");
         return createRegionFaasFileService(fileSystem, r1, r2, r3, runtime, region);
     }
 
-    public static RegionFaasFileService createRegionFaasFileServiceFaasVMEdge(FileSystem fileSystem) {
+    public static RegionFaasFileService createRegionFaasFileServiceAllFaas(FileSystem fileSystem) {
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");
-        return createRegionFaasFileServiceFaasVMEdge(fileSystem, runtime);
+        return createRegionFaasFileServiceAllFaas(fileSystem, runtime);
     }
-
-    public static RegionFaasFileService createRegionFaasFileServiceFaasEdge(FileSystem fileSystem) {
-        ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
-        Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
-        Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");
-        Resource r1 = TestResourceProvider.createResourceEdge(1L, "http://localhost:8080", "user", "pw");
-        Resource r2 = TestResourceProvider.createResourceFaaS(1L, region, 250.0, 512.0);
-        Resource r3 = TestResourceProvider.createResourceEdge(3L, "http://localhost:8082", "user", "pw");
-        return createRegionFaasFileService(fileSystem, r1, r2, r3, runtime, region);
-    }
-
-    public static RegionFaasFileService createRegionFaasFileServiceVMEdge(FileSystem fileSystem) {
-        ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
-        Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
-        Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");
-        Resource r1 = TestResourceProvider.createResourceEdge(1L, "http://localhost:8080", "user", "pw");
-        Resource r2 = TestResourceProvider.createResourceVM(2L, region, "t2.micro");
-        Resource r3 = TestResourceProvider.createResourceVM(3L, region, "t3.micro");
-        return createRegionFaasFileService(fileSystem, r1, r2, r3, runtime, region);
-    }
-
-    public static RegionFaasFileService createRegionFaasFileServiceEdge(FileSystem fileSystem) {
-        ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
-        Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
-        Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");
-        Resource r1 = TestResourceProvider.createResourceEdge(1L, "http://localhost:8081", "user1", "pw1");
-        Resource r2 = TestResourceProvider.createResourceEdge(2L, "http://localhost:8082", "user2", "pw2");
-        Resource r3 = TestResourceProvider.createResourceEdge(3L, "http://localhost:8083", "user3", "pw3");
-        return createRegionFaasFileService(fileSystem, r1, r2, r3, runtime, region);
-    }
-
 
     public static FunctionPrepareService createFunctionFileService(Vertx vertx, Resource r1, Resource r2, Function f1,
                                                                 Function f2) {
@@ -106,38 +76,38 @@ public class TestFileServiceProvider {
         return new FunctionPrepareService(vertx, functionReservations, functionsDir, credentials);
     }
 
-    public static FunctionPrepareService createFunctionFileServiceFaasVMPython(Vertx vertx) {
+    public static FunctionPrepareService createFunctionFileServiceLambdaEc2Python(Vertx vertx) {
         ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");
         Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime);
         Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime);
-        Resource r1 = TestResourceProvider.createResourceFaaS(1L, region, 250.0, 512.0);
-        Resource r2 = TestResourceProvider.createResourceVM(2L, region, "t2.micro");
+        Resource r1 = TestResourceProvider.createResourceLambda(1L, region, 250.0, 512.0);
+        Resource r2 = TestResourceProvider.createResourceEC2(2L, region, 150.0, 1024.0,"t2.micro");
         return createFunctionFileService(vertx, r1, r2, f1, f2);
     }
 
-    public static FunctionPrepareService createFunctionFileServiceVMEdgePython(Vertx vertx) {
+    public static FunctionPrepareService createFunctionFileServiceEC2OpenFaasPython(Vertx vertx) {
         ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");
         Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime);
         Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime);
-        Resource r1 = TestResourceProvider.createResourceEdge(1L, "http://localhost:8081", "user1",
-            "pw1");
-        Resource r2 = TestResourceProvider.createResourceVM(2L, region, "t2.micro");
+        Resource r1 = TestResourceProvider.createResourceOpenFaas(1L,  region, 400.0, 200.0,
+            "http://localhost:8081", "user1", "pw1");
+        Resource r2 = TestResourceProvider.createResourceEC2(2L, region, 100.0, 1024.0, "t2.micro");
         return createFunctionFileService(vertx, r1, r2, f1, f2);
     }
 
-    public static FunctionPrepareService createFunctionFileServiceVMEdgeInvalidRuntime(Vertx vertx) {
+    public static FunctionPrepareService createFunctionFileServiceEC2OpenFaasInvalidRuntime(Vertx vertx) {
         ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "invalid");
         Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime);
         Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime);
-        Resource r1 = TestResourceProvider.createResourceEdge(1L, "http://localhost:8081", "user1",
-            "pw1");
-        Resource r2 = TestResourceProvider.createResourceVM(2L, region, "t2.micro");
+        Resource r1 = TestResourceProvider.createResourceOpenFaas(1L,  region, 400.0, 200.0,
+            "http://localhost:8081", "user1", "pw1");
+        Resource r2 = TestResourceProvider.createResourceEC2(2L, region, 100.0, 1024.0, "t2.micro");
         return createFunctionFileService(vertx, r1, r2, f1, f2);
     }
 
@@ -146,9 +116,9 @@ public class TestFileServiceProvider {
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");
         Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime);
-        Resource r1 = TestResourceProvider.createResourceEdge(1L, "http://localhost:8081", "user1",
-            "pw1");
-        Resource r2 = TestResourceProvider.createResourceVM(2L, region, "t2.micro");
+        Resource r1 = TestResourceProvider.createResourceOpenFaas(1L,  region, 400.0, 200.0,
+            "http://localhost:8081", "user1", "pw1");
+        Resource r2 = TestResourceProvider.createResourceEC2(2L, region, 100.0, 1024.0, "t2.micro");
         return createFunctionFileService(vertx, r1, r2, f1, f1);
     }
 

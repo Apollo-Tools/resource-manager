@@ -29,7 +29,7 @@ public class DeploymentExecutionServiceImpl extends ServiceProxy implements Depl
 
     @Override
     public String getServiceProxyAddress() {
-        return "deployment" + super.getServiceProxyAddress();
+        return "deployment-execution" + super.getServiceProxyAddress();
     }
 
     @Override

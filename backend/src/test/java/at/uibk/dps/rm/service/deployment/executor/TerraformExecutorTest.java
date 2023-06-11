@@ -67,7 +67,7 @@ public class TerraformExecutorTest {
         Buffer fileContent = Buffer.buffer("plugin_cache_dir = \"" +
             cacheFolderPath.toString().replace("\\", "/") + "\"");
         String configPath = Paths.get("terraform", "config.tfrc").toString();
-        MainTerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSEdge(vertx);
+        MainTerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSOpenFaas(vertx);
         when(vertx.fileSystem()).thenReturn(fileSystem);
         when(fileSystem.mkdirs(cacheFolderPath.toString())).thenReturn(Completable.complete());
         when(fileSystem.writeFile(configPath, fileContent)).thenReturn(Completable.complete());
