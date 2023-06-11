@@ -42,11 +42,14 @@ public class RegionFaasFileServiceTest {
         RegionFaasFileService service = TestFileServiceProvider.createRegionFaasFileServiceAllFaas(vertx.fileSystem());
         String result = service.getFunctionsModuleString();
 
-        assertThat(result).isEqualTo("module \"lambda\" {\n" +
+        String f1 = "foo1_python39";
+        String functionsPath = Paths.get("temp\\test\\functions").toAbsolutePath().toString();
+        String r1f1Path = (functionsPath + "\\" + f1 + ".zip").replace("\\", "/");
+        assertThat(result).isEqualTo(String.format("module \"lambda\" {\n" +
             "  source = \"../../../terraform/aws/faas\"\n" +
             "  deployment_id = 1\n" +
             "  names = [\"r1_foo1_python39_1\",]\n" +
-            "  paths = [\"D:/Unistuff/Masterarbeit/resource-manager/backend/temp/test/functions/foo1_python39.zip\",]\n" +
+            "  paths = [\"%s\",]\n" +
             "  handlers = [\"main.handler\",]\n" +
             "  timeouts = [250.0,]\n" +
             "  memory_sizes = [512.0,]\n" +
@@ -91,7 +94,7 @@ public class RegionFaasFileServiceTest {
             "    gateway_url = \"http://localhost:8080\"\n" +
             "    auth_password = var.openfaas_login_data[\"r3\"].auth_pw\n" +
             "  }\n" +
-            "}\n");
+            "}\n", r1f1Path));
     }
 
     @Test
