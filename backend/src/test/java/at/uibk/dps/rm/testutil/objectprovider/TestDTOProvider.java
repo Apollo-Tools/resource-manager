@@ -261,9 +261,11 @@ public class TestDTOProvider {
 
     public static SLORequest createSLORequest() {
         SLORequest request = new ListResourcesBySLOsRequest();
-        request.setProviders(List.of(1L, 2L));
-        request.setRegions(List.of(3L, 4L));
+        request.setEnvironments(List.of(1L));
         request.setResourceTypes(List.of(5L));
+        request.setPlatforms(List.of(3L, 4L));
+        request.setRegions(List.of(1L, 2L));
+        request.setProviders(List.of(5L));
         ServiceLevelObjective slo1 = new ServiceLevelObjective("availability", ExpressionType.GT,
                 createSLOValueList(0.8));
         request.setServiceLevelObjectives(List.of(slo1));
@@ -273,9 +275,12 @@ public class TestDTOProvider {
     public static CreateEnsembleRequest createCreateEnsembleRequest(long... resourceIds) {
         CreateEnsembleRequest request = new CreateEnsembleRequest();
         request.setName("ensemble");
-        request.setProviders(List.of(1L, 2L));
-        request.setRegions(List.of(3L, 4L));
+        request.setEnvironments(List.of(1L));
         request.setResourceTypes(List.of(5L));
+        request.setPlatforms(List.of(3L, 4L));
+        request.setRegions(List.of(1L, 2L));
+        request.setProviders(List.of(5L));
+
         ServiceLevelObjective slo1 = new ServiceLevelObjective("availability", ExpressionType.GT,
                 createSLOValueList(0.8));
         request.setServiceLevelObjectives(List.of(slo1));
@@ -293,9 +298,11 @@ public class TestDTOProvider {
         GetOneEnsemble getOneEnsemble = new GetOneEnsemble();
         getOneEnsemble.setEnsembleId(1L);
         getOneEnsemble.setName("ensemble");
-        getOneEnsemble.setProviders(List.of(1L, 2L));
-        getOneEnsemble.setRegions(List.of(3L, 4L));
+        getOneEnsemble.setEnvironments(List.of(1L));
         getOneEnsemble.setResourceTypes(List.of(5L));
+        getOneEnsemble.setPlatforms(List.of(3L, 4L));
+        getOneEnsemble.setRegions(List.of(1L, 2L));
+        getOneEnsemble.setProviders(List.of(5L));
         ServiceLevelObjective slo1 = new ServiceLevelObjective("availability", ExpressionType.GT,
                 createSLOValueList(0.8));
         getOneEnsemble.setServiceLevelObjectives(Stream.of(slo1).collect(Collectors.toList()));

@@ -32,7 +32,7 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class ServiceReservationImplTest {
+public class ServiceDeploymentImplTest {
 
     private ServiceDeploymentService service;
 
@@ -46,39 +46,37 @@ public class ServiceReservationImplTest {
     }
 
     @Test
-    void findAllByReservationId(VertxTestContext testContext) {
-        long reservationId = 1L;
+    void findAllByDeploymentId(VertxTestContext testContext) {
+        long deploymentId = 1L;
         ServiceDeployment entity1 = TestServiceProvider.createServiceDeployment(4L, new Deployment());
         ServiceDeployment entity2 = TestServiceProvider.createServiceDeployment(5L, new Deployment());
         List<ServiceDeployment> resultList = new ArrayList<>();
         resultList.add(entity1);
         resultList.add(entity2);
         CompletionStage<List<ServiceDeployment>> completionStage = CompletionStages.completedFuture(resultList);
-        when(repository.findAllByDeploymentId(reservationId)).thenReturn(completionStage);
+        when(repository.findAllByDeploymentId(deploymentId)).thenReturn(completionStage);
 
-        service.findAllByDeploymentId(reservationId)
+        service.findAllByDeploymentId(deploymentId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
 
                 for (int i = 0; i < 2; i++) {
                     JsonObject resultJson = result.getJsonObject(i);
-                    assertThat(resultJson.getLong("resource_reservation_id")).isEqualTo(i + 4);
-                    assertThat(resultJson.getJsonObject("reservation")).isNull();
-                    assertThat(resultJson.getJsonObject("resource"))
-                        .isNull();
+                    assertThat(resultJson.getLong("resource_deployment_id")).isEqualTo(i + 4);
+                    assertThat(resultJson.getJsonObject("deployment")).isNull();
                 }
                 testContext.completeNow();
             })));
     }
 
     @Test
-    void findAllByReservationIdEmpty(VertxTestContext testContext) {
-        long resourceId = 1L;
+    void findAllByDeploymentIdEmpty(VertxTestContext testContext) {
+        long deploymentId = 1L;
         List<ServiceDeployment> resultList = new ArrayList<>();
         CompletionStage<List<ServiceDeployment>> completionStage = CompletionStages.completedFuture(resultList);
-        when(repository.findAllByDeploymentId(resourceId)).thenReturn(completionStage);
+        when(repository.findAllByDeploymentId(deploymentId)).thenReturn(completionStage);
 
-        service.findAllByDeploymentId(resourceId)
+        service.findAllByDeploymentId(deploymentId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(0);
                 testContext.completeNow();
@@ -88,14 +86,14 @@ public class ServiceReservationImplTest {
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void existsReadyForContainerStartupAndTermination(boolean exists, VertxTestContext testContext) {
-        long reservationId = 1L, resourceReservationId = 2L, accountId = 3L;
+        long deploymentId = 1L, resourceDeploymentId = 2L, accountId = 3L;
         CompletionStage<ServiceDeployment> completionStage = CompletionStages.completedFuture(exists ?
             new ServiceDeployment() : null);
 
-        when(repository.findOneByDeploymentStatus(reservationId, resourceReservationId, accountId,
+        when(repository.findOneByDeploymentStatus(deploymentId, resourceDeploymentId, accountId,
             DeploymentStatusValue.DEPLOYED)).thenReturn(completionStage);
 
-        service.existsReadyForContainerStartupAndTermination(reservationId, resourceReservationId, accountId)
+        service.existsReadyForContainerStartupAndTermination(deploymentId, resourceDeploymentId, accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isEqualTo(exists);
                 testContext.completeNow();

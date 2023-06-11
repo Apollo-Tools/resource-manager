@@ -119,9 +119,9 @@ public class VPCCheckerTest {
     void checkVPCForFunctionResources(VertxTestContext testContext) {
         long accountId = 1L;
         Region aws = TestResourceProviderProvider.createRegion(1L, "aws");
-        Resource r1 = TestResourceProvider.createResourceVM(1L, aws, "t2.micro");
-        Resource r2 = TestResourceProvider.createResourceVM(2L, aws, "t1.mini");
-        Resource r3 = TestResourceProvider.createResourceEdge(3L, "url", "user", "pw");
+        Resource r1 = TestResourceProvider.createResourceEC2(1L, aws, 300.0,200.0, "t2.micro");
+        Resource r2 = TestResourceProvider.createResourceEC2(2L, aws, 300.0,200.0, "t1.mini");
+        Resource r3 = TestResourceProvider.createResourceOpenFaas(3L, aws, 300.0,200.0,"url", "user", "pw");
         JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1), JsonObject.mapFrom(r2),
             JsonObject.mapFrom(r3)));
         JsonObject vpc = JsonObject.mapFrom(TestResourceProviderProvider.createVPC(11L, aws));
@@ -139,9 +139,9 @@ public class VPCCheckerTest {
     }
 
     @Test
-    void checkVPCForFunctionResourcesOnlyEdge(VertxTestContext testContext) {
+    void checkVPCForFunctionResourcesNoEc2(VertxTestContext testContext) {
         long accountId = 1L;
-        Resource r1 = TestResourceProvider.createResourceEdge(2L, "url", "user", "pw");
+        Resource r1 = TestResourceProvider.createResourceOpenFaas(3L,300.0,200.0,"url", "user", "pw");
         JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1)));
 
         vpcChecker.checkVPCForFunctionResources(accountId, resources)
@@ -172,7 +172,7 @@ public class VPCCheckerTest {
     void checkVPCForFunctionResourcesNotFound(VertxTestContext testContext) {
         long accountId = 1L;
         Region aws = TestResourceProviderProvider.createRegion(1L, "aws");
-        Resource r1 = TestResourceProvider.createResourceVM(1L, aws, "t2.micro");
+        Resource r1 = TestResourceProvider.createResourceEC2(1L, aws, 300.0,200.0, "t2.micro");
         JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1)));
         Single<JsonObject> handler = SingleHelper.getEmptySingle();
 

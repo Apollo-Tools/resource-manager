@@ -29,7 +29,7 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class FunctionReservationServiceImplTest {
+public class FunctionDeploymentServiceImplTest {
 
     private FunctionDeploymentService service;
 
@@ -43,33 +43,31 @@ public class FunctionReservationServiceImplTest {
     }
 
     @Test
-    void findAllByReservationId(VertxTestContext testContext) {
-        long reservationId = 1L;
+    void findAllByDeploymentId(VertxTestContext testContext) {
+        long deploymentId = 1L;
         FunctionDeployment entity1 = TestFunctionProvider.createFunctionDeployment(4L, new Deployment());
         FunctionDeployment entity2 = TestFunctionProvider.createFunctionDeployment(5L, new Deployment());
         List<FunctionDeployment> resultList = new ArrayList<>();
         resultList.add(entity1);
         resultList.add(entity2);
         CompletionStage<List<FunctionDeployment>> completionStage = CompletionStages.completedFuture(resultList);
-        when(repository.findAllByDeploymentId(reservationId)).thenReturn(completionStage);
+        when(repository.findAllByDeploymentId(deploymentId)).thenReturn(completionStage);
 
-        service.findAllByDeploymentId(reservationId)
+        service.findAllByDeploymentId(deploymentId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
 
                 for (int i = 0; i < 2; i++) {
                     JsonObject resultJson = result.getJsonObject(i);
-                    assertThat(resultJson.getLong("resource_reservation_id")).isEqualTo(i + 4);
-                    assertThat(resultJson.getJsonObject("reservation")).isNull();
-                    assertThat(resultJson.getJsonObject("resource"))
-                        .isNull();
+                    assertThat(resultJson.getLong("resource_deployment_id")).isEqualTo(i + 4);
+                    assertThat(resultJson.getJsonObject("deployment")).isNull();
                 }
                 testContext.completeNow();
             })));
     }
 
     @Test
-    void findAllByReservationIdEmpty(VertxTestContext testContext) {
+    void findAllByDeploymentIdEmpty(VertxTestContext testContext) {
         long resourceId = 1L;
         List<FunctionDeployment> resultList = new ArrayList<>();
         CompletionStage<List<FunctionDeployment>> completionStage = CompletionStages.completedFuture(resultList);

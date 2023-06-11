@@ -30,38 +30,38 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class ResourceReservationServiceImplTest {
+public class ResourceDeploymentServiceImplTest {
 
-    private ResourceDeploymentService resourceReservationService;
+    private ResourceDeploymentService service;
 
     @Mock
-    ResourceDeploymentRepository resourceReservationRepository;
+    ResourceDeploymentRepository repository;
 
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        resourceReservationService = new ResourceDeploymentServiceImpl(resourceReservationRepository);
+        service = new ResourceDeploymentServiceImpl(repository);
     }
 
     @Test
-    void findAllByReservationId(VertxTestContext testContext) {
-        long reservationId = 1L;
+    void findAllByDeploymentId(VertxTestContext testContext) {
+        long deploymentId = 1L;
         ResourceDeployment entity1 = TestFunctionProvider.createFunctionDeployment(4L, new Deployment());
         ResourceDeployment entity2 = TestServiceProvider.createServiceDeployment(5L, new Deployment());
         List<ResourceDeployment> resultList = new ArrayList<>();
         resultList.add(entity1);
         resultList.add(entity2);
         CompletionStage<List<ResourceDeployment>> completionStage = CompletionStages.completedFuture(resultList);
-        when(resourceReservationRepository.findAllByDeploymentId(reservationId)).thenReturn(completionStage);
+        when(repository.findAllByDeploymentId(deploymentId)).thenReturn(completionStage);
 
-        resourceReservationService.findAllByDeploymentId(reservationId)
+        service.findAllByDeploymentId(deploymentId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
 
                 for (int i = 0; i < 2; i++) {
                     JsonObject resultJson = result.getJsonObject(i);
-                    assertThat(resultJson.getLong("resource_reservation_id")).isEqualTo(i + 4);
-                    assertThat(resultJson.getJsonObject("reservation")).isNull();
+                    assertThat(resultJson.getLong("resource_deployment_id")).isEqualTo(i + 4);
+                    assertThat(resultJson.getJsonObject("deployment")).isNull();
                     assertThat(resultJson.getJsonObject("resource"))
                         .isNull();
                 }
@@ -70,16 +70,16 @@ public class ResourceReservationServiceImplTest {
     }
 
     @Test
-    void findAllByReservationIdEmpty(VertxTestContext testContext) {
-        long resourceId = 1L;
+    void findAllByDeploymentIdEmpty(VertxTestContext testContext) {
+        long deploymentId = 1L;
         List<ResourceDeployment> resultList = new ArrayList<>();
         CompletionStage<List<ResourceDeployment>> completionStage = CompletionStages.completedFuture(resultList);
-        when(resourceReservationRepository.findAllByDeploymentId(resourceId)).thenReturn(completionStage);
+        when(repository.findAllByDeploymentId(deploymentId)).thenReturn(completionStage);
 
-        resourceReservationService.findAllByDeploymentId(resourceId)
+        service.findAllByDeploymentId(deploymentId)
                 .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(0);
-                    verify(resourceReservationRepository).findAllByDeploymentId(resourceId);
+                    verify(repository).findAllByDeploymentId(deploymentId);
                     testContext.completeNow();
                 })));
     }
@@ -90,10 +90,10 @@ public class ResourceReservationServiceImplTest {
         String triggerUrl = "url";
         CompletionStage<Integer> completionStage = CompletionStages.completedFuture(1);
 
-        when(resourceReservationRepository.updateTriggerUrl(functionResourceId, triggerUrl))
+        when(repository.updateTriggerUrl(functionResourceId, triggerUrl))
             .thenReturn(completionStage);
 
-        resourceReservationService.updateTriggerUrl(functionResourceId, triggerUrl)
+        service.updateTriggerUrl(functionResourceId, triggerUrl)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
                 testContext.completeNow();
@@ -101,15 +101,15 @@ public class ResourceReservationServiceImplTest {
     }
 
     @Test
-    void updateSetStatusByReservationId(VertxTestContext testContext) {
-        long reservationId = 1L;
+    void updateSetStatusByDeploymentId(VertxTestContext testContext) {
+        long deploymentId = 1L;
         DeploymentStatusValue statusValue = DeploymentStatusValue.NEW;
         CompletionStage<Integer> completionStage = CompletionStages.completedFuture(1);
 
-        when(resourceReservationRepository.updateDeploymentStatusByDeploymentId(reservationId, statusValue))
+        when(repository.updateDeploymentStatusByDeploymentId(deploymentId, statusValue))
             .thenReturn(completionStage);
 
-        resourceReservationService.updateSetStatusByDeploymentId(reservationId, statusValue)
+        service.updateSetStatusByDeploymentId(deploymentId, statusValue)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
                 testContext.completeNow();

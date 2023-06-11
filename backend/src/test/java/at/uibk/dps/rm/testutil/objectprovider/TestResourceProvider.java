@@ -17,27 +17,28 @@ import java.util.Set;
  */
 @UtilityClass
 public class TestResourceProvider {
-    public static Resource createResource(long id, ResourceType resourceType, Region region) {
+    public static Resource createResource(long id, Platform platform, Region region) {
         Resource resource = new Resource();
         resource.setResourceId(id);
         resource.setRegion(region);
+        resource.setPlatform(platform);
         return resource;
     }
 
-    public static Resource createResource(long id, ResourceType resourceType) {
+    public static Resource createResource(long id, Platform platform) {
         ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L);
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
-        return createResource(id, resourceType, region);
+        return createResource(id, platform, region);
     }
 
     public static Resource createResource(long resourceId) {
-        ResourceType resourceType = createResourceType(1L, "cloud");
-        return createResource(resourceId, resourceType);
+        Platform platform = TestPlatformProvider.createPlatformFaas(1L, "lambda");
+        return createResource(resourceId, platform);
     }
 
     public static Resource createResource(long resourceId, Region region) {
-        ResourceType resourceType = createResourceType(1L, "cloud");
-        return createResource(resourceId, resourceType, region);
+        Platform platform = TestPlatformProvider.createPlatformFaas(1L, "lambda");
+        return createResource(resourceId, platform, region);
     }
 
     public static Resource createResourceLambda(long id, Region region, Double timeout, Double memorySize) {

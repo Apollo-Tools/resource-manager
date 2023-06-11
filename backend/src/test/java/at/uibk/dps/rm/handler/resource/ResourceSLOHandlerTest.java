@@ -363,9 +363,11 @@ public class ResourceSLOHandlerTest {
         MetricValue mv5 = TestMetricProvider.createMetricValue(5L, 2L, "availability", 0.999);
         JsonArray resourcesJson = new JsonArray(List.of(JsonObject.mapFrom(resource1), JsonObject.mapFrom(resource2),
                 JsonObject.mapFrom(resource3)));
-        resourcesJson.getJsonObject(0).put("metric_values", new JsonArray(List.of(JsonObject.mapFrom(mv1), JsonObject.mapFrom(mv2))));
+        resourcesJson.getJsonObject(0).put("metric_values", new JsonArray(List.of(JsonObject.mapFrom(mv1),
+            JsonObject.mapFrom(mv2))));
         resourcesJson.getJsonObject(1).put("metric_values", new JsonArray(List.of(JsonObject.mapFrom(mv3))));
-        resourcesJson.getJsonObject(2).put("metric_values", new JsonArray(List.of(JsonObject.mapFrom(mv4), JsonObject.mapFrom(mv5))));
+        resourcesJson.getJsonObject(2).put("metric_values", new JsonArray(List.of(JsonObject.mapFrom(mv4),
+            JsonObject.mapFrom(mv5))));
 
         when(metricChecker.checkServiceLevelObjectives(any(ServiceLevelObjective.class)))
                 .thenReturn(Completable.complete());

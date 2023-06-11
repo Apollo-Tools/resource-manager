@@ -27,17 +27,17 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class ReservationServiceImplTest {
+public class DeploymentServiceImplTest {
 
-    private DeploymentService reservationService;
+    private DeploymentService deploymentService;
 
     @Mock
-    DeploymentRepository reservationRepository;
+    DeploymentRepository deploymentRepository;
 
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        reservationService = new DeploymentServiceImpl(reservationRepository);
+        deploymentService = new DeploymentServiceImpl(deploymentRepository);
     }
 
     @Test
@@ -49,49 +49,49 @@ public class ReservationServiceImplTest {
         Deployment r3 = TestDeploymentProvider.createDeployment(3L, true, account);
         CompletionStage<List<Deployment>> completionStage = CompletionStages.completedFuture(List.of(r1, r2, r3));
 
-        when(reservationRepository.findAllByAccountId(accountId)).thenReturn(completionStage);
+        when(deploymentRepository.findAllByAccountId(accountId)).thenReturn(completionStage);
 
-        reservationService.findAllByAccountId(accountId)
+        deploymentService.findAllByAccountId(accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(3);
-                assertThat(result.getJsonObject(0).getLong("reservation_id")).isEqualTo(1L);
-                assertThat(result.getJsonObject(1).getLong("reservation_id")).isEqualTo(2L);
-                assertThat(result.getJsonObject(2).getLong("reservation_id")).isEqualTo(3L);
-                verify(reservationRepository).findAllByAccountId(accountId);
+                assertThat(result.getJsonObject(0).getLong("deployment_id")).isEqualTo(1L);
+                assertThat(result.getJsonObject(1).getLong("deployment_id")).isEqualTo(2L);
+                assertThat(result.getJsonObject(2).getLong("deployment_id")).isEqualTo(3L);
+                verify(deploymentRepository).findAllByAccountId(accountId);
                 testContext.completeNow();
             })));
     }
 
     @Test
     void findOneByIdAndAccountExists(VertxTestContext testContext) {
-        long reservationId = 1L;
+        long deploymentId = 1L;
         long accountId = 2L;
         Account account = TestAccountProvider.createAccount(accountId);
-        Deployment entity = TestDeploymentProvider.createDeployment(reservationId, true, account);
+        Deployment entity = TestDeploymentProvider.createDeployment(deploymentId, true, account);
 
         CompletionStage<Deployment> completionStage = CompletionStages.completedFuture(entity);
-        when(reservationRepository.findByIdAndAccountId(reservationId, accountId)).thenReturn(completionStage);
+        when(deploymentRepository.findByIdAndAccountId(deploymentId, accountId)).thenReturn(completionStage);
 
-        reservationService.findOneByIdAndAccountId(reservationId, accountId)
+        deploymentService.findOneByIdAndAccountId(deploymentId, accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result.getLong("reservation_id")).isEqualTo(1L);
-                verify(reservationRepository).findByIdAndAccountId(reservationId, accountId);
+                assertThat(result.getLong("deployment_id")).isEqualTo(1L);
+                verify(deploymentRepository).findByIdAndAccountId(deploymentId, accountId);
                 testContext.completeNow();
             })));
     }
 
     @Test
     void findOneByIdAndAccountNotExists(VertxTestContext testContext) {
-        long reservationId = 1L;
+        long deploymentId = 1L;
         long accountId = 2L;
         CompletionStage<Deployment> completionStage = CompletionStages.completedFuture(null);
 
-        when(reservationRepository.findByIdAndAccountId(reservationId, accountId)).thenReturn(completionStage);
+        when(deploymentRepository.findByIdAndAccountId(deploymentId, accountId)).thenReturn(completionStage);
 
-        reservationService.findOneByIdAndAccountId(reservationId, accountId)
+        deploymentService.findOneByIdAndAccountId(deploymentId, accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
-                verify(reservationRepository).findByIdAndAccountId(reservationId, accountId);
+                verify(deploymentRepository).findByIdAndAccountId(deploymentId, accountId);
                 testContext.completeNow();
             })));
     }
