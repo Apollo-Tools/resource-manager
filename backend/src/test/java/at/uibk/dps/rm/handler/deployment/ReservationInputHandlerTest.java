@@ -41,7 +41,7 @@ public class ReservationInputHandlerTest {
     void validateResourceArrayHasNoDuplicatesNoDuplicates(VertxTestContext testContext) {
         List<FunctionResourceIds> fids = TestFunctionProvider.createFunctionResourceIdsList(1L, 2L, 3L);
         List<ServiceResourceIds> sids = TestServiceProvider.createServiceResourceIdsList(4L);
-        DeployResourcesRequest request = TestRequestProvider.createReserveResourcesRequest(fids, sids);
+        DeployResourcesRequest request = TestRequestProvider.createDeployResourcesRequest(fids, sids);
         JsonObject requestBody = JsonObject.mapFrom(request);
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
@@ -67,7 +67,7 @@ public class ReservationInputHandlerTest {
         FunctionResourceIds ids4 = TestFunctionProvider.createFunctionResourceIds(f4, r4);
         List<FunctionResourceIds> fids = List.of(ids1, ids2, ids3, ids4);
         List<ServiceResourceIds> sids = new ArrayList<>();
-        DeployResourcesRequest request = TestRequestProvider.createReserveResourcesRequest(fids, sids);
+        DeployResourcesRequest request = TestRequestProvider.createDeployResourcesRequest(fids, sids);
         JsonObject requestBody = JsonObject.mapFrom(request);
 
         RoutingContextMockHelper.mockBody(rc, requestBody);

@@ -150,7 +150,7 @@ public class MetricCheckerTest {
         String metricName = "region";
         ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective(metricName, ExpressionType.GT,
             1.0, 2.0, 3.0);
-        MetricType metricType = TestMetricProvider.createMetricType(1L, "number");
+        MetricType metricType = TestMetricProvider.createMetricTypeNumber();
         Metric metric = TestMetricProvider.createMetric(1L, metricName, metricType, false);
         JsonObject entity = JsonObject.mapFrom(metric);
 
@@ -187,7 +187,7 @@ public class MetricCheckerTest {
         String metricName = "region";
         ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective(metricName, ExpressionType.GT,
             "eu-west", "eu-east");
-        MetricType metricType = TestMetricProvider.createMetricType(1L, "string");
+        MetricType metricType = TestMetricProvider.createMetricTypeString();
         Metric metric = TestMetricProvider.createMetric(1L, metricName, metricType, false);
         JsonObject entity = JsonObject.mapFrom(metric);
 
@@ -224,7 +224,7 @@ public class MetricCheckerTest {
         String metricName = "region";
         ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective(metricName, ExpressionType.GT,
             true, false, false);
-        MetricType metricType = TestMetricProvider.createMetricType(1L, "boolean");
+        MetricType metricType = TestMetricProvider.createMetricTypeBoolean();
         Metric metric = TestMetricProvider.createMetric(1L, metricName, metricType, false);
         JsonObject entity = JsonObject.mapFrom(metric);
 
@@ -263,7 +263,7 @@ public class MetricCheckerTest {
     })
     void checkAddMetricValueSetCorrectlyNumber(boolean isMonitored, double result, VertxTestContext testContext) {
         long metricId = 1;
-        MetricType metricType = TestMetricProvider.createMetricType(1L, "number");
+        MetricType metricType = TestMetricProvider.createMetricTypeNumber();
         Metric metric = TestMetricProvider.createMetric(metricId, "availability", metricType, isMonitored);
         JsonObject requestBody = new JsonObject("{\"metricId\": 1, \"value\": 4}");
         MetricValue metricValue = new MetricValue();
@@ -286,7 +286,7 @@ public class MetricCheckerTest {
     })
     void checkAddMetricValueSetCorrectlyString(boolean isMonitored, String result, VertxTestContext testContext) {
         long metricId = 1;
-        MetricType metricType = TestMetricProvider.createMetricType(1L, "string");
+        MetricType metricType = TestMetricProvider.createMetricTypeString();
         Metric metric = TestMetricProvider.createMetric(metricId, "availability", metricType, isMonitored);
         JsonObject requestBody = new JsonObject("{\"metricId\": 1, \"value\": \"four\"}");
         MetricValue metricValue = new MetricValue();
@@ -309,7 +309,7 @@ public class MetricCheckerTest {
     })
     void checkAddMetricValueSetCorrectlyBoolean(boolean isMonitored, boolean result, VertxTestContext testContext) {
         long metricId = 1;
-        MetricType metricType = TestMetricProvider.createMetricType(1L, "boolean");
+        MetricType metricType = TestMetricProvider.createMetricTypeBoolean();
         Metric metric = TestMetricProvider.createMetric(metricId, "availability", metricType, isMonitored);
         JsonObject requestBody = new JsonObject("{\"metricId\": 1, \"value\": true}");
         MetricValue metricValue = new MetricValue();

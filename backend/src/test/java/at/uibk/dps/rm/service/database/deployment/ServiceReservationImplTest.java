@@ -4,7 +4,7 @@ import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.repository.deployment.ServiceDeploymentRepository;
-import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestServiceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -48,10 +48,8 @@ public class ServiceReservationImplTest {
     @Test
     void findAllByReservationId(VertxTestContext testContext) {
         long reservationId = 1L;
-        ServiceDeployment entity1 = TestReservationProvider
-            .createServiceReservation(4L, new Deployment());
-        ServiceDeployment entity2 = TestReservationProvider
-            .createServiceReservation(5L, new Deployment());
+        ServiceDeployment entity1 = TestServiceProvider.createServiceDeployment(4L, new Deployment());
+        ServiceDeployment entity2 = TestServiceProvider.createServiceDeployment(5L, new Deployment());
         List<ServiceDeployment> resultList = new ArrayList<>();
         resultList.add(entity1);
         resultList.add(entity2);

@@ -27,7 +27,7 @@ public class DeploymentOutputTest {
 
     public static Stream<Arguments> provideJsonObject() {
         JsonObject jo1 = new JsonObject("{\"function_urls\": {\"sensitive\": true,\"type\": \"string\", \"value\": " +
-            "{}}");
+            "{\"value\": \"localhost\"}}}");
         JsonObject jo2 = new JsonObject("{\"function_urls\": {\"sensitive\": true, \"type\": \"string\"}}");
         JsonObject jo3 = new JsonObject("{\"function_urls\": {\"sensitive\": true, \"type\": \"string\", \"value\": " +
             "{}, \"invalid\": 1}}");

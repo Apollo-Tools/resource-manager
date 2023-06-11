@@ -19,6 +19,18 @@ public class TestMetricProvider {
         return metricType;
     }
 
+    public static MetricType createMetricTypeNumber() {
+        return createMetricType(1L, "number");
+    }
+
+    public static MetricType createMetricTypeString() {
+        return createMetricType(2L, "string");
+    }
+
+    public static MetricType createMetricTypeBoolean() {
+        return createMetricType(3L, "boolean");
+    }
+
     public static Metric createMetric(long metricId, String metricName, long metricTypeId, String metricType,
                                       boolean isMonitored) {
         Metric metric = new Metric();
@@ -44,7 +56,7 @@ public class TestMetricProvider {
         Metric metric = new Metric();
         metric.setMetricId(metricId);
         metric.setMetric(metricName);
-        metric.setMetricType(createMetricType(1L, "number"));
+        metric.setMetricType(createMetricTypeNumber());
         metric.setDescription("Blah");
         metric.setIsMonitored(false);
         return metric;

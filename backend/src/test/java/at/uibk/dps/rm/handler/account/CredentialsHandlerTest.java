@@ -117,7 +117,8 @@ public class CredentialsHandlerTest {
             "   \"access_key\":\"accesskey\"," +
             "   \"secret_access_key\":\"secretaccesskey\"," +
             "   \"session_token\":\"sessiontoken\"," +
-            "   \"resource_provider\":{\"provider_id\":" + providerId + ",\"provider\":\"aws\",\"created_at\":null},\"created_at\":null}}");
+            "   \"resource_provider\":{\"provider_id\":" + providerId + ",\"provider\":\"aws\"," +
+            "\"provider_platforms\":[],\"environment\":null,\"created_at\":null},\"created_at\":null}}");
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         RoutingContextMockHelper.mockBody(rc, requestBody);

@@ -7,7 +7,7 @@ import at.uibk.dps.rm.handler.deployment.DeploymentChecker;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestLogProvider;
-import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestDeploymentProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
@@ -61,7 +61,7 @@ public class ReservationLogHandlerTest {
     @ValueSource(strings = {"valid", "empty"})
     void getAll(String testCase, VertxTestContext testContext) {
         Account account = TestAccountProvider.createAccount(22L);
-        Deployment reservation = TestReservationProvider.createReservation(11L);
+        Deployment reservation = TestDeploymentProvider.createDeployment(11L);
         DeploymentLog rl1 = TestLogProvider.createReservationLog(1L, reservation);
         DeploymentLog rl2 = TestLogProvider.createReservationLog(2L, reservation);
         JsonArray reservationLogs = new JsonArray(List.of(JsonObject.mapFrom(rl1), JsonObject.mapFrom(rl2)));

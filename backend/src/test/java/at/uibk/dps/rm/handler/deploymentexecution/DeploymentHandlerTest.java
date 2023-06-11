@@ -70,12 +70,10 @@ public class DeploymentHandlerTest {
         "functionReservationsNotFound"})
     void deployResources(String testCase, VertxTestContext testContext) {
         long accountId = 1L;
-        Deployment reservation = TestReservationProvider.createReservation(1L);
-        JsonObject sr1 = JsonObject.mapFrom(TestReservationProvider
-            .createServiceReservation(2L, reservation));
-        JsonObject sr2 = JsonObject.mapFrom(TestReservationProvider
-            .createServiceReservation(3L, reservation));
-        JsonObject fr1 = JsonObject.mapFrom(TestReservationProvider.createFunctionReservation(3L, reservation));
+        Deployment reservation = TestDeploymentProvider.createDeployment(1L);
+        JsonObject sr1 = JsonObject.mapFrom(TestServiceProvider.createServiceDeployment(2L, reservation));
+        JsonObject sr2 = JsonObject.mapFrom(TestServiceProvider.createServiceDeployment(3L, reservation));
+        JsonObject fr1 = JsonObject.mapFrom(TestFunctionProvider.createFunctionDeployment(3L, reservation));
         DockerCredentials dockerCredentials = TestDTOProvider.createDockerCredentials();
         String kubeConfig = TestDTOProvider.createKubeConfigValue();
         ResourceProvider rp = TestResourceProviderProvider.createResourceProvider(1L, "aws");
@@ -123,14 +121,12 @@ public class DeploymentHandlerTest {
     @ValueSource(strings = {"valid", "deleteTFDirsFailed", "terminateResourcesFailed"})
     void terminateResources(String testCase, VertxTestContext testContext) {
         long accountId = 1L;
-        Deployment reservation = TestReservationProvider.createReservation(1L);
+        Deployment reservation = TestDeploymentProvider.createDeployment(1L);
         ResourceProvider rp = TestResourceProviderProvider.createResourceProvider(1L, "aws");
         JsonObject credentials = JsonObject.mapFrom(TestAccountProvider.createCredentials(1L, rp));
-        JsonObject sr1 = JsonObject.mapFrom(TestReservationProvider
-            .createServiceReservation(2L, reservation));
-        JsonObject sr2 = JsonObject.mapFrom(TestReservationProvider
-            .createServiceReservation(3L, reservation));
-        JsonObject fr1 = JsonObject.mapFrom(TestReservationProvider.createFunctionReservation(3L, reservation));
+        JsonObject sr1 = JsonObject.mapFrom(TestServiceProvider.createServiceDeployment(2L, reservation));
+        JsonObject sr2 = JsonObject.mapFrom(TestServiceProvider.createServiceDeployment(3L, reservation));
+        JsonObject fr1 = JsonObject.mapFrom(TestFunctionProvider.createFunctionDeployment(3L, reservation));
 
         when(credentialsChecker.checkFindAll(accountId)).thenReturn(Single.just(new JsonArray(List.of(credentials))));
         when(functionReservationChecker.checkFindAllByDeploymentId(1L))

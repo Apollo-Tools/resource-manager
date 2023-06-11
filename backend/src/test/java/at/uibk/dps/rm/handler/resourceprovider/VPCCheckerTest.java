@@ -156,7 +156,7 @@ public class VPCCheckerTest {
     @Test
     void checkVPCForFunctionResourcesOnlyContainer(VertxTestContext testContext) {
         long accountId = 1L;
-        Resource r1 = TestResourceProvider.createResourceContainer(1L, "localhost");
+        Resource r1 = TestResourceProvider.createResourceContainer(1L, "localhost", true);
         JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1)));
 
         vpcChecker.checkVPCForFunctionResources(accountId, resources)

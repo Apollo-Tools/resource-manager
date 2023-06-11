@@ -3,7 +3,7 @@ package at.uibk.dps.rm.service.deployment.terraform;
 import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.testutil.objectprovider.TestFileServiceProvider;
-import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestDeploymentProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.rxjava3.core.Vertx;
@@ -29,7 +29,7 @@ public class ContainerDeployFileServiceTest {
     private final Path rootFolder = Path.of("temp", "reservation_1");
 
 
-    private final Deployment reservation = TestReservationProvider.createReservation(1L);
+    private final Deployment reservation = TestDeploymentProvider.createDeployment(1L);
 
     @Test
     void getProviderString(Vertx vertx) {

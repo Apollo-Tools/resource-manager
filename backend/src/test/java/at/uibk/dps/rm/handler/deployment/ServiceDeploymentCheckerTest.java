@@ -4,7 +4,8 @@ import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.rxjava3.database.deployment.ServiceDeploymentService;
-import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestDeploymentProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestServiceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
@@ -47,9 +48,9 @@ public class ServiceDeploymentCheckerTest {
 
     @Test
     void checkFindAll(VertxTestContext testContext) {
-        Deployment deployment = TestReservationProvider.createReservation(1L);
-        ServiceDeployment sd1 = TestReservationProvider.createServiceReservation(1L, deployment);
-        ServiceDeployment sd2 = TestReservationProvider.createServiceReservation(2L, deployment);
+        Deployment deployment = TestDeploymentProvider.createDeployment(1L);
+        ServiceDeployment sd1 = TestServiceProvider.createServiceDeployment(1L, deployment);
+        ServiceDeployment sd2 = TestServiceProvider.createServiceDeployment(2L, deployment);
         JsonArray deployments = new JsonArray(List.of(JsonObject.mapFrom(sd1), JsonObject.mapFrom(sd2)));
 
         when(service.findAllByDeploymentId(deployment.getDeploymentId())).thenReturn(Single.just(deployments));
@@ -67,7 +68,7 @@ public class ServiceDeploymentCheckerTest {
 
     @Test
     void checkFindAllEmptyList(VertxTestContext testContext) {
-        Deployment deployment = TestReservationProvider.createReservation(1L);
+        Deployment deployment = TestDeploymentProvider.createDeployment(1L);
         JsonArray deployments = new JsonArray();
 
         when(service.findAllByDeploymentId(deployment.getDeploymentId())).thenReturn(Single.just(deployments));

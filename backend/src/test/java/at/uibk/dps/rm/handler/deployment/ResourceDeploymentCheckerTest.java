@@ -60,15 +60,15 @@ public class ResourceDeploymentCheckerTest {
     void checkFindAllByDeploymentIdValid(VertxTestContext testContext) {
         long deploymentId = 1L;
         Account account = TestAccountProvider.createAccount(1L);
-        Deployment deployment = TestReservationProvider.createReservation(deploymentId, false, account);
+        Deployment deployment = TestDeploymentProvider.createDeployment(deploymentId, false, account);
         Resource r1 = TestResourceProvider.createResource(1L);
         Resource r2 = TestResourceProvider.createResource(2L);
         Resource r3 = TestResourceProvider.createResource(3L);
-        ResourceDeployment rd1 = TestReservationProvider.createResourceReservation(1L, deployment,
+        ResourceDeployment rd1 = TestDeploymentProvider.createResourceDeployment(1L, deployment,
             r1, new ResourceDeploymentStatus());
-        ResourceDeployment rd2 = TestReservationProvider.createResourceReservation(2L, deployment,
+        ResourceDeployment rd2 = TestDeploymentProvider.createResourceDeployment(2L, deployment,
             r2, new ResourceDeploymentStatus());
-        ResourceDeployment rd3 = TestReservationProvider.createResourceReservation(3L, deployment,
+        ResourceDeployment rd3 = TestDeploymentProvider.createResourceDeployment(3L, deployment,
             r3, new ResourceDeploymentStatus());
         JsonArray resourceDeployments = new JsonArray(List.of(JsonObject.mapFrom(rd1),
             JsonObject.mapFrom(rd2), JsonObject.mapFrom(rd3)));
@@ -167,15 +167,15 @@ public class ResourceDeploymentCheckerTest {
     }
 
     private static Stream<Arguments> provideStatusValue() {
-        final ResourceDeploymentStatus statusNew = TestReservationProvider.createResourceReservationStatusNew();
-        final ResourceDeploymentStatus statusDeployed = TestReservationProvider
-            .createResourceReservationStatusDeployed();
-        final ResourceDeploymentStatus statusTerminating = TestReservationProvider
-            .createResourceReservationStatusTerminating();
-        final ResourceDeploymentStatus statusTerminated = TestReservationProvider
-            .createResourceReservationStatusTerminated();
-        final ResourceDeploymentStatus statusError = TestReservationProvider
-            .createResourceReservationStatusError();
+        final ResourceDeploymentStatus statusNew = TestDeploymentProvider.createResourceDeploymentStatusNew();
+        final ResourceDeploymentStatus statusDeployed = TestDeploymentProvider
+            .createResourceDeploymentStatusDeployed();
+        final ResourceDeploymentStatus statusTerminating = TestDeploymentProvider
+            .createResourceDeploymentStatusTerminating();
+        final ResourceDeploymentStatus statusTerminated = TestDeploymentProvider
+            .createResourceDeploymentStatusTerminated();
+        final ResourceDeploymentStatus statusError = TestDeploymentProvider
+            .createResourceDeploymentStatusError();
         return Stream.of(
             Arguments.of(statusNew),
             Arguments.of(statusDeployed),
@@ -188,10 +188,10 @@ public class ResourceDeploymentCheckerTest {
     @ParameterizedTest
     @MethodSource("provideStatusValue")
     void checkCrucialDeploymentStatus(ResourceDeploymentStatus expectedStatus) {
-        Deployment deployment = TestReservationProvider.createReservation(1L);
-        ResourceDeployment rd1 = TestReservationProvider.createResourceReservation(1L, deployment,
-            new Resource(), TestReservationProvider.createResourceReservationStatusTerminated());
-        ResourceDeployment rd2 = TestReservationProvider.createResourceReservation(2L, deployment, new Resource()
+        Deployment deployment = TestDeploymentProvider.createDeployment(1L);
+        ResourceDeployment rd1 = TestDeploymentProvider.createResourceDeployment(1L, deployment,
+            new Resource(), TestDeploymentProvider.createResourceDeploymentStatusTerminated());
+        ResourceDeployment rd2 = TestDeploymentProvider.createResourceDeployment(2L, deployment, new Resource()
             , expectedStatus);
         JsonArray resourceDeployments = new JsonArray(List.of(JsonObject.mapFrom(rd1), JsonObject.mapFrom(rd2)));
 

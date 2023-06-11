@@ -12,7 +12,7 @@ import at.uibk.dps.rm.handler.log.DeploymentLogChecker;
 import at.uibk.dps.rm.handler.util.FileSystemChecker;
 import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestLogProvider;
-import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestDeploymentProvider;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
@@ -77,7 +77,7 @@ public class ReservationErrorHandlerTest {
     @ValueSource(booleans = {true, false})
     void onDeploymentError(boolean tfLockFileExists, VertxTestContext testContext) {
         long accountId = 1L, reservationId = 1L;
-        Deployment reservation = TestReservationProvider.createReservation(reservationId);
+        Deployment reservation = TestDeploymentProvider.createDeployment(reservationId);
         Throwable exc = new DeploymentTerminationFailedException();
         Log log = new Log();
         log.setLogValue("deployment/termination failed");
@@ -115,7 +115,7 @@ public class ReservationErrorHandlerTest {
     @Test
     void onTerminationError(VertxTestContext testContext) {
         long reservationId = 1L;
-        Deployment reservation = TestReservationProvider.createReservation(reservationId);
+        Deployment reservation = TestDeploymentProvider.createDeployment(reservationId);
         Throwable exc = new DeploymentTerminationFailedException();
         Log log = new Log();
         log.setLogValue("deployment/termination failed");

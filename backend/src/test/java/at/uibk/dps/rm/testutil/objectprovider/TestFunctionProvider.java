@@ -74,50 +74,50 @@ public class TestFunctionProvider {
     }
 
 
-    public static FunctionDeployment createFunctionReservation(long id, Function function, Resource resource,
+    public static FunctionDeployment createFunctionDeployment(long id, Function function, Resource resource,
                                                                 boolean isDeployed, Deployment reservation) {
         FunctionDeployment functionReservation = new FunctionDeployment();
         functionReservation.setResourceDeploymentId(id);
         functionReservation.setFunction(function);
         functionReservation.setResource(resource);
         functionReservation.setIsDeployed(isDeployed);
-        functionReservation.setStatus(TestReservationProvider.createResourceReservationStatusNew());
+        functionReservation.setStatus(TestDeploymentProvider.createResourceDeploymentStatusNew());
         functionReservation.setDeployment(reservation);
         return functionReservation;
     }
 
-    public static FunctionDeployment createFunctionReservation(long id, long resourceId, Deployment reservation) {
+    public static FunctionDeployment createFunctionDeployment(long id, long resourceId, Deployment reservation) {
         Function function = createFunction(22L, "func-test", "false");
         Resource resource = TestResourceProvider.createResource(resourceId);
-        return createFunctionReservation(id, function, resource, true, reservation);
+        return createFunctionDeployment(id, function, resource, true, reservation);
     }
 
-    public static FunctionDeployment createFunctionReservation(long id, long functionId, long resourceId,
+    public static FunctionDeployment createFunctionDeployment(long id, long functionId, long resourceId,
             Region region) {
         Function function = createFunction(functionId, "func-test", "false");
         Resource resource = TestResourceProvider.createResource(resourceId, region);
-        Deployment reservation = TestReservationProvider.createReservation(1L);
-        return createFunctionReservation(id, function, resource, true, reservation);
+        Deployment reservation = TestDeploymentProvider.createDeployment(1L);
+        return createFunctionDeployment(id, function, resource, true, reservation);
     }
 
-    public static FunctionDeployment createFunctionReservation(long id, Deployment reservation) {
-        return createFunctionReservation(id, 33L, reservation);
+    public static FunctionDeployment createFunctionDeployment(long id, Deployment reservation) {
+        return createFunctionDeployment(id, 33L, reservation);
     }
 
-    public static FunctionDeployment createFunctionReservation(long id, Function function, boolean isDeployed) {
+    public static FunctionDeployment createFunctionDeployment(long id, Function function, boolean isDeployed) {
         Resource resource = TestResourceProvider.createResource(33L);
-        Deployment reservation = TestReservationProvider.createReservation(1L);
-        return createFunctionReservation(id, function, resource, isDeployed, reservation);
+        Deployment reservation = TestDeploymentProvider.createDeployment(1L);
+        return createFunctionDeployment(id, function, resource, isDeployed, reservation);
     }
 
-    public static FunctionDeployment createFunctionReservation(long id, Resource resource) {
+    public static FunctionDeployment createFunctionDeployment(long id, Resource resource) {
         Function function = createFunction(22L, "func-test", "false");
-        Deployment reservation = TestReservationProvider.createReservation(1L);
-        return createFunctionReservation(id, function, resource, true, reservation);
+        Deployment reservation = TestDeploymentProvider.createDeployment(1L);
+        return createFunctionDeployment(id, function, resource, true, reservation);
     }
 
-    public static FunctionDeployment createFunctionReservation(long id, Function function, Resource resource) {
-        Deployment reservation = TestReservationProvider.createReservation(1L);
-        return createFunctionReservation(id, function, resource, false, reservation);
+    public static FunctionDeployment createFunctionDeployment(long id, Function function, Resource resource) {
+        Deployment reservation = TestDeploymentProvider.createDeployment(1L);
+        return createFunctionDeployment(id, function, resource, false, reservation);
     }
 }

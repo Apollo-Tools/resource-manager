@@ -26,11 +26,11 @@ public class RegionMapperTest {
         Resource r1 = TestResourceProvider.createResourceFaaS(1L, region1, 20.0, 20.0);
         Resource r2 = TestResourceProvider.createResourceVM(2L, region2, "t2.micro");
         Resource r3 = TestResourceProvider.createResource(3L, TestResourceProvider
-                .createResourceType(3L, "edge"), region3, false);
-        FunctionDeployment fr1 = TestFunctionProvider.createFunctionReservation(1L, r1);
-        FunctionDeployment fr2 = TestFunctionProvider.createFunctionReservation(2L, r1);
-        FunctionDeployment fr3 = TestFunctionProvider.createFunctionReservation(3L, r2);
-        FunctionDeployment fr4 = TestFunctionProvider.createFunctionReservation(4L, r3);
+                .createResourceType(3L, "edge"), region3);
+        FunctionDeployment fr1 = TestFunctionProvider.createFunctionDeployment(1L, r1);
+        FunctionDeployment fr2 = TestFunctionProvider.createFunctionDeployment(2L, r1);
+        FunctionDeployment fr3 = TestFunctionProvider.createFunctionDeployment(3L, r2);
+        FunctionDeployment fr4 = TestFunctionProvider.createFunctionDeployment(4L, r3);
 
         Map<Region, List<FunctionDeployment>> result = RegionMapper
             .mapFunctionDeployments(List.of(fr1, fr2, fr3, fr4));

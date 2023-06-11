@@ -5,7 +5,7 @@ import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.rxjava3.database.deployment.DeploymentService;
 import at.uibk.dps.rm.testutil.SingleHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
-import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestDeploymentProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
@@ -47,9 +47,9 @@ public class DeploymentCheckerTest {
     @Test
     void checkFindAll(VertxTestContext testContext) {
         Account account = TestAccountProvider.createAccount(1L);
-        Deployment r1 = TestReservationProvider.createReservation(1L, true, account);
-        Deployment r2 = TestReservationProvider.createReservation(2L, true, account);
-        Deployment r3 = TestReservationProvider.createReservation(3L, true, account);
+        Deployment r1 = TestDeploymentProvider.createDeployment(1L, true, account);
+        Deployment r2 = TestDeploymentProvider.createDeployment(2L, true, account);
+        Deployment r3 = TestDeploymentProvider.createDeployment(3L, true, account);
         JsonArray deployments = new JsonArray(List.of(JsonObject.mapFrom(r1),
             JsonObject.mapFrom(r2), JsonObject.mapFrom(r3)));
 
@@ -85,7 +85,7 @@ public class DeploymentCheckerTest {
     @Test
     void checkFindOne(VertxTestContext testContext) {
         long accountId = 2L, deploymentId = 1L;
-        Deployment r1 = TestReservationProvider.createReservation(deploymentId);
+        Deployment r1 = TestDeploymentProvider.createDeployment(deploymentId);
 
         when(deploymentService.findOneByIdAndAccountId(deploymentId, accountId))
             .thenReturn(Single.just(JsonObject.mapFrom(r1)));
@@ -123,7 +123,7 @@ public class DeploymentCheckerTest {
         Account account = new Account();
         account.setAccountId(accountId);
         deployment.setCreatedBy(account);
-        JsonObject persistedDeployment = JsonObject.mapFrom(TestReservationProvider.createReservation(1L));
+        JsonObject persistedDeployment = JsonObject.mapFrom(TestDeploymentProvider.createDeployment(1L));
 
         when(deploymentService.save(JsonObject.mapFrom(deployment)))
             .thenReturn(Single.just(persistedDeployment));

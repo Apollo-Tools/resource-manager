@@ -3,7 +3,6 @@ package at.uibk.dps.rm.handler.deployment;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.dto.deployment.FunctionResourceIds;
 import at.uibk.dps.rm.entity.dto.deployment.ServiceResourceIds;
-import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.model.VPC;
 import at.uibk.dps.rm.exception.NotFoundException;
@@ -42,7 +41,7 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class ReservationPreconditionHandlerTest {
+public class DeploymentPreconditionHandlerTest {
 
     private DeploymentPreconditionHandler handler;
 
@@ -73,13 +72,13 @@ public class ReservationPreconditionHandlerTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"valid", "vpcNotFound", "missingMetrics", "noCloudResources"})
-    void checkReservationIsValid(String testCase, VertxTestContext testContext) {
-        Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1");
-        Resource r1 = TestResourceProvider.createResourceFaaS(1L, region, 250.0, 512.0);
-        Resource r2 = TestResourceProvider.createResourceVM(2L, region, "t2.micro");
-        Resource r3 = TestResourceProvider.createResourceEdge(3L, "http://localhost:8080",
-            "user", "pw");
-        Resource r4 = TestResourceProvider.createResourceContainer(4L, "https://localhost");
+    void checkDeploymentIsValid(String testCase, VertxTestContext testContext) {
+        Resource r1 = TestResourceProvider.createResourceLambda(1L, 250.0, 612.0);
+        Resource r2 = TestResourceProvider.createResourceEC2(2L, 150.0, 512.0,
+            "t2.micro");
+        Resource r3 = TestResourceProvider.createResourceOpenFaas(3L, 250.0, 512.0,
+            "http://localhost:8080", "user", "pw");
+        Resource r4 = TestResourceProvider.createResourceContainer(4L, "https://localhost", true);
         JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1), JsonObject.mapFrom(r2),
             JsonObject.mapFrom(r3), JsonObject.mapFrom(r4)));
         if (testCase.equals("noCloudResources")) {
@@ -88,9 +87,9 @@ public class ReservationPreconditionHandlerTest {
         List<FunctionResourceIds> fids = TestFunctionProvider.createFunctionResourceIdsList(r1.getResourceId(),
             r2.getResourceId(), r3.getResourceId());
         List<ServiceResourceIds> sids = TestServiceProvider.createServiceResourceIdsList(r4.getResourceId());
-        DeployResourcesRequest request = TestRequestProvider.createReserveResourcesRequest(fids, sids);
+        DeployResourcesRequest request = TestRequestProvider.createDeployResourcesRequest(fids, sids);
         long accountId = 1L;
-        JsonObject vpc1 = JsonObject.mapFrom(TestResourceProviderProvider.createVPC(1L, region));
+        JsonObject vpc1 = JsonObject.mapFrom(TestResourceProviderProvider.createVPC(1L, r1.getRegion()));
         List<JsonObject> vpcList = List.of(vpc1);
         List<VPC> necessaryVPCs = new ArrayList<>();
 

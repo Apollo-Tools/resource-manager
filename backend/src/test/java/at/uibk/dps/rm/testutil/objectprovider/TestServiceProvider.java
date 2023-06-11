@@ -57,7 +57,7 @@ public class TestServiceProvider {
     }
 
 
-    public static ServiceDeployment createServiceReservation(long id, Service service, Resource resource,
+    public static ServiceDeployment createServiceDeployment(long id, Service service, Resource resource,
             boolean isDeployed, Deployment reservation) {
         ServiceDeployment serviceReservation = new ServiceDeployment();
         serviceReservation.setResourceDeploymentId(id);
@@ -70,23 +70,23 @@ public class TestServiceProvider {
         return serviceReservation;
     }
 
-    public static ServiceDeployment createServiceReservation(long id, long resourceId, Deployment reservation) {
+    public static ServiceDeployment createServiceDeployment(long id, long resourceId, Deployment reservation) {
         Service service = createService(22L, "test");
-        Resource resource = TestResourceProvider.createResourceContainer(resourceId, "localhost");
-        return createServiceReservation(id, service, resource, true, reservation);
+        Resource resource = TestResourceProvider.createResourceContainer(resourceId, "localhost", true);
+        return createServiceDeployment(id, service, resource, true, reservation);
     }
 
-    public static ServiceDeployment createServiceReservation(long id, Deployment reservation) {
-        return createServiceReservation(id, 33L, reservation);
+    public static ServiceDeployment createServiceDeployment(long id, Deployment reservation) {
+        return createServiceDeployment(id, 33L, reservation);
     }
 
-    public static ServiceDeployment createServiceReservation(long id, Resource resource, Deployment reservation) {
+    public static ServiceDeployment createServiceDeployment(long id, Resource resource, Deployment reservation) {
         Service service = createService(22L, "test");
-        return createServiceReservation(id, service, resource, false, reservation);
+        return createServiceDeployment(id, service, resource, false, reservation);
     }
 
-    public static ServiceDeployment createServiceReservation(long id, Service service, Resource resource) {
-        Deployment reservation = TestReservationProvider.createReservation(1L);
-        return createServiceReservation(id, service, resource, false, reservation);
+    public static ServiceDeployment createServiceDeployment(long id, Service service, Resource resource) {
+        Deployment reservation = TestDeploymentProvider.createDeployment(1L);
+        return createServiceDeployment(id, service, resource, false, reservation);
     }
 }

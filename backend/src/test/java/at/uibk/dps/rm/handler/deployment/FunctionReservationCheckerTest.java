@@ -3,7 +3,8 @@ package at.uibk.dps.rm.handler.deployment;
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
 import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.service.rxjava3.database.deployment.FunctionDeploymentService;
-import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestDeploymentProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
@@ -46,9 +47,9 @@ public class FunctionReservationCheckerTest {
 
     @Test
     void checkFindAll(VertxTestContext testContext) {
-        Deployment reservation = TestReservationProvider.createReservation(1L);
-        FunctionDeployment fr1 = TestReservationProvider.createFunctionReservation(1L, reservation);
-        FunctionDeployment fr2 = TestReservationProvider.createFunctionReservation(2L, reservation);
+        Deployment reservation = TestDeploymentProvider.createDeployment(1L);
+        FunctionDeployment fr1 = TestFunctionProvider.createFunctionDeployment(1L, reservation);
+        FunctionDeployment fr2 = TestFunctionProvider.createFunctionDeployment(2L, reservation);
         JsonArray reservations = new JsonArray(List.of(JsonObject.mapFrom(fr1), JsonObject.mapFrom(fr2)));
 
         when(service.findAllByDeploymentId(reservation.getDeploymentId())).thenReturn(Single.just(reservations));
@@ -56,8 +57,8 @@ public class FunctionReservationCheckerTest {
         checker.checkFindAllByDeploymentId(reservation.getDeploymentId())
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(2);
-                    assertThat(result.getJsonObject(0).getLong("resource_reservation_id")).isEqualTo(1L);
-                    assertThat(result.getJsonObject(1).getLong("resource_reservation_id")).isEqualTo(2L);
+                    assertThat(result.getJsonObject(0).getLong("resource_deployment_id")).isEqualTo(1L);
+                    assertThat(result.getJsonObject(1).getLong("resource_deployment_id")).isEqualTo(2L);
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
@@ -66,7 +67,7 @@ public class FunctionReservationCheckerTest {
 
     @Test
     void checkFindAllEmptyList(VertxTestContext testContext) {
-        Deployment reservation = TestReservationProvider.createReservation(1L);
+        Deployment reservation = TestDeploymentProvider.createDeployment(1L);
         JsonArray reservations = new JsonArray();
 
         when(service.findAllByDeploymentId(reservation.getDeploymentId())).thenReturn(Single.just(reservations));

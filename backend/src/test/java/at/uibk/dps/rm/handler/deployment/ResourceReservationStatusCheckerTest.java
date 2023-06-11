@@ -4,7 +4,7 @@ import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.rxjava3.database.deployment.ResourceDeploymentStatusService;
 import at.uibk.dps.rm.testutil.SingleHelper;
-import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestDeploymentProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
@@ -43,7 +43,7 @@ public class ResourceReservationStatusCheckerTest {
     @Test
     void checkFindOneByStatusValue(VertxTestContext testContext) {
         String statusValue = DeploymentStatusValue.NEW.name();
-        JsonObject statusValueJson = JsonObject.mapFrom(TestReservationProvider.createResourceReservationStatusNew());
+        JsonObject statusValueJson = JsonObject.mapFrom(TestDeploymentProvider.createResourceDeploymentStatusNew());
 
         when(statusService.findOneByStatusValue(statusValue)).thenReturn(Single.just(statusValueJson));
 

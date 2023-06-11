@@ -27,10 +27,10 @@ public class TestFileServiceProvider {
         Path functionsDir = Path.of(String.valueOf(rootFolder), "functions");
         Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime);
         Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime);
-        FunctionDeployment fr1 = TestFunctionProvider.createFunctionReservation(1L, f1, r1);
-        FunctionDeployment fr2 = TestFunctionProvider.createFunctionReservation(2L, f1, r2);
-        FunctionDeployment fr3 = TestFunctionProvider.createFunctionReservation(3L, f2, r2);
-        FunctionDeployment fr4 = TestFunctionProvider.createFunctionReservation(4L, f1, r3);
+        FunctionDeployment fr1 = TestFunctionProvider.createFunctionDeployment(1L, f1, r1);
+        FunctionDeployment fr2 = TestFunctionProvider.createFunctionDeployment(2L, f1, r2);
+        FunctionDeployment fr3 = TestFunctionProvider.createFunctionDeployment(3L, f2, r2);
+        FunctionDeployment fr4 = TestFunctionProvider.createFunctionDeployment(4L, f1, r3);
         List<FunctionDeployment> functionDeployments = List.of(fr1, fr2, fr3, fr4);
         long reservationId = 1L;
         FaasModule module = new FaasModule(ResourceProviderEnum.AWS, region);
@@ -87,8 +87,8 @@ public class TestFileServiceProvider {
 
     public static FunctionPrepareService createFunctionFileService(Vertx vertx, Resource r1, Resource r2, Function f1,
                                                                 Function f2) {
-        FunctionDeployment fr1 = TestFunctionProvider.createFunctionReservation(1L, f1, r1);
-        FunctionDeployment fr2 = TestFunctionProvider.createFunctionReservation(2L, f2, r2);
+        FunctionDeployment fr1 = TestFunctionProvider.createFunctionDeployment(1L, f1, r1);
+        FunctionDeployment fr2 = TestFunctionProvider.createFunctionDeployment(2L, f2, r2);
         List<FunctionDeployment> functionReservations = List.of(fr1, fr2);
         DockerCredentials credentials = new DockerCredentials();
         credentials.setUsername("user");
@@ -159,7 +159,7 @@ public class TestFileServiceProvider {
 
     public static ContainerDeployFileService createContainerDeployFileService(FileSystem fileSystem, Path rootFolder,
             Deployment reservation) {
-        ServiceDeployment serviceReservation = TestServiceProvider.createServiceReservation(1L, reservation);
+        ServiceDeployment serviceReservation = TestServiceProvider.createServiceDeployment(1L, reservation);
         return new ContainerDeployFileService(fileSystem, rootFolder, serviceReservation,
             reservation.getDeploymentId());
     }
@@ -167,14 +167,14 @@ public class TestFileServiceProvider {
     public static ContainerDeployFileService createContainerDeployFileService(FileSystem fileSystem, Path rootFolder,
             Resource resource, Deployment reservation) {
         ServiceDeployment serviceReservation =
-            TestServiceProvider.createServiceReservation(1L, resource, reservation);
+            TestServiceProvider.createServiceDeployment(1L, resource, reservation);
         return new ContainerDeployFileService(fileSystem, rootFolder, serviceReservation,
             reservation.getDeploymentId());
     }
 
     public static ContainerPullFileService createContainerPullFileService(FileSystem fileSystem, Path rootFolder,
         Deployment reservation) {
-        ServiceDeployment serviceReservation = TestServiceProvider.createServiceReservation(1L, reservation);
+        ServiceDeployment serviceReservation = TestServiceProvider.createServiceDeployment(1L, reservation);
         return new ContainerPullFileService(fileSystem, rootFolder, List.of(serviceReservation),
             reservation.getDeploymentId());
     }

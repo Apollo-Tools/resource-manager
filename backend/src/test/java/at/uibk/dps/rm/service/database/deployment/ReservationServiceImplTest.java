@@ -3,7 +3,7 @@ package at.uibk.dps.rm.service.database.deployment;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.repository.deployment.DeploymentRepository;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
-import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestDeploymentProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -44,9 +44,9 @@ public class ReservationServiceImplTest {
     void findAllByAccountId(VertxTestContext testContext) {
         long accountId = 1L;
         Account account = TestAccountProvider.createAccount(accountId);
-        Deployment r1 = TestReservationProvider.createReservation(1L, true, account);
-        Deployment r2 = TestReservationProvider.createReservation(2L, true, account);
-        Deployment r3 = TestReservationProvider.createReservation(3L, true, account);
+        Deployment r1 = TestDeploymentProvider.createDeployment(1L, true, account);
+        Deployment r2 = TestDeploymentProvider.createDeployment(2L, true, account);
+        Deployment r3 = TestDeploymentProvider.createDeployment(3L, true, account);
         CompletionStage<List<Deployment>> completionStage = CompletionStages.completedFuture(List.of(r1, r2, r3));
 
         when(reservationRepository.findAllByAccountId(accountId)).thenReturn(completionStage);
@@ -67,7 +67,7 @@ public class ReservationServiceImplTest {
         long reservationId = 1L;
         long accountId = 2L;
         Account account = TestAccountProvider.createAccount(accountId);
-        Deployment entity = TestReservationProvider.createReservation(reservationId, true, account);
+        Deployment entity = TestDeploymentProvider.createDeployment(reservationId, true, account);
 
         CompletionStage<Deployment> completionStage = CompletionStages.completedFuture(entity);
         when(reservationRepository.findByIdAndAccountId(reservationId, accountId)).thenReturn(completionStage);
