@@ -40,7 +40,7 @@ public class ContainerStartupHandlerTest {
     private DeploymentExecutionChecker deploymentChecker;
 
     @Mock
-    private ServiceDeploymentChecker serviceReservationChecker;
+    private ServiceDeploymentChecker serviceDeploymentChecker;
 
     @Mock
     private RoutingContext rc;
@@ -51,7 +51,7 @@ public class ContainerStartupHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        handler = new ContainerStartupHandler(deploymentChecker, serviceReservationChecker);
+        handler = new ContainerStartupHandler(deploymentChecker, serviceDeploymentChecker);
     }
 
     @ParameterizedTest
@@ -65,13 +65,13 @@ public class ContainerStartupHandlerTest {
     })
     void deployContainer(boolean isStartup, boolean readyForStartup, boolean successfulDeployment, boolean isValid,
             VertxTestContext testContext) {
-        long reservationId = 1L, resourceReservationId = 2L;
+        long deploymentId = 1L, resourceDeploymentId = 2L;
         Account account = TestAccountProvider.createAccount(1L);
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
-        when(rc.pathParam("reservationId")).thenReturn(String.valueOf(reservationId));
-        when(rc.pathParam("resourceReservationId")).thenReturn(String.valueOf(resourceReservationId));
-        when(serviceReservationChecker.checkReadyForStartup(reservationId, resourceReservationId, account.getAccountId()))
+        when(rc.pathParam("deploymentId")).thenReturn(String.valueOf(deploymentId));
+        when(rc.pathParam("resourceDeploymentId")).thenReturn(String.valueOf(resourceDeploymentId));
+        when(serviceDeploymentChecker.checkReadyForStartup(deploymentId, resourceDeploymentId, account.getAccountId()))
             .thenReturn(readyForStartup ? Completable.complete() : Completable.error(NotFoundException::new));
         if (isValid) {
             when(rc.response()).thenReturn(response);
@@ -80,14 +80,14 @@ public class ContainerStartupHandlerTest {
         }
         if (isStartup) {
             if (isValid || readyForStartup) {
-                when(deploymentChecker.startContainer(reservationId, resourceReservationId))
+                when(deploymentChecker.startContainer(deploymentId, resourceDeploymentId))
                     .thenReturn(successfulDeployment ? Completable.complete() :
                         Completable.error(DeploymentTerminationFailedException::new));
             }
             handler.deployContainer(rc);
         } else {
             if (isValid || readyForStartup) {
-                when(deploymentChecker.stopContainer(reservationId, resourceReservationId))
+                when(deploymentChecker.stopContainer(deploymentId, resourceDeploymentId))
                     .thenReturn(successfulDeployment ? Completable.complete() :
                         Completable.error(DeploymentTerminationFailedException::new));
             }

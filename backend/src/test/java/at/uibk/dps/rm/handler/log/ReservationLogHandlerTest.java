@@ -79,8 +79,8 @@ public class ReservationLogHandlerTest {
             .subscribe(result -> testContext.verify(() -> {
                     if (testCase.equals("valid")) {
                         assertThat(result.size()).isEqualTo(2);
-                        assertThat(result.getJsonObject(0).getLong("reservation_log_id")).isEqualTo(1L);
-                        assertThat(result.getJsonObject(1).getLong("reservation_log_id")).isEqualTo(2L);
+                        assertThat(result.getJsonObject(0).getLong("deployment_log_id")).isEqualTo(1L);
+                        assertThat(result.getJsonObject(1).getLong("deployment_log_id")).isEqualTo(2L);
                     } else {
                         assertThat(result.size()).isEqualTo(0);
                     }

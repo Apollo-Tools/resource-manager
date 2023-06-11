@@ -235,8 +235,10 @@ public class TestDTOProvider {
     public static TFOutput createTFOutput() {
         TFOutput tfOutput = new TFOutput();
         Map<String, String> valueMap = new HashMap<>();
-        valueMap.put("r2_foo1_python39", "http://localhostvm1");
-        valueMap.put("r2_foo2_python39", "http://localhostvm2");
+        valueMap.put("r1_foo1_python39", "http://localhostlambda/foo1");
+        valueMap.put("r2_foo1_python39", "http://localhostec2/foo1");
+        valueMap.put("r2_foo2_python39", "http://localhostec2/foo2");
+        valueMap.put("r3_foo1_python39", "http://localhostopenfaas/foo1");
         tfOutput.setValue(valueMap);
         return tfOutput;
     }
@@ -249,7 +251,7 @@ public class TestDTOProvider {
 
     public static DeploymentOutput createDeploymentOutputUnknownFunction() {
         DeploymentOutput deploymentOutput = new DeploymentOutput();
-        deploymentOutput.setFunctionUrls(createTFOutput());
+        deploymentOutput.setFunctionUrls(createTFOutputFaas("supershell"));
         return deploymentOutput;
     }
 

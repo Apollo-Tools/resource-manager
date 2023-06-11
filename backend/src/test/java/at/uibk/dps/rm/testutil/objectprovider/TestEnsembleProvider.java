@@ -24,6 +24,8 @@ public class TestEnsembleProvider {
         ensemble.setRegions(List.of(1L, 2L));
         ensemble.setProviders(List.of(3L, 4L));
         ensemble.setResource_types(List.of(3L, 4L));
+        ensemble.setEnvironments(List.of(5L));
+        ensemble.setPlatforms(List.of(1L, 5L));
         return ensemble;
     }
 

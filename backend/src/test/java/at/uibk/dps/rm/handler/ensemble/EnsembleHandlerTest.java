@@ -165,7 +165,7 @@ public class EnsembleHandlerTest {
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.getLong("ensemble_id")).isEqualTo(1L);
                     assertThat(result.getJsonArray("resources").size()).isEqualTo(2);
-                    assertThat(result.getJsonArray("slos").size()).isEqualTo(6);
+                    assertThat(result.getJsonArray("slos").size()).isEqualTo(8);
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))

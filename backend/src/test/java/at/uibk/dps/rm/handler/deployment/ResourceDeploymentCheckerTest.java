@@ -128,17 +128,17 @@ public class ResourceDeploymentCheckerTest {
         DeploymentOutput deploymentOutput = TestDTOProvider.createDeploymentOutput();
 
         when(processOutput.getOutput()).thenReturn(JsonObject.mapFrom(deploymentOutput).encode());
-        when(resourceDeploymentService.updateTriggerUrl(1L, "http://localhostfaas1"))
+        when(resourceDeploymentService.updateTriggerUrl(1L, "http://localhostlambda/foo1"))
             .thenReturn(Completable.complete());
-        when(resourceDeploymentService.updateTriggerUrl(2L, "http://localhostvm1"))
+        when(resourceDeploymentService.updateTriggerUrl(2L, "http://localhostec2/foo1"))
             .thenReturn(Completable.complete());
-        when(resourceDeploymentService.updateTriggerUrl(3L, "http://localhostvm2"))
+        when(resourceDeploymentService.updateTriggerUrl(3L, "http://localhostec2/foo2"))
             .thenReturn(Completable.complete());
-        when(resourceDeploymentService.updateTriggerUrl(4L, "http://localhostedge1"))
+        when(resourceDeploymentService.updateTriggerUrl(4L, "http://localhostopenfaas/foo1"))
             .thenReturn(Completable.complete());
-        when(resourceDeploymentService.updateTriggerUrl(5L, "/deployments/1/5/deploy"))
+        when(resourceDeploymentService.updateTriggerUrl(5L, "/deployments/1/5/startup"))
             .thenReturn(Completable.complete());
-        when(resourceDeploymentService.updateTriggerUrl(6L, "/deployments/1/6/deploy"))
+        when(resourceDeploymentService.updateTriggerUrl(6L, "/deployments/1/6/startup"))
             .thenReturn(Completable.complete());
 
         resourceDeploymentChecker.storeOutputToResourceDeployments(processOutput, request)
@@ -154,9 +154,9 @@ public class ResourceDeploymentCheckerTest {
         DeploymentOutput deploymentOutput = TestDTOProvider.createDeploymentOutputUnknownFunction();
 
         when(processOutput.getOutput()).thenReturn(JsonObject.mapFrom(deploymentOutput).encode());
-        when(resourceDeploymentService.updateTriggerUrl(5L, "/deployments/1/5/deploy"))
+        when(resourceDeploymentService.updateTriggerUrl(5L, "/deployments/1/5/startup"))
             .thenReturn(Completable.complete());
-        when(resourceDeploymentService.updateTriggerUrl(6L, "/deployments/1/6/deploy"))
+        when(resourceDeploymentService.updateTriggerUrl(6L, "/deployments/1/6/startup"))
             .thenReturn(Completable.complete());
 
         resourceDeploymentChecker.storeOutputToResourceDeployments(processOutput, request)
