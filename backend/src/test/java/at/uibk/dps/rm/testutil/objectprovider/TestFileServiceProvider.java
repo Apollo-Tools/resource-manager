@@ -32,12 +32,12 @@ public class TestFileServiceProvider {
         FunctionDeployment fr3 = TestFunctionProvider.createFunctionDeployment(3L, f2, r2);
         FunctionDeployment fr4 = TestFunctionProvider.createFunctionDeployment(4L, f1, r3);
         List<FunctionDeployment> functionDeployments = List.of(fr1, fr2, fr3, fr4);
-        long reservationId = 1L;
+        long deploymentId = 1L;
         FaasModule module = new FaasModule(ResourceProviderEnum.AWS, region);
         String dockerUserName = "dockerUser";
         VPC vpc = TestResourceProviderProvider.createVPC(1L, region);
         return new RegionFaasFileService(fileSystem, rootFolder, functionsDir, region, functionDeployments,
-            reservationId, module, dockerUserName, vpc);
+            deploymentId, module, dockerUserName, vpc);
     }
 
     public static RegionFaasFileService createRegionFaasFileServiceAllFaas(FileSystem fileSystem, Runtime runtime) {
@@ -59,21 +59,21 @@ public class TestFileServiceProvider {
                                                                 Function f2) {
         FunctionDeployment fr1 = TestFunctionProvider.createFunctionDeployment(1L, f1, r1);
         FunctionDeployment fr2 = TestFunctionProvider.createFunctionDeployment(2L, f2, r2);
-        List<FunctionDeployment> functionReservations = List.of(fr1, fr2);
+        List<FunctionDeployment> functionDeployments = List.of(fr1, fr2);
         DockerCredentials credentials = new DockerCredentials();
         credentials.setUsername("user");
         credentials.setAccessToken("access-token");
         Path functionsDir = Paths.get("temp\\test\\functions");
-        return new FunctionPrepareService(vertx, functionReservations, functionsDir, credentials);
+        return new FunctionPrepareService(vertx, functionDeployments, functionsDir, credentials);
     }
 
     public static FunctionPrepareService createFunctionFileServiceNoFunctions(Vertx vertx) {
-        List<FunctionDeployment> functionReservations = new ArrayList<>();
+        List<FunctionDeployment> functionDeployments = new ArrayList<>();
         DockerCredentials credentials = new DockerCredentials();
         credentials.setUsername("user");
         credentials.setAccessToken("access-token");
         Path functionsDir = Paths.get("temp\\test\\functions");
-        return new FunctionPrepareService(vertx, functionReservations, functionsDir, credentials);
+        return new FunctionPrepareService(vertx, functionDeployments, functionsDir, credentials);
     }
 
     public static FunctionPrepareService createFunctionFileServiceLambdaEc2Python(Vertx vertx) {
@@ -128,30 +128,30 @@ public class TestFileServiceProvider {
     }
 
     public static ContainerDeployFileService createContainerDeployFileService(FileSystem fileSystem, Path rootFolder,
-            Deployment reservation) {
-        ServiceDeployment serviceReservation = TestServiceProvider.createServiceDeployment(1L, reservation);
-        return new ContainerDeployFileService(fileSystem, rootFolder, serviceReservation,
-            reservation.getDeploymentId());
+            Deployment deployment) {
+        ServiceDeployment serviceDeployment = TestServiceProvider.createServiceDeployment(1L, deployment);
+        return new ContainerDeployFileService(fileSystem, rootFolder, serviceDeployment,
+            deployment.getDeploymentId());
     }
 
     public static ContainerDeployFileService createContainerDeployFileService(FileSystem fileSystem, Path rootFolder,
-            Resource resource, Deployment reservation) {
-        ServiceDeployment serviceReservation =
-            TestServiceProvider.createServiceDeployment(1L, resource, reservation);
-        return new ContainerDeployFileService(fileSystem, rootFolder, serviceReservation,
-            reservation.getDeploymentId());
+            Resource resource, Deployment deployment) {
+        ServiceDeployment serviceDeployment =
+            TestServiceProvider.createServiceDeployment(1L, resource, deployment);
+        return new ContainerDeployFileService(fileSystem, rootFolder, serviceDeployment,
+            deployment.getDeploymentId());
     }
 
     public static ContainerPullFileService createContainerPullFileService(FileSystem fileSystem, Path rootFolder,
-        Deployment reservation) {
-        ServiceDeployment serviceReservation = TestServiceProvider.createServiceDeployment(1L, reservation);
-        return new ContainerPullFileService(fileSystem, rootFolder, List.of(serviceReservation),
-            reservation.getDeploymentId());
+        Deployment deployment) {
+        ServiceDeployment serviceDeployment = TestServiceProvider.createServiceDeployment(1L, deployment);
+        return new ContainerPullFileService(fileSystem, rootFolder, List.of(serviceDeployment),
+            deployment.getDeploymentId());
     }
 
     public static ContainerPullFileService createContainerPullFileService(FileSystem fileSystem, Path rootFolder,
-        Deployment reservation, List<ServiceDeployment> serviceReservations) {
-        return new ContainerPullFileService(fileSystem, rootFolder, serviceReservations,
-            reservation.getDeploymentId());
+        Deployment deployment, List<ServiceDeployment> serviceDeployments) {
+        return new ContainerPullFileService(fileSystem, rootFolder, serviceDeployments,
+            deployment.getDeploymentId());
     }
 }

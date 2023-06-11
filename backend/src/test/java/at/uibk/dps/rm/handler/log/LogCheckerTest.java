@@ -49,8 +49,8 @@ public class LogCheckerTest {
     void checkFindAllByDeploymentId(VertxTestContext testContext) {
         long deploymentId = 11L, accountId = 22L;
         Deployment deployment = TestDeploymentProvider.createDeployment(deploymentId);
-        DeploymentLog rl1 = TestLogProvider.createReservationLog(1L, deployment);
-        DeploymentLog rl2 = TestLogProvider.createReservationLog(2L, deployment);
+        DeploymentLog rl1 = TestLogProvider.createDeploymentLog(1L, deployment);
+        DeploymentLog rl2 = TestLogProvider.createDeploymentLog(2L, deployment);
         JsonArray deploymentLogs = new JsonArray(List.of(JsonObject.mapFrom(rl1), JsonObject.mapFrom(rl2)));
 
         when(logService.findAllByDeploymentIdAndAccountId(deploymentId, accountId))

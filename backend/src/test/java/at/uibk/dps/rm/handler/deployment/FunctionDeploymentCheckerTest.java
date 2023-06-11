@@ -30,7 +30,7 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class FunctionReservationCheckerTest {
+public class FunctionDeploymentCheckerTest {
 
     private FunctionDeploymentChecker checker;
 
@@ -47,14 +47,14 @@ public class FunctionReservationCheckerTest {
 
     @Test
     void checkFindAll(VertxTestContext testContext) {
-        Deployment reservation = TestDeploymentProvider.createDeployment(1L);
-        FunctionDeployment fr1 = TestFunctionProvider.createFunctionDeployment(1L, reservation);
-        FunctionDeployment fr2 = TestFunctionProvider.createFunctionDeployment(2L, reservation);
-        JsonArray reservations = new JsonArray(List.of(JsonObject.mapFrom(fr1), JsonObject.mapFrom(fr2)));
+        Deployment deployment = TestDeploymentProvider.createDeployment(1L);
+        FunctionDeployment fr1 = TestFunctionProvider.createFunctionDeployment(1L, deployment);
+        FunctionDeployment fr2 = TestFunctionProvider.createFunctionDeployment(2L, deployment);
+        JsonArray deployments = new JsonArray(List.of(JsonObject.mapFrom(fr1), JsonObject.mapFrom(fr2)));
 
-        when(service.findAllByDeploymentId(reservation.getDeploymentId())).thenReturn(Single.just(reservations));
+        when(service.findAllByDeploymentId(deployment.getDeploymentId())).thenReturn(Single.just(deployments));
 
-        checker.checkFindAllByDeploymentId(reservation.getDeploymentId())
+        checker.checkFindAllByDeploymentId(deployment.getDeploymentId())
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(2);
                     assertThat(result.getJsonObject(0).getLong("resource_deployment_id")).isEqualTo(1L);
@@ -67,12 +67,12 @@ public class FunctionReservationCheckerTest {
 
     @Test
     void checkFindAllEmptyList(VertxTestContext testContext) {
-        Deployment reservation = TestDeploymentProvider.createDeployment(1L);
-        JsonArray reservations = new JsonArray();
+        Deployment deployment = TestDeploymentProvider.createDeployment(1L);
+        JsonArray deployments = new JsonArray();
 
-        when(service.findAllByDeploymentId(reservation.getDeploymentId())).thenReturn(Single.just(reservations));
+        when(service.findAllByDeploymentId(deployment.getDeploymentId())).thenReturn(Single.just(deployments));
 
-        checker.checkFindAllByDeploymentId(reservation.getDeploymentId())
+        checker.checkFindAllByDeploymentId(deployment.getDeploymentId())
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(0);
                     testContext.completeNow();

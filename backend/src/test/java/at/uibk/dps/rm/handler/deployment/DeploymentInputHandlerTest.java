@@ -32,7 +32,7 @@ import static org.mockito.Mockito.verify;
  */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class ReservationInputHandlerTest {
+public class DeploymentInputHandlerTest {
 
     @Mock
     RoutingContext rc;

@@ -92,11 +92,11 @@ public class Mockprovider {
 
 
     public static MockedConstruction<TerraformExecutor> mockTerraformExecutor(DeploymentPath deploymentPath,
-        long resourceReservationId, ProcessOutput processOutput, String mode) {
+        long resourceDeploymentId, ProcessOutput processOutput, String mode) {
         return Mockito.mockConstruction(TerraformExecutor.class,
             (mock, context) -> {
                 Path containerPath = Path.of(deploymentPath.getRootFolder().toString(), "container",
-                    String.valueOf(resourceReservationId));
+                    String.valueOf(resourceDeploymentId));
                 mockTerraformExecutor(mock, containerPath, mode, processOutput);
             });
     }

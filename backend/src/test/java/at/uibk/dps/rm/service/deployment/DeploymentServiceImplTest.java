@@ -210,15 +210,15 @@ public class DeploymentServiceImplTest {
 
     @Test
     void deleteTFDirs(VertxTestContext testContext) {
-        long reservationId = 1L;
-        Path rootFolder = new DeploymentPath(reservationId, config).getRootFolder();
+        long deploymentId = 1L;
+        Path rootFolder = new DeploymentPath(deploymentId, config).getRootFolder();
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockito.mockConstruction(ConfigUtility.class,
             (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
             try (MockedStatic<TerraformFileService> mockedStatic = Mockito.mockStatic(TerraformFileService.class)) {
                 mockedStatic.when(() -> TerraformFileService.deleteAllDirs(any(), eq(rootFolder)))
                     .thenReturn(Completable.complete());
-                deploymentExecutionService.deleteTFDirs(reservationId)
+                deploymentExecutionService.deleteTFDirs(deploymentId)
                     .onComplete(testContext.succeedingThenComplete());
             }
         }
@@ -227,16 +227,16 @@ public class DeploymentServiceImplTest {
 
     @Test
     void deleteTFDirsFailed(VertxTestContext testContext) {
-        long reservationId = 1L;
+        long deploymentId = 1L;
         JsonObject config = TestConfigProvider.getConfig();
-        Path rootFolder = new DeploymentPath(reservationId, config).getRootFolder();
+        Path rootFolder = new DeploymentPath(deploymentId, config).getRootFolder();
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockito.mockConstruction(ConfigUtility.class,
             (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
             try (MockedStatic<TerraformFileService> mockedStatic = Mockito.mockStatic(TerraformFileService.class)) {
                 mockedStatic.when(() -> TerraformFileService.deleteAllDirs(any(), eq(rootFolder)))
                     .thenReturn(Completable.error(IOException::new));
-                deploymentExecutionService.deleteTFDirs(reservationId)
+                deploymentExecutionService.deleteTFDirs(deploymentId)
                     .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
                         assertThat(throwable).isInstanceOf(IOException.class);
                         testContext.completeNow();

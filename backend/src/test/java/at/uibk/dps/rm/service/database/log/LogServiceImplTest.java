@@ -41,16 +41,16 @@ public class LogServiceImplTest {
     }
 
     @Test
-    void findAllByReservationIdAndAccountId(VertxTestContext testContext) {
-        long reservationId = 1L, accountId = 2L;
+    void findAllByDeploymentIdAndAccountId(VertxTestContext testContext) {
+        long deploymentId = 1L, accountId = 2L;
         Log log1 = TestLogProvider.createLog(1L);
         Log log2 = TestLogProvider.createLog(2L);
         List<Log> logs = List.of(log1, log2);
         CompletionStage<List<Log>> completionStage = CompletionStages.completedFuture(logs);
 
-        when(logRepository.findAllByDeploymentIdAndAccountId(reservationId, accountId)).thenReturn(completionStage);
+        when(logRepository.findAllByDeploymentIdAndAccountId(deploymentId, accountId)).thenReturn(completionStage);
 
-        logService.findAllByDeploymentIdAndAccountId(reservationId, accountId)
+        logService.findAllByDeploymentIdAndAccountId(deploymentId, accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
                 assertThat(result.getJsonObject(0).getLong("log_id")).isEqualTo(1L);
@@ -60,14 +60,14 @@ public class LogServiceImplTest {
     }
 
     @Test
-    void findAllByReservationIdAndAccountIdEmpty(VertxTestContext testContext) {
-        long reservationId = 1L, accountId = 2L;
+    void findAllByDeploymentIdAndAccountIdEmpty(VertxTestContext testContext) {
+        long deploymentId = 1L, accountId = 2L;
         List<Log> logs = new ArrayList<>();
         CompletionStage<List<Log>> completionStage = CompletionStages.completedFuture(logs);
 
-        when(logRepository.findAllByDeploymentIdAndAccountId(reservationId, accountId)).thenReturn(completionStage);
+        when(logRepository.findAllByDeploymentIdAndAccountId(deploymentId, accountId)).thenReturn(completionStage);
 
-        logService.findAllByDeploymentIdAndAccountId(reservationId, accountId)
+        logService.findAllByDeploymentIdAndAccountId(deploymentId, accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(0);
                 testContext.completeNow();

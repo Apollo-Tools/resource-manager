@@ -43,7 +43,7 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class ReservationErrorHandlerTest {
+public class DeploymentErrorHandlerTest {
 
     @RegisterExtension
     private static final RunTestOnContext rtoc = new RunTestOnContext();
@@ -51,13 +51,13 @@ public class ReservationErrorHandlerTest {
     private DeploymentErrorHandler errorHandler;
 
     @Mock
-    private ResourceDeploymentChecker resourceReservationChecker;
+    private ResourceDeploymentChecker resourceDeploymentChecker;
 
     @Mock
     private LogChecker logChecker;
 
     @Mock
-    private DeploymentLogChecker reservationLogChecker;
+    private DeploymentLogChecker deploymentLogChecker;
 
     @Mock
     private FileSystemChecker fileSystemChecker;
@@ -69,41 +69,41 @@ public class ReservationErrorHandlerTest {
     void initTest() {
         rtoc.vertx();
         JsonMapperConfig.configJsonMapper();
-        errorHandler = new DeploymentErrorHandler(resourceReservationChecker, logChecker, reservationLogChecker,
+        errorHandler = new DeploymentErrorHandler(resourceDeploymentChecker, logChecker, deploymentLogChecker,
             fileSystemChecker, deploymentHandler);
     }
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void onDeploymentError(boolean tfLockFileExists, VertxTestContext testContext) {
-        long accountId = 1L, reservationId = 1L;
-        Deployment reservation = TestDeploymentProvider.createDeployment(reservationId);
+        long accountId = 1L, deploymentId = 1L;
+        Deployment deployment = TestDeploymentProvider.createDeployment(deploymentId);
         Throwable exc = new DeploymentTerminationFailedException();
         Log log = new Log();
         log.setLogValue("deployment/termination failed");
         Log persistedLog = TestLogProvider.createLog(1L);
-        DeploymentLog reservationLog = new DeploymentLog();
-        reservationLog.setDeployment(reservation);
-        reservationLog.setLog(persistedLog);
+        DeploymentLog deploymentLog = new DeploymentLog();
+        deploymentLog.setDeployment(deployment);
+        deploymentLog.setLog(persistedLog);
         JsonObject config = TestConfigProvider.getConfig();
-        DeploymentPath deploymentPath = new DeploymentPath(reservationId, config);
+        DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
 
-        when(resourceReservationChecker.submitUpdateStatus(reservationId, DeploymentStatusValue.ERROR))
+        when(resourceDeploymentChecker.submitUpdateStatus(deploymentId, DeploymentStatusValue.ERROR))
             .thenReturn(Completable.complete());
         when(logChecker.submitCreate(JsonObject.mapFrom(log)))
             .thenReturn(Single.just(JsonObject.mapFrom(persistedLog)));
-        when(reservationLogChecker.submitCreate(JsonObject.mapFrom(reservationLog)))
-            .thenReturn(Single.just(JsonObject.mapFrom(reservationLog)));
+        when(deploymentLogChecker.submitCreate(JsonObject.mapFrom(deploymentLog)))
+            .thenReturn(Single.just(JsonObject.mapFrom(deploymentLog)));
         when(fileSystemChecker.checkTFLockFileExists(deploymentPath.getRootFolder().toString()))
             .thenReturn(Single.just(tfLockFileExists));
         if (tfLockFileExists) {
-            when(deploymentHandler.terminateResources(reservation, accountId))
+            when(deploymentHandler.terminateResources(deployment, accountId))
                 .thenReturn(Completable.complete());
         }
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockito.mockConstruction(ConfigUtility.class,
             (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)))) {
-            errorHandler.onDeploymentError(accountId, reservation, exc)
+            errorHandler.onDeploymentError(accountId, deployment, exc)
                 .blockingSubscribe(() -> {
                     },
                     throwable -> testContext.verify(() -> fail("method has thrown exception"))
@@ -114,24 +114,24 @@ public class ReservationErrorHandlerTest {
 
     @Test
     void onTerminationError(VertxTestContext testContext) {
-        long reservationId = 1L;
-        Deployment reservation = TestDeploymentProvider.createDeployment(reservationId);
+        long deploymentId = 1L;
+        Deployment deployment = TestDeploymentProvider.createDeployment(deploymentId);
         Throwable exc = new DeploymentTerminationFailedException();
         Log log = new Log();
         log.setLogValue("deployment/termination failed");
         Log persistedLog = TestLogProvider.createLog(1L);
-        DeploymentLog reservationLog = new DeploymentLog();
-        reservationLog.setDeployment(reservation);
-        reservationLog.setLog(persistedLog);
+        DeploymentLog deploymentLog = new DeploymentLog();
+        deploymentLog.setDeployment(deployment);
+        deploymentLog.setLog(persistedLog);
 
-        when(resourceReservationChecker.submitUpdateStatus(reservationId, DeploymentStatusValue.ERROR))
+        when(resourceDeploymentChecker.submitUpdateStatus(deploymentId, DeploymentStatusValue.ERROR))
             .thenReturn(Completable.complete());
         when(logChecker.submitCreate(JsonObject.mapFrom(log)))
             .thenReturn(Single.just(JsonObject.mapFrom(persistedLog)));
-        when(reservationLogChecker.submitCreate(JsonObject.mapFrom(reservationLog)))
-            .thenReturn(Single.just(JsonObject.mapFrom(reservationLog)));
+        when(deploymentLogChecker.submitCreate(JsonObject.mapFrom(deploymentLog)))
+            .thenReturn(Single.just(JsonObject.mapFrom(deploymentLog)));
 
-        errorHandler.onTerminationError(reservation, exc)
+        errorHandler.onTerminationError(deployment, exc)
             .blockingSubscribe(() -> {},
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );

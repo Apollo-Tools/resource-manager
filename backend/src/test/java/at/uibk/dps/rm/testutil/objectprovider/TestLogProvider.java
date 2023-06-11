@@ -20,11 +20,11 @@ public class TestLogProvider {
         return log;
     }
 
-    public static DeploymentLog createReservationLog(long id, Deployment reservation) {
-        DeploymentLog reservationLog = new DeploymentLog();
-        reservationLog.setDeploymentLogId(id);
-        reservationLog.setDeployment(reservation);
-        reservationLog.setLog(createLog(id));
-        return reservationLog;
+    public static DeploymentLog createDeploymentLog(long id, Deployment deployment) {
+        DeploymentLog deploymentLog = new DeploymentLog();
+        deploymentLog.setDeploymentLogId(id);
+        deploymentLog.setDeployment(deployment);
+        deploymentLog.setLog(createLog(id));
+        return deploymentLog;
     }
 }

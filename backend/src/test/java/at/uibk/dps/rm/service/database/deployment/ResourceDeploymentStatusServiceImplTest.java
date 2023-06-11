@@ -26,7 +26,7 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class ResourceReservationStatusServiceImplTest {
+public class ResourceDeploymentStatusServiceImplTest {
 
     private ResourceDeploymentStatusService service;
 

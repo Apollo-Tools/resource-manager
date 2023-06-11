@@ -42,8 +42,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class TerraformExecutorTest {
 
-
-
     private final JsonObject config = TestConfigProvider.getConfig();
 
     @Mock

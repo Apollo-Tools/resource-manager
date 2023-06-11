@@ -35,18 +35,18 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class ReservationLogHandlerTest {
+public class DeploymentLogHandlerTest {
 
     private DeploymentLogHandler handler;
 
     @Mock
-    private DeploymentLogChecker reservationLogChecker;
+    private DeploymentLogChecker deploymentLogChecker;
 
     @Mock
     private LogChecker logChecker;
 
     @Mock
-    private DeploymentChecker reservationChecker;
+    private DeploymentChecker deploymentChecker;
 
     @Mock
     private RoutingContext rc;
@@ -54,26 +54,26 @@ public class ReservationLogHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        handler = new DeploymentLogHandler(reservationLogChecker, logChecker, reservationChecker);
+        handler = new DeploymentLogHandler(deploymentLogChecker, logChecker, deploymentChecker);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"valid", "empty"})
     void getAll(String testCase, VertxTestContext testContext) {
         Account account = TestAccountProvider.createAccount(22L);
-        Deployment reservation = TestDeploymentProvider.createDeployment(11L);
-        DeploymentLog rl1 = TestLogProvider.createReservationLog(1L, reservation);
-        DeploymentLog rl2 = TestLogProvider.createReservationLog(2L, reservation);
-        JsonArray reservationLogs = new JsonArray(List.of(JsonObject.mapFrom(rl1), JsonObject.mapFrom(rl2)));
+        Deployment deployment = TestDeploymentProvider.createDeployment(11L);
+        DeploymentLog rl1 = TestLogProvider.createDeploymentLog(1L, deployment);
+        DeploymentLog rl2 = TestLogProvider.createDeploymentLog(2L, deployment);
+        JsonArray deploymentLogs = new JsonArray(List.of(JsonObject.mapFrom(rl1), JsonObject.mapFrom(rl2)));
         if (testCase.equals("empty")) {
-            reservationLogs = new JsonArray();
+            deploymentLogs = new JsonArray();
         }
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
-        when(rc.pathParam("id")).thenReturn(String.valueOf(reservation.getDeploymentId()));
-        when(reservationChecker.checkFindOne(11L, 22L)).thenReturn(Single.just(JsonObject.mapFrom(reservation)));
+        when(rc.pathParam("id")).thenReturn(String.valueOf(deployment.getDeploymentId()));
+        when(deploymentChecker.checkFindOne(11L, 22L)).thenReturn(Single.just(JsonObject.mapFrom(deployment)));
         when(logChecker.checkFindAllByDeploymentId(11L, 22L))
-            .thenReturn(Single.just(reservationLogs));
+            .thenReturn(Single.just(deploymentLogs));
 
         handler.getAll(rc)
             .subscribe(result -> testContext.verify(() -> {

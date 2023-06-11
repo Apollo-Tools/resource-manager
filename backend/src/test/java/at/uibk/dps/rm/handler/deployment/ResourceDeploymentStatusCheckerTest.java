@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class ResourceReservationStatusCheckerTest {
+public class ResourceDeploymentStatusCheckerTest {
 
     private ResourceDeploymentStatusChecker statusChecker;
 

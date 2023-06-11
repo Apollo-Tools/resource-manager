@@ -50,30 +50,30 @@ public class DeploymentHandlerTest {
     private CredentialsChecker credentialsChecker;
 
     @Mock
-    private FunctionDeploymentChecker functionReservationChecker;
+    private FunctionDeploymentChecker functionDeploymentChecker;
 
     @Mock
-    private ServiceDeploymentChecker serviceReservationChecker;
+    private ServiceDeploymentChecker serviceDeploymentChecker;
 
     @Mock
-    private ResourceDeploymentChecker resourceReservationChecker;
+    private ResourceDeploymentChecker resourceDeploymentChecker;
 
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        deploymentHandler = new DeploymentExecutionHandler(deploymentChecker, credentialsChecker, functionReservationChecker,
-            serviceReservationChecker, resourceReservationChecker);
+        deploymentHandler = new DeploymentExecutionHandler(deploymentChecker, credentialsChecker, functionDeploymentChecker,
+            serviceDeploymentChecker, resourceDeploymentChecker);
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"valid", "deployResourcesFailed", "serviceReservationsNotFound",
-        "functionReservationsNotFound"})
+    @ValueSource(strings = {"valid", "deployResourcesFailed", "serviceDeploymentsNotFound",
+        "functionDeploymentsNotFound"})
     void deployResources(String testCase, VertxTestContext testContext) {
         long accountId = 1L;
-        Deployment reservation = TestDeploymentProvider.createDeployment(1L);
-        JsonObject sr1 = JsonObject.mapFrom(TestServiceProvider.createServiceDeployment(2L, reservation));
-        JsonObject sr2 = JsonObject.mapFrom(TestServiceProvider.createServiceDeployment(3L, reservation));
-        JsonObject fr1 = JsonObject.mapFrom(TestFunctionProvider.createFunctionDeployment(3L, reservation));
+        Deployment deployment = TestDeploymentProvider.createDeployment(1L);
+        JsonObject sr1 = JsonObject.mapFrom(TestServiceProvider.createServiceDeployment(2L, deployment));
+        JsonObject sr2 = JsonObject.mapFrom(TestServiceProvider.createServiceDeployment(3L, deployment));
+        JsonObject fr1 = JsonObject.mapFrom(TestFunctionProvider.createFunctionDeployment(3L, deployment));
         DockerCredentials dockerCredentials = TestDTOProvider.createDockerCredentials();
         String kubeConfig = TestDTOProvider.createKubeConfigValue();
         ResourceProvider rp = TestResourceProviderProvider.createResourceProvider(1L, "aws");
@@ -82,11 +82,11 @@ public class DeploymentHandlerTest {
         JsonObject credentials = JsonObject.mapFrom(TestAccountProvider.createCredentials(1L, rp));
 
         when(credentialsChecker.checkFindAll(accountId)).thenReturn(Single.just(new JsonArray(List.of(credentials))));
-        when(functionReservationChecker.checkFindAllByDeploymentId(1L)).thenReturn(testCase.startsWith("functionRes") ?
+        when(functionDeploymentChecker.checkFindAllByDeploymentId(1L)).thenReturn(testCase.startsWith("functionRes") ?
             Single.error(NotFoundException::new) : Single.just(new JsonArray(List.of(fr1))));
-        if (!testCase.equals("functionReservationsNotFound")) {
-            when(serviceReservationChecker.checkFindAllByDeploymentId(1L))
-                .thenReturn(testCase.startsWith("serviceRes") ? Single.error(NotFoundException::new) :
+        if (!testCase.equals("functionDeploymentsNotFound")) {
+            when(serviceDeploymentChecker.checkFindAllByDeploymentId(1L))
+                .thenReturn(testCase.startsWith("serviceDep") ? Single.error(NotFoundException::new) :
                     Single.just(new JsonArray(List.of(sr1, sr2))));
         }
 
@@ -95,11 +95,11 @@ public class DeploymentHandlerTest {
                 Single.error(DeploymentTerminationFailedException::new) : Single.just(new ProcessOutput()));
         }
         if (testCase.equals("valid")) {
-            when(resourceReservationChecker.storeOutputToResourceDeployments(any(), any()))
+            when(resourceDeploymentChecker.storeOutputToResourceDeployments(any(), any()))
                 .thenReturn(Completable.complete());
         }
 
-        deploymentHandler.deployResources(reservation, accountId, dockerCredentials, kubeConfig, List.of(vpc))
+        deploymentHandler.deployResources(deployment, accountId, dockerCredentials, kubeConfig, List.of(vpc))
             .blockingSubscribe(() -> testContext.verify(() -> {
                 if (!testCase.equals("valid")) {
                     fail("method did not throw exception");
@@ -121,27 +121,27 @@ public class DeploymentHandlerTest {
     @ValueSource(strings = {"valid", "deleteTFDirsFailed", "terminateResourcesFailed"})
     void terminateResources(String testCase, VertxTestContext testContext) {
         long accountId = 1L;
-        Deployment reservation = TestDeploymentProvider.createDeployment(1L);
+        Deployment deployment = TestDeploymentProvider.createDeployment(1L);
         ResourceProvider rp = TestResourceProviderProvider.createResourceProvider(1L, "aws");
         JsonObject credentials = JsonObject.mapFrom(TestAccountProvider.createCredentials(1L, rp));
-        JsonObject sr1 = JsonObject.mapFrom(TestServiceProvider.createServiceDeployment(2L, reservation));
-        JsonObject sr2 = JsonObject.mapFrom(TestServiceProvider.createServiceDeployment(3L, reservation));
-        JsonObject fr1 = JsonObject.mapFrom(TestFunctionProvider.createFunctionDeployment(3L, reservation));
+        JsonObject sr1 = JsonObject.mapFrom(TestServiceProvider.createServiceDeployment(2L, deployment));
+        JsonObject sr2 = JsonObject.mapFrom(TestServiceProvider.createServiceDeployment(3L, deployment));
+        JsonObject fr1 = JsonObject.mapFrom(TestFunctionProvider.createFunctionDeployment(3L, deployment));
 
         when(credentialsChecker.checkFindAll(accountId)).thenReturn(Single.just(new JsonArray(List.of(credentials))));
-        when(functionReservationChecker.checkFindAllByDeploymentId(1L))
+        when(functionDeploymentChecker.checkFindAllByDeploymentId(1L))
             .thenReturn(Single.just(new JsonArray(List.of(fr1))));
-        when(serviceReservationChecker.checkFindAllByDeploymentId(1L))
+        when(serviceDeploymentChecker.checkFindAllByDeploymentId(1L))
             .thenReturn(Single.just(new JsonArray(List.of(sr1, sr2))));
         when(deploymentChecker.terminateResources(any())).thenReturn(testCase.equals("terminateResourcesFailed") ?
             Completable.error(DeploymentTerminationFailedException::new) : Completable.complete());
         if (testCase.equals("valid") || testCase.equals("deleteTFDirsFailed")) {
-            when(deploymentChecker.deleteTFDirs(reservation.getDeploymentId()))
+            when(deploymentChecker.deleteTFDirs(deployment.getDeploymentId()))
                 .thenReturn(testCase.startsWith("delete") ? Completable.error(IOException::new) :
                     Completable.complete());
         }
 
-        deploymentHandler.terminateResources(reservation, accountId)
+        deploymentHandler.terminateResources(deployment, accountId)
             .blockingSubscribe(() -> testContext.verify(() -> {
                 if (!testCase.equals("valid")) {
                     fail("method did not throw exception");

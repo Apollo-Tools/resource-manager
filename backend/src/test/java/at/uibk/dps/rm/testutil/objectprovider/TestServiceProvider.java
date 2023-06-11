@@ -58,35 +58,35 @@ public class TestServiceProvider {
 
 
     public static ServiceDeployment createServiceDeployment(long id, Service service, Resource resource,
-            boolean isDeployed, Deployment reservation) {
-        ServiceDeployment serviceReservation = new ServiceDeployment();
-        serviceReservation.setResourceDeploymentId(id);
-        serviceReservation.setService(service);
-        serviceReservation.setResource(resource);
-        serviceReservation.setIsDeployed(isDeployed);
-        serviceReservation.setDeployment(reservation);
-        serviceReservation.setContext("k8s-context");
-        serviceReservation.setNamespace("default");
-        return serviceReservation;
+            boolean isDeployed, Deployment deployment) {
+        ServiceDeployment serviceDeployment = new ServiceDeployment();
+        serviceDeployment.setResourceDeploymentId(id);
+        serviceDeployment.setService(service);
+        serviceDeployment.setResource(resource);
+        serviceDeployment.setIsDeployed(isDeployed);
+        serviceDeployment.setDeployment(deployment);
+        serviceDeployment.setContext("k8s-context");
+        serviceDeployment.setNamespace("default");
+        return serviceDeployment;
     }
 
-    public static ServiceDeployment createServiceDeployment(long id, long resourceId, Deployment reservation) {
+    public static ServiceDeployment createServiceDeployment(long id, long resourceId, Deployment deployment) {
         Service service = createService(22L, "test");
         Resource resource = TestResourceProvider.createResourceContainer(resourceId, "localhost", true);
-        return createServiceDeployment(id, service, resource, true, reservation);
+        return createServiceDeployment(id, service, resource, true, deployment);
     }
 
-    public static ServiceDeployment createServiceDeployment(long id, Deployment reservation) {
-        return createServiceDeployment(id, 33L, reservation);
+    public static ServiceDeployment createServiceDeployment(long id, Deployment deployment) {
+        return createServiceDeployment(id, 33L, deployment);
     }
 
-    public static ServiceDeployment createServiceDeployment(long id, Resource resource, Deployment reservation) {
+    public static ServiceDeployment createServiceDeployment(long id, Resource resource, Deployment deployment) {
         Service service = createService(22L, "test");
-        return createServiceDeployment(id, service, resource, false, reservation);
+        return createServiceDeployment(id, service, resource, false, deployment);
     }
 
     public static ServiceDeployment createServiceDeployment(long id, Service service, Resource resource) {
-        Deployment reservation = TestDeploymentProvider.createDeployment(1L);
-        return createServiceDeployment(id, service, resource, false, reservation);
+        Deployment deployment = TestDeploymentProvider.createDeployment(1L);
+        return createServiceDeployment(id, service, resource, false, deployment);
     }
 }
