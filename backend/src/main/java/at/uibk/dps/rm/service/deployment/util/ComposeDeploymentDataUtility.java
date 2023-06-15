@@ -38,7 +38,7 @@ public class ComposeDeploymentDataUtility {
         BigDecimal memorySize = metricValues.get("memory-size").getValueNumber();
         String deploymentRole = metricValues.get("deployment-role").getValueString();
         deploymentData.appendValues(functionName.toString(), functionPath.toString(), functionHandler, timeout,
-            memorySize, "[]", runtime, deploymentRole);
+            memorySize, "\"\"", runtime, deploymentRole);
     }
 
     public static void composeEC2DeploymentData(Resource resource, Function function, EC2DeploymentData deploymentData) {
