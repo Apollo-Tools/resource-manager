@@ -21,8 +21,9 @@ import java.util.zip.ZipOutputStream;
 public class PackagePythonCode extends PackageSourceCode{
     protected final String SOURCE_CODE_NAME = "cloud_function.py";
     private final File[] HANDLER_FILES =
-        {Path.of("runtime", "python", "main.py").toFile(),
-            Path.of("runtime", "python", "handler.py").toFile()};
+        {Path.of("faas-templates", "python38", "apollorm", "main.py").toFile(),
+        Path.of("faas-templates", "python38", "apollorm", "handler.py").toFile(),
+        Path.of("faas-templates", "python38", "apollorm", "requirements.txt").toFile()};
 
     /**
      * Create an instance from vertx and the fileSystem.

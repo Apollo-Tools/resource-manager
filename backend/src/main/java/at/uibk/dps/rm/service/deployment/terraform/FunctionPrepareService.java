@@ -5,6 +5,7 @@ import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
+import at.uibk.dps.rm.entity.model.Runtime;
 import at.uibk.dps.rm.exception.RuntimeNotSupportedException;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackagePythonCode;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackageSourceCode;
@@ -65,6 +66,7 @@ public class FunctionPrepareService {
         PackageSourceCode packageSourceCode;
         StringBuilder functionsString = new StringBuilder();
         List<Completable> completables = new ArrayList<>();
+        Set<Runtime> copiedOpenFaasTemplates = new HashSet<>();
         for (FunctionDeployment fr : functionDeployments) {
             Function function = fr.getFunction();
             if (functionIds.contains(function.getFunctionId())) {
@@ -78,10 +80,14 @@ public class FunctionPrepareService {
                 if (deployFunctionOnOpenFaaS(function)) {
                     functionsString.append(String.format(
                         "  %s:\n" +
-                            "    lang: python3-flask-debian\n" +
+                            "    lang: python3-apollo-rm\n" +
                             "    handler: ./%s\n" +
-                            "    image: %s/%s:latest\n", functionIdentifier, functionIdentifier,
-                        dockerCredentials.getUsername(), functionIdentifier));
+                            "    image: %s/%s:latest\n",
+                        functionIdentifier, functionIdentifier, dockerCredentials.getUsername(), functionIdentifier));
+                    if (!copiedOpenFaasTemplates.contains(function.getRuntime())) {
+                        completables.add(copyOpenFaasTemplates(function.getRuntime()));
+                        copiedOpenFaasTemplates.add(function.getRuntime());
+                    }
                     functionsToDeploy.getDockerFunctionIdentifiers().add(functionIdentifier);
                 }
             } else {
@@ -101,7 +107,7 @@ public class FunctionPrepareService {
     }
 
     /**
-     * Check if a function is going to be deployed on a virtual machine or edge device.
+     * Check if a function is going to be deployed on a virtual machine or self-managed device.
      *
      * @param function the function
      * @return true if the function has to be deployed on a vm or edge device, else false
@@ -113,5 +119,16 @@ public class FunctionPrepareService {
             return functionDeployment.getFunction().equals(function) &&
                 (platform.equals(PlatformEnum.OPENFAAS) || platform.equals(PlatformEnum.EC2));
         });
+    }
+
+    private Completable copyOpenFaasTemplates(Runtime runtime) {
+        String templatePath = Path
+            .of("faas-templates", runtime.getName().replace(".", ""), "openfaas")
+            .toAbsolutePath().toString();
+        String destinationPath = Path
+            .of(functionsDir.toString(), "template", "python3-apollo-rm")
+            .toAbsolutePath().toString();
+        return fileSystem.mkdirs(destinationPath)
+            .andThen(fileSystem.copyRecursive(templatePath, destinationPath, true));
     }
 }

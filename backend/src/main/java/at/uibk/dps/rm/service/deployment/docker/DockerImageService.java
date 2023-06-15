@@ -45,9 +45,6 @@ public class DockerImageService {
             "version: 1.0\n" +
                 "provider:\n" +
                 "  name: openfaas\n" +
-                "configuration:\n" +
-                "  templates:\n" +
-                "    - name: python3-flask-debian\n" +
                 "functions:\n" +
                 "%s\n", functionsString);
 
