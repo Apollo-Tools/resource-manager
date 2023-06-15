@@ -1,0 +1,2 @@
+ALTER TABLE function
+ADD COLUMN is_file BOOLEAN NOT NULL DEFAULT false;

@@ -30,7 +30,7 @@ variable "memory_sizes" {
 
 variable "layers" {
   description = "The function layers."
-  type        = list(list(any))
+  type        = list(string)
 }
 
 variable "runtimes" {

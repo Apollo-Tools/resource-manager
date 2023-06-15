@@ -16,13 +16,16 @@ import at.uibk.dps.rm.router.resourceprovider.*;
 import at.uibk.dps.rm.router.service.ServiceRoute;
 import at.uibk.dps.rm.router.service.ServiceTypeRoute;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
+import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import at.uibk.dps.rm.util.configuration.JWTAuthProvider;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.AbstractVerticle;
 import io.vertx.rxjava3.ext.web.Router;
+import io.vertx.rxjava3.ext.web.handler.BodyHandler;
 import io.vertx.rxjava3.ext.web.handler.CorsHandler;
 import io.vertx.rxjava3.ext.web.handler.JWTAuthHandler;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
@@ -41,27 +44,31 @@ public class ApiVerticle extends AbstractVerticle {
 
     @Override
     public Completable rxStart() {
-        return RouterBuilder.rxCreate(vertx, "openapi/resource-manager.yaml")
-            .flatMap(routerBuilder -> {
-                Router router = initRouter(routerBuilder);
-                return vertx.createHttpServer()
-                    .requestHandler(router)
-                    .rxListen(config().getInteger("api_port"));
-            })
-            .doOnSuccess(
-                http -> logger.info("HTTP server started on port " + config().getInteger("api_port")))
-            .doOnError(
-                throwable -> logger.error("Error", throwable))
-            .ignoreElement();
+        return new ConfigUtility(vertx).getConfig()
+            .flatMapCompletable(config ->
+                RouterBuilder.create(vertx, "openapi/resource-manager.yaml")
+                .flatMap(routerBuilder -> {
+                    Router router = initRouter(routerBuilder, config);
+                    return vertx.createHttpServer()
+                        .requestHandler(router)
+                        .rxListen(config().getInteger("api_port"));
+                })
+                .doOnSuccess(
+                    http -> logger.info("HTTP server started on port " + config().getInteger("api_port")))
+                .doOnError(
+                    throwable -> logger.error("Error", throwable))
+                .ignoreElement()
+            );
     }
 
     /**
-     * Initialize the route for the api using the routerBuilder.
+     * Initialise the route for the api using the routerBuilder.
      *
      * @param routerBuilder the router builder
-     * @return the intialized router
+     * @param config the config
+     * @return the initialised router
      */
-    private Router initRouter(RouterBuilder routerBuilder) {
+    private Router initRouter(RouterBuilder routerBuilder, JsonObject config) {
         Router globalRouter = Router.router(vertx);
         setupFailureHandler(globalRouter);
         setupSecurityHandler(routerBuilder);
@@ -70,7 +77,11 @@ public class ApiVerticle extends AbstractVerticle {
             .createRouter();
         globalRouter.route(API_PREFIX)
             .handler(cors())
+            .handler(BodyHandler.create()
+                .setUploadsDirectory(config.getString("upload_directory"))
+                .setBodyLimit(config.getLong("max_file_size")))
             .subRouter(apiRouter);
+
         return globalRouter;
     }
 

@@ -1086,6 +1086,60 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
+  /functions/file:
+
+    post:
+      description: Create a new function with code packaged as zip file
+      operationId: createFunctionFile
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - functions
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - name
+                - runtime
+                - code
+              additionalProperties: false
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 64
+                  example: "Multiply"
+                runtime:
+                  type: object
+                  required:
+                    - runtime_id
+                  additionalProperties: false
+                  properties:
+                    runtime_id:
+                      type: integer
+                      format: int64
+                      example: 1
+                code:
+                  type: string
+                  format: binary
+      responses:
+        201:
+          description: Successful creation of a new function
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Function"
+        400:
+          $ref: "#/components/responses/400"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+
   /functions/{id}/resources:
     get:
       description: Return all resources that are linked to an existing function

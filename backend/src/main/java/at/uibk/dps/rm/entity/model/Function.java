@@ -30,6 +30,8 @@ public class Function {
 
     private String code;
 
+    private Boolean isFile;
+
     @Column(insertable = false, updatable = false)
     private @Setter(AccessLevel.NONE) Timestamp createdAt;
 

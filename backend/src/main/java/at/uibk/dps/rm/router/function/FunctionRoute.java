@@ -29,6 +29,11 @@ public class FunctionRoute implements Route {
             .handler(resultHandler::handleSaveOneRequest);
 
         router
+            .operation("createFunctionFile")
+            .handler(FunctionInputHandler::validateAddFunctionRequest)
+            .handler(resultHandler::handleSaveOneRequest);
+
+        router
             .operation("listFunctions")
             .handler(resultHandler::handleFindAllRequest);
 
