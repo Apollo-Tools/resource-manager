@@ -29,7 +29,7 @@ public class ComposeDeploymentDataUtility {
         functionPath.append(functionsDir.toAbsolutePath().toString().replace("\\","/")).append("/")
             .append(functionIdentifier).append(".zip");
         if (runtime.startsWith("python")) {
-            functionHandler = "main.handler";
+            functionHandler = "lambda.handler";
         } else {
             throw new RuntimeNotSupportedException();
         }

@@ -3,7 +3,7 @@
 # Source: https://github.com/openfaas/python-flask-template/tree/master/template/python3-flask-debian
 
 from flask import Flask, request
-from function import handler
+from function import openfaas
 from waitress import serve
 import os
 
@@ -34,7 +34,7 @@ def main_route(path):
     if is_true(raw_body):
         as_text = False
     
-    ret = handler.handle(request.get_data(as_text=as_text))
+    ret = openfaas.handle(request.get_data(as_text=as_text))
     return ret
 
 if __name__ == '__main__':

@@ -19,10 +19,9 @@ import java.util.zip.ZipOutputStream;
  * @author matthi-g
  */
 public class PackagePythonCode extends PackageSourceCode{
-    protected final String SOURCE_CODE_NAME = "cloud_function.py";
+    protected final String SOURCE_CODE_NAME = "main.py";
     private final File[] HANDLER_FILES =
-        {Path.of("faas-templates", "python38", "apollorm", "main.py").toFile(),
-        Path.of("faas-templates", "python38", "apollorm", "handler.py").toFile(),
+        {Path.of("faas-templates", "python38", "lambda", "lambda.py").toFile(),
         Path.of("faas-templates", "python38", "apollorm", "requirements.txt").toFile()};
 
     /**
