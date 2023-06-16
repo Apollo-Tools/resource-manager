@@ -74,9 +74,8 @@ public class FunctionPrepareService {
             }
             String functionIdentifier =  function.getFunctionDeploymentId();
             if (function.getRuntime().getName().startsWith("python")) {
-                packageSourceCode = new PackagePythonCode(vertx, fileSystem);
-                completables.add(packageSourceCode.composeSourceCode(functionsDir, functionIdentifier,
-                    function.getCode()));
+                packageSourceCode = new PackagePythonCode(vertx, fileSystem, function);
+                completables.add(packageSourceCode.composeSourceCode(functionsDir));
                 if (deployFunctionOnOpenFaaS(function)) {
                     functionsString.append(String.format(
                         "  %s:\n" +

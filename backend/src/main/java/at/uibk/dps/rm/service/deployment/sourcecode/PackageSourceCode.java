@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.deployment.sourcecode;
 
+import at.uibk.dps.rm.entity.model.Function;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.core.Vertx;
@@ -27,16 +28,19 @@ public abstract class PackageSourceCode {
 
     private String sourceCodeName;
 
+    private final Function function;
+
     /**
-     * Create an instancde from vertx and the fileSystem.
+     * Create an instance from vertx and the fileSystem.
      *
      * @param vertx a vertx instance
      * @param fileSystem the vertx file system
      */
-    public PackageSourceCode(Vertx vertx, FileSystem fileSystem) {
+    public PackageSourceCode(Vertx vertx, FileSystem fileSystem, Function function) {
         this.vertx = vertx;
         this.fileSystem = fileSystem;
         this.sourceCodeName = SOURCE_CODE_NAME;
+        this.function = function;
     }
 
     protected String getSourceCodeName() {
@@ -52,33 +56,43 @@ public abstract class PackageSourceCode {
      * <a href="https://www.baeldung.com/java-compress-and-uncompress">source</a>
      *
      * @param rootFolder the folder where the source code should be created
-     * @param functionIdentifier the identifier of the function
-     * @param code the source code of the function
      * @return a Completable
      */
-    public Completable composeSourceCode(Path rootFolder, String functionIdentifier, String code) {
-        return createSourceCodeFile(rootFolder, functionIdentifier, code, sourceCodeName)
+    public Completable composeSourceCode(Path rootFolder) {
+        return createSourceCodeFiles(rootFolder, function.getFunctionDeploymentId(), sourceCodeName)
             .flatMapMaybe(sourceCodePath -> vertx.executeBlocking(fut -> {
-                    zipAllFiles(rootFolder, sourceCodePath, functionIdentifier);
+                    zipAllFiles(rootFolder, sourceCodePath, function.getFunctionDeploymentId());
                     fut.complete();
                 }))
             .ignoreElement();
     }
 
     /**
-     * Create the source file of a function to deploy.
+     * Create the source files of a function to deploy.
      *
      * @param rootFolder the folder where the source code should be created
      * @param functionIdentifier the identifier of the function
-     * @param code the source code of the function
      * @param fileName the file name
      * @return a Single that emits the path to the source code file
      */
-    private Single<Path> createSourceCodeFile(Path rootFolder, String functionIdentifier, String code, String fileName) {
+    private Single<Path> createSourceCodeFiles(Path rootFolder, String functionIdentifier, String fileName) {
         Path sourceCodePath = Path.of(rootFolder.toString(), functionIdentifier, fileName);
         return fileSystem.mkdirs(sourceCodePath.getParent().toString())
-                .andThen(fileSystem.writeFile(sourceCodePath.toString(), Buffer.buffer(code)))
-                .toSingle(() -> sourceCodePath);
+            .andThen(Single.defer(() -> Single.just(1L)))
+            .flatMapCompletable(res -> createSourceCodeFiles(sourceCodePath))
+            .toSingle(() -> sourceCodePath);
+    }
+
+    private Completable createSourceCodeFiles(Path sourceCodePath) {
+        if (function.getIsFile()) {
+            return vertx.executeBlocking(fut -> {
+                String zipPath = function.getCode();
+                unzipAllFiles(Path.of(zipPath), sourceCodePath.getParent(), function.getFunctionDeploymentId());
+                fut.complete();
+            }).ignoreElement();
+        } else {
+            return fileSystem.writeFile(sourceCodePath.toString(), Buffer.buffer(function.getCode()));
+        }
     }
 
     /**
@@ -109,4 +123,6 @@ public abstract class PackageSourceCode {
         }
         fis.close();
     }
+
+    protected abstract void unzipAllFiles(Path filePath, Path detinationPath, String functionIdentifier);
 }
