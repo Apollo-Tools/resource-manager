@@ -174,13 +174,10 @@ public class TerraformSetupService {
         String provider = region.getResourceProvider().getProvider();
         ResourceProviderEnum resourceProvider = ResourceProviderEnum.fromString(provider);
         FaasModule module = new FaasModule(resourceProvider, region);
-        Path moduleFolder = deploymentPath.getModuleFolder(module);
-        Path functionsFolder = deploymentPath.getFunctionsFolder();
         long deploymentId = deployRequest.getDeployment().getDeploymentId();
         String dockerUsername = deployRequest.getDockerCredentials().getUsername();
-        RegionFaasFileService fileService = new RegionFaasFileService(vertx.fileSystem(), moduleFolder,
-            functionsFolder, region, regionFunctionDeployments, deploymentId, module, dockerUsername,
-            regionVPCMap.get(region));
+        RegionFaasFileService fileService = new RegionFaasFileService(vertx.fileSystem(), deploymentPath, region,
+            regionFunctionDeployments, deploymentId, module, dockerUsername, regionVPCMap.get(region));
         return fileService.setUpDirectory()
             .toSingle(() -> module);
     }

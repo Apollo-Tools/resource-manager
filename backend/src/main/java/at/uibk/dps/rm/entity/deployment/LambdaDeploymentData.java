@@ -4,11 +4,13 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
+import java.nio.file.Path;
 
 @RequiredArgsConstructor
 @Getter
 public class LambdaDeploymentData {
     private final long deploymentId;
+    private final Path layerPath;
     private String functionNames = "";
     private String paths = "";
     private String handlers = "";
@@ -43,6 +45,7 @@ public class LambdaDeploymentData {
             return "";
         }
 
+        String layerRootPath = this.layerPath.toAbsolutePath().toString().replace("\\", "/");
         return String.format(
             "module \"lambda\" {\n" +
                 "  source = \"../../../terraform/aws/faas\"\n" +
@@ -52,11 +55,11 @@ public class LambdaDeploymentData {
                 "  handlers = [%s]\n" +
                 "  timeouts = [%s]\n" +
                 "  memory_sizes = [%s]\n" +
-                "  layers = [%s]\n" +
+                "  layers = {layers=[%s], path=\"%s\"}\n" +
                 "  runtimes = [%s]\n" +
                 "  deployment_roles = [%s]\n" +
-                "}\n", deploymentId, functionNames, paths, handlers, timeouts,
-            memorySizes, layers, runtimes, deploymentRoles
+                "}\n", deploymentId, functionNames, paths, handlers, timeouts, memorySizes, layers, layerRootPath,
+            runtimes, deploymentRoles
         );
     }
 }

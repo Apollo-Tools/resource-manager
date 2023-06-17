@@ -7,7 +7,7 @@ import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.deployment.module.TerraformModule;
 import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateDAO;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
-import at.uibk.dps.rm.service.deployment.docker.DockerImageService;
+import at.uibk.dps.rm.service.deployment.docker.OpenFaasImageService;
 import at.uibk.dps.rm.service.deployment.executor.MainTerraformExecutor;
 import at.uibk.dps.rm.service.deployment.executor.ProcessExecutor;
 import at.uibk.dps.rm.service.deployment.executor.TerraformExecutor;
@@ -42,9 +42,9 @@ public class Mockprovider {
             (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)));
     }
 
-    public static MockedConstruction<DockerImageService> mockDockerImageService(FunctionsToDeploy functionsToDeploy,
+    public static MockedConstruction<OpenFaasImageService> mockDockerImageService(FunctionsToDeploy functionsToDeploy,
             ProcessOutput processOutput) {
-        return Mockito.mockConstruction(DockerImageService.class,
+        return Mockito.mockConstruction(OpenFaasImageService.class,
             (mock, context) -> given(mock.buildOpenFaasImages(functionsToDeploy.getDockerFunctionsString()))
                 .willReturn(Single.just(processOutput)));
     }

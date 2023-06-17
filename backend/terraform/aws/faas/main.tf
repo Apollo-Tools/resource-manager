@@ -3,7 +3,8 @@ locals {
     Deployment = var.deployment_id
     System     = "Apollo Resource Manager"
   }
-  function_layer_map =  {for name, layer in zipmap(var.names, var.layers): name => layer if layer != ""}
+  function_layer_map =  {for name, layer in zipmap(var.names, var.layers.layers): name => layer if layer != ""}
+  layer_map = {for i, layer in toset(var.layers.layers): layer => "${var.layers.path}/${layer}.zip" if layer != ""}
   function_runtime_map = zipmap(var.names, var.runtimes)
 }
 
@@ -13,10 +14,10 @@ data "aws_iam_role" "iam_role" {
 }
 
 resource "aws_lambda_layer_version" "layer" {
-  for_each = local.function_layer_map
+  for_each = local.layer_map
   filename = each.value
-  layer_name = each.key
-  compatible_runtimes = [local.function_runtime_map[each.key]]
+  layer_name = "${each.key}_${var.deployment_id}"
+  compatible_runtimes = each.value == "python38" ? ["python3.8"] : []
 }
 
 resource "aws_lambda_function" "lambda" {
@@ -27,7 +28,7 @@ resource "aws_lambda_function" "lambda" {
   handler          = var.handlers[count.index]
   timeout          = var.timeouts[count.index]
   memory_size      = var.memory_sizes[count.index]
-  layers           = try([aws_lambda_layer_version.layer[var.names[count.index]].arn], [])
+  layers           = try([aws_lambda_layer_version.layer[local.function_layer_map[var.names[count.index]]].arn], [])
   runtime          = var.runtimes[count.index]
   source_code_hash = filebase64sha256(var.paths[count.index])
 

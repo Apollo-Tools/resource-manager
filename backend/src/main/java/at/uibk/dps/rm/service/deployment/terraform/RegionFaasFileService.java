@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
+import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.deployment.EC2DeploymentData;
 import at.uibk.dps.rm.entity.deployment.LambdaDeploymentData;
 import at.uibk.dps.rm.entity.deployment.OpenFaasDeploymentData;
@@ -11,7 +12,6 @@ import at.uibk.dps.rm.exception.PlatformNotSupportedException;
 import at.uibk.dps.rm.service.deployment.util.ComposeDeploymentDataUtility;
 import io.vertx.rxjava3.core.file.FileSystem;
 
-import java.nio.file.Path;
 import java.util.*;
 
 /**
@@ -23,9 +23,9 @@ public class RegionFaasFileService extends TerraformFileService {
 
     private final FaasModule module;
 
-    private final Path functionsDir;
-
     private final Region region;
+
+    private final DeploymentPath deploymentPath;
 
     private final List<FunctionDeployment> functionDeployments;
 
@@ -42,8 +42,7 @@ public class RegionFaasFileService extends TerraformFileService {
      * functionDeployments, deploymentId, module, dockerUserName and vpc.
      *
      * @param fileSystem the vertx file system
-     * @param rootFolder the root folder of the module
-     * @param functionsDir the path to the packaged functions
+     * @param deploymentPath the deployment path of the module
      * @param region the region where the resources are deployed
      * @param functionDeployments the list of function deployments
      * @param deploymentId the id of the deployment
@@ -51,16 +50,16 @@ public class RegionFaasFileService extends TerraformFileService {
      * @param dockerUserName the docker username
      * @param vpc the virtual private cloud to use for the deployment
      */
-    public RegionFaasFileService(FileSystem fileSystem, Path rootFolder, Path functionsDir, Region region,
+    public RegionFaasFileService(FileSystem fileSystem, DeploymentPath deploymentPath, Region region,
                           List<FunctionDeployment> functionDeployments, long deploymentId, FaasModule module,
                           String dockerUserName, VPC vpc) {
-        super(fileSystem, rootFolder);
+        super(fileSystem, deploymentPath.getModuleFolder(module));
         this.module = module;
-        this.functionsDir = functionsDir;
+        this.deploymentPath = deploymentPath;
         this.region = region;
         this.functionDeployments = functionDeployments;
         this.deploymentId = deploymentId;
-        this.lambdaDeploymentData = new LambdaDeploymentData(deploymentId);
+        this.lambdaDeploymentData = new LambdaDeploymentData(deploymentId, deploymentPath.getLayersFolder());
         this.ec2DeploymentData = new EC2DeploymentData(deploymentId, vpc, dockerUserName);
         this.openFaasDeploymentData = new OpenFaasDeploymentData(deploymentId, dockerUserName);
     }
@@ -89,7 +88,7 @@ public class RegionFaasFileService extends TerraformFileService {
             switch (platform) {
                 case LAMBDA:
                     ComposeDeploymentDataUtility.composeLambdaDeploymentData(resource, function, deploymentId,
-                        functionsDir, lambdaDeploymentData);
+                        deploymentPath.getFunctionsFolder(), lambdaDeploymentData);
                     break;
                 case EC2:
                     ComposeDeploymentDataUtility.composeEC2DeploymentData(resource, function, ec2DeploymentData);

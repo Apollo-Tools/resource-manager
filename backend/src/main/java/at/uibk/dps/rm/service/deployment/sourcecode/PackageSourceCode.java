@@ -9,7 +9,10 @@ import io.vertx.rxjava3.core.file.FileSystem;
 
 import java.io.*;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 /**
@@ -24,11 +27,12 @@ public abstract class PackageSourceCode {
 
     private final FileSystem fileSystem;
 
-    private final String SOURCE_CODE_NAME = "cloud_function.txt";
-
-    private String sourceCodeName;
-
     private final Function function;
+
+    private final Path rootFolder;
+
+    private final Path sourceCodePath;
+
 
     /**
      * Create an instance from vertx and the fileSystem.
@@ -36,30 +40,23 @@ public abstract class PackageSourceCode {
      * @param vertx a vertx instance
      * @param fileSystem the vertx file system
      */
-    public PackageSourceCode(Vertx vertx, FileSystem fileSystem, Function function) {
+    public PackageSourceCode(Vertx vertx, FileSystem fileSystem, Path rootFolder, Function function,
+            String sourceCodeName) {
         this.vertx = vertx;
         this.fileSystem = fileSystem;
-        this.sourceCodeName = SOURCE_CODE_NAME;
+        this.rootFolder = rootFolder;
         this.function = function;
-    }
-
-    protected String getSourceCodeName() {
-        return sourceCodeName;
-    }
-
-    protected void setSourceCodeName(String sourceCodeName) {
-        this.sourceCodeName = sourceCodeName;
+        this.sourceCodePath = Path.of(rootFolder.toString(), function.getFunctionDeploymentId(), sourceCodeName);
     }
 
     /**
      * Compose the source code of a function for upcoming deployment.
      * <a href="https://www.baeldung.com/java-compress-and-uncompress">source</a>
      *
-     * @param rootFolder the folder where the source code should be created
      * @return a Completable
      */
-    public Completable composeSourceCode(Path rootFolder) {
-        return createSourceCodeFiles(rootFolder, function.getFunctionDeploymentId(), sourceCodeName)
+    public Completable composeSourceCode() {
+        return createSourceCodeFiles()
             .flatMapMaybe(sourceCodePath -> vertx.executeBlocking(fut -> {
                     zipAllFiles(rootFolder, sourceCodePath, function.getFunctionDeploymentId());
                     fut.complete();
@@ -70,24 +67,20 @@ public abstract class PackageSourceCode {
     /**
      * Create the source files of a function to deploy.
      *
-     * @param rootFolder the folder where the source code should be created
-     * @param functionIdentifier the identifier of the function
-     * @param fileName the file name
      * @return a Single that emits the path to the source code file
      */
-    private Single<Path> createSourceCodeFiles(Path rootFolder, String functionIdentifier, String fileName) {
-        Path sourceCodePath = Path.of(rootFolder.toString(), functionIdentifier, fileName);
+    private Single<Path> createSourceCodeFiles() {
         return fileSystem.mkdirs(sourceCodePath.getParent().toString())
             .andThen(Single.defer(() -> Single.just(1L)))
-            .flatMapCompletable(res -> createSourceCodeFiles(sourceCodePath))
+            .flatMapCompletable(res -> createSourceCode())
             .toSingle(() -> sourceCodePath);
     }
 
-    private Completable createSourceCodeFiles(Path sourceCodePath) {
+    private Completable createSourceCode() {
         if (function.getIsFile()) {
             return vertx.executeBlocking(fut -> {
                 String zipPath = function.getCode();
-                unzipAllFiles(Path.of(zipPath), sourceCodePath.getParent(), function.getFunctionDeploymentId());
+                unzipAllFiles(Path.of(zipPath), rootFolder, function.getFunctionDeploymentId());
                 fut.complete();
             }).ignoreElement();
         } else {
@@ -124,5 +117,70 @@ public abstract class PackageSourceCode {
         fis.close();
     }
 
-    protected abstract void unzipAllFiles(Path filePath, Path detinationPath, String functionIdentifier);
+    protected void unzipAllFiles(Path filePath, Path rootFolder, String functionIdentifier) {
+        File destDir = sourceCodePath.getParent().toFile();
+        try {
+            ZipInputStream zis = new ZipInputStream(new FileInputStream(filePath.toString()));
+            ZipEntry zipEntry = zis.getNextEntry();
+            while (zipEntry != null) {
+                List<File> newFiles = getUnzippedFileDest(zipEntry, destDir);
+                readAndSaveUnzippedFile(zipEntry, newFiles, zis);
+                zipEntry = zis.getNextEntry();
+            }
+            zis.closeEntry();
+            zis.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected List<File> getUnzippedFileDest(ZipEntry zipEntry, File destDir) throws IOException {
+        List<File> newFiles = new ArrayList<>();
+        newFiles.add(newFile(destDir, zipEntry));
+        return newFiles;
+    }
+
+    private void readAndSaveUnzippedFile(ZipEntry zipEntry, List<File> newFiles, ZipInputStream zis) throws IOException {
+        byte[] buffer = new byte[1024];
+        if (zipEntry.isDirectory()) {
+            for (File file : newFiles) {
+                if (!file.isDirectory() && !file.mkdirs() && !file.exists()) {
+                    throw new IOException("Failed to create directory " + file);
+                }
+            }
+        } else {
+            List<FileOutputStream> fos = new ArrayList<>();
+            for (File file : newFiles) {
+                // fix for Windows-created archives
+                File parent = file.getParentFile();
+                if (!parent.isDirectory() && !parent.mkdirs() && !parent.exists()) {
+                    throw new IOException("Failed to create directory " + parent);
+                }
+                fos.add(new FileOutputStream(file));
+            }
+            // write file content
+            int len;
+            while ((len = zis.read(buffer)) > 0) {
+                for (FileOutputStream stream : fos) {
+                    stream.write(buffer, 0, len);
+                }
+            }
+            for (FileOutputStream stream : fos) {
+                stream.close();
+            }
+        }
+    }
+
+    public static File newFile(File destinationDir, ZipEntry zipEntry) throws IOException {
+        File destFile = new File(destinationDir, zipEntry.getName());
+
+        String destDirPath = destinationDir.getCanonicalPath();
+        String destFilePath = destFile.getCanonicalPath();
+
+        if (!destFilePath.startsWith(destDirPath + File.separator)) {
+            throw new IOException("Entry is outside of the target dir: " + zipEntry.getName());
+        }
+
+        return destFile;
+    }
 }

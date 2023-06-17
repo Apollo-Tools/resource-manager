@@ -20,7 +20,7 @@ import java.util.List;
  * @author matthi-g
  */
 @AllArgsConstructor
-public class DockerImageService {
+public class OpenFaasImageService {
 
     private final Vertx vertx;
 

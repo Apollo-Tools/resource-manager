@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
+import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
@@ -31,7 +32,7 @@ public class FunctionPrepareService {
 
     private final List<FunctionDeployment> functionDeployments;
 
-    private final Path functionsDir;
+    private final DeploymentPath deploymentPath;
 
     private final DockerCredentials dockerCredentials;
 
@@ -44,15 +45,15 @@ public class FunctionPrepareService {
      *
      * @param vertx the vertx instance
      * @param functionDeployments the list of function deployments
-     * @param functionsDir the directory where everything related to the functions is stored
+     * @param deploymentPath the deployment path of the module
      * @param dockerCredentials the credentials of the docker user
      */
-    public FunctionPrepareService(Vertx vertx, List<FunctionDeployment> functionDeployments, Path functionsDir,
+    public FunctionPrepareService(Vertx vertx, List<FunctionDeployment> functionDeployments, DeploymentPath deploymentPath,
                                DockerCredentials dockerCredentials) {
         this.vertx = vertx;
         this.fileSystem = vertx.fileSystem();
         this.functionDeployments = functionDeployments;
-        this.functionsDir = functionsDir;
+        this.deploymentPath = deploymentPath;
         this.dockerCredentials = dockerCredentials;
     }
 
@@ -74,8 +75,8 @@ public class FunctionPrepareService {
             }
             String functionIdentifier =  function.getFunctionDeploymentId();
             if (function.getRuntime().getName().startsWith("python")) {
-                packageSourceCode = new PackagePythonCode(vertx, fileSystem, function);
-                completables.add(packageSourceCode.composeSourceCode(functionsDir));
+                packageSourceCode = new PackagePythonCode(vertx, fileSystem, deploymentPath, function);
+                completables.add(packageSourceCode.composeSourceCode());
                 if (deployFunctionOnOpenFaaS(function)) {
                     functionsString.append(String.format(
                         "  %s:\n" +
@@ -124,8 +125,7 @@ public class FunctionPrepareService {
         String templatePath = Path
             .of("faas-templates", runtime.getName().replace(".", ""), "openfaas")
             .toAbsolutePath().toString();
-        String destinationPath = Path
-            .of(functionsDir.toString(), "template", "python3-apollo-rm")
+        String destinationPath = Path.of(deploymentPath.getTemplatesFolder().toString(), "python3-apollo-rm")
             .toAbsolutePath().toString();
         return fileSystem.mkdirs(destinationPath)
             .andThen(fileSystem.copyRecursive(templatePath, destinationPath, true));

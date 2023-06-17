@@ -24,12 +24,14 @@ public class ComposeDeploymentDataUtility {
         String runtime = function.getRuntime().getName();
         String functionIdentifier =  function.getFunctionDeploymentId();
         String functionHandler;
+        String layer = "\"\"";
         functionName.append("r").append(resource.getResourceId()).append("_")
             .append(functionIdentifier).append("_").append(deploymentId);
         functionPath.append(functionsDir.toAbsolutePath().toString().replace("\\","/")).append("/")
             .append(functionIdentifier).append(".zip");
         if (runtime.startsWith("python")) {
             functionHandler = "lambda.handler";
+            layer = function.getIsFile() ? "\"python38\"" : layer;
         } else {
             throw new RuntimeNotSupportedException();
         }
@@ -38,7 +40,7 @@ public class ComposeDeploymentDataUtility {
         BigDecimal memorySize = metricValues.get("memory-size").getValueNumber();
         String deploymentRole = metricValues.get("deployment-role").getValueString();
         deploymentData.appendValues(functionName.toString(), functionPath.toString(), functionHandler, timeout,
-            memorySize, "\"\"", runtime, deploymentRole);
+            memorySize, layer, runtime, deploymentRole);
     }
 
     public static void composeEC2DeploymentData(Resource resource, Function function, EC2DeploymentData deploymentData) {

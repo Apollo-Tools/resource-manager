@@ -19,6 +19,10 @@ public class DeploymentPath {
 
     private final Path functionsFolder;
 
+    private final Path layersFolder;
+
+    private final Path templatesFolder;
+
     private final Path buildFolder;
 
     /**
@@ -31,6 +35,8 @@ public class DeploymentPath {
         this.buildFolder = Path.of(config.getString("build_directory"));
         this.rootFolder = Path.of(buildFolder.toString(), "deployment_" + deploymentId);
         this.functionsFolder = Path.of(rootFolder.toString(), "functions");
+        this.layersFolder = Path.of(functionsFolder.toString(), "layers");
+        this.templatesFolder = Path.of(functionsFolder.toString(), "template");
     }
 
     /**

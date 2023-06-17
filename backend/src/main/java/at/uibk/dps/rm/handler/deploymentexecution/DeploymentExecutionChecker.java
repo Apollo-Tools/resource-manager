@@ -4,11 +4,13 @@ import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDAO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDAO;
+import at.uibk.dps.rm.entity.model.FunctionDeployment;
 import at.uibk.dps.rm.entity.model.Log;
 import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.entity.model.DeploymentLog;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
-import at.uibk.dps.rm.service.deployment.docker.DockerImageService;
+import at.uibk.dps.rm.service.deployment.docker.LambdaLayerService;
+import at.uibk.dps.rm.service.deployment.docker.OpenFaasImageService;
 import at.uibk.dps.rm.service.deployment.executor.MainTerraformExecutor;
 import at.uibk.dps.rm.service.deployment.executor.TerraformExecutor;
 import at.uibk.dps.rm.service.rxjava3.database.log.LogService;
@@ -24,6 +26,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
 
 import java.nio.file.Path;
+import java.util.List;
 
 /**
  * Implements methods to perform deployment and termination of resources.
@@ -65,8 +68,11 @@ public class DeploymentExecutionChecker {
             .flatMap(config -> {
                 DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
                 return deploymentService.packageFunctionsCode(request)
-                    .flatMap(functionsToDeploy -> buildAndPushDockerImages(vertx, request, functionsToDeploy, deploymentPath))
-                    .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, request.getDeployment()))
+                    .flatMapCompletable(functionsToDeploy -> buildAndPushOpenFaasImages(vertx, request, functionsToDeploy,
+                        deploymentPath)
+                        .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, request.getDeployment()))
+                        .andThen(buildLambdaLayers(request.getFunctionDeployments(), deploymentPath))
+                        .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, request.getDeployment())))
                     .andThen(deploymentService.setUpTFModules(request))
                     .flatMap(deploymentCredentials -> {
                         TerraformExecutor terraformExecutor = new MainTerraformExecutor(vertx, deploymentCredentials);
@@ -108,11 +114,25 @@ public class DeploymentExecutionChecker {
    * @param deploymentPath the path of the current deployment
    * @return a Single that emits the process output of the docker process
    */
-    private Single<ProcessOutput> buildAndPushDockerImages(Vertx vertx, DeployResourcesDAO request,
+    private Single<ProcessOutput> buildAndPushOpenFaasImages(Vertx vertx, DeployResourcesDAO request,
         FunctionsToDeploy functionsToDeploy, DeploymentPath deploymentPath) {
-        DockerImageService dockerImageService = new DockerImageService(vertx, request.getDockerCredentials(),
+        OpenFaasImageService openFaasImageService = new OpenFaasImageService(vertx, request.getDockerCredentials(),
             functionsToDeploy.getDockerFunctionIdentifiers(), deploymentPath.getFunctionsFolder());
-        return dockerImageService.buildOpenFaasImages(functionsToDeploy.getDockerFunctionsString());
+        return openFaasImageService.buildOpenFaasImages(functionsToDeploy.getDockerFunctionsString());
+    }
+
+  /**
+   * Build all lambda layers that are required for the function deployments.
+   *
+   * @param functionDeployments the function deployments
+   * @param deploymentPath the path of the current deployment
+   * @return a Single that emits the process output of the docker process
+   */
+    private Single<ProcessOutput> buildLambdaLayers(List<FunctionDeployment> functionDeployments,
+            DeploymentPath deploymentPath) {
+        LambdaLayerService layerService = new LambdaLayerService(functionDeployments,
+            deploymentPath.getFunctionsFolder());
+        return layerService.buildLambdaLayers();
     }
 
   /**

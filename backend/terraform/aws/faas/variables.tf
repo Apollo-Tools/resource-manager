@@ -29,8 +29,16 @@ variable "memory_sizes" {
 }
 
 variable "layers" {
-  description = "The function layers."
-  type        = list(string)
+  description = <<EOT
+    layers = {
+      layers: "The layers for each function. The .zip of the layer has to have the same name as the entries of this list."
+      path: "The path to the root folder of the layers."
+    }
+  EOT
+  type        = object({
+    layers: list(string)
+    path: string
+  })
 }
 
 variable "runtimes" {

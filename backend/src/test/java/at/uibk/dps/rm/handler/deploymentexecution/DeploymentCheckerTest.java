@@ -8,7 +8,7 @@ import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDAO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDAO;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
 import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.service.deployment.docker.DockerImageService;
+import at.uibk.dps.rm.service.deployment.docker.OpenFaasImageService;
 import at.uibk.dps.rm.service.deployment.executor.MainTerraformExecutor;
 import at.uibk.dps.rm.service.deployment.executor.TerraformExecutor;
 import at.uibk.dps.rm.service.rxjava3.database.log.DeploymentLogService;
@@ -118,7 +118,7 @@ public class DeploymentCheckerTest {
         }
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
-             MockedConstruction<DockerImageService> ignoredDocker = Mockprovider
+             MockedConstruction<OpenFaasImageService> ignoredDocker = Mockprovider
                  .mockDockerImageService(functionsToDeploy, poDocker);
              MockedConstruction<MainTerraformExecutor> ignoredMTFE =
                  Mockprovider.mockMainTerraformExecutor(deploymentPath, poInit, poApply, poOutput);

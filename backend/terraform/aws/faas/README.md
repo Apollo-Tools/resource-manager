@@ -22,7 +22,7 @@ module "faas" {
   handlers         = ["main.handler",]
   timeouts         = [600,]
   memory_sizes     = [512,]
-  layers           = [[],]
+  layers           = {layers=["python38",], path="path/to/layers/dir"}
   runtimes         = ["python3.8"]
   deployment_roles = ["LabRole",]
 }
@@ -31,17 +31,17 @@ module "faas" {
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-| Name | Version |
-|------|---------|
-| terraform | >= 1.0.0 |
-| aws | >= 4.16.0 |
-| random | >= 3.1.0 |
+| Name      | Version   |
+|-----------|-----------|
+| terraform | >= 1.0.0  |
+| aws       | >= 4.16.0 |
+| random    | >= 3.1.0  |
 
 ## Providers
 
-| Name | Version |
-|------|---------|
-| aws | >= 4.16.0 |
+| Name | Version   |
+|------|-----------|
+| aws  | >= 4.16.0 |
 
 ## Resources
 
@@ -61,7 +61,7 @@ module "faas" {
 | handlers         | The function handlers.                 | `list`   | n/a     |   yes    |
 | timeouts         | The function timeouts.                 | `list`   | n/a     |   yes    |
 | memory\_sizes    | The memory size for each function.     | `list`   | n/a     |   yes    |
-| layers           | The function layers.                   | `list`   | n/a     |   yes    |
+| layers           | The layers for each function.          | `object` | n/a     |   yes    |
 | runtimes         | The function runtimes.                 | `list`   | n/a     |   yes    |
 | deployment_roles | The user roles to use.                 | `list`   | n/a     |   yes    |
 
