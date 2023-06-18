@@ -141,6 +141,7 @@ buildNumber.properties
 ### Gradle ###
 .gradle
 /buildTool/
+**/gradle/wrapper/
 
 # Ignore Gradle GUI config
 gradle-app.setting
@@ -171,6 +172,7 @@ nbdist/
 
 # Build folder ###
 /backend/build/
+build/
 
 # Config containing secret values
 /backend/conf/config.json
@@ -182,4 +184,3 @@ nbdist/
 */local.rm-api.yaml
 */local.rm-db.yaml
 */local.rm-gui.yaml
-
