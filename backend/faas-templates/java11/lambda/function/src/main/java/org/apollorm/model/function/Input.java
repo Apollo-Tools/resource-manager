@@ -1,4 +1,4 @@
-package org.apollorm;
+package org.apollorm.model.function;
 
 /**
  * This class represents the input for the function. Modify it to your  requirements.

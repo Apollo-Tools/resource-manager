@@ -1,18 +1,19 @@
-package org.apollorm;
+package org.apollorm.entrypoint;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import org.apollorm.jsonhandling.Request;
-import org.apollorm.jsonhandling.RequestDeserializer;
-
+import org.apollorm.model.FunctionHandler;
+import org.apollorm.model.exception.AWSErrorResponse;
+import org.apollorm.model.exception.FunctionException;
+import org.apollorm.model.function.Main;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 
-/************ Boilerplate wrapping code ************/
-public class Lambda implements RequestStreamHandler {
+public class App implements RequestStreamHandler {
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
@@ -25,9 +26,17 @@ public class Lambda implements RequestStreamHandler {
         byte[] requestBytes = inputStream.readAllBytes();
         String requestBody = new String(requestBytes, StandardCharsets.UTF_8);
         Request request = objectMapper.readValue(requestBody, Request.class);
-        // Call function implementation
-        Result result = Main.main(request.getInput());
-        // Return value
-        objectMapper.writeValue(outputStream, result);
+        try {
+            // Call function implementation
+            FunctionHandler functionHandler = new Main();
+            String result = functionHandler.main(request.getBody());
+            // Return value
+            outputStream.write(result.getBytes());
+        } catch (FunctionException ex) {
+            AWSErrorResponse response = new AWSErrorResponse();
+            response.setBody(ex.getMessage());
+            response.setStatusCode(400);
+            objectMapper.writeValue(outputStream, response);
+        }
     }
 }

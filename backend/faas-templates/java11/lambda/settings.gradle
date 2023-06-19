@@ -1,2 +1,3 @@
 rootProject.name = 'javalambda'
 
+include 'function', 'entrypoint', 'model'
