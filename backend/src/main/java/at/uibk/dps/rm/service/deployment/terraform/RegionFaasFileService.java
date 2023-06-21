@@ -84,7 +84,7 @@ public class RegionFaasFileService extends TerraformFileService {
         for (FunctionDeployment functionDeployment: functionDeployments) {
             Resource resource = functionDeployment.getResource();
             Function function = functionDeployment.getFunction();
-            PlatformEnum platform = PlatformEnum.fromString(resource.getPlatform().getPlatform());
+            PlatformEnum platform = PlatformEnum.fromPlatform(resource.getPlatform());
             switch (platform) {
                 case LAMBDA:
                     ComposeDeploymentDataUtility.composeLambdaDeploymentData(resource, function, deploymentId,
@@ -147,7 +147,7 @@ public class RegionFaasFileService extends TerraformFileService {
                 Resource resource = functionDeployment.getResource();
                 Function function = functionDeployment.getFunction();
                 String functionIdentifier = function.getFunctionDeploymentId();
-                PlatformEnum platformEnum = PlatformEnum.fromString(resource.getPlatform().getPlatform());
+                PlatformEnum platformEnum = PlatformEnum.fromPlatform(resource.getPlatform());
                 if (platformEnum.equals(PlatformEnum.EC2) || platformEnum.equals(PlatformEnum.OPENFAAS)) {
                     vmUrls.append(String.format("module.r%s_%s.function_url,",
                         resource.getResourceId(), functionIdentifier));

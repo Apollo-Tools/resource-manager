@@ -49,7 +49,7 @@ public class PackageSourceCodeTest {
         }
 
         @Override
-        protected void unzipAllFiles(Path filePath, Path detinationPath, String functionIdentifier) {
+        protected void unzipAllFiles(Path filePath, Path detinationPath) {
             // necessary override can be empty for tests
         }
     }

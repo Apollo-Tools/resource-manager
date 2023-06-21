@@ -1,3 +1,1 @@
-rootProject.name = 'java11-vert-x'
-
-include 'function', 'entrypoint', 'model'
+rootProject.name = 'entrypoint'

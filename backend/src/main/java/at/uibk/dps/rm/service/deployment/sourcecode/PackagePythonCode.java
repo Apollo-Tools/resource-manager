@@ -52,7 +52,7 @@ public class PackagePythonCode extends PackageSourceCode{
             filesToZip.add(sourceCode.toFile());
             filesToZip.addAll(Arrays.asList(HANDLER_FILES));
             for (File fileToZip : filesToZip) {
-                zipFile(fileToZip, zipOutputStream);
+                zipFile(fileToZip, fileToZip.getName(), zipOutputStream);
             }
             zipOutputStream.close();
             fileOutputStream.close();

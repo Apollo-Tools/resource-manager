@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.entity.dto.resource;
 
+import at.uibk.dps.rm.entity.model.Platform;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -41,9 +42,9 @@ public enum PlatformEnum {
      * @param platform the platform
      * @return the created object
      */
-    public static PlatformEnum fromString(String platform) {
+    public static PlatformEnum fromPlatform(Platform platform) {
         return Arrays.stream(PlatformEnum.values())
-            .filter(value -> value.value.equals(platform))
+            .filter(value -> value.value.equals(platform.getPlatform()))
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("unknown value: " + platform));
     }

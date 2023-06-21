@@ -4,10 +4,11 @@ import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
+import at.uibk.dps.rm.entity.dto.resource.RuntimeEnum;
 import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
-import at.uibk.dps.rm.entity.model.Runtime;
 import at.uibk.dps.rm.exception.RuntimeNotSupportedException;
+import at.uibk.dps.rm.service.deployment.sourcecode.PackageJavaCode;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackagePythonCode;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackageSourceCode;
 import io.reactivex.rxjava3.core.Completable;
@@ -67,31 +68,29 @@ public class FunctionPrepareService {
         PackageSourceCode packageSourceCode;
         StringBuilder functionsString = new StringBuilder();
         List<Completable> completables = new ArrayList<>();
-        Set<Runtime> copiedOpenFaasTemplates = new HashSet<>();
+        Set<RuntimeEnum> copiedOpenFaasTemplates = new HashSet<>();
         for (FunctionDeployment fr : functionDeployments) {
             Function function = fr.getFunction();
             if (functionIds.contains(function.getFunctionId())) {
                 continue;
             }
             String functionIdentifier =  function.getFunctionDeploymentId();
-            if (function.getRuntime().getName().startsWith("python")) {
+            RuntimeEnum runtime = RuntimeEnum.fromRuntime(function.getRuntime());
+            if (runtime.equals(RuntimeEnum.PYTHON38)) {
                 packageSourceCode = new PackagePythonCode(vertx, fileSystem, deploymentPath, function);
-                completables.add(packageSourceCode.composeSourceCode());
-                if (deployFunctionOnOpenFaaS(function)) {
-                    functionsString.append(String.format(
-                        "  %s:\n" +
-                            "    lang: python3-apollo-rm\n" +
-                            "    handler: ./%s\n" +
-                            "    image: %s/%s:latest\n",
-                        functionIdentifier, functionIdentifier, dockerCredentials.getUsername(), functionIdentifier));
-                    if (!copiedOpenFaasTemplates.contains(function.getRuntime())) {
-                        completables.add(copyOpenFaasTemplates(function.getRuntime()));
-                        copiedOpenFaasTemplates.add(function.getRuntime());
-                    }
-                    functionsToDeploy.getDockerFunctionIdentifiers().add(functionIdentifier);
-                }
+            } else if (runtime.equals(RuntimeEnum.JAVA11)) {
+                packageSourceCode = new PackageJavaCode(vertx, fileSystem, deploymentPath, function);
             } else {
                 return Single.error(RuntimeNotSupportedException::new);
+            }
+            completables.add(packageSourceCode.composeSourceCode());
+            if (deployFunctionOnOpenFaaS(function)) {
+                functionsString.append(getOpenFaasTemplateBlock(functionIdentifier, runtime));
+                if (!copiedOpenFaasTemplates.contains(runtime)) {
+                    completables.add(copyOpenFaasTemplate(runtime));
+                    copiedOpenFaasTemplates.add(runtime);
+                }
+                functionsToDeploy.getDockerFunctionIdentifiers().add(functionIdentifier);
             }
             functionIds.add(function.getFunctionId());
             functionsToDeploy.getFunctionIdentifiers().add(functionIdentifier);
@@ -114,20 +113,54 @@ public class FunctionPrepareService {
      */
     private boolean deployFunctionOnOpenFaaS(Function function) {
         return functionDeployments.stream().anyMatch(functionDeployment -> {
-            PlatformEnum platform = PlatformEnum.fromString(
-                functionDeployment.getResource().getPlatform().getPlatform());
+            PlatformEnum platform = PlatformEnum.fromPlatform(functionDeployment.getResource().getPlatform());
             return functionDeployment.getFunction().equals(function) &&
                 (platform.equals(PlatformEnum.OPENFAAS) || platform.equals(PlatformEnum.EC2));
         });
     }
 
-    private Completable copyOpenFaasTemplates(Runtime runtime) {
-        String templatePath = Path
-            .of("faas-templates", runtime.getName().replace(".", ""), "openfaas")
-            .toAbsolutePath().toString();
-        String destinationPath = Path.of(deploymentPath.getTemplatesFolder().toString(), "python3-apollo-rm")
-            .toAbsolutePath().toString();
-        return fileSystem.mkdirs(destinationPath)
-            .andThen(fileSystem.copyRecursive(templatePath, destinationPath, true));
+    private String getOpenFaasTemplateBlock(String functionIdentifier, RuntimeEnum runtimeEnum) {
+        return String.format(
+            "  %s:\n" +
+                "    lang: %s-apollo-rm\n" +
+                "    handler: ./%s/function\n" +
+                "    image: %s/%s:latest\n",
+            functionIdentifier, runtimeEnum.getDotlessValue(), functionIdentifier, dockerCredentials.getUsername(),
+            functionIdentifier);
+    }
+
+    private Completable copyOpenFaasTemplate(RuntimeEnum runtime) {
+        String templatePath;
+        String destinationPath;
+        switch (runtime) {
+            case PYTHON38:
+                templatePath = Path
+                    .of("faas-templates", runtime.getDotlessValue(), "openfaas")
+                    .toAbsolutePath().toString();
+                destinationPath = Path.of(deploymentPath.getTemplatesFolder().toString(),
+                    runtime.getDotlessValue() + "-apollo-rm").toAbsolutePath().toString();
+                return fileSystem.mkdirs(destinationPath)
+                    .andThen(fileSystem.copyRecursive(templatePath, destinationPath, true));
+            case JAVA11:
+                templatePath = Path
+                    .of("faas-templates", runtime.getDotlessValue())
+                    .toAbsolutePath().toString();
+                String wrapperPath = Path.of(templatePath, "wrapper").toAbsolutePath().toString();
+                String entryPointPath = Path.of(templatePath, "openfaas").toAbsolutePath().toString();
+                String modelPath = Path.of(templatePath, "apollorm", "model").toAbsolutePath().toString();
+                destinationPath = Path.of(deploymentPath.getTemplatesFolder().toString(),
+                    runtime.getDotlessValue() + "-apollo-rm").toAbsolutePath().toString();
+                String destinationEntrypointPath =
+                    Path.of(destinationPath, "entrypoint").toAbsolutePath().toString();
+                String destinationModelPath =
+                    Path.of(destinationPath, "model").toAbsolutePath().toString();
+                return fileSystem.mkdirs(wrapperPath)
+                    .andThen(fileSystem.mkdirs(destinationEntrypointPath))
+                    .andThen(fileSystem.mkdirs(destinationModelPath))
+                    .andThen(fileSystem.copyRecursive(wrapperPath, destinationPath, true))
+                    .andThen(fileSystem.copyRecursive(entryPointPath, destinationEntrypointPath, true))
+                    .andThen(fileSystem.copyRecursive(modelPath, destinationModelPath, true));
+        }
+        return Completable.error(RuntimeNotSupportedException::new);
     }
 }

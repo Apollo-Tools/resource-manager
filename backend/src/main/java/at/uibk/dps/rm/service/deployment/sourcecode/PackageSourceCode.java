@@ -76,11 +76,11 @@ public abstract class PackageSourceCode {
             .toSingle(() -> sourceCodePath);
     }
 
-    private Completable createSourceCode() {
+    protected Completable createSourceCode() {
         if (function.getIsFile()) {
             return vertx.executeBlocking(fut -> {
                 String zipPath = function.getCode();
-                unzipAllFiles(Path.of(zipPath), rootFolder, function.getFunctionDeploymentId());
+                unzipAllFiles(Path.of(zipPath), rootFolder);
                 fut.complete();
             }).ignoreElement();
         } else {
@@ -104,11 +104,24 @@ public abstract class PackageSourceCode {
      * @param zipOutputStream the zip output stream
      * @throws IOException if an I/O Exception occurs
      */
-    protected void zipFile(File fileToZip, ZipOutputStream zipOutputStream) throws IOException {
+    protected void zipFile(File fileToZip, String fileName, ZipOutputStream zipOutputStream) throws IOException {
+        if (fileToZip.isHidden()) {
+            return;
+        }
+        ZipEntry zipEntry = new ZipEntry(fileName);
+        if (fileToZip.isDirectory()) {
+            if (!fileToZip.getName().endsWith("/")) {
+                zipEntry = new ZipEntry(fileName + "/");
+            }
+            zipOutputStream.putNextEntry(zipEntry);
+            File[] children = fileToZip.listFiles();
+            for (File childFile : children) {
+                zipFile(childFile, fileName + "/" + childFile.getName(), zipOutputStream);
+            }
+            return;
+        }
         FileInputStream fis = new FileInputStream(fileToZip);
-        ZipEntry zipEntry = new ZipEntry(fileToZip.getName());
         zipOutputStream.putNextEntry(zipEntry);
-
         byte[] bytes = new byte[1024];
         int length;
         while((length = fis.read(bytes)) >= 0) {
@@ -117,7 +130,7 @@ public abstract class PackageSourceCode {
         fis.close();
     }
 
-    protected void unzipAllFiles(Path filePath, Path rootFolder, String functionIdentifier) {
+    protected void unzipAllFiles(Path filePath, Path rootFolder) {
         File destDir = sourceCodePath.getParent().toFile();
         try {
             ZipInputStream zis = new ZipInputStream(new FileInputStream(filePath.toString()));

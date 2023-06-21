@@ -9,6 +9,7 @@ import at.uibk.dps.rm.entity.model.Log;
 import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.entity.model.DeploymentLog;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
+import at.uibk.dps.rm.service.deployment.docker.LambdaJavaBuildService;
 import at.uibk.dps.rm.service.deployment.docker.LambdaLayerService;
 import at.uibk.dps.rm.service.deployment.docker.OpenFaasImageService;
 import at.uibk.dps.rm.service.deployment.executor.MainTerraformExecutor;
@@ -71,6 +72,8 @@ public class DeploymentExecutionChecker {
                     .flatMapCompletable(functionsToDeploy -> buildAndPushOpenFaasImages(vertx, request, functionsToDeploy,
                         deploymentPath)
                         .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, request.getDeployment()))
+                        .andThen(buildJavaLambdaFaaS(request.getFunctionDeployments(), deploymentPath))
+                        .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, request.getDeployment()))
                         .andThen(buildLambdaLayers(request.getFunctionDeployments(), deploymentPath))
                         .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, request.getDeployment())))
                     .andThen(deploymentService.setUpTFModules(request))
@@ -119,6 +122,20 @@ public class DeploymentExecutionChecker {
         OpenFaasImageService openFaasImageService = new OpenFaasImageService(vertx, request.getDockerCredentials(),
             functionsToDeploy.getDockerFunctionIdentifiers(), deploymentPath.getFunctionsFolder());
         return openFaasImageService.buildOpenFaasImages(functionsToDeploy.getDockerFunctionsString());
+    }
+
+  /**
+   * Build all java lambda functions that are part of the function deployments.
+   *
+   * @param functionDeployments the function deployments
+   * @param deploymentPath the path of the current deployment
+   * @return a Single that emits the process output of the docker process
+   */
+    private Single<ProcessOutput> buildJavaLambdaFaaS(List<FunctionDeployment> functionDeployments,
+            DeploymentPath deploymentPath) {
+        LambdaJavaBuildService lambdaService = new LambdaJavaBuildService(functionDeployments,
+            deploymentPath.getFunctionsFolder());
+        return lambdaService.buildAndZipJavaFunctions();
     }
 
   /**
