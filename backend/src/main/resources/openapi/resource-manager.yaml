@@ -1125,6 +1125,9 @@ paths:
                 code:
                   type: string
                   format: binary
+            encoding:
+              code:
+                contentType: 'application/x-zip-compressed'
       responses:
         201:
           description: Successful creation of a new function

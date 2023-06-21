@@ -11,7 +11,7 @@ const API_ROUTE = `${env('API_URL')}/functions`;
  * @param {function} setFunction the function to set the created function
  * @param {function} setError the function to set the error if one occurs
  */
-export async function createFunction(runtimeId, name, code, token, setFunction, setError) {
+export async function createFunctionCode(runtimeId, name, code, token, setFunction, setError) {
   try {
     const response = await fetch(`${API_ROUTE}`, {
       method: 'POST',
@@ -26,6 +26,37 @@ export async function createFunction(runtimeId, name, code, token, setFunction, 
         },
         code: code,
       }),
+    });
+    const data = await response.json();
+    setFunction(() => data);
+  } catch (error) {
+    setError(true);
+    console.log(error);
+  }
+}
+
+/**
+ * Create a new function.
+ *
+ * @param {number} runtimeId the id of the runtime
+ * @param {string} name the name of the function
+ * @param {File} upload the packaged function
+ * @param {string} token the access token
+ * @param {function} setFunction the function to set the created function
+ * @param {function} setError the function to set the error if one occurs
+ */
+export async function createFunctionUpload(runtimeId, name, upload, token, setFunction, setError) {
+  try {
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('runtime', JSON.stringify({runtime_id: runtimeId}));
+    formData.append('code', upload);
+    const response = await fetch(`${API_ROUTE}/file`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
     });
     const data = await response.json();
     setFunction(() => data);
