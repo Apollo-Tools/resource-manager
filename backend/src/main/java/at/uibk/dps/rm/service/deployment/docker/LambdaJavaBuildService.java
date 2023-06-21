@@ -24,11 +24,10 @@ public class LambdaJavaBuildService {
         if (!hasLambdaJavaFunctions()) {
             return Single.just(new ProcessOutput());
         }
-        List<String> dockerCommands = new java.util.ArrayList<>(List.of("docker", "run", "-v",
-            functionsDir.toAbsolutePath().toString().replace("\\", "/") + ":/projects", "-w",
-            "/projects", "gradle:7-jdk-jammy", "/bin/sh", "-c"));
-        String dockerInteractiveCommands = "for dir in *_java11;do cd \"$dir\";ls;" +
-            "gradle buildLambdaZip; cd ..;done; exit";
+        List<String> dockerCommands = new java.util.ArrayList<>(List.of("docker", "run", "--rm",
+            "-v", functionsDir.toAbsolutePath().toString().replace("\\", "/") + ":/projects",
+            "-w", "/projects", "gradle:7-jdk-jammy", "/bin/sh", "-c"));
+        String dockerInteractiveCommands = "for dir in *_java11;do cd \"$dir\";gradle buildLambdaZip; cd ..;done; exit";
         dockerCommands.add(dockerInteractiveCommands);
         ProcessExecutor processExecutor = new ProcessExecutor(functionsDir, dockerCommands);
         return processExecutor.executeCli();

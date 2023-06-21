@@ -3,6 +3,7 @@ package at.uibk.dps.rm.service.deployment.util;
 import at.uibk.dps.rm.entity.deployment.EC2DeploymentData;
 import at.uibk.dps.rm.entity.deployment.LambdaDeploymentData;
 import at.uibk.dps.rm.entity.deployment.OpenFaasDeploymentData;
+import at.uibk.dps.rm.entity.dto.resource.RuntimeEnum;
 import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.entity.model.Resource;
@@ -21,7 +22,7 @@ public class ComposeDeploymentDataUtility {
     public static void composeLambdaDeploymentData(Resource resource, Function function, long deploymentId,
             Path functionsDir, LambdaDeploymentData deploymentData) {
         StringBuilder functionName = new StringBuilder(), functionPath = new StringBuilder();
-        String runtime = function.getRuntime().getName();
+        RuntimeEnum runtime = RuntimeEnum.fromRuntime(function.getRuntime());
         String functionIdentifier =  function.getFunctionDeploymentId();
         String functionHandler;
         String layer = "\"\"";
@@ -29,18 +30,23 @@ public class ComposeDeploymentDataUtility {
             .append(functionIdentifier).append("_").append(deploymentId);
         functionPath.append(functionsDir.toAbsolutePath().toString().replace("\\","/")).append("/")
             .append(functionIdentifier).append(".zip");
-        if (runtime.startsWith("python")) {
-            functionHandler = "lambda.handler";
-            layer = function.getIsFile() ? "\"python38\"" : layer;
-        } else {
-            throw new RuntimeNotSupportedException();
+        switch (runtime) {
+            case PYTHON38:
+                functionHandler = "lambda.handler";
+                layer = function.getIsFile() ? "\"python38\"" : layer;
+                break;
+            case JAVA11:
+                functionHandler = "org.apollorm.entrypoint.App";
+                break;
+            default:
+                throw new RuntimeNotSupportedException();
         }
         Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
         BigDecimal timeout =  metricValues.get("timeout").getValueNumber();
         BigDecimal memorySize = metricValues.get("memory-size").getValueNumber();
         String deploymentRole = metricValues.get("deployment-role").getValueString();
         deploymentData.appendValues(functionName.toString(), functionPath.toString(), functionHandler, timeout,
-            memorySize, layer, runtime, deploymentRole);
+            memorySize, layer, runtime.getValue(), deploymentRole);
     }
 
     public static void composeEC2DeploymentData(Resource resource, Function function, EC2DeploymentData deploymentData) {
