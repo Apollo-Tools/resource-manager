@@ -1,0 +1,3 @@
+rootProject.name = 'java11-apollorm'
+
+include 'function', 'entrypoint', 'model'

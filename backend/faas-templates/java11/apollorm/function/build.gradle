@@ -1,0 +1,21 @@
+plugins {
+    // Apply the java-library plugin to add support for Java Library
+    id 'java-library'
+}
+
+dependencies {
+    implementation project(':model')
+}
+
+// Create a zip file of the function implementation.
+tasks.register('buildRMZip', Zip) {
+    archiveFileName = "function.zip"
+    destinationDirectory = file("$buildDir")
+    from '.'
+    include '**/main/**'
+    include '*.gradle'
+    exclude 'build'
+    exclude '.idea'
+    exclude 'gradle/'
+    exclude '.gradle/'
+}
