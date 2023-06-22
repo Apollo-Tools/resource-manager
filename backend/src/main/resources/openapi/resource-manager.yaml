@@ -29,7 +29,7 @@ info:
     - **non monitored**: These are user-set properties that are used primarily for resource deployment. Examples
     for this type of metric are the memory required for serverless functions or the instance type of a virtual machine.
     
-  
+    
     Not all platform support/require the same metrics. The /platforms/{id}/metrics route can be used to get all 
     metrics that are supported for a particular platform. The value types for metrics can be *string*, *number* and 
     *boolean*.
@@ -1081,13 +1081,54 @@ paths:
                 $ref: "#/components/schemas/Function"
         400:
           $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
         409:
           $ref: "#/components/responses/409"
         500:
           $ref: "#/components/responses/500"
 
-  /functions/file:
+  /functions/{id}/file:
+    patch:
+      description: Update a function with code packaged as zip file
+      operationId: updateFunctionFile
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - functions
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - code
+              additionalProperties: false
+              properties:
+                code:
+                  type: string
+                  format: binary
+            encoding:
+              code:
+                contentType: 'application/x-zip-compressed'
+      responses:
+        201:
+          description: Successful update of the function
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Function"
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
 
+  /functions/file:
     post:
       description: Create a new function with code packaged as zip file
       operationId: createFunctionFile
@@ -1137,6 +1178,8 @@ paths:
                 $ref: "#/components/schemas/Function"
         400:
           $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
         409:
           $ref: "#/components/responses/409"
         500:

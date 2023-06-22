@@ -43,6 +43,12 @@ public class FunctionRoute implements Route {
 
         router
             .operation("updateFunction")
+            .handler(FunctionInputHandler::validateUpdateFunctionRequest)
+            .handler(resultHandler::handleUpdateRequest);
+
+        router
+            .operation("updateFunctionFile")
+            .handler(FunctionInputHandler::validateUpdateFunctionRequest)
             .handler(resultHandler::handleUpdateRequest);
 
         router

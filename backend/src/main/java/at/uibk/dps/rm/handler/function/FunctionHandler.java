@@ -1,6 +1,12 @@
 package at.uibk.dps.rm.handler.function;
 
+import at.uibk.dps.rm.entity.dto.resource.RuntimeEnum;
+import at.uibk.dps.rm.entity.model.Function;
+import at.uibk.dps.rm.entity.model.Runtime;
+import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.handler.ValidationHandler;
+import at.uibk.dps.rm.util.misc.HttpHelper;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.MultiMap;
@@ -14,6 +20,8 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
  */
 public class FunctionHandler extends ValidationHandler {
 
+    private final FunctionChecker functionChecker;
+
     private final RuntimeChecker runtimeChecker;
 
     /**
@@ -24,29 +32,71 @@ public class FunctionHandler extends ValidationHandler {
      */
     public FunctionHandler(FunctionChecker functionChecker, RuntimeChecker runtimeChecker) {
         super(functionChecker);
+        this.functionChecker = functionChecker;
         this.runtimeChecker = runtimeChecker;
     }
 
     @Override
     public Single<JsonObject> postOne(RoutingContext rc) {
-        JsonObject requestBody = new JsonObject();
+        JsonObject requestBody;
+        boolean isFile;
         if (rc.request().headers().get("Content-Type").equals("application/json")) {
+            isFile = false;
             requestBody = rc.body().asJsonObject();
-            requestBody.put("is_file", false);
         } else {
+            isFile = true;
             MultiMap attributes = rc.request().formAttributes();
+            requestBody = new JsonObject();
             requestBody.put("name", attributes.get("name"));
             requestBody.put("runtime", new JsonObject(attributes.get("runtime")));
             FileUpload file = rc.fileUploads().get(0);
             requestBody.put("code", file.uploadedFileName());
-            requestBody.put("is_file", true);
         }
-        JsonObject finalRequestBody = requestBody;
-        return runtimeChecker.checkExistsOne(requestBody
+        requestBody.put("is_file", isFile);
+        return runtimeChecker.checkFindOne(requestBody
                 .getJsonObject("runtime")
                 .getLong("runtime_id"))
+            .flatMapCompletable(runtime -> {
+                RuntimeEnum selectedRuntime = RuntimeEnum.fromRuntime(runtime.mapTo(Runtime.class));
+                if (!isFile && !selectedRuntime.equals(RuntimeEnum.PYTHON38)) {
+                    return Completable.error(new BadInputException("runtime only supports zip archives"));
+                }
+                return Completable.complete();
+            })
             .andThen(entityChecker.checkForDuplicateEntity(requestBody))
             .andThen(Single.defer(() -> Single.just(1L)))
-            .flatMap(result -> entityChecker.submitCreate(finalRequestBody));
+            .flatMap(result -> entityChecker.submitCreate(requestBody));
+    }
+
+    @Override
+    protected Completable updateOne(RoutingContext rc) {
+        JsonObject requestBody;
+        boolean isFile;
+        if (rc.request().headers().get("Content-Type").equals("application/json")) {
+            isFile = false;
+            requestBody = rc.body().asJsonObject();
+        } else {
+            isFile = true;
+            requestBody = new JsonObject();
+            FileUpload file = rc.fileUploads().get(0);
+            requestBody.put("code", file.uploadedFileName());
+        }
+        requestBody.put("is_file", isFile);
+        return HttpHelper.getLongPathParam(rc, "id")
+                .flatMap(functionChecker::checkFindOne)
+            .map(result -> {
+                Function function = result.mapTo(Function.class);
+                String message = "";
+                if (function.getIsFile() != isFile && isFile) {
+                    message = "Function can't be updated with zip archive";
+                } else if (function.getIsFile() != isFile) {
+                    message = "Function can't be updated with blank code";
+                }
+                if (!message.isBlank()) {
+                    throw new BadInputException(message);
+                }
+                return result;
+            })
+            .flatMapCompletable(function -> entityChecker.submitUpdate(requestBody, function));
     }
 }

@@ -8,6 +8,7 @@ import {deleteFunction, listFunctions} from '../../lib/FunctionService';
 import ResourceTable from '../resources/ResourceTable';
 import PropTypes from 'prop-types';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
+import RuntimeIcon from '../misc/RuntimeIcon';
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -118,7 +119,10 @@ const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resource
         onFilter={(value, record) => record.name.startsWith(value)}
       />
       <Column title="Runtime" dataIndex="runtime" key="runtime"
-        render={(runtime) => runtime.name}
+        render={(runtime) =><>
+          <RuntimeIcon runtime={runtime.name} className="mr-2"/>
+          {runtime.name}
+        </>}
         sorter={(a, b) =>
           a.runtime.name.localeCompare(b.runtime.name)}
       />

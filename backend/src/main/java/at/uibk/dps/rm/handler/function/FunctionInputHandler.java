@@ -22,7 +22,7 @@ import java.util.List;
 public class FunctionInputHandler {
 
     /**
-     * Validate the name of a function that should be created.
+     * Validate the name and filetype of a function that should be created.
      *
      * @param rc the routing context
      */
@@ -41,6 +41,20 @@ public class FunctionInputHandler {
         checks.add(checkFunctionName(functionName));
         Completable.merge(checks)
             .subscribe(rc::next, throwable -> rc.fail(400, throwable));
+    }
+
+    /**
+     * Validate the filetype of a function that should be updated.
+     *
+     * @param rc the routing context
+     */
+    public static void validateUpdateFunctionRequest(RoutingContext rc) {
+        Completable checkFileType = Completable.complete();
+        if (rc.request().headers().get("Content-Type").equals("multipart/form-data")) {
+            FileUpload file = rc.fileUploads().get(0);
+            checkFileType = checkFileType(file);
+        }
+        checkFileType.subscribe(rc::next, throwable -> rc.fail(400, throwable));
     }
 
     private Completable checkFunctionName(String functionName) {
