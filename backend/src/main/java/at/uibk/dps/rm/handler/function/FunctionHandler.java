@@ -105,4 +105,13 @@ public class FunctionHandler extends ValidationHandler {
             })
             .flatMapCompletable(function -> entityChecker.submitUpdate(requestBody, function));
     }
+
+    @Override
+    protected Completable deleteOne(RoutingContext rc) {
+        return HttpHelper.getLongPathParam(rc, "id")
+            .flatMapCompletable(id -> entityChecker.checkFindOne(id)
+                .flatMapCompletable(function -> checkDeleteEntityIsUsed(function)
+                    .andThen(functionChecker.submitDelete(id, function)))
+            );
+    }
 }

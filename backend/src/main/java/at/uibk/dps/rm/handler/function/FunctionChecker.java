@@ -70,6 +70,20 @@ public class FunctionChecker extends EntityChecker {
         return super.submitUpdate(updateEntity, entity);
     }
 
+    public Completable submitDelete(long id, JsonObject entity) {
+        if (entity.getBoolean("is_file")) {
+            Vertx vertx = Vertx.currentContext().owner();
+            String fileName = entity.getString("code");
+            return new ConfigUtility(vertx).getConfig()
+                .flatMapCompletable(config -> {
+                    Path filePath = Path.of(config.getString("upload_persist_directory"), fileName);
+                    return vertx.fileSystem().delete(filePath.toString());
+                })
+                .andThen(super.submitDelete(id));
+        }
+        return super.submitDelete(id);
+    }
+
     @Override
     public Completable checkForDuplicateEntity(JsonObject entity) {
         final Single<Boolean> existsOneByNameAndRuntimeId = functionService
