@@ -14,7 +14,7 @@ const NewResourceDeployments = ({ensembleId, functionResources, setFunctionResou
   const [error, setError] = useState(false);
   const [selected, setSelected] = useState(false);
   const [functionResourceChoice, setfunctionResourceChoice] = useState([]);
-  const [serviceResourceChoice, setserviceResourceChoice] = useState([]);
+  const [serviceResourceChoice, setServiceResourceChoice] = useState([]);
 
   // TODO: improve error handling
   useEffect(() => {
@@ -35,24 +35,18 @@ const NewResourceDeployments = ({ensembleId, functionResources, setFunctionResou
     if (ensemble != null) {
       setfunctionResourceChoice(ensemble?.resources
           .filter((resource) => resource.platform.resource_type.resource_type !== 'container'));
-      setserviceResourceChoice(ensemble?.resources
+      setServiceResourceChoice(ensemble?.resources
           .filter((resource) => resource.platform.resource_type.resource_type === 'container'));
     }
   }, [ensemble]);
 
+  useEffect(() => {
+    setSelected(checkAnySelected);
+  }, [functionResources, serviceResources]);
+
   const checkAnySelected = () => {
     return (functionResources != null && functionResources.size > 0) ||
     (serviceResources != null && serviceResources.size > 0);
-  };
-
-  const onFunctionResourcesSelected = (resources) => {
-    setFunctionResources(resources);
-    setSelected(checkAnySelected);
-  };
-
-  const onServiceResourcesSelected = (resources) => {
-    setServiceResources(resources);
-    setSelected(checkAnySelected);
   };
 
   const onClickBack = () => {
@@ -69,7 +63,7 @@ const NewResourceDeployments = ({ensembleId, functionResources, setFunctionResou
         hideDelete
         isExpandable
         resources={functionResourceChoice}
-        onChange={onFunctionResourcesSelected}/> :
+        onChange={setFunctionResources}/> :
         <Typography.Text>
           No suitable resources for function deployment available...
         </Typography.Text>
@@ -80,7 +74,7 @@ const NewResourceDeployments = ({ensembleId, functionResources, setFunctionResou
         hideDelete
         isExpandable
         resources={serviceResourceChoice}
-        onChange={onServiceResourcesSelected}/> :
+        onChange={setServiceResources}/> :
         <Typography.Text className="block mb-10">
           No suitable resources for service deployment available...
         </Typography.Text>

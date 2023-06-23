@@ -76,13 +76,18 @@ const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resource
     });
   };
 
+  const getSelectedRowKeys = (record) => {
+    return selectedResources?.get(record.function_id)?.map((resource) => resource.resource_id);
+  };
+
   const onExpandRow = async (expanded, record) => {
     const keys = [];
     if (expanded) {
       record.resources = resources;
       record.rowSelection = {
-        selectedRowKeys: selectedResources?.get(record.function_id)?.map((resource) => resource.resource_id),
+        selectedRowKeys: getSelectedRowKeys(record),
         onChange: (newSelectedResourceIds, newSelectedResources) => {
+          record.rowSelection.selectedRowKeys = newSelectedResourceIds;
           updatedSelectedResourceIds(record.function_id, newSelectedResources);
         },
       };
