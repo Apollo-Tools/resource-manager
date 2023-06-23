@@ -28,6 +28,7 @@ public class FunctionInputHandler {
      */
     public static void validateAddFunctionRequest(RoutingContext rc) {
         String functionName;
+        FileUpload file;
         List<Completable> checks = new ArrayList<>();
         if (rc.request().headers().get("Content-Type").equals("application/json")) {
             JsonObject requestBody = rc.body().asJsonObject();
@@ -35,7 +36,7 @@ public class FunctionInputHandler {
         } else {
             MultiMap attributes = rc.request().formAttributes();
             functionName = attributes.get("name");
-            FileUpload file = rc.fileUploads().get(0);
+            file = rc.fileUploads().get(0);
             checks.add(checkFileType(file));
         }
         checks.add(checkFunctionName(functionName));

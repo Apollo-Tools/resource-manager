@@ -70,6 +70,7 @@ public class ApiVerticle extends AbstractVerticle {
      */
     private Router initRouter(RouterBuilder routerBuilder, JsonObject config) {
         Router globalRouter = Router.router(vertx);
+        setupBodyHandler(globalRouter, config);
         setupFailureHandler(globalRouter);
         setupSecurityHandler(routerBuilder);
         setupRoutes(routerBuilder);
@@ -77,9 +78,6 @@ public class ApiVerticle extends AbstractVerticle {
             .createRouter();
         globalRouter.route(API_PREFIX)
             .handler(cors())
-            .handler(BodyHandler.create()
-                .setUploadsDirectory(config.getString("upload_directory"))
-                .setBodyLimit(config.getLong("max_file_size")))
             .subRouter(apiRouter);
 
         return globalRouter;
@@ -153,6 +151,20 @@ public class ApiVerticle extends AbstractVerticle {
                 .end(message);
         });
     }
+
+    /**
+     * Set up the body handler for file uploads.
+     *
+     * @param router the router
+     */
+    private void setupBodyHandler(Router router, JsonObject config) {
+        router.route().handler(BodyHandler.create()
+            .setUploadsDirectory(config.getString("upload_temp_directory"))
+            .setBodyLimit(config.getLong("max_file_size"))
+            .setDeleteUploadedFilesOnEnd(true));
+    }
+
+
 
     /**
      * Set up the cors policy for the api.

@@ -120,12 +120,14 @@ public class FunctionPrepareService {
     }
 
     private String getOpenFaasTemplateBlock(String functionIdentifier, RuntimeEnum runtimeEnum) {
+        String functionPath = "./" + functionIdentifier +
+            (runtimeEnum.equals(RuntimeEnum.JAVA11) ? "/function" : "");
         return String.format(
             "  %s:\n" +
                 "    lang: %s-apollo-rm\n" +
-                "    handler: ./%s/function\n" +
+                "    handler: %s\n" +
                 "    image: %s/%s:latest\n",
-            functionIdentifier, runtimeEnum.getDotlessValue(), functionIdentifier, dockerCredentials.getUsername(),
+            functionIdentifier, runtimeEnum.getDotlessValue(), functionPath, dockerCredentials.getUsername(),
             functionIdentifier);
     }
 

@@ -24,7 +24,9 @@ public class LambdaLayerService {
         List<String> dockerCommands = new java.util.ArrayList<>(List.of("docker", "run", "--rm",
             "-v", functionsDir.toAbsolutePath().toString().replace("\\", "/") + "/layers:/var/task",
             "public.ecr.aws/sam/build-python3.8:latest", "/bin/sh", "-c"));
-        String dockerInteractiveCommands = "for dir in *_python38;do pip install -r \"$dir\"/requirements.txt " +
+        // Making the dummy file is necessary for blank requirements.txt files
+        String dockerInteractiveCommands = "mkdir -p python; echo -e \"placeholder\" >> python/placeholder.txt;" +
+            "for dir in *_python38;do pip install -r \"$dir\"/requirements.txt " +
             "-t python/lib/python3.8/site-packages/; done;zip -qr ./python38.zip ./python;rm -r ./python; exit";
         dockerCommands.add(dockerInteractiveCommands);
         ProcessExecutor processExecutor = new ProcessExecutor(functionsDir, dockerCommands);

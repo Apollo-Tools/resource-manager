@@ -2,6 +2,7 @@ package at.uibk.dps.rm.service.deployment.sourcecode;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.model.Function;
+import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.vertx.rxjava3.core.Vertx;
@@ -46,11 +47,13 @@ public class PackageJavaCode extends PackageSourceCode {
 
     protected Completable createSourceCode() {
         if (function.getIsFile()) {
-            return vertx.executeBlocking(fut -> {
-                String zipPath = function.getCode();
-                unzipAllFiles(Path.of(zipPath), Path.of(deploymentPath.getFunctionsFolder().toString(), "function"));
-                fut.complete();
-            }).ignoreElement()
+            return new ConfigUtility(vertx).getConfig().flatMapCompletable(config -> {
+                Path zipPath = Path.of(config.getString("upload_persist_directory"), function.getCode());
+                return vertx.executeBlocking(fut -> {
+                    unzipAllFiles(zipPath, Path.of(deploymentPath.getFunctionsFolder().toString(), "function"));
+                    fut.complete();
+                }).ignoreElement();
+            })
                 .andThen(Observable.fromIterable(HANDLER_FILES.entrySet()))
                 .flatMapCompletable(entry -> vertx.fileSystem().copyRecursive(entry.getKey().toString(),
                     Path.of(deploymentPath.getFunctionsFolder().toString(), function.getFunctionDeploymentId(),

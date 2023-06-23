@@ -50,7 +50,10 @@ public class FunctionHandler extends ValidationHandler {
             requestBody.put("name", attributes.get("name"));
             requestBody.put("runtime", new JsonObject(attributes.get("runtime")));
             FileUpload file = rc.fileUploads().get(0);
-            requestBody.put("code", file.uploadedFileName());
+            String[] filePath = file.uploadedFileName()
+                .replace("\\", "/")
+                .split("/");
+            requestBody.put("code", filePath[filePath.length - 1]);
         }
         requestBody.put("is_file", isFile);
         return runtimeChecker.checkFindOne(requestBody
@@ -79,7 +82,10 @@ public class FunctionHandler extends ValidationHandler {
             isFile = true;
             requestBody = new JsonObject();
             FileUpload file = rc.fileUploads().get(0);
-            requestBody.put("code", file.uploadedFileName());
+            String[] filePath = file.uploadedFileName()
+                .replace("\\", "/")
+                .split("/");
+            requestBody.put("code", filePath[filePath.length - 1]);
         }
         requestBody.put("is_file", isFile);
         return HttpHelper.getLongPathParam(rc, "id")
