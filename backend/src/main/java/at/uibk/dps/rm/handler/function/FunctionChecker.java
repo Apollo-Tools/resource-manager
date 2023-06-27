@@ -52,7 +52,7 @@ public class FunctionChecker extends EntityChecker {
     }
 
     @Override
-    public Completable submitUpdate(JsonObject updateEntity, JsonObject entity) {
+    public Completable submitUpdate(long id, JsonObject updateEntity, JsonObject entity) {
         if (entity.getBoolean("is_file")) {
             Vertx vertx = Vertx.currentContext().owner();
             String newFileName = updateEntity.getString("code");
@@ -65,9 +65,9 @@ public class FunctionChecker extends EntityChecker {
                     return vertx.fileSystem().delete(oldPath.toString())
                         .andThen(vertx.fileSystem().copy(tempPath.toString(), destPath.toString()));
                 })
-                .andThen(super.submitUpdate(updateEntity, entity));
+                .andThen(super.submitUpdate(id, updateEntity, entity));
         }
-        return super.submitUpdate(updateEntity, entity);
+        return super.submitUpdate(id, updateEntity, entity);
     }
 
     public Completable submitDelete(long id, JsonObject entity) {

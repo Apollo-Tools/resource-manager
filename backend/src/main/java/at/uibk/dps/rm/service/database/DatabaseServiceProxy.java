@@ -11,6 +11,7 @@ import org.hibernate.reactive.stage.Stage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
 /**
@@ -71,15 +72,17 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
 
     @Override
     public Future<JsonObject> findOne(long id) {
+        CompletionStage<T> findOne = sessionFactory.withSession(session -> repository.findById(session, id));
         return Future
-            .fromCompletionStage(repository.findById(id))
+            .fromCompletionStage(findOne)
             .map(JsonObject::mapFrom);
     }
 
     @Override
     public Future<Boolean> existsOneById(long id) {
+        CompletionStage<T> findOne = sessionFactory.withSession(session -> repository.findById(session, id));
         return Future
-            .fromCompletionStage(repository.findById(id))
+            .fromCompletionStage(findOne)
             .map(Objects::nonNull);
     }
 

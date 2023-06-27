@@ -9,24 +9,26 @@ import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
+import java.util.concurrent.CompletionStage;
 
 public class PlatformServiceImpl extends DatabaseServiceProxy<Platform> implements PlatformService {
 
-    private final PlatformRepository platformRepository;
+    private final PlatformRepository repository;
     /**
      * Create an instance from the platformRepository.
      *
-     * @param platformRepository the platform repository
+     * @param repository the platform repository
      */
-    public PlatformServiceImpl(PlatformRepository platformRepository, Stage.SessionFactory sessionFactory) {
-        super(platformRepository, Platform.class, sessionFactory);
-        this.platformRepository = platformRepository;
+    public PlatformServiceImpl(PlatformRepository repository, Stage.SessionFactory sessionFactory) {
+        super(repository, Platform.class, sessionFactory);
+        this.repository = repository;
     }
 
     @Override
     public Future<JsonObject> findOne(long id) {
-        return Future
-            .fromCompletionStage(platformRepository.findById(id))
+        CompletionStage<Platform> findOne = getSessionFactory().withSession(session ->
+            repository.findById(session, id));
+        return Future.fromCompletionStage(findOne)
             .map(platform -> {
                 if (platform != null) {
                     platform.setResourceType(null);
@@ -38,7 +40,7 @@ public class PlatformServiceImpl extends DatabaseServiceProxy<Platform> implemen
     @Override
     public Future<JsonArray> findAll() {
         return Future
-            .fromCompletionStage(platformRepository.findAllAndFetch())
+            .fromCompletionStage(repository.findAllAndFetch())
             .map(platforms -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Platform platform: platforms) {

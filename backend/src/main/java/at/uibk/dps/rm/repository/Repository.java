@@ -1,5 +1,8 @@
 package at.uibk.dps.rm.repository;
 
+import at.uibk.dps.rm.exception.NotFoundException;
+import io.vertx.core.json.JsonObject;
+import org.hibernate.reactive.stage.Stage;
 import org.hibernate.reactive.stage.Stage.SessionFactory;
 
 import java.util.List;
@@ -85,10 +88,8 @@ public abstract class Repository<E> {
      * @param id the id of the entity
      * @return a CompletionStage that emits the entity if it exists, else null
      */
-    public CompletionStage<E> findById(long id) {
-        return sessionFactory.withSession(session ->
-                session.find(entityClass, id)
-        );
+    public CompletionStage<E> findById(Stage.Session session, long id) {
+        return session.find(entityClass, id);
     }
 
     /**

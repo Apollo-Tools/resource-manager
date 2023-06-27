@@ -23,12 +23,10 @@ public class AccountRepository  extends Repository<Account> {
     }
 
     @Override
-    public CompletionStage<Account> findById(long id) {
-        return sessionFactory.withSession(session ->
-            session.createQuery("from Account a where a.accountId=:id and a.isActive=true", entityClass)
+    public CompletionStage<Account> findById(Stage.Session session, long id) {
+        return session.createQuery("from Account a where a.accountId=:id and a.isActive=true", entityClass)
                 .setParameter("id", id)
-                .getSingleResultOrNull()
-        );
+                .getSingleResultOrNull();
     }
 
     /**
