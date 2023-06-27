@@ -6,6 +6,7 @@ import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
 
@@ -23,8 +24,8 @@ public class LogServiceImpl extends DatabaseServiceProxy<Log> implements LogServ
      *
      * @param logRepository the log repository
      */
-    public LogServiceImpl(LogRepository logRepository) {
-        super(logRepository, Log.class);
+    public LogServiceImpl(LogRepository logRepository, Stage.SessionFactory sessionFactory) {
+        super(logRepository, Log.class, sessionFactory);
         this.logRepository = logRepository;
     }
 

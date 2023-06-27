@@ -11,6 +11,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
+import org.hibernate.reactive.stage.Stage;
 
 /**
  * The interface of the service proxy for the function_deployment entity.
@@ -24,8 +25,8 @@ public interface FunctionDeploymentService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static FunctionDeploymentService create(FunctionDeploymentRepository repository) {
-        return new FunctionDeploymentServiceImpl(repository);
+    static FunctionDeploymentService create(FunctionDeploymentRepository repository, Stage.SessionFactory sessionFactory) {
+        return new FunctionDeploymentServiceImpl(repository, sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

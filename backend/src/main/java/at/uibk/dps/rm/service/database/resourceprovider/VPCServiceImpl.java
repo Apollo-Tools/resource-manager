@@ -6,6 +6,7 @@ import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -23,8 +24,8 @@ public class VPCServiceImpl extends DatabaseServiceProxy<VPC> implements VPCServ
      *
      * @param vpcRepository the vpc repository
      */
-    public VPCServiceImpl(VPCRepository vpcRepository) {
-        super(vpcRepository, VPC.class);
+    public VPCServiceImpl(VPCRepository vpcRepository, Stage.SessionFactory sessionFactory) {
+        super(vpcRepository, VPC.class, sessionFactory);
         this.vpcRepository = vpcRepository;
     }
 

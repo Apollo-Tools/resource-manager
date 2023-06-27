@@ -5,6 +5,7 @@ import at.uibk.dps.rm.repository.deployment.ResourceDeploymentStatusRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
+import org.hibernate.reactive.stage.Stage;
 
 /**
  * This is the implementation of the #ResourceDeploymentStatusService.
@@ -21,8 +22,8 @@ public class ResourceDeploymentStatusServiceImpl extends DatabaseServiceProxy<Re
      *
      * @param repository the resource deployment status repository
      */
-    public ResourceDeploymentStatusServiceImpl(ResourceDeploymentStatusRepository repository) {
-        super(repository, ResourceDeploymentStatus.class);
+    public ResourceDeploymentStatusServiceImpl(ResourceDeploymentStatusRepository repository, Stage.SessionFactory sessionFactory) {
+        super(repository, ResourceDeploymentStatus.class, sessionFactory);
         this.repository = repository;
     }
 

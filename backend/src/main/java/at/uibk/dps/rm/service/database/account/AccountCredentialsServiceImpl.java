@@ -5,6 +5,7 @@ import at.uibk.dps.rm.repository.account.AccountCredentialsRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
+import org.hibernate.reactive.stage.Stage;
 
 import java.util.Objects;
 
@@ -22,8 +23,8 @@ public class AccountCredentialsServiceImpl extends DatabaseServiceProxy<AccountC
      *
      * @param repository the account credentials repository
      */
-    public AccountCredentialsServiceImpl(AccountCredentialsRepository repository) {
-        super(repository, AccountCredentials.class);
+    public AccountCredentialsServiceImpl(AccountCredentialsRepository repository, Stage.SessionFactory sessionFactory) {
+        super(repository, AccountCredentials.class, sessionFactory);
         this.accountCredentialsRepository = repository;
     }
 

@@ -60,7 +60,7 @@ public interface DatabaseServiceInterface extends ServiceInterface {
      * @param data the existing entity with updated values
      * @return an empty Future
      */
-    Future<Void> update(JsonObject data);
+    Future<Void> update(long id, JsonObject data);
 
     /**
      * Delete an entity by its id.

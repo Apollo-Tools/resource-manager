@@ -11,6 +11,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import org.hibernate.reactive.stage.Stage;
 
 /**
  * The interface of the service proxy for the resource_deployment_status entity.
@@ -24,8 +25,9 @@ public interface ResourceDeploymentStatusService extends DatabaseServiceInterfac
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static ResourceDeploymentStatusService create(ResourceDeploymentStatusRepository repository) {
-        return new ResourceDeploymentStatusServiceImpl(repository);
+    static ResourceDeploymentStatusService create(ResourceDeploymentStatusRepository repository,
+            Stage.SessionFactory sessionFactory) {
+        return new ResourceDeploymentStatusServiceImpl(repository, sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

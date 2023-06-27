@@ -7,6 +7,7 @@ import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -26,8 +27,8 @@ public class ServiceDeploymentServiceImpl extends DatabaseServiceProxy<ServiceDe
      *
      * @param repository the service deployment repository
      */
-    public ServiceDeploymentServiceImpl(ServiceDeploymentRepository repository) {
-        super(repository, ServiceDeployment.class);
+    public ServiceDeploymentServiceImpl(ServiceDeploymentRepository repository, Stage.SessionFactory sessionFactory) {
+        super(repository, ServiceDeployment.class, sessionFactory);
         this.repository = repository;
     }
 

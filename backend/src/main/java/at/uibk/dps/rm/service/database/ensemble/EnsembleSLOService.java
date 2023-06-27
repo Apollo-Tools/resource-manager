@@ -11,6 +11,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
+import org.hibernate.reactive.stage.Stage;
 
 /**
  * The interface of the service proxy for the ensemble_slo entity.
@@ -23,8 +24,8 @@ public interface EnsembleSLOService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static EnsembleSLOService create(EnsembleSLORepository ensembleSLORepository) {
-        return new EnsembleSLOServiceImpl(ensembleSLORepository);
+    static EnsembleSLOService create(EnsembleSLORepository ensembleSLORepository, Stage.SessionFactory sessionFactory) {
+        return new EnsembleSLOServiceImpl(ensembleSLORepository, sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

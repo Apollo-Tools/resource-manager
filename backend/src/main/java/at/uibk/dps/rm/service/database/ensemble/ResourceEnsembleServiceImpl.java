@@ -7,6 +7,7 @@ import at.uibk.dps.rm.repository.ensemble.ResourceEnsembleRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
+import org.hibernate.reactive.stage.Stage;
 
 import java.util.Objects;
 
@@ -25,8 +26,8 @@ public class ResourceEnsembleServiceImpl  extends DatabaseServiceProxy<ResourceE
      *
      * @param repository the resource ensemble repository
      */
-    public ResourceEnsembleServiceImpl(ResourceEnsembleRepository repository) {
-        super(repository, ResourceEnsemble.class);
+    public ResourceEnsembleServiceImpl(ResourceEnsembleRepository repository, Stage.SessionFactory sessionFactory) {
+        super(repository, ResourceEnsemble.class, sessionFactory);
         this.repository = repository;
     }
 

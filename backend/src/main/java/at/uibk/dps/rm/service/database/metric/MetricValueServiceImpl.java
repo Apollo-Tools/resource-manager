@@ -7,6 +7,7 @@ import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,8 +28,8 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
      *
      * @param metricValueRepository the metric value repository
      */
-    public MetricValueServiceImpl(MetricValueRepository metricValueRepository) {
-        super(metricValueRepository, MetricValue.class);
+    public MetricValueServiceImpl(MetricValueRepository metricValueRepository, Stage.SessionFactory sessionFactory) {
+        super(metricValueRepository, MetricValue.class, sessionFactory);
         this.metricValueRepository = metricValueRepository;
     }
 

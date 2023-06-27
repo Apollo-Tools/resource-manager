@@ -12,6 +12,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import org.hibernate.reactive.stage.Stage;
 
 /**
  * The interface of the service proxy for te metric entity.
@@ -25,8 +26,8 @@ public interface MetricService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static MetricService create(MetricRepository metricRepository) {
-        return new MetricServiceImpl(metricRepository);
+    static MetricService create(MetricRepository metricRepository, Stage.SessionFactory sessionFactory) {
+        return new MetricServiceImpl(metricRepository, sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

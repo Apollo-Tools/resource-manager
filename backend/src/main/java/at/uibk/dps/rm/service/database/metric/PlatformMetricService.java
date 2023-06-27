@@ -10,6 +10,7 @@ import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import org.hibernate.reactive.stage.Stage;
 
 /**
  * The interface of the service proxy for the resource_type entity.
@@ -23,8 +24,8 @@ public interface PlatformMetricService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static PlatformMetricService create(PlatformMetricRepository repository) {
-        return new PlatformMetricServiceImpl(repository);
+    static PlatformMetricService create(PlatformMetricRepository repository, Stage.SessionFactory sessionFactory) {
+        return new PlatformMetricServiceImpl(repository, sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

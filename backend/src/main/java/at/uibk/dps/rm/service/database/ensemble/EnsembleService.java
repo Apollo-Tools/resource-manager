@@ -12,6 +12,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import org.hibernate.reactive.stage.Stage;
 
 /**
  * The interface of the service proxy for the ensemble entity.
@@ -24,8 +25,8 @@ public interface EnsembleService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static EnsembleService create(EnsembleRepository ensembleRepository) {
-        return new EnsembleServiceImpl(ensembleRepository);
+    static EnsembleService create(EnsembleRepository ensembleRepository, Stage.SessionFactory sessionFactory) {
+        return new EnsembleServiceImpl(ensembleRepository, sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

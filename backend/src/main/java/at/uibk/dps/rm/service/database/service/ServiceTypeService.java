@@ -9,6 +9,7 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
+import org.hibernate.reactive.stage.Stage;
 
 /**
  * The interface of the service proxy for the service_type entity.
@@ -21,8 +22,8 @@ public interface ServiceTypeService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static ServiceTypeService create(ServiceTypeRepository serviceTypeRepository) {
-        return new ServiceTypeServiceImpl(serviceTypeRepository);
+    static ServiceTypeService create(ServiceTypeRepository serviceTypeRepository, Stage.SessionFactory sessionFactory) {
+        return new ServiceTypeServiceImpl(serviceTypeRepository, sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

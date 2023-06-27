@@ -173,43 +173,51 @@ public class DatabaseVerticle extends AbstractVerticle {
             ServiceBinder serviceBinder = new ServiceBinder(vertx.getDelegate());
             ServiceProxyBinder serviceProxyBinder = new ServiceProxyBinder(serviceBinder);
 
-            serviceProxyBinder.bind(AccountService.class, new AccountServiceImpl(accountRepository));
+            serviceProxyBinder.bind(AccountService.class, new AccountServiceImpl(accountRepository, sessionFactory));
             serviceProxyBinder.bind(AccountCredentialsService.class,
-                new AccountCredentialsServiceImpl(accountCredentialsRepository));
-            serviceProxyBinder.bind(CredentialsService.class, new CredentialsServiceImpl(credentialsRepository));
-            serviceProxyBinder.bind(EnsembleService.class, new EnsembleServiceImpl(ensembleRepository));
-            serviceProxyBinder.bind(EnsembleSLOService.class, new EnsembleSLOServiceImpl(ensembleSLORepository));
-            serviceProxyBinder.bind(EnvironmentService.class, new EnvironmentServiceImpl(environmentRepository));
-            serviceProxyBinder.bind(FunctionService.class, new FunctionServiceImpl(functionRepository));
+                new AccountCredentialsServiceImpl(accountCredentialsRepository, sessionFactory));
+            serviceProxyBinder.bind(CredentialsService.class,
+                new CredentialsServiceImpl(credentialsRepository, sessionFactory));
+            serviceProxyBinder.bind(EnsembleService.class, new EnsembleServiceImpl(ensembleRepository, sessionFactory));
+            serviceProxyBinder.bind(EnsembleSLOService.class,
+                new EnsembleSLOServiceImpl(ensembleSLORepository, sessionFactory));
+            serviceProxyBinder.bind(EnvironmentService.class,
+                new EnvironmentServiceImpl(environmentRepository, sessionFactory));
+            serviceProxyBinder.bind(FunctionService.class, new FunctionServiceImpl(functionRepository, sessionFactory));
             serviceProxyBinder.bind(FunctionDeploymentService.class,
-                new FunctionDeploymentServiceImpl(functionDeploymentRepository));
-            serviceProxyBinder.bind(LogService.class, new LogServiceImpl(logRepository));
-            serviceProxyBinder.bind(MetricService.class, new MetricServiceImpl(metricRepository));
-            serviceProxyBinder.bind(MetricTypeService.class, new MetricTypeServiceImpl(metricTypeRepository));
-            serviceProxyBinder.bind(MetricValueService.class, new MetricValueServiceImpl(metricValueRepository));
-            serviceProxyBinder.bind(PlatformService.class, new PlatformServiceImpl(platformRepository));
-            serviceProxyBinder.bind(RegionService.class, new RegionServiceImpl(regionRepository));
-            serviceProxyBinder.bind(DeploymentService.class, new DeploymentServiceImpl(deploymentRepository));
+                new FunctionDeploymentServiceImpl(functionDeploymentRepository, sessionFactory));
+            serviceProxyBinder.bind(LogService.class, new LogServiceImpl(logRepository, sessionFactory));
+            serviceProxyBinder.bind(MetricService.class, new MetricServiceImpl(metricRepository, sessionFactory));
+            serviceProxyBinder.bind(MetricTypeService.class,
+                new MetricTypeServiceImpl(metricTypeRepository, sessionFactory));
+            serviceProxyBinder.bind(MetricValueService.class,
+                new MetricValueServiceImpl(metricValueRepository, sessionFactory));
+            serviceProxyBinder.bind(PlatformService.class, new PlatformServiceImpl(platformRepository, sessionFactory));
+            serviceProxyBinder.bind(RegionService.class, new RegionServiceImpl(regionRepository, sessionFactory));
+            serviceProxyBinder.bind(DeploymentService.class,
+                new DeploymentServiceImpl(deploymentRepository, sessionFactory));
             serviceProxyBinder.bind(DeploymentLogService.class,
-                new DeploymentLogServiceImpl(deploymentLogRepository));
+                new DeploymentLogServiceImpl(deploymentLogRepository, sessionFactory));
             serviceProxyBinder.bind(ResourceEnsembleService.class,
-                new ResourceEnsembleServiceImpl(resourceEnsembleRepository));
-            serviceProxyBinder.bind(ResourceService.class, new ResourceServiceImpl(resourceRepository));
+                new ResourceEnsembleServiceImpl(resourceEnsembleRepository, sessionFactory));
+            serviceProxyBinder.bind(ResourceService.class, new ResourceServiceImpl(resourceRepository, sessionFactory));
             serviceProxyBinder.bind(ResourceProviderService.class,
-                new ResourceProviderServiceImpl(resourceProviderRepository));
+                new ResourceProviderServiceImpl(resourceProviderRepository, sessionFactory));
             serviceProxyBinder.bind(ResourceDeploymentService.class,
-                new ResourceDeploymentServiceImpl(resourceDeploymentRepository));
+                new ResourceDeploymentServiceImpl(resourceDeploymentRepository, sessionFactory));
             serviceProxyBinder.bind(ResourceDeploymentStatusService.class,
-                new ResourceDeploymentStatusServiceImpl(statusRepository));
-            serviceProxyBinder.bind(ResourceTypeService.class, new ResourceTypeServiceImpl(resourceTypeRepository));
+                new ResourceDeploymentStatusServiceImpl(statusRepository, sessionFactory));
+            serviceProxyBinder.bind(ResourceTypeService.class,
+                new ResourceTypeServiceImpl(resourceTypeRepository, sessionFactory));
             serviceProxyBinder.bind(PlatformMetricService.class,
-                new PlatformMetricServiceImpl(platformMetricRepository));
-            serviceProxyBinder.bind(RuntimeService.class, new RuntimeServiceImpl(runtimeRepository));
-            serviceProxyBinder.bind(ServiceService.class, new ServiceServiceImpl(serviceRepository));
+                new PlatformMetricServiceImpl(platformMetricRepository, sessionFactory));
+            serviceProxyBinder.bind(RuntimeService.class, new RuntimeServiceImpl(runtimeRepository, sessionFactory));
+            serviceProxyBinder.bind(ServiceService.class, new ServiceServiceImpl(serviceRepository, sessionFactory));
             serviceProxyBinder.bind(ServiceDeploymentService.class,
-                new ServiceDeploymentServiceImpl(serviceDeploymentRepository));
-            serviceProxyBinder.bind(ServiceTypeService.class, new ServiceTypeServiceImpl(serviceTypeRepository));
-            serviceProxyBinder.bind(VPCService.class, new VPCServiceImpl(vpcRepository));
+                new ServiceDeploymentServiceImpl(serviceDeploymentRepository, sessionFactory));
+            serviceProxyBinder.bind(ServiceTypeService.class,
+                new ServiceTypeServiceImpl(serviceTypeRepository, sessionFactory));
+            serviceProxyBinder.bind(VPCService.class, new VPCServiceImpl(vpcRepository, sessionFactory));
             serviceProxyBinder.bind(FilePathService.class, new FilePathServiceImpl(vertx.getDelegate()));
             emitter.onComplete();
         });

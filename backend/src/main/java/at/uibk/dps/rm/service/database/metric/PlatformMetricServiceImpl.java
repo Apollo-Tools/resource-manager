@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.model.PlatformMetric;
 import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
+import org.hibernate.reactive.stage.Stage;
 
 /**
  * This is the implementation of the #PlatformMetricService.
@@ -19,8 +20,8 @@ public class PlatformMetricServiceImpl extends DatabaseServiceProxy<PlatformMetr
      *
      * @param repository the platform metric repository
      */
-    public PlatformMetricServiceImpl(PlatformMetricRepository repository) {
-        super(repository, PlatformMetric.class);
+    public PlatformMetricServiceImpl(PlatformMetricRepository repository, Stage.SessionFactory sessionFactory) {
+        super(repository, PlatformMetric.class, sessionFactory);
         this.repository = repository;
     }
 

@@ -11,6 +11,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import org.hibernate.reactive.stage.Stage;
 
 /**
  * The interface of the service proxy for the account_credentials entity.
@@ -24,8 +25,9 @@ public interface AccountCredentialsService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static AccountCredentialsService create(AccountCredentialsRepository accountCredentialsRepository) {
-        return new AccountCredentialsServiceImpl(accountCredentialsRepository);
+    static AccountCredentialsService create(AccountCredentialsRepository accountCredentialsRepository,
+            Stage.SessionFactory sessionFactory) {
+        return new AccountCredentialsServiceImpl(accountCredentialsRepository, sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

@@ -11,6 +11,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import org.hibernate.reactive.stage.Stage;
 
 /**
  * The interface of the service proxy for the resource_ensemble entity.
@@ -23,8 +24,8 @@ public interface ResourceEnsembleService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static ResourceEnsembleService create(ResourceEnsembleRepository repository) {
-        return new ResourceEnsembleServiceImpl(repository);
+    static ResourceEnsembleService create(ResourceEnsembleRepository repository, Stage.SessionFactory sessionFactory) {
+        return new ResourceEnsembleServiceImpl(repository, sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

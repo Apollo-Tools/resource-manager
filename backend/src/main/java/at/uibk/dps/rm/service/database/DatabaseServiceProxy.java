@@ -1,10 +1,12 @@
 package at.uibk.dps.rm.service.database;
 
+import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.Repository;
 import at.uibk.dps.rm.service.ServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +22,9 @@ import java.util.stream.Collectors;
  * @param <T> the type of entity
  */
 public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements DatabaseServiceInterface {
+
+    private final Stage.SessionFactory sessionFactory;
+
     private final Repository<T> repository;
 
     private final Class<T> entityClass;
@@ -30,9 +35,14 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
      * @param repository the repository
      * @param entityClass the class of the entity
      */
-    public DatabaseServiceProxy(Repository<T> repository, Class<T> entityClass) {
+    public DatabaseServiceProxy(Repository<T> repository, Class<T> entityClass, Stage.SessionFactory sessionFactory) {
         this.repository = repository;
         this.entityClass = entityClass;
+        this.sessionFactory = sessionFactory;
+    }
+
+    protected Stage.SessionFactory getSessionFactory() {
+        return sessionFactory;
     }
 
     @Override

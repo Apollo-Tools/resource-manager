@@ -3,6 +3,7 @@ package at.uibk.dps.rm.service.database.log;
 import at.uibk.dps.rm.entity.model.DeploymentLog;
 import at.uibk.dps.rm.repository.log.DeploymentLogRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import org.hibernate.reactive.stage.Stage;
 
 /**
  * This is the implementation of the #DeploymentLogService.
@@ -15,7 +16,7 @@ public class DeploymentLogServiceImpl extends DatabaseServiceProxy<DeploymentLog
      *
      * @param deploymentLogRepository the deployment log repository
      */
-    public DeploymentLogServiceImpl(DeploymentLogRepository deploymentLogRepository) {
-        super(deploymentLogRepository, DeploymentLog.class);
+    public DeploymentLogServiceImpl(DeploymentLogRepository deploymentLogRepository, Stage.SessionFactory sessionFactory) {
+        super(deploymentLogRepository, DeploymentLog.class, sessionFactory);
     }
 }

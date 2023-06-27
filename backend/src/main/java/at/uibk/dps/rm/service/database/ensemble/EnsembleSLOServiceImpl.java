@@ -6,6 +6,7 @@ import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
 
@@ -22,8 +23,8 @@ public class EnsembleSLOServiceImpl extends DatabaseServiceProxy<EnsembleSLO> im
      *
      * @param ensembleSLORepository the ensemble slo repository
      */
-    public EnsembleSLOServiceImpl(EnsembleSLORepository ensembleSLORepository) {
-        super(ensembleSLORepository, EnsembleSLO.class);
+    public EnsembleSLOServiceImpl(EnsembleSLORepository ensembleSLORepository, Stage.SessionFactory sessionFactory) {
+        super(ensembleSLORepository, EnsembleSLO.class, sessionFactory);
         this.ensembleSLORepository = ensembleSLORepository;
     }
 

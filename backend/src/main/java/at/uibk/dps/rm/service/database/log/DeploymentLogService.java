@@ -9,6 +9,7 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
+import org.hibernate.reactive.stage.Stage;
 
 /**
  * The interface of the service proxy for the deployment_log entity.
@@ -22,8 +23,8 @@ public interface DeploymentLogService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static DeploymentLogService create(DeploymentLogRepository repository) {
-        return new DeploymentLogServiceImpl(repository);
+    static DeploymentLogService create(DeploymentLogRepository repository, Stage.SessionFactory sessionFactory) {
+        return new DeploymentLogServiceImpl(repository, sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

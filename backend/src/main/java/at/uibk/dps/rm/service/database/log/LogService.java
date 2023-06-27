@@ -11,6 +11,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
+import org.hibernate.reactive.stage.Stage;
 
 /**
  * The interface of the service proxy for the log entity.
@@ -24,8 +25,8 @@ public interface LogService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static LogService create(LogRepository logRepository) {
-        return new LogServiceImpl(logRepository);
+    static LogService create(LogRepository logRepository, Stage.SessionFactory sessionFactory) {
+        return new LogServiceImpl(logRepository, sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

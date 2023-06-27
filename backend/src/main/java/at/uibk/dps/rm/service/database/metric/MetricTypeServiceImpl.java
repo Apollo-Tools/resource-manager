@@ -3,6 +3,7 @@ package at.uibk.dps.rm.service.database.metric;
 import at.uibk.dps.rm.entity.model.MetricType;
 import at.uibk.dps.rm.repository.metric.MetricTypeRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import org.hibernate.reactive.stage.Stage;
 
 /**
  * This is the implementation of the #MetricTypeService.
@@ -15,7 +16,7 @@ public class MetricTypeServiceImpl extends DatabaseServiceProxy<MetricType> impl
      *
      * @param metricTypeRepository the metric type repository
      */
-    public MetricTypeServiceImpl(MetricTypeRepository metricTypeRepository) {
-        super(metricTypeRepository, MetricType.class);
+    public MetricTypeServiceImpl(MetricTypeRepository metricTypeRepository, Stage.SessionFactory sessionFactory) {
+        super(metricTypeRepository, MetricType.class, sessionFactory);
     }
 }

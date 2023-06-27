@@ -6,6 +6,7 @@ import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
 
@@ -23,8 +24,8 @@ public class ResourceProviderServiceImpl extends DatabaseServiceProxy<ResourcePr
      *
      * @param repository the resource provider repository
      */
-    public ResourceProviderServiceImpl(ResourceProviderRepository repository) {
-        super(repository, ResourceProvider.class);
+    public ResourceProviderServiceImpl(ResourceProviderRepository repository, Stage.SessionFactory sessionFactory) {
+        super(repository, ResourceProvider.class, sessionFactory);
         this.repository = repository;
     }
 

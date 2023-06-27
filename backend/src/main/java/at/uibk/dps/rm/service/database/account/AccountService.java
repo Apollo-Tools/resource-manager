@@ -11,6 +11,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import org.hibernate.reactive.stage.Stage;
 
 /**
  * The interface of the service proxy for the account entity.
@@ -24,8 +25,8 @@ public interface AccountService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static AccountService create(AccountRepository accountRepository) {
-        return new AccountServiceImpl(accountRepository);
+    static AccountService create(AccountRepository accountRepository, Stage.SessionFactory sessionFactory) {
+        return new AccountServiceImpl(accountRepository, sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

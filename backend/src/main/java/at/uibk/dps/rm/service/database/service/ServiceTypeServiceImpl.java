@@ -3,6 +3,7 @@ package at.uibk.dps.rm.service.database.service;
 import at.uibk.dps.rm.entity.model.ServiceType;
 import at.uibk.dps.rm.repository.service.ServiceTypeRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import org.hibernate.reactive.stage.Stage;
 
 /**
  * This is the implementation of the #ServiceTypeService.
@@ -15,7 +16,7 @@ public class ServiceTypeServiceImpl extends DatabaseServiceProxy<ServiceType> im
      *
      * @param repository  the repository
      */
-    public ServiceTypeServiceImpl(ServiceTypeRepository repository) {
-        super(repository, ServiceType.class);
+    public ServiceTypeServiceImpl(ServiceTypeRepository repository, Stage.SessionFactory sessionFactory) {
+        super(repository, ServiceType.class, sessionFactory);
     }
 }

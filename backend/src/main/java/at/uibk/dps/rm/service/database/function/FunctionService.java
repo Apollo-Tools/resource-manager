@@ -10,6 +10,7 @@ import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import org.hibernate.reactive.stage.Stage;
 
 import java.util.Set;
 
@@ -25,8 +26,8 @@ public interface FunctionService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static FunctionService create(FunctionRepository functionRepository) {
-        return new FunctionServiceImpl(functionRepository);
+    static FunctionService create(FunctionRepository functionRepository, Stage.SessionFactory sessionFactory) {
+        return new FunctionServiceImpl(functionRepository, sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

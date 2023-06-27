@@ -11,6 +11,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
+import org.hibernate.reactive.stage.Stage;
 
 /**
  * The interface of the service proxy for the region entity.
@@ -24,8 +25,8 @@ public interface RegionService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static RegionService create(RegionRepository regionRepository) {
-        return new RegionServiceImpl(regionRepository);
+    static RegionService create(RegionRepository regionRepository, Stage.SessionFactory sessionFactory) {
+        return new RegionServiceImpl(regionRepository, sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

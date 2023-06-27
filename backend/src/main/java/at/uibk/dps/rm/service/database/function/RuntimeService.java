@@ -8,6 +8,7 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
+import org.hibernate.reactive.stage.Stage;
 
 /**
  * The interface of the service proxy for the runtime entity.
@@ -21,8 +22,8 @@ public interface RuntimeService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static RuntimeService create(RuntimeRepository runtimeRepository) {
-        return new RuntimeServiceImpl(runtimeRepository);
+    static RuntimeService create(RuntimeRepository runtimeRepository, Stage.SessionFactory sessionFactory) {
+        return new RuntimeServiceImpl(runtimeRepository, sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

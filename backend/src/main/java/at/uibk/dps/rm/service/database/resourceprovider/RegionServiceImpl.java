@@ -6,6 +6,7 @@ import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -23,8 +24,8 @@ public class RegionServiceImpl extends DatabaseServiceProxy<Region> implements R
      *
      * @param repository the region repository
      */
-    public RegionServiceImpl(RegionRepository repository) {
-        super(repository, Region.class);
+    public RegionServiceImpl(RegionRepository repository, Stage.SessionFactory sessionFactory) {
+        super(repository, Region.class, sessionFactory);
         this.regionRepository = repository;
     }
 

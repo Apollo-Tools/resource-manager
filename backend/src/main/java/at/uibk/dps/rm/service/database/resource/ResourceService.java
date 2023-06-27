@@ -11,6 +11,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
+import org.hibernate.reactive.stage.Stage;
 
 import java.util.List;
 import java.util.Set;
@@ -27,8 +28,8 @@ public interface ResourceService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static ResourceService create(ResourceRepository resourceRepository) {
-        return new ResourceServiceImpl(resourceRepository);
+    static ResourceService create(ResourceRepository resourceRepository, Stage.SessionFactory sessionFactory) {
+        return new ResourceServiceImpl(resourceRepository, sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

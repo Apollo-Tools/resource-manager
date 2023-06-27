@@ -10,6 +10,7 @@ import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import org.hibernate.reactive.stage.Stage;
 
 import java.util.Set;
 
@@ -24,8 +25,8 @@ public interface ServiceService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static ServiceService create(ServiceRepository serviceRepository) {
-        return new ServiceServiceImpl(serviceRepository);
+    static ServiceService create(ServiceRepository serviceRepository, Stage.SessionFactory sessionFactory) {
+        return new ServiceServiceImpl(serviceRepository, sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

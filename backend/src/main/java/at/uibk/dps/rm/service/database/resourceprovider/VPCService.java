@@ -11,6 +11,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import org.hibernate.reactive.stage.Stage;
 
 /**
  * The interface of the service proxy for the vpc entity.
@@ -24,8 +25,8 @@ public interface VPCService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static VPCService create(VPCRepository vpcRepository) {
-        return new VPCServiceImpl(vpcRepository);
+    static VPCService create(VPCRepository vpcRepository, Stage.SessionFactory sessionFactory) {
+        return new VPCServiceImpl(vpcRepository, sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

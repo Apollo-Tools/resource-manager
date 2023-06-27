@@ -9,6 +9,7 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
+import org.hibernate.reactive.stage.Stage;
 
 /**
  * The interface of the service proxy for the platform entity.
@@ -22,8 +23,8 @@ public interface PlatformService  extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static PlatformService create(PlatformRepository platformRepository) {
-        return new PlatformServiceImpl(platformRepository);
+    static PlatformService create(PlatformRepository platformRepository, Stage.SessionFactory sessionFactory) {
+        return new PlatformServiceImpl(platformRepository, sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

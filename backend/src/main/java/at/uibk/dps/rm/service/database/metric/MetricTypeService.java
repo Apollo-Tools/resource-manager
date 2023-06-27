@@ -9,6 +9,7 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
+import org.hibernate.reactive.stage.Stage;
 
 /**
  * The interface of the service proxy for the metric_type entity.
@@ -22,8 +23,8 @@ public interface MetricTypeService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static MetricTypeService create(MetricTypeRepository metricTypeRepository) {
-        return new MetricTypeServiceImpl(metricTypeRepository);
+    static MetricTypeService create(MetricTypeRepository metricTypeRepository, Stage.SessionFactory sessionFactory) {
+        return new MetricTypeServiceImpl(metricTypeRepository, sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
