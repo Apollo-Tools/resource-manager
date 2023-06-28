@@ -52,22 +52,17 @@ public class FunctionChecker extends EntityChecker {
     }
 
     @Override
-    public Completable submitUpdate(long id, JsonObject updateEntity, JsonObject entity) {
-        if (entity.getBoolean("is_file")) {
-            Vertx vertx = Vertx.currentContext().owner();
-            String newFileName = updateEntity.getString("code");
-            String oldFileName = entity.getString("code");
-            return new ConfigUtility(vertx).getConfig()
-                .flatMapCompletable(config -> {
-                    Path oldPath = Path.of(config.getString("upload_persist_directory"), oldFileName);
-                    Path tempPath = Path.of(config.getString("upload_temp_directory"), newFileName);
-                    Path destPath = Path.of(config.getString("upload_persist_directory"), newFileName);
-                    return vertx.fileSystem().delete(oldPath.toString())
-                        .andThen(vertx.fileSystem().copy(tempPath.toString(), destPath.toString()));
+    public Completable submitUpdate(long id, JsonObject fields) {
+        return checkFindOne(id).flatMapCompletable(function ->
+            super.submitUpdate(id, fields)
+                .andThen(Single.defer(() -> Single.just(id)))
+                .flatMapCompletable(result -> {
+                    if (fields.getBoolean("is_file")) {
+                        return updateNewCodeFile(function.getString("code"), fields.getString("code"));
+                    }
+                    return Completable.complete();
                 })
-                .andThen(super.submitUpdate(id, updateEntity, entity));
-        }
-        return super.submitUpdate(id, updateEntity, entity);
+        );
     }
 
     public Completable submitDelete(long id, JsonObject entity) {
@@ -106,5 +101,17 @@ public class FunctionChecker extends EntityChecker {
             .map(Set::copyOf)
             .flatMap(functionService::existsAllByIds);
         return ErrorHandler.handleExistsOne(existsAllByFunctionIds).ignoreElement();
+    }
+
+    private Completable updateNewCodeFile(String oldFileName, String newFileName) {
+        Vertx vertx = Vertx.currentContext().owner();
+        return new ConfigUtility(vertx).getConfig()
+            .flatMapCompletable(config -> {
+                Path oldPath = Path.of(config.getString("upload_persist_directory"), oldFileName);
+                Path tempPath = Path.of(config.getString("upload_temp_directory"), newFileName);
+                Path destPath = Path.of(config.getString("upload_persist_directory"), newFileName);
+                return vertx.fileSystem().delete(oldPath.toString())
+                    .andThen(vertx.fileSystem().copy(tempPath.toString(), destPath.toString()));
+            });
     }
 }

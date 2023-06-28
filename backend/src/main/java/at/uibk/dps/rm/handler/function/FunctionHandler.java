@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.handler.function;
 
 import at.uibk.dps.rm.entity.dto.resource.RuntimeEnum;
-import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.entity.model.Runtime;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.handler.ValidationHandler;
@@ -89,21 +88,7 @@ public class FunctionHandler extends ValidationHandler {
         }
         requestBody.put("is_file", isFile);
         return HttpHelper.getLongPathParam(rc, "id")
-                .flatMap(functionChecker::checkFindOne)
-            .map(result -> {
-                Function function = result.mapTo(Function.class);
-                String message = "";
-                if (function.getIsFile() != isFile && isFile) {
-                    message = "Function can't be updated with zip archive";
-                } else if (function.getIsFile() != isFile) {
-                    message = "Function can't be updated with blank code";
-                }
-                if (!message.isBlank()) {
-                    throw new BadInputException(message);
-                }
-                return result;
-            })
-            .flatMapCompletable(function -> entityChecker.submitUpdate(requestBody, function));
+            .flatMapCompletable(id -> entityChecker.submitUpdate(id, requestBody));
     }
 
     @Override

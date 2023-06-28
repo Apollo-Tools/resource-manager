@@ -1,6 +1,8 @@
 package at.uibk.dps.rm.service.database.function;
 
 import at.uibk.dps.rm.entity.model.Function;
+import at.uibk.dps.rm.exception.BadInputException;
+import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.function.FunctionRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
@@ -50,6 +52,34 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
                 }
                 return new JsonArray(objects);
             });
+    }
+
+    @Override
+    public Future<Void> update(long id, JsonObject data) {
+        CompletionStage<Function> update = withTransaction(session ->
+            repository.findByIdAndFetch(session, id)
+                .thenApply(function -> {
+                    if (function == null) {
+                        throw new NotFoundException(Function.class);
+                    }
+                    boolean updateIsFile = data.getBoolean("is_file");
+                    String message = "";
+                    if (function.getIsFile() != updateIsFile && updateIsFile) {
+                        message = "Function can't be updated with zip packaged code";
+                    } else if (function.getIsFile() != updateIsFile) {
+                        message = "Function can only be updated with zip packaged code";
+                    }
+                    if (!message.isBlank()) {
+                        throw new BadInputException(message);
+                    }
+                    function.setCode(data.getString("code"));
+                    return function;
+                })
+        );
+        return Future
+            .fromCompletionStage(update)
+            .recover(this::recoverFailure)
+            .mapEmpty();
     }
 
     @Override
