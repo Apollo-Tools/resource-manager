@@ -2,8 +2,8 @@ package at.uibk.dps.rm.handler.deploymentexecution;
 
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
-import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDAO;
-import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDAO;
+import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
+import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
 import at.uibk.dps.rm.entity.model.Log;
 import at.uibk.dps.rm.entity.model.Deployment;
@@ -62,7 +62,7 @@ public class DeploymentExecutionChecker {
     * @param request the request containing all data that is necessary for the deployment
     * @return a Single that emits the process output of the last step.
     */
-    public Single<ProcessOutput> applyResourceDeployment(DeployResourcesDAO request) {
+    public Single<ProcessOutput> applyResourceDeployment(DeployResourcesDTO request) {
         long deploymentId = request.getDeployment().getDeploymentId();
         Vertx vertx = Vertx.currentContext().owner();
         return new ConfigUtility(vertx).getConfig()
@@ -96,7 +96,7 @@ public class DeploymentExecutionChecker {
             });
     }
 
-    private Completable initialiseAllContainerModules(DeployResourcesDAO request, DeploymentPath deploymentPath) {
+    private Completable initialiseAllContainerModules(DeployResourcesDTO request, DeploymentPath deploymentPath) {
         return Observable.fromIterable(request.getServiceDeployments())
             .map(serviceDeployment -> {
                 TerraformExecutor terraformExecutor = new TerraformExecutor(Vertx.currentContext().owner());
@@ -117,7 +117,7 @@ public class DeploymentExecutionChecker {
    * @param deploymentPath the path of the current deployment
    * @return a Single that emits the process output of the docker process
    */
-    private Single<ProcessOutput> buildAndPushOpenFaasImages(Vertx vertx, DeployResourcesDAO request,
+    private Single<ProcessOutput> buildAndPushOpenFaasImages(Vertx vertx, DeployResourcesDTO request,
         FunctionsToDeploy functionsToDeploy, DeploymentPath deploymentPath) {
         OpenFaasImageService openFaasImageService = new OpenFaasImageService(vertx, request.getDockerCredentials(),
             functionsToDeploy.getDockerFunctionIdentifiers(), deploymentPath.getFunctionsFolder());
@@ -189,7 +189,7 @@ public class DeploymentExecutionChecker {
    * @param request the request containing all data that is necessary for the termination
    * @return a Completable
    */
-    public Completable terminateResources(TerminateResourcesDAO request) {
+    public Completable terminateResources(TerminateResourcesDTO request) {
         long deploymentId = request.getDeployment().getDeploymentId();
         Vertx vertx = Vertx.currentContext().owner();
         return new ConfigUtility(vertx).getConfig()
@@ -210,7 +210,7 @@ public class DeploymentExecutionChecker {
      * @param deploymentPath the deployment path of the deployment
      * @return a Completable
      */
-    public Completable terminateAllContainerResources(TerminateResourcesDAO request, DeploymentPath deploymentPath) {
+    public Completable terminateAllContainerResources(TerminateResourcesDTO request, DeploymentPath deploymentPath) {
         return Observable.fromIterable(request.getServiceDeployments())
             .map(serviceDeployment -> {
                 TerraformExecutor terraformExecutor = new TerraformExecutor(Vertx.currentContext().owner());

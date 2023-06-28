@@ -3,7 +3,7 @@ package at.uibk.dps.rm.handler.deployment;
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
-import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDAO;
+import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.rxjava3.database.deployment.ResourceDeploymentService;
@@ -124,7 +124,7 @@ public class ResourceDeploymentCheckerTest {
 
     @Test
     void storeOutputToFunctionResources(VertxTestContext testContext) {
-        DeployResourcesDAO request = TestRequestProvider.createDeployRequest();
+        DeployResourcesDTO request = TestRequestProvider.createDeployRequest();
         DeploymentOutput deploymentOutput = TestDTOProvider.createDeploymentOutput();
 
         when(processOutput.getOutput()).thenReturn(JsonObject.mapFrom(deploymentOutput).encode());
@@ -150,7 +150,7 @@ public class ResourceDeploymentCheckerTest {
 
     @Test
     void storeOutputToFunctionResourcesRuntimeNotMatching(VertxTestContext testContext) {
-        DeployResourcesDAO request = TestRequestProvider.createDeployRequest();
+        DeployResourcesDTO request = TestRequestProvider.createDeployRequest();
         DeploymentOutput deploymentOutput = TestDTOProvider.createDeploymentOutputUnknownFunction();
 
         when(processOutput.getOutput()).thenReturn(JsonObject.mapFrom(deploymentOutput).encode());

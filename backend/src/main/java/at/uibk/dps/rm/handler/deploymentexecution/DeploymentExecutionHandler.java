@@ -1,8 +1,8 @@
 package at.uibk.dps.rm.handler.deploymentexecution;
 
-import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDAO;
-import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateDAO;
-import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDAO;
+import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
+import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateDTO;
+import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.handler.account.CredentialsChecker;
@@ -69,7 +69,7 @@ public class DeploymentExecutionHandler {
      */
     public Completable deployResources(Deployment deployment, long accountId, DockerCredentials dockerCredentials,
             String kubeConfig, List<VPC> vpcList) {
-        DeployResourcesDAO request = new DeployResourcesDAO();
+        DeployResourcesDTO request = new DeployResourcesDTO();
         request.setDeployment(deployment);
         request.setDockerCredentials(dockerCredentials);
         request.setKubeConfig(kubeConfig);
@@ -89,7 +89,7 @@ public class DeploymentExecutionHandler {
      * @return a Completable
      */
     public Completable terminateResources(Deployment deployment, long accountId) {
-        TerminateResourcesDAO request = new TerminateResourcesDAO();
+        TerminateResourcesDTO request = new TerminateResourcesDTO();
         request.setDeployment(deployment);
         return credentialsChecker.checkFindAll(accountId)
             .flatMap(credentials -> mapCredentialsAndResourcesToRequest(request, credentials))
@@ -105,7 +105,7 @@ public class DeploymentExecutionHandler {
      * @return the request with the mapped values
      * @throws JsonProcessingException if the credentials array is malformed
      */
-    private Single<DeployTerminateDAO> mapCredentialsAndResourcesToRequest(DeployTerminateDAO request,
+    private Single<DeployTerminateDTO> mapCredentialsAndResourcesToRequest(DeployTerminateDTO request,
             JsonArray credentials) throws JsonProcessingException {
         ObjectMapper mapper = DatabindCodec.mapper();
         request.setCredentialsList(mapper.readValue(credentials.toString(), new TypeReference<>() {}));

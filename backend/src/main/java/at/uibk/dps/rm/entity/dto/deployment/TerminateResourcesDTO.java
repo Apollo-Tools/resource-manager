@@ -5,22 +5,22 @@ import io.vertx.core.json.JsonObject;
 import lombok.NoArgsConstructor;
 
 /**
- * A DAO to simplify transport of the relevant termination data on the even bus.
+ * A DTO to simplify transport of the relevant termination data on the even bus.
  *
  * @author matthi-g
  */
 @NoArgsConstructor
 @DataObject
-public class TerminateResourcesDAO extends DeployTerminateDAO {
+public class TerminateResourcesDTO extends DeployTerminateDTO {
 
     /**
      * Create an instance with a JsonObject.
      *
      * @param jsonObject the JsonObject
      */
-    public TerminateResourcesDAO(JsonObject jsonObject) {
+    public TerminateResourcesDTO(JsonObject jsonObject) {
         super();
-        TerminateResourcesDAO request = jsonObject.mapTo(TerminateResourcesDAO.class);
+        TerminateResourcesDTO request = jsonObject.mapTo(TerminateResourcesDTO.class);
         this.setFunctionDeployments(request.getFunctionDeployments());
         this.setServiceDeployments(request.getServiceDeployments());
         this.setCredentialsList(request.getCredentialsList());

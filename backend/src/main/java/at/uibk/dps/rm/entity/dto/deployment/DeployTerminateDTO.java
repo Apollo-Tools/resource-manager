@@ -8,13 +8,13 @@ import lombok.Setter;
 import java.util.List;
 
 /**
- * A DAO to simplify transport of the relevant deployment and termination data on the even bus.
+ * A DTO to simplify transport of the relevant deployment and termination data on the even bus.
  *
  * @author matthi-g
  */
 @Getter
 @Setter
-public abstract class DeployTerminateDAO {
+public abstract class DeployTerminateDTO {
 
     private Deployment deployment;
 

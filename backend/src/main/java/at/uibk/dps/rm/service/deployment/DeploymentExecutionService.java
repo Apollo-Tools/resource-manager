@@ -3,8 +3,8 @@ package at.uibk.dps.rm.service.deployment;
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
-import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDAO;
-import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDAO;
+import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
+import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
@@ -41,7 +41,7 @@ public interface DeploymentExecutionService {
      * @param deployRequest the data that is necessary for the deployment
      * @return a Future that emits the functions to deploy
      */
-    Future<FunctionsToDeploy> packageFunctionsCode(DeployResourcesDAO deployRequest);
+    Future<FunctionsToDeploy> packageFunctionsCode(DeployResourcesDTO deployRequest);
 
     /**
      * Setup the terraform modules that are necessary for the deployment. The modules are
@@ -50,7 +50,7 @@ public interface DeploymentExecutionService {
      * @param deployRequest the data that is necessary for the deployment
      * @return a Future that emits the credentials that are necessary for the terraform deployment
      */
-    Future<DeploymentCredentials> setUpTFModules(DeployResourcesDAO deployRequest);
+    Future<DeploymentCredentials> setUpTFModules(DeployResourcesDTO deployRequest);
 
     /**
      * Get the necessary credentials for termination.
@@ -58,7 +58,7 @@ public interface DeploymentExecutionService {
      * @param terminateRequest the data that is necessary for termination
      * @return the credentials that are necessary for termination
      */
-    Future<DeploymentCredentials> getNecessaryCredentials(TerminateResourcesDAO terminateRequest);
+    Future<DeploymentCredentials> getNecessaryCredentials(TerminateResourcesDTO terminateRequest);
 
     /**
      * Delete all terraform directories that exist for a deployment.

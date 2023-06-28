@@ -15,8 +15,6 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
  */
 public class ServiceHandler extends ValidationHandler {
 
-    private final ServiceChecker serviceChecker;
-
     private final ServiceTypeChecker serviceTypeChecker;
     /**
      * Create an instance from the serviceChecker and serviceTypeChecker.
@@ -26,7 +24,6 @@ public class ServiceHandler extends ValidationHandler {
      */
     public ServiceHandler(ServiceChecker serviceChecker, ServiceTypeChecker serviceTypeChecker) {
         super(serviceChecker);
-        this.serviceChecker = serviceChecker;
         this.serviceTypeChecker = serviceTypeChecker;
     }
 
@@ -46,19 +43,8 @@ public class ServiceHandler extends ValidationHandler {
     @Override
     protected Completable updateOne(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
-
-        return HttpHelper.getLongPathParam(rc, "id").flatMap(serviceChecker::checkFindOne)
-                .flatMapCompletable(service -> {
-                    long serviceTypeId = (requestBody.containsKey("service_type") ? requestBody : service)
-                        .getJsonObject("service_type").getLong("service_type_id");
-                    int portAmount = (requestBody.containsKey("ports") ? requestBody : service)
-                        .getJsonArray("ports").size();
-                    return serviceTypeChecker.checkFindOne(serviceTypeId)
-                        .flatMapCompletable(serviceType ->
-                            checkServiceTypePorts(serviceType, portAmount))
-                        .andThen(Single.defer(() -> Single.just(1L)))
-                        .flatMapCompletable(res -> entityChecker.submitUpdate(requestBody, service));
-                });
+        return HttpHelper.getLongPathParam(rc, "id")
+            .flatMapCompletable(id -> entityChecker.submitUpdate(id, requestBody));
     }
 
     private Completable checkServiceTypePorts(JsonObject serviceType, int portAmount) {

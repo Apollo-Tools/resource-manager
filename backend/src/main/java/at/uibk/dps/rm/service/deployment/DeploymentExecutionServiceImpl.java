@@ -2,8 +2,8 @@ package at.uibk.dps.rm.service.deployment;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
-import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDAO;
-import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDAO;
+import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
+import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.service.ServiceProxy;
 import at.uibk.dps.rm.service.deployment.terraform.FunctionPrepareService;
 import at.uibk.dps.rm.service.deployment.terraform.MainFileService;
@@ -33,7 +33,7 @@ public class DeploymentExecutionServiceImpl extends ServiceProxy implements Depl
     }
 
     @Override
-    public Future<FunctionsToDeploy> packageFunctionsCode(DeployResourcesDAO deployRequest) {
+    public Future<FunctionsToDeploy> packageFunctionsCode(DeployResourcesDTO deployRequest) {
         Single<FunctionsToDeploy> packageFunctions = new ConfigUtility(vertx).getConfig().flatMap(config -> {
             DeploymentPath deploymentPath = new DeploymentPath(deployRequest.getDeployment().getDeploymentId(),
                 config);
@@ -45,7 +45,7 @@ public class DeploymentExecutionServiceImpl extends ServiceProxy implements Depl
     }
 
     @Override
-    public Future<DeploymentCredentials> setUpTFModules(DeployResourcesDAO deployRequest) {
+    public Future<DeploymentCredentials> setUpTFModules(DeployResourcesDTO deployRequest) {
         DeploymentCredentials credentials = new DeploymentCredentials();
         Single<DeploymentCredentials> createTFDirs = new ConfigUtility(vertx).getConfig().flatMap(config -> {
             DeploymentPath deploymentPath = new DeploymentPath(deployRequest.getDeployment().getDeploymentId(),
@@ -66,7 +66,7 @@ public class DeploymentExecutionServiceImpl extends ServiceProxy implements Depl
     }
 
     @Override
-    public Future<DeploymentCredentials> getNecessaryCredentials(TerminateResourcesDAO terminateRequest) {
+    public Future<DeploymentCredentials> getNecessaryCredentials(TerminateResourcesDTO terminateRequest) {
         DeploymentCredentials credentials = new DeploymentCredentials();
         long deploymentId = terminateRequest.getDeployment().getDeploymentId();
         Single<DeploymentCredentials> getNecessaryCredentials = new ConfigUtility(vertx).getConfig().flatMap(config -> {

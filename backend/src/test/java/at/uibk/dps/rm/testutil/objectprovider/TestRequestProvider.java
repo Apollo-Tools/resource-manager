@@ -1,8 +1,8 @@
 package at.uibk.dps.rm.testutil.objectprovider;
 
-import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDAO;
+import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
-import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDAO;
+import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.deployment.FunctionResourceIds;
 import at.uibk.dps.rm.entity.dto.deployment.ServiceResourceIds;
@@ -42,8 +42,8 @@ public class TestRequestProvider {
             TestDTOProvider.createDockerCredentials());
     }
 
-    public static DeployResourcesDAO createDeployRequest() {
-        DeployResourcesDAO deployRequest = new DeployResourcesDAO();
+    public static DeployResourcesDTO createDeployRequest() {
+        DeployResourcesDTO deployRequest = new DeployResourcesDTO();
         deployRequest.setDeployment(TestDeploymentProvider.createDeployment(1L));
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1");
         VPC vpc = TestResourceProviderProvider.createVPC(1L, region);
@@ -77,8 +77,8 @@ public class TestRequestProvider {
         return deployRequest;
     }
 
-    public static TerminateResourcesDAO createTerminateRequest() {
-        TerminateResourcesDAO terminateRequest = new TerminateResourcesDAO();
+    public static TerminateResourcesDTO createTerminateRequest() {
+        TerminateResourcesDTO terminateRequest = new TerminateResourcesDTO();
         terminateRequest.setDeployment(TestDeploymentProvider.createDeployment(1L));
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1");
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");

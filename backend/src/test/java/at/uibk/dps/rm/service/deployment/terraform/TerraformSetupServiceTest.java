@@ -2,8 +2,8 @@ package at.uibk.dps.rm.service.deployment.terraform;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
-import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDAO;
-import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDAO;
+import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
+import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestRequestProvider;
@@ -35,7 +35,7 @@ public class TerraformSetupServiceTest {
 
     @Test
     void setupTFModuleDirs(Vertx vertx, VertxTestContext testContext) {
-        DeployResourcesDAO deployRequest = TestRequestProvider.createDeployRequest();
+        DeployResourcesDTO deployRequest = TestRequestProvider.createDeployRequest();
         DeploymentPath deploymentPath = new DeploymentPath(1L, config);
         DeploymentCredentials deploymentCredentials = new DeploymentCredentials();
         TerraformSetupService service = new TerraformSetupService(vertx, deployRequest, deploymentPath,
@@ -62,7 +62,7 @@ public class TerraformSetupServiceTest {
 
     @Test
     void setupTFModuleDirsDeployRequestNull(Vertx vertx, VertxTestContext testContext) {
-        TerminateResourcesDAO terminateRequest = TestRequestProvider.createTerminateRequest();
+        TerminateResourcesDTO terminateRequest = TestRequestProvider.createTerminateRequest();
         DeploymentPath deploymentPath = new DeploymentPath(1L, config);
         DeploymentCredentials deploymentCredentials = new DeploymentCredentials();
         TerraformSetupService service = new TerraformSetupService(vertx, terminateRequest, deploymentPath,
@@ -81,7 +81,7 @@ public class TerraformSetupServiceTest {
     @ParameterizedTest
     @ValueSource(strings = {"Windows", "Linux"})
     void getDeploymentCredentials(String os, Vertx vertx, VertxTestContext testContext) {
-        TerminateResourcesDAO terminateRequest = TestRequestProvider.createTerminateRequest();
+        TerminateResourcesDTO terminateRequest = TestRequestProvider.createTerminateRequest();
         DeploymentPath deploymentPath = new DeploymentPath(1L, config);
         DeploymentCredentials deploymentCredentials = new DeploymentCredentials();
         TerraformSetupService service = new TerraformSetupService(vertx, terminateRequest, deploymentPath,
@@ -103,7 +103,7 @@ public class TerraformSetupServiceTest {
 
     @Test
     void getDeploymentCredentialsTerminateRequestNull(Vertx vertx, VertxTestContext testContext) {
-        DeployResourcesDAO deployRequest = TestRequestProvider.createDeployRequest();
+        DeployResourcesDTO deployRequest = TestRequestProvider.createDeployRequest();
         DeploymentPath deploymentPath = new DeploymentPath(1L, config);
         DeploymentCredentials deploymentCredentials = new DeploymentCredentials();
         TerraformSetupService service = new TerraformSetupService(vertx, deployRequest, deploymentPath,

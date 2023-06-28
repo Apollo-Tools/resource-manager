@@ -3,6 +3,7 @@ package at.uibk.dps.rm.service.database.service;
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.Service;
 import at.uibk.dps.rm.repository.service.ServiceRepository;
+import at.uibk.dps.rm.repository.service.ServiceTypeRepository;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
 import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -25,8 +26,8 @@ public interface ServiceService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static ServiceService create(ServiceRepository serviceRepository, Stage.SessionFactory sessionFactory) {
-        return new ServiceServiceImpl(serviceRepository, sessionFactory);
+    static ServiceService create(Stage.SessionFactory sessionFactory) {
+        return new ServiceServiceImpl(new ServiceRepository(), new ServiceTypeRepository(), sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

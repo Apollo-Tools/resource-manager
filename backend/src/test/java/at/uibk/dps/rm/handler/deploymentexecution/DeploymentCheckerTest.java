@@ -4,8 +4,8 @@ import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
-import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDAO;
-import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDAO;
+import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
+import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.deployment.docker.OpenFaasImageService;
@@ -86,7 +86,7 @@ public class DeploymentCheckerTest {
     @ValueSource(strings={"valid", "outputFailed", "applyFailed", "initFailed", "initContainersFailed",
         "setupTfModulesFailed", "buildDockerFailed", "packageFunctionsCodeFailed"})
     void deployResources(String testCase, VertxTestContext testContext) {
-        DeployResourcesDAO deployRequest = TestRequestProvider.createDeployRequest();
+        DeployResourcesDTO deployRequest = TestRequestProvider.createDeployRequest();
         FunctionsToDeploy functionsToDeploy = TestDTOProvider.createFunctionsToDeploy();
         JsonObject log = JsonObject.mapFrom(TestLogProvider.createLog(1L));
         DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWSOpenfaas();
@@ -158,7 +158,7 @@ public class DeploymentCheckerTest {
     @ParameterizedTest
     @ValueSource(strings = {"valid", "destroyFailed", "destroyContainerFailed", "getCredentialsFailed"})
     void terminateResource(String testCase, VertxTestContext testContext) {
-        TerminateResourcesDAO terminateRequest = TestRequestProvider.createTerminateRequest();
+        TerminateResourcesDTO terminateRequest = TestRequestProvider.createTerminateRequest();
         DeploymentPath deploymentPath = new DeploymentPath(terminateRequest.getDeployment().getDeploymentId(),
             config);
         DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWSOpenfaas();
@@ -210,7 +210,7 @@ public class DeploymentCheckerTest {
 
     @Test
     void persistLogsEmptyProcessOutput(VertxTestContext testContext) {
-        TerminateResourcesDAO terminateRequest = TestRequestProvider.createTerminateRequest();
+        TerminateResourcesDTO terminateRequest = TestRequestProvider.createTerminateRequest();
         DeploymentPath deploymentPath = new DeploymentPath(terminateRequest.getDeployment().getDeploymentId(),
             config);
         DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWSOpenfaas();

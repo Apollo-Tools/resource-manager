@@ -131,4 +131,8 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
         }
         return Future.failedFuture(throwable);
     }
+
+    protected <E> E updateNonNullValue(E oldValue, E newValue) {
+        return newValue == null ? oldValue : newValue;
+    }
 }

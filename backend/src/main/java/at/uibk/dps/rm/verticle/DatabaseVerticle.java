@@ -150,7 +150,7 @@ public class DatabaseVerticle extends AbstractVerticle {
             serviceProxyBinder.bind(RuntimeService.class,
                 new RuntimeServiceImpl(new RuntimeRepository(), sessionFactory));
             serviceProxyBinder.bind(ServiceService.class,
-                new ServiceServiceImpl(new ServiceRepository(), sessionFactory));
+                new ServiceServiceImpl(new ServiceRepository(), new ServiceTypeRepository(), sessionFactory));
             serviceProxyBinder.bind(ServiceDeploymentService.class,
                 new ServiceDeploymentServiceImpl(new ServiceDeploymentRepository(), sessionFactory));
             serviceProxyBinder.bind(ServiceTypeService.class,

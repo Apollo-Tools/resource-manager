@@ -3,8 +3,8 @@ package at.uibk.dps.rm.service.deployment;
 import at.uibk.dps.rm.entity.deployment.*;
 import at.uibk.dps.rm.entity.deployment.module.FaasModule;
 import at.uibk.dps.rm.entity.deployment.module.TerraformModule;
-import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDAO;
-import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDAO;
+import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
+import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
 import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.service.ServiceProxy;
@@ -77,7 +77,7 @@ public class DeploymentServiceImplTest {
 
     @Test
     void packageFunctionsCode(VertxTestContext testContext) {
-        DeployResourcesDAO deployRequest = TestRequestProvider.createDeployRequest();
+        DeployResourcesDTO deployRequest = TestRequestProvider.createDeployRequest();
         FunctionsToDeploy functionsToDeploy = TestDTOProvider.createFunctionsToDeploy();
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
@@ -99,7 +99,7 @@ public class DeploymentServiceImplTest {
 
     @Test
     void setUpTFModules(VertxTestContext testContext) {
-        DeployResourcesDAO deployRequest = TestRequestProvider.createDeployRequest();
+        DeployResourcesDTO deployRequest = TestRequestProvider.createDeployRequest();
         Region r1 = TestResourceProviderProvider.createRegion(1L, "r1");
         Region r2 = TestResourceProviderProvider.createRegion(2L, "r2");
         TerraformModule m1 = new FaasModule(ResourceProviderEnum.AWS, r1);
@@ -120,7 +120,7 @@ public class DeploymentServiceImplTest {
 
     @Test
     void setUpTFModulesMainFileServiceFailed(VertxTestContext testContext) {
-        DeployResourcesDAO deployRequest = TestRequestProvider.createDeployRequest();
+        DeployResourcesDTO deployRequest = TestRequestProvider.createDeployRequest();
         Region r1 = TestResourceProviderProvider.createRegion(1L, "r1");
         Region r2 = TestResourceProviderProvider.createRegion(2L, "r2");
         TerraformModule m1 = new FaasModule(ResourceProviderEnum.AWS, r1);
@@ -141,7 +141,7 @@ public class DeploymentServiceImplTest {
 
     @Test
     void setUpTFModulesTerraformSetupServiceFailed(VertxTestContext testContext) {
-        DeployResourcesDAO deployRequest = TestRequestProvider.createDeployRequest();
+        DeployResourcesDTO deployRequest = TestRequestProvider.createDeployRequest();
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
              MockedConstruction<TerraformSetupService> ignoredTFS = Mockprovider
@@ -156,7 +156,7 @@ public class DeploymentServiceImplTest {
 
     @Test
     void getNecessaryCredentials(VertxTestContext testContext) {
-        TerminateResourcesDAO terminateRequest = TestRequestProvider.createTerminateRequest();
+        TerminateResourcesDTO terminateRequest = TestRequestProvider.createTerminateRequest();
         DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWSOpenfaas();
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
@@ -175,7 +175,7 @@ public class DeploymentServiceImplTest {
 
     @Test
     void getNecessaryCredentialsFailed(VertxTestContext testContext) {
-        TerminateResourcesDAO terminateRequest = TestRequestProvider.createTerminateRequest();
+        TerminateResourcesDTO terminateRequest = TestRequestProvider.createTerminateRequest();
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
              MockedConstruction<TerraformSetupService> ignoredTFS =

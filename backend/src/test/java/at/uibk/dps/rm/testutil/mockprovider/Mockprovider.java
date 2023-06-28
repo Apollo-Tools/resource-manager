@@ -5,7 +5,7 @@ import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.deployment.module.TerraformModule;
-import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateDAO;
+import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateDTO;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.service.deployment.docker.OpenFaasImageService;
 import at.uibk.dps.rm.service.deployment.executor.MainTerraformExecutor;
@@ -84,7 +84,7 @@ public class Mockprovider {
         }
     }
 
-    public static MockedConstruction<TerraformExecutor> mockTerraformExecutor(DeployTerminateDAO request,
+    public static MockedConstruction<TerraformExecutor> mockTerraformExecutor(DeployTerminateDTO request,
             DeploymentPath deploymentPath, ProcessOutput processOutput, String mode) {
         return Mockito.mockConstruction(TerraformExecutor.class,
             (mock, context) -> {

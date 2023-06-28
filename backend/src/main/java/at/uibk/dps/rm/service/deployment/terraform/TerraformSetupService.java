@@ -3,8 +3,8 @@ package at.uibk.dps.rm.service.deployment.terraform;
 import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.module.ContainerModule;
 import at.uibk.dps.rm.entity.deployment.module.FaasModule;
-import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDAO;
-import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDAO;
+import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
+import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
 import at.uibk.dps.rm.entity.model.*;
@@ -32,9 +32,9 @@ public class TerraformSetupService {
 
     private final Vertx vertx;
 
-    private DeployResourcesDAO deployRequest;
+    private DeployResourcesDTO deployRequest;
 
-    private TerminateResourcesDAO terminateRequest;
+    private TerminateResourcesDTO terminateRequest;
 
     private final DeploymentPath deploymentPath;
 
@@ -48,7 +48,7 @@ public class TerraformSetupService {
      * @param deploymentPath the deployment path
      * @param credentials the deployment credentials
      */
-    public TerraformSetupService(Vertx vertx, DeployResourcesDAO deployRequest, DeploymentPath deploymentPath,
+    public TerraformSetupService(Vertx vertx, DeployResourcesDTO deployRequest, DeploymentPath deploymentPath,
                                  DeploymentCredentials credentials) {
         this.vertx = vertx;
         this.deployRequest = deployRequest;
@@ -64,7 +64,7 @@ public class TerraformSetupService {
      * @param deploymentPath the deployment path
      * @param credentials the deployment credentials
      */
-    public TerraformSetupService(Vertx vertx, TerminateResourcesDAO terminateRequest, DeploymentPath deploymentPath,
+    public TerraformSetupService(Vertx vertx, TerminateResourcesDTO terminateRequest, DeploymentPath deploymentPath,
                                  DeploymentCredentials credentials) {
         this.vertx = vertx;
         this.terminateRequest = terminateRequest;

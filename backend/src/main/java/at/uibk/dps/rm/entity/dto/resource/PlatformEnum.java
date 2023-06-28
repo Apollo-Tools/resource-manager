@@ -46,6 +46,6 @@ public enum PlatformEnum {
         return Arrays.stream(PlatformEnum.values())
             .filter(value -> value.value.equals(platform.getPlatform()))
             .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("unknown value: " + platform));
+            .orElseThrow(() -> new IllegalArgumentException("unknown value: " + platform.getPlatform()));
     }
 }

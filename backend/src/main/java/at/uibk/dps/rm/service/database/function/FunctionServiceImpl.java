@@ -56,25 +56,24 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
 
     @Override
     public Future<Void> update(long id, JsonObject data) {
-        CompletionStage<Function> update = withTransaction(session ->
-            repository.findByIdAndFetch(session, id)
-                .thenApply(function -> {
-                    if (function == null) {
-                        throw new NotFoundException(Function.class);
-                    }
-                    boolean updateIsFile = data.getBoolean("is_file");
-                    String message = "";
-                    if (function.getIsFile() != updateIsFile && updateIsFile) {
-                        message = "Function can't be updated with zip packaged code";
-                    } else if (function.getIsFile() != updateIsFile) {
-                        message = "Function can only be updated with zip packaged code";
-                    }
-                    if (!message.isBlank()) {
-                        throw new BadInputException(message);
-                    }
-                    function.setCode(data.getString("code"));
-                    return function;
-                })
+        CompletionStage<Function> update = withTransaction(session -> repository.findByIdAndFetch(session, id)
+            .thenApply(function -> {
+                if (function == null) {
+                    throw new NotFoundException(Function.class);
+                }
+                boolean updateIsFile = data.getBoolean("is_file");
+                String message = "";
+                if (function.getIsFile() != updateIsFile && updateIsFile) {
+                    message = "Function can't be updated with zip packaged code";
+                } else if (function.getIsFile() != updateIsFile) {
+                    message = "Function can only be updated with zip packaged code";
+                }
+                if (!message.isBlank()) {
+                    throw new BadInputException(message);
+                }
+                function.setCode(data.getString("code"));
+                return function;
+            })
         );
         return Future
             .fromCompletionStage(update)

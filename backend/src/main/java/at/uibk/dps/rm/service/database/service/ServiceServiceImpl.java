@@ -1,7 +1,13 @@
 package at.uibk.dps.rm.service.database.service;
 
+import at.uibk.dps.rm.entity.dto.Service.ServiceTypeEnum;
+import at.uibk.dps.rm.entity.dto.Service.UpdateServiceDTO;
 import at.uibk.dps.rm.entity.model.Service;
+import at.uibk.dps.rm.entity.model.ServiceType;
+import at.uibk.dps.rm.exception.BadInputException;
+import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.service.ServiceRepository;
+import at.uibk.dps.rm.repository.service.ServiceTypeRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
@@ -21,28 +27,32 @@ import java.util.concurrent.CompletionStage;
  */
 public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements ServiceService {
 
-    private final ServiceRepository serviceRepository;
+    private final ServiceRepository repository;
+
+    private final ServiceTypeRepository serviceTypeRepository;
 
     /**
      * Create an instance from the repository.
      *
      * @param repository  the repository
      */
-    public ServiceServiceImpl(ServiceRepository repository, Stage.SessionFactory sessionFactory) {
+    public ServiceServiceImpl(ServiceRepository repository, ServiceTypeRepository serviceTypeRepository,
+            Stage.SessionFactory sessionFactory) {
         super(repository, Service.class, sessionFactory);
-        this.serviceRepository = repository;
+        this.repository = repository;
+        this.serviceTypeRepository = serviceTypeRepository;
     }
 
     @Override
     public Future<JsonObject> findOne(long id) {
-        CompletionStage<Service> findOne = withSession(session -> serviceRepository.findByIdAndFetch(session, id));
+        CompletionStage<Service> findOne = withSession(session -> repository.findByIdAndFetch(session, id));
         return Future.fromCompletionStage(findOne)
             .map(JsonObject::mapFrom);
     }
 
     @Override
     public Future<JsonArray> findAll() {
-        CompletionStage<List<Service>> findAll = withSession(serviceRepository::findAllAndFetch);
+        CompletionStage<List<Service>> findAll = withSession(repository::findAllAndFetch);
         return Future.fromCompletionStage(findAll)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
@@ -53,9 +63,46 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
             });
     }
 
+
+
+    @Override
+    public Future<Void> update(long id, JsonObject data) {
+        UpdateServiceDTO updateService = data.mapTo(UpdateServiceDTO.class);
+        CompletionStage<Service> update = withTransaction(session -> repository.findByIdAndFetch(session, id)
+            .thenCompose(service -> {
+                if (service == null) {
+                    throw new NotFoundException(Service.class);
+                }
+                long serviceTypeId = (data.containsKey("service_type") ?
+                    data.getJsonObject("service_type").getLong("service_type_id") :
+                    service.getServiceType().getServiceTypeId());
+                int portAmount = data.containsKey("ports") ?
+                    data.getJsonArray("ports").size() : service.getPorts().size();
+                return serviceTypeRepository.findById(session, serviceTypeId)
+                    .thenApply(serviceType -> {
+                        if (serviceType == null) {
+                            throw new NotFoundException(ServiceType.class);
+                        }
+                        checkServiceTypePorts(serviceType, portAmount);
+                        service.setReplicas(updateNonNullValue(service.getReplicas(), updateService.getReplicas()));
+                        service.setCpu(updateNonNullValue(service.getCpu(), updateService.getCpu()));
+                        service.setMemory(updateNonNullValue(service.getMemory(), updateService.getMemory()));
+                        service.setServiceType(serviceType);
+                        service.setPorts(updateNonNullValue(service.getPorts(), updateService.getPorts()));
+                        return service;
+                    });
+            })
+        );
+        return Future
+            .fromCompletionStage(update)
+            .recover(this::recoverFailure)
+            .mapEmpty();
+    }
+
+
     @Override
     public Future<Boolean> existsOneByName(String name) {
-        CompletionStage<Service> findOne = withSession(session -> serviceRepository.findOneByName(session, name));
+        CompletionStage<Service> findOne = withSession(session -> repository.findOneByName(session, name));
         return Future.fromCompletionStage(findOne)
             .map(Objects::nonNull);
     }
@@ -63,8 +110,23 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
     @Override
     public Future<Boolean> existsAllByIds(Set<Long> serviceIds) {
         CompletionStage<List<Service>> findAll = withSession(session ->
-            serviceRepository.findAllByIds(session, serviceIds));
+            repository.findAllByIds(session, serviceIds));
         return Future.fromCompletionStage(findAll)
             .map(result -> result.size() == serviceIds.size());
+    }
+
+    private void checkServiceTypePorts(ServiceType serviceType, int portAmount) {
+        ServiceTypeEnum serviceTypeEnum = ServiceTypeEnum.fromServiceType(serviceType);
+        if (!checkHasNoService(serviceTypeEnum, portAmount) && !checkHasService(serviceTypeEnum, portAmount)) {
+            throw new BadInputException("invalid ports for service selection");
+        }
+    }
+
+    private boolean checkHasNoService(ServiceTypeEnum serviceType, int portAmount) {
+        return serviceType.equals(ServiceTypeEnum.NO_SERVICE) && portAmount == 0;
+    }
+
+    private boolean checkHasService(ServiceTypeEnum serviceType, int portAmount) {
+        return !serviceType.equals(ServiceTypeEnum.NO_SERVICE) && portAmount > 0;
     }
 }

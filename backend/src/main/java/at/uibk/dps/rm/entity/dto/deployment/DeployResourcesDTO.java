@@ -9,7 +9,7 @@ import lombok.*;
 import java.util.List;
 
 /**
- * A DAO to simplify transport of the relevant deployment data on the even bus.
+ * A DTO to simplify transport of the relevant deployment data on the even bus.
  *
  * @author matthi-g
  */
@@ -18,7 +18,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @DataObject
-public class DeployResourcesDAO extends DeployTerminateDAO {
+public class DeployResourcesDTO extends DeployTerminateDTO {
 
     private DockerCredentials dockerCredentials;
 
@@ -31,9 +31,9 @@ public class DeployResourcesDAO extends DeployTerminateDAO {
      *
      * @param jsonObject the JsonObject
      */
-    public DeployResourcesDAO(JsonObject jsonObject) {
+    public DeployResourcesDTO(JsonObject jsonObject) {
         super();
-        DeployResourcesDAO request = jsonObject.mapTo(DeployResourcesDAO.class);
+        DeployResourcesDTO request = jsonObject.mapTo(DeployResourcesDTO.class);
         this.setFunctionDeployments(request.getFunctionDeployments());
         this.setServiceDeployments(request.getServiceDeployments());
         this.setCredentialsList(request.getCredentialsList());

@@ -3,7 +3,7 @@ package at.uibk.dps.rm.handler.deployment;
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
-import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDAO;
+import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.handler.EntityChecker;
@@ -69,7 +69,7 @@ public class ResourceDeploymentChecker extends EntityChecker {
      * @param request all data needed for the deployment process
      * @return a Completable
      */
-    public Completable storeOutputToResourceDeployments(ProcessOutput processOutput, DeployResourcesDAO request) {
+    public Completable storeOutputToResourceDeployments(ProcessOutput processOutput, DeployResourcesDTO request) {
         DeploymentOutput deploymentOutput = DeploymentOutput.fromJson(new JsonObject(processOutput.getOutput()));
         List<Completable> completables = new ArrayList<>();
         completables.addAll(setTriggerUrlsByResourceTypeSet(deploymentOutput.getFunctionUrls().getValue().entrySet(),
@@ -86,7 +86,7 @@ public class ResourceDeploymentChecker extends EntityChecker {
      * @return a list of Completables
      */
     private List<Completable> setTriggerUrlsByResourceTypeSet(Set<Map.Entry<String, String>> resourceTypeSet,
-                                                              DeployResourcesDAO request) {
+                                                              DeployResourcesDTO request) {
         List<Completable> completables = new ArrayList<>();
         for (Map.Entry<String, String> entry : resourceTypeSet) {
             String[] entryInfo = entry.getKey().split("_");
@@ -98,7 +98,7 @@ public class ResourceDeploymentChecker extends EntityChecker {
         return completables;
     }
 
-    private List<Completable> setTriggerUrlForContainers(DeployResourcesDAO request) {
+    private List<Completable> setTriggerUrlForContainers(DeployResourcesDTO request) {
         List<Completable> completables = new ArrayList<>();
         for (ServiceDeployment serviceDeployment : request.getServiceDeployments()) {
             String triggerUrl = String.format("/deployments/%s/%s/startup",
@@ -120,7 +120,7 @@ public class ResourceDeploymentChecker extends EntityChecker {
      * @param triggerUrl the trigger url
      * @param completables the list where to store the new completables
      */
-    private void findFunctionResourceAndUpdateTriggerUrl(DeployResourcesDAO request, long resourceId,
+    private void findFunctionResourceAndUpdateTriggerUrl(DeployResourcesDTO request, long resourceId,
         String functionName, String runtimeName, String triggerUrl, List<Completable> completables) {
         request.getFunctionDeployments().stream()
             .filter(functionDeployment -> matchesFunctionResource(resourceId, functionName, runtimeName,
