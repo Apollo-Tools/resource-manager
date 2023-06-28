@@ -101,27 +101,13 @@ public abstract class EntityChecker {
     }
 
     /**
-     * Submit the update of an entity.
+     * Submit the update of all fields.
      *
-     * @param updateEntity the updated entity
-     * @param entity the most recent state of the entity to update
+     * @param fields the updated fields
      * @return a Completable
      */
-    public Completable submitUpdate(JsonObject updateEntity, final JsonObject entity) {
-        for (String field : updateEntity.fieldNames()) {
-            entity.put(field, updateEntity.getValue(field));
-        }
-        return submitUpdate(entity);
-    }
-
-    /**
-     * Submit the update of an entity.
-     *
-     * @param entity the updated entity
-     * @return a Completable
-     */
-    public Completable submitUpdate(JsonObject entity) {
-        return service.update(entity);
+    public Completable submitUpdate(long id, JsonObject fields) {
+        return service.update(id, fields);
     }
 
     /**

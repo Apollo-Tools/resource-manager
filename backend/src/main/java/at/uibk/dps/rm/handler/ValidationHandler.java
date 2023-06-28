@@ -97,9 +97,7 @@ public abstract class ValidationHandler {
     protected Completable updateOne(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
         return HttpHelper.getLongPathParam(rc, "id")
-            .flatMap(entityChecker::checkFindOne)
-            .flatMap(result -> entityChecker.checkUpdateNoDuplicate(requestBody, result))
-            .flatMapCompletable(result -> entityChecker.submitUpdate(requestBody, result));
+            .flatMapCompletable(id -> entityChecker.submitUpdate(id, requestBody));
     }
 
     // TODO: move to entity checker

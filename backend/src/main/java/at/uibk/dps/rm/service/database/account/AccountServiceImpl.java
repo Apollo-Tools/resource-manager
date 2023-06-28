@@ -49,15 +49,15 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
     }
 
     @Override
-    public Future<Void> update(long id, JsonObject data) {
+    public Future<Void> update(long id, JsonObject fields) {
         CompletionStage<Account> update = withTransaction(session -> repository.findById(session, id)
             .thenApply(account -> {
                 if (account == null) {
                     throw new NotFoundException(Account.class);
                 }
                 PasswordUtility passwordUtility = new PasswordUtility();
-                char[] oldPassword = data.getString("old_password").toCharArray();
-                char[] newPassword = data.getString("new_password").toCharArray();
+                char[] oldPassword = fields.getString("old_password").toCharArray();
+                char[] newPassword = fields.getString("new_password").toCharArray();
                 boolean oldPasswordIsValid = passwordUtility.verifyPassword(account.getPassword(), oldPassword);
                 if (!oldPasswordIsValid) {
                     throw new UnauthorizedException("old password is invalid");

@@ -1,7 +1,5 @@
 package at.uibk.dps.rm.repository;
 
-import at.uibk.dps.rm.exception.NotFoundException;
-import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.List;
@@ -45,25 +43,6 @@ public abstract class Repository<E> {
      */
     public CompletionStage<Void> createAll(Stage.Session session, List<E> entityList) {
         return session.persist(entityList.toArray());
-    }
-
-    /**
-     * Update an entity.
-     *
-     * @param fields the fields to update
-     * @return a CompletionStage that emits the new state of the entity
-     */
-    public CompletionStage<E> update(Stage.Session session, long id, JsonObject fields) {
-        return session.find(entityClass, id)
-            .thenCompose(entity -> {
-                if (entity == null) {
-                    throw new NotFoundException(entityClass);
-                }
-                JsonObject jsonObject = JsonObject.mapFrom(entity);
-                fields.stream().forEach(entry -> jsonObject.put(entry.getKey(), entry.getValue()));
-                E updatedEntity = jsonObject.mapTo(entityClass);
-                return session.merge(updatedEntity);
-            });
     }
 
     /**

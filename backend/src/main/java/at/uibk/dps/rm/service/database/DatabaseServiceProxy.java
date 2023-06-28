@@ -106,8 +106,18 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
     }
 
     @Override
-    public Future<Void> update(long id, JsonObject data) {
-        CompletionStage<T> update = withTransaction(session -> repository.update(session, id, data));
+    public Future<Void> update(long id, JsonObject fields) {
+        CompletionStage<T> update = withTransaction(session -> repository.findById(session, id)
+            .thenCompose(entity -> {
+                if (entity == null) {
+                    throw new NotFoundException(entityClass);
+                }
+                JsonObject jsonObject = JsonObject.mapFrom(entity);
+                fields.stream().forEach(entry -> jsonObject.put(entry.getKey(), entry.getValue()));
+                T updatedEntity = jsonObject.mapTo(entityClass);
+                return session.merge(updatedEntity);
+            })
+        );
         return Future
             .fromCompletionStage(update)
             .recover(this::recoverFailure)

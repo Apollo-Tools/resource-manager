@@ -66,18 +66,18 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
 
 
     @Override
-    public Future<Void> update(long id, JsonObject data) {
-        UpdateServiceDTO updateService = data.mapTo(UpdateServiceDTO.class);
+    public Future<Void> update(long id, JsonObject fields) {
+        UpdateServiceDTO updateService = fields.mapTo(UpdateServiceDTO.class);
         CompletionStage<Service> update = withTransaction(session -> repository.findByIdAndFetch(session, id)
             .thenCompose(service -> {
                 if (service == null) {
                     throw new NotFoundException(Service.class);
                 }
-                long serviceTypeId = (data.containsKey("service_type") ?
-                    data.getJsonObject("service_type").getLong("service_type_id") :
+                long serviceTypeId = (fields.containsKey("service_type") ?
+                    fields.getJsonObject("service_type").getLong("service_type_id") :
                     service.getServiceType().getServiceTypeId());
-                int portAmount = data.containsKey("ports") ?
-                    data.getJsonArray("ports").size() : service.getPorts().size();
+                int portAmount = fields.containsKey("ports") ?
+                    fields.getJsonArray("ports").size() : service.getPorts().size();
                 return serviceTypeRepository.findById(session, serviceTypeId)
                     .thenApply(serviceType -> {
                         if (serviceType == null) {

@@ -55,13 +55,13 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
     }
 
     @Override
-    public Future<Void> update(long id, JsonObject data) {
+    public Future<Void> update(long id, JsonObject fields) {
         CompletionStage<Function> update = withTransaction(session -> repository.findByIdAndFetch(session, id)
             .thenApply(function -> {
                 if (function == null) {
                     throw new NotFoundException(Function.class);
                 }
-                boolean updateIsFile = data.getBoolean("is_file");
+                boolean updateIsFile = fields.getBoolean("is_file");
                 String message = "";
                 if (function.getIsFile() != updateIsFile && updateIsFile) {
                     message = "Function can't be updated with zip packaged code";
@@ -71,7 +71,7 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
                 if (!message.isBlank()) {
                     throw new BadInputException(message);
                 }
-                function.setCode(data.getString("code"));
+                function.setCode(fields.getString("code"));
                 return function;
             })
         );
