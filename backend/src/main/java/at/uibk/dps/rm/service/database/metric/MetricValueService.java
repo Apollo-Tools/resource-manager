@@ -76,7 +76,7 @@ public interface MetricValueService extends DatabaseServiceInterface {
      * @return an empty Future
      */
     Future<Void> updateByResourceAndMetric(long resourceId, long metricId, String valueString, Double valueNumber,
-                                           Boolean valueBool);
+        Boolean valueBool, boolean isExternalSource);
 
     /**
      * Delete a metric value by its resource and metric.

@@ -1,11 +1,13 @@
 package at.uibk.dps.rm.handler.metric;
 
+import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 /**
  * Implements methods to perform CRUD operations on the metric_value entity.
@@ -49,21 +51,24 @@ public class MetricValueChecker extends EntityChecker {
      * @return a Completable
      */
     public Completable submitUpdateMetricValue(long resourceId, long metricId, String value) {
-        return metricValueService.updateByResourceAndMetric(resourceId, metricId, value, null, null);
+        return metricValueService.updateByResourceAndMetric(resourceId, metricId, value, null,
+            null, true);
     }
 
     /**
      * @see #submitUpdateMetricValue(long, long, String)
      */
     public Completable submitUpdateMetricValue(long resourceId, long metricId, Double value) {
-        return metricValueService.updateByResourceAndMetric(resourceId, metricId, null, value, null);
+        return metricValueService.updateByResourceAndMetric(resourceId, metricId, null, value, null,
+            true);
     }
 
     /**
      * @see #submitUpdateMetricValue(long, long, String)
      */
     public Completable submitUpdateMetricValue(long resourceId, long metricId, Boolean value) {
-        return metricValueService.updateByResourceAndMetric(resourceId, metricId, null, null, value);
+        return metricValueService.updateByResourceAndMetric(resourceId, metricId, null, null,
+            value, true);
     }
 
     /**
@@ -101,5 +106,25 @@ public class MetricValueChecker extends EntityChecker {
         Single<Boolean> existsOneByResourceAndMetric =
             metricValueService.existsOneByResourceAndMetric(resourceId, metricId);
         return ErrorHandler.handleExistsOne(existsOneByResourceAndMetric).ignoreElement();
+    }
+
+    /**
+     * Update a metric value depending on its type.
+     *
+     * @param resourceId the id of the resource
+     * @param metricId the id of the metric
+     * @param requestBody the request body
+     * @return a Completable
+     */
+    public Completable updateOneByValue(long resourceId, long metricId, JsonObject requestBody) {
+        Object value = requestBody.getValue("value");
+        if (value instanceof String) {
+            return this.submitUpdateMetricValue(resourceId, metricId, (String) value);
+        } else if (value instanceof Number) {
+            return this.submitUpdateMetricValue(resourceId, metricId, ((Number) value).doubleValue());
+        } else if (value instanceof Boolean) {
+            return this.submitUpdateMetricValue(resourceId, metricId, (Boolean) value);
+        }
+        return Completable.error(new BadInputException());
     }
 }

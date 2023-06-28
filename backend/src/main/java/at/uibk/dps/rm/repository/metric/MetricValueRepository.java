@@ -69,31 +69,23 @@ public class MetricValueRepository extends Repository<MetricValue> {
     }
 
     /**
-     * Update the values of a metric value by its resource and metric.
+     * Find a metric value by its resource and metric.
      *
+     * @param session the database session
      * @param resourceId the id of the resource
      * @param metricId the id of the metric
-     * @param valueString the new string value
-     * @param valueNumber the new number value
-     * @param valueBool the new bool value
-     * @return an empty CompletionStage
+     * @return a CompletionStage that emits the metric value if it exists, else null
      */
-    // TODO: maybe rework (split up in find and update)
-    public CompletionStage<Void> updateByResourceAndMetric(Session session, long resourceId, long metricId,
-            String valueString, Double valueNumber, Boolean valueBool) {
+    public CompletionStage<MetricValue> findByResourceAndMetricAndFetch(Session session, long resourceId,
+            long metricId) {
         return session.createQuery("select mv from Resource r " +
                 "left join r.metricValues mv " +
+                "left join fetch mv.metric m " +
+                "left join fetch m.metricType mt " +
                 "where r.resourceId=:resourceId and mv.metric.metricId=:metricId", entityClass)
             .setParameter("resourceId", resourceId)
             .setParameter("metricId", metricId)
-            .getResultList()
-            .thenAccept(metricValues -> metricValues.forEach(metricValue -> {
-                metricValue.setValueString(valueString);
-                if (valueNumber!= null) {
-                    metricValue.setValueNumber(valueNumber);
-                }
-                metricValue.setValueBool(valueBool);
-            }));
+            .getSingleResultOrNull();
     }
 
     /**

@@ -1,10 +1,7 @@
 package at.uibk.dps.rm.repository.service;
 
 import at.uibk.dps.rm.entity.model.Service;
-import at.uibk.dps.rm.entity.model.ServiceType;
-import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.Repository;
-import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage.Session;
 import org.hibernate.reactive.util.impl.CompletionStages;
 
@@ -83,30 +80,5 @@ public class ServiceRepository extends Repository<Service> {
     public CompletionStage<List<Service>> findAllAndFetch(Session session) {
         return session.createQuery("from Service s left join fetch s.serviceType", entityClass)
             .getResultList();
-    }
-
-    @Override
-    public CompletionStage<Service> update(Session session, long serviceId, JsonObject fields) {
-        return session.createQuery("from Service s left join fetch s.serviceType " +
-                "where s.serviceId=:serviceId ", entityClass)
-            .setParameter("serviceId", serviceId)
-            .getSingleResultOrNull()
-            .thenCompose(service -> {
-                if (service == null) {
-                    throw new NotFoundException(entityClass);
-                }
-                CompletionStage<Void> serviceTypeCompletionStage = CompletionStages.voidFuture();
-                if (fields.containsKey("service_type")) {
-                    serviceTypeCompletionStage = session.find(ServiceType.class, fields.getJsonObject(
-                        "service_type").getLong("service_type_id"))
-                        .thenAccept(serviceType -> {
-                            if (serviceType == null) throw new NotFoundException(ServiceType.class);
-                        });
-                }
-                JsonObject jsonObject = JsonObject.mapFrom(service);
-                fields.stream().forEach(entry -> jsonObject.put(entry.getKey(), entry.getValue()));
-                Service updatedEntity = jsonObject.mapTo(entityClass);
-                return serviceTypeCompletionStage.thenCompose(result -> session.merge(updatedEntity));
-            });
     }
 }

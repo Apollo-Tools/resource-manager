@@ -1,6 +1,9 @@
 package at.uibk.dps.rm.service.database.metric;
 
+import at.uibk.dps.rm.entity.dto.metric.MetricTypeEnum;
 import at.uibk.dps.rm.entity.model.Resource;
+import at.uibk.dps.rm.exception.BadInputException;
+import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
@@ -99,10 +102,33 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
 
     @Override
     public Future<Void> updateByResourceAndMetric(long resourceId, long metricId, String valueString,
-            Double valueNumber, Boolean valueBool) {
-        CompletionStage<Void> update = withTransaction(session ->
-            repository.updateByResourceAndMetric(session, resourceId, metricId, valueString, valueNumber, valueBool));
+            Double valueNumber, Boolean valueBool, boolean isExternalSource) {
+        CompletionStage<MetricValue> update = withTransaction(session ->
+            repository.findByResourceAndMetricAndFetch(session, resourceId, metricId)
+                .thenApply(metricValue -> {
+                    if (metricValue == null) {
+                        throw new NotFoundException(MetricValue.class);
+                    }
+                    if (metricValue.getMetric().getIsMonitored() && isExternalSource) {
+                        throw new BadInputException("monitored metrics can't be updated manually");
+                    }
+                    MetricTypeEnum metricType = MetricTypeEnum.fromMetricType(metricValue.getMetric().getMetricType());
+                    if (!metricTypeMatchesValue(metricType, valueString) &&
+                        !metricTypeMatchesValue(metricType, valueNumber) &&
+                        !metricTypeMatchesValue(metricType, valueBool)) {
+                        throw new BadInputException("invalid metric type");
+                    }
+
+                    metricValue.setValueString(valueString);
+                    if (valueNumber!= null) {
+                        metricValue.setValueNumber(valueNumber);
+                    }
+                    metricValue.setValueBool(valueBool);
+                    return metricValue;
+                })
+        );
         return Future.fromCompletionStage(update)
+            .recover(this::recoverFailure)
             .mapEmpty();
     }
 
@@ -112,5 +138,30 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
             repository.deleteByResourceAndMetric(session, resourceId, metricId));
         return Future.fromCompletionStage(delete)
             .mapEmpty();
+    }
+
+    /**
+     * Check if a value is a string and if the metric type is string as well.
+     *
+     * @param metricType the metric type
+     * @param value the value
+     * @return true if the types match, else false
+     */
+    private boolean metricTypeMatchesValue(MetricTypeEnum metricType, String value) {
+        return value!=null && metricType.equals(MetricTypeEnum.STRING);
+    }
+
+    /**
+     * @see #metricTypeMatchesValue(MetricTypeEnum metricType, String value)
+     */
+    private boolean metricTypeMatchesValue(MetricTypeEnum metricType, Double value) {
+        return value!=null && metricType.equals(MetricTypeEnum.NUMBER);
+    }
+
+    /**
+     * @see #metricTypeMatchesValue(MetricTypeEnum metricType, String value)
+     */
+    private boolean metricTypeMatchesValue(MetricTypeEnum metricType, Boolean value) {
+        return value!=null && metricType.equals(MetricTypeEnum.BOOLEAN);
     }
 }
