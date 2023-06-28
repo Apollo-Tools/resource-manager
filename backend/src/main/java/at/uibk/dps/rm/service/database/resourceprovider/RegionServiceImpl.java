@@ -9,7 +9,9 @@ import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletionStage;
 
 /**
  * This is the implementation of the #RegionService.
@@ -17,7 +19,7 @@ import java.util.Objects;
  * @author matthi-g
  */
 public class RegionServiceImpl extends DatabaseServiceProxy<Region> implements RegionService {
-    private final RegionRepository regionRepository;
+    private final RegionRepository repository;
 
     /**
      * Create an instance from the repository.
@@ -26,13 +28,13 @@ public class RegionServiceImpl extends DatabaseServiceProxy<Region> implements R
      */
     public RegionServiceImpl(RegionRepository repository, Stage.SessionFactory sessionFactory) {
         super(repository, Region.class, sessionFactory);
-        this.regionRepository = repository;
+        this.repository = repository;
     }
 
     @Override
     public Future<JsonObject> findOne(long id) {
-        return Future
-            .fromCompletionStage(regionRepository.findByIdAndFetch(id))
+        CompletionStage<Region> findOne = withSession(session -> repository.findByIdAndFetch(session, id));
+        return Future.fromCompletionStage(findOne)
             .map(result -> {
                 if (result != null) {
                     result.getResourceProvider().setProviderPlatforms(null);
@@ -43,8 +45,8 @@ public class RegionServiceImpl extends DatabaseServiceProxy<Region> implements R
 
     @Override
     public Future<JsonArray> findAll() {
-        return Future
-            .fromCompletionStage(regionRepository.findAllAndFetch())
+        CompletionStage<List<Region>> findAll = withSession(repository::findAllAndFetch);
+        return Future.fromCompletionStage(findAll)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Region entity: result) {
@@ -57,8 +59,9 @@ public class RegionServiceImpl extends DatabaseServiceProxy<Region> implements R
 
     @Override
     public Future<JsonArray> findAllByProviderId(long providerId) {
-        return Future
-            .fromCompletionStage(regionRepository.findAllByProviderId(providerId))
+        CompletionStage<List<Region>> findAll = withSession(session ->
+            repository.findAllByProviderId(session, providerId));
+        return Future.fromCompletionStage(findAll)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Region entity: result) {
@@ -71,15 +74,17 @@ public class RegionServiceImpl extends DatabaseServiceProxy<Region> implements R
 
     @Override
     public Future<Boolean> existsOneByNameAndProviderId(String name, long providerId) {
-        return Future
-            .fromCompletionStage(regionRepository.findOneByNameAndProviderId(name, providerId))
+        CompletionStage<Region> findOne = withSession(session ->
+            repository.findOneByNameAndProviderId(session, name, providerId));
+        return Future.fromCompletionStage(findOne)
             .map(Objects::nonNull);
     }
 
     @Override
     public Future<JsonArray> findAllByPlatformId(long platformId) {
-        return Future
-            .fromCompletionStage(regionRepository.findAllByPlatformId(platformId))
+        CompletionStage<List<Region>> findAll = withSession(session ->
+            repository.findAllByPlatformId(session, platformId));
+        return Future.fromCompletionStage(findAll)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Region entity: result) {
@@ -93,8 +98,9 @@ public class RegionServiceImpl extends DatabaseServiceProxy<Region> implements R
 
     @Override
     public Future<Boolean> existsByPlatformId(long regionId, long platformId) {
-        return Future
-            .fromCompletionStage(regionRepository.findByRegionIdAndPlatformId(regionId, platformId))
+        CompletionStage<Region> findOne = withSession(session ->
+            repository.findByRegionIdAndPlatformId(session, regionId, platformId));
+        return Future.fromCompletionStage(findOne)
             .map(Objects::nonNull);
     }
 }

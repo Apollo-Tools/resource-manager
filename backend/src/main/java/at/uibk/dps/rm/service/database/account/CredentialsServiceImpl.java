@@ -9,7 +9,9 @@ import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletionStage;
 
 //TODO: discuss if it is necessary to encrypt secrets / store secrets
 /**
@@ -19,7 +21,7 @@ import java.util.Objects;
  */
 public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> implements  CredentialsService {
 
-    private final CredentialsRepository credentialsRepository;
+    private final CredentialsRepository repository;
 
     /**
      * Create an instance from the repository.
@@ -28,13 +30,13 @@ public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> im
      */
     public CredentialsServiceImpl(CredentialsRepository repository, Stage.SessionFactory sessionFactory) {
         super(repository, Credentials.class, sessionFactory);
-        this.credentialsRepository = repository;
+        this.repository = repository;
     }
 
     @Override
     public Future<JsonObject> findOne(long id) {
-        return Future
-            .fromCompletionStage(credentialsRepository.findByIdAndFetch(id))
+        CompletionStage<Credentials> findOne = withSession(session -> repository.findByIdAndFetch(session, id));
+        return Future.fromCompletionStage(findOne)
             .map(result -> {
                 if (result != null) {
                     result.getResourceProvider().setProviderPlatforms(null);
@@ -46,8 +48,9 @@ public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> im
 
     @Override
     public Future<JsonArray> findAllByAccountId(long accountId) {
-        return Future
-            .fromCompletionStage(credentialsRepository.findAllByAccountId(accountId))
+        CompletionStage<List<Credentials>> findAll = withSession(session ->
+            repository.findAllByAccountId(session, accountId));
+        return Future.fromCompletionStage(findAll)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Credentials entity: result) {
@@ -61,15 +64,17 @@ public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> im
 
     @Override
     public Future<Boolean> existsAtLeastOneByAccount(long accountId) {
-        return Future
-            .fromCompletionStage(credentialsRepository.findAllByAccountId(accountId))
+        CompletionStage<List<Credentials>> findAll = withSession(session ->
+            repository.findAllByAccountId(session, accountId));
+        return Future.fromCompletionStage(findAll)
             .map(result -> result != null && !result.isEmpty());
     }
 
     @Override
     public Future<Boolean> existsOnyByAccountIdAndProviderId(long accountId, long providerId) {
-        return Future
-            .fromCompletionStage(credentialsRepository.findByAccountIdAndProviderId(accountId, providerId))
+        CompletionStage<Credentials> findOne = withSession(session ->
+            repository.findByAccountIdAndProviderId(session, accountId, providerId));
+        return Future.fromCompletionStage(findOne)
             .map(Objects::nonNull);
     }
 }

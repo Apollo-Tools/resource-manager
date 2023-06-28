@@ -8,6 +8,7 @@ import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.Objects;
+import java.util.concurrent.CompletionStage;
 
 /**
  * This is the implementation of the #AccountCredentialsService.
@@ -16,7 +17,7 @@ import java.util.Objects;
  */
 public class AccountCredentialsServiceImpl extends DatabaseServiceProxy<AccountCredentials> implements  AccountCredentialsService {
 
-    private final AccountCredentialsRepository accountCredentialsRepository;
+    private final AccountCredentialsRepository repository;
 
     /**
      * Create an instance from the repository.
@@ -25,13 +26,14 @@ public class AccountCredentialsServiceImpl extends DatabaseServiceProxy<AccountC
      */
     public AccountCredentialsServiceImpl(AccountCredentialsRepository repository, Stage.SessionFactory sessionFactory) {
         super(repository, AccountCredentials.class, sessionFactory);
-        this.accountCredentialsRepository = repository;
+        this.repository = repository;
     }
 
     @Override
     public Future<JsonObject> findOneByCredentialsAndAccount(long credentialsId, long accountId) {
-        return Future
-            .fromCompletionStage(accountCredentialsRepository.findByCredentialsAndAccount(credentialsId, accountId))
+        CompletionStage<AccountCredentials> findOne = withSession(session ->
+            repository.findByCredentialsAndAccount(session, credentialsId, accountId));
+        return Future.fromCompletionStage(findOne)
             .map(result -> {
                 if (result != null) {
                     result.getCredentials().setResourceProvider(null);
@@ -42,8 +44,9 @@ public class AccountCredentialsServiceImpl extends DatabaseServiceProxy<AccountC
 
     @Override
     public Future<Boolean> existsOneByAccountAndProvider(long accountId, long providerId) {
-        return Future
-            .fromCompletionStage(accountCredentialsRepository.findByAccountAndProvider(accountId, providerId))
+        CompletionStage<AccountCredentials> findOne = withSession(session ->
+            repository.findByAccountAndProvider(session, accountId, providerId));
+        return Future.fromCompletionStage(findOne)
             .map(Objects::nonNull);
     }
 }

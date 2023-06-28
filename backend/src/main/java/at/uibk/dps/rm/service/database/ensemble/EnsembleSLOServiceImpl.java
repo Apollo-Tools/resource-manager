@@ -9,6 +9,8 @@ import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletionStage;
 
 /**
  * This is the implementation of the #EnsembleSLOService.
@@ -30,8 +32,9 @@ public class EnsembleSLOServiceImpl extends DatabaseServiceProxy<EnsembleSLO> im
 
     @Override
     public Future<JsonArray> findAllByEnsembleId(long ensembleId) {
-        return Future
-            .fromCompletionStage(ensembleSLORepository.findAllByEnsembleId(ensembleId))
+        CompletionStage<List<EnsembleSLO>> findAll = withSession(session ->
+            ensembleSLORepository.findAllByEnsembleId(session, ensembleId));
+        return Future.fromCompletionStage(findAll)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (EnsembleSLO entity : result) {

@@ -9,6 +9,8 @@ import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletionStage;
 
 /**
  * This is the implementation of the #FunctionDeploymentService.
@@ -32,8 +34,9 @@ public class FunctionDeploymentServiceImpl extends DatabaseServiceProxy<Function
 
     @Override
     public Future<JsonArray> findAllByDeploymentId(long deploymentId) {
-        return Future
-            .fromCompletionStage(repository.findAllByDeploymentId(deploymentId))
+        CompletionStage<List<FunctionDeployment>> findAll = withSession(session ->
+            repository.findAllByDeploymentId(session, deploymentId));
+        return Future.fromCompletionStage(findAll)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (FunctionDeployment entity: result) {

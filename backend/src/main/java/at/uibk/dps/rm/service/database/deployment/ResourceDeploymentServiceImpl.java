@@ -12,6 +12,8 @@ import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletionStage;
 
 /**
  * This is the implementation of the #ResourceDeploymentService.
@@ -34,37 +36,39 @@ public class ResourceDeploymentServiceImpl extends DatabaseServiceProxy<Resource
 
     @Override
     public Future<JsonArray> findAllByDeploymentId(long deploymentId) {
-        return Future
-                .fromCompletionStage(repository.findAllByDeploymentId(deploymentId))
-                .map(result -> {
-                    ArrayList<JsonObject> objects = new ArrayList<>();
-                    for (ResourceDeployment entity: result) {
-                        // TODO: fix
-                        if (entity instanceof ServiceDeployment) {
-                            ((ServiceDeployment) entity).setService(null);
-                        } else if (entity instanceof FunctionDeployment) {
-                            ((FunctionDeployment) entity).setFunction(null);
-                        }
-                        entity.setDeployment(null);
-                        entity.setResource(null);
-                        objects.add(JsonObject.mapFrom(entity));
+        CompletionStage<List<ResourceDeployment>> findAll = withSession(session ->
+            repository.findAllByDeploymentId(session, deploymentId));
+        return Future.fromCompletionStage(findAll)
+            .map(result -> {
+                ArrayList<JsonObject> objects = new ArrayList<>();
+                for (ResourceDeployment entity: result) {
+                    // TODO: fix
+                    if (entity instanceof ServiceDeployment) {
+                        ((ServiceDeployment) entity).setService(null);
+                    } else if (entity instanceof FunctionDeployment) {
+                        ((FunctionDeployment) entity).setFunction(null);
                     }
-                    return new JsonArray(objects);
-                });
+                    entity.setDeployment(null);
+                    entity.setResource(null);
+                    objects.add(JsonObject.mapFrom(entity));
+                }
+                return new JsonArray(objects);
+            });
     }
 
     @Override
     public Future<Void> updateTriggerUrl(long resourceDeploymentId, String triggerUrl) {
-        return Future
-            .fromCompletionStage(repository.updateTriggerUrl(resourceDeploymentId, triggerUrl))
+        CompletionStage<Integer> updateTriggerUrl = withTransaction(session ->
+            repository.updateTriggerUrl(session, resourceDeploymentId, triggerUrl));
+        return Future.fromCompletionStage(updateTriggerUrl)
             .mapEmpty();
     }
 
     @Override
     public Future<Void> updateSetStatusByDeploymentId(long deploymentId, DeploymentStatusValue deploymentStatusValue) {
-        return Future
-            .fromCompletionStage(repository
-                .updateDeploymentStatusByDeploymentId(deploymentId, deploymentStatusValue))
+        CompletionStage<Integer> updateStatus = withTransaction(session ->
+            repository.updateDeploymentStatusByDeploymentId(session, deploymentId, deploymentStatusValue));
+        return Future.fromCompletionStage(updateStatus)
             .mapEmpty();
     }
 }

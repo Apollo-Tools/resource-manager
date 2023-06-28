@@ -10,6 +10,7 @@ import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.Objects;
+import java.util.concurrent.CompletionStage;
 
 /**
  * This is the implementation of the #ResourceEnsembleService.
@@ -40,20 +41,25 @@ public class ResourceEnsembleServiceImpl  extends DatabaseServiceProxy<ResourceE
         ResourceEnsemble resourceEnsemble = new ResourceEnsemble();
         resourceEnsemble.setEnsemble(ensemble);
         resourceEnsemble.setResource(resource);
-
-        return Future.fromCompletionStage(repository.create(resourceEnsemble))
+        CompletionStage<ResourceEnsemble> create = withTransaction(session ->
+            repository.create(session, resourceEnsemble));
+        return Future.fromCompletionStage(create)
             .map(JsonObject::mapFrom);
     }
 
     @Override
     public Future<Void> deleteByEnsembleIdAndResourceId(long ensembleId, long resourceId) {
-        return Future.fromCompletionStage(repository.deleteEnsembleIdAndResourceId(ensembleId, resourceId))
+        CompletionStage<Integer> delete = withTransaction(session ->
+            repository.deleteEnsembleIdAndResourceId(session, ensembleId, resourceId));
+        return Future.fromCompletionStage(delete)
             .mapEmpty();
     }
 
     @Override
     public Future<Boolean> checkExistsByEnsembleIdAndResourceId(long ensembleId, long resourceId) {
-        return Future.fromCompletionStage(repository.findByEnsembleIdAndResourceId(ensembleId, resourceId))
+        CompletionStage<ResourceEnsemble> findOne = withSession(session ->
+            repository.findByEnsembleIdAndResourceId(session, ensembleId, resourceId));
+        return Future.fromCompletionStage(findOne)
             .map(Objects::nonNull);
     }
 }

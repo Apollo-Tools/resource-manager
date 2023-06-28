@@ -9,6 +9,7 @@ import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletionStage;
 
 public class PlatformServiceImpl extends DatabaseServiceProxy<Platform> implements PlatformService {
@@ -26,8 +27,7 @@ public class PlatformServiceImpl extends DatabaseServiceProxy<Platform> implemen
 
     @Override
     public Future<JsonObject> findOne(long id) {
-        CompletionStage<Platform> findOne = getSessionFactory().withSession(session ->
-            repository.findById(session, id));
+        CompletionStage<Platform> findOne = withSession(session -> repository.findById(session, id));
         return Future.fromCompletionStage(findOne)
             .map(platform -> {
                 if (platform != null) {
@@ -39,8 +39,8 @@ public class PlatformServiceImpl extends DatabaseServiceProxy<Platform> implemen
 
     @Override
     public Future<JsonArray> findAll() {
-        return Future
-            .fromCompletionStage(repository.findAllAndFetch())
+        CompletionStage<List<Platform>> findAll = withSession(repository::findAllAndFetch);
+        return Future.fromCompletionStage(findAll)
             .map(platforms -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Platform platform: platforms) {

@@ -11,6 +11,7 @@ import org.hibernate.reactive.stage.Stage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletionStage;
 
 /**
  * This is the implementation of the #ResourceService.
@@ -19,22 +20,22 @@ import java.util.Set;
  */
 public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implements ResourceService {
 
-    private final ResourceRepository resourceRepository;
+    private final ResourceRepository repository;
 
     /**
      * Create an instance from the resourceRepository.
      *
-     * @param resourceRepository the resource repository
+     * @param repository the resource repository
      */
-    public ResourceServiceImpl(ResourceRepository resourceRepository, Stage.SessionFactory sessionFactory) {
-        super(resourceRepository, Resource.class, sessionFactory);
-        this.resourceRepository = resourceRepository;
+    public ResourceServiceImpl(ResourceRepository repository, Stage.SessionFactory sessionFactory) {
+        super(repository, Resource.class, sessionFactory);
+        this.repository = repository;
     }
 
     @Override
     public Future<JsonObject> findOne(long id) {
-        return Future
-            .fromCompletionStage(resourceRepository.findByIdAndFetch(id))
+        CompletionStage<Resource> findOne = withSession(session -> repository.findByIdAndFetch(session, id));
+        return Future.fromCompletionStage(findOne)
             .map(resource -> {
                 if (resource != null) {
                     resource.getRegion().getResourceProvider().setProviderPlatforms(null);
@@ -45,45 +46,52 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
 
     @Override
     public Future<Boolean> existsOneByResourceType(long typeId) {
+        CompletionStage<List<Resource>> findAll = withSession(session ->
+            repository.findByResourceType(session, typeId));
         return Future
-            .fromCompletionStage(resourceRepository.findByResourceType(typeId))
+            .fromCompletionStage(findAll)
             .map(result -> !result.isEmpty());
     }
 
     @Override
     public Future<JsonArray> findAll() {
+        CompletionStage<List<Resource>> findAll = withSession(repository::findAllAndFetch);
         return Future
-            .fromCompletionStage(resourceRepository.findAllAndFetch())
+            .fromCompletionStage(findAll)
             .map(this::encodeResourceList);
     }
 
     @Override
     public Future<JsonArray> findAllBySLOs(List<String> metrics, List<Long> environmentIds,
             List<Long> resourceTypeIds, List<Long> platformIds, List<Long> regionIds, List<Long> providerIds) {
-        return Future
-                .fromCompletionStage(resourceRepository.findAllBySLOs(metrics, environmentIds, resourceTypeIds,
-                    platformIds, regionIds, providerIds))
-                .map(this::encodeResourceList);
+        CompletionStage<List<Resource>> findAll = withSession(session -> repository.findAllBySLOs(session, metrics,
+            environmentIds, resourceTypeIds, platformIds, regionIds, providerIds));
+        return Future.fromCompletionStage(findAll)
+            .map(this::encodeResourceList);
     }
 
     @Override
     public Future<JsonArray> findAllByEnsembleId(long ensembleId) {
-        return Future
-                .fromCompletionStage(resourceRepository.findAllByEnsembleId(ensembleId))
-                .map(this::encodeResourceList);
+        CompletionStage<List<Resource>> findAll = withSession(session ->
+            repository.findAllByEnsembleId(session, ensembleId));
+        return Future.fromCompletionStage(findAll)
+            .map(this::encodeResourceList);
     }
 
     @Override
     public Future<Boolean> existsAllByIdsAndResourceTypes(Set<Long> resourceIds, List<String> resourceTypes) {
+        CompletionStage<List<Resource>> findAll = withSession(session ->
+            repository.findAllByResourceIdsAndResourceTypes(session, resourceIds, resourceTypes));
         return Future
-            .fromCompletionStage(resourceRepository.findAllByResourceIdsAndResourceTypes(resourceIds, resourceTypes))
+            .fromCompletionStage(findAll)
             .map(result -> result.size() == resourceIds.size());
     }
 
     @Override
     public Future<JsonArray> findAllByResourceIds(List<Long> resourceIds) {
-        return Future
-            .fromCompletionStage(resourceRepository.findAllByResourceIdsAndFetch(resourceIds))
+        CompletionStage<List<Resource>> findAll = withSession(session ->
+            repository.findAllByResourceIdsAndFetch(session, resourceIds));
+        return Future.fromCompletionStage(findAll)
             .map(this::encodeResourceList);
     }
 

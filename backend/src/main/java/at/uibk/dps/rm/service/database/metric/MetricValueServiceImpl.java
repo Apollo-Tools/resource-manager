@@ -12,6 +12,7 @@ import org.hibernate.reactive.stage.Stage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
 /**
@@ -21,16 +22,16 @@ import java.util.stream.Collectors;
  */
 public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> implements MetricValueService{
 
-    private final MetricValueRepository metricValueRepository;
+    private final MetricValueRepository repository;
 
     /**
      * Create an instance from the metricValueRepository.
      *
-     * @param metricValueRepository the metric value repository
+     * @param repository the metric value repository
      */
-    public MetricValueServiceImpl(MetricValueRepository metricValueRepository, Stage.SessionFactory sessionFactory) {
-        super(metricValueRepository, MetricValue.class, sessionFactory);
-        this.metricValueRepository = metricValueRepository;
+    public MetricValueServiceImpl(MetricValueRepository repository, Stage.SessionFactory sessionFactory) {
+        super(repository, MetricValue.class, sessionFactory);
+        this.repository = repository;
     }
 
     @Override
@@ -45,22 +46,22 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
                 return metricValue;
             })
             .collect(Collectors.toList());
-
-        return Future
-            .fromCompletionStage(metricValueRepository.createAll(metricValues));
+        CompletionStage<Void> createAll = withTransaction(session -> repository.createAll(session, metricValues));
+        return Future.fromCompletionStage(createAll);
     }
 
     @Override
     public Future<JsonObject> findOne(long id) {
-        return Future
-                .fromCompletionStage(metricValueRepository.findByIdAndFetch(id))
+        CompletionStage<MetricValue> findOne = withSession(session -> repository.findByIdAndFetch(session, id));
+        return Future.fromCompletionStage(findOne)
                 .map(JsonObject::mapFrom);
     }
 
     @Override
     public Future<JsonArray> findAllByResource(long resourceId, boolean includeValue) {
-        return Future
-            .fromCompletionStage(metricValueRepository.findByResourceAndFetch(resourceId))
+        CompletionStage<List<MetricValue>> findAll = withSession(session ->
+            repository.findByResourceAndFetch(session, resourceId));
+        return Future.fromCompletionStage(findAll)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (MetricValue metricValue: result) {
@@ -82,31 +83,34 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
 
     @Override
     public Future<JsonObject> findOneByResourceAndMetric(long resourceId, long metricId) {
-        return Future
-            .fromCompletionStage(metricValueRepository.findByResourceAndMetric(resourceId, metricId))
+        CompletionStage<MetricValue> findOne = withSession(session ->
+            repository.findByResourceAndMetric(session, resourceId, metricId));
+        return Future.fromCompletionStage(findOne)
             .map(JsonObject::mapFrom);
     }
 
     @Override
     public Future<Boolean> existsOneByResourceAndMetric(long resourceId, long metricId) {
-        return Future
-            .fromCompletionStage(metricValueRepository.findByResourceAndMetric(resourceId, metricId))
+        CompletionStage<MetricValue> findOne = withSession(session ->
+            repository.findByResourceAndMetric(session, resourceId, metricId));
+        return Future.fromCompletionStage(findOne)
             .map(Objects::nonNull);
     }
 
     @Override
-    public Future<Void> updateByResourceAndMetric(long resourceId, long metricId, String valueString, Double valueNumber,
-                                                  Boolean valueBool) {
-        return Future
-                .fromCompletionStage(metricValueRepository.updateByResourceAndMetric(resourceId, metricId, valueString,
-                        valueNumber, valueBool))
-                .mapEmpty();
+    public Future<Void> updateByResourceAndMetric(long resourceId, long metricId, String valueString,
+            Double valueNumber, Boolean valueBool) {
+        CompletionStage<Void> update = withTransaction(session ->
+            repository.updateByResourceAndMetric(session, resourceId, metricId, valueString, valueNumber, valueBool));
+        return Future.fromCompletionStage(update)
+            .mapEmpty();
     }
 
     @Override
     public Future<Void> deleteByResourceAndMetric(long resourceId, long metricId) {
-        return Future
-            .fromCompletionStage(metricValueRepository.deleteByResourceAndMetric(resourceId, metricId))
+        CompletionStage<Integer> delete = withTransaction(session ->
+            repository.deleteByResourceAndMetric(session, resourceId, metricId));
+        return Future.fromCompletionStage(delete)
             .mapEmpty();
     }
 }

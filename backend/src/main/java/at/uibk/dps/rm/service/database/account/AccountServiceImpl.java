@@ -8,6 +8,7 @@ import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.Objects;
+import java.util.concurrent.CompletionStage;
 
 /**
  * This is the implementation of the #AccountService.
@@ -16,7 +17,7 @@ import java.util.Objects;
  */
 public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements  AccountService {
 
-    private final AccountRepository accountRepository;
+    private final AccountRepository repository;
 
     /**
      * Create an instance from the repository.
@@ -25,20 +26,22 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
      */
     public AccountServiceImpl(AccountRepository repository, Stage.SessionFactory sessionFactory) {
         super(repository, Account.class, sessionFactory);
-        accountRepository = repository;
+        this.repository = repository;
     }
 
     @Override
     public Future<JsonObject> findOneByUsername(String username) {
-        return Future
-            .fromCompletionStage(accountRepository.findByUsername(username))
+        CompletionStage<Account> findOne = withSession(session ->
+            repository.findByUsername(session, username));
+        return Future.fromCompletionStage(findOne)
             .map(JsonObject::mapFrom);
     }
 
     @Override
     public Future<Boolean> existsOneByUsername(String username, boolean isActive) {
-        return Future
-            .fromCompletionStage(accountRepository.findByUsername(username, isActive))
+        CompletionStage<Account> findOne = withSession(session ->
+            repository.findByUsername(session, username));
+        return Future.fromCompletionStage(findOne)
             .map(Objects::nonNull);
     }
 }

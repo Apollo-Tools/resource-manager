@@ -2,7 +2,7 @@ package at.uibk.dps.rm.repository.function;
 
 import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.repository.Repository;
-import org.hibernate.reactive.stage.Stage;
+import org.hibernate.reactive.stage.Stage.Session;
 import org.hibernate.reactive.util.impl.CompletionStages;
 
 import java.util.ArrayList;
@@ -19,95 +19,91 @@ import java.util.stream.Collectors;
 public class FunctionRepository extends Repository<Function> {
 
     /**
-     * Create an instance from the sessionFactory.
-     *
-     * @param sessionFactory the session factory
+     * Create an instance.
      */
-    public FunctionRepository(Stage.SessionFactory sessionFactory) {
-        super(sessionFactory, Function.class);
+    public FunctionRepository() {
+        super(Function.class);
     }
 
     /**
      * Find a function by its id and fetch the runtime
      *
+     * @param session the database session
      * @param id the id of the function
      * @return a CompletionStage that emits the function if it exists, else null
      */
-    public CompletionStage<Function> findByIdAndFetch(long id) {
-        return sessionFactory.withSession(session -> session.createQuery(
+    public CompletionStage<Function> findByIdAndFetch(Session session, long id) {
+        return session.createQuery(
                 "from Function f left join fetch f.runtime where f.functionId =:id", entityClass)
             .setParameter("id", id)
-            .getSingleResultOrNull()
-        );
+            .getSingleResultOrNull();
     }
 
     /**
      * Find a function by its name and runtime but exclude it if its id is equal to excludeId
      *
+     * @param session the database session
      * @param excludeId the id to be excluded from the result
      * @param name the name of the function
      * @param runtimeId the id of the runtime
      * @return a CompletionStage that emits the function if it exists, else null
      */
-    public CompletionStage<Function> findOneByNameAndRuntimeId(long excludeId, String name, long runtimeId) {
-        return sessionFactory.withSession(session -> session.createQuery(
+    public CompletionStage<Function> findOneByNameAndRuntimeId(Session session, long excludeId, String name,
+            long runtimeId) {
+        return session.createQuery(
                 "from Function f " +
-                    "left join fetch f.runtime r " +
-                    "where f.functionId!=:excludeId and f.name=:name and r.runtimeId =:runtimeId", entityClass)
+                "left join fetch f.runtime r " +
+                "where f.functionId!=:excludeId and f.name=:name and r.runtimeId =:runtimeId", entityClass)
             .setParameter("excludeId", excludeId)
             .setParameter("name", name)
             .setParameter("runtimeId", runtimeId)
-            .getSingleResultOrNull()
-        );
+            .getSingleResultOrNull();
     }
 
     /**
      * Find a function by its name and runtime.
      *
+     * @param session the database session
      * @param name the name of the function
      * @param runtimeId the id of the runtime
      * @return a CompletionStage that emits the function if it exists, else null
      */
-    public CompletionStage<Function> findOneByNameAndRuntimeId(String name, long runtimeId) {
-        return sessionFactory.withSession(session -> session.createQuery(
+    public CompletionStage<Function> findOneByNameAndRuntimeId(Session session, String name, long runtimeId) {
+        return session.createQuery(
                 "from Function f " +
-                    "left join fetch f.runtime r " +
-                    "where f.name=:name and r.runtimeId =:runtimeId", entityClass)
+                "left join fetch f.runtime r " +
+                "where f.name=:name and r.runtimeId =:runtimeId", entityClass)
             .setParameter("name", name)
             .setParameter("runtimeId", runtimeId)
-            .getSingleResultOrNull()
-        );
+            .getSingleResultOrNull();
     }
 
     /**
      * Find all functions and fetch the runtime.
      *
+     * @param session the database session
      * @return a CompletionStage that emits the list of all functions
      */
-    public CompletionStage<List<Function>> findAllAndFetch() {
-        return sessionFactory.withSession(session ->
-            session.createQuery("select distinct f from Function f " +
-                    "left join fetch f.runtime ",
-                    entityClass)
-                .getResultList()
-        );
+    public CompletionStage<List<Function>> findAllAndFetch(Session session) {
+        return session.createQuery("select distinct f from Function f " +
+                "left join fetch f.runtime ", entityClass)
+            .getResultList();
     }
 
     /**
      * Find all functions by their ids.
      *
+     * @param session the database session
      * @param functionIds the list of function ids
      * @return a CompletionStage that emits the list of all functions
      */
-    public CompletionStage<List<Function>> findAllByIds(Set<Long> functionIds) {
+    public CompletionStage<List<Function>> findAllByIds(Session session, Set<Long> functionIds) {
         if (functionIds.isEmpty()) {
             return CompletionStages.completedFuture(new ArrayList<>());
         }
         String functionIdsConcat = functionIds.stream().map(Object::toString).collect(Collectors.joining(","));
-        return sessionFactory.withSession(session ->
-            session.createQuery("select distinct f from Function f " +
+        return session.createQuery("select distinct f from Function f " +
                 "where f.functionId in (" + functionIdsConcat + ")", entityClass)
-                .getResultList()
-        );
+            .getResultList();
     }
 }

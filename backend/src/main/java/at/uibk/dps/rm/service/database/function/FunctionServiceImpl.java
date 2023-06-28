@@ -9,8 +9,10 @@ import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletionStage;
 
 /**
  * This is the implementation of the #FunctionService.
@@ -18,7 +20,7 @@ import java.util.Set;
  * @author matthi-g
  */
 public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implements FunctionService {
-    private final FunctionRepository functionRepository;
+    private final FunctionRepository repository;
 
     /**
      * Create an instance from the repository.
@@ -27,20 +29,20 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
      */
     public FunctionServiceImpl(FunctionRepository repository, Stage.SessionFactory sessionFactory) {
         super(repository, Function.class, sessionFactory);
-        functionRepository = repository;
+        this.repository = repository;
     }
 
     @Override
     public Future<JsonObject> findOne(long id) {
-        return Future
-            .fromCompletionStage(functionRepository.findByIdAndFetch(id))
+        CompletionStage<Function> findOne = withSession(session -> repository.findByIdAndFetch(session, id));
+        return Future.fromCompletionStage(findOne)
             .map(JsonObject::mapFrom);
     }
 
     @Override
     public Future<JsonArray> findAll() {
-        return Future
-            .fromCompletionStage(functionRepository.findAllAndFetch())
+        CompletionStage<List<Function>> findAll = withSession(repository::findAllAndFetch);
+        return Future.fromCompletionStage(findAll)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Function entity: result) {
@@ -52,15 +54,16 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
 
     @Override
     public Future<Boolean> existsOneByNameAndRuntimeId(String name, long runtimeId) {
-        return Future
-            .fromCompletionStage(functionRepository.findOneByNameAndRuntimeId(name, runtimeId))
+        CompletionStage<Function> findOne = withSession(session ->
+            repository.findOneByNameAndRuntimeId(session, name, runtimeId));
+        return Future.fromCompletionStage(findOne)
             .map(Objects::nonNull);
     }
 
     @Override
     public Future<Boolean> existsAllByIds(Set<Long> functionIds) {
-        return Future
-            .fromCompletionStage(functionRepository.findAllByIds(functionIds))
+        CompletionStage<List<Function>> findAll = withSession(session -> repository.findAllByIds(session, functionIds));
+        return Future.fromCompletionStage(findAll)
             .map(result -> result.size() == functionIds.size());
     }
 }

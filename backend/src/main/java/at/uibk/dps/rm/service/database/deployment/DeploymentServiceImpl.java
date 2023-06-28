@@ -9,6 +9,8 @@ import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletionStage;
 
 /**
  * This is the implementation of the #DeploymentService.
@@ -17,22 +19,23 @@ import java.util.ArrayList;
  */
 public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> implements DeploymentService {
 
-    private final DeploymentRepository deploymentRepository;
+    private final DeploymentRepository repository;
 
     /**
      * Create an instance from the deploymentRepository.
      *
-     * @param deploymentRepository the deployment repository
+     * @param repository the deployment repository
      */
-    public DeploymentServiceImpl(DeploymentRepository deploymentRepository, Stage.SessionFactory sessionFactory) {
-        super(deploymentRepository, Deployment.class, sessionFactory);
-        this.deploymentRepository = deploymentRepository;
+    public DeploymentServiceImpl(DeploymentRepository repository, Stage.SessionFactory sessionFactory) {
+        super(repository, Deployment.class, sessionFactory);
+        this.repository = repository;
     }
 
     @Override
     public Future<JsonArray> findAllByAccountId(long accountId) {
-        return Future
-            .fromCompletionStage(deploymentRepository.findAllByAccountId(accountId))
+        CompletionStage<List<Deployment>> findAll = withSession(session ->
+            repository.findAllByAccountId(session, accountId));
+        return Future.fromCompletionStage(findAll)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Deployment entity: result) {
@@ -45,8 +48,9 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
 
     @Override
     public Future<JsonObject> findOneByIdAndAccountId(long id, long accountId) {
-        return Future
-            .fromCompletionStage(deploymentRepository.findByIdAndAccountId(id, accountId))
+        CompletionStage<Deployment> findOne = withSession(session ->
+            repository.findByIdAndAccountId(session, id, accountId));
+        return Future.fromCompletionStage(findOne)
             .map(result -> {
                 if (result != null) {
                     result.setCreatedBy(null);

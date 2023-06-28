@@ -10,7 +10,9 @@ import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletionStage;
 
 /**
  * This is the implementation of the #ServiceDeploymentService.
@@ -34,8 +36,9 @@ public class ServiceDeploymentServiceImpl extends DatabaseServiceProxy<ServiceDe
 
     @Override
     public Future<JsonArray> findAllByDeploymentId(long deploymentId) {
-        return Future
-            .fromCompletionStage(repository.findAllByDeploymentId(deploymentId))
+        CompletionStage<List<ServiceDeployment>> findAll = withSession(session ->
+            repository.findAllByDeploymentId(session, deploymentId));
+        return Future.fromCompletionStage(findAll)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (ServiceDeployment entity: result) {
@@ -49,9 +52,10 @@ public class ServiceDeploymentServiceImpl extends DatabaseServiceProxy<ServiceDe
 
     @Override
     public Future<Boolean> existsReadyForContainerStartupAndTermination(long deploymentId,
-        long resourceDeploymentId, long accountId) {
-        return Future.fromCompletionStage(repository.findOneByDeploymentStatus(deploymentId, resourceDeploymentId,
-                accountId, DeploymentStatusValue.DEPLOYED))
+            long resourceDeploymentId, long accountId) {
+        CompletionStage<ServiceDeployment> findOne = withSession(session -> repository.findOneByDeploymentStatus(
+            session, deploymentId, resourceDeploymentId, accountId, DeploymentStatusValue.DEPLOYED));
+        return Future.fromCompletionStage(findOne)
             .map(Objects::nonNull);
     }
 }

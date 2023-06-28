@@ -9,8 +9,10 @@ import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletionStage;
 
 /**
  * This is the implementation of the #ServiceService.
@@ -33,15 +35,15 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
 
     @Override
     public Future<JsonObject> findOne(long id) {
-        return Future
-            .fromCompletionStage(serviceRepository.findByIdAndFetch(id))
+        CompletionStage<Service> findOne = withSession(session -> serviceRepository.findByIdAndFetch(session, id));
+        return Future.fromCompletionStage(findOne)
             .map(JsonObject::mapFrom);
     }
 
     @Override
     public Future<JsonArray> findAll() {
-        return Future
-            .fromCompletionStage(serviceRepository.findAllAndFetch())
+        CompletionStage<List<Service>> findAll = withSession(serviceRepository::findAllAndFetch);
+        return Future.fromCompletionStage(findAll)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Service entity: result) {
@@ -53,15 +55,16 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
 
     @Override
     public Future<Boolean> existsOneByName(String name) {
-        return Future
-            .fromCompletionStage(serviceRepository.findOneByName(name))
+        CompletionStage<Service> findOne = withSession(session -> serviceRepository.findOneByName(session, name));
+        return Future.fromCompletionStage(findOne)
             .map(Objects::nonNull);
     }
 
     @Override
     public Future<Boolean> existsAllByIds(Set<Long> serviceIds) {
-        return Future
-            .fromCompletionStage(serviceRepository.findAllByIds(serviceIds))
+        CompletionStage<List<Service>> findAll = withSession(session ->
+            serviceRepository.findAllByIds(session, serviceIds));
+        return Future.fromCompletionStage(findAll)
             .map(result -> result.size() == serviceIds.size());
     }
 }

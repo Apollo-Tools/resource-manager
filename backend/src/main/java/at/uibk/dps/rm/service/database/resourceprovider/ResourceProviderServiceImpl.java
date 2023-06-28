@@ -9,6 +9,8 @@ import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletionStage;
 
 /**
  * This is the implementation of the #ResourceProviderService.
@@ -31,8 +33,8 @@ public class ResourceProviderServiceImpl extends DatabaseServiceProxy<ResourcePr
 
     @Override
     public Future<JsonObject> findOne(long id) {
-        return Future
-            .fromCompletionStage(repository.findByIdAndFetch(id))
+        CompletionStage<ResourceProvider> findOne = withSession(session -> repository.findByIdAndFetch(session, id));
+        return Future.fromCompletionStage(findOne)
             .map(obj -> {
                 if (obj != null) {
                     obj.setProviderPlatforms(null);
@@ -43,8 +45,8 @@ public class ResourceProviderServiceImpl extends DatabaseServiceProxy<ResourcePr
 
     @Override
     public Future<JsonArray> findAll() {
-        return Future
-            .fromCompletionStage(repository.findAllAndFetch())
+        CompletionStage<List<ResourceProvider>> findAll = withSession(repository::findAllAndFetch);
+        return Future.fromCompletionStage(findAll)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (ResourceProvider entity: result) {

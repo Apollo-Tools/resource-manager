@@ -7,6 +7,8 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
+import java.util.concurrent.CompletionStage;
+
 /**
  * This is the implementation of the #ResourceDeploymentStatusService.
  *
@@ -29,8 +31,9 @@ public class ResourceDeploymentStatusServiceImpl extends DatabaseServiceProxy<Re
 
     @Override
     public Future<JsonObject> findOneByStatusValue(String statusValue) {
-        return Future
-            .fromCompletionStage(repository.findOneByStatusValue(statusValue))
+        CompletionStage<ResourceDeploymentStatus> findOne = withSession(session ->
+            repository.findOneByStatusValue(session, statusValue));
+        return Future.fromCompletionStage(findOne)
             .map(JsonObject::mapFrom);
     }
 }

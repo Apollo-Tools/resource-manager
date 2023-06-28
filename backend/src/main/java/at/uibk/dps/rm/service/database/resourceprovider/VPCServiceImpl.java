@@ -9,7 +9,9 @@ import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletionStage;
 
 /**
  * This is the implementation of the #VPCService.
@@ -17,67 +19,61 @@ import java.util.Objects;
  * @author matthi-g
  */
 public class VPCServiceImpl extends DatabaseServiceProxy<VPC> implements VPCService {
-    private final VPCRepository vpcRepository;
+    private final VPCRepository repository;
 
     /**
      * Create an instance from the vpcRepository.
      *
-     * @param vpcRepository the vpc repository
+     * @param repository the vpc repository
      */
-    public VPCServiceImpl(VPCRepository vpcRepository, Stage.SessionFactory sessionFactory) {
-        super(vpcRepository, VPC.class, sessionFactory);
-        this.vpcRepository = vpcRepository;
-    }
-
-    @Override
-    public Future<JsonObject> findOne(long id) {
-        return Future
-            .fromCompletionStage(vpcRepository.findByIdAndFetch(id))
-            .map(result -> {
-                if (result != null) {
-                    result.getRegion().getResourceProvider().setProviderPlatforms(null);
-                    result.getRegion().getResourceProvider().setEnvironment(null);
-                    result.setCreatedBy(null);
-                }
-                return JsonObject.mapFrom(result);
-            });
+    public VPCServiceImpl(VPCRepository repository, Stage.SessionFactory sessionFactory) {
+        super(repository, VPC.class, sessionFactory);
+        this.repository = repository;
     }
 
     @Override
     public Future<JsonArray> findAll() {
-        return Future
-            .fromCompletionStage(vpcRepository.findAllAndFetch())
+        CompletionStage<List<VPC>> findAll = withSession(repository::findAllAndFetch);
+        return Future.fromCompletionStage(findAll)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (VPC entity: result) {
-                    entity.getRegion().getResourceProvider().setProviderPlatforms(null);
-                    entity.getRegion().getResourceProvider().setEnvironment(null);
-                    entity.setCreatedBy(null);
-                    objects.add(JsonObject.mapFrom(entity));
+                    objects.add(serializeVPC(entity));
                 }
                 return new JsonArray(objects);
             });
     }
 
+    @Override
+    public Future<JsonObject> findOne(long id) {
+        CompletionStage<VPC> findOne = withSession(session -> repository.findByIdAndFetch(session, id));
+        return Future.fromCompletionStage(findOne)
+            .map(this::serializeVPC);
+    }
+
 
     @Override
     public Future<JsonObject> findOneByRegionIdAndAccountId(long regionId, long accountId) {
-        return Future
-            .fromCompletionStage(vpcRepository.findByRegionIdAndAccountId(regionId, accountId))
-            .map(result -> {
-                if (result != null) {
-                    result.getRegion().getResourceProvider().setProviderPlatforms(null);
-                    result.getRegion().getResourceProvider().setEnvironment(null);
-                    result.setCreatedBy(null);
-                }
-                return JsonObject.mapFrom(result);
-            });
+        CompletionStage<VPC> findOne = withSession(session ->
+            repository.findByRegionIdAndAccountId(session, regionId, accountId));
+        return Future.fromCompletionStage(findOne)
+            .map(this::serializeVPC);
     }
 
     @Override
     public Future<Boolean> existsOneByRegionIdAndAccountId(long regionId, long accountId) {
-        return Future
-            .fromCompletionStage(vpcRepository.findByRegionIdAndAccountId(regionId, accountId))
+        CompletionStage<VPC> findOne = withSession(session ->
+            repository.findByRegionIdAndAccountId(session, regionId, accountId));
+        return Future.fromCompletionStage(findOne)
             .map(Objects::nonNull);
+    }
+
+    private JsonObject serializeVPC(VPC vpc) {
+        if (vpc != null) {
+            vpc.getRegion().getResourceProvider().setProviderPlatforms(null);
+            vpc.getRegion().getResourceProvider().setEnvironment(null);
+            vpc.setCreatedBy(null);
+        }
+        return JsonObject.mapFrom(vpc);
     }
 }

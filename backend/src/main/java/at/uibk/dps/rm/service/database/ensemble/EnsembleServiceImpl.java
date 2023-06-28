@@ -9,6 +9,7 @@ import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletionStage;
 
@@ -33,8 +34,9 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
 
     @Override
     public Future<JsonArray> findAll() {
+        CompletionStage<List<Ensemble>> findAll = withSession(repository::findAll);
         return Future
-            .fromCompletionStage(repository.findAll())
+            .fromCompletionStage(findAll)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Ensemble entity: result) {
@@ -47,8 +49,9 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
 
     @Override
     public Future<JsonArray> findAllByAccountId(long accountId) {
-        return Future
-            .fromCompletionStage(repository.findAllByAccountId(accountId))
+        CompletionStage<List<Ensemble>> findAll = withSession(session ->
+            repository.findAllByAccountId(session, accountId));
+        return Future.fromCompletionStage(findAll)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Ensemble entity: result) {
@@ -64,8 +67,9 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
 
     @Override
     public Future<JsonObject> findOneByIdAndAccountId(long id, long accountId) {
-        return Future
-            .fromCompletionStage(repository.findByIdAndAccountId(id, accountId))
+        CompletionStage<Ensemble> findOne = withSession(session ->
+            repository.findByIdAndAccountId(session, id, accountId));
+        return Future.fromCompletionStage(findOne)
             .map(result -> {
                 if (result != null) {
                     result.setCreatedBy(null);
@@ -76,8 +80,7 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
 
     @Override
     public Future<JsonObject> findOne(long id) {
-        CompletionStage<Ensemble> findOne = getSessionFactory().withSession(session ->
-            repository.findById(session, id));
+        CompletionStage<Ensemble> findOne = withSession(session -> repository.findById(session, id));
         return Future.fromCompletionStage(findOne)
             .map(result -> {
                 if (result != null) {
@@ -89,15 +92,17 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
 
     @Override
     public Future<Boolean> existsOneByNameAndAccountId(String name, long accountId) {
-        return Future
-            .fromCompletionStage(repository.findByNameAndAccountId(name, accountId))
+        CompletionStage<Ensemble> findOne = withSession(session ->
+            repository.findByNameAndAccountId(session, name, accountId));
+        return Future.fromCompletionStage(findOne)
             .map(Objects::nonNull);
     }
 
     @Override
     public Future<Void> updateEnsembleValidity(long ensembleId, boolean isValid) {
-        return Future
-            .fromCompletionStage(repository.updateValidity(ensembleId, isValid))
+        CompletionStage<Integer> updateValidity = withTransaction(session ->
+            repository.updateValidity(session, ensembleId, isValid));
+        return Future.fromCompletionStage(updateValidity)
             .mapEmpty();
     }
 }

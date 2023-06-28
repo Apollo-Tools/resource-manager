@@ -6,6 +6,8 @@ import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import org.hibernate.reactive.stage.Stage;
 
+import java.util.concurrent.CompletionStage;
+
 /**
  * This is the implementation of the #PlatformMetricService.
  *
@@ -27,8 +29,9 @@ public class PlatformMetricServiceImpl extends DatabaseServiceProxy<PlatformMetr
 
     @Override
     public Future<Boolean> missingRequiredPlatformMetricsByResourceId(long resourceId) {
-        return Future
-            .fromCompletionStage(repository.countMissingRequiredMetricValuesByResourceId(resourceId))
+        CompletionStage<Long> count = withSession(session ->
+            repository.countMissingRequiredMetricValuesByResourceId(session, resourceId));
+        return Future.fromCompletionStage(count)
             .map(result -> result > 0);
     }
 }
