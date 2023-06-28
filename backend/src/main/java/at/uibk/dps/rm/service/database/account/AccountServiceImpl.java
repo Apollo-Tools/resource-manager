@@ -1,8 +1,11 @@
 package at.uibk.dps.rm.service.database.account;
 
 import at.uibk.dps.rm.entity.model.Account;
+import at.uibk.dps.rm.exception.NotFoundException;
+import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.repository.account.AccountRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.util.misc.PasswordUtility;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
@@ -43,5 +46,28 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
             repository.findByUsername(session, username));
         return Future.fromCompletionStage(findOne)
             .map(Objects::nonNull);
+    }
+
+    @Override
+    public Future<Void> update(long id, JsonObject data) {
+        CompletionStage<Account> update = withTransaction(session ->
+            repository.findById(session, id)
+                .thenApply(account -> {
+                    if (account == null) {
+                        throw new NotFoundException(Account.class);
+                    }
+                    PasswordUtility passwordUtility = new PasswordUtility();
+                    char[] oldPassword = data.getString("old_password").toCharArray();
+                    char[] newPassword = data.getString("new_password").toCharArray();
+                    boolean oldPasswordIsValid = passwordUtility.verifyPassword(account.getPassword(), oldPassword);
+                    if (!oldPasswordIsValid) {
+                        throw new UnauthorizedException("old password is invalid");
+                    }
+                    account.setPassword(passwordUtility.hashPassword(newPassword));
+                    return account;
+                }));
+        return Future.fromCompletionStage(update)
+            .recover(this::recoverFailure)
+            .mapEmpty();
     }
 }

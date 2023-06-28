@@ -26,7 +26,7 @@ public class NotFoundException extends ServiceException {
     }
 
     /**
-     * Create an instance with the message "not found".
+     * Create an instance from an existing NotFoundException.
      */
     public NotFoundException(NotFoundException notFoundException) {
         super(404, notFoundException.getMessage());

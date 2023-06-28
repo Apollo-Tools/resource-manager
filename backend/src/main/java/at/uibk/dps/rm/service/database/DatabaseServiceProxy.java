@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.service.database;
 
 import at.uibk.dps.rm.exception.NotFoundException;
+import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.repository.Repository;
 import at.uibk.dps.rm.service.ServiceProxy;
 import io.vertx.core.Future;
@@ -60,7 +61,7 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
     @Override
     public Future<JsonObject> save(JsonObject data) {
         T entity = data.mapTo(entityClass);
-        CompletionStage<T> create = sessionFactory.withTransaction((session, tx) -> repository.create(session, entity));
+        CompletionStage<T> create = withTransaction(session -> repository.create(session, entity));
         return Future.fromCompletionStage(create)
             .map(JsonObject::mapFrom);
     }
@@ -71,28 +72,27 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
             .stream()
             .map(object -> ((JsonObject) object).mapTo(entityClass))
             .collect(Collectors.toList());
-        CompletionStage<Void> createAll = sessionFactory.withTransaction((session, tx) ->
-            repository.createAll(session, entities));
+        CompletionStage<Void> createAll = withTransaction(session -> repository.createAll(session, entities));
         return Future.fromCompletionStage(createAll);
     }
 
     @Override
     public Future<JsonObject> findOne(long id) {
-        CompletionStage<T> findOne = sessionFactory.withSession(session -> repository.findById(session, id));
+        CompletionStage<T> findOne = withSession(session -> repository.findById(session, id));
         return Future.fromCompletionStage(findOne)
             .map(JsonObject::mapFrom);
     }
 
     @Override
     public Future<Boolean> existsOneById(long id) {
-        CompletionStage<T> findOne = sessionFactory.withSession(session -> repository.findById(session, id));
+        CompletionStage<T> findOne = withSession(session -> repository.findById(session, id));
         return Future.fromCompletionStage(findOne)
             .map(Objects::nonNull);
     }
 
     @Override
     public Future<JsonArray> findAll() {
-        CompletionStage<List<T>> findAll = sessionFactory.withSession(repository::findAll);
+        CompletionStage<List<T>> findAll = withSession(repository::findAll);
         return Future
             .fromCompletionStage(findAll)
             .map(result -> {
@@ -106,24 +106,26 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
 
     @Override
     public Future<Void> update(long id, JsonObject data) {
-        CompletionStage<T> update = this.sessionFactory.withTransaction(session ->
-            repository.update(session, id, data));
+        CompletionStage<T> update = withTransaction(session -> repository.update(session, id, data));
         return Future
             .fromCompletionStage(update)
-            .recover(throwable -> {
-                if (throwable.getCause() instanceof NotFoundException) {
-                    throw new NotFoundException((NotFoundException) throwable.getCause());
-                }
-                return Future.failedFuture(throwable);
-            })
+            .recover(this::recoverFailure)
             .mapEmpty();
     }
 
     @Override
     public Future<Void> delete(long id) {
-        CompletionStage<Integer> delete = this.sessionFactory.withTransaction(session ->
-            repository.deleteById(session, id));
+        CompletionStage<Integer> delete = withTransaction(session -> repository.deleteById(session, id));
         return Future.fromCompletionStage(delete)
             .mapEmpty();
+    }
+
+    protected <E> Future<E> recoverFailure(Throwable throwable) {
+        if (throwable.getCause() instanceof NotFoundException) {
+            throw new NotFoundException((NotFoundException) throwable.getCause());
+        } else if (throwable.getCause() instanceof UnauthorizedException) {
+            throw new UnauthorizedException((UnauthorizedException) throwable.getCause());
+        }
+        return Future.failedFuture(throwable);
     }
 }

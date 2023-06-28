@@ -57,16 +57,7 @@ public class AccountHandler extends ValidationHandler {
     public Completable updateOne(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
         JsonObject principal = rc.user().principal();
-        return accountChecker.checkFindLoginAccount(principal.getString("username"))
-            .map(account -> accountChecker
-                .checkComparePasswords(account,
-                    requestBody.getString("old_password").toCharArray()))
-            .map(account -> {
-                account.put("password", requestBody.getString("new_password"));
-                return accountChecker.hashAccountPassword(account);
-            })
-                .flatMapCompletable(updatedAccount -> entityChecker.submitUpdate(principal.getLong("account_id"),
-                    updatedAccount));
+        return entityChecker.submitUpdate(principal.getLong("account_id"), requestBody);
     }
 
   /**
