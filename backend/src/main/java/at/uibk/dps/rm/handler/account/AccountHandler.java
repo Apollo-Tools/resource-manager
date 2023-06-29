@@ -65,10 +65,8 @@ public class AccountHandler extends ValidationHandler {
    */
   public Single<JsonObject> login(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
-        return accountChecker.checkFindLoginAccount(requestBody.getString("username"))
-            .map(account -> accountChecker
-                .checkComparePasswords(account,
-                    requestBody.getString("password").toCharArray()))
+        return accountChecker.checkLoginAccount(requestBody.getString("username"),
+                requestBody.getString("password"))
             .map(result -> {
                 result.remove("password");
                 return new JsonObject().put("token", jwtAuth.generateToken(result));

@@ -50,6 +50,27 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
     }
 
     @Override
+    public Future<JsonObject> loginAccount(String username, String password) {
+        CompletionStage<Account> login = withSession(session -> repository.findByUsername(session, username)
+            .thenApply(account -> {
+                if (account == null) {
+                    throw new UnauthorizedException("invalid credentials");
+                }
+                PasswordUtility passwordUtility = new PasswordUtility();
+                boolean passwordIsValid = passwordUtility.verifyPassword(account.getPassword(),
+                    password.toCharArray());
+                if (!passwordIsValid) {
+                    throw new UnauthorizedException("invalid credentials");
+                }
+                return account;
+            })
+        );
+        return Future.fromCompletionStage(login)
+            .recover(this::recoverFailure)
+            .map(JsonObject::mapFrom);
+    }
+
+    @Override
     public Future<JsonObject> save(JsonObject data) {
         Account newAccount = data.mapTo(Account.class);
         CompletionStage<Account> save = withTransaction(session ->

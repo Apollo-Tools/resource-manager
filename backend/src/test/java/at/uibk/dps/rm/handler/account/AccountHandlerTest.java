@@ -155,7 +155,7 @@ public class AccountHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, entity);
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountChecker.checkFindLoginAccount(entity.getUsername())).thenReturn(Single.just(entityJson));
+        when(accountChecker.checkLoginAccount(entity.getUsername())).thenReturn(Single.just(entityJson));
         when(accountChecker.checkComparePasswords(entityJson, oldPassword.toCharArray())).thenReturn(entityJson);
         when(accountChecker.hashAccountPassword(entityJson)).thenReturn(entityJson);
         when(accountChecker.submitUpdate(entityJson)).thenReturn(Completable.complete());
@@ -181,7 +181,7 @@ public class AccountHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, entity);
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountChecker.checkFindLoginAccount(entity.getUsername()))
+        when(accountChecker.checkLoginAccount(entity.getUsername()))
             .thenReturn(Single.error(UnauthorizedException::new));
 
         accountHandler.updateOne(rc)
@@ -208,7 +208,7 @@ public class AccountHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, entity);
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountChecker.checkFindLoginAccount(entity.getUsername())).thenReturn(Single.just(entityJson));
+        when(accountChecker.checkLoginAccount(entity.getUsername())).thenReturn(Single.just(entityJson));
         when(accountChecker.checkComparePasswords(entityJson, requestBody.getString("old_password").toCharArray()))
             .thenThrow(new UnauthorizedException());
 
@@ -235,7 +235,7 @@ public class AccountHandlerTest {
             "}");
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountChecker.checkFindLoginAccount(entity.getUsername()))
+        when(accountChecker.checkLoginAccount(entity.getUsername()))
             .thenReturn(Single.just(entityJson));
         when(accountChecker.checkComparePasswords(entityJson, requestBody.getString("password").toCharArray()))
             .thenReturn(entityJson);
@@ -265,7 +265,7 @@ public class AccountHandlerTest {
             "}");
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountChecker.checkFindLoginAccount(entity.getUsername()))
+        when(accountChecker.checkLoginAccount(entity.getUsername()))
             .thenReturn(Single.error(UnauthorizedException::new));
 
         accountHandler.login(rc)
@@ -291,7 +291,7 @@ public class AccountHandlerTest {
             "}");
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountChecker.checkFindLoginAccount(entity.getUsername()))
+        when(accountChecker.checkLoginAccount(entity.getUsername()))
             .thenReturn(Single.just(entityJson));
         when(accountChecker.checkComparePasswords(entityJson, requestBody.getString("password").toCharArray()))
             .thenThrow(new UnauthorizedException());

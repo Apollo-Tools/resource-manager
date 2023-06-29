@@ -51,7 +51,7 @@ public class AccountCheckerTest {
         when(accountService.findOneByUsername(username))
             .thenReturn(Single.just(JsonObject.mapFrom(account)));
 
-        accountChecker.checkFindLoginAccount(username)
+        accountChecker.checkLoginAccount(username)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.getLong("account_id")).isEqualTo(1L);
                     assertThat(result.getString("username")).isEqualTo(username);
@@ -68,7 +68,7 @@ public class AccountCheckerTest {
 
         when(accountService.findOneByUsername(username)).thenReturn(handler);
 
-        accountChecker.checkFindLoginAccount(username)
+        accountChecker.checkLoginAccount(username)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(UnauthorizedException.class);

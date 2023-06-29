@@ -51,4 +51,13 @@ public interface AccountService extends DatabaseServiceInterface {
      * @return a Future that emits true if the account exists, else false
      */
     Future<Boolean> existsOneByUsername(String username, boolean isActive);
+
+    /**
+     * Login the account.
+     *
+     * @param username the username of the account
+     * @param password the password of the account
+     * @return a Future that emits the logged in account
+     */
+    Future<JsonObject> loginAccount(String username, String password);
 }

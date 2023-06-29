@@ -38,9 +38,8 @@ public class AccountChecker extends EntityChecker {
      * @param username the username
      * @return a Single that emits the found account as JsonObject
      */
-    public Single<JsonObject> checkFindLoginAccount(String username) {
-        Single<JsonObject> findOneByUsername = accountService.findOneByUsername(username);
-        return ErrorHandler.handleLoginCredentials(findOneByUsername);
+    public Single<JsonObject> checkLoginAccount(String username, String password) {
+        return accountService.loginAccount(username, password);
     }
 
     @Override
