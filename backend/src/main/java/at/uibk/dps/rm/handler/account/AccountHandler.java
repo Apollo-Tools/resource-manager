@@ -43,10 +43,7 @@ public class AccountHandler extends ValidationHandler {
     @Override
     protected Single<JsonObject> postOne(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
-        return entityChecker.checkForDuplicateEntity(requestBody)
-            .andThen(Single.defer(() -> Single.just(1L)))
-            .map(result -> accountChecker.hashAccountPassword(requestBody))
-            .flatMap(entityChecker::submitCreate)
+        return entityChecker.submitCreate(requestBody)
             .map(result -> {
                 result.remove("password");
                 return result;

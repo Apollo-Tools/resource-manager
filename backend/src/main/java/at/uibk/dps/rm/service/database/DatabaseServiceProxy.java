@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.database;
 
+import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
@@ -138,6 +139,8 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
             throw new UnauthorizedException((UnauthorizedException) throwable.getCause());
         } else if (throwable.getCause() instanceof BadInputException) {
             throw new BadInputException((BadInputException) throwable.getCause());
+        } else if (throwable.getCause() instanceof AlreadyExistsException) {
+            throw new AlreadyExistsException((AlreadyExistsException) throwable.getCause());
         }
         return Future.failedFuture(throwable);
     }

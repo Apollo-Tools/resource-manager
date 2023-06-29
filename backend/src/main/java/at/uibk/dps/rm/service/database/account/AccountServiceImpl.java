@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.service.database.account;
 
 import at.uibk.dps.rm.entity.model.Account;
+import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.repository.account.AccountRepository;
@@ -46,6 +47,28 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
             repository.findByUsername(session, username));
         return Future.fromCompletionStage(findOne)
             .map(Objects::nonNull);
+    }
+
+    @Override
+    public Future<JsonObject> save(JsonObject data) {
+        Account newAccount = data.mapTo(Account.class);
+        CompletionStage<Account> save = withTransaction(session ->
+            repository.findByUsername(session, newAccount.getUsername())
+                .thenApply(account -> {
+                    if (account != null) {
+                        throw new AlreadyExistsException(Account.class);
+                    }
+                    PasswordUtility passwordUtility = new PasswordUtility();
+                    char[] password = newAccount.getPassword().toCharArray();
+                    String hash = passwordUtility.hashPassword(password);
+                    newAccount.setPassword(hash);
+                    session.persist(newAccount);
+                    return newAccount;
+                })
+        );
+        return Future.fromCompletionStage(save)
+            .recover(this::recoverFailure)
+            .map(JsonObject::mapFrom);
     }
 
     @Override
