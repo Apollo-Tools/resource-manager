@@ -52,7 +52,7 @@ public class ResourceDeploymentServiceImplTest {
         resultList.add(entity1);
         resultList.add(entity2);
         CompletionStage<List<ResourceDeployment>> completionStage = CompletionStages.completedFuture(resultList);
-        when(repository.findAllByDeploymentId(deploymentId)).thenReturn(completionStage);
+        when(repository.findAllByDeploymentIdAndFetch(deploymentId)).thenReturn(completionStage);
 
         service.findAllByDeploymentId(deploymentId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -74,12 +74,12 @@ public class ResourceDeploymentServiceImplTest {
         long deploymentId = 1L;
         List<ResourceDeployment> resultList = new ArrayList<>();
         CompletionStage<List<ResourceDeployment>> completionStage = CompletionStages.completedFuture(resultList);
-        when(repository.findAllByDeploymentId(deploymentId)).thenReturn(completionStage);
+        when(repository.findAllByDeploymentIdAndFetch(deploymentId)).thenReturn(completionStage);
 
         service.findAllByDeploymentId(deploymentId)
                 .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(0);
-                    verify(repository).findAllByDeploymentId(deploymentId);
+                    verify(repository).findAllByDeploymentIdAndFetch(deploymentId);
                     testContext.completeNow();
                 })));
     }

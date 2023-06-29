@@ -66,4 +66,15 @@ public class DeploymentChecker extends EntityChecker {
         deployment.setCreatedBy(account);
         return this.submitCreate(JsonObject.mapFrom(deployment));
     }
+
+    /**
+     * Submit the cancellation of an existing deployment.
+     *
+     * @param deploymentId the id of the deployment
+     * @param accountId id of the account
+     * @return a Single that emits the updated deployment entity
+     */
+    public Single<JsonObject> submitCancelDeployment(long deploymentId, long accountId) {
+        return deploymentService.cancelDeployment(deploymentId, accountId);
+    }
 }

@@ -165,17 +165,11 @@ public class DeploymentHandler extends ValidationHandler {
             );
     }
 
-    //TODO: check if already terminated
     @Override
     protected Completable updateOne(RoutingContext rc) {
         long accountId = rc.user().principal().getLong("account_id");
-
         return HttpHelper.getLongPathParam(rc, "id")
-            .flatMap(id -> deploymentChecker.checkFindOne(id, rc.user().principal().getLong("account_id")))
-            .flatMap(deploymentJson ->
-                resourceDeploymentChecker.submitUpdateStatus(deploymentJson.getLong("deployment_id"),
-                    DeploymentStatusValue.TERMINATING)
-                    .andThen(Single.just(deploymentJson)))
+            .flatMap(id -> deploymentChecker.submitCancelDeployment(id, accountId))
             .flatMapCompletable(deploymentJson -> {
                 Deployment deployment = deploymentJson.mapTo(Deployment.class);
                 initiateTermination(deployment, accountId);

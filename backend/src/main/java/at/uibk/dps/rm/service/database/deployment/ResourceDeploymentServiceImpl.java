@@ -37,7 +37,7 @@ public class ResourceDeploymentServiceImpl extends DatabaseServiceProxy<Resource
     @Override
     public Future<JsonArray> findAllByDeploymentId(long deploymentId) {
         CompletionStage<List<ResourceDeployment>> findAll = withSession(session ->
-            repository.findAllByDeploymentId(session, deploymentId));
+            repository.findAllByDeploymentIdAndFetch(session, deploymentId));
         return Future.fromCompletionStage(findAll)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();

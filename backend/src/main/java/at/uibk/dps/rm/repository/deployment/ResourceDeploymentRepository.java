@@ -28,7 +28,7 @@ public class ResourceDeploymentRepository extends Repository<ResourceDeployment>
      * @param deploymentId the id of the deployment
      * @return a CompletionStage that emits a list of all resource deployments
      */
-    public CompletionStage<List<ResourceDeployment>> findAllByDeploymentId(Session session, long deploymentId) {
+    public CompletionStage<List<ResourceDeployment>> findAllByDeploymentIdAndFetch(Session session, long deploymentId) {
         return session.createQuery("select distinct rd from ResourceDeployment rd " +
                 "left join fetch rd.status " +
                 "where rd.deployment.deploymentId=:deploymentId", entityClass)

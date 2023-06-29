@@ -3,6 +3,8 @@ package at.uibk.dps.rm.service.database.deployment;
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.repository.deployment.DeploymentRepository;
+import at.uibk.dps.rm.repository.deployment.ResourceDeploymentRepository;
+import at.uibk.dps.rm.repository.deployment.ResourceDeploymentStatusRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -26,8 +28,9 @@ public interface DeploymentService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static DeploymentService create(DeploymentRepository repository, Stage.SessionFactory sessionFactory) {
-        return new DeploymentServiceImpl(repository, sessionFactory);
+    static DeploymentService create(Stage.SessionFactory sessionFactory) {
+        return new DeploymentServiceImpl(new DeploymentRepository(), new ResourceDeploymentRepository(),
+            new ResourceDeploymentStatusRepository(), sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
@@ -35,6 +38,14 @@ public interface DeploymentService extends DatabaseServiceInterface {
     static DeploymentService createProxy(Vertx vertx) {
         return new DeploymentServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(Deployment.class));
     }
+
+    /**
+     * Cancel a deployment by setting the status to "TERMINATING"
+     *
+     * @param id the id of the deployment
+     * @param accountId the id of the creator account
+     */
+    Future<JsonObject> cancelDeployment(long id, long accountId);
 
     /**
      * Find all deployments by their creator account.

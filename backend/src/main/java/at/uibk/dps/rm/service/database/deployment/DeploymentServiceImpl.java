@@ -1,7 +1,12 @@
 package at.uibk.dps.rm.service.database.deployment;
 
+import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.model.Deployment;
+import at.uibk.dps.rm.exception.BadInputException;
+import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.deployment.DeploymentRepository;
+import at.uibk.dps.rm.repository.deployment.ResourceDeploymentRepository;
+import at.uibk.dps.rm.repository.deployment.ResourceDeploymentStatusRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
@@ -21,14 +26,56 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
 
     private final DeploymentRepository repository;
 
+    private final ResourceDeploymentRepository resourceDeploymentRepository;
+
+    private final ResourceDeploymentStatusRepository statusRepository;
+
     /**
      * Create an instance from the deploymentRepository.
      *
      * @param repository the deployment repository
      */
-    public DeploymentServiceImpl(DeploymentRepository repository, Stage.SessionFactory sessionFactory) {
+    public DeploymentServiceImpl(DeploymentRepository repository,
+            ResourceDeploymentRepository resourceDeploymentRepository,
+            ResourceDeploymentStatusRepository statusRepository, Stage.SessionFactory sessionFactory) {
         super(repository, Deployment.class, sessionFactory);
         this.repository = repository;
+        this.resourceDeploymentRepository = resourceDeploymentRepository;
+        this.statusRepository = statusRepository;
+    }
+
+    @Override
+    public Future<JsonObject> cancelDeployment(long id, long accountId) {
+        CompletionStage<Deployment> update = withTransaction(session ->
+            repository.findByIdAndAccountId(session, id, accountId)
+                .thenCompose(deployment -> {
+                    if (deployment == null) {
+                        throw new NotFoundException(Deployment.class);
+                    }
+                    return resourceDeploymentRepository.findAllByDeploymentIdAndFetch(session, id)
+                        .thenCompose(resourceDeployments -> {
+                            long deployedAmount = resourceDeployments.stream().filter(resourceDeployment ->
+                                DeploymentStatusValue.fromDeploymentStatus(resourceDeployment.getStatus())
+                                    .equals(DeploymentStatusValue.DEPLOYED))
+                                .count();
+                            if (resourceDeployments.isEmpty() || deployedAmount != resourceDeployments.size()) {
+                                throw new BadInputException("no deployed resources found");
+                            }
+                            return statusRepository.findOneByStatusValue(session,
+                                    DeploymentStatusValue.TERMINATING.getValue())
+                                .thenAccept(status -> resourceDeployments
+                                    .forEach(resourceDeployment -> resourceDeployment.setStatus(status)));
+                        })
+                        .thenApply(res -> deployment);
+                })
+        );
+        return Future
+            .fromCompletionStage(update)
+            .recover(this::recoverFailure)
+            .map(deployment -> {
+                deployment.setCreatedBy(null);
+                return JsonObject.mapFrom(deployment);
+            });
     }
 
     @Override
