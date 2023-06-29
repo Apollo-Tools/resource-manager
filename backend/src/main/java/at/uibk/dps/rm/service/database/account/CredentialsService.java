@@ -2,7 +2,10 @@ package at.uibk.dps.rm.service.database.account;
 
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.Credentials;
+import at.uibk.dps.rm.repository.account.AccountCredentialsRepository;
+import at.uibk.dps.rm.repository.account.AccountRepository;
 import at.uibk.dps.rm.repository.account.CredentialsRepository;
+import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -11,6 +14,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
 /**
@@ -25,8 +29,9 @@ public interface CredentialsService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static CredentialsService create(CredentialsRepository credentialsRepository, Stage.SessionFactory sessionFactory) {
-        return new CredentialsServiceImpl(credentialsRepository, sessionFactory);
+    static CredentialsService create(Stage.SessionFactory sessionFactory) {
+        return new CredentialsServiceImpl(new CredentialsRepository(), new AccountRepository(),
+            new AccountCredentialsRepository(), new ResourceProviderRepository(), sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
@@ -34,6 +39,15 @@ public interface CredentialsService extends DatabaseServiceInterface {
     static CredentialsService createProxy(Vertx vertx) {
         return new CredentialsServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(Credentials.class));
     }
+
+    /**
+     * Save a new credentials entity.
+     *
+     * @param accountId the id of the account
+     * @param data the new entity
+     * @return a Future that emits the persisted entity as JsonObject
+     */
+    Future<JsonObject> saveToAccount(long accountId, JsonObject data);
 
     /**
      * Find all credentials by their creator account.

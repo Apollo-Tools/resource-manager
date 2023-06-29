@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.handler.account;
 
 import at.uibk.dps.rm.handler.ValidationHandler;
-import at.uibk.dps.rm.handler.resourceprovider.ResourceProviderChecker;
 import at.uibk.dps.rm.util.misc.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -20,22 +19,17 @@ public class CredentialsHandler extends ValidationHandler {
 
     private final AccountCredentialsChecker accountCredentialsChecker;
 
-    private final ResourceProviderChecker resourceProviderChecker;
-
     /**
-     * Create an instance from the credentialsChecker, accountCredentialsChecker and
-     * resourceProviderChecker
+     * Create an instance from the credentialsChecker and accountCredentialsChecker.
      *
      * @param credentialsChecker the credentials checker
      * @param accountCredentialsChecker the account credentials checker
-     * @param resourceProviderChecker the resource provider checker
      */
-    public CredentialsHandler(CredentialsChecker credentialsChecker, AccountCredentialsChecker accountCredentialsChecker,
-                              ResourceProviderChecker resourceProviderChecker) {
+    public CredentialsHandler(CredentialsChecker credentialsChecker,
+            AccountCredentialsChecker accountCredentialsChecker) {
         super(credentialsChecker);
         this.credentialsChecker = credentialsChecker;
         this.accountCredentialsChecker = accountCredentialsChecker;
-        this.resourceProviderChecker = resourceProviderChecker;
     }
 
     @Override
@@ -47,20 +41,8 @@ public class CredentialsHandler extends ValidationHandler {
     @Override
     protected Single<JsonObject> postOne(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
-        long providerId = requestBody.getJsonObject("resource_provider").getLong("provider_id");
         long accountId = rc.user().principal().getLong("account_id");
-        return accountCredentialsChecker.checkForDuplicateEntity(requestBody, accountId)
-            .andThen(resourceProviderChecker.checkExistsOne(providerId))
-            // see https://stackoverflow.com/a/50670502/13164629 for further information
-            .andThen(Single.defer(() -> Single.just(1L)))
-            .flatMap(result -> entityChecker.submitCreate(requestBody))
-            .map(result -> {
-                JsonObject accountCredentials = new JsonObject();
-                accountCredentials.put("account", new JsonObject("{\"account_id\": " + accountId + "}"));
-                accountCredentials.put("credentials", result);
-                return accountCredentials;
-            })
-            .flatMap(accountCredentialsChecker::submitCreate);
+        return credentialsChecker.submitCreate(accountId, requestBody);
     }
 
     @Override

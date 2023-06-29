@@ -1,7 +1,15 @@
 package at.uibk.dps.rm.service.database.account;
 
+import at.uibk.dps.rm.entity.model.AccountCredentials;
 import at.uibk.dps.rm.entity.model.Credentials;
+import at.uibk.dps.rm.entity.model.ResourceProvider;
+import at.uibk.dps.rm.exception.AlreadyExistsException;
+import at.uibk.dps.rm.exception.NotFoundException;
+import at.uibk.dps.rm.exception.UnauthorizedException;
+import at.uibk.dps.rm.repository.account.AccountCredentialsRepository;
+import at.uibk.dps.rm.repository.account.AccountRepository;
 import at.uibk.dps.rm.repository.account.CredentialsRepository;
+import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
@@ -23,14 +31,25 @@ public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> im
 
     private final CredentialsRepository repository;
 
+    private final AccountRepository accountRepository;
+
+    private final AccountCredentialsRepository accountCredentialsRepository;
+
+    private final ResourceProviderRepository resourceProviderRepository;
+
     /**
      * Create an instance from the repository.
      *
      * @param repository the credentials repository
      */
-    public CredentialsServiceImpl(CredentialsRepository repository, Stage.SessionFactory sessionFactory) {
+    public CredentialsServiceImpl(CredentialsRepository repository, AccountRepository accountRepository,
+            AccountCredentialsRepository accountCredentialsRepository,
+            ResourceProviderRepository resourceProviderRepository, Stage.SessionFactory sessionFactory) {
         super(repository, Credentials.class, sessionFactory);
         this.repository = repository;
+        this.accountRepository = accountRepository;
+        this.accountCredentialsRepository = accountCredentialsRepository;
+        this.resourceProviderRepository = resourceProviderRepository;
     }
 
     @Override
@@ -76,5 +95,45 @@ public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> im
             repository.findByAccountIdAndProviderId(session, accountId, providerId));
         return Future.fromCompletionStage(findOne)
             .map(Objects::nonNull);
+    }
+
+    @Override
+    public Future<JsonObject> saveToAccount(long accountId, JsonObject data) {
+        Credentials newCredentials = data.mapTo(Credentials.class);
+        long providerId = newCredentials.getResourceProvider().getProviderId();
+        CompletionStage<Credentials> save = withTransaction(session ->
+            accountCredentialsRepository.findByAccountAndProvider(session, accountId, providerId)
+                .thenAccept(accountCredentials -> {
+                    if (accountCredentials != null) {
+                        throw new AlreadyExistsException(AccountCredentials.class);
+                    }
+                })
+                .thenCompose(res -> resourceProviderRepository.findById(session, providerId)
+                    .thenAccept(resourceProvider -> {
+                        if (resourceProvider == null) {
+                            throw new NotFoundException(ResourceProvider.class);
+                        }
+                        newCredentials.setResourceProvider(resourceProvider);
+                    })
+                )
+                .thenCompose(res -> accountRepository.findById(session, accountId)
+                    .thenApply(account -> {
+                        if (account == null) {
+                            throw new UnauthorizedException();
+                        }
+                        session.persist(newCredentials);
+                        AccountCredentials accountCredentials = new AccountCredentials();
+                        accountCredentials.setCredentials(newCredentials);
+                        accountCredentials.setAccount(account);
+                        session.persist(newCredentials, accountCredentials);
+                        return newCredentials;
+                    }))
+        );
+        return Future.fromCompletionStage(save)
+            .recover(this::recoverFailure)
+            .map(credentials -> {
+                newCredentials.setResourceProvider(null);
+                return JsonObject.mapFrom(credentials);
+            });
     }
 }
