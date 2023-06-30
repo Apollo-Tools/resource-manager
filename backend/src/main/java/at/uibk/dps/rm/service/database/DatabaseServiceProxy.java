@@ -141,8 +141,7 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
             })
         );
         return Future.fromCompletionStage(delete)
-            .recover(this::recoverFailure)
-            .mapEmpty();
+            .recover(this::recoverFailure);
     }
 
     protected <E> Future<E> recoverFailure(Throwable throwable) {
