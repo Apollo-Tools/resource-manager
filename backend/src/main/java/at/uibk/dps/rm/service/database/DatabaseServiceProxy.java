@@ -65,6 +65,7 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
         T entity = data.mapTo(entityClass);
         CompletionStage<T> create = withTransaction(session -> repository.create(session, entity));
         return Future.fromCompletionStage(create)
+            .recover(this::recoverFailure)
             .map(JsonObject::mapFrom);
     }
 
@@ -75,13 +76,15 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
             .map(object -> ((JsonObject) object).mapTo(entityClass))
             .collect(Collectors.toList());
         CompletionStage<Void> createAll = withTransaction(session -> repository.createAll(session, entities));
-        return Future.fromCompletionStage(createAll);
+        return Future.fromCompletionStage(createAll)
+            .recover(this::recoverFailure);
     }
 
     @Override
     public Future<JsonObject> findOne(long id) {
         CompletionStage<T> findOne = withSession(session -> repository.findById(session, id));
         return Future.fromCompletionStage(findOne)
+            .recover(this::recoverFailure)
             .map(JsonObject::mapFrom);
     }
 
@@ -89,6 +92,7 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
     public Future<Boolean> existsOneById(long id) {
         CompletionStage<T> findOne = withSession(session -> repository.findById(session, id));
         return Future.fromCompletionStage(findOne)
+            .recover(this::recoverFailure)
             .map(Objects::nonNull);
     }
 
@@ -97,6 +101,7 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
         CompletionStage<List<T>> findAll = withSession(repository::findAll);
         return Future
             .fromCompletionStage(findAll)
+            .recover(this::recoverFailure)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (T entity: result) {
@@ -136,6 +141,7 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
             })
         );
         return Future.fromCompletionStage(delete)
+            .recover(this::recoverFailure)
             .mapEmpty();
     }
 

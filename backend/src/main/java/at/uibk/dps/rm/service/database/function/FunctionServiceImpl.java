@@ -1,9 +1,13 @@
 package at.uibk.dps.rm.service.database.function;
 
+import at.uibk.dps.rm.entity.dto.resource.RuntimeEnum;
 import at.uibk.dps.rm.entity.model.Function;
+import at.uibk.dps.rm.entity.model.Runtime;
+import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.function.FunctionRepository;
+import at.uibk.dps.rm.repository.function.RuntimeRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
@@ -24,14 +28,18 @@ import java.util.concurrent.CompletionStage;
 public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implements FunctionService {
     private final FunctionRepository repository;
 
+    private final RuntimeRepository runtimeRepository;
+
     /**
      * Create an instance from the repository.
      *
      * @param repository the function repository
      */
-    public FunctionServiceImpl(FunctionRepository repository, Stage.SessionFactory sessionFactory) {
+    public FunctionServiceImpl(FunctionRepository repository, RuntimeRepository runtimeRepository,
+            Stage.SessionFactory sessionFactory) {
         super(repository, Function.class, sessionFactory);
         this.repository = repository;
+        this.runtimeRepository = runtimeRepository;
     }
 
     @Override
@@ -52,6 +60,34 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
                 }
                 return new JsonArray(objects);
             });
+    }
+
+    @Override
+    public Future<JsonObject> save(JsonObject data) {
+        Function function = data.mapTo(Function.class);
+        CompletionStage<Function> create = withTransaction(session ->
+            runtimeRepository.findById(session, function.getRuntime().getRuntimeId())
+                .thenCompose(runtime -> {
+                    if (runtime == null) {
+                        throw new NotFoundException(Runtime.class);
+                    }
+                    RuntimeEnum selectedRuntime = RuntimeEnum.fromRuntime(runtime);
+                    if (!function.getIsFile() && !selectedRuntime.equals(RuntimeEnum.PYTHON38)) {
+                        throw new BadInputException("runtime only supports zip archives");
+                    }
+                    return repository.findOneByNameAndRuntimeId(session, function.getName(), runtime.getRuntimeId());
+                })
+                .thenApply(existingFunction -> {
+                    if (existingFunction != null) {
+                        throw new AlreadyExistsException(Function.class);
+                    }
+                    session.persist(function);
+                    return function;
+                })
+        );
+        return Future.fromCompletionStage(create)
+            .recover(this::recoverFailure)
+            .map(JsonObject::mapFrom);
     }
 
     @Override

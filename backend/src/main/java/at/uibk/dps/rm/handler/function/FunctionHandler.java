@@ -1,8 +1,5 @@
 package at.uibk.dps.rm.handler.function;
 
-import at.uibk.dps.rm.entity.dto.resource.RuntimeEnum;
-import at.uibk.dps.rm.entity.model.Runtime;
-import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.util.misc.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
@@ -19,20 +16,13 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
  */
 public class FunctionHandler extends ValidationHandler {
 
-    private final FunctionChecker functionChecker;
-
-    private final RuntimeChecker runtimeChecker;
-
     /**
-     * Create an instance from the functionChecker and runtimeChecker.
+     * Create an instance from the functionChecker.
      *
      * @param functionChecker the function checker
-     * @param runtimeChecker the runtime checker
      */
-    public FunctionHandler(FunctionChecker functionChecker, RuntimeChecker runtimeChecker) {
+    public FunctionHandler(FunctionChecker functionChecker) {
         super(functionChecker);
-        this.functionChecker = functionChecker;
-        this.runtimeChecker = runtimeChecker;
     }
 
     @Override
@@ -55,19 +45,7 @@ public class FunctionHandler extends ValidationHandler {
             requestBody.put("code", filePath[filePath.length - 1]);
         }
         requestBody.put("is_file", isFile);
-        return runtimeChecker.checkFindOne(requestBody
-                .getJsonObject("runtime")
-                .getLong("runtime_id"))
-            .flatMapCompletable(runtime -> {
-                RuntimeEnum selectedRuntime = RuntimeEnum.fromRuntime(runtime.mapTo(Runtime.class));
-                if (!isFile && !selectedRuntime.equals(RuntimeEnum.PYTHON38)) {
-                    return Completable.error(new BadInputException("runtime only supports zip archives"));
-                }
-                return Completable.complete();
-            })
-            .andThen(entityChecker.checkForDuplicateEntity(requestBody))
-            .andThen(Single.defer(() -> Single.just(1L)))
-            .flatMap(result -> entityChecker.submitCreate(requestBody));
+        return entityChecker.submitCreate(requestBody);
     }
 
     @Override
@@ -89,14 +67,5 @@ public class FunctionHandler extends ValidationHandler {
         requestBody.put("is_file", isFile);
         return HttpHelper.getLongPathParam(rc, "id")
             .flatMapCompletable(id -> entityChecker.submitUpdate(id, requestBody));
-    }
-
-    @Override
-    protected Completable deleteOne(RoutingContext rc) {
-        return HttpHelper.getLongPathParam(rc, "id")
-            .flatMapCompletable(id -> entityChecker.checkFindOne(id)
-                .flatMapCompletable(function -> checkDeleteEntityIsUsed(function)
-                    .andThen(functionChecker.submitDelete(id, function)))
-            );
     }
 }
