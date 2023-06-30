@@ -50,6 +50,15 @@ public interface CredentialsService extends DatabaseServiceInterface {
     Future<JsonObject> saveToAccount(long accountId, JsonObject data);
 
     /**
+     * Delete a credentials entity.
+     *
+     * @param accountId the id of the account
+     * @param credentialsId the id of the credentials
+     * @return a Future that emits the persisted entity as JsonObject
+     */
+    Future<Void> deleteFromAccount(long accountId, long credentialsId);
+
+    /**
      * Find all credentials by their creator account.
      *
      * @param accountId the id of the creator account

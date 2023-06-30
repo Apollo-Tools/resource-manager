@@ -136,4 +136,20 @@ public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> im
                 return JsonObject.mapFrom(credentials);
             });
     }
+
+    @Override
+    public Future<Void> deleteFromAccount(long accountId, long credentialsId) {
+        CompletionStage<Void> delete = withTransaction(session ->
+            repository.findByIdAndAccountId(session, credentialsId, accountId)
+                .thenAccept(entity -> {
+                    if (entity == null) {
+                        throw new NotFoundException(Credentials.class);
+                    }
+                    session.remove(entity);
+                })
+        );
+        return Future.fromCompletionStage(delete)
+            .recover(this::recoverFailure)
+            .mapEmpty();
+    }
 }

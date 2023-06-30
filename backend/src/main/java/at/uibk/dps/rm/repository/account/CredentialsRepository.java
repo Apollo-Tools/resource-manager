@@ -36,6 +36,22 @@ public class CredentialsRepository  extends Repository<Credentials> {
     }
 
     /**
+     * Find credentials by their credentialsId and account credentialsId
+     *
+     * @param session the db session
+     * @param credentialsId the id of the credentials
+     * @param accountId the credentialsId of the creator
+     * @return a CompletionStage that emits the credentials if they exist, else null
+     */
+    public CompletionStage<Credentials> findByIdAndAccountId(Session session, long credentialsId, long accountId) {
+        return session.createQuery("select distinct ac.credentials from AccountCredentials ac " +
+                "where ac.credentials.credentialsId=:credentialsId and ac.account.accountId=:accountId",entityClass)
+            .setParameter("credentialsId", credentialsId)
+            .setParameter("accountId", accountId)
+            .getSingleResultOrNull();
+    }
+
+    /**
      * Find all credentials by their account.
      *
      * @param session the database session

@@ -17,19 +17,14 @@ public class CredentialsHandler extends ValidationHandler {
 
     private final CredentialsChecker credentialsChecker;
 
-    private final AccountCredentialsChecker accountCredentialsChecker;
-
     /**
-     * Create an instance from the credentialsChecker and accountCredentialsChecker.
+     * Create an instance from the credentialsChecker.
      *
      * @param credentialsChecker the credentials checker
-     * @param accountCredentialsChecker the account credentials checker
      */
-    public CredentialsHandler(CredentialsChecker credentialsChecker,
-            AccountCredentialsChecker accountCredentialsChecker) {
+    public CredentialsHandler(CredentialsChecker credentialsChecker) {
         super(credentialsChecker);
         this.credentialsChecker = credentialsChecker;
-        this.accountCredentialsChecker = accountCredentialsChecker;
     }
 
     @Override
@@ -49,12 +44,6 @@ public class CredentialsHandler extends ValidationHandler {
     public Completable deleteOne(RoutingContext rc) {
         long accountId = rc.user().principal().getLong("account_id");
         return HttpHelper.getLongPathParam(rc, "id")
-            .flatMap(id -> entityChecker.checkFindOne(id)
-                .flatMap(result -> accountCredentialsChecker.checkFindOneByCredentialsAndAccount(id, accountId)))
-            .flatMap(result -> accountCredentialsChecker
-                .submitDelete(result.getLong("account_credentials_id"))
-                .andThen(Single.just(result)))
-            .flatMapCompletable(result -> entityChecker.submitDelete(result.getJsonObject("credentials")
-                .getLong("credentials_id")));
+            .flatMapCompletable(id -> credentialsChecker.submitDelete(accountId, id));
     }
 }

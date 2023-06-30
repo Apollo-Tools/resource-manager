@@ -33,6 +33,10 @@ public class CredentialsChecker extends EntityChecker {
         return credentialsService.saveToAccount(accountId, requestBody);
     }
 
+    public Completable submitDelete(long accountId, long credentialsId) {
+        return credentialsService.deleteFromAccount(accountId, credentialsId);
+    }
+
     /**
      * Find all credentials by the accountId.
      *

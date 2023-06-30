@@ -127,7 +127,14 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
 
     @Override
     public Future<Void> delete(long id) {
-        CompletionStage<Integer> delete = withTransaction(session -> repository.deleteById(session, id));
+        CompletionStage<Void> delete = withTransaction(session -> repository.findById(session, id)
+            .thenAccept(entity -> {
+                if (entity == null) {
+                    throw new NotFoundException(entityClass);
+                }
+                session.remove(entity);
+            })
+        );
         return Future.fromCompletionStage(delete)
             .mapEmpty();
     }

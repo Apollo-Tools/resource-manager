@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.router.account;
 
 import at.uibk.dps.rm.handler.ResultHandler;
-import at.uibk.dps.rm.handler.account.AccountCredentialsChecker;
 import at.uibk.dps.rm.handler.account.CredentialsChecker;
 import at.uibk.dps.rm.handler.account.CredentialsHandler;
 import at.uibk.dps.rm.router.Route;
@@ -18,9 +17,7 @@ public class CredentialsRoute implements Route {
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         CredentialsChecker credentialsChecker = new CredentialsChecker(serviceProxyProvider
             .getCredentialsService());
-        AccountCredentialsChecker accountCredentialsChecker = new AccountCredentialsChecker(serviceProxyProvider
-            .getAccountCredentialsService());
-        CredentialsHandler credentialsHandler = new CredentialsHandler(credentialsChecker, accountCredentialsChecker);
+        CredentialsHandler credentialsHandler = new CredentialsHandler(credentialsChecker);
         ResultHandler resultHandler = new ResultHandler(credentialsHandler);
 
         router
