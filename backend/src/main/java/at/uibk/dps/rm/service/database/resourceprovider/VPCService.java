@@ -11,6 +11,7 @@ import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
@@ -53,6 +54,15 @@ public interface VPCService extends DatabaseServiceInterface {
      * @return an empty Future
      */
     Future<Void> deleteFromAccount(long accountId, long vpcId);
+
+
+    /**
+     * Find all vpc by their creator account.
+     *
+     * @param accountId the id of the creator account
+     * @return a Future that emits all credentials
+     */
+    Future<JsonArray> findAllByAccountId(long accountId);
 
     /**
      * Find a vpc by its region and creator account.

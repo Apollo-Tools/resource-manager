@@ -39,8 +39,9 @@ public class VPCServiceImpl extends DatabaseServiceProxy<VPC> implements VPCServ
     }
 
     @Override
-    public Future<JsonArray> findAll() {
-        CompletionStage<List<VPC>> findAll = withSession(repository::findAllAndFetch);
+    public Future<JsonArray> findAllByAccountId(long accountId) {
+        CompletionStage<List<VPC>> findAll = withSession(session ->
+            repository.findAllByAccountIdAndFetch(session, accountId));
         return Future.fromCompletionStage(findAll)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();

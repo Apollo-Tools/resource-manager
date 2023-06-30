@@ -5,6 +5,7 @@ import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.util.misc.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
@@ -35,6 +36,12 @@ public class VPCHandler extends ValidationHandler {
         account.setAccountId(accountId);
         requestBody.put("created_by", JsonObject.mapFrom(account));
         return vpcChecker.submitCreate(accountId, requestBody);
+    }
+
+    @Override
+    protected Single<JsonArray> getAll(RoutingContext rc) {
+        long accountId = rc.user().principal().getLong("account_id");
+        return vpcChecker.checkFindAll(accountId);
     }
 
     @Override

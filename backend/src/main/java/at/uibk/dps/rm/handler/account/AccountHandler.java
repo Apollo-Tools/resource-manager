@@ -42,8 +42,7 @@ public class AccountHandler extends ValidationHandler {
 
     @Override
     protected Single<JsonObject> postOne(RoutingContext rc) {
-        JsonObject requestBody = rc.body().asJsonObject();
-        return entityChecker.submitCreate(requestBody)
+        return super.postOne(rc)
             .map(result -> {
                 result.remove("password");
                 return result;

@@ -72,15 +72,18 @@ public class VPCRepository extends Repository<VPC> {
     }
 
     /**
-     * Find all vpcs and fetch the region and resource provider.
+     * Find all vpcs by account id and fetch the region and resource provider.
      *
      * @param session the database session
+     * @param accountId the id of the creator
      * @return a CompletionStage that emits the vpc if it exists, else null
      */
-    public CompletionStage<List<VPC>> findAllAndFetch(Session session) {
+    public CompletionStage<List<VPC>> findAllByAccountIdAndFetch(Session session, long accountId) {
         return session.createQuery("select distinct vpc from VPC vpc " +
                 "left join fetch vpc.region reg " +
-                "left join fetch reg.resourceProvider", entityClass)
+                "left join fetch reg.resourceProvider " +
+                "where vpc.createdBy.accountId=:accountId", entityClass)
+            .setParameter("accountId", accountId)
             .getResultList();
     }
 }

@@ -37,6 +37,10 @@ public class VPCChecker extends EntityChecker {
         this.vpcService = vpcService;
     }
 
+    public Single<JsonArray> checkFindAll(long accountId) {
+        return vpcService.findAllByAccountId(accountId);
+    }
+
     public Single<JsonObject> submitCreate(long accountId, JsonObject requestBody) {
         return vpcService.saveToAccount(accountId, requestBody);
     }
@@ -44,16 +48,6 @@ public class VPCChecker extends EntityChecker {
     public Completable submitDelete(long accountId, long vpcId) {
         return vpcService.deleteFromAccount(accountId, vpcId);
     }
-
-    /**
-     * @see #checkForDuplicateEntity(JsonObject)
-     */
-    public Completable checkForDuplicateEntity(JsonObject entity, long accountId) {
-        Single<Boolean> existsOneByResourceType = vpcService
-            .existsOneByRegionIdAndAccountId(entity.getJsonObject("region").getLong("region_id"), accountId);
-        return ErrorHandler.handleDuplicates(existsOneByResourceType).ignoreElement();
-    }
-
     /**
      * Find one vpc by its region and creator.
      *
@@ -75,8 +69,7 @@ public class VPCChecker extends EntityChecker {
      * @param resources the list of resources
      * @return a Single that emits a list of found vpcs
      */
-    public Single<List<JsonObject>> checkVPCForFunctionResources(long accountId,
-            JsonArray resources) {
+    public Single<List<JsonObject>> checkVPCForFunctionResources(long accountId, JsonArray resources) {
         List<Single<JsonObject>> singles = new ArrayList<>();
         HashSet<Long> regionIds = new HashSet<>();
         for (Object object: resources) {
