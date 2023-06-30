@@ -56,6 +56,22 @@ public class VPCRepository extends Repository<VPC> {
     }
 
     /**
+     * Find a vpc by its id and creator account.
+     *
+     * @param session the database session
+     * @param vpcId the id of the vpc
+     * @param accountId the id of the creator account
+     * @return a CompletionStage that emits the vpc if it exists, else null
+     */
+    public CompletionStage<VPC> findByIdAndAccountId(Session session, long vpcId, long accountId) {
+        return session.createQuery("from VPC vpc " +
+                "where vpc.vpcId=:vpcId and vpc.createdBy.accountId=:accountId", entityClass)
+            .setParameter("vpcId", vpcId)
+            .setParameter("accountId", accountId)
+            .getSingleResultOrNull();
+    }
+
+    /**
      * Find all vpcs and fetch the region and resource provider.
      *
      * @param session the database session

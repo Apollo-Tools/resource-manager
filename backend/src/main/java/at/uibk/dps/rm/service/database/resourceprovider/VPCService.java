@@ -2,6 +2,7 @@ package at.uibk.dps.rm.service.database.resourceprovider;
 
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.VPC;
+import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
@@ -25,8 +26,8 @@ public interface VPCService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static VPCService create(VPCRepository vpcRepository, Stage.SessionFactory sessionFactory) {
-        return new VPCServiceImpl(vpcRepository, sessionFactory);
+    static VPCService create(Stage.SessionFactory sessionFactory) {
+        return new VPCServiceImpl(new VPCRepository(), new RegionRepository(), sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
@@ -34,6 +35,24 @@ public interface VPCService extends DatabaseServiceInterface {
     static VPCService createProxy(Vertx vertx) {
         return new VPCServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(VPC.class));
     }
+
+    /**
+     * Save a new virtual private cloud entity.
+     *
+     * @param accountId the id of the account
+     * @param data the new entity
+     * @return a Future that emits the persisted entity as JsonObject
+     */
+    Future<JsonObject> saveToAccount(long accountId, JsonObject data);
+
+    /**
+     * Delete a virtual private cloud entity.
+     *
+     * @param accountId the id of the account
+     * @param vpcId the id of the vpc
+     * @return an empty Future
+     */
+    Future<Void> deleteFromAccount(long accountId, long vpcId);
 
     /**
      * Find a vpc by its region and creator account.

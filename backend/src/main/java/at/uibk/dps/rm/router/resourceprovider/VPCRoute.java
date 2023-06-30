@@ -15,8 +15,7 @@ public class VPCRoute implements Route {
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         VPCChecker vpcChecker = new VPCChecker(serviceProxyProvider.getVpcService());
-        RegionChecker regionChecker = new RegionChecker(serviceProxyProvider.getRegionService());
-        VPCHandler vpcHandler = new VPCHandler(vpcChecker, regionChecker);
+        VPCHandler vpcHandler = new VPCHandler(vpcChecker);
         ResultHandler resultHandler = new ResultHandler(vpcHandler);
 
         router

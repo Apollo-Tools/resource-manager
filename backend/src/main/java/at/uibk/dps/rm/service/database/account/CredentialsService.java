@@ -54,7 +54,7 @@ public interface CredentialsService extends DatabaseServiceInterface {
      *
      * @param accountId the id of the account
      * @param credentialsId the id of the credentials
-     * @return a Future that emits the persisted entity as JsonObject
+     * @return an empty Future
      */
     Future<Void> deleteFromAccount(long accountId, long credentialsId);
 

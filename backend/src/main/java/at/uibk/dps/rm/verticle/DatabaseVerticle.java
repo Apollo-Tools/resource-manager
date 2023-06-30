@@ -157,7 +157,8 @@ public class DatabaseVerticle extends AbstractVerticle {
                 new ServiceDeploymentServiceImpl(new ServiceDeploymentRepository(), sessionFactory));
             serviceProxyBinder.bind(ServiceTypeService.class,
                 new ServiceTypeServiceImpl(new ServiceTypeRepository(), sessionFactory));
-            serviceProxyBinder.bind(VPCService.class, new VPCServiceImpl(new VPCRepository(), sessionFactory));
+            serviceProxyBinder.bind(VPCService.class, new VPCServiceImpl(new VPCRepository(), new RegionRepository(),
+                sessionFactory));
             serviceProxyBinder.bind(FilePathService.class, new FilePathServiceImpl(vertx.getDelegate()));
             emitter.onComplete();
         });

@@ -37,6 +37,14 @@ public class VPCChecker extends EntityChecker {
         this.vpcService = vpcService;
     }
 
+    public Single<JsonObject> submitCreate(long accountId, JsonObject requestBody) {
+        return vpcService.saveToAccount(accountId, requestBody);
+    }
+
+    public Completable submitDelete(long accountId, long vpcId) {
+        return vpcService.deleteFromAccount(accountId, vpcId);
+    }
+
     /**
      * @see #checkForDuplicateEntity(JsonObject)
      */
