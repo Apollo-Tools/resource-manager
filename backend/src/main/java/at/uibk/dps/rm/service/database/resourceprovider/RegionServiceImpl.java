@@ -1,7 +1,11 @@
 package at.uibk.dps.rm.service.database.resourceprovider;
 
 import at.uibk.dps.rm.entity.model.Region;
+import at.uibk.dps.rm.entity.model.ResourceProvider;
+import at.uibk.dps.rm.exception.AlreadyExistsException;
+import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
+import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
@@ -21,14 +25,18 @@ import java.util.concurrent.CompletionStage;
 public class RegionServiceImpl extends DatabaseServiceProxy<Region> implements RegionService {
     private final RegionRepository repository;
 
+    private final ResourceProviderRepository providerRepository;
+
     /**
      * Create an instance from the repository.
      *
      * @param repository the region repository
      */
-    public RegionServiceImpl(RegionRepository repository, Stage.SessionFactory sessionFactory) {
+    public RegionServiceImpl(RegionRepository repository, ResourceProviderRepository providerRepository,
+            Stage.SessionFactory sessionFactory) {
         super(repository, Region.class, sessionFactory);
         this.repository = repository;
+        this.providerRepository = providerRepository;
     }
 
     @Override
@@ -54,6 +62,37 @@ public class RegionServiceImpl extends DatabaseServiceProxy<Region> implements R
                     objects.add(JsonObject.mapFrom(entity));
                 }
                 return new JsonArray(objects);
+            });
+    }
+
+    // TODO: check user role
+    @Override
+    public Future<JsonObject> save(JsonObject data) {
+        Region region = data.mapTo(Region.class);
+        CompletionStage<Region> create = withTransaction(session ->
+            providerRepository.findByIdAndFetch(session, region.getResourceProvider().getProviderId())
+                .thenCompose(provider -> {
+                    if (provider == null) {
+                        throw new NotFoundException(ResourceProvider.class);
+                    }
+                    region.setResourceProvider(provider);
+                    return repository.findOneByNameAndProviderId(session, region.getName(), provider.getProviderId());
+                })
+                .thenApply(existingRegion -> {
+                    if (existingRegion != null) {
+                        throw new AlreadyExistsException(Region.class);
+                    }
+                    session.persist(region);
+                    return region;
+                })
+        );
+        return Future
+            .fromCompletionStage(create)
+            .recover(this::recoverFailure)
+            .map(result -> {
+                result.getResourceProvider().setProviderPlatforms(null);
+                result.getResourceProvider().setEnvironment(null);
+                return JsonObject.mapFrom(result);
             });
     }
 
