@@ -1,11 +1,10 @@
 package at.uibk.dps.rm.service.database.resourceprovider;
 
 import at.uibk.dps.rm.entity.model.*;
-import at.uibk.dps.rm.exception.AlreadyExistsException;
-import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.util.validation.ServiceResultValidator;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -81,40 +80,29 @@ public class VPCServiceImpl extends DatabaseServiceProxy<VPC> implements VPCServ
         CompletionStage<VPC> create = withTransaction(session ->
             regionRepository.findByIdAndFetch(session, vpc.getRegion().getRegionId())
                 .thenCompose(region -> {
-                    if (region == null) {
-                        throw new NotFoundException(Region.class);
-                    }
+                    ServiceResultValidator.checkFound(region, Region.class);
                     vpc.setRegion(region);
                     return repository.findByRegionIdAndAccountId(session, region.getRegionId(), accountId);
                 })
                 .thenApply(existingVPC -> {
-                    if (existingVPC != null) {
-                        throw new AlreadyExistsException(VPC.class);
-                    }
+                    ServiceResultValidator.checkExists(existingVPC, VPC.class);
                     session.persist(vpc);
                     return vpc;
                 })
         );
-        return Future
-            .fromCompletionStage(create)
-            .recover(this::recoverFailure)
-            .map(this::serializeVPC);
+        return transactionToFuture(create).map(this::serializeVPC);
     }
 
     @Override
     public Future<Void> deleteFromAccount(long accountId, long vpcId) {
         CompletionStage<Void> delete = withTransaction(session ->
             repository.findByIdAndAccountId(session, vpcId, accountId)
-                .thenAccept(entity -> {
-                    if (entity == null) {
-                        throw new NotFoundException(Credentials.class);
-                    }
-                    session.remove(entity);
+                .thenAccept(vpc -> {
+                    ServiceResultValidator.checkFound(vpc, VPC.class);
+                    session.remove(vpc);
                 })
         );
-        return Future.fromCompletionStage(delete)
-            .recover(this::recoverFailure)
-            .mapEmpty();
+        return transactionToFuture(delete);
     }
 
     private JsonObject serializeVPC(VPC vpc) {

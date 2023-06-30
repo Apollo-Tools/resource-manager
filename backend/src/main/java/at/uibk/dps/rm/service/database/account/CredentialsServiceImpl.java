@@ -3,14 +3,13 @@ package at.uibk.dps.rm.service.database.account;
 import at.uibk.dps.rm.entity.model.AccountCredentials;
 import at.uibk.dps.rm.entity.model.Credentials;
 import at.uibk.dps.rm.entity.model.ResourceProvider;
-import at.uibk.dps.rm.exception.AlreadyExistsException;
-import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.repository.account.AccountCredentialsRepository;
 import at.uibk.dps.rm.repository.account.AccountRepository;
 import at.uibk.dps.rm.repository.account.CredentialsRepository;
 import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.util.validation.ServiceResultValidator;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -103,53 +102,42 @@ public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> im
         long providerId = newCredentials.getResourceProvider().getProviderId();
         CompletionStage<Credentials> save = withTransaction(session ->
             accountCredentialsRepository.findByAccountAndProvider(session, accountId, providerId)
-                .thenAccept(accountCredentials -> {
-                    if (accountCredentials != null) {
-                        throw new AlreadyExistsException(AccountCredentials.class);
-                    }
+                .thenCompose(accountCredentials -> {
+                    ServiceResultValidator.checkExists(accountCredentials, Credentials.class);
+                    return resourceProviderRepository.findById(session, providerId);
                 })
-                .thenCompose(res -> resourceProviderRepository.findById(session, providerId)
-                    .thenAccept(resourceProvider -> {
-                        if (resourceProvider == null) {
-                            throw new NotFoundException(ResourceProvider.class);
-                        }
-                        newCredentials.setResourceProvider(resourceProvider);
-                    })
-                )
-                .thenCompose(res -> accountRepository.findById(session, accountId)
-                    .thenApply(account -> {
-                        if (account == null) {
-                            throw new UnauthorizedException();
-                        }
-                        session.persist(newCredentials);
-                        AccountCredentials accountCredentials = new AccountCredentials();
-                        accountCredentials.setCredentials(newCredentials);
-                        accountCredentials.setAccount(account);
-                        session.persist(newCredentials, accountCredentials);
-                        return newCredentials;
-                    }))
+                .thenCompose(provider -> {
+                    ServiceResultValidator.checkFound(provider, ResourceProvider.class);
+                    newCredentials.setResourceProvider(provider);
+                    return accountRepository.findById(session, accountId);
+                })
+                .thenApply(account -> {
+                    if (account == null) {
+                        throw new UnauthorizedException();
+                    }
+                    session.persist(newCredentials);
+                    AccountCredentials accountCredentials = new AccountCredentials();
+                    accountCredentials.setCredentials(newCredentials);
+                    accountCredentials.setAccount(account);
+                    session.persist(newCredentials, accountCredentials);
+                    return newCredentials;
+                })
         );
-        return Future.fromCompletionStage(save)
-            .recover(this::recoverFailure)
-            .map(credentials -> {
-                newCredentials.setResourceProvider(null);
-                return JsonObject.mapFrom(credentials);
-            });
+        return transactionToFuture(save).map(credentials -> {
+            newCredentials.setResourceProvider(null);
+            return JsonObject.mapFrom(credentials);
+        });
     }
 
     @Override
     public Future<Void> deleteFromAccount(long accountId, long credentialsId) {
         CompletionStage<Void> delete = withTransaction(session ->
             repository.findByIdAndAccountId(session, credentialsId, accountId)
-                .thenAccept(entity -> {
-                    if (entity == null) {
-                        throw new NotFoundException(Credentials.class);
-                    }
-                    session.remove(entity);
+                .thenAccept(credentials -> {
+                    ServiceResultValidator.checkFound(credentials, Credentials.class);
+                    session.remove(credentials);
                 })
         );
-        return Future.fromCompletionStage(delete)
-            .recover(this::recoverFailure)
-            .mapEmpty();
+        return transactionToFuture(delete);
     }
 }

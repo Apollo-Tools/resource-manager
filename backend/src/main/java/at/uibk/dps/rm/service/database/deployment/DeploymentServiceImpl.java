@@ -3,11 +3,11 @@ package at.uibk.dps.rm.service.database.deployment;
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.exception.BadInputException;
-import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.deployment.DeploymentRepository;
 import at.uibk.dps.rm.repository.deployment.ResourceDeploymentRepository;
 import at.uibk.dps.rm.repository.deployment.ResourceDeploymentStatusRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.util.validation.ServiceResultValidator;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -49,9 +49,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
         CompletionStage<Deployment> update = withTransaction(session ->
             repository.findByIdAndAccountId(session, id, accountId)
                 .thenCompose(deployment -> {
-                    if (deployment == null) {
-                        throw new NotFoundException(Deployment.class);
-                    }
+                    ServiceResultValidator.checkFound(deployment, Deployment.class);
                     return resourceDeploymentRepository.findAllByDeploymentIdAndFetch(session, id)
                         .thenCompose(resourceDeployments -> {
                             long deployedAmount = resourceDeployments.stream().filter(resourceDeployment ->
@@ -69,13 +67,10 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                         .thenApply(res -> deployment);
                 })
         );
-        return Future
-            .fromCompletionStage(update)
-            .recover(this::recoverFailure)
-            .map(deployment -> {
-                deployment.setCreatedBy(null);
-                return JsonObject.mapFrom(deployment);
-            });
+        return transactionToFuture(update).map(deployment -> {
+            deployment.setCreatedBy(null);
+            return JsonObject.mapFrom(deployment);
+        });
     }
 
     @Override

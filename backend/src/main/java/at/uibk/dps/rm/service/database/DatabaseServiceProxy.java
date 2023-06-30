@@ -6,11 +6,13 @@ import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.repository.Repository;
 import at.uibk.dps.rm.service.ServiceProxy;
+import at.uibk.dps.rm.util.validation.ServiceResultValidator;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage.Session;
 import org.hibernate.reactive.stage.Stage.SessionFactory;
+import org.hibernate.reactive.util.impl.CompletionStages;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,10 +65,11 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
     @Override
     public Future<JsonObject> save(JsonObject data) {
         T entity = data.mapTo(entityClass);
-        CompletionStage<T> create = withTransaction(session -> repository.create(session, entity));
-        return Future.fromCompletionStage(create)
-            .recover(this::recoverFailure)
-            .map(JsonObject::mapFrom);
+        CompletionStage<T> create = withTransaction(session -> {
+            session.persist(entity);
+            return CompletionStages.completedFuture(entity);
+        });
+        return transactionToFuture(create).map(JsonObject::mapFrom);
     }
 
     @Override
@@ -76,24 +79,19 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
             .map(object -> ((JsonObject) object).mapTo(entityClass))
             .collect(Collectors.toList());
         CompletionStage<Void> createAll = withTransaction(session -> repository.createAll(session, entities));
-        return Future.fromCompletionStage(createAll)
-            .recover(this::recoverFailure);
+        return transactionToFuture(createAll);
     }
 
     @Override
     public Future<JsonObject> findOne(long id) {
         CompletionStage<T> findOne = withSession(session -> repository.findById(session, id));
-        return Future.fromCompletionStage(findOne)
-            .recover(this::recoverFailure)
-            .map(JsonObject::mapFrom);
+        return transactionToFuture(findOne).map(JsonObject::mapFrom);
     }
 
     @Override
     public Future<Boolean> existsOneById(long id) {
         CompletionStage<T> findOne = withSession(session -> repository.findById(session, id));
-        return Future.fromCompletionStage(findOne)
-            .recover(this::recoverFailure)
-            .map(Objects::nonNull);
+        return transactionToFuture(findOne).map(Objects::nonNull);
     }
 
     @Override
@@ -115,33 +113,25 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
     public Future<Void> update(long id, JsonObject fields) {
         CompletionStage<T> update = withTransaction(session -> repository.findById(session, id)
             .thenCompose(entity -> {
-                if (entity == null) {
-                    throw new NotFoundException(entityClass);
-                }
+                ServiceResultValidator.checkFound(entity, entityClass);
                 JsonObject jsonObject = JsonObject.mapFrom(entity);
                 fields.stream().forEach(entry -> jsonObject.put(entry.getKey(), entry.getValue()));
                 T updatedEntity = jsonObject.mapTo(entityClass);
                 return session.merge(updatedEntity);
             })
         );
-        return Future
-            .fromCompletionStage(update)
-            .recover(this::recoverFailure)
-            .mapEmpty();
+        return transactionToFuture(update).mapEmpty();
     }
 
     @Override
     public Future<Void> delete(long id) {
         CompletionStage<Void> delete = withTransaction(session -> repository.findById(session, id)
             .thenAccept(entity -> {
-                if (entity == null) {
-                    throw new NotFoundException(entityClass);
-                }
+                ServiceResultValidator.checkFound(entity, entityClass);
                 session.remove(entity);
             })
         );
-        return Future.fromCompletionStage(delete)
-            .recover(this::recoverFailure);
+        return transactionToFuture(delete);
     }
 
     protected <E> Future<E> recoverFailure(Throwable throwable) {
@@ -159,5 +149,10 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
 
     protected <E> E updateNonNullValue(E oldValue, E newValue) {
         return newValue == null ? oldValue : newValue;
+    }
+
+    protected <E> Future<E> transactionToFuture(CompletionStage<E> transaction) {
+        return Future.fromCompletionStage(transaction)
+            .recover(this::recoverFailure);
     }
 }

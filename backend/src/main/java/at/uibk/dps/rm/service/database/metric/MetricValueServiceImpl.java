@@ -3,10 +3,10 @@ package at.uibk.dps.rm.service.database.metric;
 import at.uibk.dps.rm.entity.dto.metric.MetricTypeEnum;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.exception.BadInputException;
-import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.util.validation.ServiceResultValidator;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -106,9 +106,7 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
         CompletionStage<MetricValue> update = withTransaction(session ->
             repository.findByResourceAndMetricAndFetch(session, resourceId, metricId)
                 .thenApply(metricValue -> {
-                    if (metricValue == null) {
-                        throw new NotFoundException(MetricValue.class);
-                    }
+                    ServiceResultValidator.checkFound(metricValue, MetricValue.class);
                     if (metricValue.getMetric().getIsMonitored() && isExternalSource) {
                         throw new BadInputException("monitored metrics can't be updated manually");
                     }
@@ -127,9 +125,7 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
                     return metricValue;
                 })
         );
-        return Future.fromCompletionStage(update)
-            .recover(this::recoverFailure)
-            .mapEmpty();
+        return transactionToFuture(update).mapEmpty();
     }
 
     @Override

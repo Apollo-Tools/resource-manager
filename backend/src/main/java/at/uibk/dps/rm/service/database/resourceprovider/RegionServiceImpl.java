@@ -2,11 +2,10 @@ package at.uibk.dps.rm.service.database.resourceprovider;
 
 import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.entity.model.ResourceProvider;
-import at.uibk.dps.rm.exception.AlreadyExistsException;
-import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.util.validation.ServiceResultValidator;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -72,28 +71,21 @@ public class RegionServiceImpl extends DatabaseServiceProxy<Region> implements R
         CompletionStage<Region> create = withTransaction(session ->
             providerRepository.findByIdAndFetch(session, region.getResourceProvider().getProviderId())
                 .thenCompose(provider -> {
-                    if (provider == null) {
-                        throw new NotFoundException(ResourceProvider.class);
-                    }
+                    ServiceResultValidator.checkFound(provider, ResourceProvider.class);
                     region.setResourceProvider(provider);
                     return repository.findOneByNameAndProviderId(session, region.getName(), provider.getProviderId());
                 })
                 .thenApply(existingRegion -> {
-                    if (existingRegion != null) {
-                        throw new AlreadyExistsException(Region.class);
-                    }
+                    ServiceResultValidator.checkExists(existingRegion, Region.class);
                     session.persist(region);
                     return region;
                 })
         );
-        return Future
-            .fromCompletionStage(create)
-            .recover(this::recoverFailure)
-            .map(result -> {
-                result.getResourceProvider().setProviderPlatforms(null);
-                result.getResourceProvider().setEnvironment(null);
-                return JsonObject.mapFrom(result);
-            });
+        return transactionToFuture(create).map(result -> {
+            result.getResourceProvider().setProviderPlatforms(null);
+            result.getResourceProvider().setEnvironment(null);
+            return JsonObject.mapFrom(result);
+        });
     }
 
     @Override

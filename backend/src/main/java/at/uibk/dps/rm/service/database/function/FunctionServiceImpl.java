@@ -3,12 +3,11 @@ package at.uibk.dps.rm.service.database.function;
 import at.uibk.dps.rm.entity.dto.resource.RuntimeEnum;
 import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.entity.model.Runtime;
-import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.BadInputException;
-import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.function.FunctionRepository;
 import at.uibk.dps.rm.repository.function.RuntimeRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.util.validation.ServiceResultValidator;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -68,9 +67,7 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
         CompletionStage<Function> create = withTransaction(session ->
             runtimeRepository.findById(session, function.getRuntime().getRuntimeId())
                 .thenCompose(runtime -> {
-                    if (runtime == null) {
-                        throw new NotFoundException(Runtime.class);
-                    }
+                    ServiceResultValidator.checkFound(runtime, Runtime.class);
                     RuntimeEnum selectedRuntime = RuntimeEnum.fromRuntime(runtime);
                     if (!function.getIsFile() && !selectedRuntime.equals(RuntimeEnum.PYTHON38)) {
                         throw new BadInputException("runtime only supports zip archives");
@@ -78,25 +75,19 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
                     return repository.findOneByNameAndRuntimeId(session, function.getName(), runtime.getRuntimeId());
                 })
                 .thenApply(existingFunction -> {
-                    if (existingFunction != null) {
-                        throw new AlreadyExistsException(Function.class);
-                    }
+                    ServiceResultValidator.checkExists(existingFunction, Function.class);
                     session.persist(function);
                     return function;
                 })
         );
-        return Future.fromCompletionStage(create)
-            .recover(this::recoverFailure)
-            .map(JsonObject::mapFrom);
+        return transactionToFuture(create).map(JsonObject::mapFrom);
     }
 
     @Override
     public Future<Void> update(long id, JsonObject fields) {
         CompletionStage<Function> update = withTransaction(session -> repository.findByIdAndFetch(session, id)
             .thenApply(function -> {
-                if (function == null) {
-                    throw new NotFoundException(Function.class);
-                }
+                ServiceResultValidator.checkFound(function, Function.class);
                 boolean updateIsFile = fields.getBoolean("is_file");
                 String message = "";
                 if (function.getIsFile() != updateIsFile && updateIsFile) {
@@ -111,10 +102,7 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
                 return function;
             })
         );
-        return Future
-            .fromCompletionStage(update)
-            .recover(this::recoverFailure)
-            .mapEmpty();
+        return transactionToFuture(update).mapEmpty();
     }
 
     @Override

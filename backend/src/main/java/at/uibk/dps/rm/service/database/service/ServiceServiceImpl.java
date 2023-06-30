@@ -4,12 +4,11 @@ import at.uibk.dps.rm.entity.dto.Service.ServiceTypeEnum;
 import at.uibk.dps.rm.entity.dto.Service.UpdateServiceDTO;
 import at.uibk.dps.rm.entity.model.Service;
 import at.uibk.dps.rm.entity.model.ServiceType;
-import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.BadInputException;
-import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.service.ServiceRepository;
 import at.uibk.dps.rm.repository.service.ServiceTypeRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.util.validation.ServiceResultValidator;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -47,8 +46,7 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
     @Override
     public Future<JsonObject> findOne(long id) {
         CompletionStage<Service> findOne = withSession(session -> repository.findByIdAndFetch(session, id));
-        return Future.fromCompletionStage(findOne)
-            .map(JsonObject::mapFrom);
+        return transactionToFuture(findOne).map(JsonObject::mapFrom);
     }
 
     @Override
@@ -70,25 +68,18 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
         CompletionStage<Service> create = withTransaction(session ->
             serviceTypeRepository.findById(session, service.getServiceType().getServiceTypeId())
                 .thenCompose(serviceType -> {
-                    if (serviceType == null) {
-                        throw new NotFoundException(ServiceType.class);
-                    }
+                    ServiceResultValidator.checkFound(serviceType, ServiceType.class);
                     service.setServiceType(serviceType);
                     checkServiceTypePorts(serviceType, service.getPorts().size());
                     return repository.findOneByName(session, service.getName());
                 })
                 .thenApply(existingService -> {
-                    if (existingService != null) {
-                        throw new AlreadyExistsException(Service.class);
-                    }
+                    ServiceResultValidator.checkExists(existingService, Service.class);
                     session.persist(service);
                     return service;
                 })
         );
-        return Future
-            .fromCompletionStage(create)
-            .recover(this::recoverFailure)
-            .map(JsonObject::mapFrom);
+        return transactionToFuture(create).map(JsonObject::mapFrom);
     }
 
     @Override
@@ -96,9 +87,7 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
         UpdateServiceDTO updateService = fields.mapTo(UpdateServiceDTO.class);
         CompletionStage<Service> update = withTransaction(session -> repository.findByIdAndFetch(session, id)
             .thenCompose(service -> {
-                if (service == null) {
-                    throw new NotFoundException(Service.class);
-                }
+                ServiceResultValidator.checkFound(service, Service.class);
                 long serviceTypeId = (fields.containsKey("service_type") ?
                     fields.getJsonObject("service_type").getLong("service_type_id") :
                     service.getServiceType().getServiceTypeId());
@@ -106,9 +95,7 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
                     fields.getJsonArray("ports").size() : service.getPorts().size();
                 return serviceTypeRepository.findById(session, serviceTypeId)
                     .thenApply(serviceType -> {
-                        if (serviceType == null) {
-                            throw new NotFoundException(ServiceType.class);
-                        }
+                        ServiceResultValidator.checkFound(serviceType, ServiceType.class);
                         checkServiceTypePorts(serviceType, portAmount);
                         service.setReplicas(updateNonNullValue(service.getReplicas(), updateService.getReplicas()));
                         service.setCpu(updateNonNullValue(service.getCpu(), updateService.getCpu()));
@@ -119,10 +106,7 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
                     });
             })
         );
-        return Future
-            .fromCompletionStage(update)
-            .recover(this::recoverFailure)
-            .mapEmpty();
+        return transactionToFuture(update).mapEmpty();
     }
 
 

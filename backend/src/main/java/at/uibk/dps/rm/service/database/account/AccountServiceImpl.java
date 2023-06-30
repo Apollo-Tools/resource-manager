@@ -1,12 +1,11 @@
 package at.uibk.dps.rm.service.database.account;
 
 import at.uibk.dps.rm.entity.model.Account;
-import at.uibk.dps.rm.exception.AlreadyExistsException;
-import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.repository.account.AccountRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import at.uibk.dps.rm.util.misc.PasswordUtility;
+import at.uibk.dps.rm.util.validation.ServiceResultValidator;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
@@ -65,9 +64,7 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
                 return account;
             })
         );
-        return Future.fromCompletionStage(login)
-            .recover(this::recoverFailure)
-            .map(JsonObject::mapFrom);
+        return transactionToFuture(login).map(JsonObject::mapFrom);
     }
 
     @Override
@@ -76,9 +73,7 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
         CompletionStage<Account> save = withTransaction(session ->
             repository.findByUsername(session, newAccount.getUsername())
                 .thenApply(account -> {
-                    if (account != null) {
-                        throw new AlreadyExistsException(Account.class);
-                    }
+                    ServiceResultValidator.checkExists(account, Account.class);
                     PasswordUtility passwordUtility = new PasswordUtility();
                     char[] password = newAccount.getPassword().toCharArray();
                     String hash = passwordUtility.hashPassword(password);
@@ -87,18 +82,14 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
                     return newAccount;
                 })
         );
-        return Future.fromCompletionStage(save)
-            .recover(this::recoverFailure)
-            .map(JsonObject::mapFrom);
+        return transactionToFuture(save).map(JsonObject::mapFrom);
     }
 
     @Override
     public Future<Void> update(long id, JsonObject fields) {
         CompletionStage<Account> update = withTransaction(session -> repository.findById(session, id)
             .thenApply(account -> {
-                if (account == null) {
-                    throw new NotFoundException(Account.class);
-                }
+                ServiceResultValidator.checkFound(account, Account.class);
                 PasswordUtility passwordUtility = new PasswordUtility();
                 char[] oldPassword = fields.getString("old_password").toCharArray();
                 char[] newPassword = fields.getString("new_password").toCharArray();
@@ -109,8 +100,6 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
                 account.setPassword(passwordUtility.hashPassword(newPassword));
                 return account;
             }));
-        return Future.fromCompletionStage(update)
-            .recover(this::recoverFailure)
-            .mapEmpty();
+        return transactionToFuture(update).mapEmpty();
     }
 }
