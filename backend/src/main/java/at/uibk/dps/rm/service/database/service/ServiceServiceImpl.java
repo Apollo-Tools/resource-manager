@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.dto.Service.ServiceTypeEnum;
 import at.uibk.dps.rm.entity.dto.Service.UpdateServiceDTO;
 import at.uibk.dps.rm.entity.model.Service;
 import at.uibk.dps.rm.entity.model.ServiceType;
+import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.service.ServiceRepository;
@@ -63,7 +64,32 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
             });
     }
 
-
+    @Override
+    public Future<JsonObject> save(JsonObject data) {
+        Service service = data.mapTo(Service.class);
+        CompletionStage<Service> create = withTransaction(session ->
+            serviceTypeRepository.findById(session, service.getServiceType().getServiceTypeId())
+                .thenCompose(serviceType -> {
+                    if (serviceType == null) {
+                        throw new NotFoundException(ServiceType.class);
+                    }
+                    service.setServiceType(serviceType);
+                    checkServiceTypePorts(serviceType, service.getPorts().size());
+                    return repository.findOneByName(session, service.getName());
+                })
+                .thenApply(existingService -> {
+                    if (existingService != null) {
+                        throw new AlreadyExistsException(Service.class);
+                    }
+                    session.persist(service);
+                    return service;
+                })
+        );
+        return Future
+            .fromCompletionStage(create)
+            .recover(this::recoverFailure)
+            .map(JsonObject::mapFrom);
+    }
 
     @Override
     public Future<Void> update(long id, JsonObject fields) {

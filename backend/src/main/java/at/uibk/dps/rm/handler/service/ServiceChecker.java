@@ -7,7 +7,6 @@ import at.uibk.dps.rm.service.rxjava3.database.service.ServiceService;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.json.JsonObject;
 
 import java.util.List;
 import java.util.Set;
@@ -30,12 +29,6 @@ public class ServiceChecker extends EntityChecker {
     public ServiceChecker(ServiceService service) {
         super(service);
         this.service = service;
-    }
-
-    @Override
-    public Completable checkForDuplicateEntity(JsonObject entity) {
-        Single<Boolean> existsByName = service.existsOneByName(entity.getString("name"));
-        return ErrorHandler.handleDuplicates(existsByName).ignoreElement();
     }
 
     /**
