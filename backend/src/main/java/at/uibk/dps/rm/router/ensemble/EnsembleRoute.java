@@ -29,11 +29,8 @@ public class EnsembleRoute implements Route {
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         EnsembleChecker ensembleChecker = new EnsembleChecker(serviceProxyProvider.getEnsembleService());
         EnsembleSLOChecker ensembleSLOChecker = new EnsembleSLOChecker(serviceProxyProvider.getEnsembleSLOService());
-        ResourceEnsembleChecker resourceEnsembleChecker = new ResourceEnsembleChecker(serviceProxyProvider
-            .getResourceEnsembleService());
         ResourceChecker resourceChecker = new ResourceChecker(serviceProxyProvider.getResourceService());
-        EnsembleHandler ensembleHandler = new EnsembleHandler(ensembleChecker, ensembleSLOChecker,
-            resourceEnsembleChecker, resourceChecker);
+        EnsembleHandler ensembleHandler = new EnsembleHandler(ensembleChecker, ensembleSLOChecker, resourceChecker);
         MetricChecker metricChecker = new MetricChecker(serviceProxyProvider.getMetricService());
         MetricValueChecker metricValueChecker = new MetricValueChecker(serviceProxyProvider.getMetricValueService());
         ResourceSLOHandler resourceSLOHandler = new ResourceSLOHandler(resourceChecker, metricChecker,

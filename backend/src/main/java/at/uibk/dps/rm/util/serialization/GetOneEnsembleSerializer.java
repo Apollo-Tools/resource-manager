@@ -63,6 +63,9 @@ public class GetOneEnsembleSerializer extends StdSerializer<GetOneEnsemble> {
      */
     private void mapNonMetricToSLO(List<Long> values, SLOType sloType,
                                    List<ServiceLevelObjective> slos) {
+        if (values == null) {
+            return;
+        }
         List<SLOValue> sloValues = values.stream().map(value -> {
             SLOValue sloValue = new SLOValue();
             sloValue.setValueNumber(value);

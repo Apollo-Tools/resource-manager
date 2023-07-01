@@ -1,8 +1,6 @@
 package at.uibk.dps.rm.handler.ensemble;
 
-import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
 import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
-import at.uibk.dps.rm.entity.dto.resource.ResourceId;
 import at.uibk.dps.rm.entity.dto.slo.*;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.handler.ValidationHandler;
@@ -12,7 +10,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -33,58 +30,37 @@ public class EnsembleHandler extends ValidationHandler {
 
     private final EnsembleSLOChecker ensembleSLOChecker;
 
-    private final ResourceEnsembleChecker resourceEnsembleChecker;
-
     private final ResourceChecker resourceChecker;
 
     private final ObjectMapper mapper;
 
     /**
-     * Create an instance from the ensembleChecker.
+     * Create an instance from the ensembleChecker, ensembleSLOChecker and resourceChecker.
      *
      * @param ensembleChecker the ensemble checker
+     * @param ensembleSLOChecker the ensemble slo checker
+     * @param resourceChecker the resource checker
      */
     public EnsembleHandler(EnsembleChecker ensembleChecker, EnsembleSLOChecker ensembleSLOChecker,
-                           ResourceEnsembleChecker resourceEnsembleChecker, ResourceChecker resourceChecker) {
+            ResourceChecker resourceChecker) {
         super(ensembleChecker);
         this.ensembleChecker = ensembleChecker;
         this.ensembleSLOChecker = ensembleSLOChecker;
-        this.resourceEnsembleChecker = resourceEnsembleChecker;
         this.resourceChecker = resourceChecker;
         this.mapper = DatabindCodec.mapper();
     }
 
     @Override
     public Single<JsonObject> postOne(RoutingContext rc) {
-        CreateEnsembleRequest request = rc.body().asJsonObject().mapTo(CreateEnsembleRequest.class);
         long accountId = rc.user().principal().getLong("account_id");
-        Ensemble ensemble = request.getEnsemble(accountId);
-        return ensembleChecker.checkExistsOneByName(ensemble.getName(), accountId)
-            .andThen(Observable.fromIterable(request.getResources())
-                .flatMap(resourceId -> resourceChecker.checkExistsOne(resourceId.getResourceId())
-                    .andThen(Observable.defer(() -> Observable.just(resourceId)))))
-                .toList()
-            .flatMap(result -> entityChecker.submitCreate(JsonObject.mapFrom(ensemble)))
-            .flatMap(result -> {
-                Ensemble persistedEnsemble = result.mapTo(Ensemble.class);
-                return createResourceEnsembles(persistedEnsemble, request.getResources())
-                    .andThen(createEnsembleSLOs(persistedEnsemble, request.getServiceLevelObjectives()))
-                    .andThen(Single.defer(() -> {
-                        JsonObject returnObject = result.copy();
-                        returnObject.remove("slos");
-                        returnObject.remove("regions");
-                        returnObject.remove("providers");
-                        returnObject.remove("resource_types");
-                        returnObject.remove("created_by");
-                        return Single.just(returnObject);
-                    }));
-            });
+        return ensembleChecker.submitCreate(accountId, rc.body().asJsonObject());
     }
 
     @Override
     public Single<JsonObject> getOne(RoutingContext rc) {
+        long accountId = rc.user().principal().getLong("account_id");
         return HttpHelper.getLongPathParam(rc, "id")
-            .flatMap(id -> ensembleChecker.checkFindOne(id, rc.user().principal().getLong("account_id")))
+            .flatMap(id -> ensembleChecker.checkFindOne(id, accountId))
             .flatMap(this::populateEnsembleDetails);
     }
 
@@ -125,75 +101,9 @@ public class EnsembleHandler extends ValidationHandler {
 
     @Override
     protected Completable deleteOne(RoutingContext rc) {
+        long accountId = rc.user().principal().getLong("account_id");
         return HttpHelper.getLongPathParam(rc, "id")
-            .flatMap(id -> ensembleChecker.checkFindOne(id, rc.user().principal().getLong("account_id"))
-                .flatMapCompletable(this::checkDeleteEntityIsUsed)
-                .andThen(Single.just(id)))
-            .flatMapCompletable(entityChecker::submitDelete);
-    }
-
-    /**
-     * Create and persist resource ensembles with the ensemble and resourceIds.
-     *
-     * @param ensemble the ensemble
-     * @param resourceIds the list of resource ids
-     * @return a Completable
-     */
-    private Completable createResourceEnsembles(Ensemble ensemble, List<ResourceId> resourceIds) {
-        return Observable.fromIterable(resourceIds)
-            .map(resourceId -> {
-                Resource resource = new Resource();
-                resource.setResourceId(resourceId.getResourceId());
-                ResourceEnsemble resourceEnsemble = new ResourceEnsemble();
-                resourceEnsemble.setEnsemble(ensemble);
-                resourceEnsemble.setResource(resource);
-                return JsonObject.mapFrom(resourceEnsemble);
-            })
-            .toList()
-            .flatMapCompletable(resourceEnsembles -> {
-                JsonArray resourceEnsembleArray = new JsonArray(resourceEnsembles);
-                return resourceEnsembleChecker.submitCreateAll(resourceEnsembleArray);
-            });
-    }
-
-    /**
-     * Create and persist ensemble slos with the ensemble and slos.
-     *
-     * @param ensemble the ensemble
-     * @param slos the list of service level objectives
-     * @return a Completable
-     */
-    private Completable createEnsembleSLOs(Ensemble ensemble, List<ServiceLevelObjective> slos) {
-        return Observable.fromIterable(slos)
-            .map(slo -> {
-                EnsembleSLO ensembleSLO = new EnsembleSLO();
-                ensembleSLO.setName(slo.getName());
-                ensembleSLO.setExpression(slo.getExpression());
-                switch (slo.getValue().get(0).getSloValueType()) {
-                    case NUMBER:
-                        List<Double> numberValues = slo.getValue().stream()
-                            .map(value -> (Double) value.getValueNumber()).collect(Collectors.toList());
-                        ensembleSLO.setValueNumbers(numberValues);
-                        break;
-                    case STRING:
-                        List<String> stringValues = slo.getValue().stream()
-                            .map(SLOValue::getValueString).collect(Collectors.toList());
-                        ensembleSLO.setValueStrings(stringValues);
-                        break;
-                    case BOOLEAN:
-                        List<Boolean> boolValues = slo.getValue().stream()
-                            .map(SLOValue::getValueBool).collect(Collectors.toList());
-                        ensembleSLO.setValueBools(boolValues);
-                        break;
-                }
-                ensembleSLO.setEnsemble(ensemble);
-                return JsonObject.mapFrom(ensembleSLO);
-            })
-            .toList()
-            .flatMapCompletable(ensembleSLOs -> {
-                JsonArray ensembleSLOArray = new JsonArray(ensembleSLOs);
-                return ensembleSLOChecker.submitCreateAll(ensembleSLOArray);
-            });
+            .flatMapCompletable(id -> ensembleChecker.submitDelete(accountId, id));
     }
 
     /**

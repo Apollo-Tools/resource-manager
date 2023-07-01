@@ -3,6 +3,7 @@ package at.uibk.dps.rm.service.database.ensemble;
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.Ensemble;
 import at.uibk.dps.rm.repository.ensemble.EnsembleRepository;
+import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -25,8 +26,8 @@ public interface EnsembleService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static EnsembleService create(EnsembleRepository ensembleRepository, Stage.SessionFactory sessionFactory) {
-        return new EnsembleServiceImpl(ensembleRepository, sessionFactory);
+    static EnsembleService create(Stage.SessionFactory sessionFactory) {
+        return new EnsembleServiceImpl(new EnsembleRepository(), new ResourceRepository(), sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

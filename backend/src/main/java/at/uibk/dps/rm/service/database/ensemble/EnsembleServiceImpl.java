@@ -1,13 +1,10 @@
 package at.uibk.dps.rm.service.database.ensemble;
 
 import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
-import at.uibk.dps.rm.entity.dto.resource.RuntimeEnum;
 import at.uibk.dps.rm.entity.dto.slo.SLOValue;
+import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.*;
-import at.uibk.dps.rm.entity.model.Runtime;
-import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.repository.ensemble.EnsembleRepository;
-import at.uibk.dps.rm.repository.ensemble.ResourceEnsembleRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import at.uibk.dps.rm.util.validation.ServiceResultValidator;
@@ -20,6 +17,7 @@ import org.hibernate.reactive.util.impl.CompletionStages;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
@@ -34,19 +32,16 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
 
     private final ResourceRepository resourceRepository;
 
-    private final ResourceEnsembleRepository resourceEnsembleRepository;
-
     /**
      * Create an instance from the ensembleRepository.
      *
      * @param repository the ensemble repository
      */
     public EnsembleServiceImpl(EnsembleRepository repository, ResourceRepository resourceRepository,
-            ResourceEnsembleRepository resourceEnsembleRepository, Stage.SessionFactory sessionFactory) {
+            Stage.SessionFactory sessionFactory) {
         super(repository, Ensemble.class, sessionFactory);
         this.repository = repository;
         this.resourceRepository = resourceRepository;
-        this.resourceEnsembleRepository = resourceEnsembleRepository;
     }
 
     @Override
@@ -60,8 +55,8 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
                     session.persist(ensemble);
                     return ensemble;
                 })
-                .thenApply(ensemble -> {
-                    List<CompletionStage<Void>> createResourceEnsembles = request.getResources().stream()
+                .thenCompose(ensemble -> {
+                    List<CompletableFuture<Void>> createResourceEnsembles = request.getResources().stream()
                         .map(resourceId -> resourceRepository.findById(session, resourceId.getResourceId())
                             .thenAccept(resource -> {
                                 ServiceResultValidator.checkFound(resource, Resource.class);
@@ -69,41 +64,44 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
                                 resourceEnsemble.setEnsemble(ensemble);
                                 resourceEnsemble.setResource(resource);
                                 session.persist(resourceEnsemble);
-                            }))
+                            }).toCompletableFuture())
                         .collect(Collectors.toList());
-                    List<CompletionStage<Void>> createEnsembleSLOs = request.getServiceLevelObjectives().stream()
+                    List<CompletableFuture<Void>> createEnsembleSLOs = request.getServiceLevelObjectives().stream()
                         .map(slo -> {
-                            EnsembleSLO ensembleSLO = new EnsembleSLO();
-                            ensembleSLO.setName(slo.getName());
-                            ensembleSLO.setExpression(slo.getExpression());
-                            switch (slo.getValue().get(0).getSloValueType()) {
-                                case NUMBER:
-                                    List<Double> numberValues = slo.getValue().stream()
-                                        .map(value -> (Double) value.getValueNumber()).collect(Collectors.toList());
-                                    ensembleSLO.setValueNumbers(numberValues);
-                                    break;
-                                case STRING:
-                                    List<String> stringValues = slo.getValue().stream()
-                                        .map(SLOValue::getValueString).collect(Collectors.toList());
-                                    ensembleSLO.setValueStrings(stringValues);
-                                    break;
-                                case BOOLEAN:
-                                    List<Boolean> boolValues = slo.getValue().stream()
-                                        .map(SLOValue::getValueBool).collect(Collectors.toList());
-                                    ensembleSLO.setValueBools(boolValues);
-                                    break;
-                            }
-                            ensembleSLO.setEnsemble(ensemble);
+                            EnsembleSLO ensembleSLO = createEnsembleSLO(slo, ensemble);
                             session.persist(ensembleSLO);
-                            return CompletionStages.voidFuture();
+                            return CompletionStages.voidFuture().toCompletableFuture();
                         })
                         .collect(Collectors.toList());
-                    ServiceResultValidator.checkExists(existingFunction, Function.class);
-                    session.persist(function);
-                    return function;
+                    List<CompletableFuture<Void>> completionStages = new ArrayList<>();
+                    completionStages.addAll(createEnsembleSLOs);
+                    completionStages.addAll(createResourceEnsembles);
+                    return CompletableFuture.allOf(completionStages.toArray(new CompletableFuture[0]))
+                        .thenApply(result -> ensemble);
                 })
         );
-        return transactionToFuture(create).map(JsonObject::mapFrom);
+        return transactionToFuture(create).map(res -> {
+            JsonObject returnObject = JsonObject.mapFrom(res);
+            returnObject.remove("slos");
+            returnObject.remove("regions");
+            returnObject.remove("providers");
+            returnObject.remove("resource_types");
+            returnObject.remove("environments");
+            returnObject.remove("platforms");
+            returnObject.remove("created_by");
+            return returnObject;
+        });
+    }
+
+    public Future<Void> deleteFromAccount(long accountId, long ensembleId) {
+        CompletionStage<Void> delete = withTransaction(session ->
+            repository.findByIdAndAccountId(session, ensembleId, accountId)
+                .thenAccept(ensemble -> {
+                    ServiceResultValidator.checkFound(ensemble, Ensemble.class);
+                    session.remove(ensemble);
+                })
+        );
+        return transactionToFuture(delete);
     }
 
     @Override
@@ -178,5 +176,30 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
             repository.updateValidity(session, ensembleId, isValid));
         return Future.fromCompletionStage(updateValidity)
             .mapEmpty();
+    }
+
+    private EnsembleSLO createEnsembleSLO(ServiceLevelObjective slo, Ensemble ensemble) {
+        EnsembleSLO ensembleSLO = new EnsembleSLO();
+        ensembleSLO.setName(slo.getName());
+        ensembleSLO.setExpression(slo.getExpression());
+        switch (slo.getValue().get(0).getSloValueType()) {
+            case NUMBER:
+                List<Double> numberValues = slo.getValue().stream()
+                    .map(value -> (Double) value.getValueNumber()).collect(Collectors.toList());
+                ensembleSLO.setValueNumbers(numberValues);
+                break;
+            case STRING:
+                List<String> stringValues = slo.getValue().stream()
+                    .map(SLOValue::getValueString).collect(Collectors.toList());
+                ensembleSLO.setValueStrings(stringValues);
+                break;
+            case BOOLEAN:
+                List<Boolean> boolValues = slo.getValue().stream()
+                    .map(SLOValue::getValueBool).collect(Collectors.toList());
+                ensembleSLO.setValueBools(boolValues);
+                break;
+        }
+        ensembleSLO.setEnsemble(ensemble);
+        return ensembleSLO;
     }
 }
