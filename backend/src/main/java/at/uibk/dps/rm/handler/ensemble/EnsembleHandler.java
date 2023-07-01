@@ -58,7 +58,7 @@ public class EnsembleHandler extends ValidationHandler {
     public Single<JsonObject> postOne(RoutingContext rc) {
         CreateEnsembleRequest request = rc.body().asJsonObject().mapTo(CreateEnsembleRequest.class);
         long accountId = rc.user().principal().getLong("account_id");
-        Ensemble ensemble = createNewEnsemble(request, accountId);
+        Ensemble ensemble = request.getEnsemble(accountId);
         return ensembleChecker.checkExistsOneByName(ensemble.getName(), accountId)
             .andThen(Observable.fromIterable(request.getResources())
                 .flatMap(resourceId -> resourceChecker.checkExistsOne(resourceId.getResourceId())
@@ -130,28 +130,6 @@ public class EnsembleHandler extends ValidationHandler {
                 .flatMapCompletable(this::checkDeleteEntityIsUsed)
                 .andThen(Single.just(id)))
             .flatMapCompletable(entityChecker::submitDelete);
-    }
-
-    /**
-     * Create a new ensemble instance from the request and accountId
-     *
-     * @param request the createEnsembleRequest
-     * @param accountId the id of the account
-     * @return the new ensemble
-     */
-    private Ensemble createNewEnsemble(CreateEnsembleRequest request, long accountId) {
-        Account createdBy = new Account();
-        createdBy.setAccountId(accountId);
-        Ensemble ensemble = new Ensemble();
-        ensemble.setIsValid(true);
-        ensemble.setName(request.getName());
-        ensemble.setCreatedBy(createdBy);
-        ensemble.setRegions(request.getRegions());
-        ensemble.setProviders(request.getProviders());
-        ensemble.setResource_types(request.getResourceTypes());
-        ensemble.setPlatforms(request.getPlatforms());
-        ensemble.setEnvironments(request.getEnvironments());
-        return ensemble;
     }
 
     /**
