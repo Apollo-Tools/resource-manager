@@ -1,8 +1,6 @@
 package at.uibk.dps.rm.handler.account;
 
 import at.uibk.dps.rm.entity.model.Account;
-import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.util.configuration.JWTAuthProvider;
@@ -65,7 +63,7 @@ public class AccountHandlerTest {
     }
 
     @Test
-    void getOneExists(VertxTestContext testContext) {
+    void getOne(VertxTestContext testContext) {
         long accountId = 1L;
         Account entity = TestAccountProvider.createAccount(1L, "user", "password");
 
@@ -84,50 +82,12 @@ public class AccountHandlerTest {
     }
 
     @Test
-    void getOneNotFound(VertxTestContext testContext) {
-        long accountId = 1L;
-        Account account = TestAccountProvider.createAccount(1L, "user", "password");
-
-        RoutingContextMockHelper.mockUserPrincipal(rc, account);
-        when(accountChecker.checkFindOne(accountId)).thenReturn(Single.error(NotFoundException::new));
-
-        accountHandler.getOne(rc)
-            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(NotFoundException.class);
-                    testContext.completeNow();
-                })
-            );
-    }
-
-    @Test
-    void postOne(VertxTestContext testContext) {
-        Account entity = TestAccountProvider.createAccount(1L, "user", "password");
-        JsonObject requestBody = JsonObject.mapFrom(entity);
-
-        RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountChecker.hashAccountPassword(requestBody)).thenReturn(requestBody);
-        when(accountChecker.submitCreate(requestBody)).thenReturn(Single.just(requestBody));
-
-        accountHandler.postOne(rc)
-            .subscribe(result -> testContext.verify(() -> {
-                    assertThat(result.getLong("account_id")).isEqualTo(1L);
-                    assertThat(result.getString("username")).isEqualTo("user");
-                    assertThat(result.containsKey("password")).isEqualTo(false);
-                    testContext.completeNow();
-                }),
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-    }
-
-    @Test
-    void updateOneExists(VertxTestContext testContext) {
+    void updateOne(VertxTestContext testContext) {
         long entityId = 1L;
         String oldPassword = "oldpassword";
         String newPassword = "newpassword";
         Account entity = TestAccountProvider.createAccount(entityId, "user",
             passwordUtility.hashPassword(oldPassword.toCharArray()));
-        JsonObject entityJson = JsonObject.mapFrom(entity);
         JsonObject requestBody = new JsonObject("{\n" +
             "\"old_password\": \"" + oldPassword + "\",\n" +
             "\"new_password\": \"" + newPassword + "\"\n" +
@@ -135,11 +95,7 @@ public class AccountHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, entity);
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountChecker.checkLoginAccount(entity.getUsername(), entity.getPassword()))
-            .thenReturn(Single.just(entityJson));
-        when(accountChecker.checkComparePasswords(entityJson, oldPassword.toCharArray())).thenReturn(entityJson);
-        when(accountChecker.hashAccountPassword(entityJson)).thenReturn(entityJson);
-        when(accountChecker.submitUpdate(entityId, entityJson)).thenReturn(Completable.complete());
+        when(accountChecker.submitUpdate(entityId, requestBody)).thenReturn(Completable.complete());
 
         accountHandler.updateOne(rc)
             .blockingSubscribe(() -> {},
@@ -149,67 +105,11 @@ public class AccountHandlerTest {
     }
 
     @Test
-    void updateOneNotFound(VertxTestContext testContext) {
-        long entityId = 1L;
-        String oldPassword = "oldpassword";
-        String newPassword = "newpassword";
-        Account entity = TestAccountProvider.createAccount(entityId, "user",
-            passwordUtility.hashPassword(oldPassword.toCharArray()));
-        JsonObject requestBody = new JsonObject("{\n" +
-            "\"old_password\": \"" + oldPassword + "\",\n" +
-            "\"new_password\": \"" + newPassword + "\"\n" +
-            "}");
-
-        RoutingContextMockHelper.mockUserPrincipal(rc, entity);
-        RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountChecker.checkLoginAccount(entity.getUsername(), entity.getPassword()))
-            .thenReturn(Single.error(UnauthorizedException::new));
-
-        accountHandler.updateOne(rc)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(UnauthorizedException.class);
-                    testContext.completeNow();
-                })
-            );
-    }
-
-    @Test
-    void updateOneOldPasswordsNotMatching(VertxTestContext testContext) {
-        long entityId = 1L;
-        String oldPassword = "oldpassword";
-        String newPassword = "newpassword";
-        Account entity = TestAccountProvider.createAccount(entityId, "user",
-            passwordUtility.hashPassword(oldPassword.toCharArray()));
-        JsonObject entityJson = JsonObject.mapFrom(entity);
-        JsonObject requestBody = new JsonObject("{\n" +
-            "\"old_password\": \"" + oldPassword + 1234 + "\",\n" +
-            "\"new_password\": \"" + newPassword + "\"\n" +
-            "}");
-
-        RoutingContextMockHelper.mockUserPrincipal(rc, entity);
-        RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountChecker.checkLoginAccount(entity.getUsername(), entity.getPassword()))
-            .thenReturn(Single.just(entityJson));
-        when(accountChecker.checkComparePasswords(entityJson, requestBody.getString("old_password").toCharArray()))
-            .thenThrow(new UnauthorizedException());
-
-        accountHandler.updateOne(rc)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(UnauthorizedException.class);
-                    testContext.completeNow();
-                })
-            );
-    }
-
-    @Test
     void loginValid(VertxTestContext testContext) {
         long accountId = 1L;
         String username = "user";
         String password = "password";
-        Account entity = TestAccountProvider.createAccount(accountId, username,
-            passwordUtility.hashPassword(password.toCharArray()));
+        Account entity = TestAccountProvider.createAccount(accountId, username, password);
         JsonObject entityJson = JsonObject.mapFrom(entity);
         JsonObject requestBody = new JsonObject("{\n" +
             "\"username\": \"" + username + "\",\n" +
@@ -219,8 +119,6 @@ public class AccountHandlerTest {
         RoutingContextMockHelper.mockBody(rc, requestBody);
         when(accountChecker.checkLoginAccount(entity.getUsername(), entity.getPassword()))
             .thenReturn(Single.just(entityJson));
-        when(accountChecker.checkComparePasswords(entityJson, requestBody.getString("password").toCharArray()))
-            .thenReturn(entityJson);
 
         accountHandler.login(rc)
             .flatMap(result -> jwtAuthProvider.getJwtAuth().authenticate(result))
@@ -230,61 +128,5 @@ public class AccountHandlerTest {
                 testContext.completeNow();
             }),
             throwable -> testContext.verify(() -> fail("method has thrown exception")));
-    }
-
-
-
-    @Test
-    void loginAccountNotExists(VertxTestContext testContext) {
-        long accountId = 1L;
-        String username = "user";
-        String password = "password";
-        Account entity = TestAccountProvider.createAccount(accountId, username,
-            passwordUtility.hashPassword(password.toCharArray()));
-        JsonObject requestBody = new JsonObject("{\n" +
-            "\"username\": \"" + username + "\",\n" +
-            "\"password\": \"" + password + "\"\n" +
-            "}");
-
-        RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountChecker.checkLoginAccount(entity.getUsername(), entity.getPassword()))
-            .thenReturn(Single.error(UnauthorizedException::new));
-
-        accountHandler.login(rc)
-            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(UnauthorizedException.class);
-                    testContext.completeNow();
-                })
-            );
-    }
-
-    @Test
-    void loginPasswordInvalid(VertxTestContext testContext) {
-        long accountId = 1L;
-        String username = "user";
-        String password = "password";
-        Account entity = TestAccountProvider.createAccount(accountId, username,
-            passwordUtility.hashPassword(password.toCharArray()));
-        JsonObject entityJson = JsonObject.mapFrom(entity);
-        JsonObject requestBody = new JsonObject("{\n" +
-            "\"username\": \"" + username + "\",\n" +
-            "\"password\": \"" + password + 1234 + "\"\n" +
-            "}");
-
-        RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountChecker.checkLoginAccount(entity.getUsername(), entity.getPassword()))
-            .thenReturn(Single.just(entityJson));
-        when(accountChecker.checkComparePasswords(entityJson, requestBody.getString("password").toCharArray()))
-            .thenThrow(new UnauthorizedException());
-
-        accountHandler.login(rc)
-            .flatMap(result -> jwtAuthProvider.getJwtAuth().authenticate(result))
-            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(UnauthorizedException.class);
-                    testContext.completeNow();
-                })
-            );
     }
 }

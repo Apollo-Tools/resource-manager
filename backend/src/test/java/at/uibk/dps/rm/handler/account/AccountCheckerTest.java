@@ -1,12 +1,9 @@
 package at.uibk.dps.rm.handler.account;
 
 import at.uibk.dps.rm.entity.model.Account;
-import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.service.rxjava3.database.account.AccountService;
-import at.uibk.dps.rm.testutil.SingleHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
-import at.uibk.dps.rm.util.misc.PasswordUtility;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -18,7 +15,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 /**
@@ -46,7 +42,7 @@ public class AccountCheckerTest {
         String username = "user", password = "password";
         Account account = TestAccountProvider.createAccount(1L, username, password);
 
-        when(accountService.findOneByUsername(username))
+        when(accountService.loginAccount(username, password))
             .thenReturn(Single.just(JsonObject.mapFrom(account)));
 
         accountChecker.checkLoginAccount(username, password)
@@ -57,56 +53,5 @@ public class AccountCheckerTest {
                 }),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
-    }
-
-    @Test
-    void checkFindLoginAccountNotExists(VertxTestContext testContext) {
-        String username = "user", password = "password";
-        Single<JsonObject> handler = SingleHelper.getEmptySingle();
-
-        when(accountService.findOneByUsername(username)).thenReturn(handler);
-
-        accountChecker.checkLoginAccount(username, password)
-            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(UnauthorizedException.class);
-                    testContext.completeNow();
-                })
-            );
-    }
-
-    @Test
-    void checkComparePasswordsValid() {
-        String givenPassword = "password";
-        PasswordUtility passwordUtility = new PasswordUtility();
-        String hashPassword = passwordUtility.hashPassword(givenPassword.toCharArray());
-        Account account = TestAccountProvider.createAccount(1L, "user", hashPassword);
-
-        assertThatNoException().isThrownBy(() -> accountChecker
-            .checkComparePasswords(JsonObject.mapFrom(account), givenPassword.toCharArray()));
-    }
-
-    @Test
-    void checkComparePasswordsInvalid() {
-        String givenPassword = "password";
-        PasswordUtility passwordUtility = new PasswordUtility();
-        String hashPassword = passwordUtility.hashPassword(givenPassword.toCharArray());
-        Account account = TestAccountProvider.createAccount(1L, "user", hashPassword);
-
-        assertThrows(UnauthorizedException.class, () -> accountChecker
-            .checkComparePasswords(JsonObject.mapFrom(account), (givenPassword + 1).toCharArray()));
-    }
-
-    @Test
-    void hashAccountPassword() {
-        PasswordUtility passwordUtility = new PasswordUtility();
-        String givenPassword = "password";
-        Account account = TestAccountProvider.createAccount(1L, "user", givenPassword);
-
-        JsonObject result = accountChecker.hashAccountPassword(JsonObject.mapFrom(account));
-
-        assertThat(result.getLong("account_id")).isEqualTo(1L);
-        assertThat(passwordUtility.verifyPassword(result.getString("password"),
-            givenPassword.toCharArray())).isEqualTo(true);
     }
 }
