@@ -86,23 +86,14 @@ public class VPCServiceImpl extends DatabaseServiceProxy<VPC> implements VPCServ
                 })
                 .thenApply(existingVPC -> {
                     ServiceResultValidator.checkExists(existingVPC, VPC.class);
+                    Account account = new Account();
+                    account.setAccountId(accountId);
+                    vpc.setCreatedBy(account);
                     session.persist(vpc);
                     return vpc;
                 })
         );
         return transactionToFuture(create).map(this::serializeVPC);
-    }
-
-    @Override
-    public Future<Void> deleteFromAccount(long accountId, long vpcId) {
-        CompletionStage<Void> delete = withTransaction(session ->
-            repository.findByIdAndAccountId(session, vpcId, accountId)
-                .thenAccept(vpc -> {
-                    ServiceResultValidator.checkFound(vpc, VPC.class);
-                    session.remove(vpc);
-                })
-        );
-        return transactionToFuture(delete);
     }
 
     private JsonObject serializeVPC(VPC vpc) {

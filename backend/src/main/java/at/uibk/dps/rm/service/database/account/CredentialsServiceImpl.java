@@ -128,16 +128,4 @@ public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> im
             return JsonObject.mapFrom(credentials);
         });
     }
-
-    @Override
-    public Future<Void> deleteFromAccount(long accountId, long credentialsId) {
-        CompletionStage<Void> delete = withTransaction(session ->
-            repository.findByIdAndAccountId(session, credentialsId, accountId)
-                .thenAccept(credentials -> {
-                    ServiceResultValidator.checkFound(credentials, Credentials.class);
-                    session.remove(credentials);
-                })
-        );
-        return transactionToFuture(delete);
-    }
 }

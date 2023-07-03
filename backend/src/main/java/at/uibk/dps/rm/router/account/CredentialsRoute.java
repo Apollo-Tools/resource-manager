@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.router.account;
 
-import at.uibk.dps.rm.handler.ResultHandler;
+import at.uibk.dps.rm.handler.PrivateEntityResultHandler;
 import at.uibk.dps.rm.handler.account.CredentialsChecker;
 import at.uibk.dps.rm.handler.account.CredentialsHandler;
 import at.uibk.dps.rm.router.Route;
@@ -18,7 +18,7 @@ public class CredentialsRoute implements Route {
         CredentialsChecker credentialsChecker = new CredentialsChecker(serviceProxyProvider
             .getCredentialsService());
         CredentialsHandler credentialsHandler = new CredentialsHandler(credentialsChecker);
-        ResultHandler resultHandler = new ResultHandler(credentialsHandler);
+        PrivateEntityResultHandler resultHandler = new PrivateEntityResultHandler(credentialsHandler);
 
         router
             .operation("addCredentials")

@@ -2,8 +2,6 @@ package at.uibk.dps.rm.handler.resourceprovider;
 
 import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.handler.ValidationHandler;
-import at.uibk.dps.rm.util.misc.HttpHelper;
-import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -42,12 +40,5 @@ public class VPCHandler extends ValidationHandler {
     protected Single<JsonArray> getAll(RoutingContext rc) {
         long accountId = rc.user().principal().getLong("account_id");
         return vpcChecker.checkFindAll(accountId);
-    }
-
-    @Override
-    public Completable deleteOne(RoutingContext rc) {
-        long accountId = rc.user().principal().getLong("account_id");
-        return HttpHelper.getLongPathParam(rc, "id")
-            .flatMapCompletable(id -> vpcChecker.submitDelete(accountId, id));
     }
 }

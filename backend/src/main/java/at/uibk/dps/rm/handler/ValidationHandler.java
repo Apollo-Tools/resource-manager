@@ -40,6 +40,18 @@ public abstract class ValidationHandler {
     }
 
     /**
+     * Delete an entity by its id.
+     *
+     * @param rc the RoutingContext of the request
+     * @return a Completable
+     */
+    protected Completable deleteOneFromAccount(RoutingContext rc) {
+        long accountId = rc.user().principal().getLong("account_id");
+        return HttpHelper.getLongPathParam(rc, "id")
+            .flatMapCompletable(id -> entityChecker.submitDelete(accountId, id));
+    }
+
+    /**
      * Find and return an entity by its id.
      *
      * @param rc the RoutingContext of the request
@@ -72,6 +84,18 @@ public abstract class ValidationHandler {
     }
 
     /**
+     * Create a new entity for the logged-in user.
+     *
+     * @param rc the RoutingContext of the request
+     * @return a Single that emits the created entity as JsonObject
+     */
+    protected Single<JsonObject> postOneToAccount(RoutingContext rc) {
+        JsonObject requestBody = rc.body().asJsonObject();
+        long accountId = rc.user().principal().getLong("account_id");
+        return entityChecker.submitCreate(accountId, requestBody);
+    }
+
+    /**
      * Create all entities.
      *
      * @param rc the RoutingContext of the request
@@ -92,16 +116,5 @@ public abstract class ValidationHandler {
         JsonObject requestBody = rc.body().asJsonObject();
         return HttpHelper.getLongPathParam(rc, "id")
             .flatMapCompletable(id -> entityChecker.submitUpdate(id, requestBody));
-    }
-
-    // TODO: move to entity checker
-    /**
-     * Check if the entity to delete is used.
-     *
-     * @param entity the entity
-     * @return a Completable
-     */
-    protected Completable checkDeleteEntityIsUsed(JsonObject entity) {
-        return Single.just(entity).ignoreElement();
     }
 }

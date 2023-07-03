@@ -36,24 +36,6 @@ public interface EnsembleService extends DatabaseServiceInterface {
         return new EnsembleServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(Ensemble.class));
     }
 
-    /**
-     * Save a new ensemble.
-     *
-     * @param accountId the id of the account
-     * @param data the new entity
-     * @return a Future that emits the persisted entity as JsonObject
-     */
-    Future<JsonObject> saveToAccount(long accountId, JsonObject data);
-
-    /**
-     * Delete an ensemble.
-     *
-     * @param accountId the id of the account
-     * @param ensembleId the id of the ensemble
-     * @return an empty Future
-     */
-    Future<Void> deleteFromAccount(long accountId, long ensembleId);
-
 
     /**
      * Find all ensembles by their creator.

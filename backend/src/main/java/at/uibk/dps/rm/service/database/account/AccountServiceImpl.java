@@ -82,7 +82,11 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
                     return newAccount;
                 })
         );
-        return transactionToFuture(save).map(JsonObject::mapFrom);
+        return transactionToFuture(save).map(result -> {
+            JsonObject returnObject = JsonObject.mapFrom(result);
+            returnObject.remove("password");
+            return returnObject;
+        });
     }
 
     @Override

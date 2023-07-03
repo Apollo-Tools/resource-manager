@@ -38,25 +38,6 @@ public interface VPCService extends DatabaseServiceInterface {
     }
 
     /**
-     * Save a new virtual private cloud entity.
-     *
-     * @param accountId the id of the account
-     * @param data the new entity
-     * @return a Future that emits the persisted entity as JsonObject
-     */
-    Future<JsonObject> saveToAccount(long accountId, JsonObject data);
-
-    /**
-     * Delete a virtual private cloud entity.
-     *
-     * @param accountId the id of the account
-     * @param vpcId the id of the vpc
-     * @return an empty Future
-     */
-    Future<Void> deleteFromAccount(long accountId, long vpcId);
-
-
-    /**
      * Find all vpc by their creator account.
      *
      * @param accountId the id of the creator account

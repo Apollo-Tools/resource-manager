@@ -69,6 +69,17 @@ public abstract class EntityChecker {
     }
 
     /**
+     * Submit the creation of a new entity.
+     *
+     * @param accountId the id of the creator
+     * @param entity the new entity
+     * @return a Single that emits the persisted entity
+     */
+    public Single<JsonObject> submitCreate(long accountId, JsonObject entity) {
+        return service.saveToAccount(accountId, entity);
+    }
+
+    /**
      * Submit the creation of multiple new entities.
      *
      * @param entities the new entities
@@ -96,5 +107,16 @@ public abstract class EntityChecker {
      */
     public Completable submitDelete(long id) {
         return service.delete(id);
+    }
+
+    /**
+     * Submit the deletion of an entity by its id and owner.
+     *
+     * @param accountId the id of the owner
+     * @param id the id of the entity
+     * @return a Completable
+     */
+    public Completable submitDelete(long accountId, long id) {
+        return service.deleteFromAccount(accountId, id);
     }
 }

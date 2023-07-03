@@ -199,17 +199,4 @@ public class DatabaseServiceProxyTest {
                 testContext.completeNow();
         })));
     }
-
-    @Test
-    void deleteEntity(VertxTestContext testContext) {
-        long typeId = 1L;
-        CompletionStage<ResourceType> completionStage = CompletionStages.completedFuture(null);
-        doReturn(completionStage).when(testRepository).deleteById(session, typeId);
-
-        testClass.delete(typeId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result).isNull();
-                testContext.completeNow();
-        })));
-    }
 }

@@ -65,11 +65,16 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
     @Override
     public Future<JsonObject> save(JsonObject data) {
         T entity = data.mapTo(entityClass);
-        CompletionStage<T> create = withTransaction(session -> {
+        CompletionStage<T> save = withTransaction(session -> {
             session.persist(entity);
             return CompletionStages.completedFuture(entity);
         });
-        return transactionToFuture(create).map(JsonObject::mapFrom);
+        return transactionToFuture(save).map(JsonObject::mapFrom);
+    }
+
+    @Override
+    public Future<JsonObject> saveToAccount(long accountId, JsonObject data) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -130,6 +135,18 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
                 ServiceResultValidator.checkFound(entity, entityClass);
                 session.remove(entity);
             })
+        );
+        return transactionToFuture(delete);
+    }
+
+    @Override
+    public Future<Void> deleteFromAccount(long accountId, long id) {
+        CompletionStage<Void> delete = withTransaction(session ->
+            repository.findByIdAndAccountId(session, id, accountId)
+                .thenAccept(entity -> {
+                    ServiceResultValidator.checkFound(entity, entityClass);
+                    session.remove(entity);
+                })
         );
         return transactionToFuture(delete);
     }

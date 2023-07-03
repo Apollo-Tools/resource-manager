@@ -9,7 +9,6 @@ import at.uibk.dps.rm.util.misc.HttpHelper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -48,12 +47,6 @@ public class EnsembleHandler extends ValidationHandler {
         this.ensembleSLOChecker = ensembleSLOChecker;
         this.resourceChecker = resourceChecker;
         this.mapper = DatabindCodec.mapper();
-    }
-
-    @Override
-    public Single<JsonObject> postOne(RoutingContext rc) {
-        long accountId = rc.user().principal().getLong("account_id");
-        return ensembleChecker.submitCreate(accountId, rc.body().asJsonObject());
     }
 
     // TODO: create DTO and add resources and slos to result
@@ -98,13 +91,6 @@ public class EnsembleHandler extends ValidationHandler {
     public Single<JsonArray> getAll(RoutingContext rc) {
         long accountId = rc.user().principal().getLong("account_id");
         return ensembleChecker.checkFindAll(accountId);
-    }
-
-    @Override
-    protected Completable deleteOne(RoutingContext rc) {
-        long accountId = rc.user().principal().getLong("account_id");
-        return HttpHelper.getLongPathParam(rc, "id")
-            .flatMapCompletable(id -> ensembleChecker.submitDelete(accountId, id));
     }
 
     /**

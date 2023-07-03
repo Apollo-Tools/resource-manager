@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.router.ensemble;
 
 import at.uibk.dps.rm.entity.dto.ensemble.ResourceEnsembleStatus;
+import at.uibk.dps.rm.handler.PrivateEntityResultHandler;
 import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.handler.ensemble.*;
 import at.uibk.dps.rm.handler.resource.ResourceChecker;
@@ -28,7 +29,7 @@ public class EnsembleRoute implements Route {
         ResourceChecker resourceChecker = new ResourceChecker(serviceProxyProvider.getResourceService());
         EnsembleHandler ensembleHandler = new EnsembleHandler(ensembleChecker, ensembleSLOChecker, resourceChecker);
         ResourceSLOHandler resourceSLOHandler = new ResourceSLOHandler(resourceChecker);
-        ResultHandler resultHandler = new ResultHandler(ensembleHandler);
+        PrivateEntityResultHandler resultHandler = new PrivateEntityResultHandler(ensembleHandler);
 
         router
             .operation("createEnsemble")

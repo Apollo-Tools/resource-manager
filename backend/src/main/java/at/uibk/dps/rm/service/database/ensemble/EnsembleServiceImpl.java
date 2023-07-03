@@ -93,17 +93,6 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
         });
     }
 
-    public Future<Void> deleteFromAccount(long accountId, long ensembleId) {
-        CompletionStage<Void> delete = withTransaction(session ->
-            repository.findByIdAndAccountId(session, ensembleId, accountId)
-                .thenAccept(ensemble -> {
-                    ServiceResultValidator.checkFound(ensemble, Ensemble.class);
-                    session.remove(ensemble);
-                })
-        );
-        return transactionToFuture(delete);
-    }
-
     @Override
     public Future<JsonArray> findAll() {
         CompletionStage<List<Ensemble>> findAll = withSession(repository::findAll);

@@ -5,7 +5,6 @@ import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.VPCService;
-import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -41,13 +40,6 @@ public class VPCChecker extends EntityChecker {
         return vpcService.findAllByAccountId(accountId);
     }
 
-    public Single<JsonObject> submitCreate(long accountId, JsonObject requestBody) {
-        return vpcService.saveToAccount(accountId, requestBody);
-    }
-
-    public Completable submitDelete(long accountId, long vpcId) {
-        return vpcService.deleteFromAccount(accountId, vpcId);
-    }
     /**
      * Find one vpc by its region and creator.
      *

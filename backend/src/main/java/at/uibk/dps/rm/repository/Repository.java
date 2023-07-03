@@ -46,19 +46,6 @@ public abstract class Repository<E> {
     }
 
     /**
-     * Delete an entity by its id.
-     *
-     * @param id the id of the entity
-     * @return a CompletionStage that emits the row count
-     */
-    public CompletionStage<Integer> deleteById(Stage.Session session, long id) {
-        //noinspection JpaQlInspection
-        return session.createQuery("delete from " + entityClass.getName() + " where id=:id")
-                .setParameter("id", id)
-                .executeUpdate();
-    }
-
-    /**
      * Find an entity by its id.
      *
      * @param id the id of the entity
@@ -66,6 +53,17 @@ public abstract class Repository<E> {
      */
     public CompletionStage<E> findById(Stage.Session session, long id) {
         return session.find(entityClass, id);
+    }
+
+    /**
+     * Find an entity by its id and accountId.
+     *
+     * @param id the id of the entity
+     * @param accountId the id of the owner
+     * @return a CompletionStage that emits the entity if it exists, else null
+     */
+    public CompletionStage<E> findByIdAndAccountId(Stage.Session session, long id, long accountId) {
+        throw new UnsupportedOperationException();
     }
 
     /**

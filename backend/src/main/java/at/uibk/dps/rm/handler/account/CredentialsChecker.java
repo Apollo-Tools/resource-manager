@@ -6,7 +6,6 @@ import at.uibk.dps.rm.service.rxjava3.database.account.CredentialsService;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 
 /**
  * Implements methods to perform CRUD operations on the credentials entity.
@@ -27,14 +26,6 @@ public class CredentialsChecker extends EntityChecker {
     public CredentialsChecker(CredentialsService credentialsService) {
         super(credentialsService);
         this.credentialsService = credentialsService;
-    }
-
-    public Single<JsonObject> submitCreate(long accountId, JsonObject requestBody) {
-        return credentialsService.saveToAccount(accountId, requestBody);
-    }
-
-    public Completable submitDelete(long accountId, long credentialsId) {
-        return credentialsService.deleteFromAccount(accountId, credentialsId);
     }
 
     /**

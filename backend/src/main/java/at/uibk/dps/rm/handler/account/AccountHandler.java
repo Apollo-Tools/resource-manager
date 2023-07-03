@@ -41,15 +41,6 @@ public class AccountHandler extends ValidationHandler {
     }
 
     @Override
-    protected Single<JsonObject> postOne(RoutingContext rc) {
-        return super.postOne(rc)
-            .map(result -> {
-                result.remove("password");
-                return result;
-            });
-    }
-
-    @Override
     public Completable updateOne(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
         JsonObject principal = rc.user().principal();

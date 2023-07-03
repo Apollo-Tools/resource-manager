@@ -42,14 +42,6 @@ public class EnsembleChecker extends EntityChecker {
         return ErrorHandler.handleFindOne(findOneById);
     }
 
-    public Single<JsonObject> submitCreate(long accountId, JsonObject requestBody) {
-        return ensembleService.saveToAccount(accountId, requestBody);
-    }
-
-    public Completable submitDelete(long accountId, long ensembleId) {
-        return ensembleService.deleteFromAccount(accountId, ensembleId);
-    }
-
     /**
      * Check if an ensemble exists by its name and account id.
      *

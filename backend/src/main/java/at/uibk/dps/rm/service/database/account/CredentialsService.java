@@ -14,7 +14,6 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
 /**
@@ -39,24 +38,6 @@ public interface CredentialsService extends DatabaseServiceInterface {
     static CredentialsService createProxy(Vertx vertx) {
         return new CredentialsServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(Credentials.class));
     }
-
-    /**
-     * Save a new credentials entity.
-     *
-     * @param accountId the id of the account
-     * @param data the new entity
-     * @return a Future that emits the persisted entity as JsonObject
-     */
-    Future<JsonObject> saveToAccount(long accountId, JsonObject data);
-
-    /**
-     * Delete a credentials entity.
-     *
-     * @param accountId the id of the account
-     * @param credentialsId the id of the credentials
-     * @return an empty Future
-     */
-    Future<Void> deleteFromAccount(long accountId, long credentialsId);
 
     /**
      * Find all credentials by their creator account.
