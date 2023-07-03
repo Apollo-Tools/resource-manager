@@ -73,6 +73,17 @@ public abstract class ValidationHandler {
     }
 
     /**
+     * Find and return all existing entities that are linked to the logged in account.
+     *
+     * @param rc the RoutingContext of the request
+     * @return a Single that emits the found entity as JsonObject
+     */
+    protected Single<JsonArray> getAllFromAccount(RoutingContext rc) {
+        long accountId = rc.user().principal().getLong("account_id");
+        return entityChecker.checkFindAll(accountId);
+    }
+
+    /**
      * Create a new entity.
      *
      * @param rc the RoutingContext of the request

@@ -64,6 +64,14 @@ public interface DatabaseServiceInterface extends ServiceInterface {
     Future<JsonArray> findAll();
 
     /**
+     * Find all entities by the accountId.
+     *
+     * @param accountId the id of the owner
+     * @return a Future that emits all entities as JsonArray
+     */
+    Future<JsonArray> findAllByAccountId(long accountId);
+
+    /**
      * Update an existing entity.
      *
      * @param data the existing entity with updated values

@@ -87,12 +87,6 @@ public class EnsembleHandler extends ValidationHandler {
             });
     }
 
-    @Override
-    public Single<JsonArray> getAll(RoutingContext rc) {
-        long accountId = rc.user().principal().getLong("account_id");
-        return ensembleChecker.checkFindAll(accountId);
-    }
-
     /**
      * Map the ensembleSLOs model entity to the ServiceLevelObjective DTO.
      *

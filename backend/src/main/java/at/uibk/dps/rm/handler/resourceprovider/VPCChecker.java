@@ -36,10 +36,6 @@ public class VPCChecker extends EntityChecker {
         this.vpcService = vpcService;
     }
 
-    public Single<JsonArray> checkFindAll(long accountId) {
-        return vpcService.findAllByAccountId(accountId);
-    }
-
     /**
      * Find one vpc by its region and creator.
      *

@@ -115,6 +115,19 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
     }
 
     @Override
+    public Future<JsonArray> findAllByAccountId(long accountId) {
+        CompletionStage<List<T>> findAll = withSession(session -> repository.findAllByAccountId(session, accountId));
+        return Future.fromCompletionStage(findAll)
+            .map(result -> {
+                ArrayList<JsonObject> objects = new ArrayList<>();
+                for (T entity: result) {
+                    objects.add(JsonObject.mapFrom(entity));
+                }
+                return new JsonArray(objects);
+            });
+    }
+
+    @Override
     public Future<Void> update(long id, JsonObject fields) {
         CompletionStage<T> update = withTransaction(session -> repository.findById(session, id)
             .thenCompose(entity -> {

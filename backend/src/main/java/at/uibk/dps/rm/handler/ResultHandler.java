@@ -145,7 +145,7 @@ public class ResultHandler {
      * @param rc the RoutingContext of the request
      * @param result the content of the response
      */
-    private static void getFindAllResponse(final RoutingContext rc, final JsonArray result) {
+    protected static void getFindAllResponse(final RoutingContext rc, final JsonArray result) {
         rc.response().setStatusCode(200).end(result.encodePrettily());
     }
 

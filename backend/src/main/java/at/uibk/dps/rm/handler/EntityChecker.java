@@ -40,11 +40,19 @@ public abstract class EntityChecker {
     /**
      * Find all entities, that exist.
      *
-     * @return a Single that emits the list of found entities as JsonArray if found, else a
-     * NotFoundException gets thrown
+     * @return a Single that emits the list of found entities as JsonArray if found
      */
     public Single<JsonArray> checkFindAll() {
         return ErrorHandler.handleFindAll(service.findAll());
+    }
+
+    /**
+     * Find all entities by the accountId.
+     *
+     * @return a Single that emits the list of found entities as JsonArray if found
+     */
+    public Single<JsonArray> checkFindAll(long accountId) {
+        return ErrorHandler.handleFindAll(service.findAllByAccountId(accountId));
     }
 
     /**

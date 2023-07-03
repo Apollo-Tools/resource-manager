@@ -30,4 +30,11 @@ public class PrivateEntityResultHandler extends ResultHandler {
             .subscribe(() -> getSaveAllUpdateDeleteResponse(rc),
                 throwable -> handleRequestError(rc, throwable));
     }
+
+    @Override
+    public Disposable handleFindAllRequest(RoutingContext rc) {
+        return validationHandler.getAllFromAccount(rc)
+            .subscribe(result -> getFindAllResponse(rc, result),
+                throwable -> handleRequestError(rc, throwable));
+    }
 }

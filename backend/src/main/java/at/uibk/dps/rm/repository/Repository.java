@@ -78,4 +78,15 @@ public abstract class Repository<E> {
         return session.createQuery("from " + entityClass.getName() + " order by id", entityClass)
                     .getResultList();
     }
+
+    /**
+     * Find all entities by their account.
+     *
+     * @param session the database session
+     * @param accountId the id of the account
+     * @return a CompletionStage that emits a list of existing entities
+     */
+    public CompletionStage<List<E>> findAllByAccountId(Stage.Session session, long accountId) {
+        throw new UnsupportedOperationException();
+    }
 }
