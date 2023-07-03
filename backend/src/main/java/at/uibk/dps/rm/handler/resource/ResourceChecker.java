@@ -10,6 +10,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 import java.util.List;
 import java.util.Set;
@@ -36,18 +37,13 @@ public class ResourceChecker extends EntityChecker {
     }
 
     /**
-     * Find all resources by function and service level objectives.
+     * Find all resources by service level objectives.
      *
-     * @param metrics the list of metrics
-     * @param regionIds the list of region ids
-     * @param providerIds the list of provider ids
-     * @param resourceTypeIds the list of resource type ids
+     * @param requestBody the request body
      * @return a Single that emits all found resources as JsonArray
      */
-    public Single<JsonArray> checkFindAllBySLOs(List<String> metrics, List<Long> environmentIds,
-            List<Long> resourceTypeIds, List<Long> platformIds, List<Long> regionIds, List<Long> providerIds) {
-        Single<JsonArray> findAllByMultipleMetrics = resourceService.findAllBySLOs(metrics, environmentIds,
-            resourceTypeIds, platformIds, regionIds, providerIds);
+    public Single<JsonArray> checkFindAllBySLOs(JsonObject requestBody) {
+        Single<JsonArray> findAllByMultipleMetrics = resourceService.findAllBySLOs(requestBody);
         return ErrorHandler.handleFindAll(findAllByMultipleMetrics);
     }
 

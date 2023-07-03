@@ -2,6 +2,7 @@ package at.uibk.dps.rm.service.database.resource;
 
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.Resource;
+import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
@@ -11,7 +12,8 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
-import org.hibernate.reactive.stage.Stage;
+import io.vertx.core.json.JsonObject;
+import org.hibernate.reactive.stage.Stage.SessionFactory;
 
 import java.util.List;
 import java.util.Set;
@@ -28,8 +30,8 @@ public interface ResourceService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static ResourceService create(ResourceRepository resourceRepository, Stage.SessionFactory sessionFactory) {
-        return new ResourceServiceImpl(resourceRepository, sessionFactory);
+    static ResourceService create(SessionFactory sessionFactory) {
+        return new ResourceServiceImpl(new ResourceRepository(), new MetricRepository(), sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
@@ -39,18 +41,12 @@ public interface ResourceService extends DatabaseServiceInterface {
     }
 
     /**
-     * Find all resources based on the metrics, regions, resource providers and resource types.
+     * Find all resources by service level objectives.
      *
-     * @param metrics the names of the metrics
-     * @param environmentIds the ids of the environments
-     * @param resourceTypeIds the ids of the resource types
-     * @param platformIds the ids of the platforms
-     * @param regionIds the ids of the regions
-     * @param providerIds the ids of the resource providers
-     * @return a Future that emits all resource as JsonArray
+     * @param data the data containing all service level objectives
+     * @return a Future that emits all resources as JsonArray
      */
-    Future<JsonArray> findAllBySLOs(List<String> metrics, List<Long> environmentIds, List<Long> resourceTypeIds,
-        List<Long> platformIds, List<Long> regionIds, List<Long> providerIds);
+    Future<JsonArray> findAllBySLOs(JsonObject data);
 
     /**
      * Check if a resource exists by its resource type.

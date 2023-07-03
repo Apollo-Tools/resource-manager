@@ -56,6 +56,7 @@ public class EnsembleHandler extends ValidationHandler {
         return ensembleChecker.submitCreate(accountId, rc.body().asJsonObject());
     }
 
+    // TODO: create DTO and add resources and slos to result
     @Override
     public Single<JsonObject> getOne(RoutingContext rc) {
         long accountId = rc.user().principal().getLong("account_id");

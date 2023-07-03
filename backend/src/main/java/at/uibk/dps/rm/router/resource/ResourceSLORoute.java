@@ -1,14 +1,11 @@
 package at.uibk.dps.rm.router.resource;
 
-import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.handler.ResultHandler;
-import at.uibk.dps.rm.handler.metric.MetricChecker;
-import at.uibk.dps.rm.handler.metric.MetricValueChecker;
 import at.uibk.dps.rm.handler.resource.ResourceChecker;
-import at.uibk.dps.rm.handler.resource.ResourceSLOHandler;
 import at.uibk.dps.rm.handler.resource.ResourceSLOInputHandler;
 import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
+import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 /**
@@ -20,20 +17,14 @@ public class ResourceSLORoute implements Route {
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         ResourceChecker resourceChecker = new ResourceChecker(serviceProxyProvider.getResourceService());
-        MetricChecker metricChecker = new MetricChecker(serviceProxyProvider.getMetricService());
-        MetricValueChecker metricValueChecker = new MetricValueChecker(serviceProxyProvider
-                .getMetricValueService());
-        ResourceSLOHandler sloHandler = new ResourceSLOHandler(resourceChecker, metricChecker, metricValueChecker);
         ResultHandler resultHandler = new ResultHandler(null);
 
         router
-                .operation("listResourcesBySLOs")
-                .handler(ResourceSLOInputHandler::validateGetResourcesBySLOsRequest)
-                .handler(rc -> {
-                    SLORequest requestDTO = rc.body()
-                        .asJsonObject()
-                        .mapTo(SLORequest.class);
-                    resultHandler.handleFindAllRequest(rc, sloHandler.getResourcesBySLOs(requestDTO));
-                });
+            .operation("listResourcesBySLOs")
+            .handler(ResourceSLOInputHandler::validateGetResourcesBySLOsRequest)
+            .handler(rc -> {
+                JsonObject requestBody = rc.body().asJsonObject();
+                resultHandler.handleFindAllRequest(rc, resourceChecker.checkFindAllBySLOs(requestBody));
+            });
     }
 }
