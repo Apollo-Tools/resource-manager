@@ -11,6 +11,7 @@ import at.uibk.dps.rm.testutil.objectprovider.TestServiceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,11 +59,12 @@ public class ResourceCheckerTest {
         List<Long> resourceTypes = List.of();
         List<Long> platforms = List.of();
         List<Long> environments = List.of();
+        JsonObject data = new JsonObject();
 
-        when(resourceService.findAllBySLOs(metrics, environments, resourceTypes, platforms, regions, resourceProviders))
+        when(resourceService.findAllBySLOs(data))
             .thenReturn(Single.just(resourcesJson));
 
-        resourceChecker.checkFindAllBySLOs(metrics, environments, resourceTypes, platforms, regions, resourceProviders)
+        resourceChecker.checkFindAllBySLOs(data)
             .subscribe(result -> testContext.verify(() -> {
                         verifyGetAllResourceRequest(result);
                 testContext.completeNow();
@@ -80,11 +82,12 @@ public class ResourceCheckerTest {
         List<Long> resourceTypes = List.of();
         List<Long> platforms = List.of();
         List<Long> environments = List.of();
+        JsonObject data = new JsonObject();
 
-        when(resourceService.findAllBySLOs(metrics, environments, resourceTypes, platforms, regions, resourceProviders))
+        when(resourceService.findAllBySLOs(data))
             .thenReturn(Single.just(resourcesJson));
 
-        resourceChecker.checkFindAllBySLOs(metrics, environments, resourceTypes, platforms, regions, resourceProviders)
+        resourceChecker.checkFindAllBySLOs(data)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(0);
                     testContext.completeNow();

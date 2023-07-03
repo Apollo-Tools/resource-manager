@@ -9,6 +9,7 @@ import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import org.hibernate.reactive.stage.Stage;
 import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,10 +40,16 @@ public class ServiceDeploymentImplTest {
     @Mock
     ServiceDeploymentRepository repository;
 
+    @Mock
+    private Stage.SessionFactory sessionFactory;
+
+    @Mock
+    private Stage.Session session;
+
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        service = new ServiceDeploymentServiceImpl(repository);
+        service = new ServiceDeploymentServiceImpl(repository, sessionFactory);
     }
 
     @Test
@@ -54,7 +61,7 @@ public class ServiceDeploymentImplTest {
         resultList.add(entity1);
         resultList.add(entity2);
         CompletionStage<List<ServiceDeployment>> completionStage = CompletionStages.completedFuture(resultList);
-        when(repository.findAllByDeploymentId(deploymentId)).thenReturn(completionStage);
+        when(repository.findAllByDeploymentId(session, deploymentId)).thenReturn(completionStage);
 
         service.findAllByDeploymentId(deploymentId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -74,7 +81,7 @@ public class ServiceDeploymentImplTest {
         long deploymentId = 1L;
         List<ServiceDeployment> resultList = new ArrayList<>();
         CompletionStage<List<ServiceDeployment>> completionStage = CompletionStages.completedFuture(resultList);
-        when(repository.findAllByDeploymentId(deploymentId)).thenReturn(completionStage);
+        when(repository.findAllByDeploymentId(session, deploymentId)).thenReturn(completionStage);
 
         service.findAllByDeploymentId(deploymentId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -90,7 +97,7 @@ public class ServiceDeploymentImplTest {
         CompletionStage<ServiceDeployment> completionStage = CompletionStages.completedFuture(exists ?
             new ServiceDeployment() : null);
 
-        when(repository.findOneByDeploymentStatus(deploymentId, resourceDeploymentId, accountId,
+        when(repository.findOneByDeploymentStatus(session, deploymentId, resourceDeploymentId, accountId,
             DeploymentStatusValue.DEPLOYED)).thenReturn(completionStage);
 
         service.existsReadyForContainerStartupAndTermination(deploymentId, resourceDeploymentId, accountId)

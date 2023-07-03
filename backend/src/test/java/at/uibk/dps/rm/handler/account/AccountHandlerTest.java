@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.handler.account;
 
 import at.uibk.dps.rm.entity.model.Account;
-import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
@@ -107,7 +106,6 @@ public class AccountHandlerTest {
         JsonObject requestBody = JsonObject.mapFrom(entity);
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountChecker.checkForDuplicateEntity(requestBody)).thenReturn(Completable.complete());
         when(accountChecker.hashAccountPassword(requestBody)).thenReturn(requestBody);
         when(accountChecker.submitCreate(requestBody)).thenReturn(Single.just(requestBody));
 
@@ -119,24 +117,6 @@ public class AccountHandlerTest {
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-    }
-
-    @Test
-    void postOneAlreadyExists(VertxTestContext testContext) {
-        Account entity = TestAccountProvider.createAccount(1L, "user", "password");
-        JsonObject requestBody = JsonObject.mapFrom(entity);
-
-        RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountChecker.checkForDuplicateEntity(requestBody))
-            .thenReturn(Completable.error(AlreadyExistsException::new));
-
-        accountHandler.postOne(rc)
-            .subscribe(result -> testContext.verify(() -> fail("method has thrown exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
-                    testContext.completeNow();
-                })
             );
     }
 
@@ -155,10 +135,11 @@ public class AccountHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, entity);
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountChecker.checkLoginAccount(entity.getUsername())).thenReturn(Single.just(entityJson));
+        when(accountChecker.checkLoginAccount(entity.getUsername(), entity.getPassword()))
+            .thenReturn(Single.just(entityJson));
         when(accountChecker.checkComparePasswords(entityJson, oldPassword.toCharArray())).thenReturn(entityJson);
         when(accountChecker.hashAccountPassword(entityJson)).thenReturn(entityJson);
-        when(accountChecker.submitUpdate(entityJson)).thenReturn(Completable.complete());
+        when(accountChecker.submitUpdate(entityId, entityJson)).thenReturn(Completable.complete());
 
         accountHandler.updateOne(rc)
             .blockingSubscribe(() -> {},
@@ -181,7 +162,7 @@ public class AccountHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, entity);
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountChecker.checkLoginAccount(entity.getUsername()))
+        when(accountChecker.checkLoginAccount(entity.getUsername(), entity.getPassword()))
             .thenReturn(Single.error(UnauthorizedException::new));
 
         accountHandler.updateOne(rc)
@@ -208,7 +189,8 @@ public class AccountHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, entity);
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountChecker.checkLoginAccount(entity.getUsername())).thenReturn(Single.just(entityJson));
+        when(accountChecker.checkLoginAccount(entity.getUsername(), entity.getPassword()))
+            .thenReturn(Single.just(entityJson));
         when(accountChecker.checkComparePasswords(entityJson, requestBody.getString("old_password").toCharArray()))
             .thenThrow(new UnauthorizedException());
 
@@ -235,7 +217,7 @@ public class AccountHandlerTest {
             "}");
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountChecker.checkLoginAccount(entity.getUsername()))
+        when(accountChecker.checkLoginAccount(entity.getUsername(), entity.getPassword()))
             .thenReturn(Single.just(entityJson));
         when(accountChecker.checkComparePasswords(entityJson, requestBody.getString("password").toCharArray()))
             .thenReturn(entityJson);
@@ -265,7 +247,7 @@ public class AccountHandlerTest {
             "}");
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountChecker.checkLoginAccount(entity.getUsername()))
+        when(accountChecker.checkLoginAccount(entity.getUsername(), entity.getPassword()))
             .thenReturn(Single.error(UnauthorizedException::new));
 
         accountHandler.login(rc)
@@ -291,7 +273,7 @@ public class AccountHandlerTest {
             "}");
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountChecker.checkLoginAccount(entity.getUsername()))
+        when(accountChecker.checkLoginAccount(entity.getUsername(), entity.getPassword()))
             .thenReturn(Single.just(entityJson));
         when(accountChecker.checkComparePasswords(entityJson, requestBody.getString("password").toCharArray()))
             .thenThrow(new UnauthorizedException());

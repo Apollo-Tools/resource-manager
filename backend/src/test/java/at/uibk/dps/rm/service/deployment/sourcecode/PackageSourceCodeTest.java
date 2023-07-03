@@ -40,7 +40,8 @@ public class PackageSourceCodeTest {
          * @param fileSystem the vertx file system
          */
         protected ConcretePackageSourceCode(Vertx vertx, FileSystem fileSystem) {
-            super(vertx, fileSystem, TestFunctionProvider.createFunction(1L));
+            super(vertx, fileSystem, Path.of(""), TestFunctionProvider.createFunction(1L),
+                "main.py");
         }
 
         @Override
@@ -76,7 +77,7 @@ public class PackageSourceCodeTest {
             .thenReturn(Completable.complete());
         when(fileSystem.writeFile(sourceCodePath.toString(), Buffer.buffer(code))).thenReturn(Completable.complete());
 
-        packageSourceCode.composeSourceCode(rootFolder)
+        packageSourceCode.composeSourceCode()
             .blockingSubscribe(() -> {},
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
@@ -96,7 +97,7 @@ public class PackageSourceCodeTest {
         when(fileSystem.writeFile(sourceCodePath.toString(), Buffer.buffer(code)))
             .thenReturn(Completable.error(IOException::new));
 
-        packageSourceCode.composeSourceCode(rootFolder)
+        packageSourceCode.composeSourceCode()
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(IOException.class);
@@ -117,7 +118,7 @@ public class PackageSourceCodeTest {
             .thenReturn(Completable.error(IOException::new));
         when(fileSystem.writeFile(sourceCodePath.toString(), Buffer.buffer(code))).thenReturn(Completable.complete());
 
-        packageSourceCode.composeSourceCode(rootFolder)
+        packageSourceCode.composeSourceCode()
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(IOException.class);

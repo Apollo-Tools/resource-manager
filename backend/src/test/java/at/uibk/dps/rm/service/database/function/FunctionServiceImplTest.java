@@ -2,10 +2,12 @@ package at.uibk.dps.rm.service.database.function;
 
 import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.repository.function.FunctionRepository;
+import at.uibk.dps.rm.repository.function.RuntimeRepository;
 import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import org.hibernate.reactive.stage.Stage;
 import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,12 +36,21 @@ public class FunctionServiceImplTest {
     private FunctionService functionService;
 
     @Mock
-    FunctionRepository functionRepository;
+    private FunctionRepository functionRepository;
+
+    @Mock
+    private RuntimeRepository runtimeRepository;
+
+    @Mock
+    private Stage.SessionFactory sessionFactory;
+
+    @Mock
+    private Stage.Session session;
 
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        functionService = new FunctionServiceImpl(functionRepository);
+        functionService = new FunctionServiceImpl(functionRepository, runtimeRepository, sessionFactory);
     }
 
     @Test
@@ -48,7 +59,7 @@ public class FunctionServiceImplTest {
         Function entity = TestFunctionProvider.createFunction(functionId, "func","true");
         CompletionStage<Function> completionStage = CompletionStages.completedFuture(entity);
 
-        when(functionRepository.findByIdAndFetch(functionId)).thenReturn(completionStage);
+        when(functionRepository.findByIdAndFetch(session, functionId)).thenReturn(completionStage);
 
         functionService.findOne(functionId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -63,7 +74,7 @@ public class FunctionServiceImplTest {
         long functionId = 1L;
         CompletionStage<Function> completionStage = CompletionStages.completedFuture(null);
 
-        when(functionRepository.findByIdAndFetch(functionId)).thenReturn(completionStage);
+        when(functionRepository.findByIdAndFetch(session, functionId)).thenReturn(completionStage);
 
         functionService.findOne(functionId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -78,7 +89,7 @@ public class FunctionServiceImplTest {
         Function f2 = TestFunctionProvider.createFunction(2L, "func2", "false");
         CompletionStage<List<Function>> completionStage = CompletionStages.completedFuture(List.of(f1, f2));
 
-        when(functionRepository.findAllAndFetch()).thenReturn(completionStage);
+        when(functionRepository.findAllAndFetch(session)).thenReturn(completionStage);
 
         functionService.findAll()
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -95,7 +106,7 @@ public class FunctionServiceImplTest {
         long runtimeId = 2L;
         Function entity = TestFunctionProvider.createFunction(1L, name, "true");
         CompletionStage<Function> completionStage = CompletionStages.completedFuture(entity);
-        when(functionRepository.findOneByNameAndRuntimeId(name, runtimeId)).thenReturn(completionStage);
+        when(functionRepository.findOneByNameAndRuntimeId(session, name, runtimeId)).thenReturn(completionStage);
 
         functionService.existsOneByNameAndRuntimeId(name, runtimeId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -109,7 +120,7 @@ public class FunctionServiceImplTest {
         String name = "func";
         long runtimeId = 2L;
         CompletionStage<Function> completionStage = CompletionStages.completedFuture(null);
-        when(functionRepository.findOneByNameAndRuntimeId(name, runtimeId)).thenReturn(completionStage);
+        when(functionRepository.findOneByNameAndRuntimeId(session, name, runtimeId)).thenReturn(completionStage);
 
         functionService.existsOneByNameAndRuntimeId(name, runtimeId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -130,7 +141,7 @@ public class FunctionServiceImplTest {
         }
 
         CompletionStage<List<Function>> completionStage = CompletionStages.completedFuture(functions);
-        when(functionRepository.findAllByIds(functionIds)).thenReturn(completionStage);
+        when(functionRepository.findAllByIds(session, functionIds)).thenReturn(completionStage);
 
         functionService.existsAllByIds(functionIds)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {

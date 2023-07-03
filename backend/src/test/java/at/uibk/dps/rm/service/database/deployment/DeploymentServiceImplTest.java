@@ -2,11 +2,14 @@ package at.uibk.dps.rm.service.database.deployment;
 
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.repository.deployment.DeploymentRepository;
+import at.uibk.dps.rm.repository.deployment.ResourceDeploymentRepository;
+import at.uibk.dps.rm.repository.deployment.ResourceDeploymentStatusRepository;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestDeploymentProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import org.hibernate.reactive.stage.Stage;
 import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,12 +35,25 @@ public class DeploymentServiceImplTest {
     private DeploymentService deploymentService;
 
     @Mock
-    DeploymentRepository deploymentRepository;
+    private DeploymentRepository deploymentRepository;
+
+    @Mock
+    private ResourceDeploymentRepository resourceDeploymentRepository;
+
+    @Mock
+    private ResourceDeploymentStatusRepository statusRepository;
+
+    @Mock
+    private Stage.SessionFactory sessionFactory;
+
+    @Mock
+    private Stage.Session session;
 
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        deploymentService = new DeploymentServiceImpl(deploymentRepository);
+        deploymentService = new DeploymentServiceImpl(deploymentRepository, resourceDeploymentRepository,
+            statusRepository, sessionFactory);
     }
 
     @Test
@@ -49,7 +65,7 @@ public class DeploymentServiceImplTest {
         Deployment r3 = TestDeploymentProvider.createDeployment(3L, true, account);
         CompletionStage<List<Deployment>> completionStage = CompletionStages.completedFuture(List.of(r1, r2, r3));
 
-        when(deploymentRepository.findAllByAccountId(accountId)).thenReturn(completionStage);
+        when(deploymentRepository.findAllByAccountId(session, accountId)).thenReturn(completionStage);
 
         deploymentService.findAllByAccountId(accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -57,7 +73,6 @@ public class DeploymentServiceImplTest {
                 assertThat(result.getJsonObject(0).getLong("deployment_id")).isEqualTo(1L);
                 assertThat(result.getJsonObject(1).getLong("deployment_id")).isEqualTo(2L);
                 assertThat(result.getJsonObject(2).getLong("deployment_id")).isEqualTo(3L);
-                verify(deploymentRepository).findAllByAccountId(accountId);
                 testContext.completeNow();
             })));
     }
@@ -70,12 +85,11 @@ public class DeploymentServiceImplTest {
         Deployment entity = TestDeploymentProvider.createDeployment(deploymentId, true, account);
 
         CompletionStage<Deployment> completionStage = CompletionStages.completedFuture(entity);
-        when(deploymentRepository.findByIdAndAccountId(deploymentId, accountId)).thenReturn(completionStage);
+        when(deploymentRepository.findByIdAndAccountId(session, deploymentId, accountId)).thenReturn(completionStage);
 
         deploymentService.findOneByIdAndAccountId(deploymentId, accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("deployment_id")).isEqualTo(1L);
-                verify(deploymentRepository).findByIdAndAccountId(deploymentId, accountId);
                 testContext.completeNow();
             })));
     }
@@ -86,12 +100,11 @@ public class DeploymentServiceImplTest {
         long accountId = 2L;
         CompletionStage<Deployment> completionStage = CompletionStages.completedFuture(null);
 
-        when(deploymentRepository.findByIdAndAccountId(deploymentId, accountId)).thenReturn(completionStage);
+        when(deploymentRepository.findByIdAndAccountId(session, deploymentId, accountId)).thenReturn(completionStage);
 
         deploymentService.findOneByIdAndAccountId(deploymentId, accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
-                verify(deploymentRepository).findByIdAndAccountId(deploymentId, accountId);
                 testContext.completeNow();
             })));
     }

@@ -8,6 +8,7 @@ import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import org.hibernate.reactive.stage.Stage;
 import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,10 +37,16 @@ public class FunctionDeploymentServiceImplTest {
     @Mock
     FunctionDeploymentRepository repository;
 
+    @Mock
+    private Stage.SessionFactory sessionFactory;
+
+    @Mock
+    private Stage.Session session;
+
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        service = new FunctionDeploymentServiceImpl(repository);
+        service = new FunctionDeploymentServiceImpl(repository, sessionFactory);
     }
 
     @Test
@@ -51,7 +58,7 @@ public class FunctionDeploymentServiceImplTest {
         resultList.add(entity1);
         resultList.add(entity2);
         CompletionStage<List<FunctionDeployment>> completionStage = CompletionStages.completedFuture(resultList);
-        when(repository.findAllByDeploymentId(deploymentId)).thenReturn(completionStage);
+        when(repository.findAllByDeploymentId(session, deploymentId)).thenReturn(completionStage);
 
         service.findAllByDeploymentId(deploymentId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -71,7 +78,7 @@ public class FunctionDeploymentServiceImplTest {
         long resourceId = 1L;
         List<FunctionDeployment> resultList = new ArrayList<>();
         CompletionStage<List<FunctionDeployment>> completionStage = CompletionStages.completedFuture(resultList);
-        when(repository.findAllByDeploymentId(resourceId)).thenReturn(completionStage);
+        when(repository.findAllByDeploymentId(session, resourceId)).thenReturn(completionStage);
 
         service.findAllByDeploymentId(resourceId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {

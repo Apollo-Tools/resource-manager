@@ -54,24 +54,6 @@ public class MetricCheckerTest {
     }
 
     @Test
-    void checkUpdateNoDuplicateWithoutMetric(VertxTestContext testContext) {
-        String metricName = "region";
-        Metric metric = TestMetricProvider.createMetric(1L, metricName);
-        JsonObject body = JsonObject.mapFrom(metric);
-        body.remove("metric");
-        JsonObject entity = JsonObject.mapFrom(metric);
-
-        metricChecker.checkUpdateNoDuplicate(body, entity)
-            .subscribe(result -> testContext.verify(() -> {
-                    assertThat(result.getLong("metric_id")).isEqualTo(1L);
-                    assertThat(result.getString("metric")).isEqualTo(metricName);
-                    testContext.completeNow();
-                }),
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-    }
-
-    @Test
     void checkFindAllByPlatformId(VertxTestContext testContext) {
         long platformId = 1L;
         boolean required = false;

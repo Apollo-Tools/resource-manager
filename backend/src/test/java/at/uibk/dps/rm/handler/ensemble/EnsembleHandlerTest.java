@@ -54,9 +54,6 @@ public class EnsembleHandlerTest {
     private EnsembleSLOChecker ensembleSLOChecker;
 
     @Mock
-    private ResourceEnsembleChecker resourceEnsembleChecker;
-
-    @Mock
     private ResourceChecker resourceChecker;
 
     @Mock
@@ -65,8 +62,7 @@ public class EnsembleHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        ensembleHandler = new EnsembleHandler(ensembleChecker, ensembleSLOChecker, resourceEnsembleChecker,
-            resourceChecker);
+        ensembleHandler = new EnsembleHandler(ensembleChecker, ensembleSLOChecker, resourceChecker);
     }
 
     private static Stream<Arguments> providePostOneInput() {
@@ -105,8 +101,6 @@ public class EnsembleHandlerTest {
             when(resourceChecker.checkExistsOne(or(eq(1L), eq(2L)))).thenReturn(Completable.complete());
             when(ensembleChecker.submitCreate(any(JsonObject.class)))
                 .thenReturn(Single.just(JsonObject.mapFrom(ensemble)));
-            when(resourceEnsembleChecker.submitCreateAll(any(JsonArray.class)))
-                .thenReturn(Completable.complete());
             when(ensembleSLOChecker.submitCreateAll(any(JsonArray.class)))
                 .thenReturn(Completable.complete());
         }

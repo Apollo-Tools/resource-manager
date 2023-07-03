@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.handler.account;
 
 import at.uibk.dps.rm.entity.model.Account;
-import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.service.rxjava3.database.account.AccountService;
 import at.uibk.dps.rm.testutil.SingleHelper;
@@ -20,7 +19,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -45,13 +43,13 @@ public class AccountCheckerTest {
 
     @Test
     void checkFindLoginAccountExists(VertxTestContext testContext) {
-        String username = "user";
-        Account account = TestAccountProvider.createAccount(1L, username, "password");
+        String username = "user", password = "password";
+        Account account = TestAccountProvider.createAccount(1L, username, password);
 
         when(accountService.findOneByUsername(username))
             .thenReturn(Single.just(JsonObject.mapFrom(account)));
 
-        accountChecker.checkLoginAccount(username)
+        accountChecker.checkLoginAccount(username, password)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.getLong("account_id")).isEqualTo(1L);
                     assertThat(result.getString("username")).isEqualTo(username);
@@ -63,50 +61,15 @@ public class AccountCheckerTest {
 
     @Test
     void checkFindLoginAccountNotExists(VertxTestContext testContext) {
-        String username = "user";
+        String username = "user", password = "password";
         Single<JsonObject> handler = SingleHelper.getEmptySingle();
 
         when(accountService.findOneByUsername(username)).thenReturn(handler);
 
-        accountChecker.checkLoginAccount(username)
+        accountChecker.checkLoginAccount(username, password)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(UnauthorizedException.class);
-                    testContext.completeNow();
-                })
-            );
-    }
-
-    @Test
-    void checkForDuplicateEntityFalse(VertxTestContext testContext) {
-        String username = "user";
-        Account account = TestAccountProvider.createAccount(1L, username, "password");
-
-        when(accountService.existsOneByUsername(username, false))
-            .thenReturn(Single.just(false));
-
-        accountChecker.checkForDuplicateEntity(JsonObject.mapFrom(account))
-            .blockingSubscribe(() -> {
-                },
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-
-        verify(accountService).existsOneByUsername(username, false);
-        testContext.completeNow();
-    }
-
-    @Test
-    void checkForDuplicateEntityTrue(VertxTestContext testContext) {
-        String username = "user";
-        Account account = TestAccountProvider.createAccount(1L, username, "password");
-
-        when(accountService.existsOneByUsername(username, false))
-            .thenReturn(Single.just(true));
-
-        accountChecker.checkForDuplicateEntity(JsonObject.mapFrom(account))
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
                     testContext.completeNow();
                 })
             );

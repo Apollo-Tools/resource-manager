@@ -9,6 +9,7 @@ import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import org.hibernate.reactive.stage.Stage;
 import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,10 +38,16 @@ public class ResourceDeploymentServiceImplTest {
     @Mock
     ResourceDeploymentRepository repository;
 
+    @Mock
+    private Stage.SessionFactory sessionFactory;
+
+    @Mock
+    private Stage.Session session;
+
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        service = new ResourceDeploymentServiceImpl(repository);
+        service = new ResourceDeploymentServiceImpl(repository, sessionFactory);
     }
 
     @Test
@@ -52,7 +59,7 @@ public class ResourceDeploymentServiceImplTest {
         resultList.add(entity1);
         resultList.add(entity2);
         CompletionStage<List<ResourceDeployment>> completionStage = CompletionStages.completedFuture(resultList);
-        when(repository.findAllByDeploymentIdAndFetch(deploymentId)).thenReturn(completionStage);
+        when(repository.findAllByDeploymentIdAndFetch(session, deploymentId)).thenReturn(completionStage);
 
         service.findAllByDeploymentId(deploymentId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -74,12 +81,12 @@ public class ResourceDeploymentServiceImplTest {
         long deploymentId = 1L;
         List<ResourceDeployment> resultList = new ArrayList<>();
         CompletionStage<List<ResourceDeployment>> completionStage = CompletionStages.completedFuture(resultList);
-        when(repository.findAllByDeploymentIdAndFetch(deploymentId)).thenReturn(completionStage);
+        when(repository.findAllByDeploymentIdAndFetch(session, deploymentId)).thenReturn(completionStage);
 
         service.findAllByDeploymentId(deploymentId)
                 .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(0);
-                    verify(repository).findAllByDeploymentIdAndFetch(deploymentId);
+                    verify(repository).findAllByDeploymentIdAndFetch(session, deploymentId);
                     testContext.completeNow();
                 })));
     }
@@ -90,8 +97,7 @@ public class ResourceDeploymentServiceImplTest {
         String triggerUrl = "url";
         CompletionStage<Integer> completionStage = CompletionStages.completedFuture(1);
 
-        when(repository.updateTriggerUrl(functionResourceId, triggerUrl))
-            .thenReturn(completionStage);
+        when(repository.updateTriggerUrl(session, functionResourceId, triggerUrl)).thenReturn(completionStage);
 
         service.updateTriggerUrl(functionResourceId, triggerUrl)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -106,7 +112,7 @@ public class ResourceDeploymentServiceImplTest {
         DeploymentStatusValue statusValue = DeploymentStatusValue.NEW;
         CompletionStage<Integer> completionStage = CompletionStages.completedFuture(1);
 
-        when(repository.updateDeploymentStatusByDeploymentId(deploymentId, statusValue))
+        when(repository.updateDeploymentStatusByDeploymentId(session, deploymentId, statusValue))
             .thenReturn(completionStage);
 
         service.updateSetStatusByDeploymentId(deploymentId, statusValue)

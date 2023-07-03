@@ -177,7 +177,6 @@ public class ValidationHandlerTest {
         JsonObject requestBody = JsonObject.mapFrom(TestResourceProvider.createResourceType(1L, "vm"));
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(resourceTypeChecker.checkForDuplicateEntity(requestBody)).thenReturn(Completable.complete());
         when(resourceTypeChecker.submitCreate(requestBody)).thenReturn(Single.just(requestBody));
 
         testClass.postOne(rc)
@@ -187,23 +186,6 @@ public class ValidationHandlerTest {
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-    }
-
-    @Test
-    void postOneAlreadyExists(VertxTestContext testContext) {
-        JsonObject requestBody = JsonObject.mapFrom(TestResourceProvider.createResourceType(1L, "vm"));
-
-        RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(resourceTypeChecker.checkForDuplicateEntity(requestBody))
-            .thenReturn(Completable.error(AlreadyExistsException::new));
-
-        testClass.postOne(rc)
-            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
-                    testContext.completeNow();
-                })
             );
     }
 
@@ -235,8 +217,7 @@ public class ValidationHandlerTest {
         RoutingContextMockHelper.mockBody(rc, requestBody);
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
         when(resourceTypeChecker.checkFindOne(entityId)).thenReturn(Single.just(result));
-        when(resourceTypeChecker.checkUpdateNoDuplicate(requestBody, result)).thenReturn(Single.just(result));
-        when(resourceTypeChecker.submitUpdate(requestBody, result)).thenReturn(Completable.complete());
+        when(resourceTypeChecker.submitUpdate(entityId, result)).thenReturn(Completable.complete());
 
         testClass.updateOne(rc)
             .blockingSubscribe(() -> {},
@@ -273,8 +254,6 @@ public class ValidationHandlerTest {
         RoutingContextMockHelper.mockBody(rc, requestBody);
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
         when(resourceTypeChecker.checkFindOne(entityId)).thenReturn(Single.just(result));
-        when(resourceTypeChecker.checkUpdateNoDuplicate(requestBody, result))
-            .thenReturn(Single.error(AlreadyExistsException::new));
 
         testClass.updateOne(rc)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),

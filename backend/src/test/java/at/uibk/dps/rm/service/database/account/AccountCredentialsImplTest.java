@@ -7,6 +7,8 @@ import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import org.hibernate.reactive.stage.Stage.SessionFactory;
+import org.hibernate.reactive.stage.Stage.Session;
 import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,12 +33,18 @@ public class AccountCredentialsImplTest {
     private AccountCredentialsService accountCredentialsService;
 
     @Mock
-    AccountCredentialsRepository accountCredentialsRepository;
+    private AccountCredentialsRepository accountCredentialsRepository;
+
+    @Mock
+    private SessionFactory sessionFactory;
+
+    @Mock
+    private Session session;
 
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        accountCredentialsService = new AccountCredentialsServiceImpl(accountCredentialsRepository);
+        accountCredentialsService = new AccountCredentialsServiceImpl(accountCredentialsRepository, sessionFactory);
     }
 
     @Test
@@ -49,7 +57,7 @@ public class AccountCredentialsImplTest {
             .createAccountCredentials(1L, account, credentials);
         CompletionStage<AccountCredentials> completionStage = CompletionStages.completedFuture(entity);
         doReturn(completionStage).when(accountCredentialsRepository)
-            .findByCredentialsAndAccount(credentialsId, accountId);
+            .findByCredentialsAndAccount(session, credentialsId, accountId);
 
         accountCredentialsService.findOneByCredentialsAndAccount(credentialsId, accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -68,7 +76,7 @@ public class AccountCredentialsImplTest {
         long accountId = 2L;
         CompletionStage<AccountCredentials> completionStage = CompletionStages.completedFuture(null);
         doReturn(completionStage).when(accountCredentialsRepository)
-            .findByCredentialsAndAccount(credentialsId, accountId);
+            .findByCredentialsAndAccount(session, credentialsId, accountId);
 
         accountCredentialsService.findOneByCredentialsAndAccount(credentialsId, accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -87,7 +95,8 @@ public class AccountCredentialsImplTest {
         AccountCredentials entity = TestAccountProvider
             .createAccountCredentials(1L, account, credentials);
         CompletionStage<AccountCredentials> completionStage = CompletionStages.completedFuture(entity);
-        doReturn(completionStage).when(accountCredentialsRepository).findByAccountAndProvider(accountId, providerId);
+        doReturn(completionStage).when(accountCredentialsRepository)
+            .findByAccountAndProvider(session, accountId, providerId);
 
         accountCredentialsService.existsOneByAccountAndProvider(accountId, providerId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -100,7 +109,8 @@ public class AccountCredentialsImplTest {
         long accountId = 1L;
         long providerId = 2L;
         CompletionStage<AccountCredentials> completionStage = CompletionStages.completedFuture(null);
-        doReturn(completionStage).when(accountCredentialsRepository).findByAccountAndProvider(accountId, providerId);
+        doReturn(completionStage).when(accountCredentialsRepository)
+            .findByAccountAndProvider(session, accountId, providerId);
 
         accountCredentialsService.existsOneByAccountAndProvider(accountId, providerId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {

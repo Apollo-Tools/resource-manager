@@ -2,10 +2,12 @@ package at.uibk.dps.rm.service.database.service;
 
 import at.uibk.dps.rm.entity.model.Service;
 import at.uibk.dps.rm.repository.service.ServiceRepository;
+import at.uibk.dps.rm.repository.service.ServiceTypeRepository;
 import at.uibk.dps.rm.testutil.objectprovider.TestServiceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import org.hibernate.reactive.stage.Stage;
 import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,10 +38,19 @@ public class ServiceServiceImplTest {
     @Mock
     private ServiceRepository serviceRepository;
 
+    @Mock
+    private ServiceTypeRepository serviceTypeRepository;
+
+    @Mock
+    private Stage.SessionFactory sessionFactory;
+
+    @Mock
+    private Stage.Session session;
+
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        service = new ServiceServiceImpl(serviceRepository);
+        service = new ServiceServiceImpl(serviceRepository, serviceTypeRepository, sessionFactory);
     }
 
     @Test
@@ -48,7 +59,7 @@ public class ServiceServiceImplTest {
         Service entity = TestServiceProvider.createService(1L);
         CompletionStage<Service> completionStage = CompletionStages.completedFuture(entity);
 
-        when(serviceRepository.findByIdAndFetch(serviceId)).thenReturn(completionStage);
+        when(serviceRepository.findByIdAndFetch(session, serviceId)).thenReturn(completionStage);
 
         service.findOne(serviceId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -62,7 +73,7 @@ public class ServiceServiceImplTest {
         long serviceId = 1L;
         CompletionStage<Service> completionStage = CompletionStages.completedFuture(null);
 
-        when(serviceRepository.findByIdAndFetch(serviceId)).thenReturn(completionStage);
+        when(serviceRepository.findByIdAndFetch(session, serviceId)).thenReturn(completionStage);
 
         service.findOne(serviceId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -77,7 +88,7 @@ public class ServiceServiceImplTest {
         Service s2 = TestServiceProvider.createService(2L);
         CompletionStage<List<Service>> completionStage = CompletionStages.completedFuture(List.of(s1, s2));
 
-        when(serviceRepository.findAllAndFetch()).thenReturn(completionStage);
+        when(serviceRepository.findAllAndFetch(session)).thenReturn(completionStage);
 
         service.findAll()
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -94,7 +105,7 @@ public class ServiceServiceImplTest {
         Service entity = TestServiceProvider.createService(1L, serviceName);
         CompletionStage<Service> completionStage = CompletionStages.completedFuture(entity);
 
-        when(serviceRepository.findOneByName(serviceName)).thenReturn(completionStage);
+        when(serviceRepository.findOneByName(session, serviceName)).thenReturn(completionStage);
 
         service.existsOneByName(serviceName)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -108,7 +119,7 @@ public class ServiceServiceImplTest {
         String serviceName = "svc";
         CompletionStage<Service> completionStage = CompletionStages.completedFuture(null);
 
-        when(serviceRepository.findOneByName(serviceName)).thenReturn(completionStage);
+        when(serviceRepository.findOneByName(session, serviceName)).thenReturn(completionStage);
 
         service.existsOneByName(serviceName)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -129,7 +140,7 @@ public class ServiceServiceImplTest {
         }
 
         CompletionStage<List<Service>> completionStage = CompletionStages.completedFuture(services);
-        when(serviceRepository.findAllByIds(serviceIds)).thenReturn(completionStage);
+        when(serviceRepository.findAllByIds(session, serviceIds)).thenReturn(completionStage);
 
         service.existsAllByIds(serviceIds)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {

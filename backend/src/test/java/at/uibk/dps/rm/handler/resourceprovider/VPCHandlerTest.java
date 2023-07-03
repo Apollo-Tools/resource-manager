@@ -6,7 +6,6 @@ import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
-import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -38,15 +37,12 @@ public class VPCHandlerTest {
     private VPCChecker vpcChecker;
 
     @Mock
-    private RegionChecker regionChecker;
-
-    @Mock
     private RoutingContext rc;
 
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        vpcHandler = new VPCHandler(vpcChecker, regionChecker);
+        vpcHandler = new VPCHandler(vpcChecker);
     }
 
 
@@ -66,8 +62,6 @@ public class VPCHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(vpcChecker.checkForDuplicateEntity(requestBody, 1L)).thenReturn(Completable.complete());
-        when(regionChecker.checkExistsOne(1L)).thenReturn(Completable.complete());
         when(vpcChecker.submitCreate(createEntity)).thenReturn(Single.just(createEntity));
 
         vpcHandler.postOne(rc)
@@ -95,8 +89,6 @@ public class VPCHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(vpcChecker.checkForDuplicateEntity(requestBody, 1L)).thenReturn(Completable.complete());
-        when(regionChecker.checkExistsOne(1L)).thenReturn(Completable.error(NotFoundException::new));
 
         vpcHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> Assertions.fail("method did not throw exception")),
@@ -119,9 +111,6 @@ public class VPCHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(vpcChecker.checkForDuplicateEntity(requestBody, 1L))
-            .thenReturn(Completable.error(AlreadyExistsException::new));
-        when(regionChecker.checkExistsOne(1L)).thenReturn(Completable.complete());
 
         vpcHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> Assertions.fail("method did not throw exception")),

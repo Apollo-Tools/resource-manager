@@ -6,6 +6,7 @@ import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import org.hibernate.reactive.stage.Stage;
 import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,12 +31,18 @@ public class AccountServiceImplTest {
     private AccountService accountService;
 
     @Mock
-    AccountRepository accountRepository;
+    private AccountRepository accountRepository;
+
+    @Mock
+    private Stage.SessionFactory sessionFactory;
+
+    @Mock
+    private Stage.Session session;
 
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        accountService = new AccountServiceImpl(accountRepository);
+        accountService = new AccountServiceImpl(accountRepository, sessionFactory);
     }
 
     @Test
@@ -43,7 +50,7 @@ public class AccountServiceImplTest {
         String username = "user1";
         Account entity = TestAccountProvider.createAccount(1L, "user1", "password");
         CompletionStage<Account> completionStage = CompletionStages.completedFuture(entity);
-        doReturn(completionStage).when(accountRepository).findByUsername(username);
+        doReturn(completionStage).when(accountRepository).findByUsername(session, username);
 
         accountService.findOneByUsername(username)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -57,7 +64,7 @@ public class AccountServiceImplTest {
     void findEntityByUsernameNotExists(VertxTestContext testContext) {
         String username = "user1";
         CompletionStage<Account> completionStage = CompletionStages.completedFuture(null);
-        doReturn(completionStage).when(accountRepository).findByUsername(username);
+        doReturn(completionStage).when(accountRepository).findByUsername(session, username);
 
         accountService.findOneByUsername(username)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -71,7 +78,7 @@ public class AccountServiceImplTest {
         String username = "user1";
         Account entity = TestAccountProvider.createAccount(1L, "user1", "password");
         CompletionStage<Account> completionStage = CompletionStages.completedFuture(entity);
-        doReturn(completionStage).when(accountRepository).findByUsername(username, true);
+        doReturn(completionStage).when(accountRepository).findByUsername(session, username);
 
         accountService.existsOneByUsername(username, true)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -84,7 +91,7 @@ public class AccountServiceImplTest {
     void checkEntityByUsernameNotExists(VertxTestContext testContext) {
         String username = "user1";
         CompletionStage<Account> completionStage = CompletionStages.completedFuture(null);
-        doReturn(completionStage).when(accountRepository).findByUsername(username, true);
+        doReturn(completionStage).when(accountRepository).findByUsername(session, username);
 
         accountService.existsOneByUsername(username, true)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {

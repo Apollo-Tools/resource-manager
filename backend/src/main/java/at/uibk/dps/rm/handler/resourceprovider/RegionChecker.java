@@ -6,7 +6,6 @@ import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.RegionService;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 
 /**
  * Implements methods to perform CRUD operations on the region entity.
@@ -48,13 +47,5 @@ public class RegionChecker extends EntityChecker {
     public Completable checkExistsByPlatform(long regionId, long platformId) {
         Single<Boolean> checkExistsByPlatform = regionService.existsByPlatformId(regionId, platformId);
         return ErrorHandler.handleExistsOne(checkExistsByPlatform).ignoreElement();
-    }
-
-    @Override
-    public Completable checkForDuplicateEntity(JsonObject entity) {
-        Single<Boolean> existsOneByNameAndProviderId = regionService
-            .existsOneByNameAndProviderId(entity.getString("name"),
-                entity.getJsonObject("resource_provider").getLong("provider_id"));
-        return ErrorHandler.handleDuplicates(existsOneByNameAndProviderId).ignoreElement();
     }
 }

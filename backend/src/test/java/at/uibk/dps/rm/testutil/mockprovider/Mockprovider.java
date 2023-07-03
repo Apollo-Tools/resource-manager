@@ -26,7 +26,6 @@ import java.nio.file.Path;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
 /**
@@ -122,9 +121,9 @@ public class Mockprovider {
             (mock, context) -> given(mock.executeCli()).willReturn(Single.just(processOutput)));
     }
 
-    public static MockedConstruction<PackagePythonCode> mockPackagePythonCode(Path functionsDir) {
+    public static MockedConstruction<PackagePythonCode> mockPackagePythonCode() {
         return Mockito.mockConstruction(PackagePythonCode.class,
-            (mock, context) -> given(mock.composeSourceCode(eq(functionsDir)))
+            (mock, context) -> given(mock.composeSourceCode())
                 .willReturn(Completable.complete()));
     }
 

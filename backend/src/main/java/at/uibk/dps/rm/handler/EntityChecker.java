@@ -59,28 +59,6 @@ public abstract class EntityChecker {
     }
 
     /**
-     * Check if the entity violates uniqueness constraints.
-     *
-     * @param entity the entity to create
-     * @return a Completable if it does not violate uniqueness, else an AlreadyExistsException
-     * gets thrown.
-     */
-    public Completable checkForDuplicateEntity(JsonObject entity) {
-        return Single.just(entity).ignoreElement();
-    }
-
-    /**
-     * Check if an update of an entity violates uniqueness constraints.
-     *
-     * @param updateEntity the updated entity
-     * @param entity the most recent state of the entity
-     * @return a Single that emits the most recent entity
-     */
-    public Single<JsonObject> checkUpdateNoDuplicate(JsonObject updateEntity, JsonObject entity) {
-        return Single.just(entity);
-    }
-
-    /**
      * Submit the creation of a new entity.
      *
      * @param entity the new entity

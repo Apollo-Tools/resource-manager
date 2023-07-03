@@ -2,11 +2,14 @@ package at.uibk.dps.rm.service.database.resource;
 
 import at.uibk.dps.rm.entity.dto.resource.ResourceTypeEnum;
 import at.uibk.dps.rm.entity.model.Resource;
+import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
+import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import org.hibernate.reactive.stage.Stage;
 import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,10 +40,19 @@ public class ResourceServiceImplTest {
     @Mock
     private ResourceRepository resourceRepository;
 
+    @Mock
+    private MetricRepository metricRepository;
+
+    @Mock
+    private Stage.SessionFactory sessionFactory;
+
+    @Mock
+    private Stage.Session session;
+
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        resourceService = new ResourceServiceImpl(resourceRepository);
+        resourceService = new ResourceServiceImpl(resourceRepository, metricRepository, sessionFactory);
     }
 
     @Test
@@ -49,7 +61,7 @@ public class ResourceServiceImplTest {
         Resource entity = TestResourceProvider.createResource(resourceId);
         CompletionStage<Resource> completionStage = CompletionStages.completedFuture(entity);
 
-        when(resourceRepository.findByIdAndFetch(resourceId)).thenReturn(completionStage);
+        when(resourceRepository.findByIdAndFetch(session, resourceId)).thenReturn(completionStage);
 
         resourceService.findOne(resourceId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -64,7 +76,7 @@ public class ResourceServiceImplTest {
         long resourceId = 1L;
         CompletionStage<Resource> completionStage = CompletionStages.completedFuture(null);
 
-        when(resourceRepository.findByIdAndFetch(resourceId)).thenReturn(completionStage);
+        when(resourceRepository.findByIdAndFetch(session, resourceId)).thenReturn(completionStage);
 
         resourceService.findOne(resourceId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -79,7 +91,7 @@ public class ResourceServiceImplTest {
         Resource entity = new Resource();
         CompletionStage<List<Resource>> completionStage = CompletionStages.completedFuture(List.of(entity));
 
-        when(resourceRepository.findByResourceType(typeId)).thenReturn(completionStage);
+        when(resourceRepository.findByResourceType(session, typeId)).thenReturn(completionStage);
 
         resourceService.existsOneByResourceType(typeId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -93,7 +105,7 @@ public class ResourceServiceImplTest {
         long typeId = 1L;
         CompletionStage<List<Resource>> completionStage = CompletionStages.completedFuture(List.of());
 
-        when(resourceRepository.findByResourceType(typeId)).thenReturn(completionStage);
+        when(resourceRepository.findByResourceType(session, typeId)).thenReturn(completionStage);
 
         resourceService.existsOneByResourceType(typeId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -108,7 +120,7 @@ public class ResourceServiceImplTest {
         Resource r2 = TestResourceProvider.createResource(2L);
         CompletionStage<List<Resource>> completionStage = CompletionStages.completedFuture(List.of(r1, r2));
 
-        when(resourceRepository.findAllAndFetch()).thenReturn(completionStage);
+        when(resourceRepository.findAllAndFetch(session)).thenReturn(completionStage);
 
         resourceService.findAll()
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -130,10 +142,10 @@ public class ResourceServiceImplTest {
         List<Long> platforms = List.of();
         List<Long> environments = List.of();
 
-        when(resourceRepository.findAllBySLOs(metrics, environments, resourceTypes, platforms, regions, resourceProviders))
+        when(resourceRepository.findAllBySLOs(session, metrics, environments, resourceTypes, platforms, regions, resourceProviders))
             .thenReturn(completionStage);
 
-        resourceService.findAllBySLOs(metrics, environments, resourceTypes, platforms, regions, resourceProviders)
+        resourceService.findAllBySLOs(new JsonObject())
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(1);
                 assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
@@ -148,7 +160,7 @@ public class ResourceServiceImplTest {
         Resource r2 = TestResourceProvider.createResource(2L);
         CompletionStage<List<Resource>> completionStage = CompletionStages.completedFuture(List.of(r1, r2));
 
-        when(resourceRepository.findAllByEnsembleId(ensembleId)).thenReturn(completionStage);
+        when(resourceRepository.findAllByEnsembleId(session, ensembleId)).thenReturn(completionStage);
 
         resourceService.findAllByEnsembleId(ensembleId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -172,7 +184,7 @@ public class ResourceServiceImplTest {
         }
         CompletionStage<List<Resource>> completionStage = CompletionStages.completedFuture(resources);
 
-        when(resourceRepository.findAllByResourceIdsAndResourceTypes(resourceIds, resourceTypes))
+        when(resourceRepository.findAllByResourceIdsAndResourceTypes(session, resourceIds, resourceTypes))
             .thenReturn(completionStage);
 
         resourceService.existsAllByIdsAndResourceTypes(resourceIds, resourceTypes)
@@ -189,7 +201,7 @@ public class ResourceServiceImplTest {
         Resource r2 = TestResourceProvider.createResource(2L);
         CompletionStage<List<Resource>> completionStage = CompletionStages.completedFuture(List.of(r1, r2));
 
-        when(resourceRepository.findAllByResourceIdsAndFetch(resourceIds)).thenReturn(completionStage);
+        when(resourceRepository.findAllByResourceIdsAndFetch(session, resourceIds)).thenReturn(completionStage);
 
         resourceService.findAllByResourceIds(resourceIds)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {

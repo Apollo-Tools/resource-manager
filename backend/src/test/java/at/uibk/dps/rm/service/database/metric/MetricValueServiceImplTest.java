@@ -9,6 +9,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import org.hibernate.reactive.stage.Stage;
 import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,10 +39,16 @@ public class MetricValueServiceImplTest {
     @Mock
     MetricValueRepository metricValueRepository;
 
+    @Mock
+    private Stage.SessionFactory sessionFactory;
+
+    @Mock
+    private Stage.Session session;
+
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        metricValueService = new MetricValueServiceImpl(metricValueRepository);
+        metricValueService = new MetricValueServiceImpl(metricValueRepository, sessionFactory);
     }
 
     @Test
@@ -52,14 +59,13 @@ public class MetricValueServiceImplTest {
         List<JsonObject> metricValues = List.of(JsonObject.mapFrom(mv1), JsonObject.mapFrom(mv2));
         metricValues.forEach(entry -> entry.put("resource", new JsonObject("{\"resource_id\": 1}")));
 
-        when(metricValueRepository.createAll(anyList())).thenReturn(completionStage);
+        when(metricValueRepository.createAll(session, anyList())).thenReturn(completionStage);
 
         JsonArray data = new JsonArray(metricValues);
 
         metricValueService.saveAll(data)
                 .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                     assertThat(result).isNull();
-                    verify(metricValueRepository).createAll(anyList());
                     testContext.completeNow();
                 })));
     }
@@ -70,13 +76,12 @@ public class MetricValueServiceImplTest {
         MetricValue entity = new MetricValue();
         entity.setMetricValueId(entityId);
         CompletionStage<MetricValue> completionStage = CompletionStages.completedFuture(entity);
-        when(metricValueRepository.findByIdAndFetch(entityId)).thenReturn(completionStage);
+        when(metricValueRepository.findByIdAndFetch(session, entityId)).thenReturn(completionStage);
 
         metricValueService.findOne(entityId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("metric_value_id")).isEqualTo(1L);
                 assertThat(result.getJsonObject("resource")).isNull();
-                verify(metricValueRepository).findByIdAndFetch(entityId);
                 testContext.completeNow();
         })));
     }
@@ -85,12 +90,11 @@ public class MetricValueServiceImplTest {
     void findOneEntityNotExists(VertxTestContext testContext) {
         long entityId = 1L;
         CompletionStage<MetricValue> completionStage = CompletionStages.completedFuture(null);
-        when(metricValueRepository.findByIdAndFetch(entityId)).thenReturn(completionStage);
+        when(metricValueRepository.findByIdAndFetch(session, entityId)).thenReturn(completionStage);
 
         metricValueService.findOne(entityId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
-                verify(metricValueRepository).findByIdAndFetch(entityId);
                 testContext.completeNow();
         })));
     }
@@ -115,7 +119,7 @@ public class MetricValueServiceImplTest {
         metricValueList.add(entity1);
         metricValueList.add(entity2);
         CompletionStage<List<MetricValue>> completionStage = CompletionStages.completedFuture(metricValueList);
-        when(metricValueRepository.findByResourceAndFetch(resourceId)).thenReturn(completionStage);
+        when(metricValueRepository.findByResourceAndFetch(session, resourceId)).thenReturn(completionStage);
 
         metricValueService.findAllByResource(resourceId, includeValue)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -124,7 +128,6 @@ public class MetricValueServiceImplTest {
                 assertThat(result.getJsonObject(0).getDouble("value_number")).isEqualTo(10.0);
                 assertThat(result.getJsonObject(1).getLong("metric_value_id")).isEqualTo(2L);
                 assertThat(result.getJsonObject(1).getString("value_string")).isEqualTo("ubuntu");
-                verify(metricValueRepository).findByResourceAndFetch(resourceId);
                 testContext.completeNow();
         })));
     }
@@ -145,14 +148,13 @@ public class MetricValueServiceImplTest {
         metricValueList.add(entity1);
         metricValueList.add(entity2);
         CompletionStage<List<MetricValue>> completionStage = CompletionStages.completedFuture(metricValueList);
-        when(metricValueRepository.findByResourceAndFetch(resourceId)).thenReturn(completionStage);
+        when(metricValueRepository.findByResourceAndFetch(session, resourceId)).thenReturn(completionStage);
 
         metricValueService.findAllByResource(resourceId, includeValue)
                 .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(2);
                     assertThat(result.getJsonObject(0).getLong("metric_id")).isEqualTo(1L);
                     assertThat(result.getJsonObject(1).getLong("metric_id")).isEqualTo(2L);
-                    verify(metricValueRepository).findByResourceAndFetch(resourceId);
                     testContext.completeNow();
                 })));
     }
@@ -163,12 +165,11 @@ public class MetricValueServiceImplTest {
         boolean includeValue = false;
         List<MetricValue> metricValueList = new ArrayList<>();
         CompletionStage<List<MetricValue>> completionStage = CompletionStages.completedFuture(metricValueList);
-        when(metricValueRepository.findByResourceAndFetch(resourceId)).thenReturn(completionStage);
+        when(metricValueRepository.findByResourceAndFetch(session, resourceId)).thenReturn(completionStage);
 
         metricValueService.findAllByResource(resourceId, includeValue)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(0);
-                verify(metricValueRepository).findByResourceAndFetch(resourceId);
                 testContext.completeNow();
         })));
     }
@@ -181,7 +182,7 @@ public class MetricValueServiceImplTest {
         List<MetricValue> metricValueList = new ArrayList<>();
         metricValueList.add(null);
         CompletionStage<List<MetricValue>> completionStage = CompletionStages.completedFuture(metricValueList);
-        when(metricValueRepository.findByResourceAndFetch(resourceId)).thenReturn(completionStage);
+        when(metricValueRepository.findByResourceAndFetch(session, resourceId)).thenReturn(completionStage);
 
         metricValueService.findAllByResource(resourceId, includeValue)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -197,12 +198,11 @@ public class MetricValueServiceImplTest {
         MetricValue entity = new MetricValue();
         entity.setMetricValueId(3L);
         CompletionStage<MetricValue> completionStage = CompletionStages.completedFuture(entity);
-        when(metricValueRepository.findByResourceAndMetric(resourceId, metricId)).thenReturn(completionStage);
+        when(metricValueRepository.findByResourceAndMetric(session, resourceId, metricId)).thenReturn(completionStage);
 
         metricValueService.findOneByResourceAndMetric(resourceId, metricId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("metric_value_id")).isEqualTo(3L);
-                verify(metricValueRepository).findByResourceAndMetric(resourceId, metricId);
                 testContext.completeNow();
         })));
     }
@@ -212,12 +212,11 @@ public class MetricValueServiceImplTest {
         long resourceId = 1L;
         long metricId = 2L;
         CompletionStage<MetricValue> completionStage = CompletionStages.completedFuture(null);
-        when(metricValueRepository.findByResourceAndMetric(resourceId, metricId)).thenReturn(completionStage);
+        when(metricValueRepository.findByResourceAndMetric(session, resourceId, metricId)).thenReturn(completionStage);
 
         metricValueService.findOneByResourceAndMetric(resourceId, metricId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
-                verify(metricValueRepository).findByResourceAndMetric(resourceId, metricId);
                 testContext.completeNow();
         })));
     }
@@ -228,12 +227,11 @@ public class MetricValueServiceImplTest {
         long metricId = 2L;
         MetricValue entity = new MetricValue();
         CompletionStage<MetricValue> completionStage = CompletionStages.completedFuture(entity);
-        when(metricValueRepository.findByResourceAndMetric(resourceId, metricId)).thenReturn(completionStage);
+        when(metricValueRepository.findByResourceAndMetric(session, resourceId, metricId)).thenReturn(completionStage);
 
         metricValueService.existsOneByResourceAndMetric(resourceId, metricId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isEqualTo(true);
-                verify(metricValueRepository).findByResourceAndMetric(resourceId, metricId);
                 testContext.completeNow();
         })));
     }
@@ -243,12 +241,11 @@ public class MetricValueServiceImplTest {
         long resourceId = 1L;
         long metricId = 2L;
         CompletionStage<MetricValue> completionStage = CompletionStages.completedFuture(null);
-        when(metricValueRepository.findByResourceAndMetric(resourceId, metricId)).thenReturn(completionStage);
+        when(metricValueRepository.findByResourceAndMetric(session, resourceId, metricId)).thenReturn(completionStage);
 
         metricValueService.existsOneByResourceAndMetric(resourceId, metricId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isEqualTo(false);
-                verify(metricValueRepository).findByResourceAndMetric(resourceId, metricId);
                 testContext.completeNow();
         })));
     }
@@ -258,15 +255,10 @@ public class MetricValueServiceImplTest {
         long resourceId = 1L;
         long metricId = 2L;
         double valueNumber = 13.37;
-        CompletionStage<Void> completionStage = CompletionStages.completedFuture(null);
-        when(metricValueRepository.updateByResourceAndMetric(resourceId, metricId, null, valueNumber, null))
-            .thenReturn(completionStage);
 
-        metricValueService.updateByResourceAndMetric(resourceId, metricId, null, valueNumber, null)
+        metricValueService.updateByResourceAndMetric(resourceId, metricId, null, valueNumber, null, true)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
-                verify(metricValueRepository)
-                        .updateByResourceAndMetric(resourceId, metricId, null, valueNumber, null);
                 testContext.completeNow();
         })));
     }
@@ -276,12 +268,11 @@ public class MetricValueServiceImplTest {
         long resourceId = 1L;
         long metricId = 2L;
         CompletionStage<Integer> completionStage = CompletionStages.completedFuture(0);
-        when(metricValueRepository.deleteByResourceAndMetric(resourceId, metricId)).thenReturn(completionStage);
+        when(metricValueRepository.deleteByResourceAndMetric(session, resourceId, metricId)).thenReturn(completionStage);
 
         metricValueService.deleteByResourceAndMetric(resourceId, metricId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
-                verify(metricValueRepository).deleteByResourceAndMetric(resourceId, metricId);
                 testContext.completeNow();
         })));
     }

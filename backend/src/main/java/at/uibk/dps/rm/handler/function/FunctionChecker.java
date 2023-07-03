@@ -79,14 +79,6 @@ public class FunctionChecker extends EntityChecker {
         return super.submitDelete(id);
     }
 
-    @Override
-    public Completable checkForDuplicateEntity(JsonObject entity) {
-        final Single<Boolean> existsOneByNameAndRuntimeId = functionService
-            .existsOneByNameAndRuntimeId(entity.getString("name"),
-                entity.getJsonObject("runtime").getLong("runtime_id"));
-        return ErrorHandler.handleDuplicates(existsOneByNameAndRuntimeId).ignoreElement();
-    }
-
     /**
      * Check if all functions from the given list exist by their function id.
      *

@@ -2,12 +2,16 @@ package at.uibk.dps.rm.service.database.account;
 
 import at.uibk.dps.rm.entity.model.Credentials;
 import at.uibk.dps.rm.entity.model.ResourceProvider;
+import at.uibk.dps.rm.repository.account.AccountCredentialsRepository;
+import at.uibk.dps.rm.repository.account.AccountRepository;
 import at.uibk.dps.rm.repository.account.CredentialsRepository;
+import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import org.hibernate.reactive.stage.Stage;
 import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,12 +37,28 @@ public class CredentialsServiceImplTest {
     private CredentialsService credentialsService;
 
     @Mock
-    CredentialsRepository credentialsRepository;
+    private CredentialsRepository credentialsRepository;
+
+    @Mock
+    private AccountRepository accountRepository;
+
+    @Mock
+    private AccountCredentialsRepository accountCredentialsRepository;
+
+    @Mock
+    private ResourceProviderRepository resourceProviderRepository;
+
+    @Mock
+    private Stage.SessionFactory sessionFactory;
+
+    @Mock
+    private Stage.Session session;
 
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        credentialsService = new CredentialsServiceImpl(credentialsRepository);
+        credentialsService = new CredentialsServiceImpl(credentialsRepository, accountRepository,
+            accountCredentialsRepository, resourceProviderRepository, sessionFactory);
     }
 
     @Test
@@ -48,7 +68,7 @@ public class CredentialsServiceImplTest {
         Credentials entity = TestAccountProvider.createCredentials(credentialsId, resourceProvider);
         CompletionStage<Credentials> completionStage = CompletionStages.completedFuture(entity);
 
-        when(credentialsRepository.findByIdAndFetch(credentialsId)).thenReturn(completionStage);
+        when(credentialsRepository.findByIdAndFetch(session, credentialsId)).thenReturn(completionStage);
 
         credentialsService.findOne(credentialsId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -64,7 +84,7 @@ public class CredentialsServiceImplTest {
         long credentialsId = 1L;
         CompletionStage<Credentials> completionStage = CompletionStages.completedFuture(null);
 
-        when(credentialsRepository.findByIdAndFetch(credentialsId)).thenReturn(completionStage);
+        when(credentialsRepository.findByIdAndFetch(session, credentialsId)).thenReturn(completionStage);
 
         credentialsService.findOne(credentialsId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -81,7 +101,7 @@ public class CredentialsServiceImplTest {
         List<Credentials> resultList = List.of(entity1, entity2);
         CompletionStage<List<Credentials>> completionStage = CompletionStages.completedFuture(resultList);
 
-        when(credentialsRepository.findAllByAccountId(accountId)).thenReturn(completionStage);
+        when(credentialsRepository.findAllByAccountId(session, accountId)).thenReturn(completionStage);
 
         credentialsService.findAllByAccountId(accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -98,7 +118,7 @@ public class CredentialsServiceImplTest {
         List<Credentials> resultList = new ArrayList<>();
         CompletionStage<List<Credentials>> completionStage = CompletionStages.completedFuture(resultList);
 
-        when(credentialsRepository.findAllByAccountId(accountId)).thenReturn(completionStage);
+        when(credentialsRepository.findAllByAccountId(session, accountId)).thenReturn(completionStage);
 
         credentialsService.findAllByAccountId(accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -115,7 +135,7 @@ public class CredentialsServiceImplTest {
         List<Credentials> resultList = List.of(entity1, entity2);
         CompletionStage<List<Credentials>> completionStage = CompletionStages.completedFuture(resultList);
 
-        when(credentialsRepository.findAllByAccountId(accountId)).thenReturn(completionStage);
+        when(credentialsRepository.findAllByAccountId(session, accountId)).thenReturn(completionStage);
 
         credentialsService.existsAtLeastOneByAccount(accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -130,7 +150,7 @@ public class CredentialsServiceImplTest {
         List<Credentials> resultList = new ArrayList<>();
         CompletionStage<List<Credentials>> completionStage = CompletionStages.completedFuture(resultList);
 
-        when(credentialsRepository.findAllByAccountId(accountId)).thenReturn(completionStage);
+        when(credentialsRepository.findAllByAccountId(session, accountId)).thenReturn(completionStage);
 
         credentialsService.existsAtLeastOneByAccount(accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -144,7 +164,7 @@ public class CredentialsServiceImplTest {
         long accountId = 1L;
         CompletionStage<List<Credentials>> completionStage = CompletionStages.completedFuture(null);
 
-        when(credentialsRepository.findAllByAccountId(accountId)).thenReturn(completionStage);
+        when(credentialsRepository.findAllByAccountId(session, accountId)).thenReturn(completionStage);
 
         credentialsService.existsAtLeastOneByAccount(accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -160,7 +180,7 @@ public class CredentialsServiceImplTest {
         Credentials credentials = TestAccountProvider.createCredentials(1L, rp);
         CompletionStage<Credentials> completionStage = CompletionStages.completedFuture(credentials);
 
-        when(credentialsRepository.findByAccountIdAndProviderId(accountId, providerId)).thenReturn(completionStage);
+        when(credentialsRepository.findByAccountIdAndProviderId(session, accountId, providerId)).thenReturn(completionStage);
 
         credentialsService.existsOnyByAccountIdAndProviderId(accountId, providerId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -174,7 +194,7 @@ public class CredentialsServiceImplTest {
         long accountId = 1L, providerId = 2L;
         CompletionStage<Credentials> completionStage = CompletionStages.completedFuture(null);
 
-        when(credentialsRepository.findByAccountIdAndProviderId(accountId, providerId)).thenReturn(completionStage);
+        when(credentialsRepository.findByAccountIdAndProviderId(session, accountId, providerId)).thenReturn(completionStage);
 
         credentialsService.existsOnyByAccountIdAndProviderId(accountId, providerId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {

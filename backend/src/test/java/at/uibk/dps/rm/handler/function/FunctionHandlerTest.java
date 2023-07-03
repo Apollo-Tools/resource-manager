@@ -1,10 +1,8 @@
 package at.uibk.dps.rm.handler.function;
 
-import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
-import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -39,15 +37,12 @@ public class FunctionHandlerTest {
     private FunctionChecker functionChecker;
 
     @Mock
-    private RuntimeChecker runtimeChecker;
-
-    @Mock
     private RoutingContext rc;
 
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        functionHandler = new FunctionHandler(functionChecker, runtimeChecker);
+        functionHandler = new FunctionHandler(functionChecker);
     }
 
     private static Stream<Arguments> provideRequestBody() {
@@ -62,8 +57,6 @@ public class FunctionHandlerTest {
     @MethodSource("provideRequestBody")
     void postOneValid(long runtimeId, JsonObject requestBody, VertxTestContext testContext) {
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(runtimeChecker.checkExistsOne(runtimeId)).thenReturn(Completable.complete());
-        when(functionChecker.checkForDuplicateEntity(requestBody)).thenReturn(Completable.complete());
         when(functionChecker.submitCreate(requestBody)).thenReturn(Single.just(requestBody));
 
         functionHandler.postOne(rc)
@@ -80,30 +73,11 @@ public class FunctionHandlerTest {
     @MethodSource("provideRequestBody")
     void postOneRuntimeNotFound(long runtimeId, JsonObject requestBody, VertxTestContext testContext) {
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(runtimeChecker.checkExistsOne(runtimeId)).thenReturn(Completable.error(NotFoundException::new));
-        when(functionChecker.checkForDuplicateEntity(requestBody)).thenReturn(Completable.complete());
 
         functionHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> fail("method has thrown exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
-                    testContext.completeNow();
-                })
-            );
-    }
-
-    @ParameterizedTest
-    @MethodSource("provideRequestBody")
-    void postOneAlreadyExists(long runtimeId, JsonObject requestBody, VertxTestContext testContext) {
-        RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(runtimeChecker.checkExistsOne(runtimeId)).thenReturn(Completable.complete());
-        when(functionChecker.checkForDuplicateEntity(requestBody))
-            .thenReturn(Completable.error(AlreadyExistsException::new));
-
-        functionHandler.postOne(rc)
-            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
                     testContext.completeNow();
                 })
             );

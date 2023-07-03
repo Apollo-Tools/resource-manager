@@ -7,6 +7,7 @@ import at.uibk.dps.rm.testutil.objectprovider.TestDeploymentProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import org.hibernate.reactive.stage.Stage;
 import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,10 +34,16 @@ public class ResourceDeploymentStatusServiceImplTest {
     @Mock
     private ResourceDeploymentStatusRepository repository;
 
+    @Mock
+    private Stage.SessionFactory sessionFactory;
+
+    @Mock
+    private Stage.Session session;
+
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        service = new ResourceDeploymentStatusServiceImpl(repository);
+        service = new ResourceDeploymentStatusServiceImpl(repository, sessionFactory);
     }
 
     @Test
@@ -45,7 +52,7 @@ public class ResourceDeploymentStatusServiceImplTest {
         ResourceDeploymentStatus status = TestDeploymentProvider.createResourceDeploymentStatusNew();
         CompletionStage<ResourceDeploymentStatus> completionStage = CompletionStages.completedFuture(status);
 
-        when(repository.findOneByStatusValue(statusValue)).thenReturn(completionStage);
+        when(repository.findOneByStatusValue(session, statusValue)).thenReturn(completionStage);
 
         service.findOneByStatusValue(statusValue)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {

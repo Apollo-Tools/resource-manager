@@ -6,6 +6,7 @@ import at.uibk.dps.rm.testutil.objectprovider.TestMetricProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import org.hibernate.reactive.stage.Stage;
 import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,10 +35,16 @@ public class MetricServiceImplTest {
     @Mock
     MetricRepository metricRepository;
 
+    @Mock
+    private Stage.SessionFactory sessionFactory;
+
+    @Mock
+    private Stage.Session session;
+
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        metricService = new MetricServiceImpl(metricRepository);
+        metricService = new MetricServiceImpl(metricRepository, sessionFactory);
     }
 
     @Test
@@ -49,7 +56,7 @@ public class MetricServiceImplTest {
         Metric m3 = TestMetricProvider.createMetric(3L, "m3");
         CompletionStage<List<Metric>> completionStage = CompletionStages.completedFuture(List.of(m1, m2, m3));
 
-        when(metricRepository.findAllByPlatformId(resourceTypeId, required)).thenReturn(completionStage);
+        when(metricRepository.findAllByPlatformId(session, resourceTypeId, required)).thenReturn(completionStage);
 
         metricService.findAllByPlatformId(resourceTypeId, required)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -67,7 +74,7 @@ public class MetricServiceImplTest {
         boolean required = true;
         CompletionStage<List<Metric>> completionStage = CompletionStages.completedFuture(new ArrayList<>());
 
-        when(metricRepository.findAllByPlatformId(resourceTypeId, required)).thenReturn(completionStage);
+        when(metricRepository.findAllByPlatformId(session, resourceTypeId, required)).thenReturn(completionStage);
 
         metricService.findAllByPlatformId(resourceTypeId, required)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -84,13 +91,12 @@ public class MetricServiceImplTest {
         entity.setMetricId(1L);
         entity.setMetric(metric);
         CompletionStage<Metric> completionStage = CompletionStages.completedFuture(entity);
-        when(metricRepository.findByMetric(metric)).thenReturn(completionStage);
+        when(metricRepository.findByMetric(session, metric)).thenReturn(completionStage);
 
         metricService.findOneByMetric(metric)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("metric_id")).isEqualTo(1L);
                 assertThat(result.getString("metric")).isEqualTo("testmetric");
-                verify(metricRepository).findByMetric(metric);
                 testContext.completeNow();
         })));
     }
@@ -99,12 +105,11 @@ public class MetricServiceImplTest {
     void findOneByMetricNotExists(VertxTestContext testContext) {
         String metric = "testmetric";
         CompletionStage<Metric> completionStage = CompletionStages.completedFuture(null);
-        when(metricRepository.findByMetric(metric)).thenReturn(completionStage);
+        when(metricRepository.findByMetric(session, metric)).thenReturn(completionStage);
 
         metricService.findOneByMetric(metric)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
-                verify(metricRepository).findByMetric(metric);
                 testContext.completeNow();
         })));
     }

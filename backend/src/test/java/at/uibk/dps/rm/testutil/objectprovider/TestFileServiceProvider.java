@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.testutil.objectprovider;
 
+import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.deployment.module.FaasModule;
 import at.uibk.dps.rm.entity.deployment.module.TerraformModule;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
@@ -7,11 +8,11 @@ import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.model.Runtime;
 import at.uibk.dps.rm.service.deployment.terraform.*;
+import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.file.FileSystem;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,8 +24,7 @@ import java.util.List;
 public class TestFileServiceProvider {
     public static RegionFaasFileService createRegionFaasFileService(FileSystem fileSystem, Resource r1, Resource r2,
             Resource r3, Runtime runtime, Region region) {
-        Path rootFolder = Paths.get("temp\\test");
-        Path functionsDir = Path.of(String.valueOf(rootFolder), "functions");
+        DeploymentPath path = new DeploymentPath(1L, new JsonObject());
         Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime);
         Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime);
         FunctionDeployment fr1 = TestFunctionProvider.createFunctionDeployment(1L, f1, r1);
@@ -36,8 +36,8 @@ public class TestFileServiceProvider {
         FaasModule module = new FaasModule(ResourceProviderEnum.AWS, region);
         String dockerUserName = "dockerUser";
         VPC vpc = TestResourceProviderProvider.createVPC(1L, region);
-        return new RegionFaasFileService(fileSystem, rootFolder, functionsDir, region, functionDeployments,
-            deploymentId, module, dockerUserName, vpc);
+        return new RegionFaasFileService(fileSystem, path, region, functionDeployments, deploymentId, module,
+            dockerUserName, vpc);
     }
 
     public static RegionFaasFileService createRegionFaasFileServiceAllFaas(FileSystem fileSystem, Runtime runtime) {
@@ -63,8 +63,8 @@ public class TestFileServiceProvider {
         DockerCredentials credentials = new DockerCredentials();
         credentials.setUsername("user");
         credentials.setAccessToken("access-token");
-        Path functionsDir = Paths.get("temp\\test\\functions");
-        return new FunctionPrepareService(vertx, functionDeployments, functionsDir, credentials);
+        DeploymentPath path = new DeploymentPath(1L, new JsonObject());
+        return new FunctionPrepareService(vertx, functionDeployments, path, credentials);
     }
 
     public static FunctionPrepareService createFunctionFileServiceNoFunctions(Vertx vertx) {
@@ -72,8 +72,8 @@ public class TestFileServiceProvider {
         DockerCredentials credentials = new DockerCredentials();
         credentials.setUsername("user");
         credentials.setAccessToken("access-token");
-        Path functionsDir = Paths.get("temp\\test\\functions");
-        return new FunctionPrepareService(vertx, functionDeployments, functionsDir, credentials);
+        DeploymentPath path = new DeploymentPath(1L, new JsonObject());
+        return new FunctionPrepareService(vertx, functionDeployments, path, credentials);
     }
 
     public static FunctionPrepareService createFunctionFileServiceLambdaEc2Python(Vertx vertx) {

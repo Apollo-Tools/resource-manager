@@ -1,14 +1,11 @@
 package at.uibk.dps.rm.handler.service;
 
 import at.uibk.dps.rm.entity.dto.deployment.ServiceResourceIds;
-import at.uibk.dps.rm.entity.model.Service;
-import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.rxjava3.database.service.ServiceService;
 import at.uibk.dps.rm.testutil.objectprovider.TestServiceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,37 +42,6 @@ public class ServiceCheckerTest {
     void initTest() {
         JsonMapperConfig.configJsonMapper();
         serviceChecker = new ServiceChecker(serviceService);
-    }
-
-    @Test
-    void checkForDuplicateEntityFalse(VertxTestContext testContext) {
-        String name = "svc";
-        Service service = TestServiceProvider.createService(1L, name);
-
-        when(serviceService.existsOneByName(name)).thenReturn(Single.just(false));
-
-        serviceChecker.checkForDuplicateEntity(JsonObject.mapFrom(service))
-            .blockingSubscribe(() -> {
-                },
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-        testContext.completeNow();
-    }
-
-    @Test
-    void checkForDuplicateEntityTrue(VertxTestContext testContext) {
-        String name = "svc";
-        Service service = TestServiceProvider.createService(1L, name);
-
-        when(serviceService.existsOneByName(name)).thenReturn(Single.just(true));
-
-        serviceChecker.checkForDuplicateEntity(JsonObject.mapFrom(service))
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
-                    testContext.completeNow();
-                })
-            );
     }
 
     @Test

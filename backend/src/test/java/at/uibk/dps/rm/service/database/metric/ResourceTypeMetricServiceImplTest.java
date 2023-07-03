@@ -4,6 +4,7 @@ import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import org.hibernate.reactive.stage.Stage;
 import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,10 +32,16 @@ public class ResourceTypeMetricServiceImplTest {
     @Mock
     private PlatformMetricRepository repository;
 
+    @Mock
+    private Stage.SessionFactory sessionFactory;
+
+    @Mock
+    private Stage.Session session;
+
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        service = new PlatformMetricServiceImpl(repository);
+        service = new PlatformMetricServiceImpl(repository, sessionFactory);
     }
 
     @ParameterizedTest
@@ -46,7 +53,7 @@ public class ResourceTypeMetricServiceImplTest {
                                                         VertxTestContext testContext) {
         long resourceId = 1L;
         CompletionStage<Long> completionStage = CompletionStages.completedFuture(missingRtms);
-        when(repository.countMissingRequiredMetricValuesByResourceId(resourceId)).thenReturn(completionStage);
+        when(repository.countMissingRequiredMetricValuesByResourceId(session, resourceId)).thenReturn(completionStage);
 
         service.missingRequiredPlatformMetricsByResourceId(resourceId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {

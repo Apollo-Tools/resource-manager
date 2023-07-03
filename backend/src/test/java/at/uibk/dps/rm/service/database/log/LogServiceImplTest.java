@@ -6,6 +6,7 @@ import at.uibk.dps.rm.testutil.objectprovider.TestLogProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import org.hibernate.reactive.stage.Stage;
 import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,10 +35,17 @@ public class LogServiceImplTest {
     @Mock
     private LogRepository logRepository;
 
+    @Mock
+    private Stage.SessionFactory sessionFactory;
+
+    @Mock
+    private Stage.Session session;
+
+
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        logService = new LogServiceImpl(logRepository);
+        logService = new LogServiceImpl(logRepository, sessionFactory);
     }
 
     @Test
@@ -48,7 +56,7 @@ public class LogServiceImplTest {
         List<Log> logs = List.of(log1, log2);
         CompletionStage<List<Log>> completionStage = CompletionStages.completedFuture(logs);
 
-        when(logRepository.findAllByDeploymentIdAndAccountId(deploymentId, accountId)).thenReturn(completionStage);
+        when(logRepository.findAllByDeploymentIdAndAccountId(session, deploymentId, accountId)).thenReturn(completionStage);
 
         logService.findAllByDeploymentIdAndAccountId(deploymentId, accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -65,7 +73,7 @@ public class LogServiceImplTest {
         List<Log> logs = new ArrayList<>();
         CompletionStage<List<Log>> completionStage = CompletionStages.completedFuture(logs);
 
-        when(logRepository.findAllByDeploymentIdAndAccountId(deploymentId, accountId)).thenReturn(completionStage);
+        when(logRepository.findAllByDeploymentIdAndAccountId(session, deploymentId, accountId)).thenReturn(completionStage);
 
         logService.findAllByDeploymentIdAndAccountId(deploymentId, accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {

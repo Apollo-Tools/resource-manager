@@ -3,7 +3,6 @@ package at.uibk.dps.rm.handler.account;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.handler.resourceprovider.ResourceProviderChecker;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
@@ -43,19 +42,12 @@ public class CredentialsHandlerTest {
     private CredentialsChecker credentialsChecker;
 
     @Mock
-    private AccountCredentialsChecker accountCredentialsChecker;
-
-    @Mock
-    private ResourceProviderChecker resourceProviderChecker;
-
-    @Mock
     RoutingContext rc;
 
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        credentialsHandler = new CredentialsHandler(credentialsChecker, accountCredentialsChecker,
-            resourceProviderChecker);
+        credentialsHandler = new CredentialsHandler(credentialsChecker);
     }
 
 
@@ -107,27 +99,11 @@ public class CredentialsHandlerTest {
         Account account = TestAccountProvider.createAccount(accountId);
         ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(providerId);
         Credentials credentials = TestAccountProvider.createCredentials(credentialsId, resourceProvider);
-        AccountCredentials accountCredentials = TestAccountProvider
-            .createAccountCredentials(accountCredentialsId, account, credentials);
         JsonObject requestBody = JsonObject.mapFrom(credentials);
-        JsonObject accountCredentialsJson = new JsonObject("{" +
-            "\"account\":{\"account_id\": " + accountId + "}," +
-            "\"credentials\":{" +
-            "   \"credentials_id\": " + credentialsId + "," +
-            "   \"access_key\":\"accesskey\"," +
-            "   \"secret_access_key\":\"secretaccesskey\"," +
-            "   \"session_token\":\"sessiontoken\"," +
-            "   \"resource_provider\":{\"provider_id\":" + providerId + ",\"provider\":\"aws\"," +
-            "\"provider_platforms\":[],\"environment\":null,\"created_at\":null},\"created_at\":null}}");
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountCredentialsChecker.checkForDuplicateEntity(requestBody, accountId))
-            .thenReturn(Completable.complete());
-        when(resourceProviderChecker.checkExistsOne(providerId)).thenReturn(Completable.complete());
         when(credentialsChecker.submitCreate(requestBody)).thenReturn(Single.just(requestBody));
-        when(accountCredentialsChecker.submitCreate(accountCredentialsJson))
-            .thenReturn(Single.just(JsonObject.mapFrom(accountCredentials)));
 
         credentialsHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> {
@@ -152,9 +128,6 @@ public class CredentialsHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountCredentialsChecker.checkForDuplicateEntity(requestBody, accountId))
-            .thenReturn(Completable.complete());
-        when(resourceProviderChecker.checkExistsOne(providerId)).thenReturn(Completable.error(NotFoundException::new));
 
         credentialsHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
@@ -175,9 +148,6 @@ public class CredentialsHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountCredentialsChecker.checkForDuplicateEntity(requestBody, accountId))
-            .thenReturn(Completable.error(AlreadyExistsException::new));
-        when(resourceProviderChecker.checkExistsOne(providerId)).thenReturn(Completable.complete());
 
         credentialsHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
@@ -190,19 +160,14 @@ public class CredentialsHandlerTest {
 
     @Test
     void deleteOneExists(VertxTestContext testContext) {
-        long accountId = 1L, providerId = 2L, credentialsId = 3L, accountCredentialsId = 4L;
+        long accountId = 1L, providerId = 2L, credentialsId = 3L;
         Account account = TestAccountProvider.createAccount(accountId);
         ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(providerId);
         Credentials credentials = TestAccountProvider.createCredentials(credentialsId, resourceProvider);
-        AccountCredentials accountCredentials = TestAccountProvider
-            .createAccountCredentials(accountCredentialsId, account, credentials);
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(credentialsId));
         when(credentialsChecker.checkFindOne(credentialsId)).thenReturn(Single.just(JsonObject.mapFrom(credentials)));
-        when(accountCredentialsChecker.checkFindOneByCredentialsAndAccount(credentialsId, accountId))
-            .thenReturn(Single.just(JsonObject.mapFrom(accountCredentials)));
-        when(accountCredentialsChecker.submitDelete(accountCredentialsId)).thenReturn(Completable.complete());
         when(credentialsChecker.submitDelete(credentialsId)).thenReturn(Completable.complete());
 
         credentialsHandler.deleteOne(rc)
@@ -222,8 +187,6 @@ public class CredentialsHandlerTest {
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(credentialsId));
         when(credentialsChecker.checkFindOne(credentialsId)).thenReturn(Single.just(JsonObject.mapFrom(credentials)));
-        when(accountCredentialsChecker.checkFindOneByCredentialsAndAccount(credentialsId, accountId))
-            .thenReturn(Single.error(NotFoundException::new));
 
         credentialsHandler.deleteOne(rc)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),

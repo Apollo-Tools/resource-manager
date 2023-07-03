@@ -3,10 +3,12 @@ package at.uibk.dps.rm.service.database.resourceprovider;
 import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.entity.model.ResourceProvider;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
+import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import org.hibernate.reactive.stage.Stage;
 import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,12 +34,21 @@ public class RegionServiceImplTest {
     private RegionService regionService;
 
     @Mock
-    RegionRepository regionRepository;
+    private RegionRepository regionRepository;
+
+    @Mock
+    private ResourceProviderRepository providerRepository;
+
+    @Mock
+    private Stage.SessionFactory sessionFactory;
+
+    @Mock
+    private Stage.Session session;
 
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        regionService = new RegionServiceImpl(regionRepository);
+        regionService = new RegionServiceImpl(regionRepository, providerRepository, sessionFactory);
     }
 
     @Test
@@ -46,7 +57,7 @@ public class RegionServiceImplTest {
         Region entity = TestResourceProviderProvider.createRegion(regionId, "us-east");
         CompletionStage<Region> completionStage = CompletionStages.completedFuture(entity);
 
-        when(regionRepository.findByIdAndFetch(regionId)).thenReturn(completionStage);
+        when(regionRepository.findByIdAndFetch(session, regionId)).thenReturn(completionStage);
 
         regionService.findOne(regionId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -61,7 +72,7 @@ public class RegionServiceImplTest {
         long regionId = 1L;
         CompletionStage<Region> completionStage = CompletionStages.completedFuture(null);
 
-        when(regionRepository.findByIdAndFetch(regionId)).thenReturn(completionStage);
+        when(regionRepository.findByIdAndFetch(session, regionId)).thenReturn(completionStage);
 
         regionService.findOne(regionId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -76,7 +87,7 @@ public class RegionServiceImplTest {
         Region r2 = TestResourceProviderProvider.createRegion(2L, "us-west");
         CompletionStage<List<Region>> completionStage = CompletionStages.completedFuture(List.of(r1, r2));
 
-        when(regionRepository.findAllAndFetch()).thenReturn(completionStage);
+        when(regionRepository.findAllAndFetch(session)).thenReturn(completionStage);
 
         regionService.findAll()
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -97,7 +108,7 @@ public class RegionServiceImplTest {
         Region r2 = TestResourceProviderProvider.createRegion(2L, "us-west", resourceProvider);
         CompletionStage<List<Region>> completionStage = CompletionStages.completedFuture(List.of(r1, r2));
 
-        when(regionRepository.findAllByProviderId(providerId)).thenReturn(completionStage);
+        when(regionRepository.findAllByProviderId(session, providerId)).thenReturn(completionStage);
 
         regionService.findAllByProviderId(providerId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -117,7 +128,7 @@ public class RegionServiceImplTest {
         Region entity = new Region();
         CompletionStage<Region> completionStage = CompletionStages.completedFuture(entity);
 
-        when(regionRepository.findOneByNameAndProviderId(name, providerId)).thenReturn(completionStage);
+        when(regionRepository.findOneByNameAndProviderId(session, name, providerId)).thenReturn(completionStage);
 
         regionService.existsOneByNameAndProviderId(name, providerId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -132,7 +143,7 @@ public class RegionServiceImplTest {
         long providerId = 1L;
         CompletionStage<Region> completionStage = CompletionStages.completedFuture(null);
 
-        when(regionRepository.findOneByNameAndProviderId(name, providerId)).thenReturn(completionStage);
+        when(regionRepository.findOneByNameAndProviderId(session, name, providerId)).thenReturn(completionStage);
 
         regionService.existsOneByNameAndProviderId(name, providerId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
