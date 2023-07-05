@@ -6,7 +6,6 @@ import at.uibk.dps.rm.service.rxjava3.database.ensemble.ResourceEnsembleService;
 import at.uibk.dps.rm.service.rxjava3.database.log.DeploymentLogService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.PlatformMetricService;
 import at.uibk.dps.rm.service.rxjava3.database.deployment.*;
-import at.uibk.dps.rm.service.rxjava3.database.account.AccountCredentialsService;
 import at.uibk.dps.rm.service.rxjava3.database.account.AccountService;
 import at.uibk.dps.rm.service.rxjava3.database.account.CredentialsService;
 import at.uibk.dps.rm.service.rxjava3.database.function.FunctionService;
@@ -40,7 +39,6 @@ import lombok.Getter;
 @Getter
 public class ServiceProxyProvider {
     private final AccountService accountService;
-    private final AccountCredentialsService accountCredentialsService;
     private final CredentialsService credentialsService;
     private final EnsembleService ensembleService;
     private final EnsembleSLOService ensembleSLOService;
@@ -78,7 +76,6 @@ public class ServiceProxyProvider {
      */
     public ServiceProxyProvider(Vertx vertx) {
         accountService = AccountService.createProxy(vertx);
-        accountCredentialsService = AccountCredentialsService.createProxy(vertx);
         credentialsService = CredentialsService.createProxy(vertx);
         ensembleService = EnsembleService.createProxy(vertx);
         ensembleSLOService = EnsembleSLOService.createProxy(vertx);

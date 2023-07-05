@@ -10,7 +10,6 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
-import java.util.Objects;
 import java.util.concurrent.CompletionStage;
 
 /**
@@ -30,22 +29,6 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
     public AccountServiceImpl(AccountRepository repository, Stage.SessionFactory sessionFactory) {
         super(repository, Account.class, sessionFactory);
         this.repository = repository;
-    }
-
-    @Override
-    public Future<JsonObject> findOneByUsername(String username) {
-        CompletionStage<Account> findOne = withSession(session ->
-            repository.findByUsername(session, username));
-        return Future.fromCompletionStage(findOne)
-            .map(JsonObject::mapFrom);
-    }
-
-    @Override
-    public Future<Boolean> existsOneByUsername(String username, boolean isActive) {
-        CompletionStage<Account> findOne = withSession(session ->
-            repository.findByUsername(session, username));
-        return Future.fromCompletionStage(findOne)
-            .map(Objects::nonNull);
     }
 
     @Override
@@ -72,14 +55,14 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
         Account newAccount = data.mapTo(Account.class);
         CompletionStage<Account> save = withTransaction(session ->
             repository.findByUsername(session, newAccount.getUsername())
-                .thenApply(account -> {
+                .thenCompose(account -> {
                     ServiceResultValidator.checkExists(account, Account.class);
                     PasswordUtility passwordUtility = new PasswordUtility();
                     char[] password = newAccount.getPassword().toCharArray();
                     String hash = passwordUtility.hashPassword(password);
                     newAccount.setPassword(hash);
-                    session.persist(newAccount);
-                    return newAccount;
+                    return session.persist(newAccount)
+                        .thenApply(res -> newAccount);
                 })
         );
         return transactionToFuture(save).map(result -> {

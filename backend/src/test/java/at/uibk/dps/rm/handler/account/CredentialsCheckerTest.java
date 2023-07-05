@@ -40,7 +40,7 @@ public class CredentialsCheckerTest {
     void checkExistsOneByProviderIdTrue(VertxTestContext testContext) {
         long accountId = 1L, providerId = 2L;
 
-        when(credentialsService.existsOnyByAccountIdAndProviderId(accountId, providerId))
+        when(credentialsService.existsOneByAccountIdAndProviderId(accountId, providerId))
             .thenReturn(Single.just(true));
 
         credentialsChecker.checkExistsOneByProviderId(accountId, providerId)
@@ -54,7 +54,7 @@ public class CredentialsCheckerTest {
     void checkExistsOneByProviderIdFalse(VertxTestContext testContext) {
         long accountId = 1L, providerId = 2L;
 
-        when(credentialsService.existsOnyByAccountIdAndProviderId(accountId, providerId))
+        when(credentialsService.existsOneByAccountIdAndProviderId(accountId, providerId))
             .thenReturn(Single.just(false));
 
         credentialsChecker.checkExistsOneByProviderId(accountId, providerId)

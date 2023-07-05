@@ -36,23 +36,6 @@ public interface AccountService extends DatabaseServiceInterface {
     }
 
     /**
-     * Find an account by its username.
-     *
-     * @param username the username of the account
-     * @return a Future that emits the account as JsonObject if it exists, else null
-     */
-    Future<JsonObject> findOneByUsername(String username);
-
-    /**
-     * Check if an account exists by its username and active status.
-     *
-     * @param username the username of the account
-     * @param isActive the active status of the account
-     * @return a Future that emits true if the account exists, else false
-     */
-    Future<Boolean> existsOneByUsername(String username, boolean isActive);
-
-    /**
      * Login the account.
      *
      * @param username the username of the account

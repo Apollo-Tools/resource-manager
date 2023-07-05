@@ -35,7 +35,7 @@ public class CredentialsChecker extends EntityChecker {
      * @return a Completable if it exists, else a NotFoundException gets thrown
      */
     public Completable checkExistsOneByProviderId(long accountId, long providerId) {
-        Single<Boolean> existsOneByProviderId = credentialsService.existsOnyByAccountIdAndProviderId(accountId,
+        Single<Boolean> existsOneByProviderId = credentialsService.existsOneByAccountIdAndProviderId(accountId,
             providerId);
         return ErrorHandler.handleCredentialsExist(existsOneByProviderId).ignoreElement();
     }

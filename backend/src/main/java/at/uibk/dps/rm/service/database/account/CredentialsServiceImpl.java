@@ -52,19 +52,6 @@ public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> im
     }
 
     @Override
-    public Future<JsonObject> findOne(long id) {
-        CompletionStage<Credentials> findOne = withSession(session -> repository.findByIdAndFetch(session, id));
-        return Future.fromCompletionStage(findOne)
-            .map(result -> {
-                if (result != null) {
-                    result.getResourceProvider().setProviderPlatforms(null);
-                    result.getResourceProvider().setEnvironment(null);
-                }
-                return JsonObject.mapFrom(result);
-            });
-    }
-
-    @Override
     public Future<JsonArray> findAllByAccountId(long accountId) {
         CompletionStage<List<Credentials>> findAll = withSession(session ->
             repository.findAllByAccountId(session, accountId));
@@ -81,15 +68,7 @@ public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> im
     }
 
     @Override
-    public Future<Boolean> existsAtLeastOneByAccount(long accountId) {
-        CompletionStage<List<Credentials>> findAll = withSession(session ->
-            repository.findAllByAccountId(session, accountId));
-        return Future.fromCompletionStage(findAll)
-            .map(result -> result != null && !result.isEmpty());
-    }
-
-    @Override
-    public Future<Boolean> existsOnyByAccountIdAndProviderId(long accountId, long providerId) {
+    public Future<Boolean> existsOneByAccountIdAndProviderId(long accountId, long providerId) {
         CompletionStage<Credentials> findOne = withSession(session ->
             repository.findByAccountIdAndProviderId(session, accountId, providerId));
         return Future.fromCompletionStage(findOne)
@@ -111,17 +90,20 @@ public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> im
                     newCredentials.setResourceProvider(provider);
                     return accountRepository.findById(session, accountId);
                 })
-                .thenApply(account -> {
+                .thenCompose(account -> {
                     if (account == null) {
                         throw new UnauthorizedException();
                     }
-                    session.persist(newCredentials);
-                    AccountCredentials accountCredentials = new AccountCredentials();
-                    accountCredentials.setCredentials(newCredentials);
-                    accountCredentials.setAccount(account);
-                    session.persist(newCredentials, accountCredentials);
-                    return newCredentials;
+                    return session.persist(newCredentials)
+                        .thenApply(res -> {
+                            AccountCredentials accountCredentials = new AccountCredentials();
+                            accountCredentials.setCredentials(newCredentials);
+                            accountCredentials.setAccount(account);
+                            return accountCredentials;
+                        });
                 })
+                .thenCompose(accountCredentials -> session.persist(accountCredentials)
+                    .thenApply(res -> newCredentials))
         );
         return transactionToFuture(save).map(credentials -> {
             newCredentials.setResourceProvider(null);
