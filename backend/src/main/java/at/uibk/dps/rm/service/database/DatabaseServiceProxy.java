@@ -12,7 +12,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage.Session;
 import org.hibernate.reactive.stage.Stage.SessionFactory;
-import org.hibernate.reactive.util.impl.CompletionStages;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,10 +64,8 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
     @Override
     public Future<JsonObject> save(JsonObject data) {
         T entity = data.mapTo(entityClass);
-        CompletionStage<T> save = withTransaction(session -> {
-            session.persist(entity);
-            return CompletionStages.completedFuture(entity);
-        });
+        CompletionStage<T> save = withTransaction(session -> session.persist(entity)
+            .thenApply(res -> entity));
         return transactionToFuture(save).map(JsonObject::mapFrom);
     }
 
