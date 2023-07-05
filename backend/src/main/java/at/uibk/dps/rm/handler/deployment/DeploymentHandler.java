@@ -53,7 +53,7 @@ public class DeploymentHandler extends ValidationHandler {
 
 
     //TODO: move this to the router
-    private final DeploymentExecutionHandler deploymentHandler;
+    private final DeploymentExecutionHandler deploymentExecutionHandler;
 
 
     //TODO: move this to the router
@@ -65,18 +65,18 @@ public class DeploymentHandler extends ValidationHandler {
 
     /**
      * Create an instance from the deploymentChecker, resourceDeploymentChecker, statusChecker,
-     * deploymentHandler, deploymentErrorHandler and preconditionHandler
+     * deploymentExecutionHandler, deploymentErrorHandler and preconditionHandler
      *
      * @param deploymentChecker the deployment checker
      * @param resourceDeploymentChecker the resource deployment checker
      * @param statusChecker the status checker
-     * @param deploymentHandler the deployment handler
+     * @param deploymentExecutionHandler the deployment execution handler
      * @param deploymentErrorHandler the deployment error handler
      * @param preconditionHandler the precondition handler
      */
     public DeploymentHandler(DeploymentChecker deploymentChecker, ResourceDeploymentChecker resourceDeploymentChecker,
           FunctionDeploymentChecker functionDeploymentChecker, ServiceDeploymentChecker serviceDeploymentChecker,
-          ResourceDeploymentStatusChecker statusChecker, DeploymentExecutionHandler deploymentHandler,
+          ResourceDeploymentStatusChecker statusChecker, DeploymentExecutionHandler deploymentExecutionHandler,
           DeploymentErrorHandler deploymentErrorHandler, DeploymentPreconditionHandler preconditionHandler) {
         super(deploymentChecker);
         this.deploymentChecker = deploymentChecker;
@@ -84,7 +84,7 @@ public class DeploymentHandler extends ValidationHandler {
         this.functionDeploymentChecker = functionDeploymentChecker;
         this.serviceDeploymentChecker = serviceDeploymentChecker;
         this.statusChecker = statusChecker;
-        this.deploymentHandler = deploymentHandler;
+        this.deploymentExecutionHandler = deploymentExecutionHandler;
         this.deploymentErrorHandler = deploymentErrorHandler;
         this.preconditionHandler = preconditionHandler;
     }
@@ -264,7 +264,7 @@ public class DeploymentHandler extends ValidationHandler {
     // TODO: add check for kubeconfig
     private void initiateDeployment(Deployment deployment, long accountId, DeployResourcesRequest requestDTO,
                                     List<VPC> vpcList) {
-        deploymentHandler
+        deploymentExecutionHandler
             .deployResources(deployment, accountId, requestDTO.getDockerCredentials(), requestDTO.getKubeConfig(),
                 vpcList)
             .andThen(Completable.defer(() ->
@@ -284,7 +284,7 @@ public class DeploymentHandler extends ValidationHandler {
      */
     private void initiateTermination(Deployment deployment, long accountId) {
         deploymentChecker.checkFindOne(deployment.getDeploymentId(), accountId)
-            .flatMapCompletable(res -> deploymentHandler.terminateResources(deployment, accountId))
+            .flatMapCompletable(res -> deploymentExecutionHandler.terminateResources(deployment, accountId))
             .andThen(Completable.defer(() ->
                 resourceDeploymentChecker.submitUpdateStatus(deployment.getDeploymentId(),
                     DeploymentStatusValue.TERMINATED)))

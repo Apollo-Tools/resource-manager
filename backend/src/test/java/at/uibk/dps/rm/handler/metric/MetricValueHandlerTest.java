@@ -16,9 +16,9 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -155,78 +155,23 @@ public class MetricValueHandlerTest {
         testContext.completeNow();
     }
 
-    @ParameterizedTest
-    @CsvSource({
-        "number, 4",
-        "string, \"four\"",
-        "boolean, true"
-    })
-    void updateOneValid(String metricTypeName, String value, VertxTestContext testContext) {
-        long resourceId = 1;
-        long metricId = 1;
-        JsonObject requestBody = new JsonObject("{\"value\": " + value + "}");
+    @Test
+    void updateOne(VertxTestContext testContext) {
+        long resourceId = 1L;
+        long metricId = 2L;
+        JsonObject requestBody = new JsonObject("{\"value\": 8}");
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
         when(rc.pathParam("resourceId")).thenReturn(String.valueOf(resourceId));
         when(rc.pathParam("metricId")).thenReturn(String.valueOf(metricId));
-        when(resourceChecker.checkExistsOne(resourceId)).thenReturn(Completable.complete());
-        when(metricChecker.checkExistsOne(metricId)).thenReturn(Completable.complete());
-        when(metricValueChecker.checkMetricValueExistsByResourceAndMetric(resourceId, metricId))
+        when(metricValueChecker.updateOneByValue(1L, 2L, requestBody))
             .thenReturn(Completable.complete());
-        when(metricChecker.checkUpdateMetricValueSetCorrectly(requestBody, metricId)).thenReturn(Completable.complete());
-        switch (metricTypeName) {
-            case "number":
-                when(metricValueChecker.submitUpdateMetricValue(resourceId, metricId, Double.valueOf(value)))
-                    .thenReturn(Completable.complete());
-                break;
-            case "string":
-                when(metricValueChecker.submitUpdateMetricValue(resourceId, metricId, value.replace("\"", "")))
-                    .thenReturn(Completable.complete());
-                break;
-            case "boolean":
-                when(metricValueChecker.submitUpdateMetricValue(resourceId, metricId, Boolean.valueOf(value)))
-                    .thenReturn(Completable.complete());
-        }
 
         metricValueHandler.updateOne(rc)
             .blockingSubscribe(() -> {},
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
         testContext.completeNow();
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"resourceNotFound", "metricNotFound", "mvNotFound", "badInput"})
-    void updateOneInvalid(String testCase, VertxTestContext testContext) {
-        long resourceId = 1;
-        long metricId = 1;
-        JsonObject requestBody = new JsonObject("{\"value\": 4}");
-
-        RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(rc.pathParam("resourceId")).thenReturn(String.valueOf(resourceId));
-        when(rc.pathParam("metricId")).thenReturn(String.valueOf(metricId));
-        when(resourceChecker.checkExistsOne(resourceId)).thenReturn(testCase.startsWith("resource") ?
-            Completable.error(NotFoundException::new) : Completable.complete());
-        when(metricChecker.checkExistsOne(metricId)).thenReturn(testCase.startsWith("metric") ?
-            Completable.error(NotFoundException::new) : Completable.complete());
-        when(metricValueChecker.checkMetricValueExistsByResourceAndMetric(resourceId, metricId))
-            .thenReturn(testCase.startsWith("mv") ?
-                Completable.error(NotFoundException::new) : Completable.complete());
-        when(metricChecker.checkUpdateMetricValueSetCorrectly(requestBody, metricId))
-            .thenReturn(testCase.startsWith("badInput") ? Completable.error(BadInputException::new) :
-                Completable.complete());
-
-        metricValueHandler.updateOne(rc)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    if (testCase.equals("badInput")) {
-                        assertThat(throwable).isInstanceOf(BadInputException.class);
-                    } else {
-                        assertThat(throwable).isInstanceOf(NotFoundException.class);
-                    }
-                    testContext.completeNow();
-                })
-            );
     }
 
     @ParameterizedTest

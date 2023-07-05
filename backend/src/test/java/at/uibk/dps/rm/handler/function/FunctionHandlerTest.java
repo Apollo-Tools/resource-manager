@@ -1,12 +1,13 @@
 package at.uibk.dps.rm.handler.function;
 
-import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import io.vertx.rxjava3.core.MultiMap;
+import io.vertx.rxjava3.core.http.HttpServerRequest;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,6 +40,9 @@ public class FunctionHandlerTest {
     @Mock
     private RoutingContext rc;
 
+    @Mock
+    private HttpServerRequest request;
+
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
@@ -48,38 +52,45 @@ public class FunctionHandlerTest {
     private static Stream<Arguments> provideRequestBody() {
         String name = "func";
         long runtimeId = 1L;
-        JsonObject requestBody = new JsonObject("{\"name\": \"" + name + "\", \"runtime\": {\"runtime_id\": "
-            + runtimeId + "}, \"code\": \"x = 10\"}");
-        return Stream.of(Arguments.of(runtimeId, requestBody));
+        JsonObject requestBody = new JsonObject("{\"name\": \"" + name + "\", \"runtime\": {\"runtime_id\": " +
+           runtimeId + "}, \"code\": \"x = 10\"}");
+        JsonObject attributeBody = new JsonObject("{\"name\": \"" + name + "\", \"runtime\": {\"runtime_id\": " +
+           runtimeId + "}, \"code\": \"testfile\", \"is_file\":true}");
+        MultiMap attributes = MultiMap.caseInsensitiveMultiMap();
+        attributes.add("name", name);
+        attributes.add("runtime", "{\"runtime_id\": " + runtimeId + "}");
+        return Stream.of(Arguments.of(false, "application/json", requestBody, null),
+            Arguments.of(true, "multipart/form-data", attributeBody, attributes));
     }
 
     @ParameterizedTest
     @MethodSource("provideRequestBody")
-    void postOneValid(long runtimeId, JsonObject requestBody, VertxTestContext testContext) {
-        RoutingContextMockHelper.mockBody(rc, requestBody);
+    void postOne(boolean isFile, String contentType, JsonObject requestBody, MultiMap attributes,
+             VertxTestContext testContext) {
+        String fileName = "testfile";
+        MultiMap multiMap = MultiMap.caseInsensitiveMultiMap();
+        multiMap.add("Content-Type", contentType);
+        if (isFile) {
+            RoutingContextMockHelper.mockFormAttributes(rc, request, attributes);
+            RoutingContextMockHelper.mockFileUpload(rc, fileName);
+        } else {
+            RoutingContextMockHelper.mockBody(rc, requestBody);
+        }
+        RoutingContextMockHelper.mockHeaders(rc, request, multiMap);
         when(functionChecker.submitCreate(requestBody)).thenReturn(Single.just(requestBody));
 
         functionHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.getJsonObject("runtime").getLong("runtime_id")).isEqualTo(1L);
-                    assertThat(result.getString("code")).isEqualTo("x = 10");
+                    if (isFile) {
+                        assertThat(result.getString("code")).isEqualTo(fileName);
+                    } else {
+                        assertThat(result.getString("code")).isEqualTo("x = 10");
+                    }
+                    assertThat(result.getBoolean("is_file")).isEqualTo(isFile);
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-    }
-
-    @ParameterizedTest
-    @MethodSource("provideRequestBody")
-    void postOneRuntimeNotFound(long runtimeId, JsonObject requestBody, VertxTestContext testContext) {
-        RoutingContextMockHelper.mockBody(rc, requestBody);
-
-        functionHandler.postOne(rc)
-            .subscribe(result -> testContext.verify(() -> fail("method has thrown exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(NotFoundException.class);
-                    testContext.completeNow();
-                })
             );
     }
 }

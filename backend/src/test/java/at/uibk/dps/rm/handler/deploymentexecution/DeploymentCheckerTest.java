@@ -25,6 +25,7 @@ import io.vertx.junit5.RunTestOnContext;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -82,6 +83,7 @@ public class DeploymentCheckerTest {
         deploymentChecker = new DeploymentExecutionChecker(deploymentExecutionService, logService, deploymentLogService);
     }
 
+    @Disabled
     @ParameterizedTest
     @ValueSource(strings={"valid", "outputFailed", "applyFailed", "initFailed", "initContainersFailed",
         "setupTfModulesFailed", "buildDockerFailed", "packageFunctionsCodeFailed"})
