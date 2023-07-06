@@ -80,6 +80,11 @@ public class RegionFaasFileService extends TerraformFileService {
         return providerString;
     }
 
+    /**
+     * Get the module definitions for all functions from functionDeployments.
+     *
+     * @return the module definition string
+     */
     protected String getFunctionsModuleString() {
         for (FunctionDeployment functionDeployment: functionDeployments) {
             Resource resource = functionDeployment.getResource();

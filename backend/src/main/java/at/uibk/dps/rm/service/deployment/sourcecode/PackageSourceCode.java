@@ -77,12 +77,18 @@ public abstract class PackageSourceCode {
             .toSingle(() -> sourceCodePath);
     }
 
+    /**
+     * Either unzip the code of a function if it was uploaded as zip file or create a file for
+     * the manually created code.
+     *
+     * @return a Completable
+     */
     protected Completable createSourceCode() {
         if (function.getIsFile()) {
             return new ConfigUtility(vertx).getConfig().flatMapCompletable(config -> {
                 Path zipPath = Path.of(config.getString("upload_persist_directory"), function.getCode());
                 return vertx.executeBlocking(fut -> {
-                    unzipAllFiles(zipPath, rootFolder);
+                    unzipAllFiles(zipPath);
                     fut.complete();
                 }).ignoreElement();
             });
@@ -133,7 +139,12 @@ public abstract class PackageSourceCode {
         fis.close();
     }
 
-    protected void unzipAllFiles(Path filePath, Path rootFolder) {
+    /**
+     * Unzip all files that are contained in filePath.
+     *
+     * @param filePath the path to the zip file
+     */
+    protected void unzipAllFiles(Path filePath) {
         File destDir = sourceCodePath.getParent().toFile();
         try {
             ZipInputStream zis = new ZipInputStream(new FileInputStream(filePath.toString()));
@@ -150,12 +161,28 @@ public abstract class PackageSourceCode {
         }
     }
 
+    /**
+     * Get the list of destination for a zipEntry.
+     *
+     * @param zipEntry the zip entry
+     * @param destDir the main destination directory
+     * @return a List of files that point to the destinations of the zip entry
+     * @throws IOException if the destDir is invalid
+     */
     protected List<File> getUnzippedFileDest(ZipEntry zipEntry, File destDir) throws IOException {
         List<File> newFiles = new ArrayList<>();
         newFiles.add(newFile(destDir, zipEntry));
         return newFiles;
     }
 
+    /**
+     * Decompress a zip entry and save it to the destination paths.
+     *
+     * @param zipEntry the zip entry
+     * @param newFiles the destination paths
+     * @param zis the zip input stream
+     * @throws IOException if a bad destination directory is passed to the method
+     */
     private void readAndSaveUnzippedFile(ZipEntry zipEntry, List<File> newFiles, ZipInputStream zis) throws IOException {
         byte[] buffer = new byte[1024];
         if (zipEntry.isDirectory()) {
@@ -187,6 +214,14 @@ public abstract class PackageSourceCode {
         }
     }
 
+    /**
+     * Create a new file from a destination directory and zip entry.
+     *
+     * @param destinationDir the destination directore
+     * @param zipEntry the zip entry
+     * @return the newly file
+     * @throws IOException if a bad destination directory is passed to the method
+     */
     public static File newFile(File destinationDir, ZipEntry zipEntry) throws IOException {
         File destFile = new File(destinationDir, zipEntry.getName());
 

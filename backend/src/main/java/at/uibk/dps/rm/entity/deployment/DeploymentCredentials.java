@@ -48,6 +48,12 @@ public class DeploymentCredentials {
         return JsonObject.mapFrom(this);
     }
 
+    /**
+     * Get the credentials string, that contains the required login data for the deployment.
+     *
+     * @return an empty string if the deployment doesn't contain OpenFaaS deployments, else the
+     * credentials string.
+     */
     @JsonIgnore
     public String getOpenFaasCredentialsString() {
         if (openFaasCredentials.isEmpty()) {

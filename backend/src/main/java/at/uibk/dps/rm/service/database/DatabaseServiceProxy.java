@@ -48,10 +48,26 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
         this.sessionFactory = sessionFactory;
     }
 
+    /**
+     * Perform work using a reactive session. The executions contained in function are not
+     * transactional. Use this method for read operations.
+     *
+     * @param function the function that contains all database operations
+     * @return a CompletionStage that emits an item of type E
+     * @param <E> any datatype that can be returned by the reactive session
+     */
     protected <E> CompletionStage<E> withSession(Function<Session, CompletionStage<E>> function) {
         return sessionFactory.withSession(function);
     }
 
+    /**
+     * Perform work using a reactive session. The executions contained in function are
+     * transactional. Use this method for write operations.
+     *
+     * @param function the function that contains all database operations
+     * @return a CompletionStage that emits an item of type E
+     * @param <E> any datatype that can be returned by the reactive session
+     */
     protected <E> CompletionStage<E> withTransaction(Function<Session, CompletionStage<E>> function) {
         return sessionFactory.withTransaction(function);
     }
@@ -161,6 +177,14 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
         return transactionToFuture(delete);
     }
 
+    /**
+     * Handle an error.
+     *
+     * @param throwable the error
+     * @return a failed future that emits the error if its type is unknown, else the error
+     * gets rethrown.
+     * @param <E> any datatype that can be returned by the reactive session
+     */
     protected <E> Future<E> recoverFailure(Throwable throwable) {
         if (throwable.getCause() instanceof NotFoundException) {
             throw new NotFoundException((NotFoundException) throwable.getCause());
@@ -174,10 +198,25 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
         return Future.failedFuture(throwable);
     }
 
+    /**
+     * Return the new value if it is not null, else return the old value
+     *
+     * @param oldValue the old value
+     * @param newValue the new value
+     * @return the new value if not null, else the old value
+     * @param <E> any datatype
+     */
     protected <E> E updateNonNullValue(E oldValue, E newValue) {
         return newValue == null ? oldValue : newValue;
     }
 
+    /**
+     * Map a session transaction to a future.
+     *
+     * @param transaction the transaction
+     * @return a Future that emits the result of the transaction
+     * @param <E> any datatype
+     */
     protected <E> Future<E> transactionToFuture(CompletionStage<E> transaction) {
         return Future.fromCompletionStage(transaction)
             .recover(this::recoverFailure);

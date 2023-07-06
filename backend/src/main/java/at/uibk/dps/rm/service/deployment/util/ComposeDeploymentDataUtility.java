@@ -16,9 +16,23 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * This utility class is used to compose the deployment data for different deployment platforms.
+ *
+ * @author matthi-g
+ */
 @UtilityClass
 public class ComposeDeploymentDataUtility {
 
+    /**
+     * Compose and store the deployment data for AWS Lambda to deploymentData.
+     *
+     * @param resource the resource of the deployment
+     * @param function the function of the deployment
+     * @param deploymentId the id of the deployment
+     * @param functionsDir the functions directory for the deployment
+     * @param deploymentData the object where the composed data is stored
+     */
     public static void composeLambdaDeploymentData(Resource resource, Function function, long deploymentId,
             Path functionsDir, LambdaDeploymentData deploymentData) {
         StringBuilder functionName = new StringBuilder(), functionPath = new StringBuilder();
@@ -49,6 +63,13 @@ public class ComposeDeploymentDataUtility {
             memorySize, layer, runtime.getValue(), deploymentRole);
     }
 
+    /**
+     * Compose and store the deployment data for AWS EC2 to deploymentData.
+     *
+     * @param resource the resource of the deployment
+     * @param function the function of the deployment
+     * @param deploymentData the object where the composed data is stored
+     */
     public static void composeEC2DeploymentData(Resource resource, Function function, EC2DeploymentData deploymentData) {
         String resourceName = "resource_" + resource.getResourceId();
         Map<String, MetricValue> metricValues = resource.getMetricValues()
@@ -65,8 +86,15 @@ public class ComposeDeploymentDataUtility {
         }
     }
 
+    /**
+     * Compose and store the deployment data for OpenFaaS to deploymentData.
+     *
+     * @param resource the resource of the deployment
+     * @param function the function of the deployment
+     * @param deploymentData the object where the composed data is stored
+     */
     public static void composeOpenFassDeploymentData(Resource resource, Function function,
-        OpenFaasDeploymentData deploymentData) {
+            OpenFaasDeploymentData deploymentData) {
         String functionIdentifier =  function.getFunctionDeploymentId();
         Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
         String gatewayUrl = metricValues.get("gateway-url").getValueString();
@@ -77,7 +105,7 @@ public class ComposeDeploymentDataUtility {
      * Check whether a new virtual machine has to be deployed or not.
      *
      * @param resource the virtual machine
-     * @return true if a new virtua machine has to be deployed, else false
+     * @return true if a new virtual machine has to be deployed, else false
      */
     private static boolean checkMustDeployVM(Resource resource, EC2DeploymentData deploymentData) {
         return !deploymentData.getResourceIds().contains(resource.getResourceId());

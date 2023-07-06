@@ -4,6 +4,12 @@ import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
 import at.uibk.dps.rm.entity.model.Region;
 import lombok.Getter;
 
+/**
+ * Represents a module consisting of faas deployments. For each region a separate module is
+ * used during deployment.
+ *
+ * @author matthi-g
+ */
 @Getter
 public class FaasModule extends TerraformModule {
     ResourceProviderEnum resourceProvider;

@@ -38,8 +38,8 @@ public enum DeploymentStatusValue {
     private final String value;
 
     /**
-     * Create an instance from a ResourceDeploymentStatus. This is necessary because a public method is not
-     * allowed.
+     * Create an instance from a ResourceDeploymentStatus. This is necessary because a public
+     * method is not allowed.
      * <p>
      * ref: <a href="https://stackoverflow.com/a/45082346/13164629">Source</a>
      *

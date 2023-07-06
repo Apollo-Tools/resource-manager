@@ -68,6 +68,14 @@ public class FunctionChecker extends EntityChecker {
     }
 
     // TODO: fix
+
+    /**
+     * Delete all files that are linked to a function as well as the function itself.
+     *
+     * @param id the id of the function
+     * @param entity the function
+     * @return a Completable
+     */
     public Completable submitDelete(long id, JsonObject entity) {
         if (entity.getBoolean("is_file")) {
             Vertx vertx = Vertx.currentContext().owner();

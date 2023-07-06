@@ -26,8 +26,8 @@ public class ResourceRepository extends Repository<Resource> {
     }
 
     /**
-     * Find a resource by its id and fetch the resource type, platform, environment, region, metric values and
-     * resource provider.
+     * Find a resource by its id and fetch the resource type, platform, environment, region, metric
+     * values and resource provider.
      *
      * @param session the database session
      * @param id the id of the resource

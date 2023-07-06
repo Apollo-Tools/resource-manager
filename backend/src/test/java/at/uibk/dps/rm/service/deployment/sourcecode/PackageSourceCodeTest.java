@@ -50,7 +50,7 @@ public class PackageSourceCodeTest {
         }
 
         @Override
-        protected void unzipAllFiles(Path filePath, Path detinationPath) {
+        protected void unzipAllFiles(Path filePat) {
             // necessary override can be empty for tests
         }
     }

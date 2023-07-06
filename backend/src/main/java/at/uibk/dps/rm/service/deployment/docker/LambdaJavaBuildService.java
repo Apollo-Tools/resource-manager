@@ -13,13 +13,22 @@ import lombok.RequiredArgsConstructor;
 import java.nio.file.Path;
 import java.util.List;
 
-
+/**
+ * This class is used to build java functions for deployment.
+ *
+ * @author matthi-g
+ */
 @RequiredArgsConstructor
 public class LambdaJavaBuildService {
     private final List<FunctionDeployment> functionDeployments;
 
     private final Path functionsDir;
 
+    /**
+     * Builds and zips all java functions that are part of the functionDeployments.
+     *
+     * @return a Single that emits the output of the build process
+     */
     public Single<ProcessOutput> buildAndZipJavaFunctions() {
         if (!hasLambdaJavaFunctions()) {
             return Single.just(new ProcessOutput());
@@ -33,6 +42,11 @@ public class LambdaJavaBuildService {
         return processExecutor.executeCli();
     }
 
+    /**
+     * Check whether the functionDeployments contain at least one java function or not.
+     *
+     * @return true if the functionDeployments contain at least one java function, else false
+     */
     private boolean hasLambdaJavaFunctions() {
         return functionDeployments.stream().anyMatch(functionDeployment -> {
             Function function = functionDeployment.getFunction();

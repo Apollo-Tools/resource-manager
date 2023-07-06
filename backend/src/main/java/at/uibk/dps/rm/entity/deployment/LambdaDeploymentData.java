@@ -6,6 +6,11 @@ import lombok.RequiredArgsConstructor;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 
+/**
+ * This class represents all the data for a deployment to AWS Lambda.
+ *
+ * @author matthi-g
+ */
 @RequiredArgsConstructor
 @Getter
 public class LambdaDeploymentData {
@@ -23,6 +28,18 @@ public class LambdaDeploymentData {
     @Getter
     private long functionCount = 0;
 
+    /**
+     * Append new values to the currently stored values.
+     *
+     * @param functionName the name of the function
+     * @param path the path to the packaged function
+     * @param handler the entry point of the function
+     * @param timeout the timeout of the function
+     * @param memorySize the memory size of the function
+     * @param layer the name of the function layer
+     * @param runtime the name of the function runtime
+     * @param deploymentRole the AWS role used for deployment
+     */
     public void appendValues(String functionName, String path, String handler, BigDecimal timeout,
             BigDecimal memorySize, String layer, String runtime, String deploymentRole) {
         this.functionNames += addQuotes(functionName);
@@ -36,10 +53,21 @@ public class LambdaDeploymentData {
         functionCount++;
     }
 
+    /**
+     * Add quotes to a string value.
+     *
+     * @param value the string value
+     * @return the quoted string
+     */
     private String addQuotes(String value) {
         return "\"" + value + "\",";
     }
 
+    /**
+     * Get the all module definitions composed by the stored values.
+     *
+     * @return the module definitions
+     */
     public String getModuleString() {
         if (functionCount == 0) {
             return "";

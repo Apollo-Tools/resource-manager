@@ -109,8 +109,8 @@ public class SLORequestDeserializer extends StdDeserializer<SLORequest> {
     }
 
     /**
-     * Map service level objectives either to the environment-, platform-, regions-, provider-, resourceType- or
-     * slo-list.
+     * Map service level objectives either to the environment-, platform-, regions-, provider-,
+     * resourceType- or slo-list.
      *
      * @param slo the service level objectives
      * @param request the list resources by slos request

@@ -42,6 +42,11 @@ public enum RuntimeEnum {
             .orElseThrow(() -> new RuntimeNotSupportedException("unknown runtime: " + runtime.getName()));
     }
 
+    /**
+     * Drop all dots from the runtime name. E.g. python3.8 => python38
+     *
+     * @return the dotless runtime name
+     */
     public String getDotlessValue() {
         return this.value.replace(".","");
     }

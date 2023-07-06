@@ -5,6 +5,11 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.*;
 
+/**
+ * This class represents all the data for a deployment to OpenFaaS.
+ *
+ * @author matthi-g
+ */
 @RequiredArgsConstructor
 @Getter
 public class OpenFaasDeploymentData {
@@ -16,6 +21,13 @@ public class OpenFaasDeploymentData {
     private final List<String> gatewayUrls = new ArrayList<>();
     private long functionCount = 0;
 
+    /**
+     * Append new values to the currently stored values.
+     *
+     * @param resourceId the id of the resource
+     * @param functionIdentifier the function identifier
+     * @param gatewayUrl the url of the OpenFaaS gateway
+     */
     public void appendValues(long resourceId, String functionIdentifier, String gatewayUrl) {
         this.resourceIds.add(resourceId);
         this.functionIdentifiers.add(functionIdentifier);
@@ -23,6 +35,13 @@ public class OpenFaasDeploymentData {
         this.functionCount++;
     }
 
+    /**
+     * Return the OpenFaaS module definition for a resource deployment.
+     *
+     * @param resourceId the id of the resource
+     * @param functionIdentifier the function identifier
+     * @return the OpenFaaS module definition string
+     */
     private String getOpenFaasString(long resourceId, String functionIdentifier, String gatewayUrl) {
         return String.format(
             "module \"r%s_%s\" {\n" +
@@ -41,7 +60,11 @@ public class OpenFaasDeploymentData {
         );
     }
 
-
+    /**
+     * Get the all module definitions composed by the stored values.
+     *
+     * @return the module definitions
+     */
     public String getModuleString() {
         if (resourceIds.isEmpty()) {
             return "";

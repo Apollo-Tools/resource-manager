@@ -3,6 +3,19 @@ package at.uibk.dps.rm.handler;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
+/**
+ * This class is used to handle the different types of requests, that the API can receive.
+ * - FIND ONE
+ * - FIND ALL
+ * - POST ONE
+ * - POST ALL
+ * - UPDATE ONE
+ * - DELETE ONE
+ * The difference to the {@link ResultHandler} is, that all methods only work on the scope of
+ * user created entities.
+ *
+ * @author matthi-g
+ */
 public class PrivateEntityResultHandler extends ResultHandler {
 
     private final ValidationHandler validationHandler;

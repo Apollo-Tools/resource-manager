@@ -40,7 +40,7 @@ public interface RegionService extends DatabaseServiceInterface {
      * Find all regions that belong to the resource provider.
      *
      * @param providerId the id of the resource provider
-     * @return a Future that emits all resource providers as JsonArray
+     * @return a Future that emits all regions as JsonArray
      */
     Future<JsonArray> findAllByProviderId(long providerId);
 
@@ -53,7 +53,20 @@ public interface RegionService extends DatabaseServiceInterface {
      */
     Future<Boolean> existsOneByNameAndProviderId(String name, long providerId);
 
+    /**
+     * Find all regions by platform.
+     *
+     * @param platformId the id of the platform
+     * @return a Future that emits all regions as JsonArray.
+     */
     Future<JsonArray> findAllByPlatformId(long platformId);
 
+    /**
+     * Check if a region exists by its id and platform.
+     *
+     * @param regionId the id of the region
+     * @param platformId the id of the platform
+     * @return a Future that emits true if the region exists, else false
+     */
     Future<Boolean> existsByPlatformId(long regionId, long platformId);
 }

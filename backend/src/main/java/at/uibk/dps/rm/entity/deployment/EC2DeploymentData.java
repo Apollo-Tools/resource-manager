@@ -10,6 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * This class represents all the data for a deployment to AWS EC2.
+ *
+ * @author matthi-g
+ */
 @RequiredArgsConstructor
 @Getter
 public class EC2DeploymentData {
@@ -23,6 +28,14 @@ public class EC2DeploymentData {
     private final Map<String, String> instanceTypeMapping = new HashMap<>();
     private long functionCount = 0;
 
+    /**
+     * Append new values to the currently stored values.
+     *
+     * @param resourceName the name of the resource
+     * @param instanceType the instance type
+     * @param resourceId the id of the resource
+     * @param functionIdentifier the function identifier
+     */
     public void appendValues(String resourceName, String instanceType, long resourceId, String functionIdentifier) {
         if (!instanceTypeMapping.containsKey(resourceName)) {
             this.instanceTypeMapping.put(resourceName, instanceType);
@@ -30,6 +43,13 @@ public class EC2DeploymentData {
         appendValues(resourceName, resourceId, functionIdentifier);
     }
 
+    /**
+     * Append new values to the currently stored values.
+     *
+     * @param resourceName the name of the resource
+     * @param resourceId the id of the resource
+     * @param functionIdentifier the function identifier
+     */
     public void appendValues(String resourceName, long resourceId, String functionIdentifier) {
         this.resourceNames.add(resourceName);
         this.resourceIds.add(resourceId);
@@ -37,10 +57,24 @@ public class EC2DeploymentData {
         this.functionCount++;
     }
 
+    /**
+     * Add quotes to a string value.
+     *
+     * @param value the string value
+     * @return the quoted string
+     */
     private String addQuotes(String value) {
         return "\"" + value + "\",";
     }
 
+    /**
+     * Return the OpenFaaS module definition for a resource deployment.
+     *
+     * @param resourceId the id of the resource
+     * @param functionIdentifier the function identifier
+     * @param resourceName the name of the resource
+     * @return the OpenFaaS module definition string
+     */
     private String getOpenFaasString(long resourceId, String functionIdentifier, String resourceName) {
         return String.format(
             "module \"r%s_%s\" {\n" +
@@ -57,6 +91,11 @@ public class EC2DeploymentData {
     }
 
 
+    /**
+     * Get the all module definitions composed by the stored values.
+     *
+     * @return the module definitions
+     */
     public String getModuleString() {
         if (resourceIds.isEmpty()) {
             return "";

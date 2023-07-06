@@ -12,6 +12,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 
+/**
+ * This is the implementation of the #PlatformService.
+ *
+ * @author matthi-g
+ */
 public class PlatformServiceImpl extends DatabaseServiceProxy<Platform> implements PlatformService {
 
     private final PlatformRepository repository;

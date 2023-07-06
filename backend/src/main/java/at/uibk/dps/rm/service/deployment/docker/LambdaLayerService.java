@@ -11,12 +11,22 @@ import lombok.RequiredArgsConstructor;
 import java.nio.file.Path;
 import java.util.List;
 
+/**
+ * This class is used to build layers for python functions that are deployed to AWS Lambda.
+ *
+ * @author matthi-g
+ */
 @RequiredArgsConstructor
 public class LambdaLayerService {
     private final List<FunctionDeployment> functionDeployments;
 
     private final Path functionsDir;
 
+    /**
+     * Builds and zips the dependencies of all python functions as a layer.
+     *
+     * @return a Single that emits the output of the build process
+     */
     public Single<ProcessOutput> buildLambdaLayers() {
         if (!hasZippedCode()) {
             return Single.just(new ProcessOutput());
@@ -33,11 +43,17 @@ public class LambdaLayerService {
         return processExecutor.executeCli();
     }
 
+    /**
+     * Check if the functionDeployments contain python functions that were uploaded as zip file.
+     *
+     * @return true if the functionDeployments contain python functions that were uploaded as zip
+     * file, else false
+     */
     private boolean hasZippedCode() {
         return functionDeployments.stream().anyMatch(functionDeployment -> {
                 Function function = functionDeployment.getFunction();
                 boolean isFile = function.getIsFile();
-                boolean isPython =RuntimeEnum.fromRuntime(function.getRuntime()).equals(RuntimeEnum.PYTHON38);
+                boolean isPython = RuntimeEnum.fromRuntime(function.getRuntime()).equals(RuntimeEnum.PYTHON38);
                 return isFile && isPython;
         });
     }
