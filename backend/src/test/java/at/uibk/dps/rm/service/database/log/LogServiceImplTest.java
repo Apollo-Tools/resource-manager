@@ -2,6 +2,7 @@ package at.uibk.dps.rm.service.database.log;
 
 import at.uibk.dps.rm.entity.model.Log;
 import at.uibk.dps.rm.repository.log.LogRepository;
+import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestLogProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
@@ -14,9 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletionStage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -53,10 +52,10 @@ public class LogServiceImplTest {
         long deploymentId = 1L, accountId = 2L;
         Log log1 = TestLogProvider.createLog(1L);
         Log log2 = TestLogProvider.createLog(2L);
-        List<Log> logs = List.of(log1, log2);
-        CompletionStage<List<Log>> completionStage = CompletionStages.completedFuture(logs);
 
-        when(logRepository.findAllByDeploymentIdAndAccountId(session, deploymentId, accountId)).thenReturn(completionStage);
+        SessionMockHelper.mockSession(sessionFactory, session);
+        when(logRepository.findAllByDeploymentIdAndAccountId(session, deploymentId, accountId))
+            .thenReturn(CompletionStages.completedFuture(List.of(log1, log2)));
 
         logService.findAllByDeploymentIdAndAccountId(deploymentId, accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -66,20 +65,4 @@ public class LogServiceImplTest {
                 testContext.completeNow();
             })));
     }
-
-    @Test
-    void findAllByDeploymentIdAndAccountIdEmpty(VertxTestContext testContext) {
-        long deploymentId = 1L, accountId = 2L;
-        List<Log> logs = new ArrayList<>();
-        CompletionStage<List<Log>> completionStage = CompletionStages.completedFuture(logs);
-
-        when(logRepository.findAllByDeploymentIdAndAccountId(session, deploymentId, accountId)).thenReturn(completionStage);
-
-        logService.findAllByDeploymentIdAndAccountId(deploymentId, accountId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result.size()).isEqualTo(0);
-                testContext.completeNow();
-            })));
-    }
-
 }

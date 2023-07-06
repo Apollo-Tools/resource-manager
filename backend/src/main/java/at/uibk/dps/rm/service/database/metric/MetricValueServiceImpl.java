@@ -50,7 +50,7 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
             })
             .collect(Collectors.toList());
         CompletionStage<Void> createAll = withTransaction(session -> repository.createAll(session, metricValues));
-        return Future.fromCompletionStage(createAll);
+        return transactionToFuture(createAll);
     }
 
     @Override
@@ -82,14 +82,6 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
                 }
                 return new JsonArray(objects);
             });
-    }
-
-    @Override
-    public Future<JsonObject> findOneByResourceAndMetric(long resourceId, long metricId) {
-        CompletionStage<MetricValue> findOne = withSession(session ->
-            repository.findByResourceAndMetric(session, resourceId, metricId));
-        return Future.fromCompletionStage(findOne)
-            .map(JsonObject::mapFrom);
     }
 
     @Override

@@ -11,7 +11,6 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
 /**
@@ -45,15 +44,6 @@ public interface MetricValueService extends DatabaseServiceInterface {
      * @return a Future that emits all metric values as JsonArray
      */
     Future<JsonArray> findAllByResource(long resourceId, boolean includeValue);
-
-    /**
-     * Find a metric value by its resource and metric.
-     *
-     * @param resourceId the id of the resource
-     * @param metricId the id of the metric
-     * @return a Future that emits the metric value as JsonObject if it exists, else false
-     */
-    Future<JsonObject> findOneByResourceAndMetric(long resourceId, long metricId);
 
     /**
      * Check if a metric value exists by its resource and metric.

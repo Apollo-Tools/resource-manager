@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.entity.model.ResourceProvider;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
+import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
@@ -17,7 +18,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-import java.util.concurrent.CompletionStage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -55,9 +55,10 @@ public class RegionServiceImplTest {
     void findEntityExists(VertxTestContext testContext) {
         long regionId = 1L;
         Region entity = TestResourceProviderProvider.createRegion(regionId, "us-east");
-        CompletionStage<Region> completionStage = CompletionStages.completedFuture(entity);
 
-        when(regionRepository.findByIdAndFetch(session, regionId)).thenReturn(completionStage);
+        SessionMockHelper.mockSession(sessionFactory, session);
+        when(regionRepository.findByIdAndFetch(session, regionId))
+            .thenReturn(CompletionStages.completedFuture(entity));
 
         regionService.findOne(regionId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -70,9 +71,10 @@ public class RegionServiceImplTest {
     @Test
     void findEntityNotExists(VertxTestContext testContext) {
         long regionId = 1L;
-        CompletionStage<Region> completionStage = CompletionStages.completedFuture(null);
 
-        when(regionRepository.findByIdAndFetch(session, regionId)).thenReturn(completionStage);
+        SessionMockHelper.mockSession(sessionFactory, session);
+        when(regionRepository.findByIdAndFetch(session, regionId))
+            .thenReturn(CompletionStages.completedFuture(null));
 
         regionService.findOne(regionId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -85,9 +87,10 @@ public class RegionServiceImplTest {
     void findAll(VertxTestContext testContext) {
         Region r1 = TestResourceProviderProvider.createRegion(1L, "us-east");
         Region r2 = TestResourceProviderProvider.createRegion(2L, "us-west");
-        CompletionStage<List<Region>> completionStage = CompletionStages.completedFuture(List.of(r1, r2));
 
-        when(regionRepository.findAllAndFetch(session)).thenReturn(completionStage);
+        SessionMockHelper.mockSession(sessionFactory, session);
+        when(regionRepository.findAllAndFetch(session))
+            .thenReturn(CompletionStages.completedFuture(List.of(r1, r2)));
 
         regionService.findAll()
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -106,9 +109,10 @@ public class RegionServiceImplTest {
         ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(providerId);
         Region r1 = TestResourceProviderProvider.createRegion(1L, "us-east", resourceProvider);
         Region r2 = TestResourceProviderProvider.createRegion(2L, "us-west", resourceProvider);
-        CompletionStage<List<Region>> completionStage = CompletionStages.completedFuture(List.of(r1, r2));
 
-        when(regionRepository.findAllByProviderId(session, providerId)).thenReturn(completionStage);
+        SessionMockHelper.mockSession(sessionFactory, session);
+        when(regionRepository.findAllByProviderId(session, providerId))
+            .thenReturn(CompletionStages.completedFuture(List.of(r1, r2)));
 
         regionService.findAllByProviderId(providerId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -126,9 +130,10 @@ public class RegionServiceImplTest {
         String name = "us-east";
         long providerId = 1L;
         Region entity = new Region();
-        CompletionStage<Region> completionStage = CompletionStages.completedFuture(entity);
 
-        when(regionRepository.findOneByNameAndProviderId(session, name, providerId)).thenReturn(completionStage);
+        SessionMockHelper.mockSession(sessionFactory, session);
+        when(regionRepository.findOneByNameAndProviderId(session, name, providerId))
+            .thenReturn(CompletionStages.completedFuture(entity));
 
         regionService.existsOneByNameAndProviderId(name, providerId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -141,9 +146,10 @@ public class RegionServiceImplTest {
     void checkEntityByNameAndProviderIdNotExists(VertxTestContext testContext) {
         String name = "us-east";
         long providerId = 1L;
-        CompletionStage<Region> completionStage = CompletionStages.completedFuture(null);
 
-        when(regionRepository.findOneByNameAndProviderId(session, name, providerId)).thenReturn(completionStage);
+        SessionMockHelper.mockSession(sessionFactory, session);
+        when(regionRepository.findOneByNameAndProviderId(session, name, providerId))
+            .thenReturn(CompletionStages.completedFuture(null));
 
         regionService.existsOneByNameAndProviderId(name, providerId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {

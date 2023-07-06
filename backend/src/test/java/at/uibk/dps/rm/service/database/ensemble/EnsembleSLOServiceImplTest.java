@@ -2,6 +2,7 @@ package at.uibk.dps.rm.service.database.ensemble;
 
 import at.uibk.dps.rm.entity.model.EnsembleSLO;
 import at.uibk.dps.rm.repository.ensemble.EnsembleSLORepository;
+import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestEnsembleProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
@@ -53,6 +54,7 @@ public class EnsembleSLOServiceImplTest {
         EnsembleSLO eslo2 = TestEnsembleProvider.createEnsembleSLO(2L, "slo2", ensembleId);
         CompletionStage<List<EnsembleSLO>> completionStage = CompletionStages.completedFuture(List.of(eslo1, eslo2));
 
+        SessionMockHelper.mockSession(sessionFactory, session);
         when(ensembleSLORepository.findAllByEnsembleId(session, ensembleId)).thenReturn(completionStage);
 
         ensembleSLOService.findAllByEnsembleId(ensembleId)

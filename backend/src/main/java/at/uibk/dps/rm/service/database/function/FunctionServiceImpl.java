@@ -15,7 +15,6 @@ import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletionStage;
 
@@ -103,14 +102,6 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
             })
         );
         return transactionToFuture(update).mapEmpty();
-    }
-
-    @Override
-    public Future<Boolean> existsOneByNameAndRuntimeId(String name, long runtimeId) {
-        CompletionStage<Function> findOne = withSession(session ->
-            repository.findOneByNameAndRuntimeId(session, name, runtimeId));
-        return Future.fromCompletionStage(findOne)
-            .map(Objects::nonNull);
     }
 
     @Override

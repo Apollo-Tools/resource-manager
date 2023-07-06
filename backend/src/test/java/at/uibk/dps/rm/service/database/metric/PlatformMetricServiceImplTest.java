@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.service.database.metric;
 
 import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
+import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -13,8 +14,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.concurrent.CompletionStage;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -25,7 +24,7 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class ResourceTypeMetricServiceImplTest {
+public class PlatformMetricServiceImplTest {
 
     private PlatformMetricService service;
 
@@ -52,8 +51,10 @@ public class ResourceTypeMetricServiceImplTest {
     void missingRequiredResourceTypeMetricsByResourceId(long missingRtms, boolean expectedResult,
                                                         VertxTestContext testContext) {
         long resourceId = 1L;
-        CompletionStage<Long> completionStage = CompletionStages.completedFuture(missingRtms);
-        when(repository.countMissingRequiredMetricValuesByResourceId(session, resourceId)).thenReturn(completionStage);
+
+        SessionMockHelper.mockSession(sessionFactory, session);
+        when(repository.countMissingRequiredMetricValuesByResourceId(session, resourceId))
+            .thenReturn(CompletionStages.completedFuture(missingRtms));
 
         service.missingRequiredPlatformMetricsByResourceId(resourceId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {

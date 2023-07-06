@@ -3,6 +3,7 @@ package at.uibk.dps.rm.service.database.service;
 import at.uibk.dps.rm.entity.model.Service;
 import at.uibk.dps.rm.repository.service.ServiceRepository;
 import at.uibk.dps.rm.repository.service.ServiceTypeRepository;
+import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestServiceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
@@ -19,7 +20,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletionStage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -57,9 +57,10 @@ public class ServiceServiceImplTest {
     void findEntityExists(VertxTestContext testContext) {
         long serviceId = 1L;
         Service entity = TestServiceProvider.createService(1L);
-        CompletionStage<Service> completionStage = CompletionStages.completedFuture(entity);
 
-        when(serviceRepository.findByIdAndFetch(session, serviceId)).thenReturn(completionStage);
+        SessionMockHelper.mockSession(sessionFactory, session);
+        when(serviceRepository.findByIdAndFetch(session, serviceId))
+            .thenReturn(CompletionStages.completedFuture(entity));
 
         service.findOne(serviceId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -71,9 +72,10 @@ public class ServiceServiceImplTest {
     @Test
     void findEntityNotExists(VertxTestContext testContext) {
         long serviceId = 1L;
-        CompletionStage<Service> completionStage = CompletionStages.completedFuture(null);
 
-        when(serviceRepository.findByIdAndFetch(session, serviceId)).thenReturn(completionStage);
+        SessionMockHelper.mockSession(sessionFactory, session);
+        when(serviceRepository.findByIdAndFetch(session, serviceId))
+            .thenReturn(CompletionStages.completedFuture(null));
 
         service.findOne(serviceId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -86,9 +88,10 @@ public class ServiceServiceImplTest {
     void findAll(VertxTestContext testContext) {
         Service s1 = TestServiceProvider.createService(1L);
         Service s2 = TestServiceProvider.createService(2L);
-        CompletionStage<List<Service>> completionStage = CompletionStages.completedFuture(List.of(s1, s2));
 
-        when(serviceRepository.findAllAndFetch(session)).thenReturn(completionStage);
+        SessionMockHelper.mockSession(sessionFactory, session);
+        when(serviceRepository.findAllAndFetch(session))
+            .thenReturn(CompletionStages.completedFuture(List.of(s1, s2)));
 
         service.findAll()
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -103,9 +106,10 @@ public class ServiceServiceImplTest {
     void findEntityExistsByName(VertxTestContext testContext) {
         String serviceName = "svc";
         Service entity = TestServiceProvider.createService(1L, serviceName);
-        CompletionStage<Service> completionStage = CompletionStages.completedFuture(entity);
 
-        when(serviceRepository.findOneByName(session, serviceName)).thenReturn(completionStage);
+        SessionMockHelper.mockSession(sessionFactory, session);
+        when(serviceRepository.findOneByName(session, serviceName))
+            .thenReturn(CompletionStages.completedFuture(entity));
 
         service.existsOneByName(serviceName)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -117,9 +121,10 @@ public class ServiceServiceImplTest {
     @Test
     void findEntityExistsByNameNotExists(VertxTestContext testContext) {
         String serviceName = "svc";
-        CompletionStage<Service> completionStage = CompletionStages.completedFuture(null);
 
-        when(serviceRepository.findOneByName(session, serviceName)).thenReturn(completionStage);
+        SessionMockHelper.mockSession(sessionFactory, session);
+        when(serviceRepository.findOneByName(session, serviceName))
+            .thenReturn(CompletionStages.completedFuture(null));
 
         service.existsOneByName(serviceName)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -139,8 +144,9 @@ public class ServiceServiceImplTest {
             services = List.of(s2);
         }
 
-        CompletionStage<List<Service>> completionStage = CompletionStages.completedFuture(services);
-        when(serviceRepository.findAllByIds(session, serviceIds)).thenReturn(completionStage);
+        SessionMockHelper.mockSession(sessionFactory, session);
+        when(serviceRepository.findAllByIds(session, serviceIds))
+            .thenReturn(CompletionStages.completedFuture(services));
 
         service.existsAllByIds(serviceIds)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
