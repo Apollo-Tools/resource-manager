@@ -57,7 +57,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                                     .equals(DeploymentStatusValue.DEPLOYED))
                                 .count();
                             if (resourceDeployments.isEmpty() || deployedAmount != resourceDeployments.size()) {
-                                throw new BadInputException("no deployed resources found");
+                                throw new BadInputException("invalid deployment state");
                             }
                             return statusRepository.findOneByStatusValue(session,
                                     DeploymentStatusValue.TERMINATING.getValue())

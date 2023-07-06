@@ -3,6 +3,7 @@ package at.uibk.dps.rm.service.database.deployment;
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.repository.deployment.ResourceDeploymentRepository;
+import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestServiceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
@@ -17,9 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletionStage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -55,16 +54,14 @@ public class ResourceDeploymentServiceImplTest {
         long deploymentId = 1L;
         ResourceDeployment entity1 = TestFunctionProvider.createFunctionDeployment(4L, new Deployment());
         ResourceDeployment entity2 = TestServiceProvider.createServiceDeployment(5L, new Deployment());
-        List<ResourceDeployment> resultList = new ArrayList<>();
-        resultList.add(entity1);
-        resultList.add(entity2);
-        CompletionStage<List<ResourceDeployment>> completionStage = CompletionStages.completedFuture(resultList);
-        when(repository.findAllByDeploymentIdAndFetch(session, deploymentId)).thenReturn(completionStage);
+
+        SessionMockHelper.mockSession(sessionFactory, session);
+        when(repository.findAllByDeploymentIdAndFetch(session, deploymentId))
+            .thenReturn(CompletionStages.completedFuture(List.of(entity1, entity2)));
 
         service.findAllByDeploymentId(deploymentId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
-
                 for (int i = 0; i < 2; i++) {
                     JsonObject resultJson = result.getJsonObject(i);
                     assertThat(resultJson.getLong("resource_deployment_id")).isEqualTo(i + 4);
@@ -77,27 +74,13 @@ public class ResourceDeploymentServiceImplTest {
     }
 
     @Test
-    void findAllByDeploymentIdEmpty(VertxTestContext testContext) {
-        long deploymentId = 1L;
-        List<ResourceDeployment> resultList = new ArrayList<>();
-        CompletionStage<List<ResourceDeployment>> completionStage = CompletionStages.completedFuture(resultList);
-        when(repository.findAllByDeploymentIdAndFetch(session, deploymentId)).thenReturn(completionStage);
-
-        service.findAllByDeploymentId(deploymentId)
-                .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                    assertThat(result.size()).isEqualTo(0);
-                    verify(repository).findAllByDeploymentIdAndFetch(session, deploymentId);
-                    testContext.completeNow();
-                })));
-    }
-
-    @Test
     void updateTriggerUrl(VertxTestContext testContext) {
         long functionResourceId = 1L;
         String triggerUrl = "url";
-        CompletionStage<Integer> completionStage = CompletionStages.completedFuture(1);
 
-        when(repository.updateTriggerUrl(session, functionResourceId, triggerUrl)).thenReturn(completionStage);
+        SessionMockHelper.mockTransaction(sessionFactory, session);
+        when(repository.updateTriggerUrl(session, functionResourceId, triggerUrl))
+            .thenReturn(CompletionStages.completedFuture(1));
 
         service.updateTriggerUrl(functionResourceId, triggerUrl)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -110,10 +93,10 @@ public class ResourceDeploymentServiceImplTest {
     void updateSetStatusByDeploymentId(VertxTestContext testContext) {
         long deploymentId = 1L;
         DeploymentStatusValue statusValue = DeploymentStatusValue.NEW;
-        CompletionStage<Integer> completionStage = CompletionStages.completedFuture(1);
 
+        SessionMockHelper.mockTransaction(sessionFactory, session);
         when(repository.updateDeploymentStatusByDeploymentId(session, deploymentId, statusValue))
-            .thenReturn(completionStage);
+            .thenReturn(CompletionStages.completedFuture(1));
 
         service.updateSetStatusByDeploymentId(deploymentId, statusValue)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {

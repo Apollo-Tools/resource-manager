@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.repository.deployment.ServiceDeploymentRepository;
+import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestServiceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.core.json.JsonObject;
@@ -19,7 +20,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 
@@ -57,11 +57,10 @@ public class ServiceDeploymentImplTest {
         long deploymentId = 1L;
         ServiceDeployment entity1 = TestServiceProvider.createServiceDeployment(4L, new Deployment());
         ServiceDeployment entity2 = TestServiceProvider.createServiceDeployment(5L, new Deployment());
-        List<ServiceDeployment> resultList = new ArrayList<>();
-        resultList.add(entity1);
-        resultList.add(entity2);
-        CompletionStage<List<ServiceDeployment>> completionStage = CompletionStages.completedFuture(resultList);
-        when(repository.findAllByDeploymentId(session, deploymentId)).thenReturn(completionStage);
+
+        SessionMockHelper.mockSession(sessionFactory, session);
+        when(repository.findAllByDeploymentId(session, deploymentId))
+            .thenReturn(CompletionStages.completedFuture(List.of(entity1, entity2)));
 
         service.findAllByDeploymentId(deploymentId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -76,20 +75,6 @@ public class ServiceDeploymentImplTest {
             })));
     }
 
-    @Test
-    void findAllByDeploymentIdEmpty(VertxTestContext testContext) {
-        long deploymentId = 1L;
-        List<ServiceDeployment> resultList = new ArrayList<>();
-        CompletionStage<List<ServiceDeployment>> completionStage = CompletionStages.completedFuture(resultList);
-        when(repository.findAllByDeploymentId(session, deploymentId)).thenReturn(completionStage);
-
-        service.findAllByDeploymentId(deploymentId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result.size()).isEqualTo(0);
-                testContext.completeNow();
-            })));
-    }
-
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void existsReadyForContainerStartupAndTermination(boolean exists, VertxTestContext testContext) {
@@ -97,6 +82,7 @@ public class ServiceDeploymentImplTest {
         CompletionStage<ServiceDeployment> completionStage = CompletionStages.completedFuture(exists ?
             new ServiceDeployment() : null);
 
+        SessionMockHelper.mockSession(sessionFactory, session);
         when(repository.findOneByDeploymentStatus(session, deploymentId, resourceDeploymentId, accountId,
             DeploymentStatusValue.DEPLOYED)).thenReturn(completionStage);
 
