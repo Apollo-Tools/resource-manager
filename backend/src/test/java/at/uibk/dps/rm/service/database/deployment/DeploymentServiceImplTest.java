@@ -69,10 +69,10 @@ public class DeploymentServiceImplTest {
         long deploymentId = 1L, accountId = 2L;
         Account account = TestAccountProvider.createAccount(accountId);
         Deployment deployment = TestDeploymentProvider.createDeployment(deploymentId, true, account);
-        Resource r = TestResourceProvider.createResource(1L);
+        Resource r1 = TestResourceProvider.createResource(1L);
         ResourceDeploymentStatus rdsDeployed = TestDeploymentProvider.createResourceDeploymentStatusDeployed();
         ResourceDeploymentStatus rdsTerminating = TestDeploymentProvider.createResourceDeploymentStatusTerminating();
-        ResourceDeployment rd = TestDeploymentProvider.createResourceDeployment(12L, deployment, r, rdsDeployed);
+        ResourceDeployment rd = TestDeploymentProvider.createResourceDeployment(12L, deployment, r1, rdsDeployed);
 
         SessionMockHelper.mockTransaction(sessionFactory, session);
         when(deploymentRepository.findByIdAndAccountId(session, deploymentId, accountId))
@@ -97,9 +97,9 @@ public class DeploymentServiceImplTest {
         ResourceDeploymentStatus rdsNew = TestDeploymentProvider.createResourceDeploymentStatusNew();
         Account account = TestAccountProvider.createAccount(accountId);
         Deployment deployment = TestDeploymentProvider.createDeployment(deploymentId, true, account);
-        Resource r = TestResourceProvider.createResource(1L);
-        ResourceDeployment rd1 = TestDeploymentProvider.createResourceDeployment(12L, deployment, r, rdsNew);
-        ResourceDeployment rd2 = TestDeploymentProvider.createResourceDeployment(12L, deployment, r, rdsDeployed);
+        Resource r1 = TestResourceProvider.createResource(1L);
+        ResourceDeployment rd1 = TestDeploymentProvider.createResourceDeployment(12L, deployment, r1, rdsNew);
+        ResourceDeployment rd2 = TestDeploymentProvider.createResourceDeployment(12L, deployment, r1, rdsDeployed);
 
         return Stream.of(
             Arguments.of(List.of(rd1)),
