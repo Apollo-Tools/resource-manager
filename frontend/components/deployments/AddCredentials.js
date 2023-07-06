@@ -38,7 +38,8 @@ const AddCredentials = ({functionResources, serviceResources, next, prev, onSubm
 
   const atLeastOneEdgeOrVMPresent = () => {
     for (const entry of functionResources.entries()) {
-      const openfaasResources = entry[1].filter((resource) => ['openfaas']
+      console.log(entry);
+      const openfaasResources = entry[1].filter((resource) => ['openfaas', 'ec2']
           .includes(resource.platform.platform));
       if (openfaasResources.length > 0) {
         setNeedsDockerCreds(true);
