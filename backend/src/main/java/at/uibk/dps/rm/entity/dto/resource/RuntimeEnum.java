@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.entity.dto.resource;
 
 import at.uibk.dps.rm.entity.model.Runtime;
+import at.uibk.dps.rm.exception.RuntimeNotSupportedException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -38,7 +39,7 @@ public enum RuntimeEnum {
         return Arrays.stream(RuntimeEnum.values())
             .filter(value -> value.value.equals(runtime.getName()))
             .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("unknown value: " + runtime.getName()));
+            .orElseThrow(() -> new RuntimeNotSupportedException("unknown runtime: " + runtime.getName()));
     }
 
     public String getDotlessValue() {

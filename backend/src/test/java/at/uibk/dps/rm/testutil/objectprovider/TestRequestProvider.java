@@ -51,8 +51,8 @@ public class TestRequestProvider {
         DockerCredentials dockerCredentials = TestDTOProvider.createDockerCredentials();
         deployRequest.setDockerCredentials(dockerCredentials);
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");
-        Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime);
-        Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime);
+        Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime, false);
+        Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime, false);
         Resource r1 = TestResourceProvider.createResourceLambda(1L, region,250.0, 612.0);
         Resource r2 = TestResourceProvider.createResourceEC2(2L, region, 150.0, 512.0,
             "t2.micro");
@@ -82,8 +82,8 @@ public class TestRequestProvider {
         terminateRequest.setDeployment(TestDeploymentProvider.createDeployment(1L));
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1");
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");
-        Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime);
-        Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime);
+        Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime, false);
+        Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime, false);
         Resource r1 = TestResourceProvider.createResourceLambda(1L, region, 250.0, 512.0);
         Resource r2 = TestResourceProvider.createResourceEC2(2L, region, 100.0, 1024.0, "t2.micro");
         Resource r3 = TestResourceProvider.createResourceOpenFaas(3L, 100.0, 512.0, "http://localhost:8080", "user",

@@ -75,7 +75,12 @@ public class FunctionPrepareService {
                 continue;
             }
             String functionIdentifier =  function.getFunctionDeploymentId();
-            RuntimeEnum runtime = RuntimeEnum.fromRuntime(function.getRuntime());
+            RuntimeEnum runtime;
+            try {
+                runtime = RuntimeEnum.fromRuntime(function.getRuntime());
+            } catch (RuntimeNotSupportedException ex) {
+                return Single.error(ex);
+            }
             if (runtime.equals(RuntimeEnum.PYTHON38)) {
                 packageSourceCode = new PackagePythonCode(vertx, fileSystem, deploymentPath, function);
             } else if (runtime.equals(RuntimeEnum.JAVA11)) {

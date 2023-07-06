@@ -45,23 +45,24 @@ public class TestFunctionProvider {
         return createRuntime(runtimeId, "python3.9");
     }
 
-    public static Function createFunction(long functionId, String name, String code, Runtime runtime) {
+    public static Function createFunction(long functionId, String name, String code, Runtime runtime, boolean isFile) {
         Function function = new Function();
         function.setFunctionId(functionId);
         function.setName(name);
         function.setRuntime(runtime);
         function.setCode(code);
+        function.setIsFile(isFile);
         return function;
     }
 
     public static Function createFunction(long functionId, String name, String code, long runtimeId) {
         Runtime runtime = createRuntime(runtimeId);
-        return createFunction(functionId, name, code, runtime);
+        return createFunction(functionId, name, code, runtime, false);
     }
 
     public static Function createFunction(long id, String name, String code) {
         Runtime runtime = createRuntime(1L);
-        return createFunction(id, name, code, runtime);
+        return createFunction(id, name, code, runtime, false);
     }
 
     public static Function createFunction(long id) {

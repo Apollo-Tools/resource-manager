@@ -40,7 +40,7 @@ public class PackageSourceCodeTest {
          * @param fileSystem the vertx file system
          */
         protected ConcretePackageSourceCode(Vertx vertx, FileSystem fileSystem) {
-            super(vertx, fileSystem, Path.of(""), TestFunctionProvider.createFunction(1L),
+            super(vertx, fileSystem, Path.of("function"), TestFunctionProvider.createFunction(1L),
                 "main.py");
         }
 
@@ -67,10 +67,10 @@ public class PackageSourceCodeTest {
 
     @Test
     void composeSourceCode(VertxTestContext testContext) {
-        Path rootFolder = Path.of("./rootFolder");
-        String functionIdentifier = "funct";
-        String code = "def main():\n\treturn 0\n";
-        String fileName = "cloud_function.txt";
+        Path rootFolder = Path.of("function");
+        String functionIdentifier = "foo_python39";
+        String code = "false";
+        String fileName = "main.py";
         Path sourceCodePath = Path.of(rootFolder.toString(), functionIdentifier, fileName);
 
         when(fileSystem.mkdirs(sourceCodePath.getParent().toString()))
@@ -86,10 +86,10 @@ public class PackageSourceCodeTest {
 
     @Test
     void composeSourceCodeWriteFileFailed(VertxTestContext testContext) {
-        Path rootFolder = Path.of("./rootFolder");
-        String functionIdentifier = "funct";
-        String code = "def main():\n\treturn 0\n";
-        String fileName = "cloud_function.txt";
+        Path rootFolder = Path.of("function");
+        String functionIdentifier = "foo_python39";
+        String code = "false";
+        String fileName = "main.py";
         Path sourceCodePath = Path.of(rootFolder.toString(), functionIdentifier, fileName);
 
         when(fileSystem.mkdirs(sourceCodePath.getParent().toString()))
@@ -108,15 +108,13 @@ public class PackageSourceCodeTest {
 
     @Test
     void composeSourceCodeMkdirsFailed(VertxTestContext testContext) {
-        Path rootFolder = Path.of("./rootFolder");
-        String functionIdentifier = "funct";
-        String code = "def main():\n\treturn 0\n";
+        Path rootFolder = Path.of("function");
+        String functionIdentifier = "foo_python39";
         String fileName = "cloud_function.txt";
         Path sourceCodePath = Path.of(rootFolder.toString(), functionIdentifier, fileName);
 
         when(fileSystem.mkdirs(sourceCodePath.getParent().toString()))
             .thenReturn(Completable.error(IOException::new));
-        when(fileSystem.writeFile(sourceCodePath.toString(), Buffer.buffer(code))).thenReturn(Completable.complete());
 
         packageSourceCode.composeSourceCode()
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),

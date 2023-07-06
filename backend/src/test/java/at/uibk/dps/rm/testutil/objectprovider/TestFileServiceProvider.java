@@ -8,7 +8,6 @@ import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.model.Runtime;
 import at.uibk.dps.rm.service.deployment.terraform.*;
-import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.file.FileSystem;
 
@@ -24,9 +23,9 @@ import java.util.List;
 public class TestFileServiceProvider {
     public static RegionFaasFileService createRegionFaasFileService(FileSystem fileSystem, Resource r1, Resource r2,
             Resource r3, Runtime runtime, Region region) {
-        DeploymentPath path = new DeploymentPath(1L, new JsonObject());
-        Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime);
-        Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime);
+        DeploymentPath path = new DeploymentPath(1L, TestConfigProvider.getConfig());
+        Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime, false);
+        Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime, false);
         FunctionDeployment fr1 = TestFunctionProvider.createFunctionDeployment(1L, f1, r1);
         FunctionDeployment fr2 = TestFunctionProvider.createFunctionDeployment(2L, f1, r2);
         FunctionDeployment fr3 = TestFunctionProvider.createFunctionDeployment(3L, f2, r2);
@@ -51,7 +50,7 @@ public class TestFileServiceProvider {
     }
 
     public static RegionFaasFileService createRegionFaasFileServiceAllFaas(FileSystem fileSystem) {
-        Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");
+        Runtime runtime = TestFunctionProvider.createRuntime(1L, "python3.8");
         return createRegionFaasFileServiceAllFaas(fileSystem, runtime);
     }
 
@@ -63,7 +62,7 @@ public class TestFileServiceProvider {
         DockerCredentials credentials = new DockerCredentials();
         credentials.setUsername("user");
         credentials.setAccessToken("access-token");
-        DeploymentPath path = new DeploymentPath(1L, new JsonObject());
+        DeploymentPath path = new DeploymentPath(1L, TestConfigProvider.getConfig());
         return new FunctionPrepareService(vertx, functionDeployments, path, credentials);
     }
 
@@ -72,16 +71,16 @@ public class TestFileServiceProvider {
         DockerCredentials credentials = new DockerCredentials();
         credentials.setUsername("user");
         credentials.setAccessToken("access-token");
-        DeploymentPath path = new DeploymentPath(1L, new JsonObject());
+        DeploymentPath path = new DeploymentPath(1L, TestConfigProvider.getConfig());
         return new FunctionPrepareService(vertx, functionDeployments, path, credentials);
     }
 
     public static FunctionPrepareService createFunctionFileServiceLambdaEc2Python(Vertx vertx) {
         ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
-        Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");
-        Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime);
-        Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime);
+        Runtime runtime = TestFunctionProvider.createRuntime(1L, "python3.8");
+        Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime, false);
+        Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime, false);
         Resource r1 = TestResourceProvider.createResourceLambda(1L, region, 250.0, 512.0);
         Resource r2 = TestResourceProvider.createResourceEC2(2L, region, 150.0, 1024.0,"t2.micro");
         return createFunctionFileService(vertx, r1, r2, f1, f2);
@@ -90,9 +89,9 @@ public class TestFileServiceProvider {
     public static FunctionPrepareService createFunctionFileServiceEC2OpenFaasPython(Vertx vertx) {
         ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
-        Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");
-        Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime);
-        Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime);
+        Runtime runtime = TestFunctionProvider.createRuntime(1L, "python3.8");
+        Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime, false);
+        Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime, false);
         Resource r1 = TestResourceProvider.createResourceOpenFaas(1L,  region, 400.0, 200.0,
             "http://localhost:8081", "user1", "pw1");
         Resource r2 = TestResourceProvider.createResourceEC2(2L, region, 100.0, 1024.0, "t2.micro");
@@ -103,8 +102,8 @@ public class TestFileServiceProvider {
         ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "invalid");
-        Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime);
-        Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime);
+        Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime, false);
+        Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime, false);
         Resource r1 = TestResourceProvider.createResourceOpenFaas(1L,  region, 400.0, 200.0,
             "http://localhost:8081", "user1", "pw1");
         Resource r2 = TestResourceProvider.createResourceEC2(2L, region, 100.0, 1024.0, "t2.micro");
@@ -114,8 +113,8 @@ public class TestFileServiceProvider {
     public static FunctionPrepareService createFunctionFileServiceFunctionTwicePython(Vertx vertx) {
         ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
-        Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");
-        Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime);
+        Runtime runtime = TestFunctionProvider.createRuntime(1L, "python3.8");
+        Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime, false);
         Resource r1 = TestResourceProvider.createResourceOpenFaas(1L,  region, 400.0, 200.0,
             "http://localhost:8081", "user1", "pw1");
         Resource r2 = TestResourceProvider.createResourceEC2(2L, region, 100.0, 1024.0, "t2.micro");

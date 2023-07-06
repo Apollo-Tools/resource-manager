@@ -15,4 +15,11 @@ public class RuntimeNotSupportedException extends RuntimeException {
     public RuntimeNotSupportedException() {
         super("runtime not supported");
     }
+
+    /**
+     * Create an instance with the message.
+     */
+    public RuntimeNotSupportedException(String message) {
+        super(message);
+    }
 }
