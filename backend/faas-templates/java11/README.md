@@ -1,4 +1,4 @@
-## Java Templates
+## Java Template
 
 The Java templates use gradle as a build system.
 
