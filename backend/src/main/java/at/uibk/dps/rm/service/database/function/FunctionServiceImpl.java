@@ -7,7 +7,7 @@ import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.repository.function.FunctionRepository;
 import at.uibk.dps.rm.repository.function.RuntimeRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
-import at.uibk.dps.rm.util.configuration.ConfigUtility;
+import at.uibk.dps.rm.util.misc.UploadFileHelper;
 import at.uibk.dps.rm.util.validation.ServiceResultValidator;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
@@ -16,7 +16,6 @@ import io.vertx.rxjava3.core.Vertx;
 import org.hibernate.reactive.stage.Stage;
 import org.hibernate.reactive.util.impl.CompletionStages;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -31,6 +30,8 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
     private final FunctionRepository repository;
 
     private final RuntimeRepository runtimeRepository;
+
+    private final Vertx vertx = Vertx.currentContext().owner();
 
     /**
      * Create an instance from the repository.
@@ -84,13 +85,7 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
                 .thenCompose(res -> {
                     if (function.getIsFile()) {
                         Vertx vertx = Vertx.currentContext().owner();
-                        String fileName = function.getCode();
-                        return new ConfigUtility(vertx).getConfig()
-                            .flatMapCompletable(config -> {
-                                Path tempPath = Path.of(config.getString("upload_temp_directory"), fileName);
-                                Path destPath = Path.of(config.getString("upload_persist_directory"), fileName);
-                                return vertx.fileSystem().copy(tempPath.toString(), destPath.toString());
-                            })
+                        return UploadFileHelper.persistUploadedFile(vertx, function.getCode())
                             .toCompletionStage(function);
                     }
                     return CompletionStages.completedFuture(function);
@@ -103,7 +98,7 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
     @Override
     public Future<Void> update(long id, JsonObject fields) {
         CompletionStage<Function> update = withTransaction(session -> repository.findByIdAndFetch(session, id)
-            .thenApply(function -> {
+            .thenCompose(function -> {
                 ServiceResultValidator.checkFound(function, Function.class);
                 boolean updateIsFile = fields.getBoolean("is_file");
                 String message = "";
@@ -115,6 +110,13 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
                 if (!message.isBlank()) {
                     throw new BadInputException(message);
                 }
+                if (function.getIsFile()) {
+                    return UploadFileHelper.updateFile(vertx, function.getCode(), fields.getString("code"))
+                        .toCompletionStage(function);
+                }
+                return CompletionStages.completedFuture(function);
+            })
+            .thenApply(function -> {
                 function.setCode(fields.getString("code"));
                 return function;
             })
@@ -130,13 +132,9 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
                 CompletionStage<Void> deleteFunction = session.remove(function);
                 if (function.getIsFile()) {
                     Vertx vertx = Vertx.currentContext().owner();
-                    return new ConfigUtility(vertx).getConfig().flatMapCompletable(config -> {
-                        Path filePath = Path.of(config.getString("upload_persist_directory"),
-                            function.getCode());
-                        return vertx.fileSystem().delete(filePath.toString());
-                    })
-                    .toCompletionStage(null)
-                    .thenCompose(res -> deleteFunction);
+                    return UploadFileHelper.deleteFile(vertx, function.getCode())
+                        .toCompletionStage(null)
+                        .thenCompose(res -> deleteFunction);
                 }
                 return deleteFunction;
             })

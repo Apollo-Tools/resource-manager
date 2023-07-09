@@ -4,14 +4,10 @@ import at.uibk.dps.rm.entity.dto.deployment.FunctionResourceIds;
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.function.FunctionService;
-import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.json.JsonObject;
-import io.vertx.rxjava3.core.Vertx;
 
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
@@ -35,20 +31,6 @@ public class FunctionChecker extends EntityChecker {
         this.functionService = functionService;
     }
 
-    @Override
-    public Completable submitUpdate(long id, JsonObject fields) {
-        return checkFindOne(id).flatMapCompletable(function ->
-            super.submitUpdate(id, fields)
-                .andThen(Single.defer(() -> Single.just(id)))
-                .flatMapCompletable(result -> {
-                    if (fields.getBoolean("is_file")) {
-                        return updateNewCodeFile(function.getString("code"), fields.getString("code"));
-                    }
-                    return Completable.complete();
-                })
-        );
-    }
-
     /**
      * Check if all functions from the given list exist by their function id.
      *
@@ -63,17 +45,5 @@ public class FunctionChecker extends EntityChecker {
             .map(Set::copyOf)
             .flatMap(functionService::existsAllByIds);
         return ErrorHandler.handleExistsOne(existsAllByFunctionIds).ignoreElement();
-    }
-
-    private Completable updateNewCodeFile(String oldFileName, String newFileName) {
-        Vertx vertx = Vertx.currentContext().owner();
-        return new ConfigUtility(vertx).getConfig()
-            .flatMapCompletable(config -> {
-                Path oldPath = Path.of(config.getString("upload_persist_directory"), oldFileName);
-                Path tempPath = Path.of(config.getString("upload_temp_directory"), newFileName);
-                Path destPath = Path.of(config.getString("upload_persist_directory"), newFileName);
-                return vertx.fileSystem().delete(oldPath.toString())
-                    .andThen(vertx.fileSystem().copy(tempPath.toString(), destPath.toString()));
-            });
     }
 }
