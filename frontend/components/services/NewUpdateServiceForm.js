@@ -29,8 +29,8 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
     if (service!=null) {
       setInitialPorts(() => service.ports.map((port) => {
         return {
-          servicePort: port.split(':')[0],
-          containerPort: port.split(':')[1],
+          containerPort: port.split(':')[0],
+          servicePort: port.split(':')[1],
         };
       }));
     }
@@ -54,7 +54,7 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
     if (!checkTokenExpired()) {
       let ports = [];
       if (values.ports != null) {
-        ports = values.ports.map((portEntries) => `${portEntries.servicePort}:${portEntries.containerPort}`);
+        ports = values.ports.map((portEntries) => `${portEntries.containerPort}:${portEntries.servicePort}`);
       }
       if (mode === 'new') {
         await createService(values.name, values.image, values.replicas, ports, values.cpu, values.memory,
@@ -227,9 +227,9 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
             <Typography.Text>Ports</Typography.Text>
             <TooltipIcon text={
               <div className="m-0 text-start">
-                the ports to expose: <br />
-                - Service Port = port exposed by pod <br />
-                - Container Port = service port mapping to external port
+                The mapping of container ports to service (external) ports.<br />
+                - Container Port = port exposed by container <br />
+                - Service Port = port exposed by service (external port)
               </div>
             } />
             <Form.Item
@@ -259,18 +259,6 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
                       >
                         <Form.Item
                           {...field}
-                          name={[name, 'servicePort']}
-                          rules={[
-                            {
-                              required: true,
-                              message: 'Missing service port',
-                            },
-                          ]}
-                        >
-                          <InputNumber addonBefore="Service Port" className="w-40" controls={false} min={1} precision={0}/>
-                        </Form.Item>
-                        <Form.Item
-                          {...field}
                           name={[name, 'containerPort']}
                           rules={[
                             {
@@ -280,6 +268,18 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
                           ]}
                         >
                           <InputNumber addonBefore="Container Port" className="w-40" controls={false} min={1} precision={0}/>
+                        </Form.Item>
+                        <Form.Item
+                          {...field}
+                          name={[name, 'servicePort']}
+                          rules={[
+                            {
+                              required: true,
+                              message: 'Missing service port',
+                            },
+                          ]}
+                        >
+                          <InputNumber addonBefore="Service Port" className="w-40" controls={false} min={1} precision={0}/>
                         </Form.Item>
                         <MinusCircleOutlined onClick={() => remove(name)} />
                       </Space>
