@@ -7,12 +7,15 @@ import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.repository.function.FunctionRepository;
 import at.uibk.dps.rm.repository.function.RuntimeRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import at.uibk.dps.rm.util.validation.ServiceResultValidator;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.rxjava3.core.Vertx;
 import org.hibernate.reactive.stage.Stage;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -102,6 +105,28 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
             })
         );
         return transactionToFuture(update).mapEmpty();
+    }
+
+    @Override
+    public Future<Void> delete(long id) {
+        CompletionStage<Void> delete = withTransaction(session -> repository.findById(session, id)
+            .thenCompose(function -> {
+                ServiceResultValidator.checkFound(function, Function.class);
+                CompletionStage<Void> deleteFunction = session.remove(function);
+                if (function.getIsFile()) {
+                    Vertx vertx = Vertx.currentContext().owner();
+                    return new ConfigUtility(vertx).getConfig().flatMapCompletable(config -> {
+                        Path filePath = Path.of(config.getString("upload_persist_directory"),
+                            function.getCode());
+                        return vertx.fileSystem().delete(filePath.toString());
+                    })
+                    .toCompletionStage(null)
+                    .thenCompose(res -> deleteFunction);
+                }
+                return deleteFunction;
+            })
+        );
+        return transactionToFuture(delete);
     }
 
     @Override

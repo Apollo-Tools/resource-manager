@@ -157,9 +157,9 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
     @Override
     public Future<Void> delete(long id) {
         CompletionStage<Void> delete = withTransaction(session -> repository.findById(session, id)
-            .thenAccept(entity -> {
+            .thenCompose(entity -> {
                 ServiceResultValidator.checkFound(entity, entityClass);
-                session.remove(entity);
+                return session.remove(entity);
             })
         );
         return transactionToFuture(delete);
@@ -169,9 +169,9 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
     public Future<Void> deleteFromAccount(long accountId, long id) {
         CompletionStage<Void> delete = withTransaction(session ->
             repository.findByIdAndAccountId(session, id, accountId)
-                .thenAccept(entity -> {
+                .thenCompose(entity -> {
                     ServiceResultValidator.checkFound(entity, entityClass);
-                    session.remove(entity);
+                    return session.remove(entity);
                 })
         );
         return transactionToFuture(delete);

@@ -67,29 +67,6 @@ public class FunctionChecker extends EntityChecker {
         );
     }
 
-    // TODO: fix
-
-    /**
-     * Delete all files that are linked to a function as well as the function itself.
-     *
-     * @param id the id of the function
-     * @param entity the function
-     * @return a Completable
-     */
-    public Completable submitDelete(long id, JsonObject entity) {
-        if (entity.getBoolean("is_file")) {
-            Vertx vertx = Vertx.currentContext().owner();
-            String fileName = entity.getString("code");
-            return new ConfigUtility(vertx).getConfig()
-                .flatMapCompletable(config -> {
-                    Path filePath = Path.of(config.getString("upload_persist_directory"), fileName);
-                    return vertx.fileSystem().delete(filePath.toString());
-                })
-                .andThen(super.submitDelete(id));
-        }
-        return super.submitDelete(id);
-    }
-
     /**
      * Check if all functions from the given list exist by their function id.
      *
