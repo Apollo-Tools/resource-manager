@@ -142,6 +142,33 @@ export async function updateFunction(id, code, token, setError) {
 }
 
 /**
+ * Update an existing function.
+ *
+ * @param {number} id the id of the function
+ * @param {File} upload the packaged function
+ * @param {string} token the access token
+ * @param {function} setError the function to set the error if one occurs
+ * @return {Promise<boolean>} true if the request was successful
+ */
+export async function updateFunctionUpload(id, upload, token, setError) {
+  try {
+    const formData = new FormData();
+    formData.append('code', upload);
+    const response = await fetch(`${API_ROUTE}/${id}/file`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    });
+    return response.ok;
+  } catch (error) {
+    setError(true);
+    console.log(error);
+  }
+}
+
+/**
  * Delete an existing function.
  *
  * @param {number} id the id of the function

@@ -2,7 +2,10 @@ import {Button, Form, Typography, Space, Upload} from 'antd';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
-import {updateFunction} from '../../lib/FunctionService';
+import {
+  updateFunction,
+  updateFunctionUpload,
+} from '../../lib/FunctionService';
 import CodeMirror from '@uiw/react-codemirror';
 import {getEditorExtension} from '../../lib/CodeEditorService';
 import TextDataDisplay from '../misc/TextDataDisplay';
@@ -12,6 +15,7 @@ const UpdateFunctionForm = ({func, reloadFunction}) => {
   const [form] = Form.useForm();
   const {token, checkTokenExpired} = useAuth();
   const [isModified, setModified] = useState(false);
+  const [fileList, setFileList] = useState([]);
   const [error, setError] = useState(false);
   const [editorExtensions, setEditorExtensions] = useState([]);
 
@@ -38,9 +42,13 @@ const UpdateFunctionForm = ({func, reloadFunction}) => {
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
-      await updateFunction(func.function_id, values.code, token, setError)
-          .then(() => reloadFunction())
-          .then(() => setModified(false));
+      if (func.is_file) {
+        await updateFunctionUpload(func.function_id, values.upload, token, setError);
+      } else {
+        await updateFunction(func.function_id, values.code, token, setError);
+      }
+      await reloadFunction().then(() => setModified(false))
+          .then(() => setFileList([]));
     }
   };
 
@@ -57,12 +65,17 @@ const UpdateFunctionForm = ({func, reloadFunction}) => {
     setModified(false);
   };
 
-  const checkIsModified = () => {
+  const checkCodeIsModified = () => {
     const code = form.getFieldValue('code');
     if (func === null) {
       return false;
     }
     return code !== func.code;
+  };
+
+  const checkFileIsModified = (file, fileList) => {
+    setFileList(fileList);
+    return file.status === 'done';
   };
 
   return (
@@ -93,7 +106,6 @@ const UpdateFunctionForm = ({func, reloadFunction}) => {
                     {
                       validator: () => {
                         const value = form.getFieldValue(['upload']) ?? {};
-                        console.log(value);
                         if (!value.name.endsWith('.zip')) {
                           return Promise.reject(new Error('Invalid file type. Make sure to upload a zip archive'));
                         }
@@ -103,7 +115,15 @@ const UpdateFunctionForm = ({func, reloadFunction}) => {
                   ]}
                   getValueFromEvent={({file}) => file.originFileObj}
                 >
-                  <Upload accept=".zip" maxCount={1} multiple={false} listType="picture-card" showUploadList={{showPreviewIcon: false}}>
+                  <Upload
+                    accept=".zip"
+                    maxCount={1}
+                    multiple={false}
+                    listType="picture-card"
+                    showUploadList={{showPreviewIcon: false}}
+                    onChange={({file, fileList}) => setModified(checkFileIsModified(file, fileList))}
+                    fileList={fileList}
+                  >
                     <div>
                       <PlusOutlined />
                       <div
@@ -111,7 +131,7 @@ const UpdateFunctionForm = ({func, reloadFunction}) => {
                           marginTop: 8,
                         }}
                       >
-                  Upload
+                        Upload
                       </div>
                     </div>
                   </Upload>
@@ -130,7 +150,7 @@ const UpdateFunctionForm = ({func, reloadFunction}) => {
                 <CodeMirror
                   height="500px"
                   extensions={editorExtensions}
-                  onChange={() => setModified(checkIsModified())}
+                  onChange={() => setModified(checkCodeIsModified())}
                 />
               </Form.Item>
           }
@@ -141,9 +161,10 @@ const UpdateFunctionForm = ({func, reloadFunction}) => {
             <Button type="primary" htmlType="submit" disabled={!isModified}>
               Update
             </Button>
+            {!func.is_file &&
             <Button type="default" onClick={() => resetFields()} disabled={!isModified}>
               Reset
-            </Button>
+            </Button> }
           </Space>
         </Form.Item>
       </Form>
