@@ -30,16 +30,15 @@ RUN apk add terraform --repository=https://dl-cdn.alpinelinux.org/alpine/edge/co
 RUN apk --no-cache add gcompat
 ENV LD_PRELOAD=/lib/libgcompat.so.0
 
-
 EXPOSE 8888
 
 RUN mkdir /app
 RUN mkdir /conf
-RUN mkdir /runtime
+RUN mkdir /faas-templates
 RUN mkdir /terraform
 
 COPY ./conf/config.json ./conf/config.json
-COPY ./runtime ./runtime
+COPY ./faas-templates ./faas-templates
 COPY ./terraform ./terraform
 COPY --from=build /home/gradle/src/build/libs/*-all.jar /app/rm-api.jar
 
@@ -49,6 +48,9 @@ ENV db_user=root
 ENV db_password=root
 ENV build_directory=build
 ENV dind_directory="var/lib/apollo-rm/"
+ENV upload_persist_directory="build/upload/"
+ENV upload_temp_directory="build/upload/temp/"
+ENV max_file_size=10000000
 ENV jwt_secret="**secret**"
 ENV token_minutes_valid=1080
 ENV ensemble_validation_period=60

@@ -52,6 +52,12 @@ spec:
             # The path of the build directory
             - name: build_directory
               value: build
+            # The temp path for upload files
+            - name: upload_temp_directory
+              value: "build/upload/temp"
+            # The persistence path for upload files
+            - name: upload_persist_directory
+              value: "build/upload"
             # The path on the host to the build directory
             - name: dind_directory
               value: "var/lib/apollo-rm/"
