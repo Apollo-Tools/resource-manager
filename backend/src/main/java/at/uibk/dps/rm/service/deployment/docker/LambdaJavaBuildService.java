@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.deployment.docker;
 
+import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.dto.resource.RuntimeEnum;
@@ -22,23 +23,25 @@ import java.util.List;
 public class LambdaJavaBuildService {
     private final List<FunctionDeployment> functionDeployments;
 
-    private final Path functionsDir;
+    private final DeploymentPath deploymentPath;
 
     /**
      * Builds and zips all java functions that are part of the functionDeployments.
      *
      * @return a Single that emits the output of the build process
      */
-    public Single<ProcessOutput> buildAndZipJavaFunctions() {
+    public Single<ProcessOutput> buildAndZipJavaFunctions(String dindDirectory) {
         if (!hasLambdaJavaFunctions()) {
             return Single.just(new ProcessOutput());
         }
+        String dindFunctionsPath = Path.of(dindDirectory, deploymentPath.getFunctionsFolder().toString())
+            .toAbsolutePath().toString().replace("\\", "/");
         List<String> dockerCommands = new java.util.ArrayList<>(List.of("docker", "run", "--rm",
-            "-v", functionsDir.toAbsolutePath().toString().replace("\\", "/") + ":/projects",
+            "-v", dindFunctionsPath + ":/projects",
             "-w", "/projects", "gradle:7-jdk11-jammy", "/bin/sh", "-c"));
         String dockerInteractiveCommands = "for dir in *_java11;do cd \"$dir\";gradle buildLambdaZip; cd ..;done; exit";
         dockerCommands.add(dockerInteractiveCommands);
-        ProcessExecutor processExecutor = new ProcessExecutor(functionsDir, dockerCommands);
+        ProcessExecutor processExecutor = new ProcessExecutor(deploymentPath.getFunctionsFolder(), dockerCommands);
         return processExecutor.executeCli();
     }
 

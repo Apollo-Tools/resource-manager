@@ -2,6 +2,7 @@ package at.uibk.dps.rm.service.deployment.sourcecode;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.model.Function;
+import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.file.FileSystem;
 
@@ -48,8 +49,12 @@ public class PackagePythonCode extends PackageSourceCode{
         try {
             FileOutputStream fileOutputStream = new FileOutputStream(rootFolder + "/" + functionIdentifier + ".zip");
             ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream);
+            File[] sourceCodeFiles = sourceCode.getParent().toFile().listFiles();
+            if (sourceCodeFiles == null) {
+                throw new DeploymentTerminationFailedException();
+            }
             List<File> filesToZip = new ArrayList<>();
-            filesToZip.add(sourceCode.toFile());
+            filesToZip.addAll(List.of(sourceCodeFiles));
             filesToZip.addAll(Arrays.asList(HANDLER_FILES));
             for (File fileToZip : filesToZip) {
                 zipFile(fileToZip, fileToZip.getName(), zipOutputStream);

@@ -133,9 +133,9 @@ public class DeploymentExecutionChecker {
    */
     private Single<ProcessOutput> buildJavaLambdaFaaS(List<FunctionDeployment> functionDeployments,
             DeploymentPath deploymentPath) {
-        LambdaJavaBuildService lambdaService = new LambdaJavaBuildService(functionDeployments,
-            deploymentPath.getFunctionsFolder());
-        return lambdaService.buildAndZipJavaFunctions();
+        LambdaJavaBuildService lambdaService = new LambdaJavaBuildService(functionDeployments, deploymentPath);
+        return new ConfigUtility(Vertx.currentContext().owner()).getConfig()
+            .flatMap(config ->lambdaService.buildAndZipJavaFunctions(config.getString("dind_directory")));
     }
 
   /**
@@ -147,9 +147,9 @@ public class DeploymentExecutionChecker {
    */
     private Single<ProcessOutput> buildLambdaLayers(List<FunctionDeployment> functionDeployments,
             DeploymentPath deploymentPath) {
-        LambdaLayerService layerService = new LambdaLayerService(functionDeployments,
-            deploymentPath.getFunctionsFolder());
-        return layerService.buildLambdaLayers();
+        LambdaLayerService layerService = new LambdaLayerService(functionDeployments, deploymentPath);
+        return  new ConfigUtility(Vertx.currentContext().owner()).getConfig()
+            .flatMap(config -> layerService.buildLambdaLayers(config.getString("dind_directory")));
     }
 
   /**

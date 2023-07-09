@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.deployment.docker;
 
+import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.dto.resource.RuntimeEnum;
 import at.uibk.dps.rm.entity.model.Function;
@@ -20,26 +21,28 @@ import java.util.List;
 public class LambdaLayerService {
     private final List<FunctionDeployment> functionDeployments;
 
-    private final Path functionsDir;
+    private final DeploymentPath deploymentPath;
 
     /**
      * Builds and zips the dependencies of all python functions as a layer.
      *
      * @return a Single that emits the output of the build process
      */
-    public Single<ProcessOutput> buildLambdaLayers() {
+    public Single<ProcessOutput> buildLambdaLayers(String dindDirectory) {
         if (!hasZippedCode()) {
             return Single.just(new ProcessOutput());
         }
+        String dindLayersPath = Path.of(dindDirectory, deploymentPath.getLayersFolder().toString())
+            .toAbsolutePath().toString().replace("\\", "/");
         List<String> dockerCommands = new java.util.ArrayList<>(List.of("docker", "run", "--rm",
-            "-v", functionsDir.toAbsolutePath().toString().replace("\\", "/") + "/layers:/var/task",
+            "-v", dindLayersPath + ":/var/task",
             "public.ecr.aws/sam/build-python3.8:latest", "/bin/sh", "-c"));
         // Making the dummy file is necessary for blank requirements.txt files
         String dockerInteractiveCommands = "mkdir -p python; echo -e \"placeholder\" >> python/placeholder.txt;" +
-            "for dir in *_python38;do pip install -r \"$dir\"/requirements.txt " +
+            "for dir in ./*_python38;do pip install -r \"$dir\"/requirements.txt " +
             "-t python/lib/python3.8/site-packages/; done;zip -qr ./python38.zip ./python;rm -r ./python; exit";
         dockerCommands.add(dockerInteractiveCommands);
-        ProcessExecutor processExecutor = new ProcessExecutor(functionsDir, dockerCommands);
+        ProcessExecutor processExecutor = new ProcessExecutor(deploymentPath.getFunctionsFolder(), dockerCommands);
         return processExecutor.executeCli();
     }
 
