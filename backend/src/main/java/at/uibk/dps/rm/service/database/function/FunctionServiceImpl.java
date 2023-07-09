@@ -14,6 +14,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
 import org.hibernate.reactive.stage.Stage;
+import org.hibernate.reactive.util.impl.CompletionStages;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -76,13 +77,27 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
                     }
                     return repository.findOneByNameAndRuntimeId(session, function.getName(), runtime.getRuntimeId());
                 })
-                .thenApply(existingFunction -> {
+                .thenCompose(existingFunction -> {
                     ServiceResultValidator.checkExists(existingFunction, Function.class);
-                    session.persist(function);
-                    return function;
+                    return session.persist(function);
+                })
+                .thenCompose(res -> {
+                    if (function.getIsFile()) {
+                        Vertx vertx = Vertx.currentContext().owner();
+                        String fileName = function.getCode();
+                        return new ConfigUtility(vertx).getConfig()
+                            .flatMapCompletable(config -> {
+                                Path tempPath = Path.of(config.getString("upload_temp_directory"), fileName);
+                                Path destPath = Path.of(config.getString("upload_persist_directory"), fileName);
+                                return vertx.fileSystem().copy(tempPath.toString(), destPath.toString());
+                            })
+                            .toCompletionStage(function);
+                    }
+                    return CompletionStages.completedFuture(function);
                 })
         );
-        return transactionToFuture(create).map(JsonObject::mapFrom);
+        return transactionToFuture(create)
+            .map(JsonObject::mapFrom);
     }
 
     @Override

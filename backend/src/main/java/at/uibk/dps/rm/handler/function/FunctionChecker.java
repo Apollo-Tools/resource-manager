@@ -35,24 +35,6 @@ public class FunctionChecker extends EntityChecker {
         this.functionService = functionService;
     }
 
-    // TODO: delete file if error occurs (restructure)
-    @Override
-    public Single<JsonObject> submitCreate(JsonObject entity) {
-        if (entity.getBoolean("is_file")) {
-            Vertx vertx = Vertx.currentContext().owner();
-            String fileName = entity.getString("code");
-            return new ConfigUtility(vertx).getConfig()
-                .flatMapCompletable(config -> {
-                    Path tempPath = Path.of(config.getString("upload_temp_directory"), fileName);
-                    Path destPath = Path.of(config.getString("upload_persist_directory"), fileName);
-                    return vertx.fileSystem().copy(tempPath.toString(), destPath.toString());
-                })
-                .andThen(Single.defer(() -> Single.just(1L)))
-                .flatMap(res -> super.submitCreate(entity));
-        }
-        return super.submitCreate(entity);
-    }
-
     @Override
     public Completable submitUpdate(long id, JsonObject fields) {
         return checkFindOne(id).flatMapCompletable(function ->
