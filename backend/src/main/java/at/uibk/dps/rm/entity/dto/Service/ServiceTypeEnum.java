@@ -15,6 +15,10 @@ import java.util.Arrays;
 @Getter
 public enum ServiceTypeEnum {
     /**
+     * Cluster IP
+     */
+    CLUSTER_IP("ClusterIP"),
+    /**
      * Node Port
      */
     NODE_PORT("NodePort"),

@@ -65,8 +65,8 @@ variable "service_type" {
 
   validation {
     condition     = (var.service_type == "NodePort" || var.service_type == "LoadBalancer" ||
-      var.service_type == "NoService")
-    error_message = "The service type must be of type NodePort, LoadBalancer or NoService"
+      var.service_type == "ClusterIP" || var.service_type == "NoService")
+    error_message = "The service type must be of type ClusterIP, NodePort, LoadBalancer or NoService"
   }
 }
 

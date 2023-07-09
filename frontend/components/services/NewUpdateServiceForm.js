@@ -209,15 +209,16 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
             className="col-span-6"
           >
             <Select className="w-40" onSelect={onChangeServiceType}>
-              {serviceTypes.map((serviceType) => {
-                return (
-                  <Select.Option
-                    value={serviceType.service_type_id}
-                    key={serviceType.service_type_id}>
-                    {serviceType.name}
-                  </Select.Option>
-                );
-              })}
+              {serviceTypes.sort((st1, st2) => st1.name.localeCompare(st2.name))
+                  .map((serviceType) => {
+                    return (
+                      <Select.Option
+                        value={serviceType.service_type_id}
+                        key={serviceType.service_type_id}>
+                        {serviceType.name}
+                      </Select.Option>
+                    );
+                  })}
             </Select>
           </Form.Item>
         </div>

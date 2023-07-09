@@ -70,8 +70,8 @@ info:
     (backend/faas-templates). For python functions it is also possible to just provide the blank code of the function.
     - **services**: Service entities consist of a name, the title of the docker image, the number of replicas for that 
     service, the ports that should be exposed, the required cpu amount, the required memory amount and the k8s 
-    service type. Currently only *NodePort*, *LoadBalancer*, *NoService* are supported service types. If *NoService*
-    is the selected service type no ports are allowed. The schema for ports to expose looks like this: 
+    service type. Currently *ClientIP*, *NodePort*, *LoadBalancer*, *NoService* are supported service types. If 
+    *NoService* is the selected service type no ports are allowed. The schema for ports to expose looks like this: 
     - ``containerPort:servicePort`` - e.g. your container exposes the port 80 and you want to expose it to service port
     8080 you would have to provide it like this ``80:8080``.
     
