@@ -30,7 +30,7 @@ info:
     for this type of metric are the memory required for serverless functions or the instance type of a virtual machine.
     
     
-    Not all platform support/require the same metrics. The /platforms/{id}/metrics route can be used to get all 
+    Not all platforms support/require the same metrics. The /platforms/{id}/metrics route can be used to get all 
     metrics that are supported for a particular platform. The value types for metrics can be *string*, *number* and 
     *boolean*.
     
@@ -65,7 +65,9 @@ info:
     the same structure and are only available for deployment on predefined platforms as described in the 
     platforms section.
     - **functions**: Function entities consist of a name, a runtime and a function code that can be executed by that 
-    runtime. Currently python3.8 is the only supported runtime.
+    runtime. Currently python 3.8 and java 11 are the only supported runtimes. In general function code has to be
+    uploaded as a zip file. Templates for all available runtimes can be found at the git repository of the RM 
+    (backend/faas-templates). For python functions it is also possible to just provide the blank code of the function.
     - **services**: Service entities consist of a name, the title of the docker image, the number of replicas for that 
     service, the ports that should be exposed, the required cpu amount, the required memory amount and the k8s 
     service type. Currently only *NodePort*, *LoadBalancer*, *NoService* are supported service types. If *NoService*
