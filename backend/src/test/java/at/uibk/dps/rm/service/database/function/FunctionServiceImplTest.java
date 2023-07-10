@@ -6,6 +6,7 @@ import at.uibk.dps.rm.repository.function.RuntimeRepository;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
+import io.vertx.junit5.RunTestOnContext;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.hibernate.reactive.stage.Stage;
@@ -13,6 +14,7 @@ import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
@@ -47,8 +49,12 @@ public class FunctionServiceImplTest {
     @Mock
     private Stage.Session session;
 
+    @RegisterExtension
+    private static final RunTestOnContext rtoc = new RunTestOnContext();
+
     @BeforeEach
     void initTest() {
+        rtoc.vertx();
         JsonMapperConfig.configJsonMapper();
         functionService = new FunctionServiceImpl(functionRepository, runtimeRepository, sessionFactory);
     }
