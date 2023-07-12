@@ -73,7 +73,7 @@ public class RegionFaasFileService extends TerraformFileService {
                 "provider \"aws\" {\n" +
                     "  access_key = var.access_key\n" +
                     "  secret_key = var.secret_access_key\n" +
-                    "  token = var.session_token\n" +
+                    "  token = var.session_token == \"\" ? null : var.session_token\n" +
                     "  region = \"%s\"\n" +
                     "}\n", region.getName());
         }
