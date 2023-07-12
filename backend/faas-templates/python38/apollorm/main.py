@@ -16,3 +16,11 @@ def main(json_input):
         "input1": sum_result
     }
     return res
+
+
+# For local development
+if __name__ == '__main__':
+    response = main({
+        'input1': 25
+    })
+    print(response)
