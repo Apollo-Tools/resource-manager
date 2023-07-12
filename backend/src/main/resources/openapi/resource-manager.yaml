@@ -65,9 +65,10 @@ info:
     the same structure and are only available for deployment on predefined platforms as described in the 
     platforms section.
     - **functions**: Function entities consist of a name, a runtime and a function code that can be executed by that 
-    runtime. Currently python 3.8 and java 11 are the only supported runtimes. In general function code has to be
+    runtime. Currently python 3.8 and java 11 are the supported runtimes. In general function code has to be
     uploaded as a zip file. Templates for all available runtimes can be found at the git repository of the RM 
-    (backend/faas-templates). For python functions it is also possible to just provide the blank code of the function.
+    (backend/faas-templates). For python functions it is also possible to directly save the function code of the 
+    function.
     - **services**: Service entities consist of a name, the title of the docker image, the number of replicas for that 
     service, the ports that should be exposed, the required cpu amount, the required memory amount and the k8s 
     service type. Currently *ClientIP*, *NodePort*, *LoadBalancer*, *NoService* are supported service types. If 
