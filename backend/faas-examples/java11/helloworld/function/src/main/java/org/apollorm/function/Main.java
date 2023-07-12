@@ -3,34 +3,23 @@ package org.apollorm.function;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apollorm.model.FunctionHandler;
-import org.apollorm.model.exception.FunctionException;
+
 /**
- * This class is the main entry point of the function.
+ * This is a 'Hello World' function which returns the string ``Hello, world``.
  *
  * @author matthi-g
  */
 public class Main implements FunctionHandler {
-    /**
-     * Directly modify the classes {@link Result} and {@link Input} or implement custom serialization/deserialization
-     * with classes of your choice.
-     *
-     * @param requestBody the input of the function
-     * @return the result of the function
-     */
+    @Override
     public String main(String requestBody) throws JsonProcessingException {
-        // Parse input
         ObjectMapper objectMapper = new ObjectMapper();
-        Input input;
-        try {
-            input = objectMapper.readValue(requestBody, Input.class);
-        } catch (Exception ex) {
-            throw new FunctionException("bad input");
-        }
+
         // Processing
+        String res = File.helloWorld();
 
         // Return the result
         Result result = new Result();
-        result.setResult(input.getInput1());
+        result.setResult(res);
         return objectMapper.writeValueAsString(result);
     }
 

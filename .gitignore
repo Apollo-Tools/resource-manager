@@ -142,6 +142,8 @@ buildNumber.properties
 .gradle
 /buildTool/
 **/gradle/wrapper/
+**/gradlew.bat
+**/gradlew
 
 # Ignore Gradle GUI config
 gradle-app.setting
