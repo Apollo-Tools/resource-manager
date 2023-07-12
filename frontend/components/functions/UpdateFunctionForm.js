@@ -123,6 +123,7 @@ const UpdateFunctionForm = ({func, reloadFunction}) => {
                     showUploadList={{showPreviewIcon: false}}
                     onChange={({file, fileList}) => setModified(checkFileIsModified(file, fileList))}
                     fileList={fileList}
+                    action={'https://run.mocky.io/v3/0039e1d4-7e0a-4a00-a89c-6606e83fae2b'}
                   >
                     <div>
                       <PlusOutlined />

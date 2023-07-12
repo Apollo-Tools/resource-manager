@@ -157,7 +157,14 @@ const NewFunctionFrom = ({setNewFunction}) => {
               ]}
               getValueFromEvent={({file}) => file.originFileObj}
             >
-              <Upload accept=".zip" maxCount={1} multiple={false} listType="picture-card" showUploadList={{showPreviewIcon: false}}>
+              <Upload
+                accept=".zip"
+                maxCount={1}
+                multiple={false}
+                listType="picture-card"
+                showUploadList={{showPreviewIcon: false}}
+                action={'https://run.mocky.io/v3/0039e1d4-7e0a-4a00-a89c-6606e83fae2b'}
+              >
                 <div>
                   <PlusOutlined />
                   <div
