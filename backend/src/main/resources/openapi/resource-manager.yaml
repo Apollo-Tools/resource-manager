@@ -1117,7 +1117,7 @@ paths:
                   format: binary
             encoding:
               code:
-                contentType: 'application/x-zip-compressed'
+                contentType: 'application/*zip*'
       responses:
         201:
           description: Successful update of the function
@@ -1172,7 +1172,7 @@ paths:
                   format: binary
             encoding:
               code:
-                contentType: 'application/x-zip-compressed'
+                contentType: 'application/*zip*'
       responses:
         201:
           description: Successful creation of a new function
