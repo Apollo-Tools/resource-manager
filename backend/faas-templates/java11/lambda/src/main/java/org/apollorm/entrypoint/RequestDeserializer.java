@@ -24,7 +24,7 @@ public class RequestDeserializer extends StdDeserializer<Request> {
         JsonNode node = jp.getCodec().readTree(jp);
         String body;
         if (node.has("body")) {
-            body = node.get("body").asText().replace("\\", "\"");
+            body = node.get("body").asText().replace("\\\\", "\\");
         } else {
             body = node.toString();
         }
