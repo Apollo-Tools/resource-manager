@@ -189,14 +189,18 @@ paths:
       responses:
         200:
           description: Successful pull of the user account
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Account"
         400:
           $ref: "#/components/responses/400"
-        403:
-          $ref: "#/components/responses/403"
+        401:
+          $ref: "#/components/responses/401"
         500:
           $ref: "#/components/responses/500"
     patch:
@@ -226,6 +230,8 @@ paths:
           description: Successful update of an accounts password
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         500:
           $ref: "#/components/responses/500"
 
@@ -263,6 +269,10 @@ paths:
       responses:
         201:
           description: Successful registration of a new user account
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
@@ -302,16 +312,22 @@ paths:
                   minLength: 8
                   maxLength: 512
       responses:
-        201:
-          description: Successful registration of a new user account
+        200:
+          description: Successful login of a user
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Account"
-        400:
-          $ref: "#/components/responses/400"
-        404:
-          $ref: "#/components/responses/404"
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+        401:
+          $ref: "#/components/responses/401"
         500:
           $ref: "#/components/responses/500"
 
@@ -2804,13 +2820,32 @@ components:
   responses:
     400:
       description: Bad input
+      headers:
+        content-length:
+          schema:
+            type: integer
       content:
         "*/*":
           schema:
             type: string
             example: bad input
+    401:
+      description: Unauthorized
+      headers:
+        content-length:
+          schema:
+            type: integer
+      content:
+        "*/*":
+          schema:
+            type: string
+            example: unauthorized
     403:
       description: Forbidden
+      headers:
+        content-length:
+          schema:
+            type: integer
       content:
         "*/*":
           schema:
@@ -2818,6 +2853,10 @@ components:
             example: forbidden
     404:
       description: Not found
+      headers:
+        content-length:
+          schema:
+            type: integer
       content:
         "*/*":
           schema:
@@ -2825,6 +2864,10 @@ components:
             example: not found
     409:
       description: Already exists
+      headers:
+        content-length:
+          schema:
+            type: integer
       content:
         "*/*":
           schema:
@@ -2832,6 +2875,10 @@ components:
             example: already exists
     500:
       description: Internal server error
+      headers:
+        content-length:
+          schema:
+            type: integer
       content:
         "*/*":
           schema:
