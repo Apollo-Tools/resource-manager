@@ -1,3 +1,9 @@
+"""
+This function expects a FASTQ sequence and the size of the subsequences and
+then returns the subsequences of the original sequence.
+"""
+__author__ = "matthi-g"
+
 import time
 if __package__ is None or __package__ == '':
     from fastqSplit import split

@@ -1,3 +1,7 @@
+"""
+This is a 'Hello World' function which returns the string ``Hello, world``.
+"""
+__author__ = "matthi-g"
 if __package__ is None or __package__ == '':
     import file
 else:

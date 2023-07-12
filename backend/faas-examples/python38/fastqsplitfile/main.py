@@ -1,3 +1,13 @@
+"""
+This function expects a FASTQ sequence file that is located at an AWS S3
+bucket and the size of the subsequences and then uploads the subsequences into the same bucket.
+The response contains the file names of the uploaded subsequences.
+
+Note: This function needs to be modified to work outside of AWS Lambda,
+e.g. provide credentials in request body.
+"""
+__author__ = "matthi-g"
+
 import boto3
 import time
 import os
