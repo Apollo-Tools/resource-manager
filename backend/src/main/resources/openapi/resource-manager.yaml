@@ -1676,12 +1676,18 @@ paths:
       responses:
         200:
           description: Successful pull of a resource provider
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ResourceProvider"
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         500:
@@ -1700,12 +1706,32 @@ paths:
       responses:
         200:
           description: Successful pull of all resource provider's regions
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Region"
+                  type: object
+                  properties:
+                    region_id:
+                      type: integer
+                      format: int64
+                      example: 1
+                    name:
+                      type: string
+                      example: us-east-1
+                    created_at:
+                      type: integer
+                      format: int64
+                      example: 1679496667103
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
         500:
           $ref: "#/components/responses/500"
 
@@ -1720,12 +1746,18 @@ paths:
       responses:
         200:
           description: Successful pull of all resource providers
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: "#/components/schemas/ResourceProvider"
+        401:
+          $ref: "#/components/responses/401"
         500:
           $ref: "#/components/responses/500"
 
@@ -1742,12 +1774,18 @@ paths:
       responses:
         200:
           description: Successful pull of a region
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Region"
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         500:
@@ -1767,6 +1805,8 @@ paths:
           description: Successful deletion of a region
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         500:
@@ -1783,12 +1823,18 @@ paths:
       responses:
         200:
           description: Successful pull of all regions
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: "#/components/schemas/Region"
+        401:
+          $ref: "#/components/responses/401"
         500:
           $ref: "#/components/responses/500"
 
@@ -1828,12 +1874,20 @@ paths:
       responses:
         201:
           description: Successful creation of a new region
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Region"
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
         409:
           $ref: "#/components/responses/409"
         500:
@@ -2111,12 +2165,18 @@ paths:
       responses:
         200:
           description: Successful pull of a resource type
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ResourceType"
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         500:
@@ -2133,12 +2193,18 @@ paths:
       responses:
         200:
           description: Successful pull of all resource types
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: "#/components/schemas/ResourceType"
+        401:
+          $ref: "#/components/responses/401"
         500:
           $ref: "#/components/responses/500"
 
@@ -2429,12 +2495,18 @@ paths:
       responses:
         200:
           description: Successful pull of all platforms
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: "#/components/schemas/Platform"
+        401:
+          $ref: "#/components/responses/401"
         500:
           $ref: "#/components/responses/500"
 
@@ -2452,6 +2524,10 @@ paths:
       responses:
         200:
           description: Successful pull of all metrics for the platform
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
@@ -2462,11 +2538,15 @@ paths:
                     metric:
                       $ref: "#/components/schemas/Metric"
                     required:
-                      description: whether to return the required or optional metrics
+                      description: whether the metric is required for a platform's resource or not
                       type: boolean
                       example: true
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
         500:
           $ref: "#/components/responses/500"
 
@@ -2483,12 +2563,20 @@ paths:
       responses:
         200:
           description: Successful pull of all regions
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: "#/components/schemas/Region"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
         500:
           $ref: "#/components/responses/500"
 
@@ -2683,7 +2771,6 @@ components:
               type: integer
               format: int64
               example: 1679496667103
-
     ResourceType:
       type: object
       properties:
@@ -2693,7 +2780,7 @@ components:
           example: 1
         resource_type:
           type: string
-          maxLength: 8
+          maxLength: 32
           enum:
             - faas
             - container
