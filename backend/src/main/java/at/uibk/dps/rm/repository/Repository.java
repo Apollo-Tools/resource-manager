@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.repository;
 
-import org.hibernate.reactive.stage.Stage.SessionFactory;
+import org.hibernate.reactive.stage.Stage;
 
 import java.util.List;
 import java.util.concurrent.CompletionStage;
@@ -14,18 +14,14 @@ import java.util.concurrent.CompletionStage;
  */
 public abstract class Repository<E> {
 
-    protected final SessionFactory sessionFactory;
-
     protected final Class<E> entityClass;
 
     /**
      * Create an instance from the sessionFactory and entityClass.
      *
-     * @param sessionFactory the session factory
      * @param entityClass the class of the entity
      */
-    public Repository(SessionFactory sessionFactory, Class<E> entityClass) {
-        this.sessionFactory = sessionFactory;
+    public Repository(Class<E> entityClass) {
         this.entityClass = entityClass;
     }
 
@@ -35,10 +31,8 @@ public abstract class Repository<E> {
      * @param entity the new entity
      * @return a CompletionStage that emits the persisted entity
      */
-    public CompletionStage<E> create(E entity) {
-        return sessionFactory.withTransaction((session, tx) -> session
-                .persist(entity)
-                .thenApply(result -> entity));
+    public CompletionStage<E> create(Stage.Session session, E entity) {
+        return session.persist(entity).thenApply(result -> entity);
     }
 
     /**
@@ -47,36 +41,8 @@ public abstract class Repository<E> {
      * @param entityList the list of entities
      * @return an empty CompletionStage
      */
-    public CompletionStage<Void> createAll(List<E> entityList) {
-        return sessionFactory.withTransaction((session, tx) ->
-            session.persist(entityList.toArray())
-        );
-    }
-
-    /**
-     * Update an entity.
-     *
-     * @param entity the entity
-     * @return a CompletionStage that emits the new state of the entity
-     */
-    public CompletionStage<E> update(E entity) {
-        return sessionFactory.withTransaction((session, tx) -> session
-                .merge(entity));
-    }
-
-    /**
-     * Delete an entity by its id.
-     *
-     * @param id the id of the entity
-     * @return a CompletionStage that emits the row count
-     */
-    public CompletionStage<Integer> deleteById(long id) {
-        //noinspection JpaQlInspection
-        return this.sessionFactory.withTransaction(session ->
-            session.createQuery("delete from " + entityClass.getName() + " where id=:id")
-                .setParameter("id", id)
-                .executeUpdate()
-        );
+    public CompletionStage<Void> createAll(Stage.Session session, List<E> entityList) {
+        return session.persist(entityList.toArray());
     }
 
     /**
@@ -85,10 +51,19 @@ public abstract class Repository<E> {
      * @param id the id of the entity
      * @return a CompletionStage that emits the entity if it exists, else null
      */
-    public CompletionStage<E> findById(long id) {
-        return sessionFactory.withSession(session ->
-                session.find(entityClass, id)
-        );
+    public CompletionStage<E> findById(Stage.Session session, long id) {
+        return session.find(entityClass, id);
+    }
+
+    /**
+     * Find an entity by its id and accountId.
+     *
+     * @param id the id of the entity
+     * @param accountId the id of the owner
+     * @return a CompletionStage that emits the entity if it exists, else null
+     */
+    public CompletionStage<E> findByIdAndAccountId(Stage.Session session, long id, long accountId) {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -96,13 +71,22 @@ public abstract class Repository<E> {
      *
      * @return a CompletionStage that emits all entities
      */
-    public CompletionStage<List<E>> findAll() {
+    public CompletionStage<List<E>> findAll(Stage.Session session) {
         // `id` is used as reference for the table key
         // displays error because the table is dynamic
         //noinspection JpaQlInspection
-        return sessionFactory.withSession(session ->
-                session.createQuery("from " + entityClass.getName() + " order by id", entityClass)
-                    .getResultList()
-        );
+        return session.createQuery("from " + entityClass.getName() + " order by id", entityClass)
+                    .getResultList();
+    }
+
+    /**
+     * Find all entities by their account.
+     *
+     * @param session the database session
+     * @param accountId the id of the account
+     * @return a CompletionStage that emits a list of existing entities
+     */
+    public CompletionStage<List<E>> findAllByAccountId(Stage.Session session, long accountId) {
+        throw new UnsupportedOperationException();
     }
 }

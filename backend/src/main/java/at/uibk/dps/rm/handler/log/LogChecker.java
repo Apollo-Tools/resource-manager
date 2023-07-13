@@ -28,15 +28,14 @@ public class LogChecker extends EntityChecker {
     }
 
     /**
-     * Find all logs by reservation and account.
+     * Find all logs by deployment and account.
      *
-     * @param reservationId the id of the reservation
+     * @param deploymentId the id of the deployment
      * @param accountId the id of the account
      * @return a Single that emits all found logs as JsonArray
      */
-    public Single<JsonArray> checkFindAllByReservationId(long reservationId, long accountId) {
-        Single<JsonArray> findAllByReservationId = logService
-            .findAllByReservationIdAndAccountId(reservationId, accountId);
-        return ErrorHandler.handleFindAll(findAllByReservationId);
+    public Single<JsonArray> checkFindAllByDeploymentId(long deploymentId, long accountId) {
+        Single<JsonArray> findAllByDeploymentId = logService.findAllByDeploymentIdAndAccountId(deploymentId, accountId);
+        return ErrorHandler.handleFindAll(findAllByDeploymentId);
     }
 }

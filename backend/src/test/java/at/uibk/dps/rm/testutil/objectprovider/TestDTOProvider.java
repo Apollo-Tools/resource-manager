@@ -15,6 +15,7 @@ import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.SLOValue;
 import at.uibk.dps.rm.entity.dto.slo.SLOValueType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
+import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.model.ResourceProvider;
 import lombok.experimental.UtilityClass;
@@ -189,15 +190,15 @@ public class TestDTOProvider {
         return functionsToDeploy;
     }
 
-    public static DeploymentCredentials createDeploymentCredentialsAWSEdge() {
+    public static DeploymentCredentials createDeploymentCredentialsAWSOpenfaas() {
         ResourceProvider rp = TestResourceProviderProvider.createResourceProvider(1L);
         DeploymentCredentials deploymentCredentials = new DeploymentCredentials();
         if (System.getProperty("os.name").toLowerCase().contains("windows")) {
             deploymentCredentials
-                .setEdgeLoginCredentials("edge_login_data=[{auth_user=\\\"user\\\",auth_pw=\\\"pw\\\"},]");
+                .getOpenFaasCredentials().add("r1={auth_user=\\\"user\\\", auth_pw=\\\"pw\\\"}");
         } else {
             deploymentCredentials
-                .setEdgeLoginCredentials("edge_login_data=[{auth_user=\"user\",auth_pw=\"pw\"},]");
+                .getOpenFaasCredentials().add("r1={auth_user=\"user\", auth_pw=\"pw\"}");
         }
         deploymentCredentials.getCloudCredentials().add(TestAccountProvider.createCredentials(1L, rp));
         return deploymentCredentials;
@@ -218,16 +219,6 @@ public class TestDTOProvider {
         return processOutput;
     }
 
-    public static TFOutput createEmptyTFOutput() {
-        TFOutput tfOutput = new TFOutput();
-        tfOutput.setValue(new HashMap<>());
-        return  tfOutput;
-    }
-
-    public static TFOutput createTFOutputFaas() {
-        return createTFOutputFaas("python39");
-    }
-
     public static TFOutput createTFOutputFaas(String runtime) {
         TFOutput tfOutput = new TFOutput();
         Map<String, String> valueMap = new HashMap<>();
@@ -236,36 +227,26 @@ public class TestDTOProvider {
         return tfOutput;
     }
 
-    public static TFOutput createTFOutputVM() {
+    public static TFOutput createTFOutput() {
         TFOutput tfOutput = new TFOutput();
         Map<String, String> valueMap = new HashMap<>();
-        valueMap.put("r2_foo1_python39", "http://localhostvm1");
-        valueMap.put("r2_foo2_python39", "http://localhostvm2");
-        tfOutput.setValue(valueMap);
-        return tfOutput;
-    }
-
-    public static TFOutput createTFOutputEdge() {
-        TFOutput tfOutput = new TFOutput();
-        Map<String, String> valueMap = new HashMap<>();
-        valueMap.put("r3_foo1_python39", "http://localhostedge1");
+        valueMap.put("r1_foo1_python39", "http://localhostlambda/foo1");
+        valueMap.put("r2_foo1_python39", "http://localhostec2/foo1");
+        valueMap.put("r2_foo2_python39", "http://localhostec2/foo2");
+        valueMap.put("r3_foo1_python39", "http://localhostopenfaas/foo1");
         tfOutput.setValue(valueMap);
         return tfOutput;
     }
 
     public static DeploymentOutput createDeploymentOutput() {
         DeploymentOutput deploymentOutput = new DeploymentOutput();
-        deploymentOutput.setEdgeUrls(createTFOutputEdge());
-        deploymentOutput.setVmUrls(createTFOutputVM());
-        deploymentOutput.setFunctionUrls(createTFOutputFaas());
+        deploymentOutput.setFunctionUrls(createTFOutput());
         return deploymentOutput;
     }
 
     public static DeploymentOutput createDeploymentOutputUnknownFunction() {
         DeploymentOutput deploymentOutput = new DeploymentOutput();
-        deploymentOutput.setFunctionUrls(createTFOutputFaas("python10"));
-        deploymentOutput.setEdgeUrls(createEmptyTFOutput());
-        deploymentOutput.setVmUrls(createEmptyTFOutput());
+        deploymentOutput.setFunctionUrls(createTFOutputFaas("supershell"));
         return deploymentOutput;
     }
 
@@ -275,9 +256,11 @@ public class TestDTOProvider {
 
     public static SLORequest createSLORequest() {
         SLORequest request = new ListResourcesBySLOsRequest();
-        request.setProviders(List.of(1L, 2L));
-        request.setRegions(List.of(3L, 4L));
+        request.setEnvironments(List.of(1L));
         request.setResourceTypes(List.of(5L));
+        request.setPlatforms(List.of(3L, 4L));
+        request.setRegions(List.of(1L, 2L));
+        request.setProviders(List.of(5L));
         ServiceLevelObjective slo1 = new ServiceLevelObjective("availability", ExpressionType.GT,
                 createSLOValueList(0.8));
         request.setServiceLevelObjectives(List.of(slo1));
@@ -287,9 +270,12 @@ public class TestDTOProvider {
     public static CreateEnsembleRequest createCreateEnsembleRequest(long... resourceIds) {
         CreateEnsembleRequest request = new CreateEnsembleRequest();
         request.setName("ensemble");
-        request.setProviders(List.of(1L, 2L));
-        request.setRegions(List.of(3L, 4L));
+        request.setEnvironments(List.of(1L));
         request.setResourceTypes(List.of(5L));
+        request.setPlatforms(List.of(3L, 4L));
+        request.setRegions(List.of(1L, 2L));
+        request.setProviders(List.of(5L));
+
         ServiceLevelObjective slo1 = new ServiceLevelObjective("availability", ExpressionType.GT,
                 createSLOValueList(0.8));
         request.setServiceLevelObjectives(List.of(slo1));
@@ -307,14 +293,18 @@ public class TestDTOProvider {
         GetOneEnsemble getOneEnsemble = new GetOneEnsemble();
         getOneEnsemble.setEnsembleId(1L);
         getOneEnsemble.setName("ensemble");
-        getOneEnsemble.setProviders(List.of(1L, 2L));
-        getOneEnsemble.setRegions(List.of(3L, 4L));
+        getOneEnsemble.setEnvironments(List.of(1L));
         getOneEnsemble.setResourceTypes(List.of(5L));
-        ServiceLevelObjective slo1 = new ServiceLevelObjective("availability", ExpressionType.GT,
-                createSLOValueList(0.8));
+        getOneEnsemble.setPlatforms(List.of(3L, 4L));
+        getOneEnsemble.setRegions(List.of(1L, 2L));
+        getOneEnsemble.setProviders(List.of(5L));
+        ServiceLevelObjective slo1 = new ServiceLevelObjective("timeout", ExpressionType.GT,
+                createSLOValueList(150));
         getOneEnsemble.setServiceLevelObjectives(Stream.of(slo1).collect(Collectors.toList()));
-        Resource r1 = TestResourceProvider.createResource(1L);
-        Resource r2 = TestResourceProvider.createResource(2L);
+        Region region1 = TestResourceProviderProvider.createRegion(1L, "us-east-1");
+        Region region2 = TestResourceProviderProvider.createRegion(2L, "us-west-1");
+        Resource r1 = TestResourceProvider.createResourceFaaS(1L, region1, 200.0, 1024.0);
+        Resource r2 = TestResourceProvider.createResourceEC2(2L, region2, 100.0, 1024.0, "t1.micro");
         getOneEnsemble.setResources(List.of(r1, r2));
         return getOneEnsemble;
     }

@@ -1,6 +1,6 @@
 locals {
   tags = {
-    Reservation = var.reservation
+    Deployment = var.deployment_id
     System = "Apollo Resource Manager"
   }
 }
@@ -31,7 +31,7 @@ data "aws_ami" "ubuntu" {
 
 # Create a security group
 resource "aws_security_group" "vm" {
-  name        = "Apollo ${var.reservation}"
+  name        = "Apollo ${var.deployment_id}"
   description = "Allow all incoming traffic"
   vpc_id      = var.vpc_id
 

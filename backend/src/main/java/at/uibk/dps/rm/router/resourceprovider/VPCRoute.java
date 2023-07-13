@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.router.resourceprovider;
 
-import at.uibk.dps.rm.handler.ResultHandler;
+import at.uibk.dps.rm.handler.PrivateEntityResultHandler;
 import at.uibk.dps.rm.handler.resourceprovider.*;
 import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
@@ -15,9 +15,8 @@ public class VPCRoute implements Route {
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         VPCChecker vpcChecker = new VPCChecker(serviceProxyProvider.getVpcService());
-        RegionChecker regionChecker = new RegionChecker(serviceProxyProvider.getRegionService());
-        VPCHandler vpcHandler = new VPCHandler(vpcChecker, regionChecker);
-        ResultHandler resultHandler = new ResultHandler(vpcHandler);
+        VPCHandler vpcHandler = new VPCHandler(vpcChecker);
+        PrivateEntityResultHandler resultHandler = new PrivateEntityResultHandler(vpcHandler);
 
         router
             .operation("createVPC")

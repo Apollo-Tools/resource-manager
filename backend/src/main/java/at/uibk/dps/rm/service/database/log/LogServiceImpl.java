@@ -6,8 +6,11 @@ import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletionStage;
 
 /**
  * This is the implementation of the #LogService.
@@ -16,22 +19,23 @@ import java.util.ArrayList;
  */
 public class LogServiceImpl extends DatabaseServiceProxy<Log> implements LogService {
 
-    private final LogRepository logRepository;
+    private final LogRepository repository;
 
     /**
      * Create an instance from the logRepository.
      *
-     * @param logRepository the log repository
+     * @param repository the log repository
      */
-    public LogServiceImpl(LogRepository logRepository) {
-        super(logRepository, Log.class);
-        this.logRepository = logRepository;
+    public LogServiceImpl(LogRepository repository, Stage.SessionFactory sessionFactory) {
+        super(repository, Log.class, sessionFactory);
+        this.repository = repository;
     }
 
     @Override
-    public Future<JsonArray> findAllByReservationIdAndAccountId(long reservationId, long accountId) {
-        return Future
-            .fromCompletionStage(logRepository.findAllByReservationIdAndAccountId(reservationId, accountId))
+    public Future<JsonArray> findAllByDeploymentIdAndAccountId(long deploymentId, long accountId) {
+        CompletionStage<List<Log>> findAll = withSession(session ->
+            repository.findAllByDeploymentIdAndAccountId(session, deploymentId, accountId));
+        return Future.fromCompletionStage(findAll)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Log entity: result) {

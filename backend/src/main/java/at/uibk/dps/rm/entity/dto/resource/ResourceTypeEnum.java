@@ -16,14 +16,6 @@ public enum ResourceTypeEnum {
      */
     FAAS("faas"),
     /**
-     * Edge
-     */
-    EDGE("edge"),
-    /**
-     * Virtual Machine
-     */
-    VM("vm"),
-    /**
      * Container
      */
     CONTAINER("container");

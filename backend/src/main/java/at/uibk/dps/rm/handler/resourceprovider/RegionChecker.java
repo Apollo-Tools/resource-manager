@@ -6,7 +6,6 @@ import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.RegionService;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 
 /**
  * Implements methods to perform CRUD operations on the region entity.
@@ -40,11 +39,25 @@ public class RegionChecker extends EntityChecker {
         return ErrorHandler.handleFindAll(checkFindAllByProviderId);
     }
 
-    @Override
-    public Completable checkForDuplicateEntity(JsonObject entity) {
-        Single<Boolean> existsOneByNameAndProviderId = regionService
-            .existsOneByNameAndProviderId(entity.getString("name"),
-                entity.getJsonObject("resource_provider").getLong("provider_id"));
-        return ErrorHandler.handleDuplicates(existsOneByNameAndProviderId).ignoreElement();
+    /**
+     * Find all regions by platform.
+     *
+     * @param platformId the id of the platform
+     * @return a Single that emits all found regions as JsonArray
+     */
+    public Single<JsonArray> checkFindAllByPlatform(long platformId) {
+        Single<JsonArray> checkFindAllByPlatform = regionService.findAllByPlatformId(platformId);
+        return ErrorHandler.handleFindAll(checkFindAllByPlatform);
+    }
+
+    /**
+     * Find if a region exists by platform.
+     *
+     * @param platformId the id of the platform
+     * @return a Completable
+     */
+    public Completable checkExistsByPlatform(long regionId, long platformId) {
+        Single<Boolean> checkExistsByPlatform = regionService.existsByPlatformId(regionId, platformId);
+        return ErrorHandler.handleExistsOne(checkExistsByPlatform).ignoreElement();
     }
 }

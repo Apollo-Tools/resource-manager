@@ -109,27 +109,39 @@ public class SLORequestDeserializer extends StdDeserializer<SLORequest> {
     }
 
     /**
-     * Map service level objectives either to the regions-, provider-, resourceType- or slo-list.
+     * Map service level objectives either to the environment-, platform-, regions-, provider-,
+     * resourceType- or slo-list.
      *
      * @param slo the service level objectives
      * @param request the list resources by slos request
      */
     private void mapServiceLevelObjectives(ServiceLevelObjective slo, SLORequest request) {
-        if (sloMatchesSLOType(slo, SLOType.REGION)) {
+
+        if (sloMatchesSLOType(slo, SLOType.ENVIRONMENT)) {
             if (nonMetricSLOisInvalid(slo)) {
                 throw new BadInputException();
             }
-            request.setRegions(mapSLONumberValuesToList(slo));
-        } else if (sloMatchesSLOType(slo, SLOType.RESOURCE_PROVIDER)) {
-            if (nonMetricSLOisInvalid(slo)) {
-                throw new BadInputException();
-            }
-            request.setProviders(mapSLONumberValuesToList(slo));
+            request.setEnvironments(mapSLONumberValuesToList(slo));
         } else if (sloMatchesSLOType(slo, SLOType.RESOURCE_TYPE)) {
             if (nonMetricSLOisInvalid(slo)) {
                 throw new BadInputException();
             }
             request.setResourceTypes(mapSLONumberValuesToList(slo));
+        } else if (sloMatchesSLOType(slo, SLOType.PLATFORM)) {
+            if (nonMetricSLOisInvalid(slo)) {
+                throw new BadInputException();
+            }
+            request.setPlatforms(mapSLONumberValuesToList(slo));
+        } else if (sloMatchesSLOType(slo, SLOType.REGION)) {
+            if (nonMetricSLOisInvalid(slo)) {
+                throw new BadInputException();
+            }
+            request.setRegions(mapSLONumberValuesToList(slo));
+        }else if (sloMatchesSLOType(slo, SLOType.RESOURCE_PROVIDER)) {
+            if (nonMetricSLOisInvalid(slo)) {
+                throw new BadInputException();
+            }
+            request.setProviders(mapSLONumberValuesToList(slo));
         } else {
             request.getServiceLevelObjectives().add(slo);
         }

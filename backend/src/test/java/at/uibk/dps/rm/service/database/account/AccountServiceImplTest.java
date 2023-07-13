@@ -1,11 +1,18 @@
 package at.uibk.dps.rm.service.database.account;
 
 import at.uibk.dps.rm.entity.model.Account;
+import at.uibk.dps.rm.exception.AlreadyExistsException;
+import at.uibk.dps.rm.exception.NotFoundException;
+import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.repository.account.AccountRepository;
+import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
+import at.uibk.dps.rm.util.misc.PasswordUtility;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
+import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import org.hibernate.reactive.stage.Stage;
 import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,10 +20,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.concurrent.CompletionStage;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 /**
  * Implements tests for the {@link AccountServiceImpl} class.
@@ -30,65 +35,158 @@ public class AccountServiceImplTest {
     private AccountService accountService;
 
     @Mock
-    AccountRepository accountRepository;
+    private AccountRepository accountRepository;
+
+    @Mock
+    private Stage.SessionFactory sessionFactory;
+
+    @Mock
+    private Stage.Session session;
 
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        accountService = new AccountServiceImpl(accountRepository);
+        accountService = new AccountServiceImpl(accountRepository, sessionFactory);
     }
 
     @Test
-    void findEntityByUsernameExists(VertxTestContext testContext) {
-        String username = "user1";
-        Account entity = TestAccountProvider.createAccount(1L, "user1", "password");
-        CompletionStage<Account> completionStage = CompletionStages.completedFuture(entity);
-        doReturn(completionStage).when(accountRepository).findByUsername(username);
+    void loginAccount(VertxTestContext testContext) {
+        long accountId = 1L;
+        String username = "user1", password = "pw1";
+        String hashedPw = new PasswordUtility().hashPassword(password.toCharArray());
+        Account user = TestAccountProvider.createAccount(accountId, username, hashedPw);
 
-        accountService.findOneByUsername(username)
+        SessionMockHelper.mockSession(sessionFactory, session);
+        when(accountRepository.findByUsername(session, username))
+            .thenReturn(CompletionStages.completedFuture(user));
+
+        accountService.loginAccount(username, password)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("account_id")).isEqualTo(1L);
-                assertThat(result.getString("username")).isEqualTo(username);
+                assertThat(result.getString("username")).isEqualTo("user1");
+                assertThat(result.getString("password")).isEqualTo(hashedPw);
                 testContext.completeNow();
             })));
     }
 
     @Test
-    void findEntityByUsernameNotExists(VertxTestContext testContext) {
-        String username = "user1";
-        CompletionStage<Account> completionStage = CompletionStages.completedFuture(null);
-        doReturn(completionStage).when(accountRepository).findByUsername(username);
+    void loginAccountInvalidPW(VertxTestContext testContext) {
+        long accountId = 1L;
+        String username = "user1", password = "pw1";
+        String hashedPw = new PasswordUtility().hashPassword(password.toCharArray()) + 2;
+        Account user = TestAccountProvider.createAccount(accountId, username, hashedPw);
 
-        accountService.findOneByUsername(username)
+        SessionMockHelper.mockSession(sessionFactory, session);
+        when(accountRepository.findByUsername(session, username))
+            .thenReturn(CompletionStages.completedFuture(user));
+
+        accountService.loginAccount(username, password)
+            .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
+                assertThat(throwable).isInstanceOf(UnauthorizedException.class);
+                assertThat(throwable.getMessage()).isEqualTo("invalid credentials");
+                testContext.completeNow();
+            })));
+    }
+
+    @Test
+    void loginAccountNotFound(VertxTestContext testContext) {
+        String username = "user1", password = "pw1";
+
+        SessionMockHelper.mockSession(sessionFactory, session);
+        when(accountRepository.findByUsername(session, username))
+            .thenReturn(CompletionStages.completedFuture(null));
+
+        accountService.loginAccount(username, password)
+            .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
+                assertThat(throwable).isInstanceOf(UnauthorizedException.class);
+                assertThat(throwable.getMessage()).isEqualTo("invalid credentials");
+                testContext.completeNow();
+            })));
+    }
+
+    @Test
+    void save(VertxTestContext testContext) {
+        String username = "user1", password = "pw1";
+        Account entity = TestAccountProvider.createAccount(1L, username, password);
+        SessionMockHelper.mockTransaction(sessionFactory, session);
+        when(accountRepository.findByUsername(session, username)).thenReturn(CompletionStages.completedFuture(null));
+        when(session.persist(entity)).thenReturn(CompletionStages.voidFuture());
+
+        accountService.save(JsonObject.mapFrom(entity))
+            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result.getLong("account_id")).isEqualTo(1L);
+                assertThat(result.getString("username")).isEqualTo("user1");
+                assertThat(result.containsKey("password")).isEqualTo(false);
+                testContext.completeNow();
+            })));
+    }
+
+    @Test
+    void saveAlreadyExists(VertxTestContext testContext) {
+        String username = "user1", password = "pw1";
+        Account entity = TestAccountProvider.createAccount(1L, username, password);
+        SessionMockHelper.mockTransaction(sessionFactory, session);
+        when(accountRepository.findByUsername(session, username)).thenReturn(CompletionStages.completedFuture(entity));
+
+        accountService.save(JsonObject.mapFrom(entity))
+            .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
+                assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
+                assertThat(throwable.getMessage()).isEqualTo("Account already exists");
+                testContext.completeNow();
+            })));
+    }
+
+    @Test
+    void update(VertxTestContext testContext) {
+        PasswordUtility pwUtility = new PasswordUtility();
+        long accountId = 1L;
+        String username = "user1", password = "pw1";
+        String hashedPw = pwUtility.hashPassword(password.toCharArray());
+        Account entity = TestAccountProvider.createAccount(accountId, username, hashedPw);
+        JsonObject fields = new JsonObject("{\"old_password\": \"pw1\", \"new_password\": \"pw2\"}");
+
+        SessionMockHelper.mockTransaction(sessionFactory, session);
+        when(accountRepository.findById(session, accountId)).thenReturn(CompletionStages.completedFuture(entity));
+
+        accountService.update(accountId, fields)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
+                assertThat(pwUtility.verifyPassword(entity.getPassword(), "pw2".toCharArray()))
+                    .isEqualTo(true);
                 testContext.completeNow();
             })));
     }
 
     @Test
-    void checkEntityByUsernameExists(VertxTestContext testContext) {
-        String username = "user1";
-        Account entity = TestAccountProvider.createAccount(1L, "user1", "password");
-        CompletionStage<Account> completionStage = CompletionStages.completedFuture(entity);
-        doReturn(completionStage).when(accountRepository).findByUsername(username, true);
+    void updateInvalidPassword(VertxTestContext testContext) {
+        long accountId = 1L;
+        String username = "user1", password = "pw1";
+        Account entity = TestAccountProvider.createAccount(accountId, username, password);
+        JsonObject fields = new JsonObject("{\"old_password\": \"pw2\", \"new_password\": \"pw2\"}");
 
-        accountService.existsOneByUsername(username, true)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result).isEqualTo(true);
+        SessionMockHelper.mockTransaction(sessionFactory, session);
+        when(accountRepository.findById(session, accountId)).thenReturn(CompletionStages.completedFuture(entity));
+
+        accountService.update(accountId, fields)
+            .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
+                assertThat(throwable).isInstanceOf(UnauthorizedException.class);
+                assertThat(throwable.getMessage()).isEqualTo("old password is invalid");
                 testContext.completeNow();
             })));
     }
 
     @Test
-    void checkEntityByUsernameNotExists(VertxTestContext testContext) {
-        String username = "user1";
-        CompletionStage<Account> completionStage = CompletionStages.completedFuture(null);
-        doReturn(completionStage).when(accountRepository).findByUsername(username, true);
+    void updateNotFound(VertxTestContext testContext) {
+        long accountId = 1L;
+        JsonObject fields = new JsonObject("{\"old_password\": \"pw1\", \"new_password\": \"pw2\"}");
 
-        accountService.existsOneByUsername(username, true)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result).isEqualTo(false);
+        SessionMockHelper.mockTransaction(sessionFactory, session);
+        when(accountRepository.findById(session, accountId)).thenReturn(CompletionStages.completedFuture(null));
+
+        accountService.update(accountId, fields)
+            .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
+                assertThat(throwable).isInstanceOf(NotFoundException.class);
+                assertThat(throwable.getMessage()).isEqualTo("Account not found");
                 testContext.completeNow();
             })));
     }

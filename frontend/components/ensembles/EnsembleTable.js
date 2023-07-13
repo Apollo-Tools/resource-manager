@@ -138,7 +138,7 @@ const EnsembleTable = ({rowSelection}) => {
               <Button icon={<SyncOutlined />} onClick={() => showValidateConfirm(record.ensemble_id)}/>
             </Tooltip>
             <Tooltip title="Delete">
-              <Button onClick={() => showDeleteConfirm(record.function_id)} icon={<DeleteOutlined />}/>
+              <Button onClick={() => showDeleteConfirm(record.ensemble_id)} icon={<DeleteOutlined />}/>
             </Tooltip>
           </Space>
         )}

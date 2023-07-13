@@ -1,8 +1,6 @@
 package at.uibk.dps.rm.handler.resourceprovider;
 
 import at.uibk.dps.rm.entity.model.Region;
-import at.uibk.dps.rm.entity.model.ResourceProvider;
-import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.RegionService;
 import at.uibk.dps.rm.testutil.SingleHelper;
@@ -23,7 +21,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -96,43 +93,6 @@ public class RegionCheckerTest {
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
-                    testContext.completeNow();
-                })
-            );
-    }
-
-    @Test
-    void checkForDuplicateEntityFalse(VertxTestContext testContext) {
-        long providerId = 2L;
-        String name = "eu-west";
-        ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(providerId);
-        Region region = TestResourceProviderProvider.createRegion(1L, name, resourceProvider);
-
-        when(regionService.existsOneByNameAndProviderId(name, providerId)).thenReturn(Single.just(false));
-
-        regionChecker.checkForDuplicateEntity(JsonObject.mapFrom(region))
-            .blockingSubscribe(() -> {
-                },
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-
-        verify(regionService).existsOneByNameAndProviderId(name, providerId);
-        testContext.completeNow();
-    }
-
-    @Test
-    void checkForDuplicateEntityTrue(VertxTestContext testContext) {
-        long providerId = 2L;
-        String name = "eu-west";
-        ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(providerId);
-        Region region = TestResourceProviderProvider.createRegion(1L, name, resourceProvider);
-
-        when(regionService.existsOneByNameAndProviderId(name, providerId)).thenReturn(Single.just(true));
-
-        regionChecker.checkForDuplicateEntity(JsonObject.mapFrom(region))
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
                     testContext.completeNow();
                 })
             );

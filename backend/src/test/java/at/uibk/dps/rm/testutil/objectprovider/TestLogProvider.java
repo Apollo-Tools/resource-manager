@@ -1,8 +1,8 @@
 package at.uibk.dps.rm.testutil.objectprovider;
 
 import at.uibk.dps.rm.entity.model.Log;
-import at.uibk.dps.rm.entity.model.Reservation;
-import at.uibk.dps.rm.entity.model.ReservationLog;
+import at.uibk.dps.rm.entity.model.Deployment;
+import at.uibk.dps.rm.entity.model.DeploymentLog;
 import lombok.experimental.UtilityClass;
 
 /**
@@ -20,11 +20,11 @@ public class TestLogProvider {
         return log;
     }
 
-    public static ReservationLog createReservationLog(long id, Reservation reservation) {
-        ReservationLog reservationLog = new ReservationLog();
-        reservationLog.setReservationLogId(id);
-        reservationLog.setReservation(reservation);
-        reservationLog.setLog(createLog(id));
-        return reservationLog;
+    public static DeploymentLog createDeploymentLog(long id, Deployment deployment) {
+        DeploymentLog deploymentLog = new DeploymentLog();
+        deploymentLog.setDeploymentLogId(id);
+        deploymentLog.setDeployment(deployment);
+        deploymentLog.setLog(createLog(id));
+        return deploymentLog;
     }
 }

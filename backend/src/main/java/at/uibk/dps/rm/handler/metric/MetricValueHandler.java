@@ -1,6 +1,5 @@
 package at.uibk.dps.rm.handler.metric;
 
-import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.handler.resource.ResourceChecker;
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.entity.model.Metric;
@@ -79,14 +78,9 @@ public class MetricValueHandler extends ValidationHandler {
     public Completable updateOne(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
         return HttpHelper.getLongPathParam(rc, "resourceId")
-            .flatMap(resourceId -> HttpHelper.getLongPathParam(rc, "metricId")
-            .map(metricId -> Map.of("resourceId", resourceId, "metricId", metricId))
-            .flatMap(ids -> checkMetricValueExists(ids.get("resourceId"), ids.get("metricId"))
-                .andThen(metricChecker.checkUpdateMetricValueSetCorrectly(requestBody,  ids.get("metricId")))
-                .andThen(Single.just(ids))
-            ))
-            .map(result -> result)
-            .flatMapCompletable(ids -> updateOneByValue(requestBody, ids));
+            .flatMapCompletable(resourceId -> HttpHelper.getLongPathParam(rc, "metricId")
+                .flatMapCompletable(metricId -> metricValueChecker.updateOneByValue(resourceId, metricId, requestBody))
+            );
     }
 
     @Override
@@ -153,26 +147,5 @@ public class MetricValueHandler extends ValidationHandler {
             resourceChecker.checkExistsOne(resourceId),
             metricChecker.checkExistsOne(metricId),
             metricValueChecker.checkMetricValueExistsByResourceAndMetric(resourceId, metricId));
-    }
-
-    /**
-     * Update a metric value depending on its type.
-     *
-     * @param requestBody the request body
-     * @param ids contains the id of the resource and id of the metric
-     * @return a Completable
-     */
-    private Completable updateOneByValue(JsonObject requestBody, Map<String, Long> ids) {
-        Object value = requestBody.getValue("value");
-        long resourceId = ids.get("resourceId");
-        long metricId = ids.get("metricId");
-        if (value instanceof String) {
-            return metricValueChecker.submitUpdateMetricValue(resourceId, metricId, (String) value);
-        } else if (value instanceof Number) {
-            return metricValueChecker.submitUpdateMetricValue(resourceId, metricId, ((Number) value).doubleValue());
-        } else if (value instanceof Boolean) {
-            return metricValueChecker.submitUpdateMetricValue(resourceId, metricId, (Boolean) value);
-        }
-        return Completable.error(new BadInputException());
     }
 }

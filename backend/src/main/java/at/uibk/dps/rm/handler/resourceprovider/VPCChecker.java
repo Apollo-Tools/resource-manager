@@ -1,11 +1,10 @@
 package at.uibk.dps.rm.handler.resourceprovider;
 
-import at.uibk.dps.rm.entity.dto.resource.ResourceTypeEnum;
+import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.VPCService;
-import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -38,15 +37,6 @@ public class VPCChecker extends EntityChecker {
     }
 
     /**
-     * @see #checkForDuplicateEntity(JsonObject)
-     */
-    public Completable checkForDuplicateEntity(JsonObject entity, long accountId) {
-        Single<Boolean> existsOneByResourceType = vpcService
-            .existsOneByRegionIdAndAccountId(entity.getJsonObject("region").getLong("region_id"), accountId);
-        return ErrorHandler.handleDuplicates(existsOneByResourceType).ignoreElement();
-    }
-
-    /**
      * Find one vpc by its region and creator.
      *
      * @param regionId the id of the region
@@ -67,16 +57,14 @@ public class VPCChecker extends EntityChecker {
      * @param resources the list of resources
      * @return a Single that emits a list of found vpcs
      */
-    public Single<List<JsonObject>> checkVPCForFunctionResources(long accountId,
-            JsonArray resources) {
+    public Single<List<JsonObject>> checkVPCForFunctionResources(long accountId, JsonArray resources) {
         List<Single<JsonObject>> singles = new ArrayList<>();
         HashSet<Long> regionIds = new HashSet<>();
         for (Object object: resources) {
             Resource resource = ((JsonObject) object).mapTo(Resource.class);
             long regionId = resource.getRegion().getRegionId();
-            String resourceType = resource.getResourceType().getResourceType();
-            if (!regionIds.contains(regionId) && !resourceType.equals(ResourceTypeEnum.EDGE.getValue()) &&
-                    !resourceType.equals(ResourceTypeEnum.CONTAINER.getValue())) {
+            String platform = resource.getPlatform().getPlatform();
+            if (!regionIds.contains(regionId) && platform.equals(PlatformEnum.EC2.getValue())) {
                 singles.add(this.checkFindOneByRegionIdAndAccountId(regionId, accountId));
                 regionIds.add(regionId);
             }

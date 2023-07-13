@@ -1,9 +1,9 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
-import at.uibk.dps.rm.entity.model.Reservation;
+import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.testutil.objectprovider.TestFileServiceProvider;
-import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestDeploymentProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.rxjava3.core.Vertx;
@@ -26,15 +26,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(MockitoExtension.class)
 public class ContainerDeployFileServiceTest {
 
-    private final Path rootFolder = Path.of("temp", "reservation_1");
+    private final Path rootFolder = Path.of("temp", "deployment_1");
 
 
-    private final Reservation reservation = TestReservationProvider.createReservation(1L);
+    private final Deployment deployment = TestDeploymentProvider.createDeployment(1L);
 
     @Test
     void getProviderString(Vertx vertx) {
         ContainerDeployFileService service =
-            TestFileServiceProvider.createContainerDeployFileService(vertx.fileSystem(), rootFolder, reservation);
+            TestFileServiceProvider.createContainerDeployFileService(vertx.fileSystem(), rootFolder, deployment);
         String result = service.getProviderString();
 
         assertThat(result).isEqualTo("terraform {\n" +
@@ -54,7 +54,7 @@ public class ContainerDeployFileServiceTest {
         Resource resource = TestResourceProvider.createResourceContainer(1L, "localhost", hasExternalIp);
         ContainerDeployFileService service =
             TestFileServiceProvider.createContainerDeployFileService(vertx.fileSystem(), rootFolder, resource,
-                reservation);
+                deployment);
         String configPath = Path.of(rootFolder.getParent().toString(), "config").toAbsolutePath().toString()
             .replace("\\", "/");
 
@@ -76,7 +76,7 @@ public class ContainerDeployFileServiceTest {
                 "  config_context = \"k8s-context\"\n" +
                 "  namespace = \"default\"\n" +
                 "  image = \"test:latest\"\n" +
-                "  reservation_id = 1\n" +
+                "  deployment_id = 1\n" +
                 "  replicas = 1\n" +
                 "  cpu = \"0.1\"\n" +
                 "  memory = \"1024M\"\n" +
@@ -86,19 +86,11 @@ public class ContainerDeployFileServiceTest {
                 "}\n"
         );
     }
-    @Test
-    void getCredentialVariablesString(Vertx vertx) {
-        ContainerDeployFileService service =
-            TestFileServiceProvider.createContainerDeployFileService(vertx.fileSystem(), rootFolder, reservation);
-        String result = service.getCredentialVariablesString();
-
-        assertThat(result).isEqualTo("");
-    }
 
     @Test
     void getVariablesFileContent(Vertx vertx) {
         ContainerDeployFileService service =
-            TestFileServiceProvider.createContainerDeployFileService(vertx.fileSystem(), rootFolder, reservation);
+            TestFileServiceProvider.createContainerDeployFileService(vertx.fileSystem(), rootFolder, deployment);
         String result = service.getVariablesFileContent();
 
         assertThat(result).isEqualTo("");
@@ -107,7 +99,7 @@ public class ContainerDeployFileServiceTest {
     @Test
     void getOutputFileContent(Vertx vertx) {
         ContainerDeployFileService service =
-            TestFileServiceProvider.createContainerDeployFileService(vertx.fileSystem(), rootFolder, reservation);
+            TestFileServiceProvider.createContainerDeployFileService(vertx.fileSystem(), rootFolder, deployment);
         String result = service.getOutputsFileContent();
 
         assertThat(result).isEqualTo("");

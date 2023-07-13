@@ -8,6 +8,9 @@
 
   "build_directory": "build",
   "dind_directory": "var/lib/apollo-rm/",
+  "upload_persist_directory": "persist/dir",
+  "upload_temp_directory": "temp/dir",
+  "max_file_size": 100000000,
 
   "jwt_secret": "**secret**",
   "jwt_algorithm": "HS256",

@@ -18,30 +18,31 @@ This directory defines a [Terraform module](https://www.terraform.io/docs/module
 code by adding a `module` configuration and setting its `source` parameter to the path of this directory:
 
 ```hcl
-module "faasd" {
-  source = "./path-to-module"
-  name      = var.name
-  vpc_id    = var.vpc_id
-  subnet_id = var.subnet_id
-  key_name  = var.key_name
+module "ec2" {
+  source         = "./path-to-module"
+  deployment_id  = 1
+  name           = ["resource_1",]
+  vpc_id         = "vpc-1234"
+  subnet_id      = "subnet-1234"
+  instance_types = ["t2.micro",]
 }
 ```
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-| Name | Version |
-|------|---------|
-| terraform | >= 1.0.0 |
-| aws | >= 3.30.0 |
-| random | >= 3.1.0 |
+| Name      | Version   |
+|-----------|-----------|
+| terraform | >= 1.0.0  |
+| aws       | >= 3.30.0 |
+| random    | >= 3.1.0  |
 
 ## Providers
 
-| Name | Version |
-|------|---------|
-| aws | >= 3.30.0 |
-| random | >= 3.1.0 |
+| Name   | Version   |
+|--------|-----------|
+| aws    | >= 3.30.0 |
+| random | >= 3.1.0  |
 
 ## Resources
 
@@ -57,17 +58,21 @@ module "faasd" {
 
 ## Inputs
 
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| instance\_type | The instance type to use for the instance. | `string` | `"t2.micro"` | no |
-| name | The name of the faasd instance. | `string` | n/a | yes |
-| subnet\_id | VPC Subnet ID to launch in. | `string` | n/a | yes |
-| vpc\_id | VPC ID. | `string` | n/a | yes |
+| Name            | Description                                  | Type     | Default | Required |
+|-----------------|----------------------------------------------|----------|---------|:--------:|
+| deployment_id   | The id of the deployment.                    | `number` | n/a     |   yes    |
+| names           | The names of the ec2 instances.              | `list`   | n/a     |   yes    |
+| basic_auth_user | The basic auth user                          | `string` | "admin" |    no    |
+| vpc\_id         | VPC ID.                                      | `string` | n/a     |   yes    |
+| subnet\_id      | VPC Subnet ID to launch in.                  | `string` | n/a     |   yes    |
+| instance\_types | The instance types to use for the instances. | `list`   | n/a     |   yes    |
 
 ## Outputs
 
-| Name | Description |
-|------|-------------|
-| basic\_auth\_password | The basic auth password. |
-| gateway\_url | The url of the faasd gateway |
+THe output of the module is vm_props which is a list of objects with the following schema:
+
+| Name           | Description                  |
+|----------------|------------------------------|
+| auth\_password | The basic auth password.     |
+| gateway\_url   | The url of the faasd gateway |
 <!-- END_TF_DOCS -->

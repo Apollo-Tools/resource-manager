@@ -11,6 +11,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
+import org.hibernate.reactive.stage.Stage;
 
 /**
  * The interface of the service proxy for the log entity.
@@ -24,8 +25,8 @@ public interface LogService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static LogService create(LogRepository logRepository) {
-        return new LogServiceImpl(logRepository);
+    static LogService create(LogRepository logRepository, Stage.SessionFactory sessionFactory) {
+        return new LogServiceImpl(logRepository, sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
@@ -35,11 +36,11 @@ public interface LogService extends DatabaseServiceInterface {
     }
 
     /**
-     * Find all logs that belong to a reservation and creator account.
+     * Find all logs that belong to a deployment and creator account.
      *
-     * @param reservationId the id of the reservation
+     * @param deploymentId the id of the deployment
      * @param accountId the id of the creator account
      * @return a Future that emits all logs as JsonArray
      */
-    Future<JsonArray> findAllByReservationIdAndAccountId(long reservationId, long accountId);
+    Future<JsonArray> findAllByDeploymentIdAndAccountId(long deploymentId, long accountId);
 }

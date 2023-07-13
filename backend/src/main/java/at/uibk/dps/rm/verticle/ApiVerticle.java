@@ -5,29 +5,27 @@ import at.uibk.dps.rm.router.account.CredentialsRoute;
 import at.uibk.dps.rm.router.ensemble.EnsembleRoute;
 import at.uibk.dps.rm.router.ensemble.ResourceEnsembleRoute;
 import at.uibk.dps.rm.router.function.*;
-import at.uibk.dps.rm.router.log.ReservationLogRoute;
+import at.uibk.dps.rm.router.log.DeploymentLogRoute;
 import at.uibk.dps.rm.router.metric.MetricRoute;
 import at.uibk.dps.rm.router.metric.ResourceMetricRoute;
-import at.uibk.dps.rm.router.metric.ResourceTypeMetricRoute;
-import at.uibk.dps.rm.router.reservation.ReservationRoute;
-import at.uibk.dps.rm.router.reservation.ReservationStartupRoute;
-import at.uibk.dps.rm.router.resource.ResourceRoute;
-import at.uibk.dps.rm.router.resource.ResourceSLORoute;
-import at.uibk.dps.rm.router.resource.ResourceTypeRoute;
-import at.uibk.dps.rm.router.resourceprovider.RegionRoute;
-import at.uibk.dps.rm.router.resourceprovider.ResourceProviderRegionRoute;
-import at.uibk.dps.rm.router.resourceprovider.ResourceProviderRoute;
-import at.uibk.dps.rm.router.resourceprovider.VPCRoute;
+import at.uibk.dps.rm.router.metric.PlatformMetricRoute;
+import at.uibk.dps.rm.router.deployment.DeploymentRoute;
+import at.uibk.dps.rm.router.deployment.ResourceDeploymentRoute;
+import at.uibk.dps.rm.router.resource.*;
+import at.uibk.dps.rm.router.resourceprovider.*;
 import at.uibk.dps.rm.router.service.ServiceRoute;
 import at.uibk.dps.rm.router.service.ServiceTypeRoute;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
+import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import at.uibk.dps.rm.util.configuration.JWTAuthProvider;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.AbstractVerticle;
 import io.vertx.rxjava3.ext.web.Router;
+import io.vertx.rxjava3.ext.web.handler.BodyHandler;
 import io.vertx.rxjava3.ext.web.handler.CorsHandler;
 import io.vertx.rxjava3.ext.web.handler.JWTAuthHandler;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
@@ -46,28 +44,33 @@ public class ApiVerticle extends AbstractVerticle {
 
     @Override
     public Completable rxStart() {
-        return RouterBuilder.rxCreate(vertx, "openapi/resource-manager.yaml")
-            .flatMap(routerBuilder -> {
-                Router router = initRouter(routerBuilder);
-                return vertx.createHttpServer()
-                    .requestHandler(router)
-                    .rxListen(config().getInteger("api_port"));
-            })
-            .doOnSuccess(
-                http -> logger.info("HTTP server started on port " + config().getInteger("api_port")))
-            .doOnError(
-                throwable -> logger.error("Error", throwable))
-            .ignoreElement();
+        return new ConfigUtility(vertx).getConfig()
+            .flatMapCompletable(config ->
+                RouterBuilder.create(vertx, "openapi/resource-manager.yaml")
+                .flatMap(routerBuilder -> {
+                    Router router = initRouter(routerBuilder, config);
+                    return vertx.createHttpServer()
+                        .requestHandler(router)
+                        .rxListen(config().getInteger("api_port"));
+                })
+                .doOnSuccess(
+                    http -> logger.info("HTTP server started on port " + config().getInteger("api_port")))
+                .doOnError(
+                    throwable -> logger.error("Error", throwable))
+                .ignoreElement()
+            );
     }
 
     /**
-     * Initialize the route for the api using the routerBuilder.
+     * Initialise the route for the api using the routerBuilder.
      *
      * @param routerBuilder the router builder
-     * @return the intialized router
+     * @param config the config
+     * @return the initialised router
      */
-    private Router initRouter(RouterBuilder routerBuilder) {
+    private Router initRouter(RouterBuilder routerBuilder, JsonObject config) {
         Router globalRouter = Router.router(vertx);
+        setupBodyHandler(globalRouter, config);
         setupFailureHandler(globalRouter);
         setupSecurityHandler(routerBuilder);
         setupRoutes(routerBuilder);
@@ -76,6 +79,7 @@ public class ApiVerticle extends AbstractVerticle {
         globalRouter.route(API_PREFIX)
             .handler(cors())
             .subRouter(apiRouter);
+
         return globalRouter;
     }
 
@@ -90,6 +94,7 @@ public class ApiVerticle extends AbstractVerticle {
         new ResourceProviderRoute().init(routerBuilder, serviceProxyProvider);
         new ResourceProviderRegionRoute().init(routerBuilder, serviceProxyProvider);
         new EnsembleRoute().init(routerBuilder, serviceProxyProvider);
+        new EnvironmentRoute().init(routerBuilder, serviceProxyProvider);
         new RegionRoute().init(routerBuilder, serviceProxyProvider);
         new CredentialsRoute().init(routerBuilder, serviceProxyProvider);
         new ResourceRoute().init(routerBuilder, serviceProxyProvider);
@@ -99,13 +104,14 @@ public class ApiVerticle extends AbstractVerticle {
         new RuntimeRoute().init(routerBuilder, serviceProxyProvider);
         new RuntimeTemplateRoute().init(routerBuilder, serviceProxyProvider);
         new FunctionRoute().init(routerBuilder, serviceProxyProvider);
-        new FunctionResourceRoute().init(routerBuilder, serviceProxyProvider);
+        new PlatformRoute().init(routerBuilder, serviceProxyProvider);
+        new PlatformRegionRoute().init(routerBuilder, serviceProxyProvider);
         new ResourceEnsembleRoute().init(routerBuilder, serviceProxyProvider);
         new ResourceSLORoute().init(routerBuilder, serviceProxyProvider);
-        new ReservationRoute().init(routerBuilder, serviceProxyProvider);
-        new ReservationLogRoute().init(routerBuilder, serviceProxyProvider);
-        new ReservationStartupRoute().init(routerBuilder, serviceProxyProvider);
-        new ResourceTypeMetricRoute().init(routerBuilder, serviceProxyProvider);
+        new DeploymentRoute().init(routerBuilder, serviceProxyProvider);
+        new DeploymentLogRoute().init(routerBuilder, serviceProxyProvider);
+        new ResourceDeploymentRoute().init(routerBuilder, serviceProxyProvider);
+        new PlatformMetricRoute().init(routerBuilder, serviceProxyProvider);
         new ServiceRoute().init(routerBuilder, serviceProxyProvider);
         new ServiceTypeRoute().init(routerBuilder, serviceProxyProvider);
         new VPCRoute().init(routerBuilder, serviceProxyProvider);
@@ -145,6 +151,20 @@ public class ApiVerticle extends AbstractVerticle {
                 .end(message);
         });
     }
+
+    /**
+     * Set up the body handler for file uploads.
+     *
+     * @param router the router
+     */
+    private void setupBodyHandler(Router router, JsonObject config) {
+        router.route().handler(BodyHandler.create()
+            .setUploadsDirectory(config.getString("upload_temp_directory"))
+            .setBodyLimit(config.getLong("max_file_size"))
+            .setDeleteUploadedFilesOnEnd(true));
+    }
+
+
 
     /**
      * Set up the cors policy for the api.

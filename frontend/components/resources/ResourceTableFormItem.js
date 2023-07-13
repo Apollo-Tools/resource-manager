@@ -22,7 +22,7 @@ const ResourceTableFormItem = ({onChange, resources}) => {
     onChange?.(changedValue);
   };
 
-  return <ResourceTable resources={resources} rowSelection={rowSelection}/>;
+  return <ResourceTable resources={resources} rowSelection={rowSelection} hasActions/>;
 };
 
 ResourceTableFormItem.propTypes = {

@@ -2,6 +2,7 @@ package at.uibk.dps.rm.util.validation;
 
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.SLOValue;
+import at.uibk.dps.rm.entity.dto.slo.SLOValueType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.Ensemble;
 import at.uibk.dps.rm.entity.model.Metric;
@@ -10,6 +11,7 @@ import at.uibk.dps.rm.entity.model.Resource;
 import lombok.experimental.UtilityClass;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * This utility class is used to compare service level objectives.
@@ -67,6 +69,21 @@ public class SLOCompareUtility {
     }
 
     /**
+     * Filter and sort resources based on the service Level Objectives.
+     *
+     * @param resources the resources
+     * @param serviceLevelObjectives the service level objectives used for filtering and sorting
+     * @return the filtered and sorted resources as JsonArray
+     */
+    public static List<Resource> filterAndSortResourcesBySLOs(List<Resource> resources,
+                                                              List<ServiceLevelObjective> serviceLevelObjectives) {
+        return resources.stream()
+            .filter(resource -> resourceFilterBySLOValueType(resource, serviceLevelObjectives))
+            .sorted((r1, r2) -> sortResourceBySLOs(r1, r2, serviceLevelObjectives))
+            .collect(Collectors.toList());
+    }
+
+    /**
      * The filter condition for a resource based on the serviceLevelObjectives.
      *
      * @param resource the resource
@@ -113,8 +130,43 @@ public class SLOCompareUtility {
                 .contains(resource.getRegion().getResourceProvider().getProviderId());
         }
         if (!ensemble.getResource_types().isEmpty()) {
-            validResourceType = ensemble.getResource_types().contains(resource.getResourceType().getTypeId());
+            validResourceType = ensemble.getResource_types()
+                .contains(resource.getPlatform().getResourceType().getTypeId());
         }
         return validRegion && validResourceProvider && validResourceType;
+    }
+
+    /**
+     * The sorting condition for resources based on the serviceLevelObjectives
+     *
+     * @param r1 the first resource to compare
+     * @param r2 the second resource to compare
+     * @param serviceLevelObjectives the service level objectives
+     * @return a positive value if r1 should be ranked higher than r2 else a negative value
+     */
+    public static int sortResourceBySLOs(Resource r1, Resource r2, List<ServiceLevelObjective> serviceLevelObjectives) {
+        for (int i = 0; i < serviceLevelObjectives.size(); i++) {
+            ServiceLevelObjective slo = serviceLevelObjectives.get(i);
+            if (slo.getValue().get(0).getSloValueType() != SLOValueType.NUMBER) {
+                continue;
+            }
+            for (MetricValue metricValue1 : r1.getMetricValues()) {
+                Metric metric1 = metricValue1.getMetric();
+                if (metric1.getMetric().equals(slo.getName())) {
+                    for (MetricValue metricValue2 : r2.getMetricValues()) {
+                        Metric metric2 = metricValue2.getMetric();
+                        if (metric2.getMetric().equals(slo.getName())) {
+                            int compareValue = ExpressionType.compareValues(slo.getExpression(),
+                                metricValue1.getValueNumber().doubleValue(),
+                                metricValue2.getValueNumber().doubleValue());
+                            if (compareValue != 0 || i == serviceLevelObjectives.size() - 1) {
+                                return compareValue;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return 0;
     }
 }

@@ -2,10 +2,12 @@ package at.uibk.dps.rm.service.database.ensemble;
 
 import at.uibk.dps.rm.entity.model.EnsembleSLO;
 import at.uibk.dps.rm.repository.ensemble.EnsembleSLORepository;
+import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestEnsembleProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import org.hibernate.reactive.stage.Stage;
 import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,10 +35,16 @@ public class EnsembleSLOServiceImplTest {
     @Mock
     private EnsembleSLORepository ensembleSLORepository;
 
+    @Mock
+    private Stage.SessionFactory sessionFactory;
+
+    @Mock
+    private Stage.Session session;
+
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        ensembleSLOService = new EnsembleSLOServiceImpl(ensembleSLORepository);
+        ensembleSLOService = new EnsembleSLOServiceImpl(ensembleSLORepository, sessionFactory);
     }
 
     @Test
@@ -46,7 +54,8 @@ public class EnsembleSLOServiceImplTest {
         EnsembleSLO eslo2 = TestEnsembleProvider.createEnsembleSLO(2L, "slo2", ensembleId);
         CompletionStage<List<EnsembleSLO>> completionStage = CompletionStages.completedFuture(List.of(eslo1, eslo2));
 
-        when(ensembleSLORepository.findAllByEnsembleId(ensembleId)).thenReturn(completionStage);
+        SessionMockHelper.mockSession(sessionFactory, session);
+        when(ensembleSLORepository.findAllByEnsembleId(session, ensembleId)).thenReturn(completionStage);
 
         ensembleSLOService.findAllByEnsembleId(ensembleId)
                 .onComplete(testContext.succeeding(result -> testContext.verify(() -> {

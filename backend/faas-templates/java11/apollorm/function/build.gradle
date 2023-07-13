@@ -1,0 +1,28 @@
+plugins {
+    // Apply the java-library plugin to add support for Java Library
+    id 'java-library'
+    id 'application'
+}
+
+dependencies {
+    implementation project(':model')
+    // All function dependencies go here
+}
+
+// For local development
+application {
+    mainClassName = 'org.apollorm.function.Main'
+}
+
+// Create a zip file of the function implementation.
+tasks.register('buildRMZip', Zip) {
+    archiveFileName = "function.zip"
+    destinationDirectory = file("$buildDir")
+    from '.'
+    include '**/main/**'
+    include '*.gradle'
+    exclude 'build'
+    exclude '.idea'
+    exclude 'gradle/'
+    exclude '.gradle/'
+}

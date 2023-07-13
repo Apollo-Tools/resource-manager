@@ -3,10 +3,15 @@ package at.uibk.dps.rm.testutil;
 import at.uibk.dps.rm.entity.model.Account;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.rxjava3.core.MultiMap;
+import io.vertx.rxjava3.core.http.HttpServerRequest;
 import io.vertx.rxjava3.ext.auth.User;
+import io.vertx.rxjava3.ext.web.FileUpload;
 import io.vertx.rxjava3.ext.web.RequestBody;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 import lombok.experimental.UtilityClass;
+
+import java.util.List;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -41,6 +46,34 @@ public class RoutingContextMockHelper {
         RequestBody mockBody = mock(RequestBody.class);
         when(rc.body()).thenReturn(mockBody);
         when(mockBody.asJsonArray()).thenReturn(requestBody);
+    }
+
+    /**
+     * Mock the form attributes of a multiform request.
+     *
+     * @param rc the routing context
+     * @param attributes the request attributes
+     */
+    public static void mockFormAttributes(RoutingContext rc, HttpServerRequest request, MultiMap attributes) {
+        when(rc.request()).thenReturn(request);
+        when(request.formAttributes()).thenReturn(attributes);
+    }
+
+    /**
+     * Mock the file uploads of a multiform request.
+     *
+     * @param rc the routing context
+     * @param filename the name of the file
+     */
+    public static void mockFileUpload(RoutingContext rc, String filename) {
+        FileUpload fileUpload = mock(FileUpload.class);
+        when(rc.fileUploads()).thenReturn(List.of(fileUpload));
+        when(fileUpload.uploadedFileName()).thenReturn(filename);
+    }
+
+    public static void mockHeaders(RoutingContext rc, HttpServerRequest request, MultiMap headers) {
+        when(rc.request()).thenReturn(request);
+        when(request.headers()).thenReturn(headers);
     }
 
     /**

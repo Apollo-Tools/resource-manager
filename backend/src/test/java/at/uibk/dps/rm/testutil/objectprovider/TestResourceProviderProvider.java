@@ -39,14 +39,6 @@ public class TestResourceProviderProvider {
         return region;
     }
 
-    public static Region createRegionEdge(long id) {
-        Region region = new Region();
-        region.setRegionId(id);
-        region.setName("edge");
-        region.setResourceProvider(createResourceProvider(33L, "edge"));
-        return region;
-    }
-
     public static VPC createVPC(long id, Region region, String vpcIdValue, String subnetIdValue, Account createdBy) {
         VPC vpc = new VPC();
         vpc.setVpcId(id);

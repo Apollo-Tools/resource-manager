@@ -145,7 +145,7 @@ public class ResultHandler {
      * @param rc the RoutingContext of the request
      * @param result the content of the response
      */
-    private static void getFindAllResponse(final RoutingContext rc, final JsonArray result) {
+    protected static void getFindAllResponse(final RoutingContext rc, final JsonArray result) {
         rc.response().setStatusCode(200).end(result.encodePrettily());
     }
 
@@ -155,7 +155,7 @@ public class ResultHandler {
      * @param rc the RoutingContext of the request
      * @param result the content of the response
      */
-    private static void getSaveResponse(final RoutingContext rc, final JsonObject result) {
+    protected static void getSaveResponse(final RoutingContext rc, final JsonObject result) {
         rc.response().setStatusCode(201).end(result.encodePrettily());
     }
 
@@ -165,7 +165,7 @@ public class ResultHandler {
      *
      * @param rc the RoutingContext of the request
      */
-    private static void getSaveAllUpdateDeleteResponse(final RoutingContext rc) {
+    protected static void getSaveAllUpdateDeleteResponse(final RoutingContext rc) {
         rc.response().setStatusCode(204).end();
     }
 

@@ -5,7 +5,6 @@ import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.EnsembleService;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
@@ -53,16 +52,6 @@ public class EnsembleChecker extends EntityChecker {
     public Completable checkExistsOneByName(String name, long accountId) {
         Single<Boolean> existsOneByName = ensembleService.existsOneByNameAndAccountId(name, accountId);
         return ErrorHandler.handleDuplicates(existsOneByName).ignoreElement();
-    }
-
-    /**
-     * Find all ensembles by account.
-     *
-     * @param accountId the id of the account
-     * @return a Single that emits all found ensembles as JsonArray
-     */
-    public Single<JsonArray> checkFindAll(long accountId) {
-        return ErrorHandler.handleFindAll(ensembleService.findAllByAccountId(accountId));
     }
 
     /**

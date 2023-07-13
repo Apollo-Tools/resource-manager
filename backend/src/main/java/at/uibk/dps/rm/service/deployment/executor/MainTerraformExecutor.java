@@ -36,7 +36,7 @@ public class MainTerraformExecutor extends TerraformExecutor{
         List<String> cloudCredentials = getCloudCredentialsCommands();
         List<String> commands = new ArrayList<>(List.of("terraform", "apply", "-auto-approve"));
         commands.addAll(cloudCredentials);
-        commands.add(getEdgeCredentialsCommand());
+        commands.add(getOpenFaasCredentialsCommand());
         ProcessExecutor processExecutor = new ProcessExecutor(folder, commands);
         return processExecutor.executeCli();
     }
@@ -52,7 +52,7 @@ public class MainTerraformExecutor extends TerraformExecutor{
         List<String> cloudCredentials = getCloudCredentialsCommands();
         List<String> commands = new ArrayList<>(List.of("terraform", "destroy", "-auto-approve"));
         commands.addAll(cloudCredentials);
-        commands.add(getEdgeCredentialsCommand());
+        commands.add(getOpenFaasCredentialsCommand());
         ProcessExecutor processExecutor = new ProcessExecutor(folder, commands);
         return processExecutor.executeCli();
     }
@@ -70,7 +70,8 @@ public class MainTerraformExecutor extends TerraformExecutor{
             variables.add("-var="  + separator + prefix + "_access_key=" + entry.getAccessKey() + separator);
             variables.add("-var="  + separator + prefix + "_secret_access_key=" + entry.getSecretAccessKey() +
                 separator);
-            variables.add("-var="  + separator + prefix + "_session_token=" + entry.getSessionToken() + separator);
+            String sessionToken = entry.getSessionToken() != null ? entry.getSessionToken() : "";
+            variables.add("-var="  + separator + prefix + "_session_token=" + sessionToken + separator);
         }
         return variables;
     }
@@ -80,13 +81,13 @@ public class MainTerraformExecutor extends TerraformExecutor{
      *
      * @return the edge credentials formatted as terraform variables
      */
-    protected String getEdgeCredentialsCommand() {
-        String edgeLogin = credentials.getEdgeLoginCredentials();
-        if (edgeLogin.isBlank()) {
+    protected String getOpenFaasCredentialsCommand() {
+        String openFaasCredentials = credentials.getOpenFaasCredentialsString();
+        if (openFaasCredentials.isBlank()) {
             return "";
         }
         String separator = getOsVariableSeparator();
-        return "-var=" + separator + edgeLogin + separator;
+        return "-var=" + separator + openFaasCredentials + separator;
     }
 
     /**

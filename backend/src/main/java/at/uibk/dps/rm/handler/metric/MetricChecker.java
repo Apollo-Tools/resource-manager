@@ -33,15 +33,14 @@ public class MetricChecker extends EntityChecker {
     }
 
     /**
-     * Find all metrics by resource type and if they are required or optional.
+     * Find all metrics by platform and if they are required or optional.
      *
-     * @param resourceTypeId the id of the resource type
+     * @param platformId the id of the platform
      * @param required whether the metrics are required or optional
      * @return a Single that emits all found metrics as JsonArray
      */
-    public Single<JsonArray> checkFindAllByResourceTypeId(long resourceTypeId, boolean required) {
-        Single<JsonArray> findAllByResourceTypeId = metricService.findAllByResourceTypeId(resourceTypeId,
-            required);
+    public Single<JsonArray> checkFindAllByPlatform(long platformId, boolean required) {
+        Single<JsonArray> findAllByResourceTypeId = metricService.findAllByPlatformId(platformId, required);
         return ErrorHandler.handleFindAll(findAllByResourceTypeId);
     }
 

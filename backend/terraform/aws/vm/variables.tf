@@ -1,10 +1,10 @@
-variable "reservation" {
-  description = "The reservation identifier."
-  type        = string
+variable "deployment_id" {
+  description = "The id of the deployment."
+  type        = number
 }
 
 variable "names" {
-  description = "The names of the faasd instance."
+  description = "The names of the faasd instances."
   type        = list(string)
 }
 

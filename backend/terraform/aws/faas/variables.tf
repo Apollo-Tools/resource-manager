@@ -1,3 +1,8 @@
+variable "deployment_id" {
+  description = "The id of the deployment."
+  type        = number
+}
+
 variable "names" {
   description = "The names of the functions to deploy."
   type        = list(string)
@@ -24,8 +29,16 @@ variable "memory_sizes" {
 }
 
 variable "layers" {
-  description = "The function layers."
-  type        = list(list(any))
+  description = <<EOT
+    layers = {
+      layers: "The layers for each function. The .zip of the layer has to have the same name as the entries of this list."
+      path: "The path to the root folder of the layers."
+    }
+  EOT
+  type        = object({
+    layers: list(string)
+    path: string
+  })
 }
 
 variable "runtimes" {
@@ -33,7 +46,7 @@ variable "runtimes" {
   type        = list(string)
 }
 
-variable "aws_role" {
-  description = "The aws user role to use."
-  type        = string
+variable "deployment_roles" {
+  description = "The user roles to use."
+  type        = list(string)
 }

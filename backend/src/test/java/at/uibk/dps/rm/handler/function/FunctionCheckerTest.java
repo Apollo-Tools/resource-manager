@@ -1,14 +1,11 @@
 package at.uibk.dps.rm.handler.function;
 
-import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
-import at.uibk.dps.rm.entity.model.Function;
-import at.uibk.dps.rm.exception.AlreadyExistsException;
+import at.uibk.dps.rm.entity.dto.deployment.FunctionResourceIds;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.rxjava3.database.function.FunctionService;
 import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +19,6 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -45,41 +41,6 @@ public class FunctionCheckerTest {
     void initTest() {
         JsonMapperConfig.configJsonMapper();
         functionChecker = new FunctionChecker(functionService);
-    }
-
-    @Test
-    void checkForDuplicateEntityFalse(VertxTestContext testContext) {
-        String name = "func";
-        long runtimeId = 1L;
-        Function function = TestFunctionProvider.createFunction(1L, name, "true", runtimeId);
-
-        when(functionService.existsOneByNameAndRuntimeId(name, runtimeId)).thenReturn(Single.just(false));
-
-        functionChecker.checkForDuplicateEntity(JsonObject.mapFrom(function))
-            .blockingSubscribe(() -> {
-                },
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-
-        verify(functionService).existsOneByNameAndRuntimeId(name, runtimeId);
-        testContext.completeNow();
-    }
-
-    @Test
-    void checkForDuplicateEntityTrue(VertxTestContext testContext) {
-        String name = "func";
-        long runtimeId = 1L;
-        Function function = TestFunctionProvider.createFunction(1L, name, "true", runtimeId);
-
-        when(functionService.existsOneByNameAndRuntimeId(name, runtimeId)).thenReturn(Single.just(true));
-
-        functionChecker.checkForDuplicateEntity(JsonObject.mapFrom(function))
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
-                    testContext.completeNow();
-                })
-            );
     }
 
     @Test

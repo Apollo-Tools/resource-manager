@@ -1,3 +1,8 @@
+variable "deployment_id" {
+  description = "The id of the deployment."
+  type        = number
+}
+
 variable "name" {
   description = "The name of the function."
   type        = string
@@ -23,7 +28,7 @@ variable "basic_auth_user" {
 }
 
 variable "openfaas_depends_on" {
-  description = "A dependency to wait for"
+  description = "A dependency to wait for. This can be used to wait for a vm startup."
   type        = any
   default     = 0
 }

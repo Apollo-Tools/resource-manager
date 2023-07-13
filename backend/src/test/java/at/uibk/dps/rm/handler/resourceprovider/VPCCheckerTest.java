@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.handler.resourceprovider;
 
 import at.uibk.dps.rm.entity.model.*;
-import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.VPCService;
 import at.uibk.dps.rm.testutil.SingleHelper;
@@ -47,37 +46,6 @@ public class VPCCheckerTest {
     }
 
     @Test
-    void checkForDuplicateEntity(VertxTestContext testContext) {
-        long accountId = 1L, regionId = 2L;
-        JsonObject entity = new JsonObject("{\"region\": {\"region_id\": " + regionId + "}}");
-
-        when(vpcService.existsOneByRegionIdAndAccountId(regionId, accountId))
-            .thenReturn(Single.just(false));
-
-        vpcChecker.checkForDuplicateEntity(entity, accountId)
-            .blockingSubscribe(() -> {},
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-        testContext.completeNow();
-    }
-
-    @Test
-    void checkForDuplicateEntityExists(VertxTestContext testContext) {
-        long accountId = 1L, regionId = 2L;
-        JsonObject entity = new JsonObject("{\"region\": {\"region_id\": " + regionId + "}}");
-
-        when(vpcService.existsOneByRegionIdAndAccountId(regionId, accountId))
-            .thenReturn(Single.just(true));
-
-        vpcChecker.checkForDuplicateEntity(entity, accountId)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
-                    testContext.completeNow();
-                }));
-    }
-
-    @Test
     void checkFindOneByRegionIdAndAccountId(VertxTestContext testContext) {
         long regionId = 1L, accountId = 2L;
         Region region = TestResourceProviderProvider.createRegion(regionId, "aws");
@@ -119,9 +87,9 @@ public class VPCCheckerTest {
     void checkVPCForFunctionResources(VertxTestContext testContext) {
         long accountId = 1L;
         Region aws = TestResourceProviderProvider.createRegion(1L, "aws");
-        Resource r1 = TestResourceProvider.createResourceVM(1L, aws, "t2.micro");
-        Resource r2 = TestResourceProvider.createResourceVM(2L, aws, "t1.mini");
-        Resource r3 = TestResourceProvider.createResourceEdge(3L, "url", "user", "pw");
+        Resource r1 = TestResourceProvider.createResourceEC2(1L, aws, 300.0,200.0, "t2.micro");
+        Resource r2 = TestResourceProvider.createResourceEC2(2L, aws, 300.0,200.0, "t1.mini");
+        Resource r3 = TestResourceProvider.createResourceOpenFaas(3L, aws, 300.0,200.0,"url", "user", "pw");
         JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1), JsonObject.mapFrom(r2),
             JsonObject.mapFrom(r3)));
         JsonObject vpc = JsonObject.mapFrom(TestResourceProviderProvider.createVPC(11L, aws));
@@ -139,9 +107,9 @@ public class VPCCheckerTest {
     }
 
     @Test
-    void checkVPCForFunctionResourcesOnlyEdge(VertxTestContext testContext) {
+    void checkVPCForFunctionResourcesNoEc2(VertxTestContext testContext) {
         long accountId = 1L;
-        Resource r1 = TestResourceProvider.createResourceEdge(2L, "url", "user", "pw");
+        Resource r1 = TestResourceProvider.createResourceOpenFaas(3L,300.0,200.0,"url", "user", "pw");
         JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1)));
 
         vpcChecker.checkVPCForFunctionResources(accountId, resources)
@@ -156,7 +124,7 @@ public class VPCCheckerTest {
     @Test
     void checkVPCForFunctionResourcesOnlyContainer(VertxTestContext testContext) {
         long accountId = 1L;
-        Resource r1 = TestResourceProvider.createResourceContainer(1L, "localhost");
+        Resource r1 = TestResourceProvider.createResourceContainer(1L, "localhost", true);
         JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1)));
 
         vpcChecker.checkVPCForFunctionResources(accountId, resources)
@@ -172,7 +140,7 @@ public class VPCCheckerTest {
     void checkVPCForFunctionResourcesNotFound(VertxTestContext testContext) {
         long accountId = 1L;
         Region aws = TestResourceProviderProvider.createRegion(1L, "aws");
-        Resource r1 = TestResourceProvider.createResourceVM(1L, aws, "t2.micro");
+        Resource r1 = TestResourceProvider.createResourceEC2(1L, aws, 300.0,200.0, "t2.micro");
         JsonArray resources = new JsonArray(List.of(JsonObject.mapFrom(r1)));
         Single<JsonObject> handler = SingleHelper.getEmptySingle();
 

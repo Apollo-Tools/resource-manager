@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.handler.resource;
 
-import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
-import at.uibk.dps.rm.entity.dto.reservation.ServiceResourceIds;
+import at.uibk.dps.rm.entity.dto.deployment.FunctionResourceIds;
+import at.uibk.dps.rm.entity.dto.deployment.ServiceResourceIds;
 import at.uibk.dps.rm.entity.dto.resource.ResourceTypeEnum;
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
@@ -10,6 +10,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 import java.util.List;
 import java.util.Set;
@@ -36,30 +37,14 @@ public class ResourceChecker extends EntityChecker {
     }
 
     /**
-     * Find all resources by function and service level objectives.
+     * Find all resources by service level objectives.
      *
-     * @param metrics the list of metrics
-     * @param regionIds the list of region ids
-     * @param providerIds the list of provider ids
-     * @param resourceTypeIds the list of resource type ids
+     * @param requestBody the request body
      * @return a Single that emits all found resources as JsonArray
      */
-    public Single<JsonArray> checkFindAllBySLOs(List<String> metrics,
-        List<Long> regionIds, List<Long> providerIds, List<Long> resourceTypeIds) {
-        Single<JsonArray> findAllByMultipleMetrics = resourceService.findAllBySLOs(metrics, regionIds, providerIds,
-                resourceTypeIds);
+    public Single<JsonArray> checkFindAllBySLOs(JsonObject requestBody) {
+        Single<JsonArray> findAllByMultipleMetrics = resourceService.findAllBySLOs(requestBody);
         return ErrorHandler.handleFindAll(findAllByMultipleMetrics);
-    }
-
-    /**
-     * Find all resources by function.
-     *
-     * @param functionId the id of the function
-     * @return a Single that emits all found resources as JsonArray
-     */
-    public Single<JsonArray> checkFindAllByFunction(long functionId) {
-        Single<JsonArray> findAllByFunction = resourceService.findAllByFunctionId(functionId);
-        return ErrorHandler.handleFindAll(findAllByFunction);
     }
 
     /**
@@ -94,8 +79,7 @@ public class ResourceChecker extends EntityChecker {
      */
     public Completable checkExistAllByIdsAndResourceType(List<ServiceResourceIds> serviceResourceIds,
         List<FunctionResourceIds> functionResourceIds) {
-        List<String> functionResourceTypes = List.of(ResourceTypeEnum.EDGE.getValue(), ResourceTypeEnum.FAAS.getValue(),
-            ResourceTypeEnum.VM.getValue());
+        List<String> functionResourceTypes = List.of(ResourceTypeEnum.FAAS.getValue());
         List<String> serviceResourceTypes = List.of(ResourceTypeEnum.CONTAINER.getValue());
 
         Single<Boolean> existsAllServiceResources = Observable.fromIterable(serviceResourceIds)

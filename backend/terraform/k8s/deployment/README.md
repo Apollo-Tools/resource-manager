@@ -18,7 +18,7 @@ module "k8s_deployment" {
   config_context = "context"
   namespace = "default"
   image = "nginx:latest"
-  reservation_id = 1
+  deployment_id = 1
   ports = [{
     container_port = 80
     service_port = 8000
@@ -52,7 +52,7 @@ module "k8s_deployment" {
 
 | Name           | Description                                                           | Type             | Default            | Required |
 |----------------|-----------------------------------------------------------------------|------------------|--------------------|:--------:|
-| reservation_id | The id of the reservation.                                            | `number`         | n/a                |   yes    |
+| deployment_id  | The id of the deployment.                                             | `number`         | n/a                |   yes    |
 | namespace      | The k8s namespace that should be used.                                | `string`         | `"default"`        |    no    |
 | config_path    | The path to the k8s config                                            | `string`         | `"~/.kube/config"` |    no    |
 | config_context | The selected k8s context                                              | `string`         | n/a                |   yes    |

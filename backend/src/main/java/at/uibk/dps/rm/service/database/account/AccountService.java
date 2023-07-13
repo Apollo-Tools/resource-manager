@@ -11,6 +11,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import org.hibernate.reactive.stage.Stage;
 
 /**
  * The interface of the service proxy for the account entity.
@@ -24,8 +25,8 @@ public interface AccountService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static AccountService create(AccountRepository accountRepository) {
-        return new AccountServiceImpl(accountRepository);
+    static AccountService create(AccountRepository accountRepository, Stage.SessionFactory sessionFactory) {
+        return new AccountServiceImpl(accountRepository, sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
@@ -35,19 +36,11 @@ public interface AccountService extends DatabaseServiceInterface {
     }
 
     /**
-     * Find an account by its username.
+     * Login the account.
      *
      * @param username the username of the account
-     * @return a Future that emits the account as JsonObject if it exists, else null
+     * @param password the password of the account
+     * @return a Future that emits the logged in account
      */
-    Future<JsonObject> findOneByUsername(String username);
-
-    /**
-     * Check if an account exists by its username and active status.
-     *
-     * @param username the username of the account
-     * @param isActive the active status of the account
-     * @return a Future that emits true if the account exists, else false
-     */
-    Future<Boolean> existsOneByUsername(String username, boolean isActive);
+    Future<JsonObject> loginAccount(String username, String password);
 }

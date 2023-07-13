@@ -1,8 +1,12 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
-import at.uibk.dps.rm.entity.deployment.CloudProvider;
-import at.uibk.dps.rm.entity.deployment.TerraformModule;
+import at.uibk.dps.rm.entity.deployment.module.ContainerModule;
+import at.uibk.dps.rm.entity.deployment.module.FaasModule;
+import at.uibk.dps.rm.entity.deployment.module.TerraformModule;
+import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
+import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.testutil.objectprovider.TestFileServiceProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.rxjava3.core.Vertx;
 import org.junit.jupiter.api.Test;
@@ -46,30 +50,38 @@ public class MainFileServiceTest {
 
     @Test
     void getLocalModulesString(Vertx vertx) {
-        TerraformModule m1 = new TerraformModule(CloudProvider.AWS, "m1");
-        TerraformModule m2 = new TerraformModule(CloudProvider.AWS, "m2");
-        TerraformModule m3 = new TerraformModule(CloudProvider.EDGE, "m3");
-        TerraformModule m4 = new TerraformModule(CloudProvider.CONTAINER, "m4");
+        Region r1 = TestResourceProviderProvider.createRegion(1L, "r1");
+        Region r2 = TestResourceProviderProvider.createRegion(2L, "r2");
+        Region r3 = TestResourceProviderProvider.createRegion(3L, "r3");
+        TerraformModule m1 = new FaasModule(ResourceProviderEnum.AWS, r1);
+        TerraformModule m2 = new FaasModule(ResourceProviderEnum.AWS, r2);
+        TerraformModule m3 = new FaasModule(ResourceProviderEnum.CUSTOM_EDGE, r3);
+        TerraformModule m4 = new ContainerModule();
         MainFileService service = TestFileServiceProvider.createMainFileService(vertx.fileSystem(),
             List.of(m1, m2, m3, m4));
         String result = service.getLocalModulesString();
 
         assertThat(result).isEqualTo(
-            "module \"m1\" {\n" +
-                "  source = \"./m1\"\n" +
+            "module \"aws_r1\" {\n" +
+                "  source = \"./aws_r1\"\n" +
                 "  access_key = var.aws_access_key\n" +
                 "  secret_access_key = var.aws_secret_access_key\n" +
                 "  session_token = var.aws_session_token\n" +
+                "  openfaas_login_data = var.openfaas_login_data\n" +
                 "}\n" +
-                "module \"m2\" {\n" +
-                "  source = \"./m2\"\n" +
+                "module \"aws_r2\" {\n" +
+                "  source = \"./aws_r2\"\n" +
                 "  access_key = var.aws_access_key\n" +
                 "  secret_access_key = var.aws_secret_access_key\n" +
                 "  session_token = var.aws_session_token\n" +
+                "  openfaas_login_data = var.openfaas_login_data\n" +
                 "}\n" +
-                "module \"edge\" {\n" +
-                "  source = \"./edge\"\n" +
-                "  login_data = var.edge_login_data\n" +
+                "module \"custom-edge_r3\" {\n" +
+                "  source = \"./custom-edge_r3\"\n" +
+                "  access_key = var.custom_edge_access_key\n" +
+                "  secret_access_key = var.custom_edge_secret_access_key\n" +
+                "  session_token = var.custom_edge_session_token\n" +
+                "  openfaas_login_data = var.openfaas_login_data\n" +
                 "}\n" +
                 "module \"container\" {\n" +
                 "  source = \"./container\"\n" +
@@ -78,7 +90,8 @@ public class MainFileServiceTest {
 
     @Test
     void getMainFileContent(Vertx vertx) {
-        TerraformModule m1 = new TerraformModule(CloudProvider.AWS, "m1");
+        Region r1 = TestResourceProviderProvider.createRegion(1L, "r1");
+        TerraformModule m1 = new FaasModule(ResourceProviderEnum.AWS, r1);
         MainFileService service = TestFileServiceProvider.createMainFileService(vertx.fileSystem(), List.of(m1));
         String result = service.getMainFileContent();
 
@@ -96,20 +109,24 @@ public class MainFileServiceTest {
                 "  }\n" +
                 "  required_version = \">= 1.2.0\"\n" +
                 "}\n" +
-                "module \"m1\" {\n" +
-                "  source = \"./m1\"\n" +
+                "module \"aws_r1\" {\n" +
+                "  source = \"./aws_r1\"\n" +
                 "  access_key = var.aws_access_key\n" +
                 "  secret_access_key = var.aws_secret_access_key\n" +
                 "  session_token = var.aws_session_token\n" +
+                "  openfaas_login_data = var.openfaas_login_data\n" +
                 "}\n");
     }
 
 
     @Test
     void getVariablesFileContent(Vertx vertx) {
-        TerraformModule m1 = new TerraformModule(CloudProvider.AWS, "m1");
-        TerraformModule m2 = new TerraformModule(CloudProvider.AWS, "m2");
-        TerraformModule m3 = new TerraformModule(CloudProvider.EDGE, "m3");
+        Region r1 = TestResourceProviderProvider.createRegion(1L, "r1");
+        Region r2 = TestResourceProviderProvider.createRegion(2L, "r2");
+        Region r3 = TestResourceProviderProvider.createRegion(3L, "r3");
+        TerraformModule m1 = new FaasModule(ResourceProviderEnum.AWS, r1);
+        TerraformModule m2 = new FaasModule(ResourceProviderEnum.AWS, r2);
+        TerraformModule m3 = new FaasModule(ResourceProviderEnum.CUSTOM_EDGE, r3);
         MainFileService service = TestFileServiceProvider.createMainFileService(vertx.fileSystem(), List.of(m1, m2, m3));
         String result = service.getVariablesFileContent();
 
@@ -126,11 +143,24 @@ public class MainFileServiceTest {
                 "  type = string\n" +
                 "  default = \"\"\n" +
                 "}\n" +
-                "variable \"edge_login_data\" {\n" +
-                "  type = list(object({\n" +
-                "    auth_user = string\n" +
-                "    auth_pw = string\n" +
+                "variable \"custom_edge_access_key\" {\n" +
+                "  type = string\n" +
+                "  default = \"\"\n" +
+                "}\n" +
+                "variable \"custom_edge_secret_access_key\" {\n" +
+                "  type = string\n" +
+                "  default = \"\"\n" +
+                "}\n" +
+                "variable \"custom_edge_session_token\" {\n" +
+                "  type = string\n" +
+                "  default = \"\"\n" +
+                "}\n" +
+                "variable \"openfaas_login_data\" {\n" +
+                "  type = map(object({\n" +
+                "      auth_user = string\n" +
+                "      auth_pw = string\n" +
                 "  }))\n" +
+                "  default = {}\n" +
                 "}\n");
     }
 
@@ -138,43 +168,30 @@ public class MainFileServiceTest {
 
     @Test
     public void getOutputsFileContentAllTypes(Vertx vertx) {
-        TerraformModule m1 = new TerraformModule(CloudProvider.AWS, "m1");
-        m1.setHasVM(true);
-        TerraformModule m2 = new TerraformModule(CloudProvider.AWS, "m2");
-        m2.setHasFaas(true);
-        TerraformModule m3 = new TerraformModule(CloudProvider.EDGE, "m3");
+        Region r1 = TestResourceProviderProvider.createRegion(1L, "r1");
+        Region r2 = TestResourceProviderProvider.createRegion(2L, "r2");
+        Region r3 = TestResourceProviderProvider.createRegion(3L, "r3");
+        TerraformModule m1 = new FaasModule(ResourceProviderEnum.AWS, r1);
+        TerraformModule m2 = new FaasModule(ResourceProviderEnum.AWS, r2);
+        TerraformModule m3 = new FaasModule(ResourceProviderEnum.CUSTOM_EDGE, r3);
         MainFileService service = TestFileServiceProvider.createMainFileService(vertx.fileSystem(), List.of(m1, m2, m3));
         String result = service.getOutputsFileContent();
 
         assertThat(result).isEqualTo(
             "output \"function_urls\" {\n" +
-                "   value = merge(module.m2.function_urls,)\n" +
-                "}\n" +
-                "output \"vm_urls\" {\n" +
-                "  value = merge(module.m1.vm_urls,)\n" +
-                "}\n" +
-                "output \"edge_urls\" {\n" +
-                "  value = module.edge.edge_urls\n" +
+                "   value = merge(module.aws_r1.function_urls,module.aws_r2.function_urls,module.custom-edge_r3.function_urls,)\n" +
                 "}\n");
     }
 
     @Test
     public void getOutputsFileContentNone(Vertx vertx) {
-        TerraformModule m1 = new TerraformModule(CloudProvider.AWS, "m1");
-        TerraformModule m2 = new TerraformModule(CloudProvider.AWS, "m2");
-        TerraformModule m3 = new TerraformModule(CloudProvider.AWS, "m3");
-        MainFileService service = TestFileServiceProvider.createMainFileService(vertx.fileSystem(), List.of(m1, m2, m3));
-        String result = service.getOutputString();
+        TerraformModule m1 = new ContainerModule();
+        MainFileService service = TestFileServiceProvider.createMainFileService(vertx.fileSystem(), List.of(m1));
+        String result = service.getOutputsFileContent();
 
         assertThat(result).isEqualTo(
             "output \"function_urls\" {\n" +
                 "   value = merge()\n" +
-                "}\n" +
-                "output \"vm_urls\" {\n" +
-                "  value = merge()\n" +
-                "}\n" +
-                "output \"edge_urls\" {\n" +
-                "  value = {}\n" +
                 "}\n");
     }
 

@@ -1,0 +1,17 @@
+<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" fill="none">
+    <g>
+        <title>Layer 1</title>
+        <path fill="#fff" stroke="#000" stroke-width="7" d="m7.5148,48.19982l52.48514,-38.18578l52.48526,38.18578l-20.0475,61.78615l-64.87535,0l-20.04755,-61.78615z" id="svg_18"/>
+        <line id="svg_21" y2="69.5956" x2="60.55146" y1="109.66913" x1="91.24999" stroke-dasharray="2,2" stroke-width="5" stroke="#000" fill="none"/>
+        <line id="svg_16" y2="66.28677" x2="60" y1="12.6103" x1="60" stroke-dasharray="2,2" stroke-width="5" stroke="#000" fill="none"/>
+        <ellipse ry="7.65639" rx="7.65639" id="svg_10" cy="10.75492" cx="60" stroke-width="6" stroke="#000" fill="#fff"/>
+        <line id="svg_19" y2="68.12501" x2="62.02205" y1="48.63971" x1="110.55146" stroke-dasharray="2,2" stroke-width="5" stroke="#000" fill="none"/>
+        <line id="svg_17" y2="69.22795" x2="61.28675" y1="49.37501" x1="9.44852" stroke-dasharray="2,2" stroke-width="5" stroke="#000" fill="none"/>
+        <line id="svg_20" y2="69.41177" x2="59.99999" y1="110.77207" x1="28.74999" stroke-dasharray="2,2" stroke-width="5" stroke="#000" fill="none"/>
+        <path fill="#fff" stroke="#000" d="m79.50065,58.72262c-0.18372,-8.62821 -6.52293,-15.55935 -14.31806,-15.56375c-5.21124,0.00439 -9.76267,3.10396 -12.26359,7.73351c-1.17539,-0.71883 -2.52857,-1.13871 -3.97065,-1.13871c-4.50205,0.00439 -8.16453,3.97227 -8.3285,8.93816c-4.72725,1.72784 -8.14873,6.64976 -8.15268,12.49936c0,7.28067 5.30803,13.18962 11.8527,13.18962l0,-0.00439l31.36026,0c6.54269,0 11.8527,-5.90895 11.8527,-13.18962c-0.00791,-5.79903 -3.37012,-10.69898 -8.03217,-12.46419l-0.00001,0.00001z" id="svg_2" stroke-width="10"/>
+        <ellipse ry="7.65639" rx="7.65639" id="svg_22" cy="47.93064" cx="109.06837" stroke-width="6" stroke="#000" fill="#fff"/>
+        <ellipse ry="7.65639" rx="7.65639" id="svg_23" cy="108.92675" cx="91.05155" stroke-width="6" stroke="#000" fill="#fff"/>
+        <ellipse ry="7.65639" rx="7.65639" id="svg_24" cy="109.22074" cx="29.34527" stroke-width="6" stroke="#000" fill="#fff"/>
+        <ellipse ry="7.65639" rx="7.65639" id="svg_25" cy="49.12111" cx="10.98486" stroke-width="6" stroke="#000" fill="#fff"/>
+    </g>
+</svg>

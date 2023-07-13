@@ -4,6 +4,7 @@ import Link from 'next/link';
 import {DeleteOutlined, InfoCircleOutlined} from '@ant-design/icons';
 import ProviderIcon from '../misc/ProviderIcon';
 import PropTypes from 'prop-types';
+import {useEffect, useState} from 'react';
 
 const {Column} = Table;
 
@@ -15,6 +16,28 @@ const ResourceTable = ({
   customButton,
   getRowClassname,
 }) => {
+  const [envFilter, setEnvFilter] = useState([]);
+  const [typeFilter, setTypeFilter] = useState([]);
+  const [platformFilter, setPlatformFilter] = useState([]);
+
+  useEffect(() => {
+    setEnvFilter(() =>
+      [...new Set(resources.map((resource) => resource.region.resource_provider.environment.environment))]
+          .map((item) => {
+            return {text: item, value: item};
+          }));
+    setTypeFilter(() =>
+      [...new Set(resources.map((resource) => resource.platform.resource_type.resource_type))]
+          .map((item) => {
+            return {text: item, value: item};
+          }));
+    setPlatformFilter(() =>
+      [...new Set(resources.map((resource) => resource.platform.platform))]
+          .map((item) => {
+            return {text: item, value: item};
+          }));
+  }, [resources]);
+
   return (
     <Table dataSource={resources}
       rowKey={(record) => record.resource_id}
@@ -31,10 +54,23 @@ const ResourceTable = ({
         sorter={(a, b) => a.resource_id - b.resource_id}
         defaultSortOrder="ascend"
       />
-      <Column title="Type" dataIndex="resource_type" key="resource_type"
+      <Column title="Environment" dataIndex={['region', 'resource_provider', 'environment', 'environment']}
+        key="environment"
+        filters={envFilter}
+        onFilter={(value, record) =>
+          record.region.resource_provider.environment.environment.indexOf(value) === 0}
+      />
+      <Column title="Type" dataIndex={['platform', 'resource_type']} key="resource_type"
         render={(resourceType) => resourceType.resource_type }
-        sorter={(a, b) =>
-          a.resource_type.resource_type.localeCompare(b.resource_type.resource_type)}
+        filters={typeFilter}
+        onFilter={(value, record) =>
+          record.platform.resource_type.resource_type.indexOf(value) === 0}
+      />
+      <Column title="Platform" dataIndex='platform' key="platform"
+        render={(platform) => platform.platform }
+        filters={platformFilter}
+        onFilter={(value, record) =>
+          record.platform.platform.indexOf(value) === 0}
       />
       <Column title="Region" dataIndex="region" key="region"
         render={(region) => <>

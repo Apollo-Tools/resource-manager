@@ -24,6 +24,15 @@ public interface DatabaseServiceInterface extends ServiceInterface {
     Future<JsonObject> save(JsonObject data);
 
     /**
+     * Save a new entity for an account.
+     *
+     * @param accountId the id of the account
+     * @param data the new entity
+     * @return a Future that emits the persisted entity as JsonObject
+     */
+    Future<JsonObject> saveToAccount(long accountId, JsonObject data);
+
+    /**
      * Save all new entities.
      *
      * @param data the new entities
@@ -55,12 +64,20 @@ public interface DatabaseServiceInterface extends ServiceInterface {
     Future<JsonArray> findAll();
 
     /**
+     * Find all entities by the accountId.
+     *
+     * @param accountId the id of the owner
+     * @return a Future that emits all entities as JsonArray
+     */
+    Future<JsonArray> findAllByAccountId(long accountId);
+
+    /**
      * Update an existing entity.
      *
      * @param data the existing entity with updated values
      * @return an empty Future
      */
-    Future<Void> update(JsonObject data);
+    Future<Void> update(long id, JsonObject data);
 
     /**
      * Delete an entity by its id.
@@ -69,4 +86,14 @@ public interface DatabaseServiceInterface extends ServiceInterface {
      * @return an empty Future
      */
     Future<Void> delete(long id);
+
+
+    /**
+     * Delete an entity from an account.
+     *
+     * @param accountId the id of the account
+     * @param id the id of the entity
+     * @return an empty Future
+     */
+    Future<Void> deleteFromAccount(long accountId, long id);
 }

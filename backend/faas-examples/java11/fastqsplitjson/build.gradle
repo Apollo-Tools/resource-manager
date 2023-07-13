@@ -1,0 +1,16 @@
+allprojects {
+    repositories {
+        jcenter()
+    }
+
+    plugins.withType(JavaPlugin) {
+        dependencies {
+            implementation "com.fasterxml.jackson.core:jackson-databind:2.15.0"
+        }
+
+        java {
+            sourceCompatibility = JavaVersion.VERSION_11
+            targetCompatibility = JavaVersion.VERSION_11
+        }
+    }
+}

@@ -1,11 +1,12 @@
-import {Button, Form, Input, Select} from 'antd';
+import {Button, Form, Input, Select, Switch, Upload} from 'antd';
 import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import PropTypes from 'prop-types';
 import {getRuntimeTemplate, listRuntimes} from '../../lib/RuntimeService';
-import {createFunction} from '../../lib/FunctionService';
+import {createFunctionCode, createFunctionUpload} from '../../lib/FunctionService';
 import CodeMirror from '@uiw/react-codemirror';
 import {getEditorExtension} from '../../lib/CodeEditorService';
+import {PlusOutlined} from '@ant-design/icons';
 
 
 const NewFunctionFrom = ({setNewFunction}) => {
@@ -15,6 +16,8 @@ const NewFunctionFrom = ({setNewFunction}) => {
   const [runtimes, setRuntimes] = useState([]);
   const [editorExtensions, setEditorExtensions] = useState([]);
   const [functionTemplate, setFunctionTemplate] = useState('');
+  const [isFile, setIsFile] = useState(true);
+  const [selectedRuntime, setSelectedRuntime] = useState();
 
   useEffect(() => {
     if (!checkTokenExpired()) {
@@ -38,7 +41,12 @@ const NewFunctionFrom = ({setNewFunction}) => {
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
-      await createFunction(values.runtime, values.name, values.code, token, setNewFunction, setError);
+      console.log(values);
+      if (values.isFile) {
+        await createFunctionUpload(values.runtime, values.name, values.upload, token, setNewFunction, setError);
+      } else {
+        await createFunctionCode(values.runtime, values.name, values.code, token, setNewFunction, setError);
+      }
     }
   };
   const onFinishFailed = (errorInfo) => {
@@ -50,13 +58,21 @@ const NewFunctionFrom = ({setNewFunction}) => {
         .filter((runtime) => runtime.runtime_id === form.getFieldValue('runtime'))[0];
   };
 
-  const onChangeRuntime = () => {
-    const currentRuntime = getCurrentRuntime();
-    const extension = getEditorExtension(currentRuntime.name);
-    setEditorExtensions(extension != null ? [extension] : []);
-    if (!checkTokenExpired()) {
-      getRuntimeTemplate(currentRuntime.runtime_id, token, setFunctionTemplate, setError);
+  const onChangeIsFile = (value) => {
+    console.log(value);
+    setIsFile(value);
+    if (!value) {
+      const currentRuntime = getCurrentRuntime();
+      const extension = getEditorExtension(currentRuntime.name);
+      setEditorExtensions(extension != null ? [extension] : []);
+      if (!checkTokenExpired()) {
+        getRuntimeTemplate(currentRuntime.runtime_id, token, setFunctionTemplate, setError);
+      }
     }
+  };
+
+  const onRuntimeChange = (value) => {
+    setSelectedRuntime(value);
   };
 
   return (
@@ -92,7 +108,7 @@ const NewFunctionFrom = ({setNewFunction}) => {
             },
           ]}
         >
-          <Select className="w-40" onChange={() => onChangeRuntime()}>
+          <Select className="w-40" onChange={onRuntimeChange}>
             {runtimes.map((runtime) => {
               return (
                 <Select.Option value={runtime.runtime_id} key={runtime.runtime_id} >
@@ -103,19 +119,78 @@ const NewFunctionFrom = ({setNewFunction}) => {
           </Select>
         </Form.Item>
 
-        {form.getFieldValue('runtime') != null && (<Form.Item
-          label="Code"
-          name="code"
-          rules={[
-            {
-              required: true,
-              message: 'Please input the function code!',
-            },
-          ]}
-        >
-          <CodeMirror height="500px" extensions={editorExtensions}/>
-        </Form.Item>)}
 
+        {selectedRuntime != null && (<>
+          <Form.Item
+            label="Editor / Upload"
+            name="isFile"
+            hidden={getCurrentRuntime().name !== 'python3.8'}
+            shouldUpdate={(prevValues, curValues) => {
+              console.log(prevValues.runtime);
+              return prevValues.runtime !== curValues.runtime;
+            }
+            }
+            valuePropName={'checked'}
+            initialValue={isFile}
+          >
+            <Switch checked={isFile} onChange={onChangeIsFile}/>
+          </Form.Item>
+          {isFile ?
+            <Form.Item
+              label="Upload"
+              name="upload"
+              rules={[
+                {
+                  required: isFile,
+                  message: 'Please upload a .zip file that contains the function code!',
+                },
+                {
+                  validator: () => {
+                    const value = form.getFieldValue(['upload']) ?? {};
+                    console.log(value);
+                    if (!value.name.endsWith('.zip')) {
+                      return Promise.reject(new Error('Invalid file type. Make sure to upload a zip archive'));
+                    }
+                    return Promise.resolve();
+                  },
+                },
+              ]}
+              getValueFromEvent={({file}) => file.originFileObj}
+            >
+              <Upload
+                accept=".zip"
+                maxCount={1}
+                multiple={false}
+                listType="picture-card"
+                showUploadList={{showPreviewIcon: false}}
+                action={'https://run.mocky.io/v3/0039e1d4-7e0a-4a00-a89c-6606e83fae2b'}
+              >
+                <div>
+                  <PlusOutlined />
+                  <div
+                    style={{
+                      marginTop: 8,
+                    }}
+                  >
+                    Upload
+                  </div>
+                </div>
+              </Upload>
+            </Form.Item> :
+            <Form.Item
+              label="Code"
+              name="code"
+              rules={[
+                {
+                  required: !isFile,
+                  message: 'Please input the function code!',
+                },
+              ]}
+            >
+              <CodeMirror height="500px" extensions={editorExtensions}/>
+            </Form.Item>
+          }
+        </>)}
         <Form.Item>
           <Button type="primary" htmlType="submit">
             Create

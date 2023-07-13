@@ -3,7 +3,7 @@ package at.uibk.dps.rm.service.deployment.terraform;
 import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.model.Service;
-import at.uibk.dps.rm.entity.model.ServiceReservation;
+import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.util.misc.MetricValueMapper;
 import io.vertx.rxjava3.core.file.FileSystem;
 
@@ -13,32 +13,32 @@ import java.util.stream.Collectors;
 
 /**
  * Extension of the #TerraformFileService to set up the container deployment module of service
- * reservation.
+ * deployments.
  *
  * @author matthi-g
  */
 public class ContainerDeployFileService extends TerraformFileService {
 
-    private final long reservationId;
+    private final long deploymentId;
 
-    private final ServiceReservation serviceReservation;
+    private final ServiceDeployment serviceDeployment;
 
     private final Path rootFolder;
 
     /**
-     * Create an instance from the fileSystem, rootFolder, serviceReservation and reservationId.
+     * Create an instance from the fileSystem, rootFolder, serviceDeployment and deploymentId.
      *
      * @param fileSystem the vertx file system
      * @param rootFolder the root folder of the module
-     * @param serviceReservation the service reservation
-     * @param reservationId the id of the reservation
+     * @param serviceDeployment the service deployment
+     * @param deploymentId the id of the deployment
      */
-    public ContainerDeployFileService(FileSystem fileSystem, Path rootFolder, ServiceReservation serviceReservation,
-            long reservationId) {
+    public ContainerDeployFileService(FileSystem fileSystem, Path rootFolder, ServiceDeployment serviceDeployment,
+            long deploymentId) {
         super(fileSystem, rootFolder);
         this.rootFolder = rootFolder;
-        this.serviceReservation = serviceReservation;
-        this.reservationId = reservationId;
+        this.serviceDeployment = serviceDeployment;
+        this.deploymentId = deploymentId;
     }
 
     @Override
@@ -66,8 +66,8 @@ public class ContainerDeployFileService extends TerraformFileService {
      */
     private String getContainerModulesString() {
         StringBuilder containerString = new StringBuilder();
-        Resource resource = serviceReservation.getResource();
-        Service service = serviceReservation.getService();
+        Resource resource = serviceDeployment.getResource();
+        Service service = serviceDeployment.getService();
         String identifier = resource.getResourceId() + "_" + service.getServiceId();
         Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
 
@@ -89,23 +89,18 @@ public class ContainerDeployFileService extends TerraformFileService {
             "  config_context = \"%s\"\n" +
             "  namespace = \"%s\"\n" +
             "  image = \"%s\"\n" +
-            "  reservation_id = %s\n" +
+            "  deployment_id = %s\n" +
             "  replicas = %s\n" +
             "  cpu = \"%s\"\n" +
             "  memory = \"%sM\"\n" +
             "  ports = [%s]\n" +
             "  service_type = \"%s\"\n" +
             "  external_ip = \"%s\"\n" +
-            "}\n", identifier, configPath, serviceReservation.getContext(),
-            serviceReservation.getNamespace(), service.getImage(), reservationId,
+            "}\n", identifier, configPath, serviceDeployment.getContext(),
+            serviceDeployment.getNamespace(), service.getImage(), deploymentId,
             service.getReplicas(), service.getCpu(), service.getMemory(), ports,
             service.getServiceType().getName(), externalIp));
         return containerString.toString();
-    }
-
-    @Override
-    protected String getCredentialVariablesString() {
-        return "";
     }
 
     @Override
@@ -114,12 +109,7 @@ public class ContainerDeployFileService extends TerraformFileService {
     }
 
     @Override
-    protected String getOutputString() {
-        return "";
-    }
-
-    @Override
     protected String getOutputsFileContent() {
-        return this.getOutputString();
+        return "";
     }
 }

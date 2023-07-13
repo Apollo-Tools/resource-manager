@@ -1,12 +1,9 @@
 package at.uibk.dps.rm.router.ensemble;
 
-import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
-import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
 import at.uibk.dps.rm.entity.dto.ensemble.ResourceEnsembleStatus;
+import at.uibk.dps.rm.handler.PrivateEntityResultHandler;
 import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.handler.ensemble.*;
-import at.uibk.dps.rm.handler.metric.MetricChecker;
-import at.uibk.dps.rm.handler.metric.MetricValueChecker;
 import at.uibk.dps.rm.handler.resource.ResourceChecker;
 import at.uibk.dps.rm.handler.resource.ResourceSLOHandler;
 import at.uibk.dps.rm.router.Route;
@@ -29,26 +26,15 @@ public class EnsembleRoute implements Route {
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         EnsembleChecker ensembleChecker = new EnsembleChecker(serviceProxyProvider.getEnsembleService());
         EnsembleSLOChecker ensembleSLOChecker = new EnsembleSLOChecker(serviceProxyProvider.getEnsembleSLOService());
-        ResourceEnsembleChecker resourceEnsembleChecker = new ResourceEnsembleChecker(serviceProxyProvider
-            .getResourceEnsembleService());
         ResourceChecker resourceChecker = new ResourceChecker(serviceProxyProvider.getResourceService());
-        EnsembleHandler ensembleHandler = new EnsembleHandler(ensembleChecker, ensembleSLOChecker,
-            resourceEnsembleChecker, resourceChecker);
-        MetricChecker metricChecker = new MetricChecker(serviceProxyProvider.getMetricService());
-        MetricValueChecker metricValueChecker = new MetricValueChecker(serviceProxyProvider.getMetricValueService());
-        ResourceSLOHandler resourceSLOHandler = new ResourceSLOHandler(resourceChecker, metricChecker,
-            metricValueChecker);
-        ResultHandler resultHandler = new ResultHandler(ensembleHandler);
+        EnsembleHandler ensembleHandler = new EnsembleHandler(ensembleChecker, ensembleSLOChecker, resourceChecker);
+        ResourceSLOHandler resourceSLOHandler = new ResourceSLOHandler(resourceChecker);
+        PrivateEntityResultHandler resultHandler = new PrivateEntityResultHandler(ensembleHandler);
 
         router
             .operation("createEnsemble")
             .handler(EnsembleInputHandler::validateCreateEnsembleRequest)
-            .handler(rc -> {
-                CreateEnsembleRequest requestDTO = rc.body()
-                        .asJsonObject()
-                        .mapTo(CreateEnsembleRequest.class);
-                resourceSLOHandler.validateNewResourceEnsembleSLOs(rc, requestDTO);
-            })
+            .handler(resourceSLOHandler::validateNewResourceEnsembleSLOs)
             .handler(resultHandler::handleSaveOneRequest);
 
         router
@@ -67,12 +53,12 @@ public class EnsembleRoute implements Route {
             .operation("validateEnsemble")
             .handler(rc -> ensembleHandler.getOne(rc)
                 .flatMap(ensembleJson-> {
-                    GetOneEnsemble ensemble = ensembleJson.mapTo(GetOneEnsemble.class);
-                    return resourceSLOHandler.validateExistingEnsemble(ensemble)
+                    long ensembleId = ensembleJson.getLong("ensemble_id");
+                    return resourceSLOHandler.validateExistingEnsemble(ensembleJson)
                         .flatMap(resourceEnsembleStatuses -> Observable.fromIterable(resourceEnsembleStatuses)
                             .all(ResourceEnsembleStatus::getIsValid)
                             .flatMapCompletable(allValid -> ensembleChecker
-                                .submitUpdateValidity(ensemble.getEnsembleId(), allValid))
+                                .submitUpdateValidity(ensembleId, allValid))
                             .andThen(Single.defer(() -> Single.just(resourceEnsembleStatuses))));
                 })
                 .subscribe(res -> rc.end(new JsonArray(res).encodePrettily()).subscribe(),
@@ -87,12 +73,12 @@ public class EnsembleRoute implements Route {
                     .map(ensemble -> (JsonObject) ensemble)
                     .flatMapCompletable(ensemble -> ensembleHandler.getOne(ensemble.getLong("ensemble_id"))
                         .flatMapCompletable(ensembleJson -> {
-                            GetOneEnsemble getOneEnsemble = ensembleJson.mapTo(GetOneEnsemble.class);
-                            return resourceSLOHandler.validateExistingEnsemble(getOneEnsemble)
+                            long ensembleId = ensembleJson.getLong("ensemble_id");
+                            return resourceSLOHandler.validateExistingEnsemble(ensembleJson)
                                 .flatMapObservable(Observable::fromIterable)
                                 .all(ResourceEnsembleStatus::getIsValid)
                                 .flatMapCompletable(allValid -> ensembleChecker
-                                    .submitUpdateValidity(getOneEnsemble.getEnsembleId(), allValid));
+                                    .submitUpdateValidity(ensembleId, allValid));
                         })
                     ).subscribe());
             })

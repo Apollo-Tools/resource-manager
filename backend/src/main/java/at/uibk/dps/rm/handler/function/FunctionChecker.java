@@ -1,13 +1,12 @@
 package at.uibk.dps.rm.handler.function;
 
-import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
+import at.uibk.dps.rm.entity.dto.deployment.FunctionResourceIds;
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.function.FunctionService;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.json.JsonObject;
 
 import java.util.List;
 import java.util.Set;
@@ -30,14 +29,6 @@ public class FunctionChecker extends EntityChecker {
     public FunctionChecker(FunctionService functionService) {
         super(functionService);
         this.functionService = functionService;
-    }
-
-    @Override
-    public Completable checkForDuplicateEntity(JsonObject entity) {
-        final Single<Boolean> existsOneByNameAndRuntimeId = functionService
-            .existsOneByNameAndRuntimeId(entity.getString("name"),
-                entity.getJsonObject("runtime").getLong("runtime_id"));
-        return ErrorHandler.handleDuplicates(existsOneByNameAndRuntimeId).ignoreElement();
     }
 
     /**

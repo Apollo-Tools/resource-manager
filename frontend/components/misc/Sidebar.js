@@ -50,7 +50,7 @@ const Sidebar = ({children}) => {
     ]),
     getItem(<><BookOutlined /><span>Reservations</span></>, '2', [
       getItem(<Link href="/ensembles/ensembles" ><DatabaseOutlined /><span>Ensembles</span></Link>, '2.1'),
-      getItem(<Link href="/reservations/reservations" ><GroupOutlined /><span>Reservations</span></Link>, '2.2'),
+      getItem(<Link href="/deployments/deployments" ><GroupOutlined /><span>Deployments</span></Link>, '2.2'),
     ]),
     getItem(<Link href="/accounts/profile" ><UserOutlined /><span>Profile</span></Link>, '3'),
     getItem(<div onClick={onClickLogout}><LogoutOutlined /><span>Logout</span></div>, '4'),

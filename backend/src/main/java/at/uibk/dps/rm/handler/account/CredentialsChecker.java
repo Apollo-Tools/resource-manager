@@ -29,13 +29,18 @@ public class CredentialsChecker extends EntityChecker {
     }
 
     /**
-     * Find all credentials by the accountId.
+     * Find all credentials by the accountId and include the secrets if includeSecrets is true.
      *
-     * @return a Single that emits the list of found entities as JsonArray if found, else a
-     * NotFoundException gets thrown
+     * @return a Single that emits the list of found entities as JsonArray if found
      */
+    public Single<JsonArray> checkFindAll(long accountId, boolean includeSecrets) {
+        return ErrorHandler.handleFindAll(credentialsService
+            .findAllByAccountIdAndIncludeExcludeSecrets(accountId, includeSecrets));
+    }
+
+    @Override
     public Single<JsonArray> checkFindAll(long accountId) {
-        return ErrorHandler.handleFindAll(credentialsService.findAllByAccountId(accountId));
+        return checkFindAll(accountId, false);
     }
 
     /**
@@ -46,7 +51,7 @@ public class CredentialsChecker extends EntityChecker {
      * @return a Completable if it exists, else a NotFoundException gets thrown
      */
     public Completable checkExistsOneByProviderId(long accountId, long providerId) {
-        Single<Boolean> existsOneByProviderId = credentialsService.existsOnyByAccountIdAndProviderId(accountId,
+        Single<Boolean> existsOneByProviderId = credentialsService.existsOneByAccountIdAndProviderId(accountId,
             providerId);
         return ErrorHandler.handleCredentialsExist(existsOneByProviderId).ignoreElement();
     }

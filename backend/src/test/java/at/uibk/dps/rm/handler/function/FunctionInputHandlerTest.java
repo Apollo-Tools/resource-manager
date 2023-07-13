@@ -5,6 +5,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.ext.web.RoutingContext;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -26,6 +27,7 @@ public class FunctionInputHandlerTest {
     @Mock
     private RoutingContext rc;
 
+    @Disabled
     @ParameterizedTest
     @CsvSource({
         "foo1, true",

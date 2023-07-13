@@ -75,13 +75,18 @@ const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources
     });
   };
 
+  const getSelectedRowKeys = (record) => {
+    return selectedResources?.get(record.service_id)?.map((resource) => resource.resource_id);
+  };
+
   const onExpandRow = async (expanded, record) => {
     const keys = [];
     if (expanded) {
       record.resources = resources;
       record.rowSelection = {
-        selectedRowKeys: selectedResources?.get(record.service_id)?.map((resource) => resource.resource_id),
+        selectedRowKeys: getSelectedRowKeys(record),
         onChange: (newSelectedResourceIds, newSelectedResources) => {
+          record.rowSelection.selectedRowKeys = newSelectedResourceIds;
           updatedSelectedResourceIds(record.service_id, newSelectedResources);
         },
       };

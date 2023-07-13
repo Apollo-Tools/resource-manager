@@ -45,9 +45,11 @@ public class GetOneEnsembleSerializer extends StdSerializer<GetOneEnsemble> {
         gen.writeObjectField("created_at", getOneEnsemble.getCreatedAt());
         gen.writeObjectField("updated_at", getOneEnsemble.getUpdatedAt());
         List<ServiceLevelObjective> slos = getOneEnsemble.getServiceLevelObjectives();
+        mapNonMetricToSLO(getOneEnsemble.getEnvironments(), SLOType.ENVIRONMENT, slos);
+        mapNonMetricToSLO(getOneEnsemble.getResourceTypes(), SLOType.RESOURCE_TYPE, slos);
+        mapNonMetricToSLO(getOneEnsemble.getPlatforms(), SLOType.PLATFORM, slos);
         mapNonMetricToSLO(getOneEnsemble.getRegions(), SLOType.REGION, slos);
         mapNonMetricToSLO(getOneEnsemble.getProviders(), SLOType.RESOURCE_PROVIDER, slos);
-        mapNonMetricToSLO(getOneEnsemble.getResourceTypes(), SLOType.RESOURCE_TYPE, slos);
         gen.writeObjectField("slos", slos);
         gen.writeEndObject();
     }
@@ -61,6 +63,9 @@ public class GetOneEnsembleSerializer extends StdSerializer<GetOneEnsemble> {
      */
     private void mapNonMetricToSLO(List<Long> values, SLOType sloType,
                                    List<ServiceLevelObjective> slos) {
+        if (values == null) {
+            return;
+        }
         List<SLOValue> sloValues = values.stream().map(value -> {
             SLOValue sloValue = new SLOValue();
             sloValue.setValueNumber(value);

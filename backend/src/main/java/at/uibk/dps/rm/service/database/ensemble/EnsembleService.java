@@ -3,6 +3,7 @@ package at.uibk.dps.rm.service.database.ensemble;
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.Ensemble;
 import at.uibk.dps.rm.repository.ensemble.EnsembleRepository;
+import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -12,6 +13,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import org.hibernate.reactive.stage.Stage;
 
 /**
  * The interface of the service proxy for the ensemble entity.
@@ -24,8 +26,8 @@ public interface EnsembleService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static EnsembleService create(EnsembleRepository ensembleRepository) {
-        return new EnsembleServiceImpl(ensembleRepository);
+    static EnsembleService create(Stage.SessionFactory sessionFactory) {
+        return new EnsembleServiceImpl(new EnsembleRepository(), new ResourceRepository(), sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
@@ -33,6 +35,7 @@ public interface EnsembleService extends DatabaseServiceInterface {
     static EnsembleService createProxy(Vertx vertx) {
         return new EnsembleServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(Ensemble.class));
     }
+
 
     /**
      * Find all ensembles by their creator.

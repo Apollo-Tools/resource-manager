@@ -4,14 +4,13 @@ const API_ROUTE = `${env('API_URL')}/resources`;
 /**
  * Create a new resource.
  *
- * @param {number} resourceTypeId the id of the resource type
- * @param {boolean} isSelfManaged whether the resource is self-managed or not
+ * @param {number} platformId the id of the platform
  * @param {number} regionId the id of the region
  * @param {string} token the access token
  * @param {function} setResource the function to set the created resource
  * @param {function} setError the function to set the error if one occurred
  */
-export async function createResource(resourceTypeId, isSelfManaged, regionId, token, setResource, setError) {
+export async function createResource(platformId, regionId, token, setResource, setError) {
   try {
     const response = await fetch(`${API_ROUTE}`, {
       method: 'POST',
@@ -20,10 +19,9 @@ export async function createResource(resourceTypeId, isSelfManaged, regionId, to
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        resource_type: {
-          type_id: resourceTypeId,
+        platform: {
+          platform_id: platformId,
         },
-        is_self_managed: isSelfManaged,
         region: {
           region_id: regionId,
         },

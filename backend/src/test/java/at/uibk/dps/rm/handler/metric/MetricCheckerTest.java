@@ -54,34 +54,16 @@ public class MetricCheckerTest {
     }
 
     @Test
-    void checkUpdateNoDuplicateWithoutMetric(VertxTestContext testContext) {
-        String metricName = "region";
-        Metric metric = TestMetricProvider.createMetric(1L, metricName);
-        JsonObject body = JsonObject.mapFrom(metric);
-        body.remove("metric");
-        JsonObject entity = JsonObject.mapFrom(metric);
-
-        metricChecker.checkUpdateNoDuplicate(body, entity)
-            .subscribe(result -> testContext.verify(() -> {
-                    assertThat(result.getLong("metric_id")).isEqualTo(1L);
-                    assertThat(result.getString("metric")).isEqualTo(metricName);
-                    testContext.completeNow();
-                }),
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-    }
-
-    @Test
-    void checkFindAllByResourceTypeId(VertxTestContext testContext) {
-        long resourceTypeId = 1L;
+    void checkFindAllByPlatformId(VertxTestContext testContext) {
+        long platformId = 1L;
         boolean required = false;
         JsonObject m1 = JsonObject.mapFrom(TestMetricProvider.createMetric(1L, "cpu"));
         JsonObject m2 = JsonObject.mapFrom(TestMetricProvider.createMetric(2L, "memory"));
         JsonArray metrics = new JsonArray(List.of(m1, m2));
 
-        when(metricService.findAllByResourceTypeId(resourceTypeId, required)).thenReturn(Single.just(metrics));
+        when(metricService.findAllByPlatformId(platformId, required)).thenReturn(Single.just(metrics));
 
-        metricChecker.checkFindAllByResourceTypeId(resourceTypeId, required)
+        metricChecker.checkFindAllByPlatform(platformId, required)
             .subscribe(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
                 assertThat(result.getJsonObject(0).getLong("metric_id")).isEqualTo(1L);
@@ -94,14 +76,14 @@ public class MetricCheckerTest {
 
 
     @Test
-    void checkFindAllByResourceTypeIdNotFound(VertxTestContext testContext) {
-        long resourceTypeId = 1L;
+    void checkFindAllByPlatformIdNotFound(VertxTestContext testContext) {
+        long platformId = 1L;
         boolean required = false;
 
-        when(metricService.findAllByResourceTypeId(resourceTypeId, required))
+        when(metricService.findAllByPlatformId(platformId, required))
             .thenReturn(Single.error(NotFoundException::new));
 
-        metricChecker.checkFindAllByResourceTypeId(resourceTypeId, required)
+        metricChecker.checkFindAllByPlatform(platformId, required)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
@@ -150,7 +132,7 @@ public class MetricCheckerTest {
         String metricName = "region";
         ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective(metricName, ExpressionType.GT,
             1.0, 2.0, 3.0);
-        MetricType metricType = TestMetricProvider.createMetricType(1L, "number");
+        MetricType metricType = TestMetricProvider.createMetricTypeNumber();
         Metric metric = TestMetricProvider.createMetric(1L, metricName, metricType, false);
         JsonObject entity = JsonObject.mapFrom(metric);
 
@@ -187,7 +169,7 @@ public class MetricCheckerTest {
         String metricName = "region";
         ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective(metricName, ExpressionType.GT,
             "eu-west", "eu-east");
-        MetricType metricType = TestMetricProvider.createMetricType(1L, "string");
+        MetricType metricType = TestMetricProvider.createMetricTypeString();
         Metric metric = TestMetricProvider.createMetric(1L, metricName, metricType, false);
         JsonObject entity = JsonObject.mapFrom(metric);
 
@@ -224,7 +206,7 @@ public class MetricCheckerTest {
         String metricName = "region";
         ServiceLevelObjective slo = TestDTOProvider.createServiceLevelObjective(metricName, ExpressionType.GT,
             true, false, false);
-        MetricType metricType = TestMetricProvider.createMetricType(1L, "boolean");
+        MetricType metricType = TestMetricProvider.createMetricTypeBoolean();
         Metric metric = TestMetricProvider.createMetric(1L, metricName, metricType, false);
         JsonObject entity = JsonObject.mapFrom(metric);
 
@@ -263,7 +245,7 @@ public class MetricCheckerTest {
     })
     void checkAddMetricValueSetCorrectlyNumber(boolean isMonitored, double result, VertxTestContext testContext) {
         long metricId = 1;
-        MetricType metricType = TestMetricProvider.createMetricType(1L, "number");
+        MetricType metricType = TestMetricProvider.createMetricTypeNumber();
         Metric metric = TestMetricProvider.createMetric(metricId, "availability", metricType, isMonitored);
         JsonObject requestBody = new JsonObject("{\"metricId\": 1, \"value\": 4}");
         MetricValue metricValue = new MetricValue();
@@ -286,7 +268,7 @@ public class MetricCheckerTest {
     })
     void checkAddMetricValueSetCorrectlyString(boolean isMonitored, String result, VertxTestContext testContext) {
         long metricId = 1;
-        MetricType metricType = TestMetricProvider.createMetricType(1L, "string");
+        MetricType metricType = TestMetricProvider.createMetricTypeString();
         Metric metric = TestMetricProvider.createMetric(metricId, "availability", metricType, isMonitored);
         JsonObject requestBody = new JsonObject("{\"metricId\": 1, \"value\": \"four\"}");
         MetricValue metricValue = new MetricValue();
@@ -309,7 +291,7 @@ public class MetricCheckerTest {
     })
     void checkAddMetricValueSetCorrectlyBoolean(boolean isMonitored, boolean result, VertxTestContext testContext) {
         long metricId = 1;
-        MetricType metricType = TestMetricProvider.createMetricType(1L, "boolean");
+        MetricType metricType = TestMetricProvider.createMetricTypeBoolean();
         Metric metric = TestMetricProvider.createMetric(metricId, "availability", metricType, isMonitored);
         JsonObject requestBody = new JsonObject("{\"metricId\": 1, \"value\": true}");
         MetricValue metricValue = new MetricValue();

@@ -25,6 +25,10 @@
   .invalid-entry button {
     @apply bg-red-200 text-red-500 border-red-400 hover:text-red-500 hover:border-red-600 !important;
   }
+
+  .custom-select div.ant-select-selector {
+    @apply rounded-r-none !important;
+  }
 }
 
 html,

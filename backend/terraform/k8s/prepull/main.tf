@@ -19,7 +19,7 @@ locals {
       ]
     }
   ]
-  name = "pre-puller-${var.reservation_id}-${formatdate("YYYY-MM-DD-hh-mm-ss", timestamp())}"
+  name = "pre-puller-${var.deployment_id}-${formatdate("YYYY-MM-DD-hh-mm-ss", timestamp())}"
 }
 
 resource "kubernetes_manifest" "pre_puller" {

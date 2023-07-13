@@ -2,7 +2,7 @@ import {Button, Checkbox, Form, Select, Input, InputNumber, Typography} from 'an
 import {MinusCircleOutlined, PlusOutlined} from '@ant-design/icons';
 import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
-import {listResourceTypeMetrics} from '../../lib/ResourceTypeMetricService';
+import {listPlatformMetrics} from '../../lib/PlatformMetricService';
 import {addResourceMetrics} from '../../lib/ResourceService';
 import PropTypes from 'prop-types';
 import TooltipIcon from '../misc/TooltipIcon';
@@ -50,7 +50,7 @@ const AddMetricValuesForm = ({
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listResourceTypeMetrics(token, resource.resource_type.type_id, setMetrics, setError)
+      listPlatformMetrics(resource.platform.platform_id, token, setMetrics, setError)
           .then(() => {
             setMetrics((prevMetrics) => {
               let filteredMetrics = prevMetrics;
@@ -185,7 +185,7 @@ const AddMetricValuesForm = ({
                       </Checkbox>:
                       (checkMetricType(metrics, form, name, 'number') ?
                           <InputNumber placeholder='0.00' controls={false} className="w-full"/>:
-                          <Input placeholder='value' classNames="w-full"/>
+                          <Input placeholder='value' className="w-full"/>
                       )
 
                     }

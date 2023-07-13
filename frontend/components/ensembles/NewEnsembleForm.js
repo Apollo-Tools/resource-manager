@@ -102,7 +102,17 @@ const NewEnsembleForm = ({setNewEnsemble}) => {
                 }
                 if (value.filter((slo) => slo.name === '' || slo.value.length < 1 || slo.expression === '')
                     .length > 0) {
-                  return Promise.reject(new Error('SLOs are not complete'));
+                  return Promise.reject(new Error('SLOs are incomplete'));
+                }
+                if (value.filter((slo) => slo.value.includes(undefined)).length > 0) {
+                  return Promise.reject(new Error('SLOs are incomplete'));
+                }
+                if (value.map((slo) => {
+                  console.log(new Set(slo.value), slo.value.length);
+                  return new Set(slo.value).size !== slo.value.length;
+                })
+                    .filter((hasDuplicates) => hasDuplicates).length > 0) {
+                  return Promise.reject(new Error('SLOs contain duplicate entries'));
                 }
 
                 return Promise.resolve();

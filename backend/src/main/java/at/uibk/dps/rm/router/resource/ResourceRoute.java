@@ -3,7 +3,7 @@ package at.uibk.dps.rm.router.resource;
 import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.handler.resource.ResourceChecker;
 import at.uibk.dps.rm.handler.resource.ResourceHandler;
-import at.uibk.dps.rm.handler.resource.ResourceTypeChecker;
+import at.uibk.dps.rm.handler.resourceprovider.RegionChecker;
 import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
@@ -17,9 +17,8 @@ public class ResourceRoute implements Route {
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         ResourceChecker resourceChecker = new ResourceChecker(serviceProxyProvider.getResourceService());
-        ResourceTypeChecker resourceTypeChecker = new ResourceTypeChecker(serviceProxyProvider
-            .getResourceTypeService());
-        ResourceHandler resourceHandler = new ResourceHandler(resourceChecker, resourceTypeChecker);
+        RegionChecker regionChecker = new RegionChecker(serviceProxyProvider.getRegionService());
+        ResourceHandler resourceHandler = new ResourceHandler(resourceChecker, regionChecker);
         ResultHandler resultHandler = new ResultHandler(resourceHandler);
 
         router

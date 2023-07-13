@@ -1,10 +1,14 @@
 package at.uibk.dps.rm.handler.resource;
 
+import at.uibk.dps.rm.entity.model.Platform;
+import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.entity.model.Resource;
-import at.uibk.dps.rm.entity.model.ResourceType;
 import at.uibk.dps.rm.exception.NotFoundException;
+import at.uibk.dps.rm.handler.resourceprovider.RegionChecker;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
+import at.uibk.dps.rm.testutil.objectprovider.TestPlatformProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -37,7 +41,7 @@ public class ResourceHandlerTest {
     private ResourceChecker resourceChecker;
 
     @Mock
-    private ResourceTypeChecker resourceTypeChecker;
+    private RegionChecker regionChecker;
 
     @Mock
     private RoutingContext rc;
@@ -45,24 +49,30 @@ public class ResourceHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        resourceHandler = new ResourceHandler(resourceChecker, resourceTypeChecker);
+        resourceHandler = new ResourceHandler(resourceChecker, regionChecker);
     }
 
-    @Test
-    void postOneValid(VertxTestContext testContext) {
-        ResourceType rt = TestResourceProvider.createResourceType(1L, "vm");
-        Resource resource = TestResourceProvider.createResource(1L, rt);
+    private JsonObject composeResource() {
+        Platform platform = TestPlatformProvider.createPlatformFaas(11L, "lambda");
+        Region region = TestResourceProviderProvider.createRegion(22L, "us-east-1");
+        Resource resource = TestResourceProvider.createResource(1L, platform, region);
         JsonObject requestBody = JsonObject.mapFrom(resource);
         requestBody.remove("resource_id");
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(resourceTypeChecker.checkExistsOne(1L)).thenReturn(Completable.complete());
-        when(resourceChecker.submitCreate(requestBody)).thenReturn(Single.just(JsonObject.mapFrom(resource)));
+        return requestBody;
+    }
+
+    @Test
+    void postOneValid(VertxTestContext testContext) {
+        JsonObject requestBody = composeResource();
+        when(regionChecker.checkExistsByPlatform(22L, 11L)).thenReturn(Completable.complete());
+        when(resourceChecker.submitCreate(requestBody)).thenReturn(Single.just(JsonObject.mapFrom(requestBody)));
 
         resourceHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> {
-                    assertThat(result.getJsonObject("resource_type").getLong("type_id")).isEqualTo(1L);
-                    assertThat(result.getBoolean("is_self_managed")).isEqualTo(false);
+                    assertThat(result.getJsonObject("platform").getLong("platform_id")).isEqualTo(11L);
+                    assertThat(result.getJsonObject("region").getLong("region_id")).isEqualTo(22L);
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
@@ -70,11 +80,9 @@ public class ResourceHandlerTest {
     }
 
     @Test
-    void postOneResourceTypeNotFound(VertxTestContext testContext) {
-        JsonObject jsonObject = new JsonObject("{\"resource_type\": {\"type_id\": 1}, \"is_self_managed\": false}");
-
-        RoutingContextMockHelper.mockBody(rc, jsonObject);
-        when(resourceTypeChecker.checkExistsOne(1L)).thenReturn(Completable.error(NotFoundException::new));
+    void postOneRegionNotFound(VertxTestContext testContext) {
+        composeResource();
+        when(regionChecker.checkExistsByPlatform(22L, 11L)).thenReturn(Completable.error(NotFoundException::new));
 
         resourceHandler.postOne(rc)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),

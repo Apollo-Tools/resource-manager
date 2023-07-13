@@ -4,12 +4,15 @@ package at.uibk.dps.rm.service.database.resourceprovider;
 import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.entity.model.VPC;
+import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
+import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import org.hibernate.reactive.stage.Stage;
 import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,7 +21,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-import java.util.concurrent.CompletionStage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -37,10 +39,19 @@ public class VPCServiceImplTest {
     @Mock
     private VPCRepository vpcRepository;
 
+    @Mock
+    private RegionRepository regionRepository;
+
+    @Mock
+    private Stage.SessionFactory sessionFactory;
+
+    @Mock
+    private Stage.Session session;
+
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        vpcService = new VPCServiceImpl(vpcRepository);
+        vpcService = new VPCServiceImpl(vpcRepository, regionRepository, sessionFactory);
     }
 
 
@@ -51,9 +62,9 @@ public class VPCServiceImplTest {
         Region region = TestResourceProviderProvider.createRegion(regionId, "aws");
         Account account = TestAccountProvider.createAccount(accountId);
         VPC vpc = TestResourceProviderProvider.createVPC(1L, region, account);
-        CompletionStage<VPC> completionStage = CompletionStages.completedFuture(vpc);
 
-        when(vpcRepository.findByIdAndFetch(vpcId)).thenReturn(completionStage);
+        SessionMockHelper.mockSession(sessionFactory, session);
+        when(vpcRepository.findByIdAndFetch(session, vpcId)).thenReturn(CompletionStages.completedFuture(vpc));
 
         vpcService.findOne(vpcId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -67,9 +78,9 @@ public class VPCServiceImplTest {
     @Test
     void findOneNotExists(VertxTestContext testContext) {
         long vpcId = 1L;
-        CompletionStage<VPC> completionStage = CompletionStages.completedFuture(null);
 
-        when(vpcRepository.findByIdAndFetch(vpcId)).thenReturn(completionStage);
+        SessionMockHelper.mockSession(sessionFactory, session);
+        when(vpcRepository.findByIdAndFetch(session, vpcId)).thenReturn(CompletionStages.completedFuture(null));
 
         vpcService.findOne(vpcId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -80,15 +91,17 @@ public class VPCServiceImplTest {
 
     @Test
     void findAll(VertxTestContext testContext) {
+        long accountId = 1L;
         Region r1 = TestResourceProviderProvider.createRegion(1L, "us-east");
         Region r2 = TestResourceProviderProvider.createRegion(1L, "us-west");
         VPC vpc1 = TestResourceProviderProvider.createVPC(1L, r1);
         VPC vpc2 = TestResourceProviderProvider.createVPC(2L, r2);
-        CompletionStage<List<VPC>> completionStage = CompletionStages.completedFuture(List.of(vpc1, vpc2));
 
-        when(vpcRepository.findAllAndFetch()).thenReturn(completionStage);
+        SessionMockHelper.mockSession(sessionFactory, session);
+        when(vpcRepository.findAllByAccountIdAndFetch(session, accountId))
+            .thenReturn(CompletionStages.completedFuture(List.of(vpc1, vpc2)));
 
-        vpcService.findAll()
+        vpcService.findAllByAccountId(accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
                 assertThat(result.getJsonObject(0).getLong("vpc_id")).isEqualTo(1L);
@@ -105,9 +118,10 @@ public class VPCServiceImplTest {
         Region region = TestResourceProviderProvider.createRegion(regionId, "aws");
         Account account = TestAccountProvider.createAccount(accountId);
         VPC vpc = TestResourceProviderProvider.createVPC(1L, region, account);
-        CompletionStage<VPC> completionStage = CompletionStages.completedFuture(vpc);
 
-        when(vpcRepository.findByRegionIdAndAccountId(regionId, accountId)).thenReturn(completionStage);
+        SessionMockHelper.mockSession(sessionFactory, session);
+        when(vpcRepository.findByRegionIdAndAccountId(session, regionId, accountId))
+            .thenReturn(CompletionStages.completedFuture(vpc));
 
         vpcService.findOneByRegionIdAndAccountId(regionId, accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -121,9 +135,10 @@ public class VPCServiceImplTest {
     @Test
     void findOneByRegionIdAndAccountIdNotExists(VertxTestContext testContext) {
         long regionId = 1L, accountId = 2L;
-        CompletionStage<VPC> completionStage = CompletionStages.completedFuture(null);
 
-        when(vpcRepository.findByRegionIdAndAccountId(regionId, accountId)).thenReturn(completionStage);
+        SessionMockHelper.mockSession(sessionFactory, session);
+        when(vpcRepository.findByRegionIdAndAccountId(session, regionId, accountId))
+            .thenReturn(CompletionStages.completedFuture(null));
 
         vpcService.findOneByRegionIdAndAccountId(regionId, accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -138,9 +153,10 @@ public class VPCServiceImplTest {
         Region region = TestResourceProviderProvider.createRegion(regionId, "aws");
         Account account = TestAccountProvider.createAccount(accountId);
         VPC vpc = TestResourceProviderProvider.createVPC(1L, region, account);
-        CompletionStage<VPC> completionStage = CompletionStages.completedFuture(vpc);
 
-        when(vpcRepository.findByRegionIdAndAccountId(regionId, accountId)).thenReturn(completionStage);
+        SessionMockHelper.mockSession(sessionFactory, session);
+        when(vpcRepository.findByRegionIdAndAccountId(session, regionId, accountId))
+            .thenReturn(CompletionStages.completedFuture(vpc));
 
         vpcService.existsOneByRegionIdAndAccountId(regionId, accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -152,9 +168,10 @@ public class VPCServiceImplTest {
     @Test
     void existsOneByRegionIdAndAccountIdNotExists(VertxTestContext testContext) {
         long regionId = 1L, accountId = 2L;
-        CompletionStage<VPC> completionStage = CompletionStages.completedFuture(null);
 
-        when(vpcRepository.findByRegionIdAndAccountId(regionId, accountId)).thenReturn(completionStage);
+        SessionMockHelper.mockSession(sessionFactory, session);
+        when(vpcRepository.findByRegionIdAndAccountId(session, regionId, accountId))
+            .thenReturn(CompletionStages.completedFuture(null));
 
         vpcService.existsOneByRegionIdAndAccountId(regionId, accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {

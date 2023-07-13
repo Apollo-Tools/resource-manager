@@ -1,11 +1,11 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
-import at.uibk.dps.rm.entity.model.Reservation;
+import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.model.Service;
-import at.uibk.dps.rm.entity.model.ServiceReservation;
+import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.testutil.objectprovider.TestFileServiceProvider;
-import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestDeploymentProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestServiceProvider;
 import io.vertx.junit5.VertxExtension;
@@ -29,15 +29,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(MockitoExtension.class)
 public class ContainerPullFileServiceTest {
 
-    private final Path rootFolder = Paths.get("temp\\reservation_1");
+    private final Path rootFolder = Paths.get("temp\\deployment_1");
 
 
-    private final Reservation reservation = TestReservationProvider.createReservation(1L);
+    private final Deployment deployment = TestDeploymentProvider.createDeployment(1L);
 
     @Test
     void getProviderString(Vertx vertx) {
         ContainerPullFileService service =
-            TestFileServiceProvider.createContainerPullFileService(vertx.fileSystem(), rootFolder, reservation);
+            TestFileServiceProvider.createContainerPullFileService(vertx.fileSystem(), rootFolder, deployment);
         String result = service.getProviderString();
 
         assertThat(result).isEqualTo("");
@@ -45,15 +45,15 @@ public class ContainerPullFileServiceTest {
 
     @Test
     void getMainFileContent(Vertx vertx) {
-        Resource r1 = TestResourceProvider.createResourceContainer(1L, "localhost");
-        Resource r2 = TestResourceProvider.createResourceContainer(2L, "10.0.0.1");
+        Resource r1 = TestResourceProvider.createResourceContainer(1L, "localhost", true);
+        Resource r2 = TestResourceProvider.createResourceContainer(2L, "10.0.0.1", true);
         Service s1 = TestServiceProvider.createService(1L, "test1");
         Service s2 = TestServiceProvider.createService(1L, "test2");
-        ServiceReservation sr1 = TestServiceProvider.createServiceReservation(1L, s1, r1);
-        ServiceReservation sr2 = TestServiceProvider.createServiceReservation(1L, s2, r1);
-        ServiceReservation sr3 = TestServiceProvider.createServiceReservation(1L, s1, r2);
+        ServiceDeployment sr1 = TestServiceProvider.createServiceDeployment(1L, s1, r1);
+        ServiceDeployment sr2 = TestServiceProvider.createServiceDeployment(1L, s2, r1);
+        ServiceDeployment sr3 = TestServiceProvider.createServiceDeployment(1L, s1, r2);
         ContainerPullFileService service =
-            TestFileServiceProvider.createContainerPullFileService(vertx.fileSystem(), rootFolder, reservation,
+            TestFileServiceProvider.createContainerPullFileService(vertx.fileSystem(), rootFolder, deployment,
                 List.of(sr1, sr2, sr3));
         String configPath = Path.of(rootFolder.toString(), "config").toAbsolutePath().toString()
             .replace("\\", "/");
@@ -64,7 +64,7 @@ public class ContainerPullFileServiceTest {
         assertThat(result).isEqualTo(
             "module \"pre_pull_2default\" {\n" +
                 "  source = \"../../../terraform/k8s/prepull\"\n" +
-                "  reservation_id = 1\n" +
+                "  deployment_id = 1\n" +
                 "  config_path = \"" + configPath + "\"\n" +
                 "  namespace = \"default\"\n" +
                 "  config_context = \"k8s-context\"\n" +
@@ -73,7 +73,7 @@ public class ContainerPullFileServiceTest {
                 "}\n" +
                 "module \"pre_pull_1default\" {\n" +
                 "  source = \"../../../terraform/k8s/prepull\"\n" +
-                "  reservation_id = 1\n" +
+                "  deployment_id = 1\n" +
                 "  config_path = \"" + configPath + "\"\n" +
                 "  namespace = \"default\"\n" +
                 "  config_context = \"k8s-context\"\n" +
@@ -82,19 +82,11 @@ public class ContainerPullFileServiceTest {
                 "}\n"
         );
     }
-    @Test
-    void getCredentialVariablesString(Vertx vertx) {
-        ContainerPullFileService service =
-            TestFileServiceProvider.createContainerPullFileService(vertx.fileSystem(), rootFolder, reservation);
-        String result = service.getCredentialVariablesString();
-
-        assertThat(result).isEqualTo("");
-    }
 
     @Test
     void getVariablesFileContent(Vertx vertx) {
         ContainerPullFileService service =
-            TestFileServiceProvider.createContainerPullFileService(vertx.fileSystem(), rootFolder, reservation);
+            TestFileServiceProvider.createContainerPullFileService(vertx.fileSystem(), rootFolder, deployment);
         String result = service.getVariablesFileContent();
 
         assertThat(result).isEqualTo("");
@@ -103,7 +95,7 @@ public class ContainerPullFileServiceTest {
     @Test
     void getOutputFileContent(Vertx vertx) {
         ContainerPullFileService service =
-            TestFileServiceProvider.createContainerPullFileService(vertx.fileSystem(), rootFolder, reservation);
+            TestFileServiceProvider.createContainerPullFileService(vertx.fileSystem(), rootFolder, deployment);
         String result = service.getOutputsFileContent();
 
         assertThat(result).isEqualTo("");

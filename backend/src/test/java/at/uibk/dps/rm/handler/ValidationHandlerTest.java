@@ -1,8 +1,6 @@
 package at.uibk.dps.rm.handler;
 
 import at.uibk.dps.rm.entity.model.ResourceType;
-import at.uibk.dps.rm.exception.AlreadyExistsException;
-import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.handler.resource.ResourceTypeChecker;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
@@ -65,14 +63,10 @@ public class ValidationHandlerTest {
     }
 
     @Test
-    void deleteOneExists(VertxTestContext testContext) {
+    void deleteOne(VertxTestContext testContext) {
         long entityId = 1L;
-        ResourceType entity = new ResourceType();
-        entity.setTypeId(entityId);
-        entity.setResourceType("cloud");
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
-        when(resourceTypeChecker.checkFindOne(entityId)).thenReturn(Single.just(JsonObject.mapFrom(entity)));
         when(resourceTypeChecker.submitDelete(entityId)).thenReturn(Completable.complete());
 
         testClass.deleteOne(rc)
@@ -83,23 +77,7 @@ public class ValidationHandlerTest {
     }
 
     @Test
-    void deleteOneNotFound(VertxTestContext testContext) {
-        long entityId = 1L;
-
-        when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
-        when(resourceTypeChecker.checkFindOne(entityId)).thenReturn(Single.error(NotFoundException::new));
-
-        testClass.deleteOne(rc)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(NotFoundException.class);
-                    testContext.completeNow();
-                })
-            );
-    }
-
-    @Test
-    void getOneExists(VertxTestContext testContext) {
+    void getOne(VertxTestContext testContext) {
         long entityId = 1L;
         ResourceType entity = new ResourceType();
         entity.setTypeId(entityId);
@@ -115,22 +93,6 @@ public class ValidationHandlerTest {
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-    }
-
-    @Test
-    void getOneNotFound(VertxTestContext testContext) {
-        long entityId = 1L;
-
-        when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
-        when(resourceTypeChecker.checkFindOne(entityId)).thenReturn(Single.error(NotFoundException::new));
-
-        testClass.getOne(rc)
-            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(NotFoundException.class);
-                    testContext.completeNow();
-                })
             );
     }
 
@@ -157,27 +119,11 @@ public class ValidationHandlerTest {
     }
 
     @Test
-    void getAllEmpty(VertxTestContext testContext) {
-        List<JsonObject> entities = new ArrayList<>();
-        JsonArray resultJson = new JsonArray(entities);
-
-        when(resourceTypeChecker.checkFindAll()).thenReturn(Single.just(resultJson));
-
-        testClass.getAll(rc)
-            .subscribe(result -> testContext.verify(() -> {
-                    assertThat(result.size()).isEqualTo(0);
-                    testContext.completeNow();
-                }),
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-    }
-
-    @Test
     void postOne(VertxTestContext testContext) {
-        JsonObject requestBody = JsonObject.mapFrom(TestResourceProvider.createResourceType(1L, "vm"));
+        JsonObject requestBody = JsonObject.mapFrom(TestResourceProvider
+            .createResourceType(1L, "vm"));
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(resourceTypeChecker.checkForDuplicateEntity(requestBody)).thenReturn(Completable.complete());
         when(resourceTypeChecker.submitCreate(requestBody)).thenReturn(Single.just(requestBody));
 
         testClass.postOne(rc)
@@ -187,23 +133,6 @@ public class ValidationHandlerTest {
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-    }
-
-    @Test
-    void postOneAlreadyExists(VertxTestContext testContext) {
-        JsonObject requestBody = JsonObject.mapFrom(TestResourceProvider.createResourceType(1L, "vm"));
-
-        RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(resourceTypeChecker.checkForDuplicateEntity(requestBody))
-            .thenReturn(Completable.error(AlreadyExistsException::new));
-
-        testClass.postOne(rc)
-            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
-                    testContext.completeNow();
-                })
             );
     }
 
@@ -227,61 +156,19 @@ public class ValidationHandlerTest {
     }
 
     @Test
-    void updateOneExists(VertxTestContext testContext) {
+    void updateOne(VertxTestContext testContext) {
         long entityId = 1L;
-        JsonObject requestBody = JsonObject.mapFrom(TestResourceProvider.createResourceType(1L, "vm"));
-        JsonObject result = JsonObject.mapFrom(TestResourceProvider.createResourceType(1L, "edge"));
+        JsonObject requestBody = JsonObject.mapFrom(TestResourceProvider
+            .createResourceType(1L, "vm"));
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
-        when(resourceTypeChecker.checkFindOne(entityId)).thenReturn(Single.just(result));
-        when(resourceTypeChecker.checkUpdateNoDuplicate(requestBody, result)).thenReturn(Single.just(result));
-        when(resourceTypeChecker.submitUpdate(requestBody, result)).thenReturn(Completable.complete());
+        when(resourceTypeChecker.submitUpdate(entityId, requestBody)).thenReturn(Completable.complete());
 
         testClass.updateOne(rc)
             .blockingSubscribe(() -> {},
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
         testContext.completeNow();
-    }
-
-    @Test
-    void updateOneNotFound(VertxTestContext testContext) {
-        long entityId = 1L;
-        JsonObject requestBody = JsonObject.mapFrom(TestResourceProvider.createResourceType(1L, "vm"));
-
-
-        RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
-        when(resourceTypeChecker.checkFindOne(entityId)).thenReturn(Single.error(NotFoundException::new));
-
-        testClass.updateOne(rc)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(NotFoundException.class);
-                    testContext.completeNow();
-                })
-            );
-    }
-
-    @Test
-    void updateOneAlreadyExists(VertxTestContext testContext) {
-        long entityId = 1L;
-        JsonObject requestBody = JsonObject.mapFrom(TestResourceProvider.createResourceType(1L, "vm"));
-        JsonObject result = JsonObject.mapFrom(TestResourceProvider.createResourceType(1L, "edge"));
-
-        RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
-        when(resourceTypeChecker.checkFindOne(entityId)).thenReturn(Single.just(result));
-        when(resourceTypeChecker.checkUpdateNoDuplicate(requestBody, result))
-            .thenReturn(Single.error(AlreadyExistsException::new));
-
-        testClass.updateOne(rc)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
-                    testContext.completeNow();
-                })
-            );
     }
 }

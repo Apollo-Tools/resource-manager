@@ -41,30 +41,10 @@ public class AccountHandler extends ValidationHandler {
     }
 
     @Override
-    protected Single<JsonObject> postOne(RoutingContext rc) {
-        JsonObject requestBody = rc.body().asJsonObject();
-        return entityChecker.checkForDuplicateEntity(requestBody)
-            .andThen(Single.defer(() -> Single.just(1L)))
-            .map(result -> accountChecker.hashAccountPassword(requestBody))
-            .flatMap(entityChecker::submitCreate)
-            .map(result -> {
-                result.remove("password");
-                return result;
-            });
-    }
-
-    @Override
     public Completable updateOne(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
-        return accountChecker.checkFindLoginAccount(rc.user().principal().getString("username"))
-            .map(account -> accountChecker
-                .checkComparePasswords(account,
-                    requestBody.getString("old_password").toCharArray()))
-            .map(account -> {
-                account.put("password", requestBody.getString("new_password"));
-                return accountChecker.hashAccountPassword(account);
-            })
-            .flatMapCompletable(entityChecker::submitUpdate);
+        JsonObject principal = rc.user().principal();
+        return entityChecker.submitUpdate(principal.getLong("account_id"), requestBody);
     }
 
   /**
@@ -75,10 +55,8 @@ public class AccountHandler extends ValidationHandler {
    */
   public Single<JsonObject> login(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
-        return accountChecker.checkFindLoginAccount(requestBody.getString("username"))
-            .map(account -> accountChecker
-                .checkComparePasswords(account,
-                    requestBody.getString("password").toCharArray()))
+        return accountChecker.checkLoginAccount(requestBody.getString("username"),
+                requestBody.getString("password"))
             .map(result -> {
                 result.remove("password");
                 return new JsonObject().put("token", jwtAuth.generateToken(result));

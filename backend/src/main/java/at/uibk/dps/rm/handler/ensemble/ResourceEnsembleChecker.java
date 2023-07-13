@@ -30,36 +30,25 @@ public class ResourceEnsembleChecker extends EntityChecker {
     /**
      * Submit the creation of a new resource ensemble by the ensembleId and resourceId.
      *
+     * @param accountId the id of the creator
      * @param ensembleId the id of the ensemble
      * @param resourceId the id of the resource
      * @return a Single that emits the persisted entity
      */
-    public Single<JsonObject> submitCreate(long ensembleId, long resourceId) {
-        return service.saveByEnsembleIdAndResourceId(ensembleId, resourceId);
+    public Single<JsonObject> submitCreate(long accountId, long ensembleId, long resourceId) {
+        return service.saveByEnsembleIdAndResourceId(accountId, ensembleId, resourceId);
     }
 
     /**
      * Submit the deletion of a resource ensemble by its ensembleId and resourceId
      *
+     * @param accountId the id of the creator
      * @param ensembleId the id of the ensemble
      * @param resourceId the id of the resource
      * @return a Completable
      */
-    public Completable submitDelete(long ensembleId, long resourceId) {
-        return service.deleteByEnsembleIdAndResourceId(ensembleId, resourceId);
-    }
-
-    /**
-     * Check if a resource ensemble with the ensembleId and resourceId already exists.
-     *
-     * @param ensembleId the id of the ensemble
-     * @param resourceId the id of the resource
-     * @return a Completable if it does not violate uniqueness, else an AlreadyExistsException
-     * gets thrown.
-     */
-    public Completable checkForDuplicateEntity(long ensembleId, long resourceId) {
-        Single<Boolean> alreadyExists = service.checkExistsByEnsembleIdAndResourceId(ensembleId, resourceId);
-        return ErrorHandler.handleDuplicates(alreadyExists).ignoreElement();
+    public Completable submitDelete(long accountId, long ensembleId, long resourceId) {
+        return service.deleteByEnsembleIdAndResourceId(accountId, ensembleId, resourceId);
     }
 
     /**

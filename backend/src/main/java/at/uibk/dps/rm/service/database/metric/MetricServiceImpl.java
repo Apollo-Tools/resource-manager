@@ -6,8 +6,11 @@ import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletionStage;
 
 /**
  * This is the implementation of the #MetricService.
@@ -16,22 +19,23 @@ import java.util.ArrayList;
  */
 public class MetricServiceImpl extends DatabaseServiceProxy<Metric> implements MetricService {
 
-    private final MetricRepository metricRepository;
+    private final MetricRepository repository;
 
     /**
      * Create an instance from the metricRepository.
      *
-     * @param metricRepository the metric repository
+     * @param repository the metric repository
      */
-    public MetricServiceImpl(MetricRepository metricRepository) {
-        super(metricRepository, Metric.class);
-        this.metricRepository = metricRepository;
+    public MetricServiceImpl(MetricRepository repository, Stage.SessionFactory sessionFactory) {
+        super(repository, Metric.class, sessionFactory);
+        this.repository = repository;
     }
 
     @Override
-    public Future<JsonArray> findAllByResourceTypeId(long resourceTypeId, boolean required) {
-        return Future
-            .fromCompletionStage(metricRepository.findAllByResourceTypeId(resourceTypeId, required))
+    public Future<JsonArray> findAllByPlatformId(long resourceTypeId, boolean required) {
+        CompletionStage<List<Metric>> findAll = withSession(session ->
+            repository.findAllByPlatformId(session, resourceTypeId, required));
+        return Future.fromCompletionStage(findAll)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Metric entity: result) {
@@ -43,8 +47,8 @@ public class MetricServiceImpl extends DatabaseServiceProxy<Metric> implements M
 
     @Override
     public Future<JsonObject> findOneByMetric(String metric) {
-        return Future
-            .fromCompletionStage(metricRepository.findByMetric(metric))
+        CompletionStage<Metric> findOne = withSession(session -> repository.findByMetric(session, metric));
+        return Future.fromCompletionStage(findOne)
             .map(JsonObject::mapFrom);
     }
 }

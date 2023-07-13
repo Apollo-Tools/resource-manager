@@ -1,12 +1,12 @@
 package at.uibk.dps.rm.handler.log;
 
-import at.uibk.dps.rm.entity.model.Reservation;
-import at.uibk.dps.rm.entity.model.ReservationLog;
+import at.uibk.dps.rm.entity.model.Deployment;
+import at.uibk.dps.rm.entity.model.DeploymentLog;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.rxjava3.database.log.LogService;
 import at.uibk.dps.rm.testutil.SingleHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestLogProvider;
-import at.uibk.dps.rm.testutil.objectprovider.TestReservationProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestDeploymentProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
@@ -46,21 +46,21 @@ public class LogCheckerTest {
     }
 
     @Test
-    void checkFindAllByReservationId(VertxTestContext testContext) {
-        long reservationId = 11L, accountId = 22L;
-        Reservation reservation = TestReservationProvider.createReservation(reservationId);
-        ReservationLog rl1 = TestLogProvider.createReservationLog(1L, reservation);
-        ReservationLog rl2 = TestLogProvider.createReservationLog(2L, reservation);
-        JsonArray reservationLogs = new JsonArray(List.of(JsonObject.mapFrom(rl1), JsonObject.mapFrom(rl2)));
+    void checkFindAllByDeploymentId(VertxTestContext testContext) {
+        long deploymentId = 11L, accountId = 22L;
+        Deployment deployment = TestDeploymentProvider.createDeployment(deploymentId);
+        DeploymentLog rl1 = TestLogProvider.createDeploymentLog(1L, deployment);
+        DeploymentLog rl2 = TestLogProvider.createDeploymentLog(2L, deployment);
+        JsonArray deploymentLogs = new JsonArray(List.of(JsonObject.mapFrom(rl1), JsonObject.mapFrom(rl2)));
 
-        when(logService.findAllByReservationIdAndAccountId(reservationId, accountId))
-            .thenReturn(Single.just(reservationLogs));
+        when(logService.findAllByDeploymentIdAndAccountId(deploymentId, accountId))
+            .thenReturn(Single.just(deploymentLogs));
 
-        logChecker.checkFindAllByReservationId(reservationId, accountId)
+        logChecker.checkFindAllByDeploymentId(deploymentId, accountId)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(2);
-                    assertThat(result.getJsonObject(0).getLong("reservation_log_id")).isEqualTo(1L);
-                    assertThat(result.getJsonObject(1).getLong("reservation_log_id")).isEqualTo(2L);
+                    assertThat(result.getJsonObject(0).getLong("deployment_log_id")).isEqualTo(1L);
+                    assertThat(result.getJsonObject(1).getLong("deployment_log_id")).isEqualTo(2L);
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
@@ -68,14 +68,14 @@ public class LogCheckerTest {
     }
 
     @Test
-    void checkFindAllByReservationIdNotFound(VertxTestContext testContext) {
-        long reservationId = 11L, accountId = 22L;
+    void checkFindAllByDeploymentIdNotFound(VertxTestContext testContext) {
+        long deploymentId = 11L, accountId = 22L;
         Single<JsonArray> handler = SingleHelper.getEmptySingle();
 
-        when(logService.findAllByReservationIdAndAccountId(reservationId, accountId))
+        when(logService.findAllByDeploymentIdAndAccountId(deploymentId, accountId))
             .thenReturn(handler);
 
-        logChecker.checkFindAllByReservationId(reservationId, accountId)
+        logChecker.checkFindAllByDeploymentId(deploymentId, accountId)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);

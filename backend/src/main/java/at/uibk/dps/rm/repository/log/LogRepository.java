@@ -2,7 +2,7 @@ package at.uibk.dps.rm.repository.log;
 
 import at.uibk.dps.rm.entity.model.Log;
 import at.uibk.dps.rm.repository.Repository;
-import org.hibernate.reactive.stage.Stage;
+import org.hibernate.reactive.stage.Stage.Session;
 
 import java.util.List;
 import java.util.concurrent.CompletionStage;
@@ -15,30 +15,28 @@ import java.util.concurrent.CompletionStage;
 public class LogRepository extends Repository<Log> {
 
     /**
-     * Create an instance from the sessionFactory.
-     *
-     * @param sessionFactory the session factory
+     * Create an instance.
      */
-    public LogRepository(Stage.SessionFactory sessionFactory) {
-        super(sessionFactory, Log.class);
+    public LogRepository() {
+        super(Log.class);
     }
 
     /**
-     * Find all logs by their reservation and account.
+     * Find all logs by their deployment and account.
      *
-     * @param reservationId the id of the reservation
+     * @param session the database session
+     * @param deploymentId the id of the deployment
      * @param accountId the id of the creator account
      * @return a CompletionStage that emits a list of all logs
      */
-    public CompletionStage<List<Log>> findAllByReservationIdAndAccountId(long reservationId, long accountId) {
-        return sessionFactory.withSession(session ->
-            session.createQuery("select distinct l from ReservationLog rl " +
-                    "left join rl.log l " +
-                    "where rl.reservation.reservationId=:reservationId " +
-                    "and rl.reservation.createdBy.accountId=:accountId", entityClass)
-                .setParameter("reservationId", reservationId)
-                .setParameter("accountId", accountId)
-                .getResultList()
-        );
+    public CompletionStage<List<Log>> findAllByDeploymentIdAndAccountId(Session session, long deploymentId,
+            long accountId) {
+        return session.createQuery("select distinct l from DeploymentLog dl " +
+                "left join dl.log l " +
+                "where dl.deployment.deploymentId=:deploymentId " +
+                "and dl.deployment.createdBy.accountId=:accountId", entityClass)
+            .setParameter("deploymentId", deploymentId)
+            .setParameter("accountId", accountId)
+            .getResultList();
     }
 }

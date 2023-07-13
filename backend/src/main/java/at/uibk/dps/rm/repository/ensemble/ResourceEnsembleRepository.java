@@ -2,7 +2,7 @@ package at.uibk.dps.rm.repository.ensemble;
 
 import at.uibk.dps.rm.entity.model.ResourceEnsemble;
 import at.uibk.dps.rm.repository.Repository;
-import org.hibernate.reactive.stage.Stage;
+import org.hibernate.reactive.stage.Stage.Session;
 
 import java.util.concurrent.CompletionStage;
 
@@ -13,44 +13,42 @@ import java.util.concurrent.CompletionStage;
  */
 public class ResourceEnsembleRepository extends Repository<ResourceEnsemble> {
     /**
-     * Create an instance from the sessionFactory.
-     *
-     * @param sessionFactory the session factory
+     * Create an instance.
      */
-    public ResourceEnsembleRepository(Stage.SessionFactory sessionFactory) {
-        super(sessionFactory, ResourceEnsemble.class);
+    public ResourceEnsembleRepository() {
+        super(ResourceEnsemble.class);
     }
 
     /**
      * Find a resource ensemble by its ensemble and resource.
      *
+     * @param session the database session
      * @param ensembleId the id of the ensemble
      * @param resourceId the id of the resource
      * @return a CompletionStage that emits the resource ensemble if it exists, else null
      */
-    public CompletionStage<ResourceEnsemble> findByEnsembleIdAndResourceId(long ensembleId, long resourceId) {
-        return sessionFactory.withSession(session ->
-            session.createQuery("from ResourceEnsemble re " +
-                    "where re.ensemble.ensembleId=:ensembleId and re.resource.resourceId=:resourceId", entityClass)
-                .setParameter("ensembleId", ensembleId)
-                .setParameter("resourceId", resourceId)
-                .getSingleResultOrNull());
+    public CompletionStage<ResourceEnsemble> findByEnsembleIdAndResourceId(Session session, long ensembleId,
+            long resourceId) {
+        return session.createQuery("from ResourceEnsemble re " +
+                "where re.ensemble.ensembleId=:ensembleId and re.resource.resourceId=:resourceId", entityClass)
+            .setParameter("ensembleId", ensembleId)
+            .setParameter("resourceId", resourceId)
+            .getSingleResultOrNull();
     }
 
     /**
-     * Delete a resourc ensemble by its ensemble and resource.
+     * Delete a resource ensemble by its ensemble and resource.
      *
+     * @param session the database session
      * @param ensembleId the id of the ensemble
      * @param resourceId the id of the resource
      * @return a CompletionStage that emits the row count
      */
-    public CompletionStage<Integer> deleteEnsembleIdAndResourceId(long ensembleId, long resourceId) {
-        return this.sessionFactory.withTransaction(session ->
-            session.createQuery("delete from ResourceEnsemble re " +
-                    "where re.ensemble.ensembleId=:ensembleId and re.resource.resourceId=:resourceId")
-                .setParameter("ensembleId", ensembleId)
-                .setParameter("resourceId", resourceId)
-                .executeUpdate()
-        );
+    public CompletionStage<Integer> deleteEnsembleIdAndResourceId(Session session, long ensembleId, long resourceId) {
+        return session.createQuery("delete from ResourceEnsemble re " +
+                "where re.ensemble.ensembleId=:ensembleId and re.resource.resourceId=:resourceId")
+            .setParameter("ensembleId", ensembleId)
+            .setParameter("resourceId", resourceId)
+            .executeUpdate();
     }
 }

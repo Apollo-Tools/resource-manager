@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.handler.resource;
 
-import at.uibk.dps.rm.entity.dto.reservation.FunctionResourceIds;
-import at.uibk.dps.rm.entity.dto.reservation.ServiceResourceIds;
+import at.uibk.dps.rm.entity.dto.deployment.FunctionResourceIds;
+import at.uibk.dps.rm.entity.dto.deployment.ServiceResourceIds;
 import at.uibk.dps.rm.entity.dto.resource.ResourceTypeEnum;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
@@ -11,6 +11,7 @@ import at.uibk.dps.rm.testutil.objectprovider.TestServiceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,14 +22,12 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -55,14 +54,17 @@ public class ResourceCheckerTest {
     void checkFindAllBySLOs(VertxTestContext testContext) {
         JsonArray resourcesJson = TestResourceProvider.createGetAllResourcesArray();
         List<String> metrics = List.of("availability", "bandwidth");
-        List<Long> regions = new ArrayList<>();
-        List<Long> resourceProviders = new ArrayList<>();
-        List<Long> resourceTypes = new ArrayList<>();
+        List<Long> regions = List.of();
+        List<Long> resourceProviders = List.of();
+        List<Long> resourceTypes = List.of();
+        List<Long> platforms = List.of();
+        List<Long> environments = List.of();
+        JsonObject data = new JsonObject();
 
-        when(resourceService.findAllBySLOs(metrics, regions, resourceProviders, resourceTypes))
+        when(resourceService.findAllBySLOs(data))
             .thenReturn(Single.just(resourcesJson));
 
-        resourceChecker.checkFindAllBySLOs(metrics, regions, resourceProviders, resourceTypes)
+        resourceChecker.checkFindAllBySLOs(data)
             .subscribe(result -> testContext.verify(() -> {
                         verifyGetAllResourceRequest(result);
                 testContext.completeNow();
@@ -75,50 +77,19 @@ public class ResourceCheckerTest {
     void checkFindAllBySLOsEmpty(VertxTestContext testContext) {
         JsonArray resourcesJson = new JsonArray(List.of());
         List<String> metrics = List.of("availability", "bandwidth");
-        List<Long> regions = new ArrayList<>();
-        List<Long> resourceProviders = new ArrayList<>();
-        List<Long> resourceTypes = new ArrayList<>();
+        List<Long> regions = List.of();
+        List<Long> resourceProviders = List.of();
+        List<Long> resourceTypes = List.of();
+        List<Long> platforms = List.of();
+        List<Long> environments = List.of();
+        JsonObject data = new JsonObject();
 
-        when(resourceService.findAllBySLOs(metrics, regions, resourceProviders, resourceTypes))
+        when(resourceService.findAllBySLOs(data))
             .thenReturn(Single.just(resourcesJson));
 
-        resourceChecker.checkFindAllBySLOs(metrics, regions, resourceProviders, resourceTypes)
+        resourceChecker.checkFindAllBySLOs(data)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(0);
-                    testContext.completeNow();
-                }),
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-    }
-
-    @Test
-    void checkFindAllByFunction(VertxTestContext testContext) {
-        long functionId = 1L;
-        JsonArray resourcesJson = TestResourceProvider.createGetAllResourcesArray();
-
-        when(resourceService.findAllByFunctionId(functionId)).thenReturn(Single.just(resourcesJson));
-
-        resourceChecker.checkFindAllByFunction(functionId)
-            .subscribe(result -> testContext.verify(() -> {
-                        verifyGetAllResourceRequest(result);
-                    verify(resourceService).findAllByFunctionId(functionId);
-                    testContext.completeNow();
-                }),
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-    }
-
-    @Test
-    void checkFindAllByFunctionEmpty(VertxTestContext testContext) {
-        long functionId = 1L;
-        JsonArray resourcesJson = new JsonArray(List.of());
-
-        when(resourceService.findAllByFunctionId(functionId)).thenReturn(Single.just(resourcesJson));
-
-        resourceChecker.checkFindAllByFunction(functionId)
-            .subscribe(result -> testContext.verify(() -> {
-                    assertThat(result.size()).isEqualTo(0);
-                    verify(resourceService).findAllByFunctionId(functionId);
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
@@ -207,10 +178,9 @@ public class ResourceCheckerTest {
             serviceResourceMappings.stream().map(ServiceResourceIds::getResourceId).collect(Collectors.toSet());
 
         when(resourceService.existsAllByIdsAndResourceTypes(functionResourceIds,
-            List.of(ResourceTypeEnum.EDGE.getValue(), ResourceTypeEnum.FAAS.getValue(), ResourceTypeEnum.VM.getValue())))
-            .thenReturn(Single.just(allFrExist));
-        when(resourceService.existsAllByIdsAndResourceTypes(serviceResourceIds, List.of(ResourceTypeEnum.CONTAINER.getValue())))
-            .thenReturn(Single.just(allSrExist));
+            List.of(ResourceTypeEnum.FAAS.getValue()))).thenReturn(Single.just(allFrExist));
+        when(resourceService.existsAllByIdsAndResourceTypes(serviceResourceIds,
+            List.of(ResourceTypeEnum.CONTAINER.getValue()))).thenReturn(Single.just(allSrExist));
 
         resourceChecker.checkExistAllByIdsAndResourceType(serviceResourceMappings, functionResourceMappings)
             .blockingSubscribe(() -> testContext.verify(() -> {

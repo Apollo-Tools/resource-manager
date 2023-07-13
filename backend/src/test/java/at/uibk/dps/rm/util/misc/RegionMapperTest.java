@@ -22,26 +22,26 @@ public class RegionMapperTest {
     void mapFunctionResources() {
         Region region1 = TestResourceProviderProvider.createRegion(1L, "us-east-1");
         Region region2 = TestResourceProviderProvider.createRegion(2L, "us-east-2");
-        Region region3 = TestResourceProviderProvider.createRegion(3L, "edge");
-        Resource r1 = TestResourceProvider.createResourceFaaS(1L, region1, 20.0, 20.0);
-        Resource r2 = TestResourceProvider.createResourceVM(2L, region2, "t2.micro");
-        Resource r3 = TestResourceProvider.createResource(3L, TestResourceProvider
-                .createResourceType(3L, "edge"), region3, false);
-        FunctionReservation fr1 = TestFunctionProvider.createFunctionReservation(1L, r1);
-        FunctionReservation fr2 = TestFunctionProvider.createFunctionReservation(2L, r1);
-        FunctionReservation fr3 = TestFunctionProvider.createFunctionReservation(3L, r2);
-        FunctionReservation fr4 = TestFunctionProvider.createFunctionReservation(4L, r3);
+        Region region3 = TestResourceProviderProvider.createRegion(3L, "custom-edge");
+        Resource r1 = TestResourceProvider.createResourceLambda(1L, region1, 20.0, 20.0);
+        Resource r2 = TestResourceProvider.createResourceLambda(1L, region2, 20.0, 20.0);
+        Resource r3 = TestResourceProvider.createResourceOpenFaas(1L, region3, 20.0, 20.0,
+            "localhost", "admin", "pw");
+        FunctionDeployment fr1 = TestFunctionProvider.createFunctionDeployment(1L, r1);
+        FunctionDeployment fr2 = TestFunctionProvider.createFunctionDeployment(2L, r1);
+        FunctionDeployment fr3 = TestFunctionProvider.createFunctionDeployment(3L, r2);
+        FunctionDeployment fr4 = TestFunctionProvider.createFunctionDeployment(4L, r3);
 
-        Map<Region, List<FunctionReservation>> result = RegionMapper
-            .mapFunctionReservations(List.of(fr1, fr2, fr3, fr4));
+        Map<Region, List<FunctionDeployment>> result = RegionMapper
+            .mapFunctionDeployments(List.of(fr1, fr2, fr3, fr4));
 
         assertThat(result.get(region1).size()).isEqualTo(2);
-        assertThat(result.get(region1).get(0).getResourceReservationId()).isEqualTo(1L);
-        assertThat(result.get(region1).get(1).getResourceReservationId()).isEqualTo(2L);
+        assertThat(result.get(region1).get(0).getResourceDeploymentId()).isEqualTo(1L);
+        assertThat(result.get(region1).get(1).getResourceDeploymentId()).isEqualTo(2L);
         assertThat(result.get(region2).size()).isEqualTo(1);
-        assertThat(result.get(region2).get(0).getResourceReservationId()).isEqualTo(3L);
+        assertThat(result.get(region2).get(0).getResourceDeploymentId()).isEqualTo(3L);
         assertThat(result.get(region3).size()).isEqualTo(1);
-        assertThat(result.get(region3).get(0).getResourceReservationId()).isEqualTo(4L);
+        assertThat(result.get(region3).get(0).getResourceDeploymentId()).isEqualTo(4L);
     }
 
     @Test

@@ -7,6 +7,8 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Represents the resource_provider entity.
@@ -22,6 +24,13 @@ public class ResourceProvider {
     private Long providerId;
 
     private String provider;
+
+    @OneToMany(mappedBy = "resourceProvider")
+    private Set<ProviderPlatform> providerPlatforms = new HashSet<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "environment_id")
+    private Environment environment;
 
     @Column(insertable = false, updatable = false)
     private @Setter(AccessLevel.NONE)

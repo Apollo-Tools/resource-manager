@@ -1,0 +1,5 @@
+{
+    "bucket": "<BUCKET-NAME>",
+    "seqsPerFile": 12000,
+    "seqs": "<FILE_NAME>"
+}

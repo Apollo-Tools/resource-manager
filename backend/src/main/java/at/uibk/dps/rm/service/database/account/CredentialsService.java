@@ -2,7 +2,10 @@ package at.uibk.dps.rm.service.database.account;
 
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.Credentials;
+import at.uibk.dps.rm.repository.account.AccountCredentialsRepository;
+import at.uibk.dps.rm.repository.account.AccountRepository;
 import at.uibk.dps.rm.repository.account.CredentialsRepository;
+import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -11,6 +14,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
+import org.hibernate.reactive.stage.Stage;
 
 /**
  * The interface of the service proxy for the credentials entity.
@@ -24,8 +28,9 @@ public interface CredentialsService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static CredentialsService create(CredentialsRepository credentialsRepository) {
-        return new CredentialsServiceImpl(credentialsRepository);
+    static CredentialsService create(Stage.SessionFactory sessionFactory) {
+        return new CredentialsServiceImpl(new CredentialsRepository(), new AccountRepository(),
+            new AccountCredentialsRepository(), new ResourceProviderRepository(), sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
@@ -35,20 +40,13 @@ public interface CredentialsService extends DatabaseServiceInterface {
     }
 
     /**
-     * Find all credentials by their creator account.
+     * Find all credentials by their creator account and include/exclude the secrets.
      *
      * @param accountId the id of the creator account
+     * @param includeSecrets whether to include or exclude the secrets
      * @return a Future that emits all credentials
      */
-    Future<JsonArray> findAllByAccountId(long accountId);
-
-    /**
-     * Check if there exists at least one set of credentials created by the account.
-     *
-     * @param accountId the id of the creator account
-     * @return a Future that emits true if at least one set of credentials exists, else false
-     */
-    Future<Boolean> existsAtLeastOneByAccount(long accountId);
+    Future<JsonArray> findAllByAccountIdAndIncludeExcludeSecrets(long accountId, boolean includeSecrets);
 
     /**
      * Check if a set of credentials exists by the creator account and resource provider.
@@ -57,5 +55,5 @@ public interface CredentialsService extends DatabaseServiceInterface {
      * @param providerId the id of the resource provider
      * @return a Future that emits true if the set of credentials exists, else false
      */
-    Future<Boolean> existsOnyByAccountIdAndProviderId(long accountId, long providerId);
+    Future<Boolean> existsOneByAccountIdAndProviderId(long accountId, long providerId);
 }

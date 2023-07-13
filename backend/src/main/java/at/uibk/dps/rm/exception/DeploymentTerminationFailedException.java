@@ -2,7 +2,7 @@ package at.uibk.dps.rm.exception;
 
 /**
  * The DeploymentTerminationFailedException indicates that the deployment or termination of a
- * resource reservation failed.
+ * resource deployment failed.
  *
  * @author matthi-g
  */

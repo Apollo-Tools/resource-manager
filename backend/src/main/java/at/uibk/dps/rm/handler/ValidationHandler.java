@@ -36,10 +36,19 @@ public abstract class ValidationHandler {
      */
     protected Completable deleteOne(RoutingContext rc) {
         return HttpHelper.getLongPathParam(rc, "id")
-            .flatMap(id -> entityChecker.checkFindOne(id)
-                .flatMapCompletable(this::checkDeleteEntityIsUsed)
-                .andThen(Single.just(id)))
             .flatMapCompletable(entityChecker::submitDelete);
+    }
+
+    /**
+     * Delete an entity by its id.
+     *
+     * @param rc the RoutingContext of the request
+     * @return a Completable
+     */
+    protected Completable deleteOneFromAccount(RoutingContext rc) {
+        long accountId = rc.user().principal().getLong("account_id");
+        return HttpHelper.getLongPathParam(rc, "id")
+            .flatMapCompletable(id -> entityChecker.submitDelete(accountId, id));
     }
 
     /**
@@ -64,6 +73,17 @@ public abstract class ValidationHandler {
     }
 
     /**
+     * Find and return all existing entities that are linked to the logged in account.
+     *
+     * @param rc the RoutingContext of the request
+     * @return a Single that emits the found entity as JsonObject
+     */
+    protected Single<JsonArray> getAllFromAccount(RoutingContext rc) {
+        long accountId = rc.user().principal().getLong("account_id");
+        return entityChecker.checkFindAll(accountId);
+    }
+
+    /**
      * Create a new entity.
      *
      * @param rc the RoutingContext of the request
@@ -71,10 +91,19 @@ public abstract class ValidationHandler {
      */
     protected Single<JsonObject> postOne(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
-        return entityChecker.checkForDuplicateEntity(requestBody)
-            // see https://stackoverflow.com/a/50670502/13164629 for further information
-            .andThen(Single.defer(() -> Single.just(1L)))
-            .flatMap(result -> entityChecker.submitCreate(requestBody));
+        return entityChecker.submitCreate(requestBody);
+    }
+
+    /**
+     * Create a new entity for the logged-in user.
+     *
+     * @param rc the RoutingContext of the request
+     * @return a Single that emits the created entity as JsonObject
+     */
+    protected Single<JsonObject> postOneToAccount(RoutingContext rc) {
+        JsonObject requestBody = rc.body().asJsonObject();
+        long accountId = rc.user().principal().getLong("account_id");
+        return entityChecker.submitCreate(accountId, requestBody);
     }
 
     /**
@@ -97,19 +126,6 @@ public abstract class ValidationHandler {
     protected Completable updateOne(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
         return HttpHelper.getLongPathParam(rc, "id")
-            .flatMap(entityChecker::checkFindOne)
-            .flatMap(result -> entityChecker.checkUpdateNoDuplicate(requestBody, result))
-            .flatMapCompletable(result -> entityChecker.submitUpdate(requestBody, result));
-    }
-
-    // TODO: move to entity checker
-    /**
-     * Check if the entity to delete is used.
-     *
-     * @param entity the entity
-     * @return a Completable
-     */
-    protected Completable checkDeleteEntityIsUsed(JsonObject entity) {
-        return Single.just(entity).ignoreElement();
+            .flatMapCompletable(id -> entityChecker.submitUpdate(id, requestBody));
     }
 }

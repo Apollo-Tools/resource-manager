@@ -40,11 +40,19 @@ public abstract class EntityChecker {
     /**
      * Find all entities, that exist.
      *
-     * @return a Single that emits the list of found entities as JsonArray if found, else a
-     * NotFoundException gets thrown
+     * @return a Single that emits the list of found entities as JsonArray if found
      */
     public Single<JsonArray> checkFindAll() {
         return ErrorHandler.handleFindAll(service.findAll());
+    }
+
+    /**
+     * Find all entities by the accountId.
+     *
+     * @return a Single that emits the list of found entities as JsonArray if found
+     */
+    public Single<JsonArray> checkFindAll(long accountId) {
+        return ErrorHandler.handleFindAll(service.findAllByAccountId(accountId));
     }
 
     /**
@@ -59,28 +67,6 @@ public abstract class EntityChecker {
     }
 
     /**
-     * Check if the entity violates uniqueness constraints.
-     *
-     * @param entity the entity to create
-     * @return a Completable if it does not violate uniqueness, else an AlreadyExistsException
-     * gets thrown.
-     */
-    public Completable checkForDuplicateEntity(JsonObject entity) {
-        return Single.just(entity).ignoreElement();
-    }
-
-    /**
-     * Check if an update of an entity violates uniqueness constraints.
-     *
-     * @param updateEntity the updated entity
-     * @param entity the most recent state of the entity
-     * @return a Single that emits the most recent entity
-     */
-    public Single<JsonObject> checkUpdateNoDuplicate(JsonObject updateEntity, JsonObject entity) {
-        return Single.just(entity);
-    }
-
-    /**
      * Submit the creation of a new entity.
      *
      * @param entity the new entity
@@ -88,6 +74,17 @@ public abstract class EntityChecker {
      */
     public Single<JsonObject> submitCreate(JsonObject entity) {
         return service.save(entity);
+    }
+
+    /**
+     * Submit the creation of a new entity.
+     *
+     * @param accountId the id of the creator
+     * @param entity the new entity
+     * @return a Single that emits the persisted entity
+     */
+    public Single<JsonObject> submitCreate(long accountId, JsonObject entity) {
+        return service.saveToAccount(accountId, entity);
     }
 
     /**
@@ -101,27 +98,13 @@ public abstract class EntityChecker {
     }
 
     /**
-     * Submit the update of an entity.
+     * Submit the update of all fields.
      *
-     * @param updateEntity the updated entity
-     * @param entity the most recent state of the entity to update
+     * @param fields the updated fields
      * @return a Completable
      */
-    public Completable submitUpdate(JsonObject updateEntity, final JsonObject entity) {
-        for (String field : updateEntity.fieldNames()) {
-            entity.put(field, updateEntity.getValue(field));
-        }
-        return submitUpdate(entity);
-    }
-
-    /**
-     * Submit the update of an entity.
-     *
-     * @param entity the updated entity
-     * @return a Completable
-     */
-    public Completable submitUpdate(JsonObject entity) {
-        return service.update(entity);
+    public Completable submitUpdate(long id, JsonObject fields) {
+        return service.update(id, fields);
     }
 
     /**
@@ -132,5 +115,16 @@ public abstract class EntityChecker {
      */
     public Completable submitDelete(long id) {
         return service.delete(id);
+    }
+
+    /**
+     * Submit the deletion of an entity by its id and owner.
+     *
+     * @param accountId the id of the owner
+     * @param id the id of the entity
+     * @return a Completable
+     */
+    public Completable submitDelete(long accountId, long id) {
+        return service.deleteFromAccount(accountId, id);
     }
 }

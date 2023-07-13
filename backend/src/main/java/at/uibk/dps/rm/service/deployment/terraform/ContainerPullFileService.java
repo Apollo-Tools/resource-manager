@@ -10,32 +10,32 @@ import java.util.*;
 
 /**
  * Extension of the #TerraformFileService to set up the container pre pull module of service
- * reservation.
+ * deployments.
  *
  * @author matthi-g
  */
 public class ContainerPullFileService extends TerraformFileService {
 
-    private final long reservationId;
+    private final long deploymentId;
 
-    private final List<ServiceReservation> serviceReservations;
+    private final List<ServiceDeployment> serviceDeployments;
 
     private final Path rootFolder;
 
     /**
-     * Create an instance from the filesystem, rootFolder, serviceReservations and reservationId.
+     * Create an instance from the filesystem, rootFolder, serviceDeployments and deploymentId.
      *
      * @param fileSystem the vertx file system
      * @param rootFolder the root folder of the module
-     * @param serviceReservations the list of service reservations
-     * @param reservationId the id of the reservation
+     * @param serviceDeployments the list of service deployments
+     * @param deploymentId the id of the deployment
      */
-    public ContainerPullFileService(FileSystem fileSystem, Path rootFolder, List<ServiceReservation> serviceReservations,
-            long reservationId) {
+    public ContainerPullFileService(FileSystem fileSystem, Path rootFolder, List<ServiceDeployment> serviceDeployments,
+            long deploymentId) {
         super(fileSystem, rootFolder);
         this.rootFolder = rootFolder;
-        this.serviceReservations = serviceReservations;
-        this.reservationId = reservationId;
+        this.serviceDeployments = serviceDeployments;
+        this.deploymentId = deploymentId;
     }
 
     @Override
@@ -56,13 +56,13 @@ public class ContainerPullFileService extends TerraformFileService {
     private String getContainerModulesString() {
         HashMap<PrePullGroup, List<String>> prePullGroups = new HashMap<>();
         StringBuilder functionsString = new StringBuilder();
-        for (ServiceReservation serviceReservation : serviceReservations) {
+        for (ServiceDeployment serviceDeployment : serviceDeployments) {
             List<String> imageList;
-            Resource resource = serviceReservation.getResource();
-            Service service = serviceReservation.getService();
+            Resource resource = serviceDeployment.getResource();
+            Service service = serviceDeployment.getService();
             Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
-            PrePullGroup pullGroup = new PrePullGroup(resource.getResourceId(), serviceReservation.getContext(),
-                serviceReservation.getNamespace(), metricValues.get("pre-pull-timeout").getValueNumber().longValue());
+            PrePullGroup pullGroup = new PrePullGroup(resource.getResourceId(), serviceDeployment.getContext(),
+                serviceDeployment.getNamespace(), metricValues.get("pre-pull-timeout").getValueNumber().longValue());
             if (!prePullGroups.containsKey(pullGroup)) {
                 imageList = new ArrayList<>();
                 prePullGroups.put(pullGroup, imageList);
@@ -78,21 +78,16 @@ public class ContainerPullFileService extends TerraformFileService {
             functionsString.append(String.format(
                 "module \"pre_pull_%s\" {\n" +
                     "  source = \"../../../terraform/k8s/prepull\"\n" +
-                    "  reservation_id = %s\n" +
+                    "  deployment_id = %s\n" +
                     "  config_path = \"%s\"\n" +
                     "  namespace = \"%s\"\n" +
                     "  config_context = \"%s\"\n" +
                     "  images = [%s]\n" +
                     "  timeout = \"%sm\"\n" +
-                    "}\n", prePullGroup.getIdentifier(), reservationId, configPath, prePullGroup.getNamespace(),
+                    "}\n", prePullGroup.getIdentifier(), deploymentId, configPath, prePullGroup.getNamespace(),
                 prePullGroup.getContext(), String.join(",", imageList), prePullGroup.getTimeout()
         )));
         return functionsString.toString();
-    }
-
-    @Override
-    protected String getCredentialVariablesString() {
-        return "";
     }
 
     @Override
@@ -101,12 +96,7 @@ public class ContainerPullFileService extends TerraformFileService {
     }
 
     @Override
-    protected String getOutputString() {
-        return "";
-    }
-
-    @Override
     protected String getOutputsFileContent() {
-        return this.getOutputString();
+        return "";
     }
 }
