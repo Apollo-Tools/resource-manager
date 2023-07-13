@@ -52,7 +52,7 @@ public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> im
     }
 
     @Override
-    public Future<JsonArray> findAllByAccountId(long accountId) {
+    public Future<JsonArray> findAllByAccountIdAndIncludeExcludeSecrets(long accountId, boolean includeSecrets) {
         CompletionStage<List<Credentials>> findAll = withSession(session ->
             repository.findAllByAccountId(session, accountId));
         return Future.fromCompletionStage(findAll)
@@ -61,6 +61,11 @@ public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> im
                 for (Credentials entity: result) {
                     entity.getResourceProvider().setProviderPlatforms(null);
                     entity.getResourceProvider().setEnvironment(null);
+                    if (!includeSecrets) {
+                        entity.setAccessKey(null);
+                        entity.setSecretAccessKey(null);
+                        entity.setSessionToken(null);
+                    }
                     objects.add(JsonObject.mapFrom(entity));
                 }
                 return new JsonArray(objects);
@@ -102,11 +107,12 @@ public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> im
                             return accountCredentials;
                         });
                 })
-                .thenCompose(accountCredentials -> session.persist(accountCredentials)
-                    .thenApply(res -> newCredentials))
+                .thenCompose(session::persist)
+                .thenApply(res -> newCredentials)
         );
         return transactionToFuture(save).map(credentials -> {
-            newCredentials.setResourceProvider(null);
+            credentials.getResourceProvider().setProviderPlatforms(null);
+            credentials.getResourceProvider().setEnvironment(null);
             return JsonObject.mapFrom(credentials);
         });
     }

@@ -40,12 +40,13 @@ public interface CredentialsService extends DatabaseServiceInterface {
     }
 
     /**
-     * Find all credentials by their creator account.
+     * Find all credentials by their creator account and include/exclude the secrets.
      *
      * @param accountId the id of the creator account
+     * @param includeSecrets whether to include or exclude the secrets
      * @return a Future that emits all credentials
      */
-    Future<JsonArray> findAllByAccountId(long accountId);
+    Future<JsonArray> findAllByAccountIdAndIncludeExcludeSecrets(long accountId, boolean includeSecrets);
 
     /**
      * Check if a set of credentials exists by the creator account and resource provider.

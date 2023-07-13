@@ -74,7 +74,7 @@ public class DeploymentExecutionHandler {
         request.setDockerCredentials(dockerCredentials);
         request.setKubeConfig(kubeConfig);
         request.setVpcList(vpcList);
-        return credentialsChecker.checkFindAll(accountId)
+        return credentialsChecker.checkFindAll(accountId, true)
             .flatMap(credentials -> mapCredentialsAndResourcesToRequest(request, credentials))
             .flatMap(res -> deploymentChecker.applyResourceDeployment(request))
             .flatMapCompletable(tfOutput -> Completable.defer(() -> resourceDeploymentChecker
@@ -91,7 +91,7 @@ public class DeploymentExecutionHandler {
     public Completable terminateResources(Deployment deployment, long accountId) {
         TerminateResourcesDTO request = new TerminateResourcesDTO();
         request.setDeployment(deployment);
-        return credentialsChecker.checkFindAll(accountId)
+        return credentialsChecker.checkFindAll(accountId, true)
             .flatMap(credentials -> mapCredentialsAndResourcesToRequest(request, credentials))
             .flatMapCompletable(res -> deploymentChecker.terminateResources(request))
             .concatWith(Completable.defer(() -> deploymentChecker.deleteTFDirs(deployment.getDeploymentId())));
