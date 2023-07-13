@@ -81,7 +81,8 @@ public class DeploymentHandlerTest {
         VPC vpc = TestResourceProviderProvider.createVPC(1L, region);
         JsonObject credentials = JsonObject.mapFrom(TestAccountProvider.createCredentials(1L, rp));
 
-        when(credentialsChecker.checkFindAll(accountId)).thenReturn(Single.just(new JsonArray(List.of(credentials))));
+        when(credentialsChecker.checkFindAll(accountId, true))
+            .thenReturn(Single.just(new JsonArray(List.of(credentials))));
         when(functionDeploymentChecker.checkFindAllByDeploymentId(1L)).thenReturn(testCase.startsWith("functionDep") ?
             Single.error(NotFoundException::new) : Single.just(new JsonArray(List.of(fr1))));
         if (!testCase.equals("functionDeploymentsNotFound")) {
@@ -128,7 +129,8 @@ public class DeploymentHandlerTest {
         JsonObject sr2 = JsonObject.mapFrom(TestServiceProvider.createServiceDeployment(3L, deployment));
         JsonObject fr1 = JsonObject.mapFrom(TestFunctionProvider.createFunctionDeployment(3L, deployment));
 
-        when(credentialsChecker.checkFindAll(accountId)).thenReturn(Single.just(new JsonArray(List.of(credentials))));
+        when(credentialsChecker.checkFindAll(accountId, true))
+            .thenReturn(Single.just(new JsonArray(List.of(credentials))));
         when(functionDeploymentChecker.checkFindAllByDeploymentId(1L))
             .thenReturn(Single.just(new JsonArray(List.of(fr1))));
         when(serviceDeploymentChecker.checkFindAllByDeploymentId(1L))

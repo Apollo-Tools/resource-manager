@@ -32,7 +32,7 @@ public class RegionFaasFileServiceTest {
         assertThat(result).isEqualTo("provider \"aws\" {\n" +
             "  access_key = var.access_key\n" +
             "  secret_key = var.secret_access_key\n" +
-            "  token = var.session_token\n" +
+            "  token = var.session_token == \"\" ? null : var.session_token\n" +
             "  region = \"us-east-1\"\n" +
             "}\n");
     }
@@ -161,7 +161,7 @@ public class RegionFaasFileServiceTest {
             "provider \"aws\" {\n" +
             "  access_key = var.access_key\n" +
             "  secret_key = var.secret_access_key\n" +
-            "  token = var.session_token\n" +
+            "  token = var.session_token == \"\" ? null : var.session_token\n" +
             "  region = \"us-east-1\"\n" +
             "}\n" +
             "module \"lambda\" {\n" +

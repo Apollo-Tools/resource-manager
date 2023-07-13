@@ -142,7 +142,10 @@ public class CredentialsServiceImplTest {
                 assertThat(result.getString("access_key")).isEqualTo("accesskey");
                 assertThat(result.getString("secret_access_key")).isEqualTo("secretaccesskey");
                 assertThat(result.getString("session_token")).isEqualTo("sessiontoken");
-                assertThat(result.getString("resource_provider")).isEqualTo(null);
+                assertThat(result.getJsonObject("resource_provider").getJsonObject("environment"))
+                    .isEqualTo(null);
+                assertThat(result.getJsonObject("resource_provider").getJsonObject("provider_platforms"))
+                    .isEqualTo(null);
                 testContext.completeNow();
             })));
     }
