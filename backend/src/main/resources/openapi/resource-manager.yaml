@@ -922,12 +922,18 @@ paths:
       responses:
         200:
           description: Successful pull of a runtime
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Runtime"
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         500:
@@ -946,6 +952,10 @@ paths:
       responses:
         200:
           description: Successful pull of a runtime template
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
@@ -964,6 +974,8 @@ paths:
                         return res
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         500:
@@ -980,12 +992,18 @@ paths:
       responses:
         200:
           description: Successful pull of all runtimes
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: "#/components/schemas/Runtime"
+        401:
+          $ref: "#/components/responses/401"
         500:
           $ref: "#/components/responses/500"
 
@@ -1002,12 +1020,18 @@ paths:
       responses:
         200:
           description: Successful pull of a function
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Function"
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         500:
@@ -1045,6 +1069,8 @@ paths:
           description: Successful update of a function
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         409:
@@ -1066,6 +1092,8 @@ paths:
           description: Successful deletion of a function
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         500:
@@ -1082,12 +1110,18 @@ paths:
       responses:
         200:
           description: Successful pull of all functions
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: "#/components/schemas/Function"
+        401:
+          $ref: "#/components/responses/401"
         500:
           $ref: "#/components/responses/500"
 
@@ -1114,7 +1148,7 @@ paths:
                   type: string
                   minLength: 1
                   maxLength: 64
-                  example: "Multiply"
+                  example: "multiply"
                 runtime:
                   type: object
                   required:
@@ -1139,12 +1173,18 @@ paths:
       responses:
         201:
           description: Successful creation of a new function
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Function"
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         409:
@@ -1181,12 +1221,18 @@ paths:
       responses:
         201:
           description: Successful update of the function
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Function"
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         500:
@@ -1216,7 +1262,7 @@ paths:
                   type: string
                   minLength: 1
                   maxLength: 64
-                  example: "Multiply"
+                  example: "multiply"
                 runtime:
                   type: object
                   required:
@@ -1236,119 +1282,22 @@ paths:
       responses:
         201:
           description: Successful creation of a new function
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Function"
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         409:
           $ref: "#/components/responses/409"
-        500:
-          $ref: "#/components/responses/500"
-
-
-  /functions/{id}/resources:
-    get:
-      description: Return all resources that are linked to an existing function
-      operationId: listFunctionResources
-      deprecated: true
-      security:
-        - bearerAuth: []
-      tags:
-        - functions/resources
-      parameters:
-        - $ref: "#/components/parameters/idParam"
-      responses:
-        200:
-          description: Successful pull of all resources
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Resource"
-        400:
-          $ref: "#/components/responses/400"
-        404:
-          $ref: "#/components/responses/404"
-        500:
-          $ref: "#/components/responses/500"
-
-    post:
-      description: Add multiple resources to an existing function
-      operationId: addFunctionResources
-      deprecated: true
-      security:
-        - bearerAuth: []
-      tags:
-        - functions/resources
-      parameters:
-        - $ref: "#/components/parameters/idParam"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: array
-              minItems: 1
-              items:
-                type: object
-                required:
-                  - resource_id
-                additionalProperties: false
-                properties:
-                  resource_id:
-                    type: integer
-                    format: int64
-                    example: 1
-      responses:
-        204:
-          description: Successfully added resources to an existing function
-        400:
-          $ref: "#/components/responses/400"
-        404:
-          $ref: "#/components/responses/404"
-        409:
-          $ref: "#/components/responses/409"
-        500:
-          $ref: "#/components/responses/500"
-
-  /functions/{functionId}/resources/{resourceId}:
-    delete:
-      description: Delete a function resource
-      operationId: deleteFunctionResource
-      deprecated: true
-      security:
-        - bearerAuth: []
-      tags:
-        - functions/resources
-      parameters:
-        - name: functionId
-          in: path
-          description: ID of the function entity
-          required: true
-          schema:
-            type: integer
-            format: int64
-            example: 1
-        - name: resourceId
-          in: path
-          description: ID of the resources entity
-          required: true
-          schema:
-            type: integer
-            format: int64
-            example: 1
-      responses:
-        204:
-          description: Successful deletion of a metric
-        400:
-          $ref: "#/components/responses/400"
-        404:
-          $ref: "#/components/responses/404"
         500:
           $ref: "#/components/responses/500"
 
@@ -2488,12 +2437,18 @@ paths:
       responses:
         200:
           description: Successful pull of all environments
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: "#/components/schemas/Environment"
+        401:
+          $ref: "#/components/responses/401"
         500:
           $ref: "#/components/responses/500"
 
@@ -2798,6 +2753,9 @@ components:
               return res
         runtime:
           $ref: "#/components/schemas/Runtime"
+        is_file:
+          type: boolean
+          example: true
         created_at:
           type: integer
           format: int64
@@ -2811,10 +2769,10 @@ components:
           example: 1
         name:
           type: string
-          example: python38
+          example: python3.8
         template_path:
           type: string
-          example: ./templates/python38
+          example: ./faas-templates/python38/runtime-template.py
         created_at:
           type: integer
           format: int64
