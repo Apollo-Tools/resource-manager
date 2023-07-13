@@ -158,6 +158,7 @@ public class DeploymentHandler extends ValidationHandler {
                         .map(res -> {
                             Deployment deployment = deploymentJson.mapTo(Deployment.class);
                             initiateDeployment(deployment, accountId, requestDTO, vpcList);
+                            deploymentJson.remove("created_by");
                             return deploymentJson;
                         })
                     )

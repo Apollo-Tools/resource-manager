@@ -1320,15 +1320,32 @@ paths:
       responses:
         200:
           description: Successful pull of all deployments
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Deployment"
+                  type: object
+                  properties:
+                    deployment_id:
+                      type: integer
+                      format: int64
+                      example: 1
+                    status_value:
+                      type: string
+                      example: NEW
+                    created_at:
+                      type: integer
+                      format: int64
+                      example: 1679496667103
+        401:
+          $ref: "#/components/responses/401"
         500:
           $ref: "#/components/responses/500"
-
 
     post:
       description: Deploy resources
@@ -1422,19 +1439,22 @@ paths:
                     - name: <user-name>
                       user:
                         client-certificate-data: <client-certificate-data>
-                        client-key-data: <client-key-data>     
-
+                        client-key-data: <client-key-data>
       responses:
-        200:
+        201:
           description: Successful deployment of resources
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Resource"
+                $ref: "#/components/schemas/Deployment"
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         500:
@@ -1453,10 +1473,14 @@ paths:
       responses:
         200:
           description: Successful pull of a deployment
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Deployment"
+                $ref: "#/components/schemas/DeploymentDetails"
         400:
           $ref: "#/components/responses/400"
         404:
@@ -1494,6 +1518,8 @@ paths:
           description: Successful start up of a container
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         500:
@@ -1529,6 +1555,8 @@ paths:
           description: Successful stop of a container
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         500:
@@ -1548,12 +1576,20 @@ paths:
       responses:
         200:
           description: Successful pull of all logs
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Log"
+                type: array
+                items:
+                  $ref: "#/components/schemas/Log"
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         500:
@@ -1574,6 +1610,8 @@ paths:
           description: Successful cancellation of a deployment
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         500:
@@ -2467,7 +2505,6 @@ components:
           type: integer
           format: int64
           example: 1679496667103
-
     Region:
       type: object
       properties:
@@ -2491,9 +2528,6 @@ components:
           type: integer
           format: int64
           example: 1
-        is_self_managed:
-          type: boolean
-          example: true
         region:
           $ref: "#/components/schemas/Region"
         platform:
@@ -2506,7 +2540,38 @@ components:
           type: integer
           format: int64
           example: 1679496667103
-
+    ResourceDetails:
+      allOf:
+        - $ref: '#/components/schemas/Resource'
+        - type: object
+          properties:
+            metric_values:
+              type: array
+              items:
+                type: object
+                properties:
+                  metric_value_id:
+                    type: integer
+                    format: int64
+                    example: 1
+                  count:
+                    type: integer
+                    format: int64
+                    example: 1
+                  value_number:
+                    type: number
+                    format: double
+                    example: 200.0
+                  metric:
+                    $ref: '#/components/schemas/Metric'
+                  created_at:
+                    type: integer
+                    format: int64
+                    example: 1679496667103
+                  updated_at:
+                    type: integer
+                    format: int64
+                    example: 1679496667103
     Ensemble:
       type: object
       properties:
@@ -2589,14 +2654,33 @@ components:
         is_active:
           type: boolean
           example: true
-        resource_deployments:
-          type: array
-          items:
-            $ref: "#/components/schemas/ResourceDeployment"
-        created_at:
-          type: integer
-          format: int64
-          example: 1679496667103
+    DeploymentDetails:
+      allOf:
+        - $ref: "#/components/schemas/Deployment"
+        - type: object
+          properties:
+            function_resources:
+              type: array
+              items:
+                allOf:
+                  - $ref: '#/components/schemas/ResourceDeployment'
+                  - type: object
+                    properties:
+                      function:
+                        $ref: '#/components/schemas/Function'
+            service_resources:
+              type: array
+              items:
+                allOf:
+                  - $ref: '#/components/schemas/ResourceDeployment'
+                  - type: object
+                    properties:
+                      service:
+                        $ref: '#/components/schemas/Service'
+            created_at:
+              type: integer
+              format: int64
+              example: 1679496667103
     ResourceDeployment:
       type: object
       properties:
@@ -2604,17 +2688,28 @@ components:
           type: integer
           format: int64
           example: 1
-        deployment:
-          $ref: "#/components/schemas/Deployment"
+        trigger_url:
+          type: string
+          example: https://localhost:9000/function/invoke
         resource:
-          $ref: "#/components/schemas/Resource"
-        is_deployed:
-          type: boolean
-          example: true
+          $ref: "#/components/schemas/ResourceDetails"
+        status:
+          type: object
+          properties:
+            status_id:
+              type: integer
+              format: int64
+              example: 1
+            status_value:
+              type: string
+              example: NEW
         created_at:
           type: integer
           format: int64
           example: 1679496667103
+        is_deployed:
+          type: boolean
+          example: true
     Function:
       type: object
       properties:
