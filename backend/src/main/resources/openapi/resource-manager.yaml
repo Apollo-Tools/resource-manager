@@ -174,8 +174,6 @@ tags:
   - name: serviceTypes
   - name: services
   - name: vpcs
-  - name: functions/resources
-    description: DEPRECATED
 
 paths:
   /accounts:
@@ -1904,23 +1902,18 @@ paths:
       responses:
         200:
           description: Successful pull of the vpcs registered for the current user account
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  vpc_id:
-                    type: integer
-                    format: int64
-                    example: 1
-                  vpc_id_value:
-                    type: string
-                    example: vpc-ave2412
-                  subnet_id_value:
-                    type: string
-                    example: subnet-ave2412
-                  region:
-                    $ref: "#/components/schemas/Region"
+                type: array
+                items:
+                  $ref: '#/components/schemas/VPC'
+        401:
+          $ref: "#/components/responses/401"
         500:
           $ref: "#/components/responses/500"
 
@@ -1960,14 +1953,20 @@ paths:
                       format: int64
                       example: 1
       responses:
-        200:
+        201:
           description: Successful creation of the vpc
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/VPC"
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         409:
@@ -1988,12 +1987,18 @@ paths:
       responses:
         200:
           description: Successful pull of a vpc
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/VPC"
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         500:
@@ -2013,6 +2018,8 @@ paths:
           description: Successful deletion of a vpc
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         500:
