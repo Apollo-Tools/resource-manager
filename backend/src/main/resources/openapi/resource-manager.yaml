@@ -658,12 +658,18 @@ paths:
       responses:
         200:
           description: Successful pull of an ensemble
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Ensemble"
+                $ref: "#/components/schemas/EnsembleDetails"
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         500:
@@ -683,6 +689,8 @@ paths:
           description: Successful deletion of an ensemble
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         500:
@@ -712,14 +720,29 @@ paths:
             format: int64
             example: 1
       responses:
-        200:
+        201:
           description: Successfully added resource to existing ensemble
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Ensemble"
+                type: object
+                properties:
+                  ensemble_id:
+                    type: integer
+                    format: int64
+                    example: 1
+                  resource_id:
+                    type: integer
+                    format: int64
+                    example: 1
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         409:
@@ -754,6 +777,8 @@ paths:
           description: Successful removal of resource from an ensemble
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         500:
@@ -772,6 +797,10 @@ paths:
       responses:
         200:
           description: Successful validation of all resources of an ensemble
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
@@ -786,6 +815,8 @@ paths:
                     is_valid:
                       type: boolean
                       example: true
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         500:
@@ -802,12 +833,18 @@ paths:
       responses:
         200:
           description: Successful pull of all ensembles
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: "#/components/schemas/Ensemble"
+        401:
+          $ref: "#/components/responses/401"
         500:
           $ref: "#/components/responses/500"
 
@@ -853,12 +890,18 @@ paths:
       responses:
         201:
           description: Successful registration of a new ensemble
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Ensemble"
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         409:
@@ -2581,12 +2624,10 @@ components:
           example: 1
         name:
           type: string
-        slos:
-          $ref: "#/components/schemas/Slos"
-        resources:
-          type: array
-          items:
-            $ref: "#/components/schemas/Resource"
+          example: my-ensemble
+        is_valid:
+          type: boolean
+          example: true
         created_at:
           type: integer
           format: int64
@@ -2595,6 +2636,32 @@ components:
           type: integer
           format: int64
           example: 1679496667103
+    EnsembleDetails:
+      allOf:
+        - $ref: '#/components/schemas/Ensemble'
+        - type: object
+          properties:
+            ensemble_id:
+              type: integer
+              format: int64
+              example: 1
+            name:
+              type: string
+              example: my-ensemble
+            slos:
+              $ref: "#/components/schemas/Slos"
+            resources:
+              type: array
+              items:
+                $ref: "#/components/schemas/ResourceDetails"
+            created_at:
+              type: integer
+              format: int64
+              example: 1679496667103
+            updated_at:
+              type: integer
+              format: int64
+              example: 1679496667103
 
     ResourceType:
       type: object

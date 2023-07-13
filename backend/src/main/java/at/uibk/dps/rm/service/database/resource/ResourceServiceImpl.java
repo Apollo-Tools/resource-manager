@@ -97,8 +97,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
                 .thenApply(resources -> SLOCompareUtility.filterAndSortResourcesBySLOs(resources,
                     sloRequest.getServiceLevelObjectives()));
         });
-        return Future.fromCompletionStage(findAll)
-            .map(this::encodeResourceList);
+        return transactionToFuture(findAll).map(this::encodeResourceList);
     }
 
     @Override

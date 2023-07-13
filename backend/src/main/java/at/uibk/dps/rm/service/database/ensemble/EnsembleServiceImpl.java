@@ -120,6 +120,8 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
                     entity.setResource_types(null);
                     entity.setRegions(null);
                     entity.setProviders(null);
+                    entity.setEnvironments(null);
+                    entity.setPlatforms(null);
                     objects.add(JsonObject.mapFrom(entity));
                 }
                 return new JsonArray(objects);
