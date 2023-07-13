@@ -344,12 +344,18 @@ paths:
       responses:
         200:
           description: Successful pull of a resource
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Resource"
+                $ref: "#/components/schemas/ResourceDetails"
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         500:
@@ -369,6 +375,8 @@ paths:
           description: Successful deletion of a resource
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         500:
@@ -385,12 +393,18 @@ paths:
       responses:
         200:
           description: Successful pull of all resources
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Resource"
+                  $ref: "#/components/schemas/ResourceDetails"
+        401:
+          $ref: "#/components/responses/401"
         500:
           $ref: "#/components/responses/500"
 
@@ -435,12 +449,37 @@ paths:
       responses:
         201:
           description: Successful registration of a new resource
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Resource"
+                type: object
+                properties:
+                  resource_id:
+                    type: integer
+                    format: int64
+                    example: 1
+                  region:
+                    type: object
+                    properties:
+                      region_id:
+                        type: integer
+                        format: int64
+                        example: 1
+                  platform:
+                    type: object
+                    properties:
+                      platform_id:
+                        type: integer
+                        format: int64
+                        example: 1
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         409:
@@ -450,7 +489,7 @@ paths:
 
   /resources/{id}/metrics:
     get:
-      description: Return all metrics that are linked to an existing resource identified by id
+      description: Return all metric values that are linked to an existing resource identified by id
       operationId: listResourceMetrics
       security:
         - bearerAuth: []
@@ -460,15 +499,21 @@ paths:
         - $ref: "#/components/parameters/idParam"
       responses:
         200:
-          description: Successful pull of all metrics
+          description: Successful pull of all metric values
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Metric"
+                  $ref: "#/components/schemas/MetricValue"
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         500:
@@ -516,6 +561,8 @@ paths:
           description: Successfully added metrics to existing resource
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         409:
@@ -570,6 +617,8 @@ paths:
           description: Successful update of metric value
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         500:
@@ -604,13 +653,12 @@ paths:
           description: Successful deletion of a metric
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         500:
           $ref: "#/components/responses/500"
-
-
-
   /resources/slo:
     post:
       description: Return all resources that fulfill the service level objectives
@@ -632,14 +680,20 @@ paths:
       responses:
         200:
           description: Successful retrieval of resources that fulfill the service level objectives
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Resource"
+                  $ref: "#/components/schemas/ResourceDetails"
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         500:
@@ -2101,12 +2155,18 @@ paths:
       responses:
         200:
           description: Successful pull of a metric
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Metric"
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
         500:
@@ -2123,12 +2183,18 @@ paths:
       responses:
         200:
           description: Successful pull of all metrics
+          headers:
+            content-length:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: "#/components/schemas/Metric"
+        401:
+          $ref: "#/components/responses/401"
         500:
           $ref: "#/components/responses/500"
 
@@ -2666,6 +2732,45 @@ components:
           type: integer
           format: int64
           example: 1679496667103
+    MetricValue:
+      allOf:
+        - type: object
+          properties:
+            metric_value_id:
+              type: integer
+              format: int64
+              example: 1
+            count:
+              type: integer
+              format: int64
+              example: 0
+            metric:
+              $ref: '#/components/schemas/Metric'
+            created_at:
+              type: integer
+              format: int64
+              example: 1679496667103
+            updated_at:
+              type: integer
+              format: int64
+              example: 1679496667103
+        - oneOf:
+          - type: object
+            properties:
+              value_number:
+                type: integer
+                format: int64
+                example: 0
+          - type: object
+            properties:
+              value_string:
+                type: string
+                example: ubuntu
+          - type: object
+            properties:
+              value_bool:
+                type: boolean
+                example: true
     Deployment:
       type: object
       properties:
