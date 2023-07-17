@@ -3207,6 +3207,7 @@ components:
             https://index.docker.io/v1/ for docker hub.
           type: string
           example: https://index.docker.io/v1/
+          minLength: 4
         username:
           description: the username of the docker registry
           type: string
