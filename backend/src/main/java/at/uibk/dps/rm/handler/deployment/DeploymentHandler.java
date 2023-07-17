@@ -2,6 +2,7 @@ package at.uibk.dps.rm.handler.deployment;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
+import at.uibk.dps.rm.entity.dto.credentials.DeploymentCredentials;
 import at.uibk.dps.rm.entity.dto.credentials.KubeConfig;
 import at.uibk.dps.rm.entity.dto.credentials.k8s.Cluster;
 import at.uibk.dps.rm.entity.dto.credentials.k8s.Context;
@@ -157,7 +158,7 @@ public class DeploymentHandler extends ValidationHandler {
                         .andThen(Single.defer(() -> Single.just(1)))
                         .map(res -> {
                             Deployment deployment = deploymentJson.mapTo(Deployment.class);
-                            initiateDeployment(deployment, accountId, requestDTO, vpcList);
+                            initiateDeployment(deployment, accountId, requestDTO.getCredentials(), vpcList);
                             deploymentJson.remove("created_by");
                             return deploymentJson;
                         })
@@ -188,7 +189,7 @@ public class DeploymentHandler extends ValidationHandler {
         try {
             resouceList = DatabindCodec.mapper().readValue(resources.toString(), new TypeReference<>() {});
             if (!request.getServiceResources().isEmpty()) {
-                kubeConfig = new YAMLMapper().readValue(request.getKubeConfig(), KubeConfig.class);
+                kubeConfig = new YAMLMapper().readValue(request.getCredentials().getKubeConfig(), KubeConfig.class);
             }
         } catch (JsonProcessingException e) {
             return Single.error(new BadInputException("Unsupported schema of kube config"));
@@ -259,15 +260,13 @@ public class DeploymentHandler extends ValidationHandler {
      *
      * @param deployment the deployment
      * @param accountId the id of the creator of the deployment
-     * @param requestDTO the request body
+     * @param credentials the deployment credentials
      * @param vpcList the list of vpcs
      */
     // TODO: add check for kubeconfig
-    private void initiateDeployment(Deployment deployment, long accountId, DeployResourcesRequest requestDTO,
+    private void initiateDeployment(Deployment deployment, long accountId, DeploymentCredentials credentials,
                                     List<VPC> vpcList) {
-        deploymentExecutionHandler
-            .deployResources(deployment, accountId, requestDTO.getDockerCredentials(), requestDTO.getKubeConfig(),
-                vpcList)
+        deploymentExecutionHandler.deployResources(deployment, accountId, credentials, vpcList)
             .andThen(Completable.defer(() ->
                 resourceDeploymentChecker.submitUpdateStatus(deployment.getDeploymentId(),
                     DeploymentStatusValue.DEPLOYED)))

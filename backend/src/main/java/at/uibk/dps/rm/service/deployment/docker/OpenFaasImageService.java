@@ -24,7 +24,7 @@ public class OpenFaasImageService {
 
     private final Vertx vertx;
 
-    private final DockerCredentials dockerCredentials;
+    private final List<DockerCredentials> dockerCredentials;
 
     private final List<String> functionIdentifiers;
 
@@ -100,12 +100,13 @@ public class OpenFaasImageService {
             "/var/run/docker.sock:/var/run/docker.sock", "--privileged", "--rm", "-v",
             Path.of(dindDir, rootFolder.toString()).toAbsolutePath().toString().replace("\\", "/") +
                 "/build:/build", "docker:latest", "/bin/sh", "-c"));
+        //TODO: fix for multiple docker credentials
         StringBuilder dockerInteractiveCommands = new StringBuilder("cd ./build && docker login -u " +
-            dockerCredentials.getUsername() + " -p " + dockerCredentials.getAccessToken() +
+            dockerCredentials.get(0).getUsername() + " -p " + dockerCredentials.get(0).getAccessToken() +
             " && docker buildx create --name multiarch --driver docker-container --bootstrap --use");
         for (String functionIdentifier : functionIdentifiers) {
             dockerInteractiveCommands.append(String.format(" && docker buildx build -t %s/%s ./%s --platform " +
-                    "linux/arm/v7,linux/amd64 --push", dockerCredentials.getUsername(), functionIdentifier,
+                    "linux/arm/v7,linux/amd64 --push", dockerCredentials.get(0).getUsername(), functionIdentifier,
                 functionIdentifier));
         }
         dockerCommands.add(dockerInteractiveCommands.toString());

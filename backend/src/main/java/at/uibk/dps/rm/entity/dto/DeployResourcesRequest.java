@@ -1,8 +1,9 @@
 package at.uibk.dps.rm.entity.dto;
 
-import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
+import at.uibk.dps.rm.entity.dto.credentials.DeploymentCredentials;
 import at.uibk.dps.rm.entity.dto.deployment.FunctionResourceIds;
 import at.uibk.dps.rm.entity.dto.deployment.ServiceResourceIds;
+import at.uibk.dps.rm.entity.dto.resource.ResourceId;
 import lombok.Data;
 
 import java.util.List;
@@ -18,7 +19,7 @@ public class DeployResourcesRequest {
 
     private List<ServiceResourceIds> serviceResources;
 
-    private DockerCredentials dockerCredentials = new DockerCredentials();
+    private List<ResourceId> lockResources;
 
-    private String kubeConfig = "";
+    private DeploymentCredentials credentials = new DeploymentCredentials();
 }

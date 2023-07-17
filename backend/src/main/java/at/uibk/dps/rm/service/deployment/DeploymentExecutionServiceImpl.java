@@ -38,7 +38,8 @@ public class DeploymentExecutionServiceImpl extends ServiceProxy implements Depl
             DeploymentPath deploymentPath = new DeploymentPath(deployRequest.getDeployment().getDeploymentId(),
                 config);
             FunctionPrepareService functionFileService = new FunctionPrepareService(vertx,
-                deployRequest.getFunctionDeployments(), deploymentPath, deployRequest.getDockerCredentials());
+                deployRequest.getFunctionDeployments(), deploymentPath,
+                deployRequest.getDeploymentCredentials().getDockerCredentials());
             return functionFileService.packageCode();
         });
         return SingleHelper.toFuture(packageFunctions);

@@ -2,6 +2,7 @@ package at.uibk.dps.rm.handler.deploymentexecution;
 
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
+import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
@@ -69,8 +70,9 @@ public class DeploymentExecutionChecker {
             .flatMap(config -> {
                 DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
                 return deploymentService.packageFunctionsCode(request)
-                    .flatMapCompletable(functionsToDeploy -> buildAndPushOpenFaasImages(vertx, request, functionsToDeploy,
-                        deploymentPath)
+                    .flatMapCompletable(functionsToDeploy -> buildAndPushOpenFaasImages(vertx,
+                            request.getDeploymentCredentials().getDockerCredentials(), functionsToDeploy,
+                            deploymentPath)
                         .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, request.getDeployment()))
                         .andThen(buildJavaLambdaFaaS(request.getFunctionDeployments(), deploymentPath))
                         .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, request.getDeployment()))
@@ -112,14 +114,14 @@ public class DeploymentExecutionChecker {
    * Build docker images and push them to a docker registry.
    *
    * @param vertx the vertx instance of current context
-   * @param request the deploy resources request containing all deployment data
+   * @param dockerCredentials the docker credentials
    * @param functionsToDeploy the functions to deploy
    * @param deploymentPath the path of the current deployment
    * @return a Single that emits the process output of the docker process
    */
-    private Single<ProcessOutput> buildAndPushOpenFaasImages(Vertx vertx, DeployResourcesDTO request,
-        FunctionsToDeploy functionsToDeploy, DeploymentPath deploymentPath) {
-        OpenFaasImageService openFaasImageService = new OpenFaasImageService(vertx, request.getDockerCredentials(),
+    private Single<ProcessOutput> buildAndPushOpenFaasImages(Vertx vertx, List<DockerCredentials> dockerCredentials,
+            FunctionsToDeploy functionsToDeploy, DeploymentPath deploymentPath) {
+        OpenFaasImageService openFaasImageService = new OpenFaasImageService(vertx, dockerCredentials,
             functionsToDeploy.getDockerFunctionIdentifiers(), deploymentPath.getFunctionsFolder());
         return openFaasImageService.buildOpenFaasImages(functionsToDeploy.getDockerFunctionsString());
     }

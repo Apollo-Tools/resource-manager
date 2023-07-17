@@ -35,7 +35,7 @@ public class FunctionPrepareService {
 
     private final DeploymentPath deploymentPath;
 
-    private final DockerCredentials dockerCredentials;
+    private final List<DockerCredentials> dockerCredentials;
 
     private final Set<Long> functionIds = new HashSet<>();
 
@@ -49,8 +49,8 @@ public class FunctionPrepareService {
      * @param deploymentPath the deployment path of the module
      * @param dockerCredentials the credentials of the docker user
      */
-    public FunctionPrepareService(Vertx vertx, List<FunctionDeployment> functionDeployments, DeploymentPath deploymentPath,
-                               DockerCredentials dockerCredentials) {
+    public FunctionPrepareService(Vertx vertx, List<FunctionDeployment> functionDeployments,
+            DeploymentPath deploymentPath, List<DockerCredentials> dockerCredentials) {
         this.vertx = vertx;
         this.fileSystem = vertx.fileSystem();
         this.functionDeployments = functionDeployments;
@@ -124,6 +124,7 @@ public class FunctionPrepareService {
         });
     }
 
+    // TODO: Fix for multiple docker credentials
     private String getOpenFaasTemplateBlock(String functionIdentifier, RuntimeEnum runtimeEnum) {
         String functionPath = "./" + functionIdentifier +
             (runtimeEnum.equals(RuntimeEnum.JAVA11) ? "/function" : "");
@@ -132,7 +133,7 @@ public class FunctionPrepareService {
                 "    lang: %s-apollo-rm\n" +
                 "    handler: %s\n" +
                 "    image: %s/%s:latest\n",
-            functionIdentifier, runtimeEnum.getDotlessValue(), functionPath, dockerCredentials.getUsername(),
+            functionIdentifier, runtimeEnum.getDotlessValue(), functionPath, dockerCredentials.get(0).getUsername(),
             functionIdentifier);
     }
 

@@ -169,13 +169,14 @@ public class TerraformSetupService {
      * @param regionVPCMap all available vpc grouped by region
      * @return a Single that emits the created terraform module
      */
+    // TODO: fix for multiple docker credentials
     private Single<TerraformModule> functionDeployment(Region region, List<FunctionDeployment> regionFunctionDeployments,
                                                     Map<Region, VPC> regionVPCMap) {
         String provider = region.getResourceProvider().getProvider();
         ResourceProviderEnum resourceProvider = ResourceProviderEnum.fromString(provider);
         FaasModule module = new FaasModule(resourceProvider, region);
         long deploymentId = deployRequest.getDeployment().getDeploymentId();
-        String dockerUsername = deployRequest.getDockerCredentials().getUsername();
+        String dockerUsername = deployRequest.getDeploymentCredentials().getDockerCredentials().get(0).getUsername();
         RegionFaasFileService fileService = new RegionFaasFileService(vertx.fileSystem(), deploymentPath, region,
             regionFunctionDeployments, deploymentId, module, dockerUsername, regionVPCMap.get(region));
         return fileService.setUpDirectory()
@@ -207,7 +208,7 @@ public class TerraformSetupService {
         return containerFileService.setUpDirectory()
             .andThen(Completable.merge(completables))
             .andThen(Completable.defer(() -> fileSystem.writeFile(configPath.toString(),
-                Buffer.buffer(deployRequest.getKubeConfig()))))
+                Buffer.buffer(deployRequest.getDeploymentCredentials().getKubeConfig()))))
             .toSingle(() -> module);
     }
 }

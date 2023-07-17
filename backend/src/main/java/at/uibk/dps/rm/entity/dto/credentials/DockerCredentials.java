@@ -9,6 +9,7 @@ import lombok.Data;
  */
 @Data
 public class DockerCredentials {
+    private String registry;
     private String username;
     private String accessToken;
 }

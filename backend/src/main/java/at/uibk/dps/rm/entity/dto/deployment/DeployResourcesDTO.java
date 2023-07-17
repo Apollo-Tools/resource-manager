@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.entity.dto.deployment;
 
-import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
+import at.uibk.dps.rm.entity.dto.credentials.DeploymentCredentials;
 import at.uibk.dps.rm.entity.model.VPC;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
@@ -20,9 +20,7 @@ import java.util.List;
 @DataObject
 public class DeployResourcesDTO extends DeployTerminateDTO {
 
-    private DockerCredentials dockerCredentials;
-
-    private String kubeConfig;
+    private DeploymentCredentials deploymentCredentials;
 
     private List<VPC> vpcList;
 
@@ -37,8 +35,7 @@ public class DeployResourcesDTO extends DeployTerminateDTO {
         this.setFunctionDeployments(request.getFunctionDeployments());
         this.setServiceDeployments(request.getServiceDeployments());
         this.setCredentialsList(request.getCredentialsList());
-        this.setKubeConfig(request.getKubeConfig());
-        this.setDockerCredentials(request.getDockerCredentials());
+        this.setDeploymentCredentials(request.getDeploymentCredentials());
         this.setDeployment(request.getDeployment());
         this.setVpcList(request.getVpcList());
     }

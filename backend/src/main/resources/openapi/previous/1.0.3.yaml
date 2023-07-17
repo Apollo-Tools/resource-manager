@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  version: "1.0.4"
+  version: "1.0.3"
   title: "Resource Manager"
   description: |
     This is the API specification for the Apollo Resource Manager. The api provides various routes to 
@@ -1407,8 +1407,6 @@ paths:
               required:
                 - function_resources
                 - service_resources
-                - credentials
-                - lock_resources
               additionalProperties: false
               properties:
                 service_resources:
@@ -1445,37 +1443,47 @@ paths:
                         type: integer
                         format: int64
                         example: 1
-                lock_resources:
-                  description: |
-                    Lock these resources for exclusive usage. Until the deployment is canceled, 
-                    these resources can not be used for other deployments.
-                  type: array
-                  items:
-                    type: object
-                    required:
-                      - resource_id
-                    additionalProperties: false
-                    properties:
-                      resource_id:
-                        type: integer
-                        format: int64
-                        example: 1
-                credentials:
+                docker_credentials:
                   type: object
+                  required:
+                    - username
+                    - access_token
                   additionalProperties: false
                   properties:
-                    docker_credentials:
-                      type: array
+                    username:
+                      description: the username of the docker registry
+                      type: string
+                      example: user1
+                    access_token:
                       description: |
-                        Define credentials for all docker registries that have to be accessed. 
-                        You must not define more than one user per registry. If the deployment 
-                        contains resources with OpenFaaS or AWS EC2 as platform, the first entry
-                        is used to push and pull the function images and hence at least one entry
-                        must be present.
-                      items:
-                        $ref: '#/components/schemas/DockerCredentials'
-                    kube_config:
-                      $ref: '#/components/schemas/KubeConfig'
+                        preferably an access token with read and write access or if not available the 
+                        password for the docker registry
+                      type: string
+                      example: abcdef1234
+                kube_config:
+                  description: |
+                    The kube config to use for the resource deployment. For the requirements see the
+                    Deployment section of API description.
+                  type: string
+                  example: |
+                    apiVersion: v1
+                    clusters:
+                    - cluster:
+                        certificate-authority-data: <authority-certificate>
+                        server: <cluster-ip>
+                      name: <cluster-name>
+                    contexts:
+                    - context:
+                        cluster: <cluster-name>
+                        user: <user-name>
+                      name: <context-name>
+                    kind: Config
+                    preferences: {}
+                    users:
+                    - name: <user-name>
+                      user:
+                        client-certificate-data: <client-certificate-data>
+                        client-key-data: <client-key-data>
       responses:
         201:
           description: Successful deployment of resources
@@ -2869,22 +2877,22 @@ components:
               format: int64
               example: 1679496667103
         - oneOf:
-          - type: object
-            properties:
-              value_number:
-                type: integer
-                format: int64
-                example: 0
-          - type: object
-            properties:
-              value_string:
-                type: string
-                example: ubuntu
-          - type: object
-            properties:
-              value_bool:
-                type: boolean
-                example: true
+            - type: object
+              properties:
+                value_number:
+                  type: integer
+                  format: int64
+                  example: 0
+            - type: object
+              properties:
+                value_string:
+                  type: string
+                  example: ubuntu
+            - type: object
+              properties:
+                value_bool:
+                  type: boolean
+                  example: true
     Deployment:
       type: object
       properties:
@@ -3169,54 +3177,6 @@ components:
           type: integer
           format: int64
           example: 1679496667103
-    KubeConfig:
-      description: |
-        The kube config to use for the resource deployment. For the requirements see the
-          Deployment section of API description.
-      type: string
-      example: |
-        apiVersion: v1
-        clusters:
-        - cluster:
-            certificate-authority-data: <authority-certificate>
-            server: <cluster-ip>
-          name: <cluster-name>
-        contexts:
-        - context:
-            cluster: <cluster-name>
-            user: <user-name>
-          name: <context-name>
-        kind: Config
-        preferences: {}
-        users:
-        - name: <user-name>
-          user:
-            client-certificate-data: <client-certificate-data>
-            client-key-data: <client-key-data>
-    DockerCredentials:
-      type: object
-      required:
-        - registry
-        - username
-        - access_token
-      additionalProperties: false
-      properties:
-        registry:
-          description: |
-            the hostname of the docker registries that are part of the deployment. Use 
-            https://index.docker.io/v1/ for docker hub.
-          type: string
-          example: https://index.docker.io/v1/
-        username:
-          description: the username of the docker registry
-          type: string
-          example: user1
-        access_token:
-          description: |
-            preferably an access token with read and write access or if not available the 
-            password for the docker registry
-          type: string
-          example: abcdef1234
 
   parameters:
     idParam:

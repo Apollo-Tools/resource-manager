@@ -1,9 +1,9 @@
 package at.uibk.dps.rm.handler.deploymentexecution;
 
+import at.uibk.dps.rm.entity.dto.credentials.DeploymentCredentials;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
-import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.handler.account.CredentialsChecker;
 import at.uibk.dps.rm.handler.deployment.FunctionDeploymentChecker;
@@ -63,19 +63,18 @@ public class DeploymentExecutionHandler {
      *
      * @param deployment the deployment
      * @param accountId the id of the creator of the deployment
-     * @param dockerCredentials the docker credentials
+     * @param deploymentCredentials the deployment credentials
      * @param vpcList the vpc list
      * @return a Completable
      */
-    public Completable deployResources(Deployment deployment, long accountId, DockerCredentials dockerCredentials,
-            String kubeConfig, List<VPC> vpcList) {
+    public Completable deployResources(Deployment deployment, long accountId,
+            DeploymentCredentials deploymentCredentials, List<VPC> vpcList) {
         DeployResourcesDTO request = new DeployResourcesDTO();
         request.setDeployment(deployment);
-        request.setDockerCredentials(dockerCredentials);
-        request.setKubeConfig(kubeConfig);
+        request.setDeploymentCredentials(deploymentCredentials);
         request.setVpcList(vpcList);
         return credentialsChecker.checkFindAll(accountId, true)
-            .flatMap(credentials -> mapCredentialsAndResourcesToRequest(request, credentials))
+            .flatMap(cloudCredentials -> mapCredentialsAndResourcesToRequest(request, cloudCredentials))
             .flatMap(res -> deploymentChecker.applyResourceDeployment(request))
             .flatMapCompletable(tfOutput -> Completable.defer(() -> resourceDeploymentChecker
                 .storeOutputToResourceDeployments(tfOutput, request)));
