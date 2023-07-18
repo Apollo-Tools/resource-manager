@@ -52,6 +52,8 @@ public class DeploymentHandler extends ValidationHandler {
 
     private final ServiceDeploymentChecker serviceDeploymentChecker;
 
+    private final DeploymentPreconditionChecker preconditionChecker;
+
 
     //TODO: move this to the router
     private final DeploymentExecutionHandler deploymentExecutionHandler;
@@ -76,9 +78,10 @@ public class DeploymentHandler extends ValidationHandler {
      * @param preconditionHandler the precondition handler
      */
     public DeploymentHandler(DeploymentChecker deploymentChecker, ResourceDeploymentChecker resourceDeploymentChecker,
-          FunctionDeploymentChecker functionDeploymentChecker, ServiceDeploymentChecker serviceDeploymentChecker,
-          ResourceDeploymentStatusChecker statusChecker, DeploymentExecutionHandler deploymentExecutionHandler,
-          DeploymentErrorHandler deploymentErrorHandler, DeploymentPreconditionHandler preconditionHandler) {
+            FunctionDeploymentChecker functionDeploymentChecker, ServiceDeploymentChecker serviceDeploymentChecker,
+            ResourceDeploymentStatusChecker statusChecker, DeploymentExecutionHandler deploymentExecutionHandler,
+            DeploymentErrorHandler deploymentErrorHandler, DeploymentPreconditionHandler preconditionHandler,
+            DeploymentPreconditionChecker preconditionChecker) {
         super(deploymentChecker);
         this.deploymentChecker = deploymentChecker;
         this.resourceDeploymentChecker = resourceDeploymentChecker;
@@ -88,6 +91,7 @@ public class DeploymentHandler extends ValidationHandler {
         this.deploymentExecutionHandler = deploymentExecutionHandler;
         this.deploymentErrorHandler = deploymentErrorHandler;
         this.preconditionHandler = preconditionHandler;
+        this.preconditionChecker = preconditionChecker;
     }
 
     @Override
@@ -143,7 +147,8 @@ public class DeploymentHandler extends ValidationHandler {
                 .mapTo(DeployResourcesRequest.class);
         long accountId = rc.user().principal().getLong("account_id");
         List<VPC> vpcList = new ArrayList<>();
-        return preconditionHandler.checkDeploymentIsValid(requestDTO, accountId, vpcList)
+        return preconditionChecker.checkDeploymentIsValid(requestDTO, accountId, vpcList)
+            .flatMap(resources -> preconditionHandler.checkDeploymentIsValid(requestDTO, accountId, vpcList))
             .flatMap(resources -> deploymentChecker.submitCreateDeployment(accountId)
                 .flatMap(deploymentJson ->
                     statusChecker.checkFindOneByStatusValue(DeploymentStatusValue.NEW.name())

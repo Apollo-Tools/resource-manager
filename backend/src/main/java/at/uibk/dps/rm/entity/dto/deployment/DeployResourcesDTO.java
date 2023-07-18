@@ -9,7 +9,7 @@ import lombok.*;
 import java.util.List;
 
 /**
- * A DTO to simplify transport of the relevant deployment data on the even bus.
+ * A DTO to simplify transport of the relevant deployment data on the event bus.
  *
  * @author matthi-g
  */

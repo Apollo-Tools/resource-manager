@@ -52,9 +52,11 @@ public class DeploymentRoute implements Route {
         PlatformMetricChecker platformMetricChecker = new PlatformMetricChecker(serviceProxyProvider
             .getPlatformMetricService());
         VPCChecker vpcChecker = new VPCChecker(serviceProxyProvider.getVpcService());
-        DeploymentPreconditionHandler preconditionChecker =
+        DeploymentPreconditionHandler preconditionHandler =
             new DeploymentPreconditionHandler(functionChecker, serviceChecker,
                 resourceChecker, platformMetricChecker, vpcChecker, credentialsChecker);
+        DeploymentPreconditionChecker preconditionChecker = new DeploymentPreconditionChecker(
+            serviceProxyProvider.getDeploymentPreconditionService());
         /* Handler initialization */
         DeploymentExecutionHandler deploymentExecutionHandler = new DeploymentExecutionHandler(deploymentExecutionChecker, credentialsChecker,
             functionDeploymentChecker, serviceDeploymentChecker, resourceDeploymentChecker);
@@ -62,7 +64,7 @@ public class DeploymentRoute implements Route {
             logChecker, deploymentLogChecker, fileSystemChecker, deploymentExecutionHandler);
         DeploymentHandler deploymentHandler = new DeploymentHandler(deploymentChecker,
             resourceDeploymentChecker, functionDeploymentChecker, serviceDeploymentChecker, statusChecker,
-            deploymentExecutionHandler, deploymentErrorHandler, preconditionChecker);
+            deploymentExecutionHandler, deploymentErrorHandler, preconditionHandler, preconditionChecker);
         ResultHandler resultHandler = new ResultHandler(deploymentHandler);
 
         router

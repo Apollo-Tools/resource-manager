@@ -221,4 +221,16 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
         return Future.fromCompletionStage(transaction)
             .recover(this::recoverFailure);
     }
+
+    /**
+     * Map a session to a future.
+     *
+     * @param session the transaction
+     * @return a Future that emits the result of the session
+     * @param <E> any datatype
+     */
+    protected <E> Future<E> sessionToFuture(CompletionStage<E> session) {
+        return Future.fromCompletionStage(session)
+            .recover(this::recoverFailure);
+    }
 }
