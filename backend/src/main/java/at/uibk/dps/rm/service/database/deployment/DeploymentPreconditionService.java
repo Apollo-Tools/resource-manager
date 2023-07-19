@@ -2,6 +2,7 @@ package at.uibk.dps.rm.service.database.deployment;
 
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
+import at.uibk.dps.rm.repository.account.CredentialsRepository;
 import at.uibk.dps.rm.repository.deployment.DeploymentRepository;
 import at.uibk.dps.rm.repository.function.FunctionRepository;
 import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
@@ -33,7 +34,7 @@ public interface DeploymentPreconditionService extends DatabaseServiceInterface 
     static DeploymentPreconditionService create(Stage.SessionFactory sessionFactory) {
         return new DeploymentPreconditionServiceImpl(new DeploymentRepository(), new FunctionRepository(),
             new ServiceRepository(), new ResourceRepository(), new PlatformMetricRepository(), new VPCRepository(),
-            sessionFactory);
+            new CredentialsRepository(), sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

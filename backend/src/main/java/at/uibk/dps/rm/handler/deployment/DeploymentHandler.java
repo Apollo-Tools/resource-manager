@@ -155,7 +155,6 @@ public class DeploymentHandler extends ValidationHandler {
                         .map(statusNew -> statusNew.mapTo(ResourceDeploymentStatus.class))
                         .flatMap(statusNew -> createResourceDeploymentMap(deploymentJson, requestDTO, statusNew,
                             resources))
-                    //TODO: remove self managed state (use edge instead of self managed vm) */
                     .flatMap(resourceDeployments -> functionDeploymentChecker
                         .submitCreateAll(Json.encodeToBuffer(resourceDeployments.get("function")).toJsonArray())
                         .andThen(serviceDeploymentChecker.submitCreateAll(Json

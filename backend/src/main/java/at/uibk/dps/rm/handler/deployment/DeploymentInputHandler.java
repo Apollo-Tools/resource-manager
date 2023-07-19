@@ -52,6 +52,10 @@ public class DeploymentInputHandler {
      * @return a Completable
      */
     private static Completable checkForListDuplicates(List<?> resourceIds) {
+        if (resourceIds == null || resourceIds.isEmpty()) {
+            return Completable.complete();
+        }
+
         return Single.just(resourceIds)
             .flatMapCompletable(ids -> {
                 Set<?> resourceIdSet = new HashSet<>(ids);
