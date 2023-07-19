@@ -9,6 +9,7 @@ import at.uibk.dps.rm.handler.account.CredentialsChecker;
 import at.uibk.dps.rm.handler.deployment.FunctionDeploymentChecker;
 import at.uibk.dps.rm.handler.deployment.ResourceDeploymentChecker;
 import at.uibk.dps.rm.handler.deployment.ServiceDeploymentChecker;
+import at.uibk.dps.rm.handler.resourceprovider.VPCChecker;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,8 +17,6 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.jackson.DatabindCodec;
-
-import java.util.List;
 
 /**
  * Processes requests that concern deployment.
@@ -36,6 +35,8 @@ public class DeploymentExecutionHandler {
 
     private final ResourceDeploymentChecker resourceDeploymentChecker;
 
+    private final VPCChecker vpcChecker;
+
     /**
      * Create an instance from the deploymentChecker, credentialsChecker,
      * functionDeploymentChecker, serviceDeploymentChecker and resourceDeploymentChecker.
@@ -48,12 +49,13 @@ public class DeploymentExecutionHandler {
      */
     public DeploymentExecutionHandler(DeploymentExecutionChecker deploymentChecker, CredentialsChecker credentialsChecker,
             FunctionDeploymentChecker functionDeploymentChecker, ServiceDeploymentChecker serviceDeploymentChecker,
-            ResourceDeploymentChecker resourceDeploymentChecker) {
+            ResourceDeploymentChecker resourceDeploymentChecker, VPCChecker vpcChecker) {
         this.deploymentChecker = deploymentChecker;
         this.credentialsChecker = credentialsChecker;
         this.functionDeploymentChecker = functionDeploymentChecker;
         this.serviceDeploymentChecker = serviceDeploymentChecker;
         this.resourceDeploymentChecker = resourceDeploymentChecker;
+        this.vpcChecker = vpcChecker;
     }
 
     /**
@@ -64,16 +66,20 @@ public class DeploymentExecutionHandler {
      * @param deployment the deployment
      * @param accountId the id of the creator of the deployment
      * @param deploymentCredentials the deployment credentials
-     * @param vpcList the vpc list
      * @return a Completable
      */
     public Completable deployResources(Deployment deployment, long accountId,
-            DeploymentCredentials deploymentCredentials, List<VPC> vpcList) {
+            DeploymentCredentials deploymentCredentials) {
         DeployResourcesDTO request = new DeployResourcesDTO();
         request.setDeployment(deployment);
         request.setDeploymentCredentials(deploymentCredentials);
-        request.setVpcList(vpcList);
-        return credentialsChecker.checkFindAll(accountId, true)
+        return vpcChecker.checkFindAll(accountId)
+            .map(vpcs -> {
+                ObjectMapper mapper = DatabindCodec.mapper();
+                request.setVpcList(mapper.readValue(vpcs.toString(), new TypeReference<>() {}));
+                return vpcs;
+            })
+            .flatMap(res -> credentialsChecker.checkFindAll(accountId, true))
             .flatMap(cloudCredentials -> mapCredentialsAndResourcesToRequest(request, cloudCredentials))
             .flatMap(res -> deploymentChecker.applyResourceDeployment(request))
             .flatMapCompletable(tfOutput -> Completable.defer(() -> resourceDeploymentChecker

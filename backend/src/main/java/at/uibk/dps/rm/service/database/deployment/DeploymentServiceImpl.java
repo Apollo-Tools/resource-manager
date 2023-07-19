@@ -1,21 +1,44 @@
 package at.uibk.dps.rm.service.database.deployment;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
-import at.uibk.dps.rm.entity.model.Deployment;
+import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
+import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
+import at.uibk.dps.rm.entity.dto.credentials.KubeConfig;
+import at.uibk.dps.rm.entity.dto.credentials.k8s.Cluster;
+import at.uibk.dps.rm.entity.dto.credentials.k8s.Context;
+import at.uibk.dps.rm.entity.dto.deployment.FunctionResourceIds;
+import at.uibk.dps.rm.entity.dto.deployment.ServiceResourceIds;
+import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
+import at.uibk.dps.rm.entity.dto.resource.ResourceTypeEnum;
+import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.BadInputException;
-import at.uibk.dps.rm.repository.deployment.DeploymentRepository;
-import at.uibk.dps.rm.repository.deployment.ResourceDeploymentRepository;
-import at.uibk.dps.rm.repository.deployment.ResourceDeploymentStatusRepository;
+import at.uibk.dps.rm.exception.NotFoundException;
+import at.uibk.dps.rm.exception.UnauthorizedException;
+import at.uibk.dps.rm.repository.account.AccountRepository;
+import at.uibk.dps.rm.repository.account.CredentialsRepository;
+import at.uibk.dps.rm.repository.deployment.*;
+import at.uibk.dps.rm.repository.function.FunctionRepository;
+import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
+import at.uibk.dps.rm.repository.resource.ResourceRepository;
+import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
+import at.uibk.dps.rm.repository.service.ServiceRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.util.misc.MetricValueMapper;
 import at.uibk.dps.rm.util.validation.ServiceResultValidator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import org.hibernate.reactive.stage.Stage;
+import org.hibernate.Hibernate;
+import org.hibernate.reactive.stage.Stage.Session;
+import org.hibernate.reactive.stage.Stage.SessionFactory;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * This is the implementation of the #DeploymentService.
@@ -28,7 +51,25 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
 
     private final ResourceDeploymentRepository resourceDeploymentRepository;
 
+    private final FunctionDeploymentRepository functionDeploymentRepository;
+
+    private final ServiceDeploymentRepository serviceDeploymentRepository;
+
     private final ResourceDeploymentStatusRepository statusRepository;
+
+    private final FunctionRepository functionRepository;
+
+    private final ServiceRepository serviceRepository;
+
+    private final ResourceRepository resourceRepository;
+
+    private final PlatformMetricRepository platformMetricRepository;
+
+    private final VPCRepository vpcRepository;
+
+    private final CredentialsRepository credentialsRepository;
+
+    private final AccountRepository accountRepository;
 
     /**
      * Create an instance from the deploymentRepository.
@@ -37,11 +78,26 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
      */
     public DeploymentServiceImpl(DeploymentRepository repository,
             ResourceDeploymentRepository resourceDeploymentRepository,
-            ResourceDeploymentStatusRepository statusRepository, Stage.SessionFactory sessionFactory) {
+            FunctionDeploymentRepository functionDeploymentRepository,
+            ServiceDeploymentRepository serviceDeploymentRepository,
+            ResourceDeploymentStatusRepository statusRepository, FunctionRepository functionRepository,
+            ServiceRepository serviceRepository, ResourceRepository resourceRepository,
+            PlatformMetricRepository platformMetricRepository, VPCRepository vpcRepository,
+            CredentialsRepository credentialsRepository, AccountRepository accountRepository,
+            SessionFactory sessionFactory) {
         super(repository, Deployment.class, sessionFactory);
         this.repository = repository;
         this.resourceDeploymentRepository = resourceDeploymentRepository;
+        this.functionDeploymentRepository = functionDeploymentRepository;
+        this.serviceDeploymentRepository = serviceDeploymentRepository;
         this.statusRepository = statusRepository;
+        this.functionRepository = functionRepository;
+        this.serviceRepository = serviceRepository;
+        this.resourceRepository = resourceRepository;
+        this.platformMetricRepository = platformMetricRepository;
+        this.vpcRepository = vpcRepository;
+        this.credentialsRepository = credentialsRepository;
+        this.accountRepository = accountRepository;
     }
 
     @Override
@@ -74,6 +130,44 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
     }
 
     @Override
+    public Future<JsonObject> saveToAccount(long accountId, JsonObject data) {
+        DeployResourcesRequest requestDTO = data.mapTo(DeployResourcesRequest.class);
+        Deployment deployment = new Deployment();
+        CompletionStage<Deployment> save = withTransaction(session ->
+            accountRepository.findById(session, accountId)
+                .thenCompose(account -> {
+                    if (account == null) {
+                        throw new UnauthorizedException();
+                    }
+                    deployment.setIsActive(true);
+                    deployment.setCreatedBy(account);
+                    return session.persist(deployment);
+                })
+                .thenCompose(result -> checkDeploymentIsValid(session, accountId, requestDTO))
+                .thenCompose(resources -> statusRepository
+                    .findOneByStatusValue(session, DeploymentStatusValue.NEW.name())
+                        .thenApply(status -> {
+                            ServiceResultValidator.checkFound(status, ResourceDeploymentStatus.class);
+                            return status;
+                        })
+                        .thenCompose(statusNew -> {
+                            CompletableFuture<Void> saveFunctionDeployments = saveFunctionDeployments(session, deployment,
+                                requestDTO, statusNew);
+                            CompletableFuture<Void> saveServiceDeployments = saveServiceDeployments(session, deployment,
+                                requestDTO, statusNew, resources);
+                            return CompletableFuture.allOf(saveFunctionDeployments, saveServiceDeployments);
+                        })
+                )
+                .thenApply(res -> deployment)
+        );
+        return transactionToFuture(save)
+            .map(persisted -> {
+                persisted.setCreatedBy(null);
+                return JsonObject.mapFrom(deployment);
+            });
+    }
+
+    @Override
     public Future<JsonArray> findAllByAccountId(long accountId) {
         CompletionStage<List<Deployment>> findAll = withSession(session ->
             repository.findAllByAccountId(session, accountId));
@@ -99,5 +193,214 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                 }
                 return JsonObject.mapFrom(result);
             });
+    }
+
+    private CompletionStage<List<Resource>> checkDeploymentIsValid(Session session, long accountId,
+        DeployResourcesRequest requestDTO) {
+        List<String> functionResourceTypes = List.of(ResourceTypeEnum.FAAS.getValue());
+        List<String> serviceResourceTypes = List.of(ResourceTypeEnum.CONTAINER.getValue());
+        Set<Long> functionIds = requestDTO.getFunctionResources().stream()
+            .map(FunctionResourceIds::getFunctionId)
+            .collect(Collectors.toSet());
+        Set<Long> serviceIds = requestDTO.getServiceResources().stream()
+            .map(ServiceResourceIds::getServiceId)
+            .collect(Collectors.toSet());
+        Set<Long> serviceResourceIds = requestDTO.getServiceResources().stream()
+            .map(ServiceResourceIds::getResourceId)
+            .collect(Collectors.toSet());
+        Set<Long> functionResourceIds = requestDTO.getFunctionResources().stream()
+            .map(FunctionResourceIds::getResourceId)
+            .collect(Collectors.toSet());
+        List<Long> allResourceIds = Stream.of(functionResourceIds, serviceResourceIds)
+            .flatMap(Set::stream)
+            .collect(Collectors.toList());
+
+        return functionRepository.findAllByIds(session, functionIds)
+            .thenAccept(functions -> {
+                if (functions.size() < functionIds.size()) {
+                    throw new NotFoundException(Function.class);
+                }
+            })
+            .thenCompose(result -> serviceRepository.findAllByIds(session, serviceIds)
+                .thenAccept(services -> {
+                    if (services.size() < serviceIds.size()) {
+                        throw new NotFoundException(Service.class);
+                    }
+                })
+            )
+            .thenCompose(result -> resourceRepository.findAllByResourceIdsAndResourceTypes(session,
+                    serviceResourceIds, serviceResourceTypes)
+                .thenAccept(resources -> {
+                    if (resources.size() < serviceResourceIds.size()) {
+                        throw new NotFoundException(Resource.class);
+                    }
+                })
+            )
+            .thenCompose(result -> resourceRepository.findAllByResourceIdsAndResourceTypes(session,
+                    functionResourceIds, functionResourceTypes)
+                .thenAccept(resources -> {
+                    if (resources.size() < functionResourceIds.size()) {
+                        throw new NotFoundException(Resource.class);
+                    }
+                })
+            )
+            .thenCompose(result -> resourceRepository.findAllByResourceIdsAndFetch(session, allResourceIds))
+            .thenCompose(resources -> {
+                CompletableFuture<Void> checkResources = checkResourcesForDeployment(session, accountId, resources,
+                    requestDTO.getCredentials().getDockerCredentials());
+                CompletableFuture<Void> checkMetrics = checkMissingRequiredMetrics(session, resources);
+                return CompletableFuture.allOf(checkResources, checkMetrics)
+                    .thenApply(res -> {
+                        for (Resource resource: resources) {
+                            Region region = Hibernate.unproxy(resource.getRegion(), Region.class);
+                            Platform platform = Hibernate.unproxy(resource.getPlatform(), Platform.class);
+                            resource.setRegion(region);
+                            resource.setPlatform(platform);
+                        }
+                        return resources;
+                    });
+            });
+    }
+
+    private CompletableFuture<Void> checkResourcesForDeployment(Session session, long accountId,
+        List<Resource> resources, List<DockerCredentials> dockerCredentials) {
+        List<CompletionStage<Void>> completionStages = new ArrayList<>();
+        HashSet<Long> resourceProviderIds = new HashSet<>();
+        HashSet<Long> regionIds = new HashSet<>();
+        HashSet<Long> platformIds = new HashSet<>();
+        for (Resource resource: resources) {
+            long providerId = resource.getRegion().getResourceProvider().getProviderId();
+            long regionId = resource.getRegion().getRegionId();
+            PlatformEnum platform = PlatformEnum.fromPlatform(resource.getPlatform());
+            checkCloudCredentials(session, accountId, providerId, platform, resourceProviderIds, completionStages);
+            checkDockerCredentials(dockerCredentials, resource.getPlatform().getPlatformId(), platform, platformIds);
+            checkMissingVPC(session, accountId, regionId, platform, regionIds, completionStages);
+        }
+        return CompletableFuture.allOf(completionStages.toArray(new CompletableFuture[0]));
+    }
+
+    private void checkCloudCredentials(Session session, long accountId, long providerId, PlatformEnum platform,
+        Set<Long> resourceProviderIds, List<CompletionStage<Void>> completionStages) {
+        if (resourceProviderIds.add(providerId) && (platform.equals(PlatformEnum.LAMBDA) ||
+            platform.equals(PlatformEnum.EC2))) {
+            completionStages.add(credentialsRepository.findByAccountIdAndProviderId(session, accountId, providerId)
+                .thenAccept(credentials -> {
+                    if (credentials == null) {
+                        throw new UnauthorizedException("missing credentials for " + platform);
+                    }
+                }));
+        }
+    }
+
+    private void checkDockerCredentials(List<DockerCredentials> dockerCredentials, long platformId,
+        PlatformEnum platform, Set<Long> platformIds) {
+        if (platformIds.add(platformId) && (platform.equals(PlatformEnum.EC2)) ||
+            platform.equals(PlatformEnum.OPENFAAS)) {
+            if (dockerCredentials == null || dockerCredentials.isEmpty()) {
+                throw new UnauthorizedException("missing docker credentials for " + platform);
+            }
+        }
+    }
+
+    private void checkMissingVPC(Session session, long accountId, long regionId, PlatformEnum platform,
+        Set<Long> regionIds, List<CompletionStage<Void>> completionStages) {
+        if (regionIds.add(regionId) && platform.equals(PlatformEnum.EC2)) {
+            completionStages.add(vpcRepository.findByRegionIdAndAccountId(session, regionId, accountId)
+                .thenAccept(vpc -> ServiceResultValidator.checkFound(vpc, VPC.class)));
+        }
+    }
+
+    private CompletableFuture<Void> checkMissingRequiredMetrics(Session session, List<Resource> resources) {
+        List<CompletableFuture<Void>> checkMissingRequiredMetrics = resources.stream()
+            .map(resource -> platformMetricRepository
+                .countMissingRequiredMetricValuesByResourceId(session, resource.getResourceId())
+                .thenAccept(missingRequiredMetrics -> {
+                    if (missingRequiredMetrics > 0) {
+                        throw new NotFoundException("missing required metrics for resource (" +
+                            resource.getResourceId() + ")");
+                    }
+                }).toCompletableFuture())
+            .collect(Collectors.toList());
+        return CompletableFuture.allOf(checkMissingRequiredMetrics.toArray(new CompletableFuture[0]));
+    }
+
+    private CompletableFuture<Void> saveFunctionDeployments(Session session, Deployment deployment,
+        DeployResourcesRequest request, ResourceDeploymentStatus status) {
+        List<FunctionDeployment> functionDeployments = request.getFunctionResources()
+            .stream()
+            .map(functionResourceIds -> createNewResourceDeployment(deployment, functionResourceIds, status))
+            .collect(Collectors.toList());
+        return functionDeploymentRepository.createAll(session, functionDeployments).toCompletableFuture();
+    }
+
+    private CompletableFuture<Void> saveServiceDeployments(Session session, Deployment deployment,
+        DeployResourcesRequest request, ResourceDeploymentStatus status, List<Resource> resources) {
+        if (request.getServiceResources().isEmpty()) {
+            return CompletableFuture.completedFuture(null);
+        }
+        KubeConfig kubeConfig = deserializeKubeConfig(request);
+        List<ServiceDeployment> serviceDeployments = request.getServiceResources()
+            .stream()
+            .map(serviceResourceIds -> {
+                Resource resource = resources.stream()
+                    .filter(r -> r.getResourceId() == serviceResourceIds.getResourceId())
+                    .findFirst()
+                    .orElseThrow(IllegalStateException::new);
+                return createNewResourceDeployment(deployment, resource, serviceResourceIds, kubeConfig, status);
+            })
+            .collect(Collectors.toList());
+        return serviceDeploymentRepository.createAll(session, serviceDeployments).toCompletableFuture();
+    }
+
+    private Context getContextByClusterUrl(KubeConfig kubeConfig, String clusterUrl) {
+        Cluster cluster = kubeConfig.getClusters().stream()
+            .filter(c -> c.getCluster().getServer().equals(clusterUrl))
+            .findFirst()
+            .orElseThrow(() -> new UnauthorizedException("Cluster url not found in kube config"));
+        return kubeConfig.getContexts().stream()
+            .filter(c -> c.getContext().getCluster().equals(cluster.getName()))
+            .findFirst()
+            .orElseThrow(() -> new UnauthorizedException("No suitable context found in kube config"));
+    }
+
+    private FunctionDeployment createNewResourceDeployment(Deployment deployment, FunctionResourceIds ids,
+        ResourceDeploymentStatus status) {
+        Resource resource = new Resource();
+        resource.setResourceId(ids.getResourceId());
+        Function function = new Function();
+        function.setFunctionId(ids.getFunctionId());
+        FunctionDeployment functionDeployment = new FunctionDeployment();
+        functionDeployment.setDeployment(deployment);
+        functionDeployment.setResource(resource);
+        functionDeployment.setFunction(function);
+        functionDeployment.setStatus(status);
+        return functionDeployment;
+    }
+
+    private ServiceDeployment createNewResourceDeployment(Deployment deployment, Resource resource,
+            ServiceResourceIds ids, KubeConfig kubeConfig, ResourceDeploymentStatus status) {
+        Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
+        String clusterUrl = metricValues.get("cluster-url").getValueString();
+        Context context = getContextByClusterUrl(kubeConfig, clusterUrl);
+        String namespace = context.getContext().getNamespace() != null ? context.getContext().getNamespace() :
+            "default";
+        Service service = new Service();
+        service.setServiceId(ids.getServiceId());
+        ServiceDeployment serviceDeployment = new ServiceDeployment();
+        serviceDeployment.setDeployment(deployment);
+        serviceDeployment.setResource(resource);
+        serviceDeployment.setService(service);
+        serviceDeployment.setStatus(status);
+        serviceDeployment.setNamespace(namespace);
+        serviceDeployment.setContext(context.getName());
+        return serviceDeployment;
+    }
+
+    private KubeConfig deserializeKubeConfig(DeployResourcesRequest request) {
+        try {
+            return new YAMLMapper().readValue(request.getCredentials().getKubeConfig(), KubeConfig.class);
+        } catch (JsonProcessingException e) {
+            throw new BadInputException("Unsupported schema of kube config");
+        }
     }
 }

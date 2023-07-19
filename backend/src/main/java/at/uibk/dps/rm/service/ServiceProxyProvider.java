@@ -53,7 +53,6 @@ public class ServiceProxyProvider {
     private final RegionService regionService;
     private final DeploymentService deploymentService;
     private final DeploymentLogService deploymentLogService;
-    private final DeploymentPreconditionService deploymentPreconditionService;
     private final ResourceEnsembleService resourceEnsembleService;
     private final ResourceService resourceService;
     private final ResourceProviderService resourceProviderService;
@@ -92,7 +91,6 @@ public class ServiceProxyProvider {
         regionService = RegionService.createProxy(vertx);
         deploymentService = DeploymentService.createProxy(vertx);
         deploymentLogService = DeploymentLogService.createProxy(vertx);
-        deploymentPreconditionService = DeploymentPreconditionService.createProxy(vertx);
         resourceEnsembleService = ResourceEnsembleService.createProxy(vertx);
         resourceService = ResourceService.createProxy(vertx);
         resourceProviderService = ResourceProviderService.createProxy(vertx);
