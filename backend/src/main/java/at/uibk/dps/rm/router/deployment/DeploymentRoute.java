@@ -2,6 +2,7 @@ package at.uibk.dps.rm.router.deployment;
 
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.model.Deployment;
+import at.uibk.dps.rm.handler.PrivateEntityResultHandler;
 import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.handler.account.CredentialsChecker;
 import at.uibk.dps.rm.handler.deploymentexecution.DeploymentExecutionChecker;
@@ -53,9 +54,8 @@ public class DeploymentRoute implements Route {
                 serviceDeploymentChecker, resourceDeploymentChecker, vpcChecker);
         DeploymentErrorHandler deploymentErrorHandler = new DeploymentErrorHandler(resourceDeploymentChecker,
             logChecker, deploymentLogChecker, fileSystemChecker, deploymentExecutionHandler);
-        DeploymentHandler deploymentHandler = new DeploymentHandler(deploymentChecker,
-            resourceDeploymentChecker, functionDeploymentChecker, serviceDeploymentChecker);
-        ResultHandler resultHandler = new ResultHandler(deploymentHandler);
+        DeploymentHandler deploymentHandler = new DeploymentHandler(deploymentChecker, resourceDeploymentChecker);
+        ResultHandler resultHandler = new PrivateEntityResultHandler(deploymentHandler);
 
         router
             .operation("getDeployment")

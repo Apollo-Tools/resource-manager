@@ -6,6 +6,7 @@ import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.credentials.KubeConfig;
 import at.uibk.dps.rm.entity.dto.credentials.k8s.Cluster;
 import at.uibk.dps.rm.entity.dto.credentials.k8s.Context;
+import at.uibk.dps.rm.entity.dto.deployment.DeploymentWithResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.FunctionResourceIds;
 import at.uibk.dps.rm.entity.dto.deployment.ServiceResourceIds;
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
@@ -170,8 +171,9 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
     @Override
     public Future<JsonArray> findAllByAccountId(long accountId) {
         CompletionStage<List<Deployment>> findAll = withSession(session ->
-            repository.findAllByAccountId(session, accountId));
-        return Future.fromCompletionStage(findAll)
+            repository.findAllByAccountId(session, accountId)
+        );
+        return sessionToFuture(findAll)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Deployment entity: result) {
@@ -184,15 +186,39 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
 
     @Override
     public Future<JsonObject> findOneByIdAndAccountId(long id, long accountId) {
-        CompletionStage<Deployment> findOne = withSession(session ->
-            repository.findByIdAndAccountId(session, id, accountId));
-        return Future.fromCompletionStage(findOne)
-            .map(result -> {
-                if (result != null) {
-                    result.setCreatedBy(null);
-                }
-                return JsonObject.mapFrom(result);
+        DeploymentWithResourcesDTO result = new DeploymentWithResourcesDTO();
+        CompletionStage<DeploymentWithResourcesDTO> findOne = withSession(session ->
+            repository.findByIdAndAccountId(session, id, accountId)
+                .thenCompose(deployment -> {
+                    ServiceResultValidator.checkFound(deployment, Deployment.class);
+                    result.setDeploymentId(id);
+                    result.setIsActive(deployment.getIsActive());
+                    result.setCreatedAt(deployment.getCreatedAt());
+                    return functionDeploymentRepository.findAllByDeploymentId(session, id);
+                })
+                .thenCompose(functionDeployments -> {
+                    result.setFunctionResources(functionDeployments);
+                    return serviceDeploymentRepository.findAllByDeploymentId(session, id);
+                })
+                .thenApply(serviceDeployments -> {
+                    result.setServiceResources(serviceDeployments);
+                    return result;
+                })
+        );
+        return sessionToFuture(findOne)
+            .map(foundDeployment -> {
+                prepareResourceDeployments(foundDeployment.getFunctionResources());
+                prepareResourceDeployments(foundDeployment.getServiceResources());
+                return JsonObject.mapFrom(foundDeployment);
             });
+    }
+
+    private void prepareResourceDeployments(List<? extends ResourceDeployment> resourceDeployments) {
+        resourceDeployments.forEach(resourceDeployment -> {
+            resourceDeployment.setDeployment(null);
+            resourceDeployment.getResource().getRegion().getResourceProvider()
+                .setProviderPlatforms(null);
+        });
     }
 
     private CompletionStage<List<Resource>> checkDeploymentIsValid(Session session, long accountId,

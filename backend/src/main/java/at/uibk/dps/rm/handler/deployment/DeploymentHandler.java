@@ -22,46 +22,20 @@ public class DeploymentHandler extends ValidationHandler {
 
     private final ResourceDeploymentChecker resourceDeploymentChecker;
 
-    private final FunctionDeploymentChecker functionDeploymentChecker;
-
-    private final ServiceDeploymentChecker serviceDeploymentChecker;
-
     /**
-     * Create an instance from the deploymentChecker, resourceDeploymentChecker, statusChecker,
-     * deploymentExecutionHandler, deploymentErrorHandler and preconditionHandler
+     * Create an instance from the deploymentChecker, resourceDeploymentChecker
      *
      * @param deploymentChecker the deployment checker
      * @param resourceDeploymentChecker the resource deployment checker
      */
-    public DeploymentHandler(DeploymentChecker deploymentChecker, ResourceDeploymentChecker resourceDeploymentChecker,
-            FunctionDeploymentChecker functionDeploymentChecker, ServiceDeploymentChecker serviceDeploymentChecker) {
+    public DeploymentHandler(DeploymentChecker deploymentChecker, ResourceDeploymentChecker resourceDeploymentChecker) {
         super(deploymentChecker);
         this.deploymentChecker = deploymentChecker;
         this.resourceDeploymentChecker = resourceDeploymentChecker;
-        this.functionDeploymentChecker = functionDeploymentChecker;
-        this.serviceDeploymentChecker = serviceDeploymentChecker;
     }
 
     @Override
-    protected Single<JsonObject> getOne(RoutingContext rc) {
-        return HttpHelper.getLongPathParam(rc, "id")
-            .flatMap(id -> deploymentChecker.checkFindOne(id, rc.user().principal().getLong("account_id")))
-            .flatMap(result -> functionDeploymentChecker
-                    .checkFindAllByDeploymentId(result.getLong("deployment_id"))
-                    .map(functionDeployments -> {
-                        result.put("function_resources", functionDeployments);
-                        return result;
-                    })
-                    .flatMap(deployment -> serviceDeploymentChecker
-                        .checkFindAllByDeploymentId(deployment.getLong("deployment_id"))
-                    .map(serviceDeployments -> {
-                        deployment.put("service_resources", serviceDeployments);
-                        return deployment;
-                    })));
-    }
-
-    @Override
-    protected Single<JsonArray> getAll(RoutingContext rc) {
+    protected Single<JsonArray> getAllFromAccount(RoutingContext rc) {
         long accountId = rc.user().principal().getLong("account_id");
         return deploymentChecker.checkFindAll(accountId)
             .flatMap(result -> {

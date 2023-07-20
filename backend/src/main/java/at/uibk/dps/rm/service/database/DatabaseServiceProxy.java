@@ -103,21 +103,27 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
     @Override
     public Future<JsonObject> findOne(long id) {
         CompletionStage<T> findOne = withSession(session -> repository.findById(session, id));
-        return transactionToFuture(findOne).map(JsonObject::mapFrom);
+        return sessionToFuture(findOne).map(JsonObject::mapFrom);
+    }
+
+
+    @Override
+    public Future<JsonObject> findOneByIdAndAccountId(long id, long accountId) {
+        CompletionStage<T> findOne = withSession(session ->
+            repository.findByIdAndAccountId(session, id, accountId));
+        return sessionToFuture(findOne).map(JsonObject::mapFrom);
     }
 
     @Override
     public Future<Boolean> existsOneById(long id) {
         CompletionStage<T> findOne = withSession(session -> repository.findById(session, id));
-        return transactionToFuture(findOne).map(Objects::nonNull);
+        return sessionToFuture(findOne).map(Objects::nonNull);
     }
 
     @Override
     public Future<JsonArray> findAll() {
         CompletionStage<List<T>> findAll = withSession(repository::findAll);
-        return Future
-            .fromCompletionStage(findAll)
-            .recover(this::recoverFailure)
+        return sessionToFuture(findAll)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (T entity: result) {
@@ -130,7 +136,7 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
     @Override
     public Future<JsonArray> findAllByAccountId(long accountId) {
         CompletionStage<List<T>> findAll = withSession(session -> repository.findAllByAccountId(session, accountId));
-        return Future.fromCompletionStage(findAll)
+        return sessionToFuture(findAll)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (T entity: result) {

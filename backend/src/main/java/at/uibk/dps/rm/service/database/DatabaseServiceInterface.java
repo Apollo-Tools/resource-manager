@@ -49,6 +49,15 @@ public interface DatabaseServiceInterface extends ServiceInterface {
     Future<JsonObject> findOne(long id);
 
     /**
+     * Find one entity by id and account id.
+     *
+     * @param id the id of the entity
+     * @param accountId the id of the creator's account
+     * @return a Future that emits the found entity if it exists, else null
+     */
+    Future<JsonObject> findOneByIdAndAccountId(long id, long accountId);
+
+    /**
      * Check if an entity exists by its id.
      *
      * @param id the id of the entity

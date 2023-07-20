@@ -63,6 +63,18 @@ public abstract class ValidationHandler {
     }
 
     /**
+     * Find and return an entity by its id that is linked to the logged in account.
+     *
+     * @param rc the RoutingContext of the request
+     * @return a Single that emits the found entity as JsonObject
+     */
+    protected Single<JsonObject> getOneFromAccount(RoutingContext rc) {
+        long accountId = rc.user().principal().getLong("account_id");
+        return HttpHelper.getLongPathParam(rc, "id")
+            .flatMap(id -> entityChecker.checkFindOne(id, accountId));
+    }
+
+    /**
      * Find and return all existing entities.
      *
      * @param rc the RoutingContext of the request
