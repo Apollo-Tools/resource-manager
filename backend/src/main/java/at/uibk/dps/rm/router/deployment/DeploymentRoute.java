@@ -1,5 +1,7 @@
 package at.uibk.dps.rm.router.deployment;
 
+import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
+import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.handler.account.CredentialsChecker;
 import at.uibk.dps.rm.handler.deploymentexecution.DeploymentExecutionChecker;
@@ -11,6 +13,9 @@ import at.uibk.dps.rm.handler.resourceprovider.VPCChecker;
 import at.uibk.dps.rm.handler.util.FileSystemChecker;
 import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
+import io.reactivex.rxjava3.core.Completable;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 /**
@@ -19,6 +24,8 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
  * @author matthi-g
  */
 public class DeploymentRoute implements Route {
+
+    private static final Logger logger = LoggerFactory.getLogger(DeploymentRoute.class);
 
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
@@ -47,8 +54,7 @@ public class DeploymentRoute implements Route {
         DeploymentErrorHandler deploymentErrorHandler = new DeploymentErrorHandler(resourceDeploymentChecker,
             logChecker, deploymentLogChecker, fileSystemChecker, deploymentExecutionHandler);
         DeploymentHandler deploymentHandler = new DeploymentHandler(deploymentChecker,
-            resourceDeploymentChecker, functionDeploymentChecker, serviceDeploymentChecker,
-            deploymentExecutionHandler, deploymentErrorHandler);
+            resourceDeploymentChecker, functionDeploymentChecker, serviceDeploymentChecker);
         ResultHandler resultHandler = new ResultHandler(deploymentHandler);
 
         router
@@ -62,10 +68,55 @@ public class DeploymentRoute implements Route {
         router
             .operation("deployResources")
             .handler(DeploymentInputHandler::validateResourceArrayHasNoDuplicates)
-            .handler(resultHandler::handleSaveOneRequest);
+            .handler(rc -> deploymentHandler.postOneToAccount(rc)
+                .map(result -> {
+                    DeployResourcesRequest request = rc.body()
+                        .asJsonObject()
+                        .mapTo(DeployResourcesRequest.class);
+                    Deployment deployment = result.mapTo(Deployment.class);
+                    long accountId = rc.user().principal().getLong("account_id");
+                    initiateDeployment(request, deployment, accountId, deploymentExecutionHandler,
+                        deploymentErrorHandler);
+                    return result;
+                })
+                .subscribe(result -> ResultHandler.getSaveResponse(rc, result),
+                    throwable -> ResultHandler.handleRequestError(rc, throwable))
+            );
 
         router
             .operation("cancelDeployment")
-            .handler(resultHandler::handleUpdateRequest);
+            .handler(rc -> deploymentHandler.cancelDeployment(rc)
+                .flatMapCompletable(deploymentJson -> {
+                    long accountId = rc.user().principal().getLong("account_id");
+                    Deployment deployment = deploymentJson.mapTo(Deployment.class);
+                    initiateTermination(deployment, accountId, deploymentExecutionHandler, deploymentErrorHandler);
+                    return Completable.complete();
+                })
+                .subscribe(() -> ResultHandler.getSaveAllUpdateDeleteResponse(rc),
+                    throwable -> ResultHandler.handleRequestError(rc, throwable))
+            );
+    }
+
+    private static void initiateDeployment(DeployResourcesRequest request, Deployment deployment, long accountId,
+            DeploymentExecutionHandler deploymentExecutionHandler, DeploymentErrorHandler deploymentErrorHandler) {
+        deploymentExecutionHandler.deployResources(deployment, accountId, request.getCredentials())
+            .doOnError(throwable -> logger.error(throwable.getMessage()))
+            .onErrorResumeNext(throwable -> deploymentErrorHandler.onDeploymentError(accountId,
+                deployment, throwable))
+            .subscribe();
+    }
+
+    /**
+     * Execute the termination of the resources contained in the deployment.
+     *
+     * @param deployment the deployment
+     * @param accountId the id of the creator of the deployment
+     */
+    private static void initiateTermination(Deployment deployment, long accountId,
+           DeploymentExecutionHandler deploymentExecutionHandler, DeploymentErrorHandler deploymentErrorHandler) {
+        deploymentExecutionHandler.terminateResources(deployment, accountId)
+            .doOnError(throwable -> logger.error(throwable.getMessage()))
+            .onErrorResumeNext(throwable -> deploymentErrorHandler.onTerminationError(deployment, throwable))
+            .subscribe();
     }
 }

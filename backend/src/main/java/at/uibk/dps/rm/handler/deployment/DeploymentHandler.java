@@ -1,18 +1,9 @@
 package at.uibk.dps.rm.handler.deployment;
 
-import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
-import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
-import at.uibk.dps.rm.entity.dto.credentials.DeploymentCredentials;
 import at.uibk.dps.rm.entity.dto.deployment.DeploymentResponse;
-import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.handler.ValidationHandler;
-import at.uibk.dps.rm.handler.deploymentexecution.DeploymentExecutionChecker;
-import at.uibk.dps.rm.handler.deploymentexecution.DeploymentExecutionHandler;
 import at.uibk.dps.rm.util.misc.HttpHelper;
-import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
@@ -27,8 +18,6 @@ import java.util.stream.Collectors;
  */
 public class DeploymentHandler extends ValidationHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(DeploymentExecutionChecker.class);
-
     private final DeploymentChecker deploymentChecker;
 
     private final ResourceDeploymentChecker resourceDeploymentChecker;
@@ -37,33 +26,20 @@ public class DeploymentHandler extends ValidationHandler {
 
     private final ServiceDeploymentChecker serviceDeploymentChecker;
 
-
-    //TODO: move this to the router
-    private final DeploymentExecutionHandler deploymentExecutionHandler;
-
-
-    //TODO: move this to the router
-    private final DeploymentErrorHandler deploymentErrorHandler;
-
     /**
      * Create an instance from the deploymentChecker, resourceDeploymentChecker, statusChecker,
      * deploymentExecutionHandler, deploymentErrorHandler and preconditionHandler
      *
      * @param deploymentChecker the deployment checker
      * @param resourceDeploymentChecker the resource deployment checker
-     * @param deploymentExecutionHandler the deployment execution handler
-     * @param deploymentErrorHandler the deployment error handler
      */
     public DeploymentHandler(DeploymentChecker deploymentChecker, ResourceDeploymentChecker resourceDeploymentChecker,
-            FunctionDeploymentChecker functionDeploymentChecker, ServiceDeploymentChecker serviceDeploymentChecker,
-            DeploymentExecutionHandler deploymentExecutionHandler, DeploymentErrorHandler deploymentErrorHandler) {
+            FunctionDeploymentChecker functionDeploymentChecker, ServiceDeploymentChecker serviceDeploymentChecker) {
         super(deploymentChecker);
         this.deploymentChecker = deploymentChecker;
         this.resourceDeploymentChecker = resourceDeploymentChecker;
         this.functionDeploymentChecker = functionDeploymentChecker;
         this.serviceDeploymentChecker = serviceDeploymentChecker;
-        this.deploymentExecutionHandler = deploymentExecutionHandler;
-        this.deploymentErrorHandler = deploymentErrorHandler;
     }
 
     @Override
@@ -113,64 +89,13 @@ public class DeploymentHandler extends ValidationHandler {
     }
 
     @Override
-    public Single<JsonObject> postOne(RoutingContext rc) {
-        DeployResourcesRequest requestDTO = rc.body()
-                .asJsonObject()
-                .mapTo(DeployResourcesRequest.class);
-        long accountId = rc.user().principal().getLong("account_id");
-        return deploymentChecker.submitCreate(accountId, rc.body().asJsonObject())
-            .map(deploymentJson -> {
-                Deployment deployment = deploymentJson.mapTo(Deployment.class);
-                initiateDeployment(deployment, accountId, requestDTO.getCredentials());
-                return deploymentJson;
-            });
+    public Single<JsonObject> postOneToAccount(RoutingContext rc) {
+        return super.postOneToAccount(rc);
     }
 
-    @Override
-    protected Completable updateOne(RoutingContext rc) {
+    public Single<JsonObject> cancelDeployment(RoutingContext rc) {
         long accountId = rc.user().principal().getLong("account_id");
         return HttpHelper.getLongPathParam(rc, "id")
-            .flatMap(id -> deploymentChecker.submitCancelDeployment(id, accountId))
-            .flatMapCompletable(deploymentJson -> {
-                Deployment deployment = deploymentJson.mapTo(Deployment.class);
-                initiateTermination(deployment, accountId);
-                return Completable.complete();
-            });
-    }
-
-    /**
-     * Execute the deployment of the resources contained in the deployment.
-     *
-     * @param deployment the deployment
-     * @param accountId the id of the creator of the deployment
-     * @param credentials the deployment credentials
-     */
-    // TODO: add check for kubeconfig
-    private void initiateDeployment(Deployment deployment, long accountId, DeploymentCredentials credentials) {
-        deploymentExecutionHandler.deployResources(deployment, accountId, credentials)
-            .andThen(Completable.defer(() ->
-                resourceDeploymentChecker.submitUpdateStatus(deployment.getDeploymentId(),
-                    DeploymentStatusValue.DEPLOYED)))
-            .doOnError(throwable -> logger.error(throwable.getMessage()))
-            .onErrorResumeNext(throwable -> deploymentErrorHandler.onDeploymentError(accountId,
-                deployment, throwable))
-            .subscribe();
-    }
-
-    /**
-     * Execute the termination of the resources contained in the deployment.
-     *
-     * @param deployment the deployment
-     * @param accountId the id of the creator of the deployment
-     */
-    private void initiateTermination(Deployment deployment, long accountId) {
-        deploymentChecker.checkFindOne(deployment.getDeploymentId(), accountId)
-            .flatMapCompletable(res -> deploymentExecutionHandler.terminateResources(deployment, accountId))
-            .andThen(Completable.defer(() ->
-                resourceDeploymentChecker.submitUpdateStatus(deployment.getDeploymentId(),
-                    DeploymentStatusValue.TERMINATED)))
-            .doOnError(throwable -> logger.error(throwable.getMessage()))
-            .onErrorResumeNext(throwable -> deploymentErrorHandler.onTerminationError(deployment, throwable))
-            .subscribe();
+            .flatMap(id -> deploymentChecker.submitCancelDeployment(id, accountId));
     }
 }

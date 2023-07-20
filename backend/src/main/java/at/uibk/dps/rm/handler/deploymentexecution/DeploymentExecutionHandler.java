@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.handler.deploymentexecution;
 
+import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.dto.credentials.DeploymentCredentials;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateDTO;
@@ -83,7 +84,10 @@ public class DeploymentExecutionHandler {
             .flatMap(cloudCredentials -> mapCredentialsAndResourcesToRequest(request, cloudCredentials))
             .flatMap(res -> deploymentChecker.applyResourceDeployment(request))
             .flatMapCompletable(tfOutput -> Completable.defer(() -> resourceDeploymentChecker
-                .storeOutputToResourceDeployments(tfOutput, request)));
+                .storeOutputToResourceDeployments(tfOutput, request)))
+            .andThen(Completable.defer(() ->
+                resourceDeploymentChecker.submitUpdateStatus(deployment.getDeploymentId(),
+                    DeploymentStatusValue.DEPLOYED)));
     }
 
     /**
@@ -99,7 +103,9 @@ public class DeploymentExecutionHandler {
         return credentialsChecker.checkFindAll(accountId, true)
             .flatMap(credentials -> mapCredentialsAndResourcesToRequest(request, credentials))
             .flatMapCompletable(res -> deploymentChecker.terminateResources(request))
-            .concatWith(Completable.defer(() -> deploymentChecker.deleteTFDirs(deployment.getDeploymentId())));
+            .andThen(Completable.defer(() -> deploymentChecker.deleteTFDirs(deployment.getDeploymentId())))
+            .andThen(Completable.defer(() -> resourceDeploymentChecker.submitUpdateStatus(deployment.getDeploymentId(),
+                DeploymentStatusValue.TERMINATED)));
     }
 
     /**
