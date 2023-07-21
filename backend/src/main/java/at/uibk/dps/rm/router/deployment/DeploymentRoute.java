@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.router.deployment;
 
-import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
+import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.handler.PrivateEntityResultHandler;
 import at.uibk.dps.rm.handler.ResultHandler;
@@ -10,7 +10,6 @@ import at.uibk.dps.rm.handler.deploymentexecution.DeploymentExecutionHandler;
 import at.uibk.dps.rm.handler.log.LogChecker;
 import at.uibk.dps.rm.handler.log.DeploymentLogChecker;
 import at.uibk.dps.rm.handler.deployment.*;
-import at.uibk.dps.rm.handler.resourceprovider.VPCChecker;
 import at.uibk.dps.rm.handler.util.FileSystemChecker;
 import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
@@ -47,11 +46,10 @@ public class DeploymentRoute implements Route {
             .getDeploymentLogService());
         FileSystemChecker fileSystemChecker = new FileSystemChecker(serviceProxyProvider.getFilePathService());
         DeploymentChecker deploymentChecker = new DeploymentChecker(serviceProxyProvider.getDeploymentService());
-        VPCChecker vpcChecker = new VPCChecker(serviceProxyProvider.getVpcService());
         /* Handler initialization */
         DeploymentExecutionHandler deploymentExecutionHandler =
             new DeploymentExecutionHandler(deploymentExecutionChecker, credentialsChecker, functionDeploymentChecker,
-                serviceDeploymentChecker, resourceDeploymentChecker, vpcChecker);
+                serviceDeploymentChecker, resourceDeploymentChecker);
         DeploymentErrorHandler deploymentErrorHandler = new DeploymentErrorHandler(resourceDeploymentChecker,
             logChecker, deploymentLogChecker, fileSystemChecker, deploymentExecutionHandler);
         DeploymentHandler deploymentHandler = new DeploymentHandler(deploymentChecker);
@@ -70,14 +68,11 @@ public class DeploymentRoute implements Route {
             .handler(DeploymentInputHandler::validateResourceArrayHasNoDuplicates)
             .handler(rc -> deploymentHandler.postOneToAccount(rc)
                 .map(result -> {
-                    DeployResourcesRequest request = rc.body()
-                        .asJsonObject()
-                        .mapTo(DeployResourcesRequest.class);
-                    Deployment deployment = result.mapTo(Deployment.class);
+                    DeployResourcesDTO deployResources = result.mapTo(DeployResourcesDTO.class);
                     long accountId = rc.user().principal().getLong("account_id");
-                    initiateDeployment(request, deployment, accountId, deploymentExecutionHandler,
+                    initiateDeployment(deployResources, accountId, deploymentExecutionHandler,
                         deploymentErrorHandler);
-                    return result;
+                    return result.getJsonObject("deployment");
                 })
                 .subscribe(result -> ResultHandler.getSaveResponse(rc, result),
                     throwable -> ResultHandler.handleRequestError(rc, throwable))
@@ -97,12 +92,13 @@ public class DeploymentRoute implements Route {
             );
     }
 
-    private static void initiateDeployment(DeployResourcesRequest request, Deployment deployment, long accountId,
-            DeploymentExecutionHandler deploymentExecutionHandler, DeploymentErrorHandler deploymentErrorHandler) {
-        deploymentExecutionHandler.deployResources(deployment, accountId, request.getCredentials())
+    private static void initiateDeployment(DeployResourcesDTO deployResourcesDTO,
+            long accountId, DeploymentExecutionHandler deploymentExecutionHandler,
+            DeploymentErrorHandler deploymentErrorHandler) {
+        deploymentExecutionHandler.deployResources(deployResourcesDTO)
             .doOnError(throwable -> logger.error(throwable.getMessage()))
             .onErrorResumeNext(throwable -> deploymentErrorHandler.onDeploymentError(accountId,
-                deployment, throwable))
+                deployResourcesDTO.getDeployment(), throwable))
             .subscribe();
     }
 

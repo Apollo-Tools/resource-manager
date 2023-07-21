@@ -6,10 +6,7 @@ import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.credentials.KubeConfig;
 import at.uibk.dps.rm.entity.dto.credentials.k8s.Cluster;
 import at.uibk.dps.rm.entity.dto.credentials.k8s.Context;
-import at.uibk.dps.rm.entity.dto.deployment.DeploymentResponse;
-import at.uibk.dps.rm.entity.dto.deployment.DeploymentWithResourcesDTO;
-import at.uibk.dps.rm.entity.dto.deployment.FunctionResourceIds;
-import at.uibk.dps.rm.entity.dto.deployment.ServiceResourceIds;
+import at.uibk.dps.rm.entity.dto.deployment.*;
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.dto.resource.ResourceTypeEnum;
 import at.uibk.dps.rm.entity.model.*;
@@ -129,44 +126,6 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
             deployment.setCreatedBy(null);
             return JsonObject.mapFrom(deployment);
         });
-    }
-
-    @Override
-    public Future<JsonObject> saveToAccount(long accountId, JsonObject data) {
-        DeployResourcesRequest requestDTO = data.mapTo(DeployResourcesRequest.class);
-        Deployment deployment = new Deployment();
-        CompletionStage<Deployment> save = withTransaction(session ->
-            accountRepository.findById(session, accountId)
-                .thenCompose(account -> {
-                    if (account == null) {
-                        throw new UnauthorizedException();
-                    }
-                    deployment.setIsActive(true);
-                    deployment.setCreatedBy(account);
-                    return session.persist(deployment);
-                })
-                .thenCompose(result -> checkDeploymentIsValid(session, accountId, requestDTO))
-                .thenCompose(resources -> statusRepository
-                    .findOneByStatusValue(session, DeploymentStatusValue.NEW.name())
-                        .thenApply(status -> {
-                            ServiceResultValidator.checkFound(status, ResourceDeploymentStatus.class);
-                            return status;
-                        })
-                        .thenCompose(statusNew -> {
-                            CompletableFuture<Void> saveFunctionDeployments = saveFunctionDeployments(session, deployment,
-                                requestDTO, statusNew);
-                            CompletableFuture<Void> saveServiceDeployments = saveServiceDeployments(session, deployment,
-                                requestDTO, statusNew, resources);
-                            return CompletableFuture.allOf(saveFunctionDeployments, saveServiceDeployments);
-                        })
-                )
-                .thenApply(res -> deployment)
-        );
-        return transactionToFuture(save)
-            .map(persisted -> {
-                persisted.setCreatedBy(null);
-                return JsonObject.mapFrom(deployment);
-            });
     }
 
     @Override
@@ -291,8 +250,68 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
         });
     }
 
+
+
+    @Override
+    public Future<JsonObject> saveToAccount(long accountId, JsonObject data) {
+        DeployResourcesRequest request = data.mapTo(DeployResourcesRequest.class);
+        DeployResourcesDTO deployResources = new DeployResourcesDTO();
+        Deployment deployment = new Deployment();
+        deployResources.setDeployment(deployment);
+        deployResources.setDeploymentCredentials(request.getCredentials());
+        deployResources.setVpcList(new ArrayList<>());
+        CompletionStage<DeployResourcesDTO> save = withTransaction(session ->
+            accountRepository.findById(session, accountId)
+                .thenCompose(account -> {
+                    if (account == null) {
+                        throw new UnauthorizedException();
+                    }
+                    deployment.setIsActive(true);
+                    deployment.setCreatedBy(account);
+                    return session.persist(deployment)
+                        .thenAccept(res -> session.flush());
+                })
+                .thenCompose(result -> checkDeploymentIsValid(session, accountId, request, deployResources))
+                .thenCompose(resources -> statusRepository
+                    .findOneByStatusValue(session, DeploymentStatusValue.NEW.name())
+                    .thenApply(status -> {
+                        ServiceResultValidator.checkFound(status, ResourceDeploymentStatus.class);
+                        return status;
+                    })
+                    .thenCompose(statusNew -> {
+                        CompletableFuture<Void> saveFunctionDeployments = saveFunctionDeployments(session, deployment,
+                            request, statusNew);
+                        CompletableFuture<Void> saveServiceDeployments = saveServiceDeployments(session, deployment,
+                            request, statusNew, resources);
+                        return CompletableFuture.allOf(saveFunctionDeployments, saveServiceDeployments);
+                    })
+                )
+                .thenCompose(res -> credentialsRepository.findAllByAccountId(session, accountId)
+                    .thenAccept(deployResources::setCredentialsList))
+        )
+        .thenCompose(res -> withSession(session -> mapResourceDeploymentsToDTO(session, deployResources)
+            .thenApply(result -> deployResources))
+        );
+
+        return transactionToFuture(save)
+            .map(result -> {
+                result.getCredentialsList().forEach(credentials ->
+                    credentials.getResourceProvider().setProviderPlatforms(null));
+                result.getFunctionDeployments().forEach(functionDeployment -> {
+                    functionDeployment.getResource().getRegion().getResourceProvider().setProviderPlatforms(null);
+                    functionDeployment.setDeployment(null);
+                });
+                result.getServiceDeployments().forEach(serviceDeployment -> {
+                    serviceDeployment.getResource().getRegion().getResourceProvider().setProviderPlatforms(null);
+                    serviceDeployment.setDeployment(null);
+                });
+                result.getDeployment().setCreatedBy(null);
+                return JsonObject.mapFrom(result);
+            });
+    }
+
     private CompletionStage<List<Resource>> checkDeploymentIsValid(Session session, long accountId,
-        DeployResourcesRequest requestDTO) {
+        DeployResourcesRequest requestDTO, DeployResourcesDTO deployResources) {
         List<String> functionResourceTypes = List.of(ResourceTypeEnum.FAAS.getValue());
         List<String> serviceResourceTypes = List.of(ResourceTypeEnum.CONTAINER.getValue());
         Set<Long> functionIds = requestDTO.getFunctionResources().stream()
@@ -343,7 +362,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
             .thenCompose(result -> resourceRepository.findAllByResourceIdsAndFetch(session, allResourceIds))
             .thenCompose(resources -> {
                 CompletableFuture<Void> checkResources = checkResourcesForDeployment(session, accountId, resources,
-                    requestDTO.getCredentials().getDockerCredentials());
+                    deployResources);
                 CompletableFuture<Void> checkMetrics = checkMissingRequiredMetrics(session, resources);
                 return CompletableFuture.allOf(checkResources, checkMetrics)
                     .thenApply(res -> {
@@ -359,7 +378,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
     }
 
     private CompletableFuture<Void> checkResourcesForDeployment(Session session, long accountId,
-        List<Resource> resources, List<DockerCredentials> dockerCredentials) {
+        List<Resource> resources, DeployResourcesDTO deployResources) {
         List<CompletableFuture<Void>> completables = new ArrayList<>();
         HashSet<Long> resourceProviderIds = new HashSet<>();
         HashSet<Long> regionIds = new HashSet<>();
@@ -369,8 +388,9 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
             long regionId = resource.getRegion().getRegionId();
             PlatformEnum platform = PlatformEnum.fromPlatform(resource.getPlatform());
             checkCloudCredentials(session, accountId, providerId, platform, resourceProviderIds, completables);
-            checkDockerCredentials(dockerCredentials, resource.getPlatform().getPlatformId(), platform, platformIds);
-            checkMissingVPC(session, accountId, regionId, platform, regionIds, completables);
+            checkDockerCredentials(deployResources.getDeploymentCredentials().getDockerCredentials(),
+                resource.getPlatform().getPlatformId(), platform, platformIds);
+            checkMissingVPC(session, accountId, regionId, platform, regionIds, deployResources, completables);
         }
         return CompletableFuture.allOf(completables.toArray(CompletableFuture[]::new));
     }
@@ -401,10 +421,15 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
     }
 
     private void checkMissingVPC(Session session, long accountId, long regionId, PlatformEnum platform,
-        Set<Long> regionIds, List<CompletableFuture<Void>> completables) {
+        Set<Long> regionIds, DeployResourcesDTO deployResourcesDTO, List<CompletableFuture<Void>> completables) {
         if (regionIds.add(regionId) && platform.equals(PlatformEnum.EC2)) {
             completables.add(vpcRepository.findByRegionIdAndAccountId(session, regionId, accountId)
-                .thenAccept(vpc -> ServiceResultValidator.checkFound(vpc, VPC.class))
+                .thenAccept(vpc -> {
+                    ServiceResultValidator.checkFound(vpc, VPC.class);
+                    Region region = Hibernate.unproxy(vpc.getRegion(), Region.class);
+                    vpc.setRegion(region);
+                    deployResourcesDTO.getVpcList().add(vpc);
+                })
                 .toCompletableFuture()
             );
         }
@@ -425,16 +450,17 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
     }
 
     private CompletableFuture<Void> saveFunctionDeployments(Session session, Deployment deployment,
-        DeployResourcesRequest request, ResourceDeploymentStatus status) {
+            DeployResourcesRequest request, ResourceDeploymentStatus status) {
         List<FunctionDeployment> functionDeployments = request.getFunctionResources()
             .stream()
             .map(functionResourceIds -> createNewResourceDeployment(deployment, functionResourceIds, status))
             .collect(Collectors.toList());
-        return functionDeploymentRepository.createAll(session, functionDeployments).toCompletableFuture();
+        return functionDeploymentRepository.createAll(session, functionDeployments)
+            .toCompletableFuture();
     }
 
     private CompletableFuture<Void> saveServiceDeployments(Session session, Deployment deployment,
-        DeployResourcesRequest request, ResourceDeploymentStatus status, List<Resource> resources) {
+            DeployResourcesRequest request, ResourceDeploymentStatus status, List<Resource> resources) {
         if (request.getServiceResources().isEmpty()) {
             return CompletableFuture.completedFuture(null);
         }
@@ -446,10 +472,12 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                     .filter(r -> r.getResourceId() == serviceResourceIds.getResourceId())
                     .findFirst()
                     .orElseThrow(IllegalStateException::new);
-                return createNewResourceDeployment(deployment, resource, serviceResourceIds, kubeConfig, status);
+                return createNewResourceDeployment(deployment, resource, serviceResourceIds,
+                    kubeConfig, status);
             })
             .collect(Collectors.toList());
-        return serviceDeploymentRepository.createAll(session, serviceDeployments).toCompletableFuture();
+        return serviceDeploymentRepository.createAll(session, serviceDeployments)
+            .toCompletableFuture();
     }
 
     private Context getContextByClusterUrl(KubeConfig kubeConfig, String clusterUrl) {
@@ -502,5 +530,20 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
         } catch (JsonProcessingException e) {
             throw new BadInputException("Unsupported schema of kube config");
         }
+    }
+
+
+    /**
+     * Map resource deployments to a deploy/terminate request.
+     *
+     * @param request the request
+     * @return the request with the mapped values
+     */
+    private CompletionStage<Void> mapResourceDeploymentsToDTO(Session session, DeployTerminateDTO request) {
+        long deploymentId = request.getDeployment().getDeploymentId();
+        return functionDeploymentRepository.findAllByDeploymentId(session, deploymentId)
+            .thenAccept(request::setFunctionDeployments)
+            .thenCompose(res -> serviceDeploymentRepository.findAllByDeploymentId(session, deploymentId))
+            .thenAccept(request::setServiceDeployments);
     }
 }

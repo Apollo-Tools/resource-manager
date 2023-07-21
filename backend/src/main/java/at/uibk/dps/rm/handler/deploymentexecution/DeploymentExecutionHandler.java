@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.handler.deploymentexecution;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
-import at.uibk.dps.rm.entity.dto.credentials.DeploymentCredentials;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
@@ -10,7 +9,6 @@ import at.uibk.dps.rm.handler.account.CredentialsChecker;
 import at.uibk.dps.rm.handler.deployment.FunctionDeploymentChecker;
 import at.uibk.dps.rm.handler.deployment.ResourceDeploymentChecker;
 import at.uibk.dps.rm.handler.deployment.ServiceDeploymentChecker;
-import at.uibk.dps.rm.handler.resourceprovider.VPCChecker;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,8 +34,6 @@ public class DeploymentExecutionHandler {
 
     private final ResourceDeploymentChecker resourceDeploymentChecker;
 
-    private final VPCChecker vpcChecker;
-
     /**
      * Create an instance from the deploymentChecker, credentialsChecker,
      * functionDeploymentChecker, serviceDeploymentChecker and resourceDeploymentChecker.
@@ -50,43 +46,28 @@ public class DeploymentExecutionHandler {
      */
     public DeploymentExecutionHandler(DeploymentExecutionChecker deploymentChecker, CredentialsChecker credentialsChecker,
             FunctionDeploymentChecker functionDeploymentChecker, ServiceDeploymentChecker serviceDeploymentChecker,
-            ResourceDeploymentChecker resourceDeploymentChecker, VPCChecker vpcChecker) {
+            ResourceDeploymentChecker resourceDeploymentChecker) {
         this.deploymentChecker = deploymentChecker;
         this.credentialsChecker = credentialsChecker;
         this.functionDeploymentChecker = functionDeploymentChecker;
         this.serviceDeploymentChecker = serviceDeploymentChecker;
         this.resourceDeploymentChecker = resourceDeploymentChecker;
-        this.vpcChecker = vpcChecker;
     }
 
     /**
-     * Deploy all resources from the deployment that was created by the account (accountId). The
+     * Deploy all resources from the deployResources object. The
      * docker credentials must contain valid data for all deployments that involve OpenFaaS. The
      * list of VPCs must be non-empty for EC2 deployments.
      *
-     * @param deployment the deployment
-     * @param accountId the id of the creator of the deployment
-     * @param deploymentCredentials the deployment credentials
+     * @param deployResources the deployment data
      * @return a Completable
      */
-    public Completable deployResources(Deployment deployment, long accountId,
-            DeploymentCredentials deploymentCredentials) {
-        DeployResourcesDTO request = new DeployResourcesDTO();
-        request.setDeployment(deployment);
-        request.setDeploymentCredentials(deploymentCredentials);
-        return vpcChecker.checkFindAll(accountId)
-            .map(vpcs -> {
-                ObjectMapper mapper = DatabindCodec.mapper();
-                request.setVpcList(mapper.readValue(vpcs.toString(), new TypeReference<>() {}));
-                return vpcs;
-            })
-            .flatMap(res -> credentialsChecker.checkFindAll(accountId, true))
-            .flatMap(cloudCredentials -> mapCredentialsAndResourcesToRequest(request, cloudCredentials))
-            .flatMap(res -> deploymentChecker.applyResourceDeployment(request))
+    public Completable deployResources(DeployResourcesDTO deployResources) {
+        return deploymentChecker.applyResourceDeployment(deployResources)
             .flatMapCompletable(tfOutput -> Completable.defer(() -> resourceDeploymentChecker
-                .storeOutputToResourceDeployments(tfOutput, request)))
+                .storeOutputToResourceDeployments(tfOutput, deployResources)))
             .andThen(Completable.defer(() ->
-                resourceDeploymentChecker.submitUpdateStatus(deployment.getDeploymentId(),
+                resourceDeploymentChecker.submitUpdateStatus(deployResources.getDeployment().getDeploymentId(),
                     DeploymentStatusValue.DEPLOYED)));
     }
 
