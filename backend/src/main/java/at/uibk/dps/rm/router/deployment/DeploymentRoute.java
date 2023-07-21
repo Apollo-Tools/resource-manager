@@ -54,7 +54,7 @@ public class DeploymentRoute implements Route {
                 serviceDeploymentChecker, resourceDeploymentChecker, vpcChecker);
         DeploymentErrorHandler deploymentErrorHandler = new DeploymentErrorHandler(resourceDeploymentChecker,
             logChecker, deploymentLogChecker, fileSystemChecker, deploymentExecutionHandler);
-        DeploymentHandler deploymentHandler = new DeploymentHandler(deploymentChecker, resourceDeploymentChecker);
+        DeploymentHandler deploymentHandler = new DeploymentHandler(deploymentChecker);
         ResultHandler resultHandler = new PrivateEntityResultHandler(deploymentHandler);
 
         router

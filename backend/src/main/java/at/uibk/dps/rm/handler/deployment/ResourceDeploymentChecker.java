@@ -7,11 +7,8 @@ import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.handler.EntityChecker;
-import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.deployment.ResourceDeploymentService;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
@@ -38,17 +35,6 @@ public class ResourceDeploymentChecker extends EntityChecker {
     public ResourceDeploymentChecker(ResourceDeploymentService resourceDeploymentService) {
         super(resourceDeploymentService);
         this.resourceDeploymentService = resourceDeploymentService;
-    }
-
-    /**
-     * Find all resource deployments by deployment.
-     *
-     * @param id id of the deployment
-     * @return a Single that emits all found resource deployments as JsonArray
-     */
-    public Single<JsonArray> checkFindAllByDeploymentId(long id) {
-        Single<JsonArray> findAllByDeploymentId = resourceDeploymentService.findAllByDeploymentId(id);
-        return ErrorHandler.handleFindAll(findAllByDeploymentId);
     }
 
     /**
@@ -129,50 +115,6 @@ public class ResourceDeploymentChecker extends EntityChecker {
             .ifPresent(functionDeployment -> completables
                 .add(resourceDeploymentService.updateTriggerUrl(functionDeployment.getResourceDeploymentId(),
                     triggerUrl))
-            );
-    }
-
-    /**
-     * Get the crucial resource deployment status based on all resource deployments of a single
-     * deployment.
-     *
-     * @param resourceDeployments the resource deployments
-     * @return the crucial deployment status
-     */
-    public DeploymentStatusValue checkCrucialResourceDeploymentStatus(JsonArray resourceDeployments) {
-        if (matchAnyResourceDeploymentsStatus(resourceDeployments,
-            DeploymentStatusValue.ERROR)) {
-            return DeploymentStatusValue.ERROR;
-        }
-        if (matchAnyResourceDeploymentsStatus(resourceDeployments, DeploymentStatusValue.NEW)) {
-            return DeploymentStatusValue.NEW;
-        }
-
-        if (matchAnyResourceDeploymentsStatus(resourceDeployments,
-            DeploymentStatusValue.TERMINATING)) {
-            return DeploymentStatusValue.TERMINATING;
-        }
-
-        if (matchAnyResourceDeploymentsStatus(resourceDeployments,
-            DeploymentStatusValue.DEPLOYED)) {
-            return DeploymentStatusValue.DEPLOYED;
-        }
-        return DeploymentStatusValue.TERMINATED;
-    }
-
-    /**
-     * Check if at least one status of resourceDeployments matches the given status value.
-     *
-     * @param resourceDeployments the resource deployments
-     * @param statusValue the status value
-     * @return true if at least one match was found, else false
-     */
-    private boolean matchAnyResourceDeploymentsStatus(JsonArray resourceDeployments,
-        DeploymentStatusValue statusValue) {
-        return resourceDeployments.stream()
-            .map(rr -> (JsonObject) rr)
-            .anyMatch(rr -> rr.getJsonObject("status")
-                .getString("status_value").equals(statusValue.name())
             );
     }
 

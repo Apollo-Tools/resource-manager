@@ -6,6 +6,7 @@ import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.credentials.KubeConfig;
 import at.uibk.dps.rm.entity.dto.credentials.k8s.Cluster;
 import at.uibk.dps.rm.entity.dto.credentials.k8s.Context;
+import at.uibk.dps.rm.entity.dto.deployment.DeploymentResponse;
 import at.uibk.dps.rm.entity.dto.deployment.DeploymentWithResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.FunctionResourceIds;
 import at.uibk.dps.rm.entity.dto.deployment.ServiceResourceIds;
@@ -170,19 +171,88 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
 
     @Override
     public Future<JsonArray> findAllByAccountId(long accountId) {
-        CompletionStage<List<Deployment>> findAll = withSession(session ->
+        List<DeploymentResponse> deploymentResponses = new ArrayList<>();
+        CompletionStage<List<DeploymentResponse>> findAll = withSession(session ->
             repository.findAllByAccountId(session, accountId)
+                .thenCompose(deployments -> {
+                    List<CompletableFuture<Void>> completables = new ArrayList<>();
+                    for (Deployment deployment : deployments) {
+                        completables.add(
+                            composeDeploymentResponse(session, deployment, deploymentResponses)
+                        );
+                    }
+                    return CompletableFuture.allOf(completables.toArray(CompletableFuture[]::new));
+                })
+                .thenApply(res -> deploymentResponses)
         );
         return sessionToFuture(findAll)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
-                for (Deployment entity: result) {
-                    entity.setCreatedBy(null);
+                for (DeploymentResponse entity: result) {
                     objects.add(JsonObject.mapFrom(entity));
                 }
                 return new JsonArray(objects);
             });
     }
+
+    private CompletableFuture<Void> composeDeploymentResponse(Session session, Deployment deployment,
+            List<DeploymentResponse> deploymentResponses) {
+        DeploymentResponse deploymentResponse = new DeploymentResponse();
+        deploymentResponse.setDeploymentId(deployment.getDeploymentId());
+        deploymentResponse.setCreatedAt(deployment.getCreatedAt());
+        deploymentResponses.add(deploymentResponse);
+        return resourceDeploymentRepository.findAllByDeploymentIdAndFetch(session,
+            deployment.getDeploymentId())
+            .thenAccept(resourceDeployments -> {
+                DeploymentStatusValue crucialDeploymentStatus =
+                    checkCrucialResourceDeploymentStatus(resourceDeployments);
+                deploymentResponse.setStatusValue(crucialDeploymentStatus);
+            })
+            .toCompletableFuture();
+    }
+
+
+    /**
+     * Get the crucial resource deployment status based on all resource deployments of a single
+     * deployment.
+     *
+     * @param resourceDeployments the resource deployments
+     * @return the crucial deployment status
+     */
+    public DeploymentStatusValue checkCrucialResourceDeploymentStatus(List<ResourceDeployment> resourceDeployments) {
+        if (matchAnyResourceDeploymentsStatus(resourceDeployments,
+            DeploymentStatusValue.ERROR)) {
+            return DeploymentStatusValue.ERROR;
+        }
+        if (matchAnyResourceDeploymentsStatus(resourceDeployments, DeploymentStatusValue.NEW)) {
+            return DeploymentStatusValue.NEW;
+        }
+
+        if (matchAnyResourceDeploymentsStatus(resourceDeployments,
+            DeploymentStatusValue.TERMINATING)) {
+            return DeploymentStatusValue.TERMINATING;
+        }
+
+        if (matchAnyResourceDeploymentsStatus(resourceDeployments,
+            DeploymentStatusValue.DEPLOYED)) {
+            return DeploymentStatusValue.DEPLOYED;
+        }
+        return DeploymentStatusValue.TERMINATED;
+    }
+
+    /**
+     * Check if at least one status of resourceDeployments matches the given status value.
+     *
+     * @param resourceDeployments the resource deployments
+     * @param statusValue the status value
+     * @return true if at least one match was found, else false
+     */
+    private boolean matchAnyResourceDeploymentsStatus(List<ResourceDeployment> resourceDeployments,
+        DeploymentStatusValue statusValue) {
+        return resourceDeployments.stream()
+            .anyMatch(rd -> DeploymentStatusValue.fromDeploymentStatus(rd.getStatus()).equals(statusValue));
+    }
+
 
     @Override
     public Future<JsonObject> findOneByIdAndAccountId(long id, long accountId) {
@@ -290,7 +360,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
 
     private CompletableFuture<Void> checkResourcesForDeployment(Session session, long accountId,
         List<Resource> resources, List<DockerCredentials> dockerCredentials) {
-        List<CompletionStage<Void>> completionStages = new ArrayList<>();
+        List<CompletableFuture<Void>> completables = new ArrayList<>();
         HashSet<Long> resourceProviderIds = new HashSet<>();
         HashSet<Long> regionIds = new HashSet<>();
         HashSet<Long> platformIds = new HashSet<>();
@@ -298,23 +368,25 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
             long providerId = resource.getRegion().getResourceProvider().getProviderId();
             long regionId = resource.getRegion().getRegionId();
             PlatformEnum platform = PlatformEnum.fromPlatform(resource.getPlatform());
-            checkCloudCredentials(session, accountId, providerId, platform, resourceProviderIds, completionStages);
+            checkCloudCredentials(session, accountId, providerId, platform, resourceProviderIds, completables);
             checkDockerCredentials(dockerCredentials, resource.getPlatform().getPlatformId(), platform, platformIds);
-            checkMissingVPC(session, accountId, regionId, platform, regionIds, completionStages);
+            checkMissingVPC(session, accountId, regionId, platform, regionIds, completables);
         }
-        return CompletableFuture.allOf(completionStages.toArray(new CompletableFuture[0]));
+        return CompletableFuture.allOf(completables.toArray(CompletableFuture[]::new));
     }
 
     private void checkCloudCredentials(Session session, long accountId, long providerId, PlatformEnum platform,
-        Set<Long> resourceProviderIds, List<CompletionStage<Void>> completionStages) {
+        Set<Long> resourceProviderIds, List<CompletableFuture<Void>> completables) {
         if (resourceProviderIds.add(providerId) && (platform.equals(PlatformEnum.LAMBDA) ||
             platform.equals(PlatformEnum.EC2))) {
-            completionStages.add(credentialsRepository.findByAccountIdAndProviderId(session, accountId, providerId)
+            completables.add(credentialsRepository.findByAccountIdAndProviderId(session, accountId, providerId)
                 .thenAccept(credentials -> {
                     if (credentials == null) {
                         throw new UnauthorizedException("missing credentials for " + platform);
                     }
-                }));
+                })
+                .toCompletableFuture()
+            );
         }
     }
 
@@ -329,10 +401,12 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
     }
 
     private void checkMissingVPC(Session session, long accountId, long regionId, PlatformEnum platform,
-        Set<Long> regionIds, List<CompletionStage<Void>> completionStages) {
+        Set<Long> regionIds, List<CompletableFuture<Void>> completables) {
         if (regionIds.add(regionId) && platform.equals(PlatformEnum.EC2)) {
-            completionStages.add(vpcRepository.findByRegionIdAndAccountId(session, regionId, accountId)
-                .thenAccept(vpc -> ServiceResultValidator.checkFound(vpc, VPC.class)));
+            completables.add(vpcRepository.findByRegionIdAndAccountId(session, regionId, accountId)
+                .thenAccept(vpc -> ServiceResultValidator.checkFound(vpc, VPC.class))
+                .toCompletableFuture()
+            );
         }
     }
 
@@ -347,7 +421,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                     }
                 }).toCompletableFuture())
             .collect(Collectors.toList());
-        return CompletableFuture.allOf(checkMissingRequiredMetrics.toArray(new CompletableFuture[0]));
+        return CompletableFuture.allOf(checkMissingRequiredMetrics.toArray(CompletableFuture[]::new));
     }
 
     private CompletableFuture<Void> saveFunctionDeployments(Session session, Deployment deployment,
