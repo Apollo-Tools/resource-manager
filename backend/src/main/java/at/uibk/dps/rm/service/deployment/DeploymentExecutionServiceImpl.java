@@ -7,14 +7,11 @@ import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.service.ServiceProxy;
 import at.uibk.dps.rm.service.deployment.terraform.FunctionPrepareService;
 import at.uibk.dps.rm.service.deployment.terraform.MainFileService;
-import at.uibk.dps.rm.service.deployment.terraform.TerraformFileService;
 import at.uibk.dps.rm.service.deployment.terraform.TerraformSetupService;
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
-import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.Future;
-import io.vertx.rxjava3.CompletableHelper;
 import io.vertx.rxjava3.SingleHelper;
 import io.vertx.rxjava3.core.Vertx;
 
@@ -77,14 +74,5 @@ public class DeploymentExecutionServiceImpl extends ServiceProxy implements Depl
             return tfSetupService.getTerminationCredentials();
         });
         return SingleHelper.toFuture(getNecessaryCredentials);
-    }
-
-    @Override
-    public Future<Void> deleteTFDirs(long deploymentId) {
-        Completable deleteTFDirs = new ConfigUtility(vertx).getConfig().flatMapCompletable(config -> {
-            DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
-            return TerraformFileService.deleteAllDirs(vertx.fileSystem(), deploymentPath.getRootFolder());
-        });
-        return CompletableHelper.toFuture(deleteTFDirs);
     }
 }

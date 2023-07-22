@@ -1,10 +1,13 @@
 package at.uibk.dps.rm.handler.deploymentexecution;
 
+import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.handler.deployment.ResourceDeploymentChecker;
+import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import io.reactivex.rxjava3.core.Completable;
+import io.vertx.rxjava3.core.Vertx;
 
 /**
  * Processes requests that concern deployment.
@@ -67,13 +70,21 @@ public class DeploymentExecutionHandler {
      * @return a Completable
      */
     public Completable terminateResources(DeployResourcesDTO deployResources) {
-        TerminateResourcesDTO terminateResources = new TerminateResourcesDTO();
-        terminateResources.setDeployment(deployResources.getDeployment());
-        terminateResources.setFunctionDeployments(deployResources.getFunctionDeployments());
-        terminateResources.setServiceDeployments(deployResources.getServiceDeployments());
-        terminateResources.setCredentialsList(deployResources.getCredentialsList());
-        return deploymentChecker.terminateResources(terminateResources)
-            .andThen(Completable.defer(() -> deploymentChecker
-                .deleteTFDirs(deployResources.getDeployment().getDeploymentId())));
+        TerminateResourcesDTO terminateResources = new TerminateResourcesDTO(deployResources);
+        Vertx vertx = Vertx.currentContext().owner();
+        return new ConfigUtility(vertx).getConfig()
+            .flatMap(config -> {
+                String path = new DeploymentPath(deployResources.getDeployment().getDeploymentId(), config)
+                    .getRootFolder().toString();
+                return deploymentChecker.tfLockFileExists(path);
+            })
+            .flatMapCompletable(locFileExists -> {
+                if (locFileExists) {
+                    return deploymentChecker.terminateResources(terminateResources).onErrorComplete();
+                }
+                return Completable.complete();
+            })
+            .andThen(Completable.defer(() ->
+                deploymentChecker.deleteTFDirs(deployResources.getDeployment().getDeploymentId())));
     }
 }

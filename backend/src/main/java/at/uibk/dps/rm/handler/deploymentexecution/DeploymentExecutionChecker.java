@@ -15,6 +15,7 @@ import at.uibk.dps.rm.service.deployment.docker.LambdaLayerService;
 import at.uibk.dps.rm.service.deployment.docker.OpenFaasImageService;
 import at.uibk.dps.rm.service.deployment.executor.MainTerraformExecutor;
 import at.uibk.dps.rm.service.deployment.executor.TerraformExecutor;
+import at.uibk.dps.rm.service.deployment.terraform.TerraformFileService;
 import at.uibk.dps.rm.service.rxjava3.database.log.LogService;
 import at.uibk.dps.rm.service.rxjava3.database.log.DeploymentLogService;
 import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentExecutionService;
@@ -225,14 +226,31 @@ public class DeploymentExecutionChecker {
     }
 
     /**
-    * Delete all folders and files that were created for the deployment. Usually this
-    * gets called when the termination of all resources is done.
+    * Delete all folders and files that were created for the deployment. This
+    * can be used after the termination of all resources is done.
     *
     * @param deploymentId the id of the deployment
     * @return a Completable
     */
     public Completable deleteTFDirs(long deploymentId) {
-        return deploymentService.deleteTFDirs(deploymentId);
+        Vertx vertx = Vertx.currentContext().owner();
+        return new ConfigUtility(vertx).getConfig().flatMapCompletable(config -> {
+            DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
+            return TerraformFileService.deleteAllDirs(vertx.fileSystem(), deploymentPath.getRootFolder());
+        });
+    }
+
+    /**
+     * Check whether a terraform lock file exists at the tfPath or not. The existence
+     * of this file indicates, that resources may be deployed.
+     *
+     * @param tfPath the root path to a terraform module
+     * @return a Single that emits true if the lock file exists, else false
+     */
+    public Single<Boolean> tfLockFileExists(String tfPath) {
+        Path lockFilePath = Path.of(tfPath, ".terraform.lock.hcl");
+        Vertx vertx = Vertx.currentContext().owner();
+        return vertx.fileSystem().exists(lockFilePath.toString());
     }
 
     /**

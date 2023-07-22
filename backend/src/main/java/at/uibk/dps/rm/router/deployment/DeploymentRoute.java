@@ -6,10 +6,7 @@ import at.uibk.dps.rm.handler.PrivateEntityResultHandler;
 import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.handler.deploymentexecution.DeploymentExecutionChecker;
 import at.uibk.dps.rm.handler.deploymentexecution.DeploymentExecutionHandler;
-import at.uibk.dps.rm.handler.log.LogChecker;
-import at.uibk.dps.rm.handler.log.DeploymentLogChecker;
 import at.uibk.dps.rm.handler.deployment.*;
-import at.uibk.dps.rm.handler.util.FileSystemChecker;
 import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.reactivex.rxjava3.core.Completable;
@@ -34,16 +31,12 @@ public class DeploymentRoute implements Route {
             serviceProxyProvider.getLogService(), serviceProxyProvider.getDeploymentLogService());
         ResourceDeploymentChecker resourceDeploymentChecker =
             new ResourceDeploymentChecker(serviceProxyProvider.getResourceDeploymentService());
-        LogChecker logChecker = new LogChecker(serviceProxyProvider.getLogService());
-        DeploymentLogChecker deploymentLogChecker = new DeploymentLogChecker(serviceProxyProvider
-            .getDeploymentLogService());
-        FileSystemChecker fileSystemChecker = new FileSystemChecker(serviceProxyProvider.getFilePathService());
         DeploymentChecker deploymentChecker = new DeploymentChecker(serviceProxyProvider.getDeploymentService());
         /* Handler initialization */
         DeploymentExecutionHandler deploymentExecutionHandler =
             new DeploymentExecutionHandler(deploymentExecutionChecker, resourceDeploymentChecker);
-        DeploymentErrorHandler deploymentErrorHandler = new DeploymentErrorHandler(resourceDeploymentChecker,
-            logChecker, deploymentLogChecker, fileSystemChecker, deploymentExecutionHandler);
+        DeploymentErrorHandler deploymentErrorHandler = new DeploymentErrorHandler(deploymentChecker,
+            deploymentExecutionHandler);
         DeploymentHandler deploymentHandler = new DeploymentHandler(deploymentChecker);
         ResultHandler resultHandler = new PrivateEntityResultHandler(deploymentHandler);
 

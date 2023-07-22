@@ -2,6 +2,7 @@ package at.uibk.dps.rm.handler.deployment;
 
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.service.rxjava3.database.deployment.DeploymentService;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 
@@ -36,5 +37,12 @@ public class DeploymentChecker extends EntityChecker {
      */
     public Single<JsonObject> submitCancelDeployment(long deploymentId, long accountId) {
         return deploymentService.cancelDeployment(deploymentId, accountId);
+    }
+
+    /**
+     *
+     */
+    public Completable handleDeploymentError(long id, String errorMessage) {
+        return deploymentService.handleDeploymentError(id, errorMessage);
     }
 }

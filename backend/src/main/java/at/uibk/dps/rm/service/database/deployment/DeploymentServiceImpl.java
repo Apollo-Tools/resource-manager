@@ -554,4 +554,27 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
             .thenCompose(res -> serviceDeploymentRepository.findAllByDeploymentId(session, deploymentId))
             .thenAccept(request::setServiceDeployments);
     }
+
+
+
+    public Future<Void> handleDeploymentError(long id, String errorMessage) {
+        CompletionStage<Void> handleError = withTransaction(session -> {
+            CompletableFuture<Integer> updateStatus = resourceDeploymentRepository
+                .updateDeploymentStatusByDeploymentId(session, id, DeploymentStatusValue.ERROR)
+                .toCompletableFuture();
+            Log log = new Log();
+            log.setLogValue(errorMessage);
+            DeploymentLog deploymentLog = new DeploymentLog();
+            deploymentLog.setLog(log);
+            Deployment deployment = new Deployment();
+            deployment.setDeploymentId(id);
+            deploymentLog.setDeployment(deployment);
+            CompletableFuture<Void> createLog = session.persist(log)
+                .thenCompose(res -> session.persist(deploymentLog))
+                .toCompletableFuture();
+            return CompletableFuture.allOf(updateStatus, createLog);
+        });
+
+        return transactionToFuture(handleError);
+    }
 }

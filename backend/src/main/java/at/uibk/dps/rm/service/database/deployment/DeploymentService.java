@@ -71,4 +71,6 @@ public interface DeploymentService extends DatabaseServiceInterface {
      * @return a Future that emits the deployment as JsonObject if it exists, else null
      */
     Future<JsonObject> findOneByIdAndAccountId(long id, long accountId);
+
+    Future<Void> handleDeploymentError(long id, String errorMessage);
 }
