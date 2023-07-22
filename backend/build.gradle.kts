@@ -53,6 +53,7 @@ dependencies {
 
   // Json parsing
   implementation("com.fasterxml.jackson.core:jackson-databind:2.15.0")
+  implementation("com.fasterxml.jackson.datatype:jackson-datatype-hibernate5:2.14.2")
   // YAML parsing
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.15.0")
 

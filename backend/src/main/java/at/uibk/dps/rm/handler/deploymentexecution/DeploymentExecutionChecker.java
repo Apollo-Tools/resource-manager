@@ -188,20 +188,20 @@ public class DeploymentExecutionChecker {
   /**
    * Terminate resources of a deployment.
    *
-   * @param request the request containing all data that is necessary for the termination
+   * @param terminateResources the object containing all data that is necessary for the termination
    * @return a Completable
    */
-    public Completable terminateResources(TerminateResourcesDTO request) {
-        long deploymentId = request.getDeployment().getDeploymentId();
+    public Completable terminateResources(TerminateResourcesDTO terminateResources) {
+        long deploymentId = terminateResources.getDeployment().getDeploymentId();
         Vertx vertx = Vertx.currentContext().owner();
         return new ConfigUtility(vertx).getConfig()
             .flatMapCompletable(config -> {
                 DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
-                return terminateAllContainerResources(request, deploymentPath)
-                    .andThen(deploymentService.getNecessaryCredentials(request))
+                return terminateAllContainerResources(terminateResources, deploymentPath)
+                    .andThen(deploymentService.getNecessaryCredentials(terminateResources))
                     .map(deploymentCredentials -> new MainTerraformExecutor(vertx, deploymentCredentials))
                     .flatMap(terraformExecutor -> terraformExecutor.destroy(deploymentPath.getRootFolder()))
-                    .flatMapCompletable(terminateOutput -> persistLogs(terminateOutput, request.getDeployment()));
+                    .flatMapCompletable(terminateOutput -> persistLogs(terminateOutput, terminateResources.getDeployment()));
             });
     }
 

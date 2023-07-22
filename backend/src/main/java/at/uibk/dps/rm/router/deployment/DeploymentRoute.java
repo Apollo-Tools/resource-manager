@@ -1,10 +1,9 @@
 package at.uibk.dps.rm.router.deployment;
 
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
-import at.uibk.dps.rm.entity.model.Deployment;
+import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.handler.PrivateEntityResultHandler;
 import at.uibk.dps.rm.handler.ResultHandler;
-import at.uibk.dps.rm.handler.account.CredentialsChecker;
 import at.uibk.dps.rm.handler.deploymentexecution.DeploymentExecutionChecker;
 import at.uibk.dps.rm.handler.deploymentexecution.DeploymentExecutionHandler;
 import at.uibk.dps.rm.handler.log.LogChecker;
@@ -33,14 +32,8 @@ public class DeploymentRoute implements Route {
         DeploymentExecutionChecker deploymentExecutionChecker =
             new DeploymentExecutionChecker(serviceProxyProvider.getDeploymentExecutionService(),
             serviceProxyProvider.getLogService(), serviceProxyProvider.getDeploymentLogService());
-        CredentialsChecker credentialsChecker = new CredentialsChecker(serviceProxyProvider
-            .getCredentialsService());
         ResourceDeploymentChecker resourceDeploymentChecker =
             new ResourceDeploymentChecker(serviceProxyProvider.getResourceDeploymentService());
-        FunctionDeploymentChecker functionDeploymentChecker = new FunctionDeploymentChecker(serviceProxyProvider
-            .getFunctionDeploymentService());
-        ServiceDeploymentChecker serviceDeploymentChecker = new ServiceDeploymentChecker(serviceProxyProvider
-            .getServiceDeploymentService());
         LogChecker logChecker = new LogChecker(serviceProxyProvider.getLogService());
         DeploymentLogChecker deploymentLogChecker = new DeploymentLogChecker(serviceProxyProvider
             .getDeploymentLogService());
@@ -48,8 +41,7 @@ public class DeploymentRoute implements Route {
         DeploymentChecker deploymentChecker = new DeploymentChecker(serviceProxyProvider.getDeploymentService());
         /* Handler initialization */
         DeploymentExecutionHandler deploymentExecutionHandler =
-            new DeploymentExecutionHandler(deploymentExecutionChecker, credentialsChecker, functionDeploymentChecker,
-                serviceDeploymentChecker, resourceDeploymentChecker);
+            new DeploymentExecutionHandler(deploymentExecutionChecker, resourceDeploymentChecker);
         DeploymentErrorHandler deploymentErrorHandler = new DeploymentErrorHandler(resourceDeploymentChecker,
             logChecker, deploymentLogChecker, fileSystemChecker, deploymentExecutionHandler);
         DeploymentHandler deploymentHandler = new DeploymentHandler(deploymentChecker);
@@ -69,9 +61,11 @@ public class DeploymentRoute implements Route {
             .handler(rc -> deploymentHandler.postOneToAccount(rc)
                 .map(result -> {
                     DeployResourcesDTO deployResources = result.mapTo(DeployResourcesDTO.class);
-                    long accountId = rc.user().principal().getLong("account_id");
-                    initiateDeployment(deployResources, accountId, deploymentExecutionHandler,
-                        deploymentErrorHandler);
+                    deploymentExecutionHandler.deployResources(deployResources)
+                        .doOnError(throwable -> logger.error(throwable.getMessage()))
+                        .onErrorResumeNext(throwable -> deploymentErrorHandler.onDeploymentError(deployResources,
+                            throwable))
+                        .subscribe();
                     return result.getJsonObject("deployment");
                 })
                 .subscribe(result -> ResultHandler.getSaveResponse(rc, result),
@@ -81,38 +75,17 @@ public class DeploymentRoute implements Route {
         router
             .operation("cancelDeployment")
             .handler(rc -> deploymentHandler.cancelDeployment(rc)
-                .flatMapCompletable(deploymentJson -> {
-                    long accountId = rc.user().principal().getLong("account_id");
-                    Deployment deployment = deploymentJson.mapTo(Deployment.class);
-                    initiateTermination(deployment, accountId, deploymentExecutionHandler, deploymentErrorHandler);
+                .flatMapCompletable(terminationJson -> {
+                    TerminateResourcesDTO terminateResources = terminationJson.mapTo(TerminateResourcesDTO.class);
+                    deploymentExecutionHandler.terminateResources(terminateResources)
+                        .doOnError(throwable -> logger.error(throwable.getMessage()))
+                        .onErrorResumeNext(throwable ->
+                            deploymentErrorHandler.onTerminationError(terminateResources.getDeployment(), throwable))
+                        .subscribe();
                     return Completable.complete();
                 })
                 .subscribe(() -> ResultHandler.getSaveAllUpdateDeleteResponse(rc),
                     throwable -> ResultHandler.handleRequestError(rc, throwable))
             );
-    }
-
-    private static void initiateDeployment(DeployResourcesDTO deployResourcesDTO,
-            long accountId, DeploymentExecutionHandler deploymentExecutionHandler,
-            DeploymentErrorHandler deploymentErrorHandler) {
-        deploymentExecutionHandler.deployResources(deployResourcesDTO)
-            .doOnError(throwable -> logger.error(throwable.getMessage()))
-            .onErrorResumeNext(throwable -> deploymentErrorHandler.onDeploymentError(accountId,
-                deployResourcesDTO.getDeployment(), throwable))
-            .subscribe();
-    }
-
-    /**
-     * Execute the termination of the resources contained in the deployment.
-     *
-     * @param deployment the deployment
-     * @param accountId the id of the creator of the deployment
-     */
-    private static void initiateTermination(Deployment deployment, long accountId,
-           DeploymentExecutionHandler deploymentExecutionHandler, DeploymentErrorHandler deploymentErrorHandler) {
-        deploymentExecutionHandler.terminateResources(deployment, accountId)
-            .doOnError(throwable -> logger.error(throwable.getMessage()))
-            .onErrorResumeNext(throwable -> deploymentErrorHandler.onTerminationError(deployment, throwable))
-            .subscribe();
     }
 }

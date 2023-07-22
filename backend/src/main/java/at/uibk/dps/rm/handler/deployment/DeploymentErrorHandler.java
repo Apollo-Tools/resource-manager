@@ -2,6 +2,7 @@ package at.uibk.dps.rm.handler.deployment;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
+import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.model.Log;
 import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.entity.model.DeploymentLog;
@@ -54,24 +55,22 @@ public class DeploymentErrorHandler {
     /**
      * Handle an error that occurred during deployment.
      *
-     * @param accountId the id of the creator of the deployment
-     * @param deployment the deployment
+     * @param deployResources the data of the deployment
      * @param throwable the thrown error
      * @return a Completable
      */
-    public Completable onDeploymentError(long accountId, Deployment deployment, Throwable throwable) {
+    public Completable onDeploymentError(DeployResourcesDTO deployResources, Throwable throwable) {
         Vertx vertx = Vertx.currentContext().owner();
-        return handleError(deployment, throwable)
+        return handleError(deployResources.getDeployment(), throwable)
             .andThen(new ConfigUtility(vertx).getConfig()
                 .flatMap(config -> {
-                    String path = new DeploymentPath(deployment.getDeploymentId(), config).getRootFolder()
-                        .toString();
-                    return fileSystemChecker
-                        .checkTFLockFileExists(path);
+                    String path = new DeploymentPath(deployResources.getDeployment().getDeploymentId(), config)
+                        .getRootFolder().toString();
+                    return fileSystemChecker.checkTFLockFileExists(path);
                 }))
             .flatMapCompletable(tfLockFileExists -> {
                 if (tfLockFileExists) {
-                    return deploymentHandler.terminateResources(deployment, accountId)
+                    return deploymentHandler.terminateResources(deployResources)
                         .onErrorComplete();
                 } else {
                     return Completable.complete();

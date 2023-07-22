@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.module.ContainerModule;
 import at.uibk.dps.rm.entity.deployment.module.FaasModule;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
+import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
@@ -34,7 +35,7 @@ public class TerraformSetupService {
 
     private DeployResourcesDTO deployRequest;
 
-    private TerminateResourcesDTO terminateRequest;
+    private DeployTerminateDTO terminateRequest;
 
     private final DeploymentPath deploymentPath;
 

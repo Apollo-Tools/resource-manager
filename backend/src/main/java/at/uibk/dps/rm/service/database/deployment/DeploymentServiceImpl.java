@@ -101,10 +101,14 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
 
     @Override
     public Future<JsonObject> cancelDeployment(long id, long accountId) {
-        CompletionStage<Deployment> update = withTransaction(session ->
+        TerminateResourcesDTO terminateResources = new TerminateResourcesDTO();
+        terminateResources.setFunctionDeployments(new ArrayList<>());
+        terminateResources.setServiceDeployments(new ArrayList<>());
+        CompletionStage<TerminateResourcesDTO> update = withTransaction(session ->
             repository.findByIdAndAccountId(session, id, accountId)
                 .thenCompose(deployment -> {
                     ServiceResultValidator.checkFound(deployment, Deployment.class);
+                    terminateResources.setDeployment(deployment);
                     return resourceDeploymentRepository.findAllByDeploymentIdAndFetch(session, id)
                         .thenCompose(resourceDeployments -> {
                             long deployedAmount = resourceDeployments.stream().filter(resourceDeployment ->
@@ -119,13 +123,14 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                                 .thenAccept(status -> resourceDeployments
                                     .forEach(resourceDeployment -> resourceDeployment.setStatus(status)));
                         })
-                        .thenApply(res -> deployment);
+                        .thenCompose(res -> credentialsRepository.findAllByAccountId(session, accountId)
+                            .thenAccept(terminateResources::setCredentialsList))
+                        .thenCompose(res -> mapResourceDeploymentsToDTO(session, terminateResources))
+                        .thenApply(res -> terminateResources);
                 })
         );
-        return transactionToFuture(update).map(deployment -> {
-            deployment.setCreatedBy(null);
-            return JsonObject.mapFrom(deployment);
-        });
+        return transactionToFuture(update)
+            .map(JsonObject::mapFrom);
     }
 
     @Override
@@ -397,7 +402,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
 
     private void checkCloudCredentials(Session session, long accountId, long providerId, PlatformEnum platform,
         Set<Long> resourceProviderIds, List<CompletableFuture<Void>> completables) {
-        if (resourceProviderIds.add(providerId) && (platform.equals(PlatformEnum.LAMBDA) ||
+        if (!resourceProviderIds.contains(providerId) && (platform.equals(PlatformEnum.LAMBDA) ||
             platform.equals(PlatformEnum.EC2))) {
             completables.add(credentialsRepository.findByAccountIdAndProviderId(session, accountId, providerId)
                 .thenAccept(credentials -> {
@@ -407,22 +412,24 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                 })
                 .toCompletableFuture()
             );
+            resourceProviderIds.add(providerId);
         }
     }
 
     private void checkDockerCredentials(List<DockerCredentials> dockerCredentials, long platformId,
         PlatformEnum platform, Set<Long> platformIds) {
-        if (platformIds.add(platformId) && (platform.equals(PlatformEnum.EC2)) ||
+        if (!platformIds.contains(platformId) && (platform.equals(PlatformEnum.EC2)) ||
             platform.equals(PlatformEnum.OPENFAAS)) {
             if (dockerCredentials == null || dockerCredentials.isEmpty()) {
                 throw new UnauthorizedException("missing docker credentials for " + platform);
             }
+            platformIds.add(platformId);
         }
     }
 
     private void checkMissingVPC(Session session, long accountId, long regionId, PlatformEnum platform,
         Set<Long> regionIds, DeployResourcesDTO deployResourcesDTO, List<CompletableFuture<Void>> completables) {
-        if (regionIds.add(regionId) && platform.equals(PlatformEnum.EC2)) {
+        if (!regionIds.contains(regionId) && platform.equals(PlatformEnum.EC2)) {
             completables.add(vpcRepository.findByRegionIdAndAccountId(session, regionId, accountId)
                 .thenAccept(vpc -> {
                     ServiceResultValidator.checkFound(vpc, VPC.class);
@@ -432,6 +439,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                 })
                 .toCompletableFuture()
             );
+            regionIds.add(regionId);
         }
     }
 
