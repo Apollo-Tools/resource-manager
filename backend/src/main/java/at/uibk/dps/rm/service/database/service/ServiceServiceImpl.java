@@ -46,7 +46,7 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
     @Override
     public Future<JsonObject> findOne(long id) {
         CompletionStage<Service> findOne = withSession(session -> repository.findByIdAndFetch(session, id));
-        return transactionToFuture(findOne).map(JsonObject::mapFrom);
+        return sessionToFuture(findOne).map(JsonObject::mapFrom);
     }
 
     @Override
@@ -79,7 +79,7 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
                     return service;
                 })
         );
-        return transactionToFuture(create).map(JsonObject::mapFrom);
+        return sessionToFuture(create).map(JsonObject::mapFrom);
     }
 
     @Override
@@ -106,7 +106,7 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
                     });
             })
         );
-        return transactionToFuture(update).mapEmpty();
+        return sessionToFuture(update).mapEmpty();
     }
 
 

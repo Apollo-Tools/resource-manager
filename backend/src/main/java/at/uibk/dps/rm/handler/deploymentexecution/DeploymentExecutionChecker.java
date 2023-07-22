@@ -59,42 +59,44 @@ public class DeploymentExecutionChecker {
     }
 
     /**
-    * Deploy resources at multiple regions.
-    *
-    * @param request the request containing all data that is necessary for the deployment
-    * @return a Single that emits the process output of the last step.
-    */
-    public Single<ProcessOutput> applyResourceDeployment(DeployResourcesDTO request) {
-        long deploymentId = request.getDeployment().getDeploymentId();
+     * Deploy all resources from the deployResources object. The
+     * docker credentials must contain valid data for all deployments that involve OpenFaaS. The
+     * list of VPCs must be non-empty for EC2 deployments.
+     *
+     * @param deployResources the data of the deployment
+     * @return a Completable
+     */
+    public Single<ProcessOutput> applyResourceDeployment(DeployResourcesDTO deployResources) {
+        long deploymentId = deployResources.getDeployment().getDeploymentId();
         Vertx vertx = Vertx.currentContext().owner();
         return new ConfigUtility(vertx).getConfig()
             .flatMap(config -> {
                 DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
-                return deploymentService.packageFunctionsCode(request)
+                return deploymentService.packageFunctionsCode(deployResources)
                     .flatMapCompletable(functionsToDeploy -> buildAndPushOpenFaasImages(vertx,
-                            request.getDeploymentCredentials().getDockerCredentials(), functionsToDeploy,
+                            deployResources.getDeploymentCredentials().getDockerCredentials(), functionsToDeploy,
                             deploymentPath)
-                        .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, request.getDeployment()))
-                        .andThen(buildJavaLambdaFaaS(request.getFunctionDeployments(), deploymentPath))
-                        .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, request.getDeployment()))
-                        .andThen(buildLambdaLayers(request.getFunctionDeployments(), deploymentPath))
-                        .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, request.getDeployment())))
-                    .andThen(deploymentService.setUpTFModules(request))
+                        .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, deployResources.getDeployment()))
+                        .andThen(buildJavaLambdaFaaS(deployResources.getFunctionDeployments(), deploymentPath))
+                        .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, deployResources.getDeployment()))
+                        .andThen(buildLambdaLayers(deployResources.getFunctionDeployments(), deploymentPath))
+                        .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, deployResources.getDeployment())))
+                    .andThen(deploymentService.setUpTFModules(deployResources))
                     .flatMap(deploymentCredentials -> {
                         TerraformExecutor terraformExecutor = new MainTerraformExecutor(vertx, deploymentCredentials);
                         return Single.fromCallable(() ->
                                 terraformExecutor.setPluginCacheFolder(deploymentPath.getTFCacheFolder()))
-                            .flatMapCompletable(res -> initialiseAllContainerModules(request, deploymentPath))
+                            .flatMapCompletable(res -> initialiseAllContainerModules(deployResources, deploymentPath))
                             .andThen(Single.just(terraformExecutor));
                     })
                     .flatMap(terraformExecutor -> terraformExecutor.init(deploymentPath.getRootFolder())
-                        .flatMapCompletable(initOutput -> persistLogs(initOutput, request.getDeployment()))
+                        .flatMapCompletable(initOutput -> persistLogs(initOutput, deployResources.getDeployment()))
                         .andThen(Single.just(terraformExecutor)))
                     .flatMap(terraformExecutor -> terraformExecutor.apply(deploymentPath.getRootFolder())
-                        .flatMapCompletable(applyOutput -> persistLogs(applyOutput, request.getDeployment()))
+                        .flatMapCompletable(applyOutput -> persistLogs(applyOutput, deployResources.getDeployment()))
                         .andThen(Single.just(terraformExecutor)))
                     .flatMap(terraformExecutor -> terraformExecutor.getOutput(deploymentPath.getRootFolder()))
-                    .flatMap(tfOutput -> persistLogs(tfOutput, request.getDeployment())
+                    .flatMap(tfOutput -> persistLogs(tfOutput, deployResources.getDeployment())
                         .toSingle(() -> tfOutput));
             });
     }
@@ -224,35 +226,6 @@ public class DeploymentExecutionChecker {
             }).toList()
             .flatMapCompletable(Completable::merge);
     }
-
-    /**
-    * Delete all folders and files that were created for the deployment. This
-    * can be used after the termination of all resources is done.
-    *
-    * @param deploymentId the id of the deployment
-    * @return a Completable
-    */
-    public Completable deleteTFDirs(long deploymentId) {
-        Vertx vertx = Vertx.currentContext().owner();
-        return new ConfigUtility(vertx).getConfig().flatMapCompletable(config -> {
-            DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
-            return TerraformFileService.deleteAllDirs(vertx.fileSystem(), deploymentPath.getRootFolder());
-        });
-    }
-
-    /**
-     * Check whether a terraform lock file exists at the tfPath or not. The existence
-     * of this file indicates, that resources may be deployed.
-     *
-     * @param tfPath the root path to a terraform module
-     * @return a Single that emits true if the lock file exists, else false
-     */
-    public Single<Boolean> tfLockFileExists(String tfPath) {
-        Path lockFilePath = Path.of(tfPath, ".terraform.lock.hcl");
-        Vertx vertx = Vertx.currentContext().owner();
-        return vertx.fileSystem().exists(lockFilePath.toString());
-    }
-
     /**
      * Start a container from a deployment.
      *
@@ -296,4 +269,33 @@ public class DeploymentExecutionChecker {
                     .flatMapCompletable(destroyOutput -> persistLogs(destroyOutput, deployment));
             });
     }
+
+    /**
+     * Delete all folders and files that were created for the deployment. This
+     * can be used after the termination of all resources is done.
+     *
+     * @param deploymentId the id of the deployment
+     * @return a Completable
+     */
+    public Completable deleteTFDirs(long deploymentId) {
+        Vertx vertx = Vertx.currentContext().owner();
+        return new ConfigUtility(vertx).getConfig().flatMapCompletable(config -> {
+            DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
+            return TerraformFileService.deleteAllDirs(vertx.fileSystem(), deploymentPath.getRootFolder());
+        });
+    }
+
+    /**
+     * Check whether a terraform lock file exists at the tfPath or not. The existence
+     * of this file indicates, that resources may be deployed.
+     *
+     * @param tfPath the root path to a terraform module
+     * @return a Single that emits true if the lock file exists, else false
+     */
+    public Single<Boolean> tfLockFileExists(String tfPath) {
+        Path lockFilePath = Path.of(tfPath, ".terraform.lock.hcl");
+        Vertx vertx = Vertx.currentContext().owner();
+        return vertx.fileSystem().exists(lockFilePath.toString());
+    }
+
 }

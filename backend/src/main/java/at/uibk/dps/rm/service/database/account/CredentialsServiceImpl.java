@@ -110,7 +110,7 @@ public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> im
                 .thenCompose(session::persist)
                 .thenApply(res -> newCredentials)
         );
-        return transactionToFuture(save).map(credentials -> {
+        return sessionToFuture(save).map(credentials -> {
             credentials.getResourceProvider().setProviderPlatforms(null);
             credentials.getResourceProvider().setEnvironment(null);
             return JsonObject.mapFrom(credentials);

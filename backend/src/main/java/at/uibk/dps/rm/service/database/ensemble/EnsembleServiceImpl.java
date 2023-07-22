@@ -77,11 +77,11 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
                     List<CompletableFuture<Void>> completionStages = new ArrayList<>();
                     completionStages.addAll(createEnsembleSLOs);
                     completionStages.addAll(createResourceEnsembles);
-                    return CompletableFuture.allOf(completionStages.toArray(new CompletableFuture[0]))
+                    return CompletableFuture.allOf(completionStages.toArray(CompletableFuture[]::new))
                         .thenApply(result -> ensemble);
                 })
         );
-        return transactionToFuture(create).map(res -> {
+        return sessionToFuture(create).map(res -> {
             JsonObject returnObject = JsonObject.mapFrom(res);
             returnObject.remove("slos");
             returnObject.remove("regions");

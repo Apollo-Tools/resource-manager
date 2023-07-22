@@ -10,7 +10,6 @@ import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
-import at.uibk.dps.rm.handler.deploymentexecution.DeploymentExecutionHandler;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.*;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;

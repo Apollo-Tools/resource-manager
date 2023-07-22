@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.service.database.deployment;
 
 import at.uibk.dps.rm.annotations.Generated;
+import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.repository.account.AccountRepository;
 import at.uibk.dps.rm.repository.account.CredentialsRepository;
@@ -73,4 +74,6 @@ public interface DeploymentService extends DatabaseServiceInterface {
     Future<JsonObject> findOneByIdAndAccountId(long id, long accountId);
 
     Future<Void> handleDeploymentError(long id, String errorMessage);
+
+    Future<Void> handleDeploymentSuccessful(JsonObject terraformOutput, DeployResourcesDTO request);
 }

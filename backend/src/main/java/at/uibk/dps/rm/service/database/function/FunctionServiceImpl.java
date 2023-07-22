@@ -91,7 +91,7 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
                     return CompletionStages.completedFuture(function);
                 })
         );
-        return transactionToFuture(create)
+        return sessionToFuture(create)
             .map(JsonObject::mapFrom);
     }
 
@@ -121,7 +121,7 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
                 return function;
             })
         );
-        return transactionToFuture(update).mapEmpty();
+        return sessionToFuture(update).mapEmpty();
     }
 
     @Override
@@ -139,7 +139,7 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
                 return deleteFunction;
             })
         );
-        return transactionToFuture(delete);
+        return sessionToFuture(delete);
     }
 
     @Override

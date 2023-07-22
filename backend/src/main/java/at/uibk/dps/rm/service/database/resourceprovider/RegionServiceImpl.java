@@ -81,7 +81,7 @@ public class RegionServiceImpl extends DatabaseServiceProxy<Region> implements R
                     return region;
                 })
         );
-        return transactionToFuture(create).map(result -> {
+        return sessionToFuture(create).map(result -> {
             result.getResourceProvider().setProviderPlatforms(null);
             result.getResourceProvider().setEnvironment(null);
             return JsonObject.mapFrom(result);

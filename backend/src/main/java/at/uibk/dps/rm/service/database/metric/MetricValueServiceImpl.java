@@ -50,7 +50,7 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
             })
             .collect(Collectors.toList());
         CompletionStage<Void> createAll = withTransaction(session -> repository.createAll(session, metricValues));
-        return transactionToFuture(createAll);
+        return sessionToFuture(createAll);
     }
 
     @Override
@@ -117,7 +117,7 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
                     return metricValue;
                 })
         );
-        return transactionToFuture(update).mapEmpty();
+        return sessionToFuture(update).mapEmpty();
     }
 
     @Override

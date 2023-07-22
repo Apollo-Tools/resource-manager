@@ -6,7 +6,6 @@ import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.handler.account.CredentialsChecker;
-import at.uibk.dps.rm.handler.deployment.FunctionDeploymentChecker;
 import at.uibk.dps.rm.handler.deployment.ResourceDeploymentChecker;
 import at.uibk.dps.rm.handler.deployment.ServiceDeploymentChecker;
 import at.uibk.dps.rm.testutil.objectprovider.*;

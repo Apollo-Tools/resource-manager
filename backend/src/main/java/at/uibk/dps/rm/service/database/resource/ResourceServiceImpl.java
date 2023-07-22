@@ -84,7 +84,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
                     .toCompletableFuture()
                 )
                 .collect(Collectors.toList());
-            return CompletableFuture.allOf(checkSLOs.toArray(new CompletableFuture[0]))
+            return CompletableFuture.allOf(checkSLOs.toArray(CompletableFuture[]::new))
                 .thenCompose(result -> {
                     List<String> sloNames = sloRequest.getServiceLevelObjectives().stream()
                         .map(ServiceLevelObjective::getName)
@@ -97,7 +97,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
                 .thenApply(resources -> SLOCompareUtility.filterAndSortResourcesBySLOs(resources,
                     sloRequest.getServiceLevelObjectives()));
         });
-        return transactionToFuture(findAll).map(this::encodeResourceList);
+        return sessionToFuture(findAll).map(this::encodeResourceList);
     }
 
     @Override

@@ -1,17 +1,15 @@
 package at.uibk.dps.rm.router.deployment;
 
+import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.handler.PrivateEntityResultHandler;
 import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.handler.deploymentexecution.DeploymentExecutionChecker;
-import at.uibk.dps.rm.handler.deploymentexecution.DeploymentExecutionHandler;
 import at.uibk.dps.rm.handler.deployment.*;
 import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.reactivex.rxjava3.core.Completable;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 /**
@@ -20,8 +18,6 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
  * @author matthi-g
  */
 public class DeploymentRoute implements Route {
-
-    private static final Logger logger = LoggerFactory.getLogger(DeploymentRoute.class);
 
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
@@ -33,10 +29,8 @@ public class DeploymentRoute implements Route {
             new ResourceDeploymentChecker(serviceProxyProvider.getResourceDeploymentService());
         DeploymentChecker deploymentChecker = new DeploymentChecker(serviceProxyProvider.getDeploymentService());
         /* Handler initialization */
-        DeploymentExecutionHandler deploymentExecutionHandler =
-            new DeploymentExecutionHandler(deploymentExecutionChecker, resourceDeploymentChecker);
         DeploymentErrorHandler deploymentErrorHandler = new DeploymentErrorHandler(deploymentChecker,
-            deploymentExecutionHandler);
+            deploymentExecutionChecker);
         DeploymentHandler deploymentHandler = new DeploymentHandler(deploymentChecker);
         ResultHandler resultHandler = new PrivateEntityResultHandler(deploymentHandler);
 
@@ -54,11 +48,10 @@ public class DeploymentRoute implements Route {
             .handler(rc -> deploymentHandler.postOneToAccount(rc)
                 .map(result -> {
                     DeployResourcesDTO deployResources = result.mapTo(DeployResourcesDTO.class);
-                    deploymentExecutionHandler.deployResources(deployResources)
-                        .doOnError(throwable -> logger.error(throwable.getMessage()))
-                        .onErrorResumeNext(throwable -> deploymentErrorHandler.onDeploymentError(deployResources,
-                            throwable))
-                        .subscribe();
+                    Completable completable = deploymentExecutionChecker.applyResourceDeployment(deployResources)
+                        .flatMapCompletable(tfOutput ->
+                            deploymentChecker.handleDeploymentSuccessful(tfOutput, deployResources));
+                    deploymentErrorHandler.handleDeployResources(completable, deployResources);
                     return result.getJsonObject("deployment");
                 })
                 .subscribe(result -> ResultHandler.getSaveResponse(rc, result),
@@ -70,11 +63,12 @@ public class DeploymentRoute implements Route {
             .handler(rc -> deploymentHandler.cancelDeployment(rc)
                 .flatMapCompletable(terminationJson -> {
                     TerminateResourcesDTO terminateResources = terminationJson.mapTo(TerminateResourcesDTO.class);
-                    deploymentExecutionHandler.terminateResources(terminateResources)
-                        .doOnError(throwable -> logger.error(throwable.getMessage()))
-                        .onErrorResumeNext(throwable ->
-                            deploymentErrorHandler.onTerminationError(terminateResources.getDeployment(), throwable))
-                        .subscribe();
+                    long deploymentId = terminateResources.getDeployment().getDeploymentId();
+                    Completable completable = deploymentExecutionChecker.terminateResources(terminateResources)
+                        .andThen(Completable.defer(() -> deploymentExecutionChecker.deleteTFDirs(deploymentId)))
+                        .andThen(Completable.defer(() -> resourceDeploymentChecker.submitUpdateStatus(deploymentId,
+                            DeploymentStatusValue.TERMINATED)));
+                    deploymentErrorHandler.handleTerminateResources(completable, deploymentId);
                     return Completable.complete();
                 })
                 .subscribe(() -> ResultHandler.getSaveAllUpdateDeleteResponse(rc),

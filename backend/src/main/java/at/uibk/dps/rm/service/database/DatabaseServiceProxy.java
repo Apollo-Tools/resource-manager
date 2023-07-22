@@ -82,7 +82,7 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
         T entity = data.mapTo(entityClass);
         CompletionStage<T> save = withTransaction(session -> session.persist(entity)
             .thenApply(res -> entity));
-        return transactionToFuture(save).map(JsonObject::mapFrom);
+        return sessionToFuture(save).map(JsonObject::mapFrom);
     }
 
     @Override
@@ -97,7 +97,7 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
             .map(object -> ((JsonObject) object).mapTo(entityClass))
             .collect(Collectors.toList());
         CompletionStage<Void> createAll = withTransaction(session -> repository.createAll(session, entities));
-        return transactionToFuture(createAll);
+        return sessionToFuture(createAll);
     }
 
     @Override
@@ -157,7 +157,7 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
                 return session.merge(updatedEntity);
             })
         );
-        return transactionToFuture(update).mapEmpty();
+        return sessionToFuture(update).mapEmpty();
     }
 
     @Override
@@ -168,7 +168,7 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
                 return session.remove(entity);
             })
         );
-        return transactionToFuture(delete);
+        return sessionToFuture(delete);
     }
 
     @Override
@@ -180,7 +180,7 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
                     return session.remove(entity);
                 })
         );
-        return transactionToFuture(delete);
+        return sessionToFuture(delete);
     }
 
     /**
@@ -217,21 +217,9 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
     }
 
     /**
-     * Map a session transaction to a future.
-     *
-     * @param transaction the transaction
-     * @return a Future that emits the result of the transaction
-     * @param <E> any datatype
-     */
-    protected <E> Future<E> transactionToFuture(CompletionStage<E> transaction) {
-        return Future.fromCompletionStage(transaction)
-            .recover(this::recoverFailure);
-    }
-
-    /**
      * Map a session to a future.
      *
-     * @param session the transaction
+     * @param session the session
      * @return a Future that emits the result of the session
      * @param <E> any datatype
      */

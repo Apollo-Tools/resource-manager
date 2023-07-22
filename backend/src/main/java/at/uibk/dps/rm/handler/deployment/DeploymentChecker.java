@@ -1,5 +1,7 @@
 package at.uibk.dps.rm.handler.deployment;
 
+import at.uibk.dps.rm.entity.deployment.ProcessOutput;
+import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.service.rxjava3.database.deployment.DeploymentService;
 import io.reactivex.rxjava3.core.Completable;
@@ -44,5 +46,13 @@ public class DeploymentChecker extends EntityChecker {
      */
     public Completable handleDeploymentError(long id, String errorMessage) {
         return deploymentService.handleDeploymentError(id, errorMessage);
+    }
+
+    /**
+     *
+     */
+    public Completable handleDeploymentSuccessful(ProcessOutput tfOutput, DeployResourcesDTO deployResourcesDTO) {
+        return deploymentService.handleDeploymentSuccessful(new JsonObject(tfOutput.getOutput()),
+            deployResourcesDTO);
     }
 }

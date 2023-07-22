@@ -6,7 +6,6 @@ import at.uibk.dps.rm.entity.model.Log;
 import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.entity.model.DeploymentLog;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
-import at.uibk.dps.rm.handler.deploymentexecution.DeploymentExecutionHandler;
 import at.uibk.dps.rm.handler.log.LogChecker;
 import at.uibk.dps.rm.handler.log.DeploymentLogChecker;
 import at.uibk.dps.rm.handler.util.FileSystemChecker;

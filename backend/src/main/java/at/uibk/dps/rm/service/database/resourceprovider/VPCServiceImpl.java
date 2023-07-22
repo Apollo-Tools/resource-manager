@@ -93,7 +93,7 @@ public class VPCServiceImpl extends DatabaseServiceProxy<VPC> implements VPCServ
                     return vpc;
                 })
         );
-        return transactionToFuture(create).map(this::serializeVPC);
+        return sessionToFuture(create).map(this::serializeVPC);
     }
 
     private JsonObject serializeVPC(VPC vpc) {

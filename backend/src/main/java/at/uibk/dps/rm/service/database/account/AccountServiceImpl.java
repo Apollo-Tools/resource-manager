@@ -47,7 +47,7 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
                 return account;
             })
         );
-        return transactionToFuture(login).map(JsonObject::mapFrom);
+        return sessionToFuture(login).map(JsonObject::mapFrom);
     }
 
     @Override
@@ -65,7 +65,7 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
                         .thenApply(res -> newAccount);
                 })
         );
-        return transactionToFuture(save).map(result -> {
+        return sessionToFuture(save).map(result -> {
             JsonObject returnObject = JsonObject.mapFrom(result);
             returnObject.remove("password");
             return returnObject;
@@ -87,6 +87,6 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
                 account.setPassword(passwordUtility.hashPassword(newPassword));
                 return account;
             }));
-        return transactionToFuture(update).mapEmpty();
+        return sessionToFuture(update).mapEmpty();
     }
 }
