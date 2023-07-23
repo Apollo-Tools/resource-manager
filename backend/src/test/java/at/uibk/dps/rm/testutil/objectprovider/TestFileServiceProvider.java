@@ -63,7 +63,7 @@ public class TestFileServiceProvider {
         credentials.setUsername("user");
         credentials.setAccessToken("access-token");
         DeploymentPath path = new DeploymentPath(1L, TestConfigProvider.getConfig());
-        return new FunctionPrepareService(vertx, functionDeployments, path, credentials);
+        return new FunctionPrepareService(vertx, functionDeployments, path, List.of(credentials));
     }
 
     public static FunctionPrepareService createFunctionFileServiceNoFunctions(Vertx vertx) {
@@ -72,7 +72,7 @@ public class TestFileServiceProvider {
         credentials.setUsername("user");
         credentials.setAccessToken("access-token");
         DeploymentPath path = new DeploymentPath(1L, TestConfigProvider.getConfig());
-        return new FunctionPrepareService(vertx, functionDeployments, path, credentials);
+        return new FunctionPrepareService(vertx, functionDeployments, path, List.of(credentials));
     }
 
     public static FunctionPrepareService createFunctionFileServiceLambdaEc2Python(Vertx vertx) {

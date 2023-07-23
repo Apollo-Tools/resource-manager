@@ -10,8 +10,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -100,21 +98,5 @@ public class FileSystemCheckerTest {
                     assertThat(throwable).isInstanceOf(IOException.class);
                     testContext.completeNow();
                 }));
-    }
-
-    @ParameterizedTest
-    @ValueSource(booleans = {true, false})
-    void checkLockFileExists(boolean exists, VertxTestContext testContext) {
-        String lockFilePath = "./lockfile";
-
-        when(filePathService.tfLocFileExists(lockFilePath)).thenReturn(Single.just(exists));
-
-        fileSystemChecker.checkTFLockFileExists(lockFilePath)
-            .subscribe(result -> testContext.verify(() -> {
-                    assertThat(result).isEqualTo(exists);
-                    testContext.completeNow();
-                }),
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
     }
 }

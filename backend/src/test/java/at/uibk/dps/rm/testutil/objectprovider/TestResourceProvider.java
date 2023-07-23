@@ -1,14 +1,17 @@
 package at.uibk.dps.rm.testutil.objectprovider;
 
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
+import at.uibk.dps.rm.entity.dto.resource.ResourceId;
 import at.uibk.dps.rm.entity.dto.resource.ResourceTypeEnum;
 import at.uibk.dps.rm.entity.model.*;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import lombok.experimental.UtilityClass;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Utility class to instantiate objects that are linked to the resource entity.
@@ -209,5 +212,15 @@ public class TestResourceProvider {
         Resource resource3 = TestResourceProvider.createResource(3L);
         return new JsonArray(List.of(JsonObject.mapFrom(resource1), JsonObject.mapFrom(resource2),
                 JsonObject.mapFrom(resource3)));
+    }
+
+    public static List<ResourceId> createResourceIdsList(long... resourceIds) {
+        return Arrays.stream(resourceIds)
+            .mapToObj(id -> {
+                ResourceId resourceId = new ResourceId();
+                resourceId.setResourceId(id);
+                return resourceId;
+            })
+            .collect(Collectors.toList());
     }
 }
