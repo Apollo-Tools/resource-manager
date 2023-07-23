@@ -2,6 +2,8 @@ package at.uibk.dps.rm.service.database.resource;
 
 import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.entity.dto.resource.ResourceTypeEnum;
+import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
+import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.repository.metric.MetricRepository;
@@ -17,7 +19,6 @@ import io.vertx.junit5.VertxTestContext;
 import org.hibernate.reactive.stage.Stage;
 import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -141,22 +142,25 @@ public class ResourceServiceImplTest {
             })));
     }
 
-    @Disabled
     @Test
     void findAllBySLOs(VertxTestContext testContext) {
-        Metric availability = TestMetricProvider.createMetric(1L, "availabiliy");
-        List<String> metrics = List.of("availability");
-        Resource entity1 = TestResourceProvider.createResource(1L);
+        Metric availability = TestMetricProvider.createMetric(1L, "timeout");
+        ServiceLevelObjective slo1 = new ServiceLevelObjective("timeout", ExpressionType.GT,
+            TestDTOProvider.createSLOValueList(200));
+        List<String> metrics = List.of("timeout");
+        Resource r1 = TestResourceProvider.createResourceLambda(1L, 300.0, 1024.0);
+        Resource r2 = TestResourceProvider.createResourceEC2(1L, 200.0, 1024.0,
+            "t2.micro");
         List<Long> regions = List.of();
         List<Long> resourceProviders = List.of();
         List<Long> resourceTypes = List.of();
         List<Long> platforms = List.of();
         List<Long> environments = List.of();
-        SLORequest sloRequest = TestDTOProvider.createSLORequest();
+        SLORequest sloRequest = TestDTOProvider.createSLORequest(List.of(slo1));
 
         SessionMockHelper.mockSession(sessionFactory, session);
         when(resourceRepository.findAllBySLOs(session, metrics, environments, resourceTypes, platforms, regions,
-            resourceProviders)).thenReturn(CompletionStages.completedFuture(List.of(entity1)));
+            resourceProviders)).thenReturn(CompletionStages.completedFuture(List.of(r1, r2)));
         when(metricRepository.findByMetric(eq(session), any(String.class)))
             .thenReturn(CompletionStages.completedFuture(availability));
 

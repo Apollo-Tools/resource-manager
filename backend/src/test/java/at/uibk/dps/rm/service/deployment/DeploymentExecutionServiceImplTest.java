@@ -10,7 +10,6 @@ import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.service.ServiceProxy;
 import at.uibk.dps.rm.service.deployment.terraform.FunctionPrepareService;
 import at.uibk.dps.rm.service.deployment.terraform.MainFileService;
-import at.uibk.dps.rm.service.deployment.terraform.TerraformFileService;
 import at.uibk.dps.rm.service.deployment.terraform.TerraformSetupService;
 import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
@@ -30,17 +29,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedConstruction;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 
 /**
  * Implements tests for the {@link DeploymentExecutionServiceImpl} class.
@@ -49,7 +41,7 @@ import static org.mockito.ArgumentMatchers.eq;
  */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class DeploymentServiceImplTest {
+public class DeploymentExecutionServiceImplTest {
 
     private DeploymentExecutionService deploymentExecutionService;
 
@@ -81,7 +73,7 @@ public class DeploymentServiceImplTest {
         FunctionsToDeploy functionsToDeploy = TestDTOProvider.createFunctionsToDeploy();
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
-            MockedConstruction<FunctionPrepareService> ignoredFPS = Mockprovider
+             MockedConstruction<FunctionPrepareService> ignoredFPS = Mockprovider
                 .mockFunctionPrepareService(functionsToDeploy)) {
             deploymentExecutionService.packageFunctionsCode(deployRequest)
                 .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -186,39 +178,5 @@ public class DeploymentServiceImplTest {
                     testContext.completeNow();
                 })));
         }
-    }
-
-    @Test
-    void deleteTFDirs(VertxTestContext testContext) {
-        long deploymentId = 1L;
-        Path rootFolder = new DeploymentPath(deploymentId, config).getRootFolder();
-
-        try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
-             MockedStatic<TerraformFileService> mockedStatic = Mockito.mockStatic(TerraformFileService.class)) {
-            mockedStatic.when(() -> TerraformFileService.deleteAllDirs(any(), eq(rootFolder)))
-                .thenReturn(Completable.complete());
-            deploymentExecutionService.deleteTFDirs(deploymentId)
-                .onComplete(testContext.succeedingThenComplete());
-        }
-        testContext.completeNow();
-    }
-
-    @Test
-    void deleteTFDirsFailed(VertxTestContext testContext) {
-        long deploymentId = 1L;
-        JsonObject config = TestConfigProvider.getConfig();
-        Path rootFolder = new DeploymentPath(deploymentId, config).getRootFolder();
-
-        try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
-             MockedStatic<TerraformFileService> mockedStatic = Mockito.mockStatic(TerraformFileService.class)) {
-                mockedStatic.when(() -> TerraformFileService.deleteAllDirs(any(), eq(rootFolder)))
-                    .thenReturn(Completable.error(IOException::new));
-                deploymentExecutionService.deleteTFDirs(deploymentId)
-                    .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
-                        assertThat(throwable).isInstanceOf(IOException.class);
-                        testContext.completeNow();
-                    })));
-        }
-        testContext.completeNow();
     }
 }

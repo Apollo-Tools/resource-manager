@@ -10,10 +10,10 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
-import org.hibernate.reactive.stage.Stage;
+import org.hibernate.reactive.stage.Stage.Session;
+import org.hibernate.reactive.stage.Stage.SessionFactory;
 import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -41,10 +41,10 @@ public class MetricValueServiceImplTest {
     MetricValueRepository metricValueRepository;
 
     @Mock
-    private Stage.SessionFactory sessionFactory;
+    private SessionFactory sessionFactory;
 
     @Mock
-    private Stage.Session session;
+    private Session session;
 
     @BeforeEach
     void initTest() {
@@ -52,7 +52,6 @@ public class MetricValueServiceImplTest {
         metricValueService = new MetricValueServiceImpl(metricValueRepository, sessionFactory);
     }
 
-    @Disabled
     @Test
     void testSaveAll(VertxTestContext testContext) {
         CompletionStage<Void> completionStage = CompletionStages.voidFuture();
@@ -61,16 +60,16 @@ public class MetricValueServiceImplTest {
         List<JsonObject> metricValues = List.of(JsonObject.mapFrom(mv1), JsonObject.mapFrom(mv2));
         metricValues.forEach(entry -> entry.put("resource", new JsonObject("{\"resource_id\": 1}")));
 
-        SessionMockHelper.mockSession(sessionFactory, session);
+        SessionMockHelper.mockTransaction(sessionFactory, session);
         when(metricValueRepository.createAll(eq(session), anyList())).thenReturn(completionStage);
 
         JsonArray data = new JsonArray(metricValues);
 
         metricValueService.saveAll(data)
-                .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                    assertThat(result).isNull();
-                    testContext.completeNow();
-                })));
+            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result).isNull();
+                testContext.completeNow();
+            })));
     }
 
     @Test

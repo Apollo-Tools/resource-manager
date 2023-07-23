@@ -254,17 +254,21 @@ public class TestDTOProvider {
         return Arrays.stream(values).map(TestDTOProvider::createSLOValue).collect(Collectors.toList());
     }
 
-    public static SLORequest createSLORequest() {
+    public static SLORequest createSLORequest(List<ServiceLevelObjective> slos) {
         SLORequest request = new ListResourcesBySLOsRequest();
         request.setEnvironments(List.of(1L));
         request.setResourceTypes(List.of(5L));
         request.setPlatforms(List.of(3L, 4L));
         request.setRegions(List.of(1L, 2L));
         request.setProviders(List.of(5L));
+        request.setServiceLevelObjectives(slos);
+        return request;
+    }
+
+    public static SLORequest createSLORequest() {
         ServiceLevelObjective slo1 = new ServiceLevelObjective("availability", ExpressionType.GT,
                 createSLOValueList(0.8));
-        request.setServiceLevelObjectives(List.of(slo1));
-        return request;
+        return createSLORequest(List.of(slo1));
     }
 
     public static CreateEnsembleRequest createCreateEnsembleRequest(long... resourceIds) {

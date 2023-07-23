@@ -41,8 +41,7 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class DockerImageServiceTest {
-
+public class OpenFaasImageServiceTest {
     private OpenFaasImageService dockerImageService;
 
     private final JsonObject config = TestConfigProvider.getConfig();
@@ -66,7 +65,8 @@ public class DockerImageServiceTest {
         DockerCredentials dockerCredentials = TestDTOProvider.createDockerCredentials();
         List<String> functionIdentifiers = List.of("func_identifier");
         functionsDir = Path.of("./functions");
-        dockerImageService = new OpenFaasImageService(vertx, dockerCredentials, functionIdentifiers, functionsDir);
+        dockerImageService = new OpenFaasImageService(vertx, List.of(dockerCredentials), functionIdentifiers,
+            functionsDir);
     }
 
     @ParameterizedTest
@@ -148,7 +148,8 @@ public class DockerImageServiceTest {
         List<String> functionIdentifiers = List.of();
         functionsDir = Path.of("./functions");
         DockerCredentials dockerCredentials = TestDTOProvider.createDockerCredentials();
-        dockerImageService = new OpenFaasImageService(vertx, dockerCredentials, functionIdentifiers, functionsDir);
+        dockerImageService = new OpenFaasImageService(vertx, List.of(dockerCredentials), functionIdentifiers,
+            functionsDir);
 
         dockerImageService.buildOpenFaasImages(functionString)
             .subscribe(result -> testContext.verify(() -> {
