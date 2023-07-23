@@ -19,8 +19,10 @@ import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
+import io.vertx.rxjava3.core.Vertx;
 import lombok.experimental.UtilityClass;
 import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -29,6 +31,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mockStatic;
 
 /**
  * Utility class to mock (mocked construction) objects for tests.
@@ -175,5 +178,9 @@ public class Mockprovider {
     public static MockedConstruction<RegionFaasFileService> mockRegionFaasFileService(Completable result) {
         return Mockito.mockConstruction(RegionFaasFileService.class,
             (mock, context) -> given(mock.setUpDirectory()).willReturn(result));
+    }
+
+    public static MockedStatic<Vertx> mockVertx() {
+        return mockStatic(Vertx.class);
     }
 }

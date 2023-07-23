@@ -10,6 +10,7 @@ import io.vertx.rxjava3.ext.web.FileUpload;
 import io.vertx.rxjava3.ext.web.RequestBody;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 import lombok.experimental.UtilityClass;
+import org.mockito.Mockito;
 
 import java.util.List;
 
@@ -68,7 +69,8 @@ public class RoutingContextMockHelper {
     public static void mockFileUpload(RoutingContext rc, String filename) {
         FileUpload fileUpload = mock(FileUpload.class);
         when(rc.fileUploads()).thenReturn(List.of(fileUpload));
-        when(fileUpload.uploadedFileName()).thenReturn(filename);
+        Mockito.lenient().when(fileUpload.uploadedFileName()).thenReturn(filename);
+        Mockito.lenient().when(fileUpload.fileName()).thenReturn(filename);
     }
 
     public static void mockHeaders(RoutingContext rc, HttpServerRequest request, MultiMap headers) {
