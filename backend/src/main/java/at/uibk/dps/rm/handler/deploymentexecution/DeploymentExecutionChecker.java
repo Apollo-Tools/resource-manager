@@ -297,5 +297,4 @@ public class DeploymentExecutionChecker {
         Vertx vertx = Vertx.currentContext().owner();
         return vertx.fileSystem().exists(lockFilePath.toString());
     }
-
 }

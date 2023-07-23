@@ -7,6 +7,8 @@ import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.deployment.module.TerraformModule;
 import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateDTO;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
+import at.uibk.dps.rm.service.deployment.docker.LambdaJavaBuildService;
+import at.uibk.dps.rm.service.deployment.docker.LambdaLayerService;
 import at.uibk.dps.rm.service.deployment.docker.OpenFaasImageService;
 import at.uibk.dps.rm.service.deployment.executor.MainTerraformExecutor;
 import at.uibk.dps.rm.service.deployment.executor.ProcessExecutor;
@@ -104,6 +106,18 @@ public class Mockprovider {
                     String.valueOf(resourceDeploymentId));
                 mockTerraformExecutor(mock, containerPath, mode, processOutput);
             });
+    }
+
+    public static MockedConstruction<LambdaJavaBuildService> mockLambdaJavaService(ProcessOutput processOutput) {
+        return Mockito.mockConstruction(LambdaJavaBuildService.class,
+            (mock, context) -> given(mock.buildAndZipJavaFunctions("var/lib/apollo-rm/"))
+                .willReturn(Single.just(processOutput)));
+    }
+
+    public static MockedConstruction<LambdaLayerService> mockLambdaLayerService(ProcessOutput processOutput) {
+        return Mockito.mockConstruction(LambdaLayerService.class,
+            (mock, context) -> given(mock.buildLambdaLayers("var/lib/apollo-rm/"))
+                .willReturn(Single.just(processOutput)));
     }
 
     public static MockedConstruction<ProcessExecutor> mockProcessExecutor(DeploymentPath deploymentPath,

@@ -8,14 +8,20 @@ import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
 import at.uibk.dps.rm.exception.NotFoundException;
+import at.uibk.dps.rm.service.deployment.docker.LambdaJavaBuildService;
+import at.uibk.dps.rm.service.deployment.docker.LambdaLayerService;
 import at.uibk.dps.rm.service.deployment.docker.OpenFaasImageService;
 import at.uibk.dps.rm.service.deployment.executor.MainTerraformExecutor;
 import at.uibk.dps.rm.service.deployment.executor.TerraformExecutor;
+import at.uibk.dps.rm.service.deployment.terraform.TerraformFileService;
 import at.uibk.dps.rm.service.rxjava3.database.log.DeploymentLogService;
 import at.uibk.dps.rm.service.rxjava3.database.log.LogService;
 import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentExecutionService;
 import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
-import at.uibk.dps.rm.testutil.objectprovider.*;
+import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestLogProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestRequestProvider;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
@@ -24,8 +30,9 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.RunTestOnContext;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import io.vertx.rxjava3.core.Vertx;
+import io.vertx.rxjava3.core.file.FileSystem;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -35,14 +42,17 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 /**
@@ -52,7 +62,7 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class DeploymentCheckerTest {
+public class DeploymentExecutionCheckerTest {
 
     @RegisterExtension
     private static final RunTestOnContext rtoc = new RunTestOnContext();
@@ -76,6 +86,9 @@ public class DeploymentCheckerTest {
     @Mock
     private Process processContainer;
 
+    @Mock
+    private Process processBuildLambda;
+
     @BeforeEach
     void initTest() {
         rtoc.vertx();
@@ -83,7 +96,6 @@ public class DeploymentCheckerTest {
         deploymentChecker = new DeploymentExecutionChecker(deploymentExecutionService, logService, deploymentLogService);
     }
 
-    @Disabled
     @ParameterizedTest
     @ValueSource(strings={"valid", "outputFailed", "applyFailed", "initFailed", "initContainersFailed",
         "setupTfModulesFailed", "buildDockerFailed", "packageFunctionsCodeFailed"})
@@ -98,6 +110,7 @@ public class DeploymentCheckerTest {
         ProcessOutput poApply = TestDTOProvider.createProcessOutput(processMainTF, "apply");
         ProcessOutput poOutput = TestDTOProvider.createProcessOutput(processMainTF, "output");
         ProcessOutput poContainer = TestDTOProvider.createProcessOutput(processContainer, "container");
+        ProcessOutput poBuildLambda = TestDTOProvider.createProcessOutput(processBuildLambda, "lambda");
 
         when(deploymentExecutionService.packageFunctionsCode(deployRequest))
             .thenReturn(testCase.equals("packageFunctionsCodeFailed") ? Single.error(IOException::new) :
@@ -125,7 +138,9 @@ public class DeploymentCheckerTest {
              MockedConstruction<MainTerraformExecutor> ignoredMTFE =
                  Mockprovider.mockMainTerraformExecutor(deploymentPath, poInit, poApply, poOutput);
              MockedConstruction<TerraformExecutor> ignoredTFE =
-                 Mockprovider.mockTerraformExecutor(deployRequest, deploymentPath, poContainer, "init")
+                 Mockprovider.mockTerraformExecutor(deployRequest, deploymentPath, poContainer, "init");
+             MockedConstruction<LambdaJavaBuildService> ignoredLJBS = Mockprovider.mockLambdaJavaService(poBuildLambda);
+             MockedConstruction<LambdaLayerService> ignoredLLS = Mockprovider.mockLambdaLayerService(poBuildLambda)
         ) {
             deploymentChecker.applyResourceDeployment(deployRequest)
                 .subscribe(result -> testContext.verify(() -> {
@@ -235,29 +250,6 @@ public class DeploymentCheckerTest {
         }
     }
 
-    @ParameterizedTest
-    @ValueSource(booleans = {true, false})
-    void deleteTFDirs(boolean isValid, VertxTestContext testContext) {
-        long deploymentId = 1L;
-
-        when(deploymentExecutionService.deleteTFDirs(deploymentId))
-            .thenReturn(isValid ? Completable.complete() : Completable.error(IOException::new));
-
-        deploymentChecker.deleteTFDirs(deploymentId)
-            .blockingSubscribe(() -> testContext.verify(() -> {
-                if (!isValid) {
-                    fail("method did not throw exception");
-                }
-            }), throwable -> testContext.verify(() -> {
-                if (isValid) {
-                    fail("method has thrown exception");
-                } else {
-                    assertThat(throwable).isInstanceOf(IOException.class);
-                }
-                testContext.completeNow();
-            }));
-        testContext.completeNow();
-    }
 
     private static Stream<Arguments> provideDeployTerminateContainer() {
         return Stream.of(
@@ -305,4 +297,52 @@ public class DeploymentCheckerTest {
             testContext.completeNow();
         }
     }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void deleteTFDirs(boolean isValid, VertxTestContext testContext) {
+        long deploymentId = 1L;
+
+        try(MockedConstruction<ConfigUtility> ignored = Mockprovider.mockConfig(TestConfigProvider.getConfig());
+            MockedStatic<TerraformFileService> mocked = mockStatic(TerraformFileService.class)) {
+            mocked.when(() -> TerraformFileService.deleteAllDirs(any(FileSystem.class), any(Path.class)))
+                .thenReturn(isValid ? Completable.complete() : Completable.error(IOException::new));
+            deploymentChecker.deleteTFDirs(deploymentId)
+                .blockingSubscribe(() -> testContext.verify(() -> {
+                    if (!isValid) {
+                        fail("method did not throw exception");
+                    }
+                }), throwable -> testContext.verify(() -> {
+                    if (isValid) {
+                        fail("method has thrown exception");
+                    } else {
+                        assertThat(throwable).isInstanceOf(IOException.class);
+                    }
+                    testContext.completeNow();
+                }));
+            testContext.completeNow();
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void tfLockFileExists(boolean exists, VertxTestContext testContext, Vertx vertx) {
+        Path tfPath = Path.of("test-tmp");
+        if (exists) {
+            vertx.fileSystem()
+                .mkdirsBlocking(tfPath.toString())
+                .createFileBlocking(Path.of(tfPath.toString(), ".terraform.lock.hcl").toString());
+        }
+
+        deploymentChecker.tfLockFileExists(tfPath.toString())
+            .subscribe(result -> testContext.verify(() -> {
+                assertThat(result).isEqualTo(exists);
+                if (exists) {
+                    vertx.fileSystem()
+                        .deleteBlocking(Path.of(tfPath.toString(), ".terraform.lock.hcl").toString());
+                }
+                testContext.completeNow();
+            }), throwable -> testContext.verify(() -> fail("method has thrown exception")));
+    }
+
 }
