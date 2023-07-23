@@ -1,8 +1,10 @@
 package at.uibk.dps.rm.handler;
 
+import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.entity.model.ResourceType;
 import at.uibk.dps.rm.handler.resource.ResourceTypeChecker;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
+import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
@@ -77,11 +79,25 @@ public class ValidationHandlerTest {
     }
 
     @Test
+    void deleteOneFromAccount(VertxTestContext testContext) {
+        long entityId = 1L;
+        Account account = TestAccountProvider.createAccount(10L);
+
+        RoutingContextMockHelper.mockUserPrincipal(rc, account);
+        when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
+        when(resourceTypeChecker.submitDelete(10L, entityId)).thenReturn(Completable.complete());
+
+        testClass.deleteOneFromAccount(rc)
+            .blockingSubscribe(() -> {},
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
+            );
+        testContext.completeNow();
+    }
+
+    @Test
     void getOne(VertxTestContext testContext) {
         long entityId = 1L;
-        ResourceType entity = new ResourceType();
-        entity.setTypeId(entityId);
-        entity.setResourceType("cloud");
+        ResourceType entity = TestResourceProvider.createResourceType(entityId, "cloud");
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
         when(resourceTypeChecker.checkFindOne(entityId)).thenReturn(Single.just(JsonObject.mapFrom(entity)));
@@ -97,17 +113,56 @@ public class ValidationHandlerTest {
     }
 
     @Test
+    void getOneFromAccount(VertxTestContext testContext) {
+        long entityId = 1L;
+        ResourceType entity = TestResourceProvider.createResourceType(entityId, "cloud");
+        Account account = TestAccountProvider.createAccount(10L);
+
+        RoutingContextMockHelper.mockUserPrincipal(rc, account);
+        when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
+        when(resourceTypeChecker.checkFindOne(entityId, 10L))
+            .thenReturn(Single.just(JsonObject.mapFrom(entity)));
+
+        testClass.getOneFromAccount(rc)
+            .subscribe(result -> testContext.verify(() -> {
+                    assertThat(result.getLong("type_id")).isEqualTo(entityId);
+                    assertThat(result.getString("resource_type")).isEqualTo("cloud");
+                    testContext.completeNow();
+                }),
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
+            );
+    }
+
+    @Test
     void getAll(VertxTestContext testContext) {
         ResourceType entity1 = TestResourceProvider.createResourceType(1L, "faas");
         ResourceType entity2 = TestResourceProvider.createResourceType(2L, "vm");
-        List<JsonObject> entities = new ArrayList<>();
-        entities.add(JsonObject.mapFrom(entity1));
-        entities.add(JsonObject.mapFrom(entity2));
-        JsonArray resultJson = new JsonArray(entities);
+        JsonArray resultJson = new JsonArray(List.of(JsonObject.mapFrom(entity1), JsonObject.mapFrom(entity2)));
 
         when(resourceTypeChecker.checkFindAll()).thenReturn(Single.just(resultJson));
 
         testClass.getAll(rc)
+            .subscribe(result -> testContext.verify(() -> {
+                    assertThat(result.size()).isEqualTo(2);
+                    assertThat(result.getJsonObject(0).getLong("type_id")).isEqualTo(1L);
+                    assertThat(result.getJsonObject(1).getLong("type_id")).isEqualTo(2L);
+                    testContext.completeNow();
+                }),
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
+            );
+    }
+
+    @Test
+    void getAllFromAccount(VertxTestContext testContext) {
+        ResourceType entity1 = TestResourceProvider.createResourceType(1L, "faas");
+        ResourceType entity2 = TestResourceProvider.createResourceType(2L, "vm");
+        JsonArray resultJson = new JsonArray(List.of(JsonObject.mapFrom(entity1), JsonObject.mapFrom(entity2)));
+        Account account = TestAccountProvider.createAccount(10L);
+
+        RoutingContextMockHelper.mockUserPrincipal(rc, account);
+        when(resourceTypeChecker.checkFindAll(10L)).thenReturn(Single.just(resultJson));
+
+        testClass.getAllFromAccount(rc)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(2);
                     assertThat(result.getJsonObject(0).getLong("type_id")).isEqualTo(1L);
@@ -127,6 +182,26 @@ public class ValidationHandlerTest {
         when(resourceTypeChecker.submitCreate(requestBody)).thenReturn(Single.just(requestBody));
 
         testClass.postOne(rc)
+            .subscribe(result -> testContext.verify(() -> {
+                    assertThat(result.getLong("type_id")).isEqualTo(1L);
+                    assertThat(result.getString("resource_type")).isEqualTo("vm");
+                    testContext.completeNow();
+                }),
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
+            );
+    }
+
+    @Test
+    void postOneToAccount(VertxTestContext testContext) {
+        JsonObject requestBody = JsonObject.mapFrom(TestResourceProvider
+            .createResourceType(1L, "vm"));
+        Account account = TestAccountProvider.createAccount(10L);
+
+        RoutingContextMockHelper.mockBody(rc, requestBody);
+        RoutingContextMockHelper.mockUserPrincipal(rc, account);
+        when(resourceTypeChecker.submitCreate(10L, requestBody)).thenReturn(Single.just(requestBody));
+
+        testClass.postOneToAccount(rc)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.getLong("type_id")).isEqualTo(1L);
                     assertThat(result.getString("resource_type")).isEqualTo("vm");

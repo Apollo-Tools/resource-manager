@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.handler.resource;
 
 import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
-import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
@@ -14,7 +13,6 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -61,7 +59,7 @@ public class ResourceSLOHandlerTest {
     void validateNewResourceEnsembleSLOsValid(long resourceId1, long resourceId2a, long resourceId2b, boolean isValid,
             VertxTestContext testContext) {
         CreateEnsembleRequest sloRequest = TestDTOProvider.createCreateEnsembleRequest(resourceId1, resourceId2a);
-        mockGetResourcesBySLOsValid(sloRequest, resourceId1, resourceId2b);
+        mockGetResourcesBySLOsValid(resourceId1, resourceId2b);
 
         RoutingContextMockHelper.mockBody(rc, JsonObject.mapFrom(sloRequest));
         handler.validateNewResourceEnsembleSLOs(rc);
@@ -74,11 +72,10 @@ public class ResourceSLOHandlerTest {
         testContext.completeNow();
     }
 
-    @Disabled
     @Test
     void validateExistingEnsemble(VertxTestContext testContext) {
         GetOneEnsemble sloRequest = TestDTOProvider.createGetOneEnsemble();
-        mockGetResourcesBySLOsValid(sloRequest, 1L, 3L);
+        mockGetResourcesBySLOsValid(1L, 3L);
 
         handler.validateExistingEnsemble(JsonObject.mapFrom(sloRequest))
             .subscribe(result -> testContext.verify(() -> {
@@ -93,10 +90,10 @@ public class ResourceSLOHandlerTest {
             );
     }
 
-    private void mockGetResourcesBySLOsValid(SLORequest sloRequest, long resourceId1, long resourceId2) {
+    private void mockGetResourcesBySLOsValid(long resourceId1, long resourceId2) {
         Resource resource1 = TestResourceProvider.createResource(resourceId1);
         Resource resource2 = TestResourceProvider.createResource(resourceId2);
         JsonArray resourcesJson = new JsonArray(List.of(JsonObject.mapFrom(resource1), JsonObject.mapFrom(resource2)));
-        when(resourceChecker.checkFindAllBySLOs(JsonObject.mapFrom(sloRequest))).thenReturn(Single.just(resourcesJson));
+        when(resourceChecker.checkFindAllBySLOs(any(JsonObject.class))).thenReturn(Single.just(resourcesJson));
     }
 }

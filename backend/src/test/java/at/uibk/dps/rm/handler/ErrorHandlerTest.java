@@ -191,4 +191,88 @@ public class ErrorHandlerTest {
                     testContext.completeNow();
                 }));
     }
+
+    @Test
+    void handleCredentialsExistTrue(VertxTestContext testContext) {
+        Single<Boolean> handler = Single.just(true);
+
+        ErrorHandler.handleCredentialsExist(handler)
+            .subscribe(result -> testContext.verify(() -> {
+                    assertThat(result).isEqualTo(true);
+                    testContext.completeNow();
+                }),
+                throwable -> testContext.verify(() -> fail("method throw exception")));
+    }
+
+    @Test
+    void handleCredentialsExistFalse(VertxTestContext testContext) {
+        Single<Boolean> handler = Single.just(false);
+
+        ErrorHandler.handleCredentialsExist(handler)
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(UnauthorizedException.class);
+                    testContext.completeNow();
+                }));
+    }
+
+    @Test
+    void handleMissingRequiredMetricsFalse(VertxTestContext testContext) {
+        Single<Boolean> handler = Single.just(false);
+
+        ErrorHandler.handleMissingRequiredMetrics(handler)
+            .subscribe(result -> testContext.verify(() -> {
+                    assertThat(result).isEqualTo(false);
+                    testContext.completeNow();
+                }),
+                throwable -> testContext.verify(() -> fail("method throw exception")));
+    }
+
+    @Test
+    void handleMissingRequiredMetricsTrue(VertxTestContext testContext) {
+        Single<Boolean> handler = Single.just(true);
+
+        ErrorHandler.handleMissingRequiredMetrics(handler)
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(NotFoundException.class);
+                    testContext.completeNow();
+                }));
+    }
+
+    @Test
+    void handleTemplateHasContentNotNull(VertxTestContext testContext) {
+        Single<String> handler = Single.just("content");
+
+        ErrorHandler.handleTemplateHasContent(handler)
+            .subscribe(result -> testContext.verify(() -> {
+                    assertThat(result).isEqualTo("content");
+                    testContext.completeNow();
+                }),
+                throwable -> testContext.verify(() -> fail("method throw exception")));
+    }
+
+    @Test
+    void handleTemplateHasContentNull(VertxTestContext testContext) {
+        Single<String> handler = SingleHelper.getEmptySingle();
+
+        ErrorHandler.handleTemplateHasContent(handler)
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(NotFoundException.class);
+                    testContext.completeNow();
+                }));
+    }
+
+    @Test
+    void handleTemplateHasContentBlank(VertxTestContext testContext) {
+        Single<String> handler = Single.just("");
+
+        ErrorHandler.handleTemplateHasContent(handler)
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(NotFoundException.class);
+                    testContext.completeNow();
+                }));
+    }
 }
