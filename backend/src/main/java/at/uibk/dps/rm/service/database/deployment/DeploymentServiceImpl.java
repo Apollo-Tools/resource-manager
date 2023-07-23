@@ -14,14 +14,7 @@ import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
-import at.uibk.dps.rm.repository.account.AccountRepository;
-import at.uibk.dps.rm.repository.account.CredentialsRepository;
-import at.uibk.dps.rm.repository.deployment.*;
-import at.uibk.dps.rm.repository.function.FunctionRepository;
-import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
-import at.uibk.dps.rm.repository.resource.ResourceRepository;
-import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
-import at.uibk.dps.rm.repository.service.ServiceRepository;
+import at.uibk.dps.rm.repository.DeploymentRepositoryProvider;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import at.uibk.dps.rm.util.misc.MetricValueMapper;
 import at.uibk.dps.rm.util.validation.ServiceResultValidator;
@@ -47,57 +40,17 @@ import java.util.stream.Stream;
  */
 public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> implements DeploymentService {
 
-    private final DeploymentRepository repository;
-
-    private final ResourceDeploymentRepository resourceDeploymentRepository;
-
-    private final FunctionDeploymentRepository functionDeploymentRepository;
-
-    private final ServiceDeploymentRepository serviceDeploymentRepository;
-
-    private final ResourceDeploymentStatusRepository statusRepository;
-
-    private final FunctionRepository functionRepository;
-
-    private final ServiceRepository serviceRepository;
-
-    private final ResourceRepository resourceRepository;
-
-    private final PlatformMetricRepository platformMetricRepository;
-
-    private final VPCRepository vpcRepository;
-
-    private final CredentialsRepository credentialsRepository;
-
-    private final AccountRepository accountRepository;
+    private final DeploymentRepositoryProvider repositoryProvider;
 
     /**
-     * Create an instance from the deploymentRepository.
+     * Create an instance from the repository provider
      *
-     * @param repository the deployment repository
+     * @param repositoryProvider the necessary repositories
      */
-    public DeploymentServiceImpl(DeploymentRepository repository,
-            ResourceDeploymentRepository resourceDeploymentRepository,
-            FunctionDeploymentRepository functionDeploymentRepository,
-            ServiceDeploymentRepository serviceDeploymentRepository,
-            ResourceDeploymentStatusRepository statusRepository, FunctionRepository functionRepository,
-            ServiceRepository serviceRepository, ResourceRepository resourceRepository,
-            PlatformMetricRepository platformMetricRepository, VPCRepository vpcRepository,
-            CredentialsRepository credentialsRepository, AccountRepository accountRepository,
+    public DeploymentServiceImpl(DeploymentRepositoryProvider repositoryProvider,
             SessionFactory sessionFactory) {
-        super(repository, Deployment.class, sessionFactory);
-        this.repository = repository;
-        this.resourceDeploymentRepository = resourceDeploymentRepository;
-        this.functionDeploymentRepository = functionDeploymentRepository;
-        this.serviceDeploymentRepository = serviceDeploymentRepository;
-        this.statusRepository = statusRepository;
-        this.functionRepository = functionRepository;
-        this.serviceRepository = serviceRepository;
-        this.resourceRepository = resourceRepository;
-        this.platformMetricRepository = platformMetricRepository;
-        this.vpcRepository = vpcRepository;
-        this.credentialsRepository = credentialsRepository;
-        this.accountRepository = accountRepository;
+        super(repositoryProvider.getDeploymentRepository(), Deployment.class, sessionFactory);
+        this.repositoryProvider = repositoryProvider;
     }
 
     @Override
@@ -106,11 +59,13 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
         terminateResources.setFunctionDeployments(new ArrayList<>());
         terminateResources.setServiceDeployments(new ArrayList<>());
         CompletionStage<TerminateResourcesDTO> update = withTransaction(session ->
-            repository.findByIdAndAccountId(session, id, accountId)
+            repositoryProvider.getDeploymentRepository()
+                .findByIdAndAccountId(session, id, accountId)
                 .thenCompose(deployment -> {
                     ServiceResultValidator.checkFound(deployment, Deployment.class);
                     terminateResources.setDeployment(deployment);
-                    return resourceDeploymentRepository.findAllByDeploymentIdAndFetch(session, id)
+                    return repositoryProvider.getResourceDeploymentRepository()
+                        .findAllByDeploymentIdAndFetch(session, id)
                         .thenCompose(resourceDeployments -> {
                             long deployedAmount = resourceDeployments.stream().filter(resourceDeployment ->
                                 DeploymentStatusValue.fromDeploymentStatus(resourceDeployment.getStatus())
@@ -119,12 +74,13 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                             if (resourceDeployments.isEmpty() || deployedAmount != resourceDeployments.size()) {
                                 throw new BadInputException("invalid deployment state");
                             }
-                            return statusRepository.findOneByStatusValue(session,
-                                    DeploymentStatusValue.TERMINATING.getValue())
+                            return repositoryProvider.getStatusRepository()
+                                .findOneByStatusValue(session, DeploymentStatusValue.TERMINATING.getValue())
                                 .thenAccept(status -> resourceDeployments
                                     .forEach(resourceDeployment -> resourceDeployment.setStatus(status)));
                         })
-                        .thenCompose(res -> credentialsRepository.findAllByAccountId(session, accountId)
+                        .thenCompose(res -> repositoryProvider.getCredentialsRepository()
+                            .findAllByAccountId(session, accountId)
                             .thenAccept(terminateResources::setCredentialsList))
                         .thenCompose(res -> mapResourceDeploymentsToDTO(session, terminateResources))
                         .thenApply(res -> terminateResources);
@@ -138,7 +94,8 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
     public Future<JsonArray> findAllByAccountId(long accountId) {
         List<DeploymentResponse> deploymentResponses = new ArrayList<>();
         CompletionStage<List<DeploymentResponse>> findAll = withSession(session ->
-            repository.findAllByAccountId(session, accountId)
+            repositoryProvider.getDeploymentRepository()
+                .findAllByAccountId(session, accountId)
                 .thenCompose(deployments -> {
                     List<CompletableFuture<Void>> completables = new ArrayList<>();
                     for (Deployment deployment : deployments) {
@@ -166,8 +123,8 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
         deploymentResponse.setDeploymentId(deployment.getDeploymentId());
         deploymentResponse.setCreatedAt(deployment.getCreatedAt());
         deploymentResponses.add(deploymentResponse);
-        return resourceDeploymentRepository.findAllByDeploymentIdAndFetch(session,
-            deployment.getDeploymentId())
+        return repositoryProvider.getResourceDeploymentRepository()
+            .findAllByDeploymentIdAndFetch(session, deployment.getDeploymentId())
             .thenAccept(resourceDeployments -> {
                 DeploymentStatusValue crucialDeploymentStatus =
                     checkCrucialResourceDeploymentStatus(resourceDeployments);
@@ -177,6 +134,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
     }
 
 
+    // TODO: refactor into separate class
     /**
      * Get the crucial resource deployment status based on all resource deployments of a single
      * deployment.
@@ -205,6 +163,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
         return DeploymentStatusValue.TERMINATED;
     }
 
+    // TODO: refactor into separate class
     /**
      * Check if at least one status of resourceDeployments matches the given status value.
      *
@@ -223,17 +182,18 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
     public Future<JsonObject> findOneByIdAndAccountId(long id, long accountId) {
         DeploymentWithResourcesDTO result = new DeploymentWithResourcesDTO();
         CompletionStage<DeploymentWithResourcesDTO> findOne = withSession(session ->
-            repository.findByIdAndAccountId(session, id, accountId)
+            repositoryProvider.getDeploymentRepository()
+                .findByIdAndAccountId(session, id, accountId)
                 .thenCompose(deployment -> {
                     ServiceResultValidator.checkFound(deployment, Deployment.class);
                     result.setDeploymentId(id);
                     result.setIsActive(deployment.getIsActive());
                     result.setCreatedAt(deployment.getCreatedAt());
-                    return functionDeploymentRepository.findAllByDeploymentId(session, id);
+                    return repositoryProvider.getFunctionDeploymentRepository().findAllByDeploymentId(session, id);
                 })
                 .thenCompose(functionDeployments -> {
                     result.setFunctionResources(functionDeployments);
-                    return serviceDeploymentRepository.findAllByDeploymentId(session, id);
+                    return repositoryProvider.getServiceDeploymentRepository().findAllByDeploymentId(session, id);
                 })
                 .thenApply(serviceDeployments -> {
                     result.setServiceResources(serviceDeployments);
@@ -267,7 +227,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
         deployResources.setDeploymentCredentials(request.getCredentials());
         deployResources.setVpcList(new ArrayList<>());
         CompletionStage<DeployResourcesDTO> save = withTransaction(session ->
-            accountRepository.findById(session, accountId)
+            repositoryProvider.getAccountRepository().findById(session, accountId)
                 .thenCompose(account -> {
                     if (account == null) {
                         throw new UnauthorizedException();
@@ -278,7 +238,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                         .thenAccept(res -> session.flush());
                 })
                 .thenCompose(result -> checkDeploymentIsValid(session, accountId, request, deployResources))
-                .thenCompose(resources -> statusRepository
+                .thenCompose(resources -> repositoryProvider.getStatusRepository()
                     .findOneByStatusValue(session, DeploymentStatusValue.NEW.name())
                     .thenApply(status -> {
                         ServiceResultValidator.checkFound(status, ResourceDeploymentStatus.class);
@@ -292,7 +252,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                         return CompletableFuture.allOf(saveFunctionDeployments, saveServiceDeployments);
                     })
                 )
-                .thenCompose(res -> credentialsRepository.findAllByAccountId(session, accountId)
+                .thenCompose(res -> repositoryProvider.getCredentialsRepository().findAllByAccountId(session, accountId)
                     .thenAccept(deployResources::setCredentialsList))
         )
         .thenCompose(res -> withSession(session -> mapResourceDeploymentsToDTO(session, deployResources)
@@ -336,36 +296,37 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
             .flatMap(Set::stream)
             .collect(Collectors.toList());
 
-        return functionRepository.findAllByIds(session, functionIds)
+        return repositoryProvider.getFunctionRepository().findAllByIds(session, functionIds)
             .thenAccept(functions -> {
                 if (functions.size() < functionIds.size()) {
                     throw new NotFoundException(Function.class);
                 }
             })
-            .thenCompose(result -> serviceRepository.findAllByIds(session, serviceIds)
+            .thenCompose(result -> repositoryProvider.getServiceRepository().findAllByIds(session, serviceIds)
                 .thenAccept(services -> {
                     if (services.size() < serviceIds.size()) {
                         throw new NotFoundException(Service.class);
                     }
                 })
             )
-            .thenCompose(result -> resourceRepository.findAllByResourceIdsAndResourceTypes(session,
-                    serviceResourceIds, serviceResourceTypes)
+            .thenCompose(result -> repositoryProvider.getResourceRepository()
+                .findAllByResourceIdsAndResourceTypes(session,serviceResourceIds, serviceResourceTypes)
                 .thenAccept(resources -> {
                     if (resources.size() < serviceResourceIds.size()) {
                         throw new NotFoundException(Resource.class);
                     }
                 })
             )
-            .thenCompose(result -> resourceRepository.findAllByResourceIdsAndResourceTypes(session,
-                    functionResourceIds, functionResourceTypes)
+            .thenCompose(result -> repositoryProvider.getResourceRepository()
+                .findAllByResourceIdsAndResourceTypes(session, functionResourceIds, functionResourceTypes)
                 .thenAccept(resources -> {
                     if (resources.size() < functionResourceIds.size()) {
                         throw new NotFoundException(Resource.class);
                     }
                 })
             )
-            .thenCompose(result -> resourceRepository.findAllByResourceIdsAndFetch(session, allResourceIds))
+            .thenCompose(result -> repositoryProvider.getResourceRepository()
+                .findAllByResourceIdsAndFetch(session, allResourceIds))
             .thenCompose(resources -> {
                 CompletableFuture<Void> checkResources = checkResourcesForDeployment(session, accountId, resources,
                     deployResources);
@@ -405,7 +366,8 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
         Set<Long> resourceProviderIds, List<CompletableFuture<Void>> completables) {
         if (!resourceProviderIds.contains(providerId) && (platform.equals(PlatformEnum.LAMBDA) ||
             platform.equals(PlatformEnum.EC2))) {
-            completables.add(credentialsRepository.findByAccountIdAndProviderId(session, accountId, providerId)
+            completables.add(repositoryProvider.getCredentialsRepository()
+                .findByAccountIdAndProviderId(session, accountId, providerId)
                 .thenAccept(credentials -> {
                     if (credentials == null) {
                         throw new UnauthorizedException("missing credentials for " + platform);
@@ -431,7 +393,8 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
     private void checkMissingVPC(Session session, long accountId, long regionId, PlatformEnum platform,
         Set<Long> regionIds, DeployResourcesDTO deployResourcesDTO, List<CompletableFuture<Void>> completables) {
         if (!regionIds.contains(regionId) && platform.equals(PlatformEnum.EC2)) {
-            completables.add(vpcRepository.findByRegionIdAndAccountId(session, regionId, accountId)
+            completables.add(repositoryProvider.getVpcRepository()
+                .findByRegionIdAndAccountId(session, regionId, accountId)
                 .thenAccept(vpc -> {
                     ServiceResultValidator.checkFound(vpc, VPC.class);
                     Region region = Hibernate.unproxy(vpc.getRegion(), Region.class);
@@ -446,7 +409,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
 
     private CompletableFuture<Void> checkMissingRequiredMetrics(Session session, List<Resource> resources) {
         List<CompletableFuture<Void>> checkMissingRequiredMetrics = resources.stream()
-            .map(resource -> platformMetricRepository
+            .map(resource -> repositoryProvider.getPlatformMetricRepository()
                 .countMissingRequiredMetricValuesByResourceId(session, resource.getResourceId())
                 .thenAccept(missingRequiredMetrics -> {
                     if (missingRequiredMetrics > 0) {
@@ -464,7 +427,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
             .stream()
             .map(functionResourceIds -> createNewResourceDeployment(deployment, functionResourceIds, status))
             .collect(Collectors.toList());
-        return functionDeploymentRepository.createAll(session, functionDeployments)
+        return repositoryProvider.getFunctionDeploymentRepository().createAll(session, functionDeployments)
             .toCompletableFuture();
     }
 
@@ -485,7 +448,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                     kubeConfig, status);
             })
             .collect(Collectors.toList());
-        return serviceDeploymentRepository.createAll(session, serviceDeployments)
+        return repositoryProvider.getServiceDeploymentRepository().createAll(session, serviceDeployments)
             .toCompletableFuture();
     }
 
@@ -550,15 +513,16 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
      */
     private CompletionStage<Void> mapResourceDeploymentsToDTO(Session session, DeployTerminateDTO request) {
         long deploymentId = request.getDeployment().getDeploymentId();
-        return functionDeploymentRepository.findAllByDeploymentId(session, deploymentId)
+        return repositoryProvider.getFunctionDeploymentRepository().findAllByDeploymentId(session, deploymentId)
             .thenAccept(request::setFunctionDeployments)
-            .thenCompose(res -> serviceDeploymentRepository.findAllByDeploymentId(session, deploymentId))
+            .thenCompose(res -> repositoryProvider.getServiceDeploymentRepository().findAllByDeploymentId(session,
+                deploymentId))
             .thenAccept(request::setServiceDeployments);
     }
 
     public Future<Void> handleDeploymentError(long id, String errorMessage) {
         CompletionStage<Void> handleError = withTransaction(session -> {
-            CompletableFuture<Integer> updateStatus = resourceDeploymentRepository
+            CompletableFuture<Integer> updateStatus = repositoryProvider.getResourceDeploymentRepository()
                 .updateDeploymentStatusByDeploymentId(session, id, DeploymentStatusValue.ERROR)
                 .toCompletableFuture();
             Log log = new Log();
@@ -585,8 +549,9 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                 deploymentOutput.getFunctionUrls().getValue().entrySet(), request));
             completables.addAll(setTriggerUrlForContainers(session, request));
             return CompletableFuture.allOf(completables.toArray(CompletableFuture[]::new))
-                .thenCompose(res -> resourceDeploymentRepository.updateDeploymentStatusByDeploymentId(session,
-                    request.getDeployment().getDeploymentId(), DeploymentStatusValue.DEPLOYED))
+                .thenCompose(res -> repositoryProvider.getResourceDeploymentRepository()
+                    .updateDeploymentStatusByDeploymentId(session, request.getDeployment().getDeploymentId(),
+                        DeploymentStatusValue.DEPLOYED))
                 .thenAccept(res -> {});
         });
 
@@ -630,9 +595,8 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                 functionDeployment))
             .findFirst()
             .ifPresent(functionDeployment ->
-                completables.add(resourceDeploymentRepository.updateTriggerUrl(session,
-                        functionDeployment.getResourceDeploymentId(), triggerUrl).toCompletableFuture()
-                )
+                completables.add(repositoryProvider.getResourceDeploymentRepository().updateTriggerUrl(session,
+                        functionDeployment.getResourceDeploymentId(), triggerUrl).toCompletableFuture())
             );
     }
 
@@ -658,9 +622,8 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
             String triggerUrl = String.format("/deployments/%s/%s/startup",
                 request.getDeployment().getDeploymentId(),
                 serviceDeployment.getResourceDeploymentId()) ;
-            completables.add(resourceDeploymentRepository.updateTriggerUrl(session,
-                serviceDeployment.getResourceDeploymentId(), triggerUrl).toCompletableFuture()
-            );
+            completables.add(repositoryProvider.getResourceDeploymentRepository().updateTriggerUrl(session,
+                serviceDeployment.getResourceDeploymentId(), triggerUrl).toCompletableFuture());
         }
         return completables;
     }

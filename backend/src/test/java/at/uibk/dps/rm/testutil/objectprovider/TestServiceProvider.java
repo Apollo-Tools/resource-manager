@@ -58,7 +58,7 @@ public class TestServiceProvider {
 
 
     public static ServiceDeployment createServiceDeployment(long id, Service service, Resource resource,
-            boolean isDeployed, Deployment deployment) {
+            boolean isDeployed, Deployment deployment, ResourceDeploymentStatus status) {
         ServiceDeployment serviceDeployment = new ServiceDeployment();
         serviceDeployment.setResourceDeploymentId(id);
         serviceDeployment.setService(service);
@@ -67,7 +67,14 @@ public class TestServiceProvider {
         serviceDeployment.setDeployment(deployment);
         serviceDeployment.setContext("k8s-context");
         serviceDeployment.setNamespace("default");
+        serviceDeployment.setStatus(status);
         return serviceDeployment;
+    }
+
+    public static ServiceDeployment createServiceDeployment(long id, Service service, Resource resource,
+            boolean isDeployed, Deployment deployment) {
+        ResourceDeploymentStatus status = TestDeploymentProvider.createResourceDeploymentStatusNew();
+        return createServiceDeployment(id, service, resource, isDeployed, deployment, status);
     }
 
     public static ServiceDeployment createServiceDeployment(long id, long resourceId, Deployment deployment) {
@@ -83,6 +90,17 @@ public class TestServiceProvider {
     public static ServiceDeployment createServiceDeployment(long id, Resource resource, Deployment deployment) {
         Service service = createService(22L, "test");
         return createServiceDeployment(id, service, resource, false, deployment);
+    }
+
+    public static ServiceDeployment createServiceDeployment(long id, Resource resource, Deployment deployment,
+            ResourceDeploymentStatus status) {
+        Service service = createService(22L, "test");
+        return createServiceDeployment(id, service, resource, false, deployment, status);
+    }
+
+    public static ServiceDeployment createServiceDeployment(long id, Resource resource) {
+        Deployment deployment = TestDeploymentProvider.createDeployment(1L);
+        return createServiceDeployment(id, resource, deployment);
     }
 
     public static ServiceDeployment createServiceDeployment(long id, Service service, Resource resource) {

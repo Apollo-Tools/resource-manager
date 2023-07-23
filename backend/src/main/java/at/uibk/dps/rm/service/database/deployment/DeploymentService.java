@@ -3,14 +3,7 @@ package at.uibk.dps.rm.service.database.deployment;
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.model.Deployment;
-import at.uibk.dps.rm.repository.account.AccountRepository;
-import at.uibk.dps.rm.repository.account.CredentialsRepository;
-import at.uibk.dps.rm.repository.deployment.*;
-import at.uibk.dps.rm.repository.function.FunctionRepository;
-import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
-import at.uibk.dps.rm.repository.resource.ResourceRepository;
-import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
-import at.uibk.dps.rm.repository.service.ServiceRepository;
+import at.uibk.dps.rm.repository.DeploymentRepositoryProvider;
 import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -35,11 +28,7 @@ public interface DeploymentService extends DatabaseServiceInterface {
     @Generated
     @GenIgnore
     static DeploymentService create(Stage.SessionFactory sessionFactory) {
-        return new DeploymentServiceImpl(new DeploymentRepository(), new ResourceDeploymentRepository(),
-            new FunctionDeploymentRepository(), new ServiceDeploymentRepository(),
-            new ResourceDeploymentStatusRepository(), new FunctionRepository(), new ServiceRepository(),
-            new ResourceRepository(), new PlatformMetricRepository(), new VPCRepository(),
-            new CredentialsRepository(), new AccountRepository(), sessionFactory);
+        return new DeploymentServiceImpl(new DeploymentRepositoryProvider(), sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
