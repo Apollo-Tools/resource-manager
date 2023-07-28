@@ -1,7 +1,9 @@
 package at.uibk.dps.rm.handler.ensemble;
 
 import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
+import at.uibk.dps.rm.entity.model.Ensemble;
 import at.uibk.dps.rm.util.validation.CollectionValidator;
+import at.uibk.dps.rm.util.validation.EntityNameValidator;
 import at.uibk.dps.rm.util.validation.ExpressionValidator;
 import at.uibk.dps.rm.util.validation.JsonArrayValidator;
 import io.reactivex.rxjava3.core.Completable;
@@ -26,7 +28,8 @@ public class EnsembleInputHandler {
     public static void validateCreateEnsembleRequest(RoutingContext rc) {
         JsonObject body = rc.body().asJsonObject();
         ExpressionValidator.checkExpressionAreValid(body.getJsonArray("slos"))
-            .concatWith(Completable.defer(() -> checkArrayDuplicates(body)))
+            .andThen(EntityNameValidator.checkName(body.getString("name"), Ensemble.class))
+            .andThen(checkArrayDuplicates(body))
             .subscribe(rc::next, throwable -> rc.fail(400, throwable));
     }
 

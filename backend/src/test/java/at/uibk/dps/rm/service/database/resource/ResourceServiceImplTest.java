@@ -9,6 +9,7 @@ import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
+import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestMetricProvider;
@@ -48,6 +49,9 @@ public class ResourceServiceImplTest {
     private ResourceRepository resourceRepository;
 
     @Mock
+    private RegionRepository regionRepository;
+
+    @Mock
     private MetricRepository metricRepository;
 
     @Mock
@@ -59,7 +63,8 @@ public class ResourceServiceImplTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        resourceService = new ResourceServiceImpl(resourceRepository, metricRepository, sessionFactory);
+        resourceService = new ResourceServiceImpl(resourceRepository, regionRepository, metricRepository,
+            sessionFactory);
     }
 
     @Test

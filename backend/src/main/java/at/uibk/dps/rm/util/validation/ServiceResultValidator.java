@@ -27,6 +27,19 @@ public class ServiceResultValidator {
     }
 
     /**
+     * Check if an object is null or not and throw {@link NotFoundException} with the message if
+     * it is null.
+     *
+     * @param object the object to check
+     * @param message the error message
+     */
+    public static void checkFound(Object object, String message) {
+        if (object == null) {
+            throw new NotFoundException(message);
+        }
+    }
+
+    /**
      * Check if an object is null or not and throw {@link AlreadyExistsException} if
      * it is not null.
      *

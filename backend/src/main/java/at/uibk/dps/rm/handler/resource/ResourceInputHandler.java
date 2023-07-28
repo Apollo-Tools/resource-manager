@@ -1,7 +1,10 @@
 package at.uibk.dps.rm.handler.resource;
 
+import at.uibk.dps.rm.entity.model.Resource;
+import at.uibk.dps.rm.util.validation.EntityNameValidator;
 import at.uibk.dps.rm.util.validation.JsonArrayValidator;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 import lombok.experimental.UtilityClass;
 
@@ -13,6 +16,13 @@ import lombok.experimental.UtilityClass;
  */
 @UtilityClass
 public class ResourceInputHandler {
+
+    public static void validateAddResourceRequest(RoutingContext rc) {
+        JsonObject requestBody = rc.body().asJsonObject();
+        String resourceName = requestBody.getString("name");
+        EntityNameValidator.checkName(resourceName, Resource.class)
+            .subscribe(rc::next, throwable -> rc.fail(400, throwable));
+    }
 
     /**
      * Validate if a add metrics request contains duplicated metrics.

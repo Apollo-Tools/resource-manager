@@ -420,10 +420,17 @@ paths:
             schema:
               type: object
               required:
+                - name
                 - region
                 - platform
               additionalProperties: false
               properties:
+                name:
+                  type: string
+                  minLength: 3
+                  maxLength: 256
+                  example: newresource
+                  description: only lower case letters or digits are allowed
                 region:
                   type: object
                   required:
@@ -923,7 +930,8 @@ paths:
                   type: string
                   minLength: 1
                   maxLength: 64
-                  example: my-ensemble
+                  example: myensemble
+                  description: only lower case letters or digits are allowed
                 slos:
                   $ref: "#/components/schemas/Slos"
                 resources:
@@ -1201,6 +1209,7 @@ paths:
                   minLength: 1
                   maxLength: 64
                   example: "multiply"
+                  description: only lower case letters or digits are allowed
                 runtime:
                   type: object
                   required:
@@ -1315,6 +1324,7 @@ paths:
                   minLength: 1
                   maxLength: 64
                   example: "multiply"
+                  description: only lower case letters or digits are allowed
                 runtime:
                   type: object
                   required:
@@ -2421,11 +2431,11 @@ paths:
               additionalProperties: false
               properties:
                 name:
-                  description: the name of the service
                   type: string
                   minLength: 1
                   maxLength: 4096
-                  example: servicex-highmemory
+                  example: servicexhighmemory
+                  description: only lower case letters or digits are allowed
                 image:
                   description: the name of the docker image
                   type: string
@@ -2760,7 +2770,8 @@ components:
           example: 1
         name:
           type: string
-          example: my-ensemble
+          example: myensemble
+          description: only lower case letters or digits are allowed
         is_valid:
           type: boolean
           example: true
@@ -2783,7 +2794,8 @@ components:
               example: 1
             name:
               type: string
-              example: my-ensemble
+              example: myensemble
+              description: only lower case letters or digits are allowed
             slos:
               $ref: "#/components/schemas/Slos"
             resources:
@@ -2961,6 +2973,7 @@ components:
         name:
           type: string
           example: foo1
+          description: only lower case letters or digits are allowed
         code:
           type: string
           example: |
@@ -3005,7 +3018,10 @@ components:
           example: 1
         name:
           type: string
-          example: service-name
+          example: servicename
+          minLength: 3
+          maxLength: 4096
+          description: only lower case letters or digits are allowed
         image:
           type: string
           example: user/image:latest

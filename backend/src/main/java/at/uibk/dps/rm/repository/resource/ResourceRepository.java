@@ -25,6 +25,14 @@ public class ResourceRepository extends Repository<Resource> {
         super(Resource.class);
     }
 
+    public CompletionStage<Resource> findByNameAndRegionId(Session session, String name, long regionId) {
+        return session.createQuery("from MainResource r " +
+                "where r.name=:name and r.region.regionId=:regionId", entityClass)
+            .setParameter("name", name)
+            .setParameter("regionId", regionId)
+            .getSingleResultOrNull();
+    }
+
     /**
      * Find a resource by its id and fetch the resource type, platform, environment, region, metric
      * values and resource provider.

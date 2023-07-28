@@ -1,7 +1,8 @@
 package at.uibk.dps.rm.handler.function;
 
-import at.uibk.dps.rm.exception.BadInputException;
+import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.exception.WrongFileTypeException;
+import at.uibk.dps.rm.util.validation.EntityNameValidator;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.functions.Consumer;
 import io.vertx.core.json.JsonObject;
@@ -40,7 +41,7 @@ public class FunctionInputHandler {
             FileUpload file = rc.fileUploads().get(0);
             checks.add(checkFileType(file));
         }
-        checks.add(checkFunctionName(functionName));
+        checks.add(EntityNameValidator.checkName(functionName, Function.class));
         Completable.merge(checks)
             .doOnError(handleError(rc, isJsonInput))
             .subscribe(rc::next, throwable -> rc.fail(400, throwable));
@@ -61,13 +62,6 @@ public class FunctionInputHandler {
         checkFileType
             .doOnError(handleError(rc, isJsonInput))
             .subscribe(rc::next, throwable -> rc.fail(400, throwable));
-    }
-
-    private Completable checkFunctionName(String functionName) {
-        if (functionName.matches("^[a-z0-9]+$")) {
-            return Completable.complete();
-        }
-        return Completable.error(new BadInputException("invalid function name"));
     }
 
     private Completable checkFileType(FileUpload file) {
