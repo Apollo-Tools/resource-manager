@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.handler.ensemble;
 
 import at.uibk.dps.rm.handler.EntityChecker;
-import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.ResourceEnsembleService;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -49,17 +48,5 @@ public class ResourceEnsembleChecker extends EntityChecker {
      */
     public Completable submitDelete(long accountId, long ensembleId, long resourceId) {
         return service.deleteByEnsembleIdAndResourceId(accountId, ensembleId, resourceId);
-    }
-
-    /**
-     * Check if a resource ensemble with the ensembleId and resourceId exists.
-     *
-     * @param ensembleId the id of the ensemble
-     * @param resourceId the id of the resource
-     * @return a Completable if it exists, else a NotFoundException gets thrown
-     */
-    public Completable checkExistsOne(long ensembleId, long resourceId) {
-        Single<Boolean> existsOne = service.checkExistsByEnsembleIdAndResourceId(ensembleId, resourceId);
-        return ErrorHandler.handleExistsOne(existsOne).ignoreElement();
     }
 }

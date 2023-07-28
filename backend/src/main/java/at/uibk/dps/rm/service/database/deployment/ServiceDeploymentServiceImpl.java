@@ -42,7 +42,7 @@ public class ServiceDeploymentServiceImpl extends DatabaseServiceProxy<ServiceDe
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (ServiceDeployment entity: result) {
-                    entity.getResource().getRegion().getResourceProvider().setProviderPlatforms(null);
+                    //entity.getResource().getRegion().getResourceProvider().setProviderPlatforms(null);
                     entity.setDeployment(null);
                     objects.add(JsonObject.mapFrom(entity));
                 }

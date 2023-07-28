@@ -123,15 +123,15 @@ public class SLOCompareUtility {
     public static boolean resourceValidByNonMetricSLOS(Resource resource, Ensemble ensemble) {
         boolean validRegion = true, validResourceProvider = true, validResourceType = true;
         if (!ensemble.getRegions().isEmpty()) {
-            validRegion = ensemble.getRegions().contains(resource.getRegion().getRegionId());
+            validRegion = ensemble.getRegions().contains(resource.getMain().getRegion().getRegionId());
         }
         if (!ensemble.getProviders().isEmpty()) {
             validResourceProvider = ensemble.getProviders()
-                .contains(resource.getRegion().getResourceProvider().getProviderId());
+                .contains(resource.getMain().getRegion().getResourceProvider().getProviderId());
         }
         if (!ensemble.getResource_types().isEmpty()) {
             validResourceType = ensemble.getResource_types()
-                .contains(resource.getPlatform().getResourceType().getTypeId());
+                .contains(resource.getMain().getPlatform().getResourceType().getTypeId());
         }
         return validRegion && validResourceProvider && validResourceType;
     }

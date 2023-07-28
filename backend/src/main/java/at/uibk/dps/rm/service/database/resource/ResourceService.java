@@ -31,7 +31,8 @@ public interface ResourceService extends DatabaseServiceInterface {
     @Generated
     @GenIgnore
     static ResourceService create(SessionFactory sessionFactory) {
-        return new ResourceServiceImpl(new ResourceRepository(), new MetricRepository(), sessionFactory);
+        return new ResourceServiceImpl(new ResourceRepository(), new MetricRepository(),
+            sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

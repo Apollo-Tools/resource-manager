@@ -13,6 +13,7 @@
         <class>at.uibk.dps.rm.entity.model.Function</class>
         <class>at.uibk.dps.rm.entity.model.FunctionDeployment</class>
         <class>at.uibk.dps.rm.entity.model.Log</class>
+        <class>at.uibk.dps.rm.entity.model.MainResource</class>
         <class>at.uibk.dps.rm.entity.model.Metric</class>
         <class>at.uibk.dps.rm.entity.model.MetricType</class>
         <class>at.uibk.dps.rm.entity.model.MetricValue</class>
@@ -32,6 +33,7 @@
         <class>at.uibk.dps.rm.entity.model.Service</class>
         <class>at.uibk.dps.rm.entity.model.ServiceDeployment</class>
         <class>at.uibk.dps.rm.entity.model.ServiceType</class>
+        <class>at.uibk.dps.rm.entity.model.SubResource</class>
         <class>at.uibk.dps.rm.entity.model.VPC</class>
         <properties>
             <!-- The Vert.x SQL Client connection pool size -->

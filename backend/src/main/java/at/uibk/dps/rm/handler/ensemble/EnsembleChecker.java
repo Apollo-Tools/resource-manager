@@ -5,6 +5,7 @@ import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.EnsembleService;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
@@ -42,6 +43,24 @@ public class EnsembleChecker extends EntityChecker {
     }
 
     /**
+     * Check if a create ensemble request fulfills the service level objectives.
+     *
+     * @param requestBody the create ensemble request body
+     * @return a Single that emits all found resources as JsonArray
+     */
+    public Completable checkCreateEnsembleRequestFulfillsSLOs(JsonObject requestBody) {
+        return ensembleService.validateCreateEnsembleRequest(requestBody);
+    }
+
+    public Single<JsonArray> checkValidateExistingEnsemble(long accountId, long ensembleId) {
+        return ensembleService.validateExistingEnsemble(accountId, ensembleId);
+    }
+
+    public Completable checkValidateAllExistingEnsembles() {
+        return ensembleService.validateAllExistingEnsembles();
+    }
+
+    /**
      * Check if an ensemble exists by its name and account id.
      *
      * @param name the name of the ensemble
@@ -52,16 +71,5 @@ public class EnsembleChecker extends EntityChecker {
     public Completable checkExistsOneByName(String name, long accountId) {
         Single<Boolean> existsOneByName = ensembleService.existsOneByNameAndAccountId(name, accountId);
         return ErrorHandler.handleDuplicates(existsOneByName).ignoreElement();
-    }
-
-    /**
-     * Update the validity value of an ensemble by its id.
-     *
-     * @param ensembleId the id of the ensemble
-     * @param validity the new validity value
-     * @return a Completable
-     */
-    public Completable submitUpdateValidity(long ensembleId, boolean validity) {
-        return ensembleService.updateEnsembleValidity(ensembleId, validity);
     }
 }

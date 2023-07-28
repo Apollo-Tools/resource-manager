@@ -2,8 +2,7 @@ package at.uibk.dps.rm.service.database.ensemble;
 
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.Ensemble;
-import at.uibk.dps.rm.repository.ensemble.EnsembleRepository;
-import at.uibk.dps.rm.repository.resource.ResourceRepository;
+import at.uibk.dps.rm.repository.EnsembleRepositoryProvider;
 import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -27,7 +26,7 @@ public interface EnsembleService extends DatabaseServiceInterface {
     @Generated
     @GenIgnore
     static EnsembleService create(Stage.SessionFactory sessionFactory) {
-        return new EnsembleServiceImpl(new EnsembleRepository(), new ResourceRepository(), sessionFactory);
+        return new EnsembleServiceImpl(new EnsembleRepositoryProvider(), sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
@@ -71,4 +70,23 @@ public interface EnsembleService extends DatabaseServiceInterface {
      * @return an empty Future
      */
     Future<Void> updateEnsembleValidity(long ensembleId, boolean isValid);
+
+    /**
+     * Check if all resources from a create ensemble request fulfill its service level objectives.
+     *
+     * @param data the request data
+     * @return a Future that emits nothing
+     */
+    Future<Void> validateCreateEnsembleRequest(JsonObject data);
+
+
+    /**
+     * Check if all resources from an existing ensemble fulfill its service level objectives.
+     *
+     * @param ensembleId the id of the ensemble
+     * @return a Future that emits nothing
+     */
+    Future<JsonArray> validateExistingEnsemble(long accountId, long ensembleId);
+
+    Future<Void> validateAllExistingEnsembles();
 }

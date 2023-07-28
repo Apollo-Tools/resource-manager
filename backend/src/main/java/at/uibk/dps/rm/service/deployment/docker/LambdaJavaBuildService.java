@@ -6,6 +6,7 @@ import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.dto.resource.RuntimeEnum;
 import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
+import at.uibk.dps.rm.entity.model.MainResource;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.service.deployment.executor.ProcessExecutor;
 import io.reactivex.rxjava3.core.Single;
@@ -55,7 +56,8 @@ public class LambdaJavaBuildService {
             Function function = functionDeployment.getFunction();
             Resource resource = functionDeployment.getResource();
             boolean hasJava = RuntimeEnum.fromRuntime(function.getRuntime()).equals(RuntimeEnum.JAVA11);
-            boolean hasLambda = PlatformEnum.fromPlatform(resource.getPlatform()).equals(PlatformEnum.LAMBDA);
+            MainResource mainResource = resource.getMain();
+            boolean hasLambda = PlatformEnum.fromPlatform(mainResource.getPlatform()).equals(PlatformEnum.LAMBDA);
             return hasLambda && hasJava;
         });
     }

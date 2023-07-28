@@ -97,38 +97,6 @@ public class ResourceCheckerTest {
     }
 
     @Test
-    void checkFindAllByEnsembleFound(VertxTestContext testContext) {
-        long ensembleId = 1L;
-        JsonArray resourcesJson = TestResourceProvider.createGetAllResourcesArray();
-
-        when(resourceService.findAllByEnsembleId(ensembleId)).thenReturn(Single.just(resourcesJson));
-
-        resourceChecker.checkFindAllByEnsemble(ensembleId)
-                .subscribe(result -> testContext.verify(() -> {
-                            verifyGetAllResourceRequest(result);
-                            testContext.completeNow();
-                        }),
-                        throwable -> testContext.verify(() -> fail("method has thrown exception"))
-                );
-    }
-
-    @Test
-    void checkFindAllByEnsembleEmpty(VertxTestContext testContext) {
-        long ensembleId = 1L;
-        JsonArray resourcesJson = new JsonArray(List.of());
-
-        when(resourceService.findAllByEnsembleId(ensembleId)).thenReturn(Single.just(resourcesJson));
-
-        resourceChecker.checkFindAllByEnsemble(ensembleId)
-                .subscribe(result -> testContext.verify(() -> {
-                            assertThat(result.size()).isEqualTo(0);
-                            testContext.completeNow();
-                        }),
-                        throwable -> testContext.verify(() -> fail("method has thrown exception"))
-                );
-    }
-
-    @Test
     void checkFindAllByResourceIds(VertxTestContext testContext) {
         List<Long> resourceIds = List.of(1L, 2L, 3L);
         JsonArray resourcesJson = TestResourceProvider.createGetAllResourcesArray();

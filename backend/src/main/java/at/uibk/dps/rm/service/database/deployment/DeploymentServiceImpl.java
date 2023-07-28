@@ -211,12 +211,9 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
     private void prepareResourceDeployments(List<? extends ResourceDeployment> resourceDeployments) {
         resourceDeployments.forEach(resourceDeployment -> {
             resourceDeployment.setDeployment(null);
-            resourceDeployment.getResource().getRegion().getResourceProvider()
-                .setProviderPlatforms(null);
+            //resourceDeployment.getResource().getRegion().getResourceProvider().setProviderPlatforms(null);
         });
     }
-
-
 
     @Override
     public Future<JsonObject> saveToAccount(long accountId, JsonObject data) {
@@ -264,11 +261,11 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                 result.getCredentialsList().forEach(credentials ->
                     credentials.getResourceProvider().setProviderPlatforms(null));
                 result.getFunctionDeployments().forEach(functionDeployment -> {
-                    functionDeployment.getResource().getRegion().getResourceProvider().setProviderPlatforms(null);
+                    //functionDeployment.getResource().getRegion().getResourceProvider().setProviderPlatforms(null);
                     functionDeployment.setDeployment(null);
                 });
                 result.getServiceDeployments().forEach(serviceDeployment -> {
-                    serviceDeployment.getResource().getRegion().getResourceProvider().setProviderPlatforms(null);
+                    //serviceDeployment.getResource().getRegion().getResourceProvider().setProviderPlatforms(null);
                     serviceDeployment.setDeployment(null);
                 });
                 result.getDeployment().setCreatedBy(null);
@@ -334,10 +331,11 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                 return CompletableFuture.allOf(checkResources, checkMetrics)
                     .thenApply(res -> {
                         for (Resource resource: resources) {
-                            Region region = Hibernate.unproxy(resource.getRegion(), Region.class);
-                            Platform platform = Hibernate.unproxy(resource.getPlatform(), Platform.class);
-                            resource.setRegion(region);
-                            resource.setPlatform(platform);
+                            MainResource mainResource = resource.getMain();
+                            Region region = Hibernate.unproxy(mainResource.getRegion(), Region.class);
+                            Platform platform = Hibernate.unproxy(mainResource.getPlatform(), Platform.class);
+                            mainResource.setRegion(region);
+                            mainResource.setPlatform(platform);
                         }
                         return resources;
                     });
@@ -351,12 +349,13 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
         HashSet<Long> regionIds = new HashSet<>();
         HashSet<Long> platformIds = new HashSet<>();
         for (Resource resource: resources) {
-            long providerId = resource.getRegion().getResourceProvider().getProviderId();
-            long regionId = resource.getRegion().getRegionId();
-            PlatformEnum platform = PlatformEnum.fromPlatform(resource.getPlatform());
+            MainResource mainResource = resource.getMain();
+            long providerId = mainResource.getRegion().getResourceProvider().getProviderId();
+            long regionId = mainResource.getRegion().getRegionId();
+            PlatformEnum platform = PlatformEnum.fromPlatform(mainResource.getPlatform());
             checkCloudCredentials(session, accountId, providerId, platform, resourceProviderIds, completables);
             checkDockerCredentials(deployResources.getDeploymentCredentials().getDockerCredentials(),
-                resource.getPlatform().getPlatformId(), platform, platformIds);
+                mainResource.getPlatform().getPlatformId(), platform, platformIds);
             checkMissingVPC(session, accountId, regionId, platform, regionIds, deployResources, completables);
         }
         return CompletableFuture.allOf(completables.toArray(CompletableFuture[]::new));
@@ -465,7 +464,8 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
 
     private FunctionDeployment createNewResourceDeployment(Deployment deployment, FunctionResourceIds ids,
         ResourceDeploymentStatus status) {
-        Resource resource = new Resource();
+        // TODO: fix
+        Resource resource = new MainResource();
         resource.setResourceId(ids.getResourceId());
         Function function = new Function();
         function.setFunctionId(ids.getFunctionId());

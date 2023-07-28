@@ -7,6 +7,7 @@ import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.dto.resource.RuntimeEnum;
 import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
+import at.uibk.dps.rm.entity.model.MainResource;
 import at.uibk.dps.rm.exception.RuntimeNotSupportedException;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackageJavaCode;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackagePythonCode;
@@ -118,7 +119,8 @@ public class FunctionPrepareService {
      */
     private boolean deployFunctionOnOpenFaaS(Function function) {
         return functionDeployments.stream().anyMatch(functionDeployment -> {
-            PlatformEnum platform = PlatformEnum.fromPlatform(functionDeployment.getResource().getPlatform());
+            MainResource mainResource = functionDeployment.getResource().getMain();
+            PlatformEnum platform = PlatformEnum.fromPlatform(mainResource.getPlatform());
             return functionDeployment.getFunction().equals(function) &&
                 (platform.equals(PlatformEnum.OPENFAAS) || platform.equals(PlatformEnum.EC2));
         });

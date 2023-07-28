@@ -26,7 +26,8 @@ public class RegionMapper {
     public static Map<Region, List<FunctionDeployment>> mapFunctionDeployments(List<FunctionDeployment>
             functionDeployments) {
         return functionDeployments.stream()
-            .collect(Collectors.groupingBy(functionDeployment -> functionDeployment.getResource().getRegion()));
+            .collect(Collectors.groupingBy(functionDeployment ->
+                functionDeployment.getResource().getMain().getRegion()));
     }
 
     /**

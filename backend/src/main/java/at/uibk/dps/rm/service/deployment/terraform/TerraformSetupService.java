@@ -134,7 +134,7 @@ public class TerraformSetupService {
         for (FunctionDeployment functionDeployment : regionFunctionDeployments) {
             Resource resource = functionDeployment.getResource();
             if (credentialResources.contains(resource.getResourceId()) ||
-                !resource.getPlatform().getPlatform().equals(PlatformEnum.OPENFAAS.getValue())) {
+                !resource.getMain().getPlatform().getPlatform().equals(PlatformEnum.OPENFAAS.getValue())) {
                 continue;
             }
             Map<String, MetricValue> metricValues = resource.getMetricValues()

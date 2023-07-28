@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @UtilityClass
 public class TestResourceProvider {
     public static Resource createResource(long id, Platform platform, Region region) {
-        Resource resource = new Resource();
+        MainResource resource = new MainResource();
         resource.setResourceId(id);
         resource.setRegion(region);
         resource.setPlatform(platform);
@@ -45,7 +45,7 @@ public class TestResourceProvider {
     }
 
     public static Resource createResourceLambda(long id, Region region, Double timeout, Double memorySize) {
-        Resource resource = new Resource();
+        MainResource resource = new MainResource();
         resource.setResourceId(id);
         resource.setRegion(region);
         Platform platform = TestPlatformProvider.createPlatformFaas(1L, PlatformEnum.LAMBDA.getValue());
@@ -69,7 +69,7 @@ public class TestResourceProvider {
 
     public static Resource createResourceEC2(long id, Region region, Double timeout, Double memorySize,
             String instanceType) {
-        Resource resource = new Resource();
+        MainResource resource = new MainResource();
         resource.setResourceId(id);
         resource.setRegion(region);
         Platform platform = TestPlatformProvider.createPlatformFaas(1L, PlatformEnum.EC2.getValue());
@@ -94,7 +94,7 @@ public class TestResourceProvider {
 
     public static Resource createResourceOpenFaas(long id, Region region, Double timeout, Double memorySize,
             String gatewayUrl, String openfaasUser, String openfaasPw) {
-        Resource resource = new Resource();
+        MainResource resource = new MainResource();
         resource.setResourceId(id);
         resource.setRegion(region);
         Platform platform = TestPlatformProvider.createPlatformFaas(1L, PlatformEnum.OPENFAAS.getValue());
@@ -123,7 +123,7 @@ public class TestResourceProvider {
 
 
     public static Resource createResourceFaaS(long id, Region region, Double timeout, Double memorySize) {
-        Resource resource = new Resource();
+        MainResource resource = new MainResource();
         resource.setResourceId(id);
         resource.setRegion(region);
         MetricType mt = TestMetricProvider.createMetricType(1L, "number");
@@ -136,7 +136,7 @@ public class TestResourceProvider {
     }
 
     public static Resource createResourceVM(long id, Region region, String instanceType) {
-        Resource resource = new Resource();
+        MainResource resource = new MainResource();
         resource.setResourceId(id);
         resource.setRegion(region);
         MetricType mt = TestMetricProvider.createMetricType(1L, "string");
@@ -147,7 +147,7 @@ public class TestResourceProvider {
     }
 
     public static Resource createResourceEdge(long id, String gatewayUrl, String openFaasUser, String openfaasPw) {
-        Resource resource = new Resource();
+        MainResource resource = new MainResource();
         resource.setResourceId(id);
         ResourceProvider provider = TestResourceProviderProvider.createResourceProvider(1L, "edge");
         Region region = TestResourceProviderProvider.createRegion(2L, "edge", provider);
@@ -164,7 +164,7 @@ public class TestResourceProvider {
     }
 
     public static Resource createResourceContainer(long id, Region region, String clusterUrl, boolean hasExternalIp) {
-        Resource resource = new Resource();
+        MainResource resource = new MainResource();
         resource.setResourceId(id);
         resource.setRegion(region);
         Platform platform = TestPlatformProvider.createPlatformContainer(1L, PlatformEnum.K8S.getValue());

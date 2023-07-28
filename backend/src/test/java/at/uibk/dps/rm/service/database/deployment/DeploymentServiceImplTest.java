@@ -62,7 +62,8 @@ public class DeploymentServiceImplTest {
         Deployment deployment = TestDeploymentProvider.createDeployment(deploymentId, true, account);
         Resource r1 = TestResourceProvider.createResourceLambda(1L, 200.0, 1024.0);
         Resource r2 = TestResourceProvider.createResourceContainer(2L, "localhost", true);
-        Credentials c1 = TestAccountProvider.createCredentials(1L, r1.getRegion().getResourceProvider());
+        Credentials c1 = TestAccountProvider.createCredentials(1L,
+            r1.getMain().getRegion().getResourceProvider());
         FunctionDeployment fd1 = TestFunctionProvider.createFunctionDeployment(1L, r1, deployment, rds1);
         ServiceDeployment sd1 = TestServiceProvider.createServiceDeployment(2L, r2, deployment, rds2);
 
@@ -76,7 +77,8 @@ public class DeploymentServiceImplTest {
         Account account = TestAccountProvider.createAccount(accountId);
         Deployment deployment = TestDeploymentProvider.createDeployment(deploymentId, true, account);
         Resource r1 = TestResourceProvider.createResourceLambda(1L, 200.0, 1024.0);
-        Credentials c1 = TestAccountProvider.createCredentials(1L, r1.getRegion().getResourceProvider());
+        Credentials c1 = TestAccountProvider.createCredentials(1L,
+            r1.getMain().getRegion().getResourceProvider());
 
         return Stream.of(
             Arguments.of(deployment, List.of(), List.of(), c1, account)
@@ -225,8 +227,8 @@ public class DeploymentServiceImplTest {
     void checkCrucialDeploymentStatus(ResourceDeploymentStatus expectedStatus) {
         Deployment deployment = TestDeploymentProvider.createDeployment(1L);
         ResourceDeployment rd1 = TestDeploymentProvider.createResourceDeployment(1L, deployment,
-            new Resource(), TestDeploymentProvider.createResourceDeploymentStatusTerminated());
-        ResourceDeployment rd2 = TestDeploymentProvider.createResourceDeployment(2L, deployment, new Resource(),
+            new MainResource(), TestDeploymentProvider.createResourceDeploymentStatusTerminated());
+        ResourceDeployment rd2 = TestDeploymentProvider.createResourceDeployment(2L, deployment, new MainResource(),
             expectedStatus);
 
         DeploymentStatusValue result = deploymentService.checkCrucialResourceDeploymentStatus(List.of(rd1, rd2));

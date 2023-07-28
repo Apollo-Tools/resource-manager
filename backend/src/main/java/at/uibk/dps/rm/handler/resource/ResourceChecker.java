@@ -48,17 +48,6 @@ public class ResourceChecker extends EntityChecker {
     }
 
     /**
-     * Find all resources by ensemble.
-     *
-     * @param ensembleId the id of the ensemble
-     * @return a Single that emits all found resources as JsonArray
-     */
-    public Single<JsonArray> checkFindAllByEnsemble(long ensembleId) {
-        Single<JsonArray> findAllByEnsemble = resourceService.findAllByEnsembleId(ensembleId);
-        return ErrorHandler.handleFindAll(findAllByEnsemble);
-    }
-
-    /**
      * Find all resources by a list of resource ids.
      *
      * @param resourceIds the list of resource ids

@@ -1,15 +1,13 @@
 package at.uibk.dps.rm.service.database.resource;
 
 import at.uibk.dps.rm.entity.dto.SLORequest;
-import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
-import at.uibk.dps.rm.entity.model.Metric;
-import at.uibk.dps.rm.exception.BadInputException;
+import at.uibk.dps.rm.entity.dto.resource.SubResourceDTO;
+import at.uibk.dps.rm.entity.model.SubResource;
 import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
-import at.uibk.dps.rm.util.validation.SLOCompareUtility;
-import at.uibk.dps.rm.util.validation.ServiceResultValidator;
+import at.uibk.dps.rm.service.database.util.SLOUtility;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -18,9 +16,7 @@ import org.hibernate.reactive.stage.Stage.SessionFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.stream.Collectors;
 
 /**
  * This is the implementation of the #ResourceService.
@@ -48,10 +44,11 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     @Override
     public Future<JsonObject> findOne(long id) {
         CompletionStage<Resource> findOne = withSession(session -> repository.findByIdAndFetch(session, id));
-        return Future.fromCompletionStage(findOne)
+        return sessionToFuture(findOne)
             .map(resource -> {
-                if (resource != null) {
-                    resource.getRegion().getResourceProvider().setProviderPlatforms(null);
+                if (resource instanceof SubResource) {
+                    SubResourceDTO subResource = new SubResourceDTO((SubResource) resource);
+                    return JsonObject.mapFrom(subResource);
                 }
                 return JsonObject.mapFrom(resource);
             });
@@ -77,26 +74,8 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     @Override
     public Future<JsonArray> findAllBySLOs(JsonObject data) {
         SLORequest sloRequest = data.mapTo(SLORequest.class);
-        CompletionStage<List<Resource>> findAll = withSession(session -> {
-            List<CompletableFuture<Void>> checkSLOs = sloRequest.getServiceLevelObjectives().stream().map(slo ->
-                metricRepository.findByMetric(session, slo.getName())
-                    .thenAccept(metric -> validateSLOType(slo, metric))
-                    .toCompletableFuture()
-                )
-                .collect(Collectors.toList());
-            return CompletableFuture.allOf(checkSLOs.toArray(CompletableFuture[]::new))
-                .thenCompose(result -> {
-                    List<String> sloNames = sloRequest.getServiceLevelObjectives().stream()
-                        .map(ServiceLevelObjective::getName)
-                        .collect(Collectors.toList());
-                    return repository.findAllBySLOs(session, sloNames, sloRequest.getEnvironments(),
-                        sloRequest.getResourceTypes(), sloRequest.getPlatforms(), sloRequest.getRegions(),
-                        sloRequest.getProviders())
-                        .toCompletableFuture();
-                })
-                .thenApply(resources -> SLOCompareUtility.filterAndSortResourcesBySLOs(resources,
-                    sloRequest.getServiceLevelObjectives()));
-        });
+        CompletionStage<List<Resource>> findAll = withSession(session ->
+            new SLOUtility(repository, metricRepository).findAndFilterResourcesBySLOs(session, sloRequest));
         return sessionToFuture(findAll).map(this::encodeResourceList);
     }
 
@@ -128,19 +107,13 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     private JsonArray encodeResourceList(List<Resource> resourceList) {
         ArrayList<JsonObject> objects = new ArrayList<>();
         for (Resource resource: resourceList) {
-            resource.getRegion().getResourceProvider().setProviderPlatforms(null);
-            objects.add(JsonObject.mapFrom(resource));
+            if (resource instanceof SubResource) {
+                SubResourceDTO subResource = new SubResourceDTO((SubResource) resource);
+                objects.add(JsonObject.mapFrom(subResource));
+            } else {
+                objects.add(JsonObject.mapFrom(resource));
+            }
         }
         return new JsonArray(objects);
-    }
-
-    private void validateSLOType(ServiceLevelObjective slo, Metric metric) {
-        ServiceResultValidator.checkFound(metric, ServiceLevelObjective.class);
-        String sloValueType = slo.getValue().get(0).getSloValueType().name();
-        String metricValueType = metric.getMetricType().getType().toUpperCase();
-        boolean checkForTypeMatch = sloValueType.equals(metricValueType);
-        if (!checkForTypeMatch) {
-            throw new BadInputException("bad input type for service level objective " + slo.getName());
-        }
     }
 }

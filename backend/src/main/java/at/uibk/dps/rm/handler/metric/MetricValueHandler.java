@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.handler.metric;
 
+import at.uibk.dps.rm.entity.model.MainResource;
 import at.uibk.dps.rm.handler.resource.ResourceChecker;
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.entity.model.Metric;
@@ -117,7 +118,8 @@ public class MetricValueHandler extends ValidationHandler {
      * @return a List of completables
      */
     private List<Completable> checkAddMetricList(JsonArray requestBody, long resourceId, List<MetricValue> metricValues) {
-        Resource resource = new Resource();
+        // TODO: fix
+        Resource resource = new MainResource();
         resource.setResourceId(resourceId);
         List<Completable> completables = new ArrayList<>();
         requestBody.stream().forEach(jsonObject -> {

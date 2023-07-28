@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.entity.dto.resource.ResourceTypeEnum;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
+import at.uibk.dps.rm.entity.model.MainResource;
 import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.repository.metric.MetricRepository;
@@ -96,7 +97,7 @@ public class ResourceServiceImplTest {
     @Test
     void checkEntityByResourceTypeExists(VertxTestContext testContext) {
         long typeId = 1L;
-        Resource entity = new Resource();
+        Resource entity = new MainResource();
 
         SessionMockHelper.mockSession(sessionFactory, session);
         when(resourceRepository.findByResourceType(session, typeId))

@@ -41,7 +41,7 @@ public class FunctionDeploymentServiceImpl extends DatabaseServiceProxy<Function
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (FunctionDeployment entity: result) {
                     entity.setDeployment(null);
-                    entity.getResource().getRegion().getResourceProvider().setProviderPlatforms(null);
+                    //entity.getResource().getRegion().getResourceProvider().setProviderPlatforms(null);
                     objects.add(JsonObject.mapFrom(entity));
                 }
                 return new JsonArray(objects);

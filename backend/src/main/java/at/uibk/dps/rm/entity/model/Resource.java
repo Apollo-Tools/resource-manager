@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.entity.model;
 
 import at.uibk.dps.rm.annotations.Generated;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,27 +15,24 @@ import java.util.Set;
  *
  * @author matthi-g
  */
+
 @Entity
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "resource_type")
 @Getter
 @Setter
-public class Resource {
+public abstract class Resource {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long resourceId;
+
+    private String name;
 
     @Column(insertable = false, updatable = false)
     private @Setter(AccessLevel.NONE) Timestamp createdAt;
 
     @Column(insertable = false, updatable = false)
     private @Setter(AccessLevel.NONE) Timestamp updatedAt;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "region_id")
-    private Region region;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "platform_id")
-    private Platform platform;
 
     @OneToMany
     @JoinColumn(name="resource_id")
@@ -57,5 +55,14 @@ public class Resource {
     @Generated
     public int hashCode() {
         return resourceId.hashCode();
+    }
+
+    @JsonIgnore
+    public MainResource getMain() {
+        if (this instanceof MainResource) {
+            return (MainResource) this;
+        }
+        SubResource subResource = (SubResource) this;
+        return subResource.getMainResource();
     }
 }
