@@ -114,6 +114,7 @@ public class ApiVerticle extends AbstractVerticle {
         new PlatformMetricRoute().init(routerBuilder, serviceProxyProvider);
         new ServiceRoute().init(routerBuilder, serviceProxyProvider);
         new ServiceTypeRoute().init(routerBuilder, serviceProxyProvider);
+        new SubresourceRoute().init(routerBuilder, serviceProxyProvider);
         new VPCRoute().init(routerBuilder, serviceProxyProvider);
     }
 

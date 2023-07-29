@@ -664,6 +664,7 @@ paths:
           $ref: "#/components/responses/404"
         500:
           $ref: "#/components/responses/500"
+
   /resources/slo:
     post:
       description: Return all resources that fulfill the service level objectives
@@ -695,6 +696,36 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ResourceDetails"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /resources/{id}/subresources:
+    get:
+      description: Return all subresources of an existing resource
+      operationId: listSubresources
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - resources
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of all subresources
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubresourceDetails"
         400:
           $ref: "#/components/responses/400"
         401:
@@ -2761,6 +2792,36 @@ components:
                     type: integer
                     format: int64
                     example: 1679496667103
+    SubresourceDetails:
+      type: object
+      properties:
+        metric_values:
+          type: array
+          items:
+            type: object
+            properties:
+              metric_value_id:
+                type: integer
+                format: int64
+                example: 1
+              count:
+                type: integer
+                format: int64
+                example: 1
+              value_number:
+                type: number
+                format: double
+                example: 200.0
+              metric:
+                $ref: '#/components/schemas/Metric'
+              created_at:
+                type: integer
+                format: int64
+                example: 1679496667103
+              updated_at:
+                type: integer
+                format: int64
+                example: 1679496667103
     Ensemble:
       type: object
       properties:

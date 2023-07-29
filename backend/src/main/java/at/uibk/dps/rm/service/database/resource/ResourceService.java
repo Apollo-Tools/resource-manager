@@ -66,6 +66,8 @@ public interface ResourceService extends DatabaseServiceInterface {
      */
     Future<JsonArray> findAllByEnsembleId(long ensembleId);
 
+    Future<JsonArray> findAllSubresources(long resourceId);
+
     /**
      * Check if all resources exists by resourceIds and resourceTypes.
      *

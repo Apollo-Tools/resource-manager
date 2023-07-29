@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.repository.resource;
 
 import at.uibk.dps.rm.entity.model.Resource;
+import at.uibk.dps.rm.entity.model.SubResource;
 import at.uibk.dps.rm.repository.Repository;
 import org.hibernate.reactive.stage.Stage.Session;
 import org.hibernate.reactive.util.impl.CompletionStages;
@@ -259,6 +260,15 @@ public class ResourceRepository extends Repository<Resource> {
                 "left join fetch r.platform p " +
                 "left join fetch p.resourceType " +
                 "where r.resourceId in (" + resourceIdsConcat + ")", Resource.class)
+            .getResultList();
+    }
+
+    public CompletionStage<List<SubResource>> findAllSubresources(Session session, long resourceId) {
+        return session.createQuery("from SubResource  sr " +
+                "left join fetch sr.metricValues mv " +
+                "left join fetch mv.metric m " +
+                "where sr.mainResource.resourceId=:resourceId", SubResource.class)
+            .setParameter("resourceId", resourceId)
             .getResultList();
     }
 }

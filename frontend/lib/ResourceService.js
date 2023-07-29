@@ -84,6 +84,30 @@ export async function getResource(id, token, setResource, setError) {
 }
 
 /**
+ * Get all subresources of a resource.
+ *
+ * @param {number} id the id of the resource
+ * @param {string} token the access token
+ * @param {function} setSubresources the function to set the retrieved resource
+ * @param {function} setError the function to set the error if one occured
+ */
+export async function listSubresources(id, token, setSubresources, setError) {
+  try {
+    const response = await fetch(`${API_ROUTE}/${id}/subresources`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await response.json();
+    setSubresources(() => data);
+  } catch (error) {
+    setError(true);
+    console.log(error);
+  }
+}
+
+/**
  * Delete an existing resource.
  *
  * @param {number} id the id of the resource

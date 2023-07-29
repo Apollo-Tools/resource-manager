@@ -119,6 +119,20 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     }
 
     @Override
+    public Future<JsonArray> findAllSubresources(long resourceId) {
+        CompletionStage<List<SubResource>> findAll = withSession(session ->
+            repository.findAllSubresources(session, resourceId));
+        return sessionToFuture(findAll)
+            .map(resources -> {
+                ArrayList<JsonObject> objects = new ArrayList<>();
+                for (SubResource resource: resources) {
+                    objects.add(JsonObject.mapFrom(resource));
+                }
+                return new JsonArray(objects);
+            });
+    }
+
+    @Override
     public Future<Boolean> existsAllByIdsAndResourceTypes(Set<Long> resourceIds, List<String> resourceTypes) {
         CompletionStage<List<Resource>> findAll = withSession(session ->
             repository.findAllByResourceIdsAndResourceTypes(session, resourceIds, resourceTypes));

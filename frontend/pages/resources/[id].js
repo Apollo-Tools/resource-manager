@@ -1,4 +1,4 @@
-import {getResource} from '../../lib/ResourceService';
+import {getResource, listSubresources} from '../../lib/ResourceService';
 import {useRouter} from 'next/router';
 import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
@@ -7,6 +7,7 @@ import ResourceDetailsCard from '../../components/resources/ResourceDetailsCard'
 import AddMetricValuesForm from '../../components/metrics/AddMetricValuesForm';
 import {listResourceMetrics} from '../../lib/MetricValueService';
 import MetricValuesTable from '../../components/metrics/MetricValuesTable';
+import ResourceTable from '../../components/resources/ResourceTable';
 
 // TODO: add way to update values
 const ResourceDetails = () => {
@@ -14,18 +15,29 @@ const ResourceDetails = () => {
   const [resource, setResource] = useState();
   const [selectedSegment, setSelectedSegment] = useState('Details');
   const [metricValues, setMetricValues] = useState([]);
+  const [subresources, setSubresources] = useState([]);
   const [isFinished, setFinished] = useState(false);
   const [error, setError] = useState(false);
+  const [segments, setSegments] = useState([]);
   const router = useRouter();
   const {id} = router.query;
 
   useEffect(() => {
     if (!checkTokenExpired() && id != null) {
-      getResource(id, token, setResource, setError);
-      listResourceMetrics(id, token, setMetricValues, setError)
+      getResource(id, token, setResource, setError)
+          .then(listSubresources(id, token, setSubresources, setError))
+          .then(listResourceMetrics(id, token, setMetricValues, setError))
           .then(mapValuesToValueField);
     }
   }, [id]);
+
+  useEffect(() => {
+    if (subresources != null) {
+      setSelectedSegment('Details');
+      setSegments(subresources.length ?
+        ['Details', 'Subresources', 'Metric Values'] : ['Details', 'Metric Values']);
+    }
+  }, [subresources]);
 
   useEffect(() => {
     if (isFinished) {
@@ -68,7 +80,7 @@ const ResourceDetails = () => {
     <div className="card container w-full md:w-11/12 w-11/12 max-w-7xl mt-2 mb-2">
       <Typography.Title level={2}>Resource Details ({resource?.resource_id})</Typography.Title>
       <Divider />
-      <Segmented options={['Details', 'Metric Values']} value={selectedSegment}
+      <Segmented options={segments} value={selectedSegment}
         onChange={(e) => setSelectedSegment(e)} size="large" block/>
       <Divider />
       {
@@ -88,6 +100,13 @@ const ResourceDetails = () => {
               setFinished={setFinished}
             />
           </>)
+      }
+      {
+        selectedSegment === 'Subresources' && subresources != null && (
+          <>
+            <ResourceTable resources={subresources} resourceType='sub' hasActions/>
+          </>
+        )
       }
     </div>
   );

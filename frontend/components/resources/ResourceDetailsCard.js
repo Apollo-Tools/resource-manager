@@ -2,6 +2,9 @@ import PropTypes from 'prop-types';
 import TextDataDisplay from '../misc/TextDataDisplay';
 import DateFormatter from '../misc/DateFormatter';
 import ProviderIcon from '../misc/ProviderIcon';
+import {Button} from 'antd';
+import {ClusterOutlined} from '@ant-design/icons';
+import Link from 'next/link';
 
 
 const ResourceDetailsCard = ({resource}) => {
@@ -18,6 +21,10 @@ const ResourceDetailsCard = ({resource}) => {
         className="col-span-6" />
       <TextDataDisplay label="Region" value={resource.region.name} className="col-span-6" />
       <TextDataDisplay label="Created at" value={<DateFormatter dateTimestamp={resource.created_at} />} className="col-span-6"/>
+      {resource.main_resource_id &&
+        <Link href={`/resources/${resource.main_resource_id}`}>
+          <Button type="primary" icon={<ClusterOutlined />}>Main Resource</Button>
+        </Link>}
     </div>
   );
 };

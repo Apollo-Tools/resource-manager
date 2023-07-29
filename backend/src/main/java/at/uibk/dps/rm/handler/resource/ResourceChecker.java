@@ -58,6 +58,11 @@ public class ResourceChecker extends EntityChecker {
         return ErrorHandler.handleFindAll(findAllByResourceIds);
     }
 
+    public Single<JsonArray> checkFindAllSubresources(long resourceId) {
+        Single<JsonArray> findAllSubresources = resourceService.findAllSubresources(resourceId);
+        return ErrorHandler.handleFindAll(findAllSubresources);
+    }
+
     /**
      * Check whether all resources from the serviceResourceIds and functionResourceIds exists with
      * a suitable resource type.
