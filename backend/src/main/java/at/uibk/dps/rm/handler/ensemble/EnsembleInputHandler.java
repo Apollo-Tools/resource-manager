@@ -27,9 +27,9 @@ public class EnsembleInputHandler {
      */
     public static void validateCreateEnsembleRequest(RoutingContext rc) {
         JsonObject body = rc.body().asJsonObject();
-        ExpressionValidator.checkExpressionAreValid(body.getJsonArray("slos"))
+        ExpressionValidator.checkExpressionsAreValid(body.getJsonArray("slos"))
             .andThen(EntityNameValidator.checkName(body.getString("name"), Ensemble.class))
-            .andThen(checkArrayDuplicates(body))
+            .andThen(Completable.defer(() -> checkArrayDuplicates(body)))
             .subscribe(rc::next, throwable -> rc.fail(400, throwable));
     }
 

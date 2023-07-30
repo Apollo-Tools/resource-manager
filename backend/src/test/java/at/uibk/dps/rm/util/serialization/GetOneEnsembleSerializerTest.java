@@ -37,24 +37,25 @@ public class GetOneEnsembleSerializerTest {
         ensemble.setRegions(List.of());
         JsonObject result = JsonObject.mapFrom(ensemble);
 
-        assertThat(result.encode()).isEqualTo("{\"ensemble_id\":1,\"name\":\"ensemble\",\"resources\":" +
-            "[{\"resource_id\":1,\"created_at\":null,\"updated_at\":null,\"region\":{\"region_id\":1,\"name\":" +
-            "\"us-east-1\",\"resource_provider\":{\"provider_id\":1,\"provider\":\"aws\",\"provider_platforms\":" +
-            "[],\"environment\":null,\"created_at\":null},\"created_at\":null},\"platform\":null,\"metric_values\":" +
-            "[{\"metric_value_id\":1,\"count\":10,\"value_number\":0.99,\"value_string\":null,\"value_bool\":null," +
+        assertThat(result.encode()).isEqualTo("{\"ensemble_id\":1,\"name\":\"ensemble\",\"resources\":[" +
+            "{\"resource_id\":1,\"name\":null,\"created_at\":null,\"updated_at\":null,\"metric_values\":[{" +
+            "\"metric_value_id\":1,\"count\":10,\"value_number\":0.99,\"value_string\":null,\"value_bool\":null," +
             "\"metric\":{\"metric_id\":1,\"metric\":\"availability\",\"description\":\"Blah\",\"metric_type\":" +
             "{\"metric_type_id\":1,\"type\":\"number\"},\"created_at\":null,\"is_monitored\":false},\"created_at\":" +
-            "null,\"updated_at\":null}]},{\"resource_id\":2,\"created_at\":null,\"updated_at\":null,\"region\":" +
-            "{\"region_id\":2,\"name\":\"us-west-1\",\"resource_provider\":{\"provider_id\":1,\"provider\":\"aws\"," +
-            "\"provider_platforms\":[],\"environment\":null,\"created_at\":null},\"created_at\":null},\"platform\":" +
-            "{\"platform_id\":1,\"platform\":\"ec2\",\"resource_type\":{\"type_id\":11,\"resource_type\":\"faas\"," +
-            "\"created_at\":null},\"created_at\":null},\"metric_values\":[{\"metric_value_id\":1,\"count\":10," +
+            "null,\"updated_at\":null}],\"region\":{\"region_id\":1,\"name\":\"us-east-1\",\"resource_provider\":" +
+            "{\"provider_id\":1,\"provider\":\"aws\",\"provider_platforms\":[],\"environment\":null,\"created_at\":" +
+            "null},\"created_at\":null},\"platform\":null,\"sub_resources\":[]},{\"resource_id\":2,\"name\":null," +
+            "\"created_at\":null,\"updated_at\":null,\"metric_values\":[{\"metric_value_id\":1,\"count\":10," +
             "\"value_number\":0.99,\"value_string\":null,\"value_bool\":null,\"metric\":{\"metric_id\":1,\"metric\":" +
             "\"availability\",\"description\":\"Blah\",\"metric_type\":{\"metric_type_id\":1,\"type\":\"number\"}," +
-            "\"created_at\":null,\"is_monitored\":false},\"created_at\":null,\"updated_at\":null}]}],\"created_at\":" +
-            "null,\"updated_at\":null,\"slos\":[{\"name\":\"timeout\",\"expression\":\">\",\"value\":[150.0]}," +
-            "{\"name\":\"environment\",\"expression\":\"==\",\"value\":[1.0]},{\"name\":\"resource_type\"," +
-            "\"expression\":\"==\",\"value\":[5.0]},{\"name\":\"platform\",\"expression\":\"==\",\"value\":" +
-            "[3.0,4.0]},{\"name\":\"resource_provider\",\"expression\":\"==\",\"value\":[5.0]}]}");
+            "\"created_at\":null,\"is_monitored\":false},\"created_at\":null,\"updated_at\":null}],\"region\":{" +
+            "\"region_id\":2,\"name\":\"us-west-1\",\"resource_provider\":{\"provider_id\":1,\"provider\":\"aws\"," +
+            "\"provider_platforms\":[],\"environment\":null,\"created_at\":null},\"created_at\":null},\"platform\":" +
+            "{\"platform_id\":1,\"platform\":\"ec2\",\"resource_type\":{\"type_id\":11,\"resource_type\":\"faas\"," +
+            "\"created_at\":null},\"created_at\":null},\"sub_resources\":[]}],\"created_at\":null,\"updated_at\":" +
+            "null,\"slos\":[{\"name\":\"timeout\",\"expression\":\">\",\"value\":[150.0]},{\"name\":\"environment\"," +
+            "\"expression\":\"==\",\"value\":[1.0]},{\"name\":\"resource_type\",\"expression\":\"==\",\"value\":" +
+            "[5.0]},{\"name\":\"platform\",\"expression\":\"==\",\"value\":[3.0,4.0]},{\"name\":" +
+            "\"resource_provider\",\"expression\":\"==\",\"value\":[5.0]}]}");
     }
 }

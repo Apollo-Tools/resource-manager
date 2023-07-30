@@ -26,8 +26,8 @@ public class ResourceInputHandlerTest {
 
     @Test
     void validateAddMetricsRequestNoDuplicates(VertxTestContext testContext) {
-        JsonArray jsonArray = new JsonArray("[{\"metricId\": \"1\", \"value\": 4}, " +
-            "{\"metricId\": \"2\", \"value\": \"ubuntu\"}]");
+        JsonArray jsonArray = new JsonArray("[{\"metric_id\": \"1\", \"value\": 4}, " +
+            "{\"metric_id\": \"2\", \"value\": \"ubuntu\"}]");
 
         RoutingContextMockHelper.mockBody(rc, jsonArray);
 
@@ -39,8 +39,8 @@ public class ResourceInputHandlerTest {
 
     @Test
     void validateAddMetricsRequestDuplicate(VertxTestContext testContext) {
-        JsonArray jsonArray = new JsonArray("[{\"metricId\": \"1\", \"value\": 4}, " +
-            "{\"metricId\": \"1\", \"value\": 8}]");
+        JsonArray jsonArray = new JsonArray("[{\"metric_id\": \"1\", \"value\": 4}, " +
+            "{\"metric_id\": \"1\", \"value\": 8}]");
 
         RoutingContextMockHelper.mockBody(rc, jsonArray);
 

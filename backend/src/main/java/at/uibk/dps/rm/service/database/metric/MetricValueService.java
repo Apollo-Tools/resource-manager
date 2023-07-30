@@ -36,6 +36,8 @@ public interface MetricValueService extends DatabaseServiceInterface {
             ServiceProxyAddress.getServiceProxyAddress(MetricValue.class));
     }
 
+    Future<Void> saveAllToResource(long resourceId, JsonArray data);
+
     /**
      * Find all metric values by their resource and add the values based on includeValue.
      *

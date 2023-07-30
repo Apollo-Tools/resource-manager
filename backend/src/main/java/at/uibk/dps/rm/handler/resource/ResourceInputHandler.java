@@ -31,9 +31,7 @@ public class ResourceInputHandler {
      */
     public static void validateAddMetricsRequest(RoutingContext rc) {
         JsonArray requestBody = rc.body().asJsonArray();
-        // TODO: fix naming (metric_id)
-        JsonArrayValidator.checkJsonArrayDuplicates(requestBody, "metricId")
-            .subscribe(rc::next, throwable -> rc.fail(400, throwable))
-            .dispose();
+        JsonArrayValidator.checkJsonArrayDuplicates(requestBody, "metric_id")
+            .subscribe(rc::next, throwable -> rc.fail(400, throwable));
     }
 }

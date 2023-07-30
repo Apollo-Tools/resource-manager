@@ -80,7 +80,7 @@ const AddMetricValuesForm = ({
       const metric = metrics.find((metric) =>
         metric.metric.metric_id === metricValue.metric).metric;
       if (metric.is_monitored) {
-        return {metricId: metricValue.metric};
+        return {metric_id: metricValue.metric};
       } else {
         return {
           metricId: metricValue.metric,

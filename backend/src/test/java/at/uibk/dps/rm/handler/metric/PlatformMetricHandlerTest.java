@@ -30,7 +30,7 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class ResourceTypeMetricHandlerTest {
+public class PlatformMetricHandlerTest {
 
     private PlatformMetricHandler handler;
 

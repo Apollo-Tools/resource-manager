@@ -43,6 +43,17 @@ public class MetricValueChecker extends EntityChecker {
     }
 
     /**
+     * Submit the creation of multiple new metric values.
+     *
+     * @param resourceId the id of the resource
+     * @param values the new values
+     * @return a Completable
+     */
+    public Completable submitCreateAll(long resourceId, JsonArray values) {
+        return metricValueService.saveAllToResource(resourceId, values);
+    }
+
+    /**
      * Submit the update of a metric value.
      *
      * @param resourceId the id of the resource
@@ -80,32 +91,6 @@ public class MetricValueChecker extends EntityChecker {
      */
     public Completable submitDeleteMetricValue(long resourceId, long metricId) {
         return metricValueService.deleteByResourceAndMetric(resourceId, metricId);
-    }
-
-    /**
-     * Check if the creation of a metric value would create a duplicate.
-     *
-     * @param resourceId the id of the resource
-     * @param metricId  the id of the metric
-     * @return a Completable
-     */
-    public Completable checkForDuplicateByResourceAndMetric(long resourceId, long metricId) {
-        final Single<Boolean> existsOneByResourceAndMetric = metricValueService.existsOneByResourceAndMetric(resourceId,
-            metricId);
-        return ErrorHandler.handleDuplicates(existsOneByResourceAndMetric).ignoreElement();
-    }
-
-    /**
-     * Check if a metric value exists by resource and metric
-     *
-     * @param resourceId the id of the resource
-     * @param metricId  the id of the metric
-     * @return a Completable
-     */
-    public Completable checkMetricValueExistsByResourceAndMetric(long resourceId, long metricId) {
-        Single<Boolean> existsOneByResourceAndMetric =
-            metricValueService.existsOneByResourceAndMetric(resourceId, metricId);
-        return ErrorHandler.handleExistsOne(existsOneByResourceAndMetric).ignoreElement();
     }
 
     /**
