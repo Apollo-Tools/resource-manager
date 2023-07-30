@@ -1,9 +1,6 @@
 package at.uibk.dps.rm.handler.metric;
 
-import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.handler.resource.PlatformChecker;
 import at.uibk.dps.rm.testutil.objectprovider.TestMetricProvider;
-import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
@@ -35,10 +32,7 @@ public class PlatformMetricHandlerTest {
     private PlatformMetricHandler handler;
 
     @Mock
-    private MetricChecker metricChecker;
-
-    @Mock
-    private PlatformChecker platformChecker;
+    private PlatformMetricChecker platformMetricChecker;
 
     @Mock
     private RoutingContext rc;
@@ -46,91 +40,33 @@ public class PlatformMetricHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        handler = new PlatformMetricHandler(metricChecker, platformChecker);
+        handler = new PlatformMetricHandler(platformMetricChecker);
     }
 
     @Test
     void getAllValid(VertxTestContext testContext) {
-        long typeId = 1L;
-        JsonObject rt1 = JsonObject.mapFrom(TestResourceProvider.createResourceType(typeId, "vm"));
-        JsonObject m1 = JsonObject.mapFrom(TestMetricProvider.createMetric(1L, "cpu"));
-        JsonObject m2 = JsonObject.mapFrom(TestMetricProvider.createMetric(2L, "memory"));
-        JsonObject m3 = JsonObject.mapFrom(TestMetricProvider.createMetric(3L, "storage"));
-        JsonArray required = new JsonArray(List.of(m1, m2));
-        JsonArray optional = new JsonArray(List.of(m3));
+        long platformId = 1L;
+        JsonObject pm1 = JsonObject.mapFrom(TestMetricProvider.createPlatformMetric(1L, 2L));
+        JsonObject pm2 = JsonObject.mapFrom(TestMetricProvider.createPlatformMetric(2L, 4L));
+        JsonObject pm3 = JsonObject.mapFrom(TestMetricProvider.createPlatformMetric(3L, 6L));
+        JsonArray response = new JsonArray(List.of(pm1, pm2, pm3));
 
-        when(rc.pathParam("id")).thenReturn(String.valueOf(typeId));
-        when(platformChecker.checkFindOne(typeId)).thenReturn(Single.just(rt1));
-        when(metricChecker.checkFindAllByPlatform(typeId, true)).thenReturn(Single.just(required));
-        when(metricChecker.checkFindAllByPlatform(typeId, false)).thenReturn(Single.just(optional));
+
+        when(rc.pathParam("id")).thenReturn(String.valueOf(platformId));
+        when(platformMetricChecker.checkFindAllByPlatformId(platformId)).thenReturn(Single.just(response));
 
         handler.getAll(rc)
             .subscribe(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(3);
                 assertThat(result.getJsonObject(0).getJsonObject("metric").getLong("metric_id"))
-                    .isEqualTo(1L);
-                assertThat(result.getJsonObject(1).getJsonObject("metric").getLong("metric_id"))
                     .isEqualTo(2L);
+                assertThat(result.getJsonObject(1).getJsonObject("metric").getLong("metric_id"))
+                    .isEqualTo(4L);
                 assertThat(result.getJsonObject(2).getJsonObject("metric").getLong("metric_id"))
-                    .isEqualTo(3L);
+                    .isEqualTo(6);
                 testContext.completeNow();
             }),
             throwable -> testContext.verify(() -> fail("method has thrown exception"))
         );
-    }
-
-    @Test
-    void getAllOptionalNotFound(VertxTestContext testContext) {
-        long typeId = 1L;
-        JsonObject rt1 = JsonObject.mapFrom(TestResourceProvider.createResourceType(typeId, "vm"));
-        JsonObject m1 = JsonObject.mapFrom(TestMetricProvider.createMetric(1L, "cpu"));
-        JsonObject m2 = JsonObject.mapFrom(TestMetricProvider.createMetric(2L, "memory"));
-        JsonArray required = new JsonArray(List.of(m1, m2));
-
-        when(rc.pathParam("id")).thenReturn(String.valueOf(typeId));
-        when(platformChecker.checkFindOne(typeId)).thenReturn(Single.just(rt1));
-        when(metricChecker.checkFindAllByPlatform(typeId, true)).thenReturn(Single.just(required));
-        when(metricChecker.checkFindAllByPlatform(typeId, false))
-            .thenReturn(Single.error(NotFoundException::new));
-
-        handler.getAll(rc)
-            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(NotFoundException.class);
-                    testContext.completeNow();
-            }));
-    }
-
-    @Test
-    void getAllRequiredNotFound(VertxTestContext testContext) {
-        long typeId = 1L;
-        JsonObject rt1 = JsonObject.mapFrom(TestResourceProvider.createResourceType(typeId, "vm"));
-
-        when(rc.pathParam("id")).thenReturn(String.valueOf(typeId));
-        when(platformChecker.checkFindOne(typeId)).thenReturn(Single.just(rt1));
-        when(metricChecker.checkFindAllByPlatform(typeId, true))
-            .thenReturn(Single.error(NotFoundException::new));
-
-        handler.getAll(rc)
-            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(NotFoundException.class);
-                    testContext.completeNow();
-            }));
-    }
-
-    @Test
-    void getAllRequiredResourceTypeNotFound(VertxTestContext testContext) {
-        long typeId = 1L;
-
-        when(rc.pathParam("id")).thenReturn(String.valueOf(typeId));
-        when(platformChecker.checkFindOne(typeId)).thenReturn(Single.error(NotFoundException::new));
-
-        handler.getAll(rc)
-            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(NotFoundException.class);
-                    testContext.completeNow();
-            }));
     }
 }

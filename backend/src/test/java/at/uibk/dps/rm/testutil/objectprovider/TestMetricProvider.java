@@ -3,6 +3,7 @@ package at.uibk.dps.rm.testutil.objectprovider;
 import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.entity.model.MetricType;
 import at.uibk.dps.rm.entity.model.MetricValue;
+import at.uibk.dps.rm.entity.model.PlatformMetric;
 import lombok.experimental.UtilityClass;
 
 /**
@@ -105,5 +106,16 @@ public class TestMetricProvider {
         metricValue.setMetricValueId(metricValueId);
         metricValue.setMetric(metric);
         metricValue.setCount(10L);
+    }
+
+    public static PlatformMetric createPlatformMetric(long platformMetricId, long metricId) {
+        PlatformMetric platformMetric = new PlatformMetric();
+        platformMetric.setPlatformMetricId(platformMetricId);
+        platformMetric.setPlatform(TestPlatformProvider.createPlatformFaas(1L, "platform"));
+        platformMetric.setMetric(createMetric(metricId, "metric" + metricId));
+        platformMetric.setIsMainResourceMetric(true);
+        platformMetric.setIsSubResourceMetric(true);
+        platformMetric.setRequired(true);
+        return platformMetric;
     }
 }

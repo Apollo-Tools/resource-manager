@@ -545,10 +545,10 @@ paths:
               items:
                 type: object
                 required:
-                  - metricId
+                  - metric_id
                 additionalProperties: false
                 properties:
-                  metricId:
+                  metric_id:
                     type: integer
                     format: int64
                     example: 1

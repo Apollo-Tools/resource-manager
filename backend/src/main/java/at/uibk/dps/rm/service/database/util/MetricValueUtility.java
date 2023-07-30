@@ -32,7 +32,7 @@ public class MetricValueUtility {
     public List<CompletableFuture<Void>> checkAddMetricList(Session session, Resource resource, JsonArray values) {
         return values.stream().map(jsonObject -> {
                 JsonObject jsonMetric = (JsonObject) jsonObject;
-                long metricId = jsonMetric.getLong("metricId");
+                long metricId = jsonMetric.getLong("metric_id");
                 MetricValue metricValue = new MetricValue();
                 return repository.findByResourceAndMetric(session, resource.getResourceId(), metricId)
                     .thenCompose(existingMetric -> {

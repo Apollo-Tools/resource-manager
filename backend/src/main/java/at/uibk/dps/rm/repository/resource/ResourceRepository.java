@@ -264,7 +264,7 @@ public class ResourceRepository extends Repository<Resource> {
     }
 
     public CompletionStage<List<SubResource>> findAllSubresources(Session session, long resourceId) {
-        return session.createQuery("from SubResource  sr " +
+        return session.createQuery("select distinct sr from SubResource  sr " +
                 "left join fetch sr.metricValues mv " +
                 "left join fetch mv.metric m " +
                 "where sr.mainResource.resourceId=:resourceId", SubResource.class)

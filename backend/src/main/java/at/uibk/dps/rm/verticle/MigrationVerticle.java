@@ -21,7 +21,6 @@ public class MigrationVerticle extends AbstractVerticle {
                 config().getString("db_user"),
                 config().getString("db_password"))
             .load();
-        flyway.repair();
         flyway.migrate();
         return Completable.complete();
     }

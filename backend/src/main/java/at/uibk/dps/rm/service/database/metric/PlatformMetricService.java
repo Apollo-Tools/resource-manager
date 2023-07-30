@@ -10,6 +10,7 @@ import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
 import org.hibernate.reactive.stage.Stage;
 
 /**
@@ -34,6 +35,8 @@ public interface PlatformMetricService extends DatabaseServiceInterface {
         return new PlatformMetricServiceVertxEBProxy(vertx,
             ServiceProxyAddress.getServiceProxyAddress(PlatformMetric.class));
     }
+
+    Future<JsonArray> findAllByPlatformId(long platformId);
 
     /**
      * Check if a resource is missing required metrics.

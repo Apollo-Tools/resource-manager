@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.model.PlatformMetric;
 import at.uibk.dps.rm.repository.Repository;
 import org.hibernate.reactive.stage.Stage.Session;
 
+import java.util.List;
 import java.util.concurrent.CompletionStage;
 
 /**
@@ -18,6 +19,15 @@ public class PlatformMetricRepository extends Repository<PlatformMetric> {
      */
     public PlatformMetricRepository() {
         super(PlatformMetric.class);
+    }
+
+    public CompletionStage<List<PlatformMetric>> findAllByPlatform(Session session, long platformId) {
+        return session.createQuery("from PlatformMetric pm " +
+                "left join fetch pm.metric m " +
+                "left join fetch  m.metricType " +
+                "where pm.platform.platformId=:platformId", entityClass)
+            .setParameter("platformId", platformId)
+            .getResultList();
     }
 
     /**

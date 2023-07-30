@@ -44,6 +44,7 @@ const AddMetricValuesForm = ({
   const [form] = Form.useForm();
   const {token, checkTokenExpired} = useAuth();
   const [metrics, setMetrics] = useState([]);
+  const [filteredMetrics, setFilteredMetrics] = useState([]);
   const [error, setError] = useState(false);
   const [requiredSelected, setRequiredSelected] = useState(false);
   Form.useWatch('basic', form);
@@ -52,27 +53,42 @@ const AddMetricValuesForm = ({
     if (!checkTokenExpired()) {
       listPlatformMetrics(resource.platform.platform_id, token, setMetrics, setError)
           .then(() => {
-            setMetrics((prevMetrics) => {
-              let filteredMetrics = prevMetrics;
-              if (excludeMetricIds != null) {
-                filteredMetrics = prevMetrics
-                    .filter((metric) => !excludeMetricIds
-                        .includes(metric.metric.metric_id));
-              }
-              return filteredMetrics
-                  .map((metric) => {
-                    return {metric: metric.metric, required: metric.required, isSelected: false};
-                  });
-            });
+
           });
     }
   }, [excludeMetricIds]);
 
   useEffect(() => {
-    setRequiredSelected(metrics
+    setFilteredMetrics(() => {
+      let filtered = metrics;
+      if (excludeMetricIds != null) {
+        filtered = metrics
+            .filter((metric) => {
+              const excludedMetric = !excludeMetricIds.includes(metric.metric.metric_id);
+              if (resource == null || !Object.hasOwn(resource, 'main_resource_id')) {
+                return metric.is_main_resource_metric && excludedMetric;
+              } else {
+                return metric.is_sub_resource_metric && excludedMetric;
+              }
+            });
+      }
+      return filtered
+          .map((metric) => {
+            return {
+              metric: metric.metric,
+              required: metric.required,
+              is_main_resource_metric: metric.is_main_resource_metric,
+              is_sub_resource_metric: metric.is_sub_resource_metric,
+              isSelected: false};
+          });
+    });
+  }, [metrics]);
+
+  useEffect(() => {
+    setRequiredSelected(filteredMetrics
         .filter((metric) => metric.required && !metric.isSelected)
         .length === 0);
-  }, [metrics]);
+  }, [filteredMetrics]);
 
   const onFinish = async (values) => {
     if (checkTokenExpired()) return;
@@ -83,7 +99,7 @@ const AddMetricValuesForm = ({
         return {metric_id: metricValue.metric};
       } else {
         return {
-          metricId: metricValue.metric,
+          metric_id: metricValue.metric,
           value: metric.metric_type.type === 'boolean' && metricValue.value === undefined ? false :
                         metricValue.value};
       }
@@ -105,10 +121,15 @@ const AddMetricValuesForm = ({
     const selectedMetrics = form.getFieldValue('metricValues')
         .filter((metric) => metric != null)
         .map((metric) => metric.metric);
-    setMetrics((prevMetrics) => {
+    setFilteredMetrics((prevMetrics) => {
       return prevMetrics.map((metric) => {
         const isSelected = selectedMetrics.includes(metric.metric.metric_id);
-        return {metric: metric.metric, required: metric.required, isSelected: isSelected};
+        return {
+          metric: metric.metric,
+          required: metric.required,
+          is_main_resource_metric: metric.is_main_resource_metric,
+          is_sub_resource_metric: metric.is_sub_resource_metric,
+          isSelected: isSelected};
       });
     });
   };
@@ -151,7 +172,7 @@ const AddMetricValuesForm = ({
                     className="w-40 mb-0"
                   >
                     <Select className="w-40" placeholder="Metric" onChange={onChangeMetric}>
-                      {metrics.map((metric) => {
+                      {filteredMetrics.map((metric) => {
                         return (
                           <Select.Option disabled={metric.isSelected}
                             value={metric.metric.metric_id}
@@ -198,7 +219,7 @@ const AddMetricValuesForm = ({
                 </div>
               ))}
               <Form.Item>
-                <Button disabled={metrics.length === 0 ||
+                <Button disabled={filteredMetrics.length === 0 ||
                                     form.getFieldValue('metricValues')?.length >= metrics.length}
                 type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
                                     Add Metric Value
