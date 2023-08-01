@@ -7,6 +7,7 @@ import {createFunctionCode, createFunctionUpload} from '../../lib/FunctionServic
 import CodeMirror from '@uiw/react-codemirror';
 import {getEditorExtension} from '../../lib/CodeEditorService';
 import {PlusOutlined} from '@ant-design/icons';
+import {nameRegexValidationRule, nameValidationRule} from '../../lib/FormValidationRules';
 
 
 const NewFunctionFrom = ({setNewFunction}) => {
@@ -88,12 +89,7 @@ const NewFunctionFrom = ({setNewFunction}) => {
         <Form.Item
           label="Name"
           name="name"
-          rules={[
-            {
-              required: true,
-              message: 'Please input a name!',
-            },
-          ]}
+          rules={[nameValidationRule, nameRegexValidationRule]}
         >
           <Input className="w-40" />
         </Form.Item>

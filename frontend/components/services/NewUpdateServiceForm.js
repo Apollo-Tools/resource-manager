@@ -8,6 +8,7 @@ import {MinusCircleOutlined, PlusOutlined} from '@ant-design/icons';
 import TextDataDisplay from '../misc/TextDataDisplay';
 import DateFormatter from '../misc/DateFormatter';
 import TooltipIcon from '../misc/TooltipIcon';
+import {nameRegexValidationRule, nameValidationRule} from '../../lib/FormValidationRules';
 
 
 const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished}) => {
@@ -102,12 +103,7 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
               <Form.Item
                 label="Name"
                 name="name"
-                rules={[
-                  {
-                    required: true,
-                    message: 'Please input a name!',
-                  },
-                ]}
+                rules={[nameValidationRule, nameRegexValidationRule]}
                 className="col-span-6"
               >
                 <Input className="w-40" />
