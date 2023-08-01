@@ -25,8 +25,11 @@ public class ServiceLevelObjectiveMapper {
      */
     public static ServiceLevelObjective mapEnsembleSLO(EnsembleSLO ensembleSLO) {
         List<SLOValue> values;
-        if (!ensembleSLO.getValueNumbers().isEmpty()) {
-            values = ensembleSLO.getValueNumbers().stream()
+        List<Double> valueNumbers = ensembleSLO.getValueNumbers();
+        List<String> valueStrings = ensembleSLO.getValueStrings();
+        List<Boolean> valueBools = ensembleSLO.getValueBools();
+        if (valueNumbers != null && !valueNumbers.isEmpty()) {
+            values = valueNumbers.stream()
                 .map(value -> {
                     SLOValue sloValue = new SLOValue();
                     sloValue.setValueNumber(value);
@@ -34,8 +37,8 @@ public class ServiceLevelObjectiveMapper {
                     return sloValue;
                 })
                 .collect(Collectors.toList());
-        } else if (!ensembleSLO.getValueStrings().isEmpty()) {
-            values = ensembleSLO.getValueStrings().stream()
+        } else if (valueStrings != null && !valueStrings.isEmpty()) {
+            values = valueStrings.stream()
                 .map(value -> {
                     SLOValue sloValue = new SLOValue();
                     sloValue.setValueString(value);
@@ -44,7 +47,7 @@ public class ServiceLevelObjectiveMapper {
                 })
                 .collect(Collectors.toList());
         } else {
-            values = ensembleSLO.getValueBools().stream()
+            values = valueBools.stream()
                 .map(value -> {
                     SLOValue sloValue = new SLOValue();
                     sloValue.setValueBool(value);
