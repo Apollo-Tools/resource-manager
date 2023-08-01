@@ -23,13 +23,13 @@ public class AccountRoute implements AuthenticationRoute {
         AccountHandler accountHandler = new AccountHandler(accountChecker, jwtAuthProvider.getJwtAuth());
         ResultHandler resultHandler = new ResultHandler(accountHandler);
 
-
         router
             .operation("getAccount")
             .handler(resultHandler::handleFindOneRequest);
 
         router
             .operation("signUp")
+            .handler(JWTAuthProvider.getAdminAuthorizationHandler())
             .handler(AccountInputHandler::validateSignupRequest)
             .handler(resultHandler::handleSaveOneRequest);
 

@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.entity.model;
 
 import at.uibk.dps.rm.annotations.Generated;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,28 +9,19 @@ import javax.persistence.*;
 import java.sql.Timestamp;
 
 /**
- * Represents the account entity.
+ * Represents the role entity.
  *
  * @author matthi-g
  */
 @Entity
 @Getter
 @Setter
-public class Account {
+public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long accountId;
+    private Long roleId;
 
-    private String username;
-
-    private String password;
-
-    @JsonProperty("is_active")
-    private Boolean isActive = true;
-
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "role_id")
-    private Role role;
+    private String role;
 
     @Column(insertable = false, updatable = false)
     private @Setter(AccessLevel.NONE) Timestamp createdAt;
@@ -45,13 +35,13 @@ public class Account {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        Account account = (Account) obj;
-        return accountId.equals(account.accountId);
+        Role role = (Role) obj;
+        return roleId.equals(role.roleId);
     }
 
     @Override
     @Generated
     public int hashCode() {
-        return accountId.hashCode();
+        return roleId.hashCode();
     }
 }

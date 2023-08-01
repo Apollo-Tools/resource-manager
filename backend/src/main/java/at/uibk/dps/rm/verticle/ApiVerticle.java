@@ -165,8 +165,6 @@ public class ApiVerticle extends AbstractVerticle {
             .setDeleteUploadedFilesOnEnd(true));
     }
 
-
-
     /**
      * Set up the cors policy for the api.
      *

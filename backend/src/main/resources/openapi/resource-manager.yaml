@@ -239,6 +239,9 @@ paths:
       operationId: signUp
       tags:
         - accounts
+      security:
+        - bearerAuth: []
+      x-role: admin
       requestBody:
         required: true
         content:
@@ -277,6 +280,8 @@ paths:
                 $ref: "#/components/schemas/Account"
         400:
           $ref: "#/components/responses/400"
+        403:
+          $ref: "#/components/responses/403"
         409:
           $ref: "#/components/responses/409"
         500:

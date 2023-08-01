@@ -29,6 +29,7 @@
         <class>at.uibk.dps.rm.entity.model.ResourceDeployment</class>
         <class>at.uibk.dps.rm.entity.model.ResourceDeploymentStatus</class>
         <class>at.uibk.dps.rm.entity.model.ResourceType</class>
+        <class>at.uibk.dps.rm.entity.model.Role</class>
         <class>at.uibk.dps.rm.entity.model.Runtime</class>
         <class>at.uibk.dps.rm.entity.model.Service</class>
         <class>at.uibk.dps.rm.entity.model.ServiceDeployment</class>

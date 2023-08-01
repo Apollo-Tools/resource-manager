@@ -4,7 +4,11 @@ import io.vertx.ext.auth.JWTOptions;
 import io.vertx.ext.auth.PubSecKeyOptions;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.rxjava3.core.Vertx;
+import io.vertx.rxjava3.ext.auth.authorization.AuthorizationProvider;
+import io.vertx.rxjava3.ext.auth.authorization.PermissionBasedAuthorization;
 import io.vertx.rxjava3.ext.auth.jwt.JWTAuth;
+import io.vertx.rxjava3.ext.auth.jwt.authorization.JWTAuthorization;
+import io.vertx.rxjava3.ext.web.handler.AuthorizationHandler;
 import lombok.Getter;
 
 /**
@@ -14,6 +18,13 @@ import lombok.Getter;
  */
 @Getter
 public class JWTAuthProvider {
+
+    private static final String ADMIN = "admin";
+
+    private static final String DEFAULT = "default";
+
+    public static final String ROLE_CLAIM = "role";
+
     private final JWTAuth jwtAuth;
 
     /**
@@ -31,5 +42,11 @@ public class JWTAuthProvider {
                 .setBuffer(pubSecKey))
             .setJWTOptions(new JWTOptions()
                 .setExpiresInMinutes(expiresInMinutes)));
+    }
+
+    public static AuthorizationHandler getAdminAuthorizationHandler() {
+        AuthorizationProvider authorizationProvider = JWTAuthorization.create(ROLE_CLAIM);
+        return AuthorizationHandler.create(PermissionBasedAuthorization.create(ADMIN))
+            .addAuthorizationProvider(authorizationProvider);
     }
 }
