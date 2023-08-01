@@ -72,13 +72,19 @@ const AddCredentials = ({functionResources, serviceResources, next, prev, onSubm
         });
       });
     });
-    requestBody.docker_credentials = {
-      username: needsDockerCreds ? values.dockerUsername : '',
-      access_token: needsDockerCreds ? values.dockerAccessToken : '',
+    const dockerCredentials = needsDockerCreds ? {
+      registry: 'https://index.docker.io/v1/',
+      username: values.dockerUsername,
+      access_token: values.dockerAccessToken,
+    } : null;
+    // TODO: fix
+    requestBody.credentials = {
+      docker_credentials: [dockerCredentials],
+      kube_config: values.kubeconfig,
     };
-    requestBody.kube_config = values.kubeconfig;
     requestBody.function_resources = functionDeployments;
     requestBody.service_resources = serviceDeployments;
+    requestBody.lock_resources = [];
     if (!checkTokenExpired()) {
       deployResources(requestBody, token, setNewDeployment, setError);
     }

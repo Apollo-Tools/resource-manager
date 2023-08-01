@@ -4,7 +4,7 @@ provider "kubernetes" {
 }
 
 locals {
-  name = "${replace(var.name, "-", "_")}-${var.deployment_id}-${formatdate("YYYY-MM-DD-hh-mm-ss", timestamp())}"
+  name = "${replace(var.name, "-", "_")}-${var.deployment_id}${var.hostname != null ? var.hostname : ""}-${formatdate("YYYY-MM-DD-hh-mm-ss", timestamp())}"
 }
 
 resource "kubernetes_service_v1" "service" {
@@ -77,6 +77,7 @@ resource "kubernetes_deployment_v1" "deployment" {
             }
           }
         }
+        node_selector = var.hostname != null ? {"kubernetes.io/hostname" = var.hostname} : null
       }
     }
   }

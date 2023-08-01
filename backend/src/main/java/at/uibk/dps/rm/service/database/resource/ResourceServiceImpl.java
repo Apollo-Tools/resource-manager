@@ -12,6 +12,7 @@ import at.uibk.dps.rm.util.validation.ServiceResultValidator;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import org.hibernate.Hibernate;
 import org.hibernate.reactive.stage.Stage.SessionFactory;
 
 import java.util.ArrayList;
@@ -156,6 +157,10 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
                 SubResourceDTO subResource = new SubResourceDTO((SubResource) resource);
                 objects.add(JsonObject.mapFrom(subResource));
             } else {
+                MainResource mainResource = (MainResource) resource;
+                if (Hibernate.isInitialized(mainResource.getSubResources())) {
+                    mainResource.getSubResources().forEach(subResource -> subResource.setMainResource(null));
+                }
                 objects.add(JsonObject.mapFrom(resource));
             }
         }

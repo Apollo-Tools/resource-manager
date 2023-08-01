@@ -51,12 +51,4 @@ public class PlatformMetricServiceImpl extends DatabaseServiceProxy<PlatformMetr
                 return new JsonArray(result);
             });
     }
-
-    @Override
-    public Future<Boolean> missingRequiredPlatformMetricsByResourceId(long resourceId) {
-        CompletionStage<Long> count = withSession(session ->
-            repository.countMissingRequiredMetricValuesByResourceId(session, resourceId));
-        return Future.fromCompletionStage(count)
-            .map(result -> result > 0);
-    }
 }

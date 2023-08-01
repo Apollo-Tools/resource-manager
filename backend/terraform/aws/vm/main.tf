@@ -88,7 +88,7 @@ data "http-wait" "check_vm" {
   count = length(var.names)
   provider = http
   url = format("http://%s:8080", aws_eip.vm[count.index].public_ip)
-  max_elapsed_time = 999
+  max_elapsed_time = 300
   initial_interval = 10000
   multiplier       = "1.0"
   max_interval     = 10000

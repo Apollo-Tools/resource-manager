@@ -2,6 +2,8 @@ package at.uibk.dps.rm.entity.model;
 
 import at.uibk.dps.rm.annotations.Generated;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,6 +23,11 @@ import java.util.Set;
 @DiscriminatorColumn(name = "resource_type")
 @Getter
 @Setter
+@JsonTypeInfo(use = JsonTypeInfo.Id.DEDUCTION)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = MainResource.class, name = "MainResource"),
+    @JsonSubTypes.Type(value = SubResource.class, name = "SubResource")}
+)
 public abstract class Resource {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

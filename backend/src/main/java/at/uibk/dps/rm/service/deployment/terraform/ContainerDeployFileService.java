@@ -69,11 +69,13 @@ public class ContainerDeployFileService extends TerraformFileService {
         Resource resource = serviceDeployment.getResource();
         Service service = serviceDeployment.getService();
         String identifier = resource.getResourceId() + "_" + service.getServiceId();
+        Map<String, MetricValue> mainMetricValues =
+            MetricValueMapper.mapMetricValues(resource.getMain().getMetricValues());
         Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
 
         String externalIp = "";
-        if (metricValues.containsKey("external-ip")) {
-            externalIp = metricValues.get("external-ip").getValueString();
+        if (mainMetricValues.containsKey("external-ip")) {
+            externalIp = mainMetricValues.get("external-ip").getValueString();
         }
 
         String configPath = Path.of(rootFolder.getParent().toString(), "config").toAbsolutePath().toString()
@@ -82,12 +84,15 @@ public class ContainerDeployFileService extends TerraformFileService {
             .map(portEntry -> String.format("{container_port = %s, service_port = %s}", portEntry.split(":")[0],
                 portEntry.split(":")[1]))
             .collect(Collectors.joining(","));
+        String hostname = metricValues.containsKey("hostname") ?
+            "\"" + metricValues.get("hostname").getValueString() + "\"" : "null";
         containerString.append(String.format(
             "module \"deployment_%s\" {\n" +
             "  source = \"../../../../terraform/k8s/deployment\"\n" +
             "  config_path = \"%s\"\n" +
             "  config_context = \"%s\"\n" +
             "  namespace = \"%s\"\n" +
+            "  name = \"%s\"\n" +
             "  image = \"%s\"\n" +
             "  deployment_id = %s\n" +
             "  replicas = %s\n" +
@@ -96,10 +101,11 @@ public class ContainerDeployFileService extends TerraformFileService {
             "  ports = [%s]\n" +
             "  service_type = \"%s\"\n" +
             "  external_ip = \"%s\"\n" +
+            "  hostname = %s\n" +
             "}\n", identifier, configPath, serviceDeployment.getContext(),
-            serviceDeployment.getNamespace(), service.getImage(), deploymentId,
+            serviceDeployment.getNamespace(), service.getName(), service.getImage(), deploymentId,
             service.getReplicas(), service.getCpu(), service.getMemory(), ports,
-            service.getServiceType().getName(), externalIp));
+            service.getServiceType().getName(), externalIp, hostname));
         return containerString.toString();
     }
 

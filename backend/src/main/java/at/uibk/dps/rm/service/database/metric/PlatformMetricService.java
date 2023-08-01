@@ -37,12 +37,4 @@ public interface PlatformMetricService extends DatabaseServiceInterface {
     }
 
     Future<JsonArray> findAllByPlatformId(long platformId);
-
-    /**
-     * Check if a resource is missing required metrics.
-     *
-     * @param resourceId the id of the resource
-     * @return a Future that emits true if the resource is missing required metrics, else false
-     */
-    Future<Boolean> missingRequiredPlatformMetricsByResourceId(long resourceId);
 }

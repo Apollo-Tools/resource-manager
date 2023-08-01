@@ -39,6 +39,13 @@ public class ServiceDeploymentRepository extends Repository<ServiceDeployment> {
                 "left join fetch p.resourceType " +
                 "left join fetch r.region reg " +
                 "left join fetch reg.resourceProvider rp " +
+                "left join fetch r.mainResource mr " +
+                "left join fetch mr.metricValues mmv " +
+                "left join fetch mmv.metric " +
+                "left join fetch mr.platform p " +
+                "left join fetch p.resourceType " +
+                "left join fetch mr.region mreg " +
+                "left join fetch reg.resourceProvider mrp " +
                 "left join fetch rp.environment " +
                 "left join fetch sd.status " +
                 "where sd.deployment.deploymentId=:deploymentId", entityClass)

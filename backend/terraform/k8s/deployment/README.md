@@ -17,6 +17,7 @@ module "k8s_deployment" {
   source = "../../terraform/k8s/deployment"
   config_context = "context"
   namespace = "default"
+  name = "servicename"
   image = "nginx:latest"
   deployment_id = 1
   ports = [{
@@ -25,6 +26,7 @@ module "k8s_deployment" {
   }]
   service_type = "LoadBalancer"
   external_ip = "0.0.0.0"
+  hostname = "node1"  
 }
 ```
 
@@ -50,13 +52,14 @@ module "k8s_deployment" {
 
 ## Inputs
 
-| Name           | Description                                                           | Type             | Default            | Required |
-|----------------|-----------------------------------------------------------------------|------------------|--------------------|:--------:|
-| deployment_id  | The id of the deployment.                                             | `number`         | n/a                |   yes    |
-| namespace      | The k8s namespace that should be used.                                | `string`         | `"default"`        |    no    |
-| config_path    | The path to the k8s config                                            | `string`         | `"~/.kube/config"` |    no    |
-| config_context | The selected k8s context                                              | `string`         | n/a                |   yes    |
-| images         | The images to pre pull                                                | `list(string)`   | n/a                |   yes    |
-| timeout        | The timeout for the creation, update and deletion of the pre pull pod | `string`         | `"5m"`             |    no    |
+| Name           | Description                                                            | Type           | Default            | Required |
+|----------------|------------------------------------------------------------------------|----------------|--------------------|:--------:|
+| deployment_id  | The id of the deployment.                                              | `number`       | n/a                |   yes    |
+| namespace      | The k8s namespace that should be used.                                 | `string`       | `"default"`        |    no    |
+| config_path    | The path to the k8s config.                                            | `string`       | `"~/.kube/config"` |    no    |
+| config_context | The selected k8s context.                                              | `string`       | n/a                |   yes    |
+| images         | The images to pre pull.                                                | `list(string)` | n/a                |   yes    |
+| timeout        | The timeout for the creation, update and deletion of the pre pull pod. | `string`       | `"5m"`             |    no    |
+| hostname       | The value of the hostname label of a k8s node.                         | `string`       | n/a                |    no    |
 
 <!-- END_TF_DOCS -->

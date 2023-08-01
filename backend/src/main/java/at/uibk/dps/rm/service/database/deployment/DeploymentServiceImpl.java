@@ -258,16 +258,6 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
 
         return sessionToFuture(save)
             .map(result -> {
-                result.getCredentialsList().forEach(credentials ->
-                    credentials.getResourceProvider().setProviderPlatforms(null));
-                result.getFunctionDeployments().forEach(functionDeployment -> {
-                    //functionDeployment.getResource().getRegion().getResourceProvider().setProviderPlatforms(null);
-                    functionDeployment.setDeployment(null);
-                });
-                result.getServiceDeployments().forEach(serviceDeployment -> {
-                    //serviceDeployment.getResource().getRegion().getResourceProvider().setProviderPlatforms(null);
-                    serviceDeployment.setDeployment(null);
-                });
                 result.getDeployment().setCreatedBy(null);
                 return JsonObject.mapFrom(result);
             });
@@ -329,16 +319,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                     deployResources);
                 CompletableFuture<Void> checkMetrics = checkMissingRequiredMetrics(session, resources);
                 return CompletableFuture.allOf(checkResources, checkMetrics)
-                    .thenApply(res -> {
-                        for (Resource resource: resources) {
-                            MainResource mainResource = resource.getMain();
-                            Region region = Hibernate.unproxy(mainResource.getRegion(), Region.class);
-                            Platform platform = Hibernate.unproxy(mainResource.getPlatform(), Platform.class);
-                            mainResource.setRegion(region);
-                            mainResource.setPlatform(platform);
-                        }
-                        return resources;
-                    });
+                    .thenApply(res -> resources);
             });
     }
 
@@ -408,14 +389,17 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
 
     private CompletableFuture<Void> checkMissingRequiredMetrics(Session session, List<Resource> resources) {
         List<CompletableFuture<Void>> checkMissingRequiredMetrics = resources.stream()
-            .map(resource -> repositoryProvider.getPlatformMetricRepository()
-                .countMissingRequiredMetricValuesByResourceId(session, resource.getResourceId())
-                .thenAccept(missingRequiredMetrics -> {
-                    if (missingRequiredMetrics > 0) {
-                        throw new NotFoundException("missing required metrics for resource (" +
-                            resource.getResourceId() + ")");
-                    }
-                }).toCompletableFuture())
+            .map(resource -> {
+                boolean isMainResource = resource.getMain().equals(resource);
+                return repositoryProvider.getPlatformMetricRepository()
+                    .countMissingRequiredMetricValuesByResourceId(session, resource.getResourceId(), isMainResource)
+                    .thenAccept(missingRequiredMetrics -> {
+                        if (missingRequiredMetrics > 0) {
+                            throw new NotFoundException("missing required metrics for resource (" +
+                                resource.getResourceId() + ")");
+                        }
+                    }).toCompletableFuture();
+            })
             .collect(Collectors.toList());
         return CompletableFuture.allOf(checkMissingRequiredMetrics.toArray(CompletableFuture[]::new));
     }
@@ -479,7 +463,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
 
     private ServiceDeployment createNewResourceDeployment(Deployment deployment, Resource resource,
             ServiceResourceIds ids, KubeConfig kubeConfig, ResourceDeploymentStatus status) {
-        Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
+        Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMain().getMetricValues());
         String clusterUrl = metricValues.get("cluster-url").getValueString();
         Context context = getContextByClusterUrl(kubeConfig, clusterUrl);
         String namespace = context.getContext().getNamespace() != null ? context.getContext().getNamespace() :

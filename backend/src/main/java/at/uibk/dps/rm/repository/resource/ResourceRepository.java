@@ -235,10 +235,23 @@ public class ResourceRepository extends Repository<Resource> {
         }
         String resourceIdsConcat = resourceIds.stream().map(Object::toString).collect(Collectors.joining(","));
         String resourceTypesConcat = resourceTypes.stream().map(Object::toString).collect(Collectors.joining("','"));
-        return session.createQuery("select distinct r from Resource r " +
-                "where r.resourceId in (" + resourceIdsConcat + ") and " +
-                "r.platform.resourceType.resourceType in ('" + resourceTypesConcat + "')", entityClass)
+
+        CompletionStage<List<Resource>> getMainResources = session.createQuery(
+                "select distinct mr from MainResource mr " +
+                    "where mr.resourceId in (" + resourceIdsConcat + ") and " +
+                    "mr.platform.resourceType.resourceType in ('" + resourceTypesConcat + "')", entityClass)
             .getResultList();
+        CompletionStage<List<Resource>> getSubResources = session.createQuery(
+                "select distinct sr from SubResource sr " +
+                    "where sr.resourceId in (" + resourceIdsConcat + ") and " +
+                    "sr.mainResource.platform.resourceType.resourceType in ('" + resourceTypesConcat + "')", entityClass)
+            .getResultList();
+        return getMainResources.thenCombine(getSubResources, (mainResources, subResource) -> {
+            ArrayList<Resource> resources = new ArrayList<>();
+            resources.addAll(mainResources);
+            resources.addAll(subResource);
+            return resources;
+        });
     }
 
     /**
@@ -251,16 +264,38 @@ public class ResourceRepository extends Repository<Resource> {
      */
     public CompletionStage<List<Resource>> findAllByResourceIdsAndFetch(Session session, List<Long> resourceIds) {
         String resourceIdsConcat = resourceIds.stream().map(Object::toString).collect(Collectors.joining(","));
-        return session.createQuery("select distinct r from Resource r " +
-                "left join fetch r.metricValues mv " +
-                "left join fetch mv.metric " +
-                "left join fetch r.region reg " +
-                "left join fetch reg.resourceProvider rp " +
-                "left join fetch rp.environment " +
-                "left join fetch r.platform p " +
-                "left join fetch p.resourceType " +
-                "where r.resourceId in (" + resourceIdsConcat + ")", Resource.class)
+
+        CompletionStage<List<Resource>> getMainResources = session.createQuery(
+                "select distinct mr from MainResource mr " +
+                    "left join fetch mr.metricValues mv " +
+                    "left join fetch mv.metric " +
+                    "left join fetch mr.region reg " +
+                    "left join fetch reg.resourceProvider rp " +
+                    "left join fetch rp.environment " +
+                    "left join fetch mr.platform p " +
+                    "left join fetch p.resourceType " +
+                    "where mr.resourceId in (" + resourceIdsConcat + ")", Resource.class)
             .getResultList();
+        CompletionStage<List<Resource>> getSubResources = session.createQuery(
+                "select distinct sr from SubResource sr " +
+                    "left join fetch sr.metricValues mv " +
+                    "left join fetch mv.metric " +
+                    "left join fetch sr.mainResource mr " +
+                    "left join fetch mr.region reg " +
+                    "left join fetch reg.resourceProvider rp " +
+                    "left join fetch rp.environment " +
+                    "left join fetch mr.platform p " +
+                    "left join fetch p.resourceType " +
+                    "left join fetch mr.metricValues mmv " +
+                    "left join fetch mmv.metric " +
+                    "where sr.resourceId in (" + resourceIdsConcat + ")", Resource.class)
+            .getResultList();
+        return getMainResources.thenCombine(getSubResources, (mainResources, subResource) -> {
+            ArrayList<Resource> resources = new ArrayList<>();
+            resources.addAll(mainResources);
+            resources.addAll(subResource);
+            return resources;
+        });
     }
 
     public CompletionStage<List<SubResource>> findAllSubresources(Session session, long resourceId) {
