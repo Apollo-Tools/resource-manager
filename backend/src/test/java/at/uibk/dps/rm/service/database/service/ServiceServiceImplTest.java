@@ -102,37 +102,6 @@ public class ServiceServiceImplTest {
             })));
     }
 
-    @Test
-    void findEntityExistsByName(VertxTestContext testContext) {
-        String serviceName = "svc";
-        Service entity = TestServiceProvider.createService(1L, serviceName);
-
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(serviceRepository.findOneByName(session, serviceName))
-            .thenReturn(CompletionStages.completedFuture(entity));
-
-        service.existsOneByName(serviceName)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result).isEqualTo(true);
-                testContext.completeNow();
-            })));
-    }
-
-    @Test
-    void findEntityExistsByNameNotExists(VertxTestContext testContext) {
-        String serviceName = "svc";
-
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(serviceRepository.findOneByName(session, serviceName))
-            .thenReturn(CompletionStages.completedFuture(null));
-
-        service.existsOneByName(serviceName)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result).isEqualTo(false);
-                testContext.completeNow();
-            })));
-    }
-
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void existsAllByIds(boolean allExist, VertxTestContext testContext) {

@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.handler.ensemble;
 
 import at.uibk.dps.rm.entity.model.Ensemble;
-import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.EnsembleService;
 import at.uibk.dps.rm.testutil.SingleHelper;
@@ -72,35 +71,6 @@ public class EnsembleCheckerTest {
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
-                    testContext.completeNow();
-            }));
-    }
-
-    @Test
-    void checkExistsOneTrue(VertxTestContext testContext) {
-        long accountId = 2L;
-        String name = "ensemble";
-
-        when(ensembleService.existsOneByNameAndAccountId(name, accountId)).thenReturn(Single.just(false));
-
-        ensembleChecker.checkExistsOneByName(name, accountId)
-            .blockingSubscribe(() -> {},
-                    throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-        testContext.completeNow();
-    }
-
-    @Test
-    void checkExistsOneFalse(VertxTestContext testContext) {
-        long accountId = 2L;
-        String name = "ensemble";
-
-        when(ensembleService.existsOneByNameAndAccountId(name, accountId)).thenReturn(Single.just(true));
-
-        ensembleChecker.checkExistsOneByName(name, accountId)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
                     testContext.completeNow();
             }));
     }

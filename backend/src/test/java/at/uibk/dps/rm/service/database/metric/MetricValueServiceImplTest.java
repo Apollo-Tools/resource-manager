@@ -164,39 +164,6 @@ public class MetricValueServiceImplTest {
     }
 
     @Test
-    void checkOneByResourceAndMetricExists(VertxTestContext testContext) {
-        long resourceId = 1L;
-        long metricId = 2L;
-        MetricValue entity = new MetricValue();
-
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(metricValueRepository.findByResourceAndMetric(session, resourceId, metricId))
-            .thenReturn(CompletionStages.completedFuture(entity));
-
-        metricValueService.existsOneByResourceAndMetric(resourceId, metricId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result).isEqualTo(true);
-                testContext.completeNow();
-        })));
-    }
-
-    @Test
-    void checkOneByResourceAndMetricNotExists(VertxTestContext testContext) {
-        long resourceId = 1L;
-        long metricId = 2L;
-
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(metricValueRepository.findByResourceAndMetric(session, resourceId, metricId))
-            .thenReturn(CompletionStages.completedFuture(null));
-
-        metricValueService.existsOneByResourceAndMetric(resourceId, metricId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result).isEqualTo(false);
-                testContext.completeNow();
-        })));
-    }
-
-    @Test
     void updateByResourceAndMetric(VertxTestContext testContext) {
         long resourceId = 1L;
         long metricId = 2L;

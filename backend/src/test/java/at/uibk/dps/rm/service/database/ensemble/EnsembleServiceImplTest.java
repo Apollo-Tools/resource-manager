@@ -12,15 +12,11 @@ import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.concurrent.CompletionStage;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -108,50 +104,5 @@ public class EnsembleServiceImplTest {
                 assertThat(result).isNull();
                 testContext.completeNow();
             })));
-    }
-
-    private static Stream<Arguments> provideExistsOneByNameAndAccount() {
-        String name = "ensemble";
-        long ensembleId = 1L, accountId = 2L;
-        Ensemble e1 = TestEnsembleProvider.createEnsemble(ensembleId, accountId, name);
-
-        return Stream.of(
-                Arguments.of(name, accountId, CompletionStages.completedFuture(e1), true),
-                Arguments.of(name, accountId, CompletionStages.nullFuture(), false)
-        );
-    }
-
-    @ParameterizedTest
-    @MethodSource("provideExistsOneByNameAndAccount")
-    void existsOneByNameAndAccountIdTrue(String name, long accountId, CompletionStage<Ensemble> completionStage,
-            boolean expected,
-            VertxTestContext testContext) {
-
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(repositoryMock.getEnsembleRepository()
-            .findByNameAndAccountId(session, name, accountId)).thenReturn(completionStage);
-
-        ensembleService.existsOneByNameAndAccountId(name, accountId)
-                .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                    assertThat(result).isEqualTo(expected);
-                    testContext.completeNow();
-                })));
-    }
-
-    @Test
-    void updateEnsembleValidity(VertxTestContext testContext) {
-        long ensembleId = 1L;
-        boolean isValid = true;
-        CompletionStage<Integer> completionStage = CompletionStages.completedFuture(1);
-
-        SessionMockHelper.mockTransaction(sessionFactory, session);
-        when(repositoryMock.getEnsembleRepository()
-            .updateValidity(session, ensembleId, isValid)).thenReturn(completionStage);
-
-        ensembleService.updateEnsembleValidity(ensembleId, isValid)
-                .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                    assertThat(result).isNull();
-                    testContext.completeNow();
-                })));
     }
 }
