@@ -17,7 +17,6 @@ import org.hibernate.reactive.stage.Stage.SessionFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CompletionStage;
 
 /**
@@ -87,15 +86,6 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     }
 
     @Override
-    public Future<Boolean> existsOneByResourceType(long typeId) {
-        CompletionStage<List<Resource>> findAll = withSession(session ->
-            repository.findByResourceType(session, typeId));
-        return Future
-            .fromCompletionStage(findAll)
-            .map(result -> !result.isEmpty());
-    }
-
-    @Override
     public Future<JsonArray> findAll() {
         CompletionStage<List<Resource>> findAll = withSession(repository::findAllAndFetch);
         return Future
@@ -112,15 +102,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     }
 
     @Override
-    public Future<JsonArray> findAllByEnsembleId(long ensembleId) {
-        CompletionStage<List<Resource>> findAll = withSession(session ->
-            repository.findAllByEnsembleId(session, ensembleId));
-        return Future.fromCompletionStage(findAll)
-            .map(this::encodeResourceList);
-    }
-
-    @Override
-    public Future<JsonArray> findAllSubresources(long resourceId) {
+    public Future<JsonArray> findAllSubResources(long resourceId) {
         CompletionStage<List<SubResource>> findAll = withSession(session ->
             repository.findAllSubresources(session, resourceId));
         return sessionToFuture(findAll)
@@ -131,15 +113,6 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
                 }
                 return new JsonArray(objects);
             });
-    }
-
-    @Override
-    public Future<Boolean> existsAllByIdsAndResourceTypes(Set<Long> resourceIds, List<String> resourceTypes) {
-        CompletionStage<List<Resource>> findAll = withSession(session ->
-            repository.findAllByResourceIdsAndResourceTypes(session, resourceIds, resourceTypes));
-        return Future
-            .fromCompletionStage(findAll)
-            .map(result -> result.size() == resourceIds.size());
     }
 
     @Override

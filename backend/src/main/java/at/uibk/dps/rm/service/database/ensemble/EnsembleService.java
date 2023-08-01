@@ -54,31 +54,12 @@ public interface EnsembleService extends DatabaseServiceInterface {
     Future<JsonObject> findOneByIdAndAccountId(long id, long accountId);
 
     /**
-     * Check if an ensemble exists by its name and creator.
-     *
-     * @param name the name of the ensemble
-     * @param accountId the account id of the creator
-     * @return a Future that emits true if it exists, else false
-     */
-    Future<Boolean> existsOneByNameAndAccountId(String name, long accountId);
-
-    /**
-     * Update the validity of an existing ensemble.
-     *
-     * @param ensembleId the id of the ensemble
-     * @param isValid the new validity value
-     * @return an empty Future
-     */
-    Future<Void> updateEnsembleValidity(long ensembleId, boolean isValid);
-
-    /**
      * Check if all resources from a create ensemble request fulfill its service level objectives.
      *
      * @param data the request data
      * @return a Future that emits nothing
      */
     Future<Void> validateCreateEnsembleRequest(JsonObject data);
-
 
     /**
      * Check if all resources from an existing ensemble fulfill its service level objectives.

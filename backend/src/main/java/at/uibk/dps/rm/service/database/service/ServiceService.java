@@ -38,14 +38,6 @@ public interface ServiceService extends DatabaseServiceInterface {
     }
 
     /**
-     * Check if a service exists by name.
-     *
-     * @param name the name of the service
-     * @return a Future that emits true if it exists, else false
-     */
-    Future<Boolean> existsOneByName(String name);
-
-    /**
      * Check if all services exists by serviceIds.
      *
      * @param serviceIds the list of service ids

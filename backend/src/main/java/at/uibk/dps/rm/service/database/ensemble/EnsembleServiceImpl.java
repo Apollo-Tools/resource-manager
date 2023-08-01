@@ -233,22 +233,6 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
             }).collect(Collectors.toList());
     }
 
-    @Override
-    public Future<Boolean> existsOneByNameAndAccountId(String name, long accountId) {
-        CompletionStage<Ensemble> findOne = withSession(session ->
-            repositoryProvider.getEnsembleRepository().findByNameAndAccountId(session, name, accountId));
-        return Future.fromCompletionStage(findOne)
-            .map(Objects::nonNull);
-    }
-
-    @Override
-    public Future<Void> updateEnsembleValidity(long ensembleId, boolean isValid) {
-        CompletionStage<Integer> updateValidity = withTransaction(session ->
-            repositoryProvider.getEnsembleRepository().updateValidity(session, ensembleId, isValid));
-        return Future.fromCompletionStage(updateValidity)
-            .mapEmpty();
-    }
-
     private EnsembleSLO createEnsembleSLO(ServiceLevelObjective slo, Ensemble ensemble) {
         EnsembleSLO ensembleSLO = new EnsembleSLO();
         ensembleSLO.setName(slo.getName());

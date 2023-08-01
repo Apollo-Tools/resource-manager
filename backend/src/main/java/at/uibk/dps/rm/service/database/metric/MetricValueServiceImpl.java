@@ -15,7 +15,6 @@ import org.hibernate.reactive.stage.Stage.SessionFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
@@ -87,14 +86,6 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
             }
             return new JsonArray(objects);
         });
-    }
-
-    @Override
-    public Future<Boolean> existsOneByResourceAndMetric(long resourceId, long metricId) {
-        CompletionStage<MetricValue> findOne = withSession(session ->
-            repository.findByResourceAndMetric(session, resourceId, metricId));
-        return Future.fromCompletionStage(findOne)
-            .map(Objects::nonNull);
     }
 
     @Override

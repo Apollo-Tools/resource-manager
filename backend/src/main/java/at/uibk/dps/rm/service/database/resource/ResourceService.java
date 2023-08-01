@@ -17,7 +17,6 @@ import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage.SessionFactory;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * The interface of the service proxy for the resource entity.
@@ -50,32 +49,7 @@ public interface ResourceService extends DatabaseServiceInterface {
      */
     Future<JsonArray> findAllBySLOs(JsonObject data);
 
-    /**
-     * Check if a resource exists by its resource type.
-     *
-     * @param typeId the id of the resource type
-     * @return a Future that emits true if it exists, else false
-     */
-    Future<Boolean> existsOneByResourceType(long typeId);
-
-    /**
-     * Find all resources by ensembleId.
-     *
-     * @param ensembleId the id of the ensemble
-     * @return a Future that emits all resources as JsonArray
-     */
-    Future<JsonArray> findAllByEnsembleId(long ensembleId);
-
-    Future<JsonArray> findAllSubresources(long resourceId);
-
-    /**
-     * Check if all resources exists by resourceIds and resourceTypes.
-     *
-     * @param resourceIds the list of resource ids
-     * @param resourceTypes the list of resource types
-     * @return a Future that emits true if all resources exist, else false
-     */
-    Future<Boolean> existsAllByIdsAndResourceTypes(Set<Long> resourceIds, List<String> resourceTypes);
+    Future<JsonArray> findAllSubResources(long resourceId);
 
     /**
      * Find all resources by resourceIds.

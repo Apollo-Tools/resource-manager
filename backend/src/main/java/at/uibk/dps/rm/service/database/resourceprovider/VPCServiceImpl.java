@@ -12,7 +12,6 @@ import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CompletionStage;
 
 /**
@@ -56,22 +55,6 @@ public class VPCServiceImpl extends DatabaseServiceProxy<VPC> implements VPCServ
         CompletionStage<VPC> findOne = withSession(session -> repository.findByIdAndFetch(session, id));
         return Future.fromCompletionStage(findOne)
             .map(this::serializeVPC);
-    }
-
-    @Override
-    public Future<JsonObject> findOneByRegionIdAndAccountId(long regionId, long accountId) {
-        CompletionStage<VPC> findOne = withSession(session ->
-            repository.findByRegionIdAndAccountId(session, regionId, accountId));
-        return Future.fromCompletionStage(findOne)
-            .map(this::serializeVPC);
-    }
-
-    @Override
-    public Future<Boolean> existsOneByRegionIdAndAccountId(long regionId, long accountId) {
-        CompletionStage<VPC> findOne = withSession(session ->
-            repository.findByRegionIdAndAccountId(session, regionId, accountId));
-        return Future.fromCompletionStage(findOne)
-            .map(Objects::nonNull);
     }
 
     @Override

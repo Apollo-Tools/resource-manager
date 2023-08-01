@@ -5,12 +5,8 @@ import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.repository.deployment.ServiceDeploymentRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import io.vertx.core.Future;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletionStage;
 
@@ -32,22 +28,6 @@ public class ServiceDeploymentServiceImpl extends DatabaseServiceProxy<ServiceDe
     public ServiceDeploymentServiceImpl(ServiceDeploymentRepository repository, Stage.SessionFactory sessionFactory) {
         super(repository, ServiceDeployment.class, sessionFactory);
         this.repository = repository;
-    }
-
-    @Override
-    public Future<JsonArray> findAllByDeploymentId(long deploymentId) {
-        CompletionStage<List<ServiceDeployment>> findAll = withSession(session ->
-            repository.findAllByDeploymentId(session, deploymentId));
-        return Future.fromCompletionStage(findAll)
-            .map(result -> {
-                ArrayList<JsonObject> objects = new ArrayList<>();
-                for (ServiceDeployment entity: result) {
-                    //entity.getResource().getRegion().getResourceProvider().setProviderPlatforms(null);
-                    entity.setDeployment(null);
-                    objects.add(JsonObject.mapFrom(entity));
-                }
-                return new JsonArray(objects);
-            });
     }
 
     @Override

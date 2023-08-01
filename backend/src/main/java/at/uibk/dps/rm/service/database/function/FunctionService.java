@@ -9,11 +9,8 @@ import at.uibk.dps.rm.service.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import org.hibernate.reactive.stage.Stage;
-
-import java.util.Set;
 
 /**
  * The interface of the service proxy for the function entity.
@@ -36,12 +33,4 @@ public interface FunctionService extends DatabaseServiceInterface {
     static FunctionService createProxy(Vertx vertx) {
         return new FunctionServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(Function.class));
     }
-
-    /**
-     * Check if function exists by the functionIds.
-     *
-     * @param functionIds a list of functionIds
-     * @return a Future that emits true if all functions exists, else false
-     */
-    Future<Boolean> existsAllByIds(Set<Long> functionIds);
 }

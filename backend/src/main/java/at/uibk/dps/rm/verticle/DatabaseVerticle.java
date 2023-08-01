@@ -113,14 +113,10 @@ public class DatabaseVerticle extends AbstractVerticle {
                 sessionFactory));
             serviceProxyBinder.bind(EnsembleService.class, new EnsembleServiceImpl(new EnsembleRepositoryProvider(),
                 sessionFactory));
-            serviceProxyBinder.bind(EnsembleSLOService.class,
-                new EnsembleSLOServiceImpl(new EnsembleSLORepository(), sessionFactory));
             serviceProxyBinder.bind(EnvironmentService.class,
                 new EnvironmentServiceImpl(new EnvironmentRepository(), sessionFactory));
             serviceProxyBinder.bind(FunctionService.class,
                 new FunctionServiceImpl(new FunctionRepository(), new RuntimeRepository(), sessionFactory));
-            serviceProxyBinder.bind(FunctionDeploymentService.class,
-                new FunctionDeploymentServiceImpl(new FunctionDeploymentRepository(), sessionFactory));
             serviceProxyBinder.bind(LogService.class, new LogServiceImpl(new LogRepository(), sessionFactory));
             serviceProxyBinder.bind(MetricService.class, new MetricServiceImpl(new MetricRepository(), sessionFactory));
             serviceProxyBinder.bind(MetricTypeService.class,
@@ -145,8 +141,6 @@ public class DatabaseVerticle extends AbstractVerticle {
                 new ResourceProviderServiceImpl(new ResourceProviderRepository(), sessionFactory));
             serviceProxyBinder.bind(ResourceDeploymentService.class,
                 new ResourceDeploymentServiceImpl(new ResourceDeploymentRepository(), sessionFactory));
-            serviceProxyBinder.bind(ResourceDeploymentStatusService.class,
-                new ResourceDeploymentStatusServiceImpl(new ResourceDeploymentStatusRepository(), sessionFactory));
             serviceProxyBinder.bind(ResourceTypeService.class,
                 new ResourceTypeServiceImpl(new ResourceTypeRepository(), sessionFactory));
             serviceProxyBinder.bind(PlatformMetricService.class,

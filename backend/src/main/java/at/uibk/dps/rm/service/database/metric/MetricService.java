@@ -8,10 +8,7 @@ import at.uibk.dps.rm.service.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
 /**
@@ -35,22 +32,4 @@ public interface MetricService extends DatabaseServiceInterface {
     static MetricService createProxy(Vertx vertx) {
         return new MetricServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(Metric.class));
     }
-
-    /**
-     * Find all metrics that belong to a resource type and are required or optional based on the
-     * value of required.
-     *
-     * @param resourceTypeId the type of the resource type
-     * @param required wether required or optional metrics should be returned
-     * @return a Future that emits all metrics as JsonArray
-     */
-    Future<JsonArray> findAllByPlatformId(long resourceTypeId, boolean required);
-
-    /**
-     * Find a metric by its name.
-     *
-     * @param metric the name of the metric
-     * @return a Future that emits the metric as JsonObject if it exists, else null
-     */
-    Future<JsonObject> findOneByMetric(String metric);
 }

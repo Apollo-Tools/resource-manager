@@ -17,7 +17,6 @@ import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CompletionStage;
 
 //TODO: discuss if it is necessary to encrypt secrets / store secrets
@@ -70,14 +69,6 @@ public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> im
                 }
                 return new JsonArray(objects);
             });
-    }
-
-    @Override
-    public Future<Boolean> existsOneByAccountIdAndProviderId(long accountId, long providerId) {
-        CompletionStage<Credentials> findOne = withSession(session ->
-            repository.findByAccountIdAndProviderId(session, accountId, providerId));
-        return Future.fromCompletionStage(findOne)
-            .map(Objects::nonNull);
     }
 
     @Override

@@ -18,7 +18,6 @@ import org.hibernate.reactive.util.impl.CompletionStages;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CompletionStage;
 
 /**
@@ -140,12 +139,5 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
             })
         );
         return sessionToFuture(delete);
-    }
-
-    @Override
-    public Future<Boolean> existsAllByIds(Set<Long> functionIds) {
-        CompletionStage<List<Function>> findAll = withSession(session -> repository.findAllByIds(session, functionIds));
-        return Future.fromCompletionStage(findAll)
-            .map(result -> result.size() == functionIds.size());
     }
 }

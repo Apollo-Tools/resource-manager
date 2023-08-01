@@ -1,6 +1,5 @@
 package at.uibk.dps.rm.service;
 
-import at.uibk.dps.rm.service.rxjava3.database.ensemble.EnsembleSLOService;
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.EnsembleService;
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.ResourceEnsembleService;
 import at.uibk.dps.rm.service.rxjava3.database.log.DeploymentLogService;
@@ -41,10 +40,8 @@ public class ServiceProxyProvider {
     private final AccountService accountService;
     private final CredentialsService credentialsService;
     private final EnsembleService ensembleService;
-    private final EnsembleSLOService ensembleSLOService;
     private final EnvironmentService environmentService;
     private final FunctionService functionService;
-    private final FunctionDeploymentService functionDeploymentService;
     private final LogService logService;
     private final MetricService metricService;
     private final MetricTypeService metricTypeService;
@@ -57,8 +54,6 @@ public class ServiceProxyProvider {
     private final ResourceService resourceService;
     private final ResourceProviderService resourceProviderService;
     private final ResourceDeploymentService resourceDeploymentService;
-    @SuppressWarnings("PMD.LongVariable")
-    private final ResourceDeploymentStatusService resourceDeploymentStatusService;
     private final ResourceTypeService resourceTypeService;
     private final PlatformMetricService platformMetricService;
     private final RuntimeService runtimeService;
@@ -78,10 +73,8 @@ public class ServiceProxyProvider {
         accountService = AccountService.createProxy(vertx);
         credentialsService = CredentialsService.createProxy(vertx);
         ensembleService = EnsembleService.createProxy(vertx);
-        ensembleSLOService = EnsembleSLOService.createProxy(vertx);
         environmentService = EnvironmentService.createProxy(vertx);
         functionService = FunctionService.createProxy(vertx);
-        functionDeploymentService = FunctionDeploymentService.createProxy(vertx);
         logService = LogService.createProxy(vertx);
         metricService = MetricService.createProxy(vertx);
         metricTypeService = MetricTypeService.createProxy(vertx);
@@ -95,7 +88,6 @@ public class ServiceProxyProvider {
         resourceService = ResourceService.createProxy(vertx);
         resourceProviderService = ResourceProviderService.createProxy(vertx);
         resourceDeploymentService = ResourceDeploymentService.createProxy(vertx);
-        resourceDeploymentStatusService = ResourceDeploymentStatusService.createProxy(vertx);
         resourceTypeService = ResourceTypeService.createProxy(vertx);
         runtimeService = RuntimeService.createProxy(vertx);
         serviceDeploymentService = ServiceDeploymentService.createProxy(vertx);

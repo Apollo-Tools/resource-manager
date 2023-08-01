@@ -16,7 +16,6 @@ import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletionStage;
 
@@ -107,14 +106,6 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
             })
         );
         return sessionToFuture(update).mapEmpty();
-    }
-
-
-    @Override
-    public Future<Boolean> existsOneByName(String name) {
-        CompletionStage<Service> findOne = withSession(session -> repository.findOneByName(session, name));
-        return Future.fromCompletionStage(findOne)
-            .map(Objects::nonNull);
     }
 
     @Override

@@ -1,15 +1,7 @@
 package at.uibk.dps.rm.handler.function;
 
-import at.uibk.dps.rm.entity.dto.deployment.FunctionResourceIds;
 import at.uibk.dps.rm.handler.EntityChecker;
-import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.function.FunctionService;
-import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.core.Single;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * Implements methods to perform CRUD operations on the function entity.
@@ -19,8 +11,6 @@ import java.util.Set;
  * @author matthi-g
  */
 public class FunctionChecker extends EntityChecker {
-    private final FunctionService functionService;
-
     /**
      * Create an instance from the functionService.
      *
@@ -28,22 +18,5 @@ public class FunctionChecker extends EntityChecker {
      */
     public FunctionChecker(FunctionService functionService) {
         super(functionService);
-        this.functionService = functionService;
-    }
-
-    /**
-     * Check if all functions from the given list exist by their function id.
-     *
-     * @param functionResourceIds the list of function resources
-     * @return a Completable if all functions exist, else an NotFoundException
-     * gets thrown
-     */
-    public Completable checkExistAllByIds(List<FunctionResourceIds> functionResourceIds) {
-        Single<Boolean> existsAllByFunctionIds = Observable.fromIterable(functionResourceIds)
-            .map(FunctionResourceIds::getFunctionId)
-            .toList()
-            .map(Set::copyOf)
-            .flatMap(functionService::existsAllByIds);
-        return ErrorHandler.handleExistsOne(existsAllByFunctionIds).ignoreElement();
     }
 }

@@ -13,7 +13,6 @@ import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CompletionStage;
 
 /**
@@ -104,14 +103,6 @@ public class RegionServiceImpl extends DatabaseServiceProxy<Region> implements R
     }
 
     @Override
-    public Future<Boolean> existsOneByNameAndProviderId(String name, long providerId) {
-        CompletionStage<Region> findOne = withSession(session ->
-            repository.findOneByNameAndProviderId(session, name, providerId));
-        return Future.fromCompletionStage(findOne)
-            .map(Objects::nonNull);
-    }
-
-    @Override
     public Future<JsonArray> findAllByPlatformId(long platformId) {
         CompletionStage<List<Region>> findAll = withSession(session ->
             repository.findAllByPlatformId(session, platformId));
@@ -125,13 +116,5 @@ public class RegionServiceImpl extends DatabaseServiceProxy<Region> implements R
                 }
                 return new JsonArray(objects);
             });
-    }
-
-    @Override
-    public Future<Boolean> existsByPlatformId(long regionId, long platformId) {
-        CompletionStage<Region> findOne = withSession(session ->
-            repository.findByRegionIdAndPlatformId(session, regionId, platformId));
-        return Future.fromCompletionStage(findOne)
-            .map(Objects::nonNull);
     }
 }

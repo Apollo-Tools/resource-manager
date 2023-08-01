@@ -48,15 +48,6 @@ public interface MetricValueService extends DatabaseServiceInterface {
     Future<JsonArray> findAllByResource(long resourceId, boolean includeValue);
 
     /**
-     * Check if a metric value exists by its resource and metric.
-     *
-     * @param resourceId the id of the resource
-     * @param metricId the id of the metric
-     * @return a Future that emits true if the metric value exists, else false
-     */
-    Future<Boolean> existsOneByResourceAndMetric(long resourceId, long metricId);
-
-    /**
      * Update a metric value based on its resource and metric. Set the new value using the
      * valueString, valueNumber and valueBool. Only one of the three values should be non-null.
      *

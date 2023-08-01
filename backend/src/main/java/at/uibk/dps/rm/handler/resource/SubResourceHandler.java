@@ -23,6 +23,6 @@ public class SubResourceHandler  extends ValidationHandler {
     @Override
     protected Single<JsonArray> getAll(RoutingContext rc) {
         return HttpHelper.getLongPathParam(rc, "id")
-            .flatMap(resourceChecker::checkFindAllSubresources);
+            .flatMap(resourceChecker::checkFindAllSubResources);
     }
 }

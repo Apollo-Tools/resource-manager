@@ -41,16 +41,10 @@ public class DeploymentChecker extends EntityChecker {
         return deploymentService.cancelDeployment(deploymentId, accountId);
     }
 
-    /**
-     *
-     */
     public Completable handleDeploymentError(long id, String errorMessage) {
         return deploymentService.handleDeploymentError(id, errorMessage);
     }
 
-    /**
-     *
-     */
     public Completable handleDeploymentSuccessful(ProcessOutput tfOutput, DeployResourcesDTO deployResourcesDTO) {
         return deploymentService.handleDeploymentSuccessful(new JsonObject(tfOutput.getOutput()),
             deployResourcesDTO);

@@ -11,7 +11,6 @@ import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonArray;
 import org.hibernate.reactive.stage.Stage;
 
 /**
@@ -36,23 +35,6 @@ public interface ResourceDeploymentService extends DatabaseServiceInterface {
         return new ResourceDeploymentServiceVertxEBProxy(vertx,
             ServiceProxyAddress.getServiceProxyAddress(ResourceDeployment.class));
     }
-
-    /**
-     * Find all resource deployments that belong to a deployment.
-     *
-     * @param deploymentId the id of the deployment
-     * @return a Future that emits all resource deployments as JsonArray
-     */
-    Future<JsonArray> findAllByDeploymentId(long deploymentId);
-
-    /**
-     * Update the trigger url of a resource deployment by its id.
-     *
-     * @param resourceDeploymentId the id of the resource deployment
-     * @param triggerUrl the new trigger url
-     * @return an empty Future
-     */
-    Future<Void> updateTriggerUrl(long resourceDeploymentId,  String triggerUrl);
 
     /**
      * Update the status of all resource deployments by their deployment.

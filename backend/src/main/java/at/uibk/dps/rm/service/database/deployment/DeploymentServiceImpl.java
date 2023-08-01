@@ -177,7 +177,6 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
             .anyMatch(rd -> DeploymentStatusValue.fromDeploymentStatus(rd.getStatus()).equals(statusValue));
     }
 
-
     @Override
     public Future<JsonObject> findOneByIdAndAccountId(long id, long accountId) {
         DeploymentWithResourcesDTO result = new DeploymentWithResourcesDTO();
@@ -209,10 +208,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
     }
 
     private void prepareResourceDeployments(List<? extends ResourceDeployment> resourceDeployments) {
-        resourceDeployments.forEach(resourceDeployment -> {
-            resourceDeployment.setDeployment(null);
-            //resourceDeployment.getResource().getRegion().getResourceProvider().setProviderPlatforms(null);
-        });
+        resourceDeployments.forEach(resourceDeployment -> resourceDeployment.setDeployment(null));
     }
 
     @Override
@@ -243,7 +239,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                     })
                     .thenCompose(statusNew -> {
                         CompletableFuture<Void> saveFunctionDeployments = saveFunctionDeployments(session, deployment,
-                            request, statusNew);
+                            request, statusNew, resources);
                         CompletableFuture<Void> saveServiceDeployments = saveServiceDeployments(session, deployment,
                             request, statusNew, resources);
                         return CompletableFuture.allOf(saveFunctionDeployments, saveServiceDeployments);
@@ -405,10 +401,16 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
     }
 
     private CompletableFuture<Void> saveFunctionDeployments(Session session, Deployment deployment,
-            DeployResourcesRequest request, ResourceDeploymentStatus status) {
+            DeployResourcesRequest request, ResourceDeploymentStatus status, List<Resource> resources) {
         List<FunctionDeployment> functionDeployments = request.getFunctionResources()
             .stream()
-            .map(functionResourceIds -> createNewResourceDeployment(deployment, functionResourceIds, status))
+            .map(functionResourceIds -> {
+                Resource resource = resources.stream()
+                    .filter(r -> r.getResourceId() == functionResourceIds.getResourceId())
+                    .findFirst()
+                    .orElseThrow(IllegalStateException::new);
+                return createNewResourceDeployment(deployment, functionResourceIds, status, resource);
+            })
             .collect(Collectors.toList());
         return repositoryProvider.getFunctionDeploymentRepository().createAll(session, functionDeployments)
             .toCompletableFuture();
@@ -447,10 +449,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
     }
 
     private FunctionDeployment createNewResourceDeployment(Deployment deployment, FunctionResourceIds ids,
-        ResourceDeploymentStatus status) {
-        // TODO: fix
-        Resource resource = new MainResource();
-        resource.setResourceId(ids.getResourceId());
+        ResourceDeploymentStatus status, Resource resource) {
         Function function = new Function();
         function.setFunctionId(ids.getFunctionId());
         FunctionDeployment functionDeployment = new FunctionDeployment();
