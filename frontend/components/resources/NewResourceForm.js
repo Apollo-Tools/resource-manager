@@ -1,10 +1,11 @@
-import {Button, Form, Select} from 'antd';
+import {Button, Form, Input, Select} from 'antd';
 import {createResource} from '../../lib/ResourceService';
 import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import PropTypes from 'prop-types';
 import ProviderIcon from '../misc/ProviderIcon';
 import {listPlatforms, listRegionsByPlatform} from '../../lib/PlatformService';
+import {nameRegexValidationRule, nameValidationRule} from '../../lib/FormValidationRules';
 
 
 const NewResourceForm = ({setNewResource}) => {
@@ -33,7 +34,7 @@ const NewResourceForm = ({setNewResource}) => {
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
-      await createResource(values.platform, values.region, token, setNewResource, setError);
+      await createResource(values.name, values.platform, values.region, token, setNewResource, setError);
     }
   };
   const onFinishFailed = (errorInfo) => {
@@ -57,6 +58,13 @@ const NewResourceForm = ({setNewResource}) => {
         autoComplete="off"
         layout="vertical"
       >
+        <Form.Item
+          label="Name"
+          name="name"
+          rules={[nameValidationRule, nameRegexValidationRule]}
+        >
+          <Input className="w-40" />
+        </Form.Item>
         <Form.Item
           label="Platform"
           name="platform"

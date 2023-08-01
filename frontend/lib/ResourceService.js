@@ -4,13 +4,14 @@ const API_ROUTE = `${env('API_URL')}/resources`;
 /**
  * Create a new resource.
  *
+ * @param {string} name the name of the resource
  * @param {number} platformId the id of the platform
  * @param {number} regionId the id of the region
  * @param {string} token the access token
  * @param {function} setResource the function to set the created resource
  * @param {function} setError the function to set the error if one occurred
  */
-export async function createResource(platformId, regionId, token, setResource, setError) {
+export async function createResource(name, platformId, regionId, token, setResource, setError) {
   try {
     const response = await fetch(`${API_ROUTE}`, {
       method: 'POST',
@@ -19,6 +20,7 @@ export async function createResource(platformId, regionId, token, setResource, s
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        name: name,
         platform: {
           platform_id: platformId,
         },
