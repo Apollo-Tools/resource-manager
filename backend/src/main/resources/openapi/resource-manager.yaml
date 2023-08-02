@@ -178,8 +178,66 @@ tags:
 paths:
   /accounts:
     get:
-      description: Return details about the currently logged in user account
+      description: Return details about all accounts registered at the resource manager
+      operationId: listAccounts
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - resources
+      x-role: admin
+      responses:
+        200:
+          description: Successful pull of all accounts
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Account"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+  /accounts/{id}:
+    get:
+      description: Return details about a user account
       operationId: getAccount
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      tags:
+        - accounts
+      x-role: admin
+      responses:
+        200:
+          description: Successful pull of the user account
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        403:
+          $ref: "#/components/responses/403"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+  /accounts/me:
+    get:
+      description: Return details about the currently logged in user account
+      operationId: getMyAccount
       security:
         - bearerAuth: []
       tags:
@@ -232,7 +290,6 @@ paths:
           $ref: "#/components/responses/401"
         500:
           $ref: "#/components/responses/500"
-
   /accounts/signup:
     post:
       description: Signup a new user account
@@ -280,6 +337,8 @@ paths:
                 $ref: "#/components/schemas/Account"
         400:
           $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
         403:
           $ref: "#/components/responses/403"
         409:

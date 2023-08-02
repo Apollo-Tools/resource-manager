@@ -7,9 +7,12 @@ import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import at.uibk.dps.rm.util.misc.PasswordUtility;
 import at.uibk.dps.rm.util.validation.ServiceResultValidator;
 import io.vertx.core.Future;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletionStage;
 
 /**
@@ -88,5 +91,19 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
                 return account;
             }));
         return sessionToFuture(update).mapEmpty();
+    }
+
+    @Override
+    public Future<JsonArray> findAll() {
+        CompletionStage<List<Account>> findAll = withSession(repository::findAll);
+        return sessionToFuture(findAll)
+            .map(result -> {
+                ArrayList<JsonObject> objects = new ArrayList<>();
+                for (Account account: result) {
+                    account.setPassword(null);
+                    objects.add(JsonObject.mapFrom(account));
+                }
+                return new JsonArray(objects);
+            });
     }
 }

@@ -2,6 +2,7 @@ package at.uibk.dps.rm.handler.account;
 
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.util.configuration.JWTAuthProvider;
+import at.uibk.dps.rm.util.misc.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
@@ -33,10 +34,14 @@ public class AccountHandler extends ValidationHandler {
         this.jwtAuth = jwtAuth;
     }
 
-    @Override
-    protected Single<JsonObject> getOne(RoutingContext rc) {
-        JsonObject user = rc.user().principal();
-        return entityChecker.checkFindOne(user.getLong("account_id"))
+    public Single<JsonObject> getOne(RoutingContext rc, boolean usePrincipal) {
+        Single<Long> getAccountId;
+        if (usePrincipal) {
+            getAccountId = Single.just(rc.user().principal().getLong("account_id"));
+        } else {
+            getAccountId = HttpHelper.getLongPathParam(rc, "id");
+        }
+        return getAccountId.flatMap(entityChecker::checkFindOne)
             .map(result -> {
                 result.remove("password");
                 return result;
