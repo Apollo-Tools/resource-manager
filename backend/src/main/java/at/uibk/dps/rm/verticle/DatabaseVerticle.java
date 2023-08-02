@@ -2,10 +2,7 @@ package at.uibk.dps.rm.verticle;
 
 import at.uibk.dps.rm.repository.DeploymentRepositoryProvider;
 import at.uibk.dps.rm.repository.EnsembleRepositoryProvider;
-import at.uibk.dps.rm.repository.account.AccountCredentialsRepository;
-import at.uibk.dps.rm.repository.account.AccountNamespaceRepository;
-import at.uibk.dps.rm.repository.account.AccountRepository;
-import at.uibk.dps.rm.repository.account.CredentialsRepository;
+import at.uibk.dps.rm.repository.account.*;
 import at.uibk.dps.rm.repository.ensemble.EnsembleRepository;
 import at.uibk.dps.rm.repository.ensemble.EnsembleSLORepository;
 import at.uibk.dps.rm.repository.ensemble.ResourceEnsembleRepository;
@@ -126,6 +123,8 @@ public class DatabaseVerticle extends AbstractVerticle {
                 new MetricTypeServiceImpl(new MetricTypeRepository(), sessionFactory));
             serviceProxyBinder.bind(MetricValueService.class,
                 new MetricValueServiceImpl(new MetricValueRepository(), sessionFactory));
+            serviceProxyBinder.bind(NamespaceService.class,
+                new NamespaceServiceImpl(new NamespaceRepository(), sessionFactory));
             serviceProxyBinder.bind(PlatformService.class,
                 new PlatformServiceImpl(new PlatformRepository(), sessionFactory));
             serviceProxyBinder.bind(RegionService.class, new RegionServiceImpl(new RegionRepository(),

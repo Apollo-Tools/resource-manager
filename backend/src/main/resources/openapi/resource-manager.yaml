@@ -162,6 +162,7 @@ tags:
   - name: ensembles/resources
   - name: environments
   - name: functions
+  - name: k8snamespaces
   - name: logs
   - name: metrics
   - name: platforms
@@ -235,6 +236,39 @@ paths:
           $ref: "#/components/responses/404"
         500:
           $ref: "#/components/responses/500"
+  /accounts/{id}/k8snamespaces:
+    get:
+      description: Return all namespaces that are registered for an user account
+      operationId: listAccountNamespaces
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      tags:
+        - accounts/k8snamespaces
+      x-role: admin
+      responses:
+        200:
+          description: Successful pull of the account namespaces
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Namespace"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        403:
+          $ref: "#/components/responses/403"
+        500:
+          $ref: "#/components/responses/500"
+
   /accounts/me:
     get:
       description: Return details about the currently logged in user account
@@ -291,6 +325,36 @@ paths:
           $ref: "#/components/responses/401"
         500:
           $ref: "#/components/responses/500"
+  /accounts/me/k8snamespaces:
+    get:
+      description: Return all namespaces of the currently logged in account
+      operationId: listMyAccountNamespaces
+      security:
+        - bearerAuth: []
+      tags:
+        - accounts/k8snamespaces
+      responses:
+        200:
+          description: Successful pull of the account namespaces
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Namespace"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        403:
+          $ref: "#/components/responses/403"
+        500:
+          $ref: "#/components/responses/500"
+
   /accounts/signup:
     post:
       description: Signup a new user account
@@ -1547,6 +1611,35 @@ paths:
           $ref: "#/components/responses/404"
         409:
           $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+  /k8snamespaces:
+    get:
+      description: Return details about all k8s namespaces managed by the resource manager
+      operationId: listNamespaces
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - k8snamespaces
+      x-role: admin
+      responses:
+        200:
+          description: Successful pull of all namespaces
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Namespace"
+        401:
+          $ref: "#/components/responses/401"
+        403:
+          $ref: "#/components/responses/403"
         500:
           $ref: "#/components/responses/500"
 
@@ -3222,6 +3315,22 @@ components:
         template_path:
           type: string
           example: ./faas-templates/python38/runtime-template.py
+        created_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+    Namespace:
+      type: object
+      properties:
+        namespace_id:
+          type: integer
+          format: int64
+          example: 1
+        namespace:
+          type: string
+          example: user-namespace
+        resource:
+          $ref: '#/components/schemas/Resource'
         created_at:
           type: integer
           format: int64

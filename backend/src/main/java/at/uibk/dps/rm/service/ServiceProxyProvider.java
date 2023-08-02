@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service;
 
+import at.uibk.dps.rm.service.rxjava3.database.account.NamespaceService;
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.EnsembleService;
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.ResourceEnsembleService;
 import at.uibk.dps.rm.service.rxjava3.database.log.DeploymentLogService;
@@ -48,6 +49,7 @@ public class ServiceProxyProvider {
     private final MetricService metricService;
     private final MetricTypeService metricTypeService;
     private final MetricValueService metricValueService;
+    private final NamespaceService namespaceService;
     private final PlatformService platformService;
     private final RegionService regionService;
     private final DeploymentService deploymentService;
@@ -82,6 +84,7 @@ public class ServiceProxyProvider {
         metricService = MetricService.createProxy(vertx);
         metricTypeService = MetricTypeService.createProxy(vertx);
         metricValueService = MetricValueService.createProxy(vertx);
+        namespaceService = NamespaceService.createProxy(vertx);
         platformService = PlatformService.createProxy(vertx);
         platformMetricService = PlatformMetricService.createProxy(vertx);
         regionService = RegionService.createProxy(vertx);

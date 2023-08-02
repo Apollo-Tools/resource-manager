@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.service.database.account;
 
 import at.uibk.dps.rm.entity.model.*;
+import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.repository.account.AccountNamespaceRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import at.uibk.dps.rm.util.validation.ServiceResultValidator;
@@ -46,7 +47,9 @@ public class AccountNamespaceServiceImpl extends DatabaseServiceProxy<AccountNam
                     return repository.findByAccountIdAndResourceId(session, accountId, resourceId);
                 })
                 .thenCompose(existing -> {
-                    ServiceResultValidator.checkExists(existing, "only one namespace per resource allowed");
+                    if (!existing.isEmpty()) {
+                        throw new AlreadyExistsException("only one namespace per resource allowed");
+                    }
                     return session.find(Account.class, accountId);
                 })
                 .thenCompose(account -> {
