@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.util.misc;
 
+import at.uibk.dps.rm.exception.BadInputException;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 import lombok.experimental.UtilityClass;
@@ -18,7 +19,10 @@ public class HttpHelper {
      * @return a Single that emits the value of the path parameter
      */
     public static Single<Long> getLongPathParam(RoutingContext rc, String pathParam) {
-        return Single.just(rc.pathParam(pathParam))
-            .map(Long::parseLong);
+        String param = rc.pathParam(pathParam);
+        if (param == null) {
+            return Single.error(new BadInputException("path parameter not found"));
+        }
+        return Single.just(Long.parseLong(param));
     }
 }

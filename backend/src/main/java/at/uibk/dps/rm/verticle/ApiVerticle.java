@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.verticle;
 
+import at.uibk.dps.rm.router.account.AccountNamespaceRoute;
 import at.uibk.dps.rm.router.account.AccountRoute;
 import at.uibk.dps.rm.router.account.CredentialsRoute;
 import at.uibk.dps.rm.router.ensemble.EnsembleRoute;
@@ -90,6 +91,7 @@ public class ApiVerticle extends AbstractVerticle {
      */
     private void setupRoutes(RouterBuilder routerBuilder) {
         ServiceProxyProvider serviceProxyProvider = new ServiceProxyProvider(vertx);
+        new AccountNamespaceRoute().init(routerBuilder, serviceProxyProvider);
         new AccountRoute().init(routerBuilder, serviceProxyProvider, jwtAuthProvider);
         new ResourceProviderRoute().init(routerBuilder, serviceProxyProvider);
         new ResourceProviderRegionRoute().init(routerBuilder, serviceProxyProvider);

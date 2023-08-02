@@ -3,6 +3,7 @@ package at.uibk.dps.rm.verticle;
 import at.uibk.dps.rm.repository.DeploymentRepositoryProvider;
 import at.uibk.dps.rm.repository.EnsembleRepositoryProvider;
 import at.uibk.dps.rm.repository.account.AccountCredentialsRepository;
+import at.uibk.dps.rm.repository.account.AccountNamespaceRepository;
 import at.uibk.dps.rm.repository.account.AccountRepository;
 import at.uibk.dps.rm.repository.account.CredentialsRepository;
 import at.uibk.dps.rm.repository.ensemble.EnsembleRepository;
@@ -106,6 +107,8 @@ public class DatabaseVerticle extends AbstractVerticle {
             ServiceBinder serviceBinder = new ServiceBinder(vertx.getDelegate());
             ServiceProxyBinder serviceProxyBinder = new ServiceProxyBinder(serviceBinder);
 
+            serviceProxyBinder.bind(AccountNamespaceService.class,
+                new AccountNamespaceServiceImpl(new AccountNamespaceRepository(), sessionFactory));
             serviceProxyBinder.bind(AccountService.class,
                 new AccountServiceImpl(new AccountRepository(), sessionFactory));
             serviceProxyBinder.bind(CredentialsService.class, new CredentialsServiceImpl(new CredentialsRepository(),

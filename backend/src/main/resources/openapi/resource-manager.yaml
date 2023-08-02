@@ -155,6 +155,7 @@ servers:
 
 tags:
   - name: accounts
+  - name: accounts/k8snamespaces
   - name: credentials
   - name: deployments
   - name: ensembles
@@ -390,6 +391,97 @@ paths:
                     example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
         401:
           $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+
+  /accounts/{accountId}/k8namespaces/{namespaceId}:
+    post:
+      description: |
+        Add a namespace to an account. It is only possible to add one namespace per resource to the same account.
+      operationId: addNamespaceToAccount
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - accounts/k8snamespaces
+      x-role: admin
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+        - name: namespaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        201:
+          description: Successfully added namespace to account
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  account_id:
+                    type: integer
+                    format: int64
+                    example: 1
+                  namespace_id:
+                    type: integer
+                    format: int64
+                    example: 1
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+    delete:
+      description: Remove a namespace from an account
+      operationId: deleteNamespaceFromAccount
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - accounts/k8snamespaces
+      x-role: admin
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+        - name: namespaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        204:
+          description: Successful removal of namespace from an account
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
         500:
           $ref: "#/components/responses/500"
 
