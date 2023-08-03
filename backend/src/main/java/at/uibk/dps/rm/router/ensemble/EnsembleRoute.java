@@ -48,9 +48,9 @@ public class EnsembleRoute implements Route {
             );
 
         Vertx vertx = Vertx.currentContext().owner();
-        new ConfigUtility(vertx).getConfig()
+        new ConfigUtility(vertx).getConfigDTO()
             .map(config -> {
-                long period = Double.valueOf(config.getDouble("ensemble_validation_period") * 60 * 1000).longValue();
+                long period = Double.valueOf(config.getEnsembleValidationPeriod() * 60 * 1000).longValue();
                 return vertx.setPeriodic(period, id -> ensembleHandler.validateAllExistingEnsembles());
             })
             .subscribe();

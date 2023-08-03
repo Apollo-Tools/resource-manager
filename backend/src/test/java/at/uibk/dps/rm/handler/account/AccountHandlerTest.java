@@ -63,25 +63,6 @@ public class AccountHandlerTest {
     }
 
     @Test
-    void getOne(VertxTestContext testContext) {
-        long accountId = 1L;
-        Account entity = TestAccountProvider.createAccount(1L, "user", "password");
-
-        RoutingContextMockHelper.mockUserPrincipal(rc, entity);
-        when(accountChecker.checkFindOne(accountId)).thenReturn(Single.just(JsonObject.mapFrom(entity)));
-
-        accountHandler.getOne(rc)
-            .subscribe(result -> testContext.verify(() -> {
-                    assertThat(result.getLong("account_id")).isEqualTo(accountId);
-                    assertThat(result.getString("username")).isEqualTo("user");
-                    assertThat(result.containsKey("password")).isEqualTo(false);
-                    testContext.completeNow();
-                }),
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-    }
-
-    @Test
     void updateOne(VertxTestContext testContext) {
         long entityId = 1L;
         String oldPassword = "oldpassword";

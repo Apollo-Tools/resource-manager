@@ -23,10 +23,10 @@ public class UploadFileHelper {
      * @return a Completable
      */
     public static Completable persistUploadedFile(Vertx vertx, String fileName) {
-        return new ConfigUtility(vertx).getConfig()
+        return new ConfigUtility(vertx).getConfigDTO()
             .flatMapCompletable(config -> {
-                Path tempPath = Path.of(config.getString("upload_temp_directory"), fileName);
-                Path destPath = Path.of(config.getString("upload_persist_directory"), fileName);
+                Path tempPath = Path.of(config.getUploadTempDirectory(), fileName);
+                Path destPath = Path.of(config.getUploadPersistDirectory(), fileName);
                 return vertx.fileSystem().copy(tempPath.toString(), destPath.toString());
             });
     }
@@ -39,8 +39,8 @@ public class UploadFileHelper {
      * @return a Completable
      */
     public static Completable deleteFile(Vertx vertx, String fileName) {
-        return new ConfigUtility(vertx).getConfig().flatMapCompletable(config -> {
-            Path filePath = Path.of(config.getString("upload_persist_directory"), fileName);
+        return new ConfigUtility(vertx).getConfigDTO().flatMapCompletable(config -> {
+            Path filePath = Path.of(config.getUploadPersistDirectory(), fileName);
             return vertx.fileSystem()
                 .exists(filePath.toString())
                 .flatMapCompletable(exists -> {

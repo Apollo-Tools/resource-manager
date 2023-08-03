@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.entity.deployment;
 
 import at.uibk.dps.rm.entity.deployment.module.TerraformModule;
-import io.vertx.core.json.JsonObject;
+import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import lombok.Getter;
 
 import java.nio.file.Path;
@@ -31,8 +31,8 @@ public class DeploymentPath {
      * @param deploymentId the id of the deployment
      * @param config the vertx config
      */
-    public DeploymentPath(long deploymentId, JsonObject config) {
-        this.buildFolder = Path.of(config.getString("build_directory"));
+    public DeploymentPath(long deploymentId, ConfigDTO config) {
+        this.buildFolder = Path.of(config.getBuildDirectory());
         this.rootFolder = Path.of(buildFolder.toString(), "deployment_" + deploymentId);
         this.functionsFolder = Path.of(rootFolder.toString(), "functions");
         this.layersFolder = Path.of(functionsFolder.toString(), "layers");

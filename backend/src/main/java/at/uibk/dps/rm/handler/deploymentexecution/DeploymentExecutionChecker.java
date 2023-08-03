@@ -69,7 +69,7 @@ public class DeploymentExecutionChecker {
     public Single<ProcessOutput> applyResourceDeployment(DeployResourcesDTO deployResources) {
         long deploymentId = deployResources.getDeployment().getDeploymentId();
         Vertx vertx = Vertx.currentContext().owner();
-        return new ConfigUtility(vertx).getConfig()
+        return new ConfigUtility(vertx).getConfigDTO()
             .flatMap(config -> {
                 DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
                 return deploymentService.packageFunctionsCode(deployResources)
@@ -139,8 +139,8 @@ public class DeploymentExecutionChecker {
     private Single<ProcessOutput> buildJavaLambdaFaaS(List<FunctionDeployment> functionDeployments,
             DeploymentPath deploymentPath) {
         LambdaJavaBuildService lambdaService = new LambdaJavaBuildService(functionDeployments, deploymentPath);
-        return new ConfigUtility(Vertx.currentContext().owner()).getConfig()
-            .flatMap(config ->lambdaService.buildAndZipJavaFunctions(config.getString("dind_directory")));
+        return new ConfigUtility(Vertx.currentContext().owner()).getConfigDTO()
+            .flatMap(config ->lambdaService.buildAndZipJavaFunctions(config.getDindDirectory()));
     }
 
   /**
@@ -153,8 +153,8 @@ public class DeploymentExecutionChecker {
     private Single<ProcessOutput> buildLambdaLayers(List<FunctionDeployment> functionDeployments,
             DeploymentPath deploymentPath) {
         LambdaLayerService layerService = new LambdaLayerService(functionDeployments, deploymentPath);
-        return  new ConfigUtility(Vertx.currentContext().owner()).getConfig()
-            .flatMap(config -> layerService.buildLambdaLayers(config.getString("dind_directory")));
+        return  new ConfigUtility(Vertx.currentContext().owner()).getConfigDTO()
+            .flatMap(config -> layerService.buildLambdaLayers(config.getDindDirectory()));
     }
 
   /**
@@ -197,7 +197,7 @@ public class DeploymentExecutionChecker {
     public Completable terminateResources(TerminateResourcesDTO terminateResources) {
         long deploymentId = terminateResources.getDeployment().getDeploymentId();
         Vertx vertx = Vertx.currentContext().owner();
-        return new ConfigUtility(vertx).getConfig()
+        return new ConfigUtility(vertx).getConfigDTO()
             .flatMapCompletable(config -> {
                 DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
                 return terminateAllContainerResources(terminateResources, deploymentPath)
@@ -237,7 +237,7 @@ public class DeploymentExecutionChecker {
         Vertx vertx = Vertx.currentContext().owner();
         Deployment deployment = new Deployment();
         deployment.setDeploymentId(deploymentId);
-        return new ConfigUtility(vertx).getConfig()
+        return new ConfigUtility(vertx).getConfigDTO()
             .flatMapCompletable(config -> {
                 TerraformExecutor terraformExecutor = new TerraformExecutor(vertx);
                 DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
@@ -259,7 +259,7 @@ public class DeploymentExecutionChecker {
         Vertx vertx = Vertx.currentContext().owner();
         Deployment deployment = new Deployment();
         deployment.setDeploymentId(deploymentId);
-        return new ConfigUtility(vertx).getConfig()
+        return new ConfigUtility(vertx).getConfigDTO()
             .flatMapCompletable(config -> {
                 TerraformExecutor terraformExecutor = new TerraformExecutor(vertx);
                 DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
@@ -279,7 +279,7 @@ public class DeploymentExecutionChecker {
      */
     public Completable deleteTFDirs(long deploymentId) {
         Vertx vertx = Vertx.currentContext().owner();
-        return new ConfigUtility(vertx).getConfig().flatMapCompletable(config -> {
+        return new ConfigUtility(vertx).getConfigDTO().flatMapCompletable(config -> {
             DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
             return TerraformFileService.deleteAllDirs(vertx.fileSystem(), deploymentPath.getRootFolder());
         });

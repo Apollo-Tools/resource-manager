@@ -31,7 +31,7 @@ public class DeploymentExecutionServiceImpl extends ServiceProxy implements Depl
 
     @Override
     public Future<FunctionsToDeploy> packageFunctionsCode(DeployResourcesDTO deployRequest) {
-        Single<FunctionsToDeploy> packageFunctions = new ConfigUtility(vertx).getConfig().flatMap(config -> {
+        Single<FunctionsToDeploy> packageFunctions = new ConfigUtility(vertx).getConfigDTO().flatMap(config -> {
             DeploymentPath deploymentPath = new DeploymentPath(deployRequest.getDeployment().getDeploymentId(),
                 config);
             FunctionPrepareService functionFileService = new FunctionPrepareService(vertx,
@@ -45,7 +45,7 @@ public class DeploymentExecutionServiceImpl extends ServiceProxy implements Depl
     @Override
     public Future<DeploymentCredentials> setUpTFModules(DeployResourcesDTO deployRequest) {
         DeploymentCredentials credentials = new DeploymentCredentials();
-        Single<DeploymentCredentials> createTFDirs = new ConfigUtility(vertx).getConfig().flatMap(config -> {
+        Single<DeploymentCredentials> createTFDirs = new ConfigUtility(vertx).getConfigDTO().flatMap(config -> {
             DeploymentPath deploymentPath = new DeploymentPath(deployRequest.getDeployment().getDeploymentId(),
                 config);
             TerraformSetupService tfSetupService = new TerraformSetupService(vertx, deployRequest,
@@ -67,12 +67,13 @@ public class DeploymentExecutionServiceImpl extends ServiceProxy implements Depl
     public Future<DeploymentCredentials> getNecessaryCredentials(TerminateResourcesDTO terminateRequest) {
         DeploymentCredentials credentials = new DeploymentCredentials();
         long deploymentId = terminateRequest.getDeployment().getDeploymentId();
-        Single<DeploymentCredentials> getNecessaryCredentials = new ConfigUtility(vertx).getConfig().flatMap(config -> {
-            DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
-            TerraformSetupService tfSetupService = new TerraformSetupService(vertx, terminateRequest, deploymentPath,
-                credentials);
-            return tfSetupService.getTerminationCredentials();
-        });
+        Single<DeploymentCredentials> getNecessaryCredentials = new ConfigUtility(vertx).getConfigDTO()
+            .flatMap(config -> {
+                DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
+                TerraformSetupService tfSetupService = new TerraformSetupService(vertx, terminateRequest, deploymentPath,
+                    credentials);
+                return tfSetupService.getTerminationCredentials();
+            });
         return SingleHelper.toFuture(getNecessaryCredentials);
     }
 }

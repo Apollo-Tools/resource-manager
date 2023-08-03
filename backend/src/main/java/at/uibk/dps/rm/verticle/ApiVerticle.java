@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.verticle;
 
+import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.router.account.AccountNamespaceRoute;
 import at.uibk.dps.rm.router.account.AccountRoute;
 import at.uibk.dps.rm.router.account.CredentialsRoute;
@@ -24,7 +25,6 @@ import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
-import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.AbstractVerticle;
 import io.vertx.rxjava3.ext.web.Router;
 import io.vertx.rxjava3.ext.web.handler.BodyHandler;
@@ -46,7 +46,7 @@ public class ApiVerticle extends AbstractVerticle {
 
     @Override
     public Completable rxStart() {
-        return new ConfigUtility(vertx).getConfig()
+        return new ConfigUtility(vertx).getConfigDTO()
             .flatMapCompletable(config ->
                 RouterBuilder.create(vertx, "openapi/resource-manager.yaml")
                 .flatMap(routerBuilder -> {
@@ -70,7 +70,7 @@ public class ApiVerticle extends AbstractVerticle {
      * @param config the config
      * @return the initialised router
      */
-    private Router initRouter(RouterBuilder routerBuilder, JsonObject config) {
+    private Router initRouter(RouterBuilder routerBuilder, ConfigDTO config) {
         Router globalRouter = Router.router(vertx);
         setupBodyHandler(globalRouter, config);
         setupFailureHandler(globalRouter);
@@ -162,10 +162,10 @@ public class ApiVerticle extends AbstractVerticle {
      *
      * @param router the router
      */
-    private void setupBodyHandler(Router router, JsonObject config) {
+    private void setupBodyHandler(Router router, ConfigDTO config) {
         router.route().handler(BodyHandler.create()
-            .setUploadsDirectory(config.getString("upload_temp_directory"))
-            .setBodyLimit(config.getLong("max_file_size"))
+            .setUploadsDirectory(config.getUploadTempDirectory())
+            .setBodyLimit(config.getMaxFileSize())
             .setDeleteUploadedFilesOnEnd(true));
     }
 

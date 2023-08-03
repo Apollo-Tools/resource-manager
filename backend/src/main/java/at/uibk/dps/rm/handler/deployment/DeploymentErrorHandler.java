@@ -61,7 +61,7 @@ public class DeploymentErrorHandler {
     private Completable terminateFailedDeployment(DeployResourcesDTO deployResources) {
         TerminateResourcesDTO terminateResources = new TerminateResourcesDTO(deployResources);
         Vertx vertx = Vertx.currentContext().owner();
-        return new ConfigUtility(vertx).getConfig()
+        return new ConfigUtility(vertx).getConfigDTO()
             .flatMap(config -> {
                 String path = new DeploymentPath(deployResources.getDeployment().getDeploymentId(), config)
                     .getRootFolder().toString();

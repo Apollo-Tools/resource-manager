@@ -1,12 +1,12 @@
 package at.uibk.dps.rm.service.deployment.docker;
 
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
+import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.service.deployment.executor.ProcessExecutor;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import lombok.AllArgsConstructor;
@@ -54,7 +54,7 @@ public class OpenFaasImageService {
                 if (buildOutput.getProcess().exitValue() != 0) {
                     return Single.just(buildOutput);
                 }
-                return new ConfigUtility(vertx).getConfig()
+                return new ConfigUtility(vertx).getConfigDTO()
                         .flatMap(config -> buildAndPushDockerImages(functionsDir, config))
                         .map(pushOutput -> {
                             pushOutput.setOutput(buildOutput.getOutput() + pushOutput.getOutput());
@@ -94,8 +94,8 @@ public class OpenFaasImageService {
      * @param config the vertx config
      * @return a Single that emits the process output of the build and pushing process
      */
-    private Single<ProcessOutput> buildAndPushDockerImages(Path rootFolder, JsonObject config) {
-        String dindDir = config.getString("dind_directory");
+    private Single<ProcessOutput> buildAndPushDockerImages(Path rootFolder, ConfigDTO config) {
+        String dindDir = config.getDindDirectory();
         List<String> dockerCommands = new java.util.ArrayList<>(List.of("docker", "run", "-v",
             "/var/run/docker.sock:/var/run/docker.sock", "--privileged", "--rm", "-v",
             Path.of(dindDir, rootFolder.toString()).toAbsolutePath().toString().replace("\\", "/") +
