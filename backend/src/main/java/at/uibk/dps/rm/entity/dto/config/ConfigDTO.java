@@ -24,4 +24,5 @@ public class ConfigDTO {
     private Long ensembleValidationPeriod;
     private String kubeConfigSecretsName;
     private String kubeConfigSecretsNamespace;
+    private Integer kubeApiTimeoutSeconds;
 }

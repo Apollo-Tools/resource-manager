@@ -186,3 +186,4 @@ build/
 */local.rm-api.yaml
 */local.rm-db.yaml
 */local.rm-gui.yaml
+*/local.rm-kube-secret.yaml

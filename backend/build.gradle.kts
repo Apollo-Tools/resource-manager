@@ -57,6 +57,9 @@ dependencies {
   // YAML parsing
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.15.0")
 
+  // K8S
+  implementation("io.kubernetes:client-java:18.0.0")
+
   // DB
   implementation("com.ongres.scram:client:2.1")
   implementation("org.hibernate.reactive:hibernate-reactive-core:$hibernateVersion")
