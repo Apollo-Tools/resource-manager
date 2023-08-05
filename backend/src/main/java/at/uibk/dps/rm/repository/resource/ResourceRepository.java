@@ -1,5 +1,7 @@
 package at.uibk.dps.rm.repository.resource;
 
+import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
+import at.uibk.dps.rm.entity.model.MainResource;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.model.SubResource;
 import at.uibk.dps.rm.repository.Repository;
@@ -305,5 +307,14 @@ public class ResourceRepository extends Repository<Resource> {
                 "where sr.mainResource.resourceId=:resourceId", SubResource.class)
             .setParameter("resourceId", resourceId)
             .getResultList();
+    }
+
+    public CompletionStage<MainResource> findClusterByName(Session session, String name) {
+        return session.createQuery("from MainResource mr " +
+                "left join fetch mr.subResources sr " +
+                "where mr.name=:name and mr.platform.platform=:platform", MainResource.class)
+            .setParameter("name", name)
+            .setParameter("platform", PlatformEnum.K8S.getValue())
+            .getSingleResultOrNull();
     }
 }

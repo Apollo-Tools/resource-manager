@@ -20,6 +20,7 @@ import io.vertx.rxjava3.core.AbstractVerticle;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,24 +35,27 @@ public class MonitoringVerticle extends AbstractVerticle {
         serviceProxyProvider = new ServiceProxyProvider(vertx);
         return new ConfigUtility(vertx).getConfigDTO().map(config ->
             vertx.executeBlocking(fut -> fut.complete(monitorK8s(config)))
-                .map(monitoringData -> {
-                    // Update / create clusters
+                .map(monitoringData -> (Map<String, K8sMonitoringData>) monitoringData)
+                .flatMapCompletable(monitoringData -> {
+                    List<Completable> completables = new ArrayList<>();
+                    for (Map.Entry<String, K8sMonitoringData> entry : monitoringData.entrySet()) {
+                        // Update cluster resources
+                        completables.add(serviceProxyProvider.getResourceService()
+                            .updateClusterResource(entry.getKey(), entry.getValue()));
+                        // Update namespaces
+                    }
 
-                    // Update / create nodes
-
-                    // Update namespaces
-
-                    return monitoringData;
+                    return Completable.merge(completables);
                 })
                 .doOnError(throwable -> {
                     if (throwable instanceof MonitoringException) {
                         logger.error(throwable.getMessage());
                     } else {
+                        logger.error(throwable.getMessage());
                         throw new RuntimeException(throwable);
                     }
                 })
                 .onErrorComplete()
-                .ignoreElement()
                 .subscribe())
         .ignoreElement();
     }

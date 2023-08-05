@@ -3,6 +3,9 @@ package at.uibk.dps.rm.service.database.resource;
 import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.entity.dto.resource.SubResourceDTO;
 import at.uibk.dps.rm.entity.model.*;
+import at.uibk.dps.rm.entity.monitoring.K8sMonitoringData;
+import at.uibk.dps.rm.entity.monitoring.K8sMonitoringMetricEnum;
+import at.uibk.dps.rm.entity.monitoring.K8sNode;
 import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
@@ -14,9 +17,10 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.hibernate.Hibernate;
 import org.hibernate.reactive.stage.Stage.SessionFactory;
+import org.hibernate.reactive.util.impl.CompletionStages;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 /**
@@ -27,9 +31,7 @@ import java.util.concurrent.CompletionStage;
 public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implements ResourceService {
 
     private final ResourceRepository repository;
-
     private final RegionRepository regionRepository;
-
     private final MetricRepository metricRepository;
 
     /**
@@ -121,6 +123,83 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
             repository.findAllByResourceIdsAndFetch(session, resourceIds));
         return Future.fromCompletionStage(findAll)
             .map(this::encodeResourceList);
+    }
+
+    public Future<Void> updateClusterResource(String resourceName, K8sMonitoringData data) {
+        CompletionStage<Void> updateClusterResource = withTransaction(session ->
+            repository.findClusterByName(session, resourceName)
+                .thenCompose(cluster -> {
+                    if (cluster != null) {
+                        Map<String, List<MetricValue>> mvToPersist = new HashMap<>();
+                        List<SubResource> subResources = cluster.getSubResources();
+                        List<SubResource> updateNodes = new ArrayList<>();
+                        List<SubResource> deleteNodes = new ArrayList<>();
+                        for(SubResource subResource : subResources) {
+                            if (data.getNodes().stream().anyMatch(node ->
+                                node.getName().equals(subResource.getName()))) {
+                                // TODO: update metric values
+                                updateNodes.add(subResource);
+                            } else {
+                                deleteNodes.add(subResource);
+                            }
+                        }
+                        Object[] newNodes = data.getNodes().stream()
+                            .filter(node -> subResources.stream().noneMatch(subResource ->
+                                subResource.getName().equals(node.getName())))
+                            .map(node -> {
+                                SubResource subResource = new SubResource();
+                                subResource.setMainResource(cluster);
+                                subResource.setName(node.getName());
+                                subResource.setMetricValues(Set.of());
+                                createNewMetricValue(subResource, K8sMonitoringMetricEnum.HOSTNAME, node, mvToPersist);
+                                createNewMetricValue(subResource, K8sMonitoringMetricEnum.CPU, node, mvToPersist);
+                                createNewMetricValue(subResource, K8sMonitoringMetricEnum.MEMORY_SIZE, node, mvToPersist);
+                                return subResource;
+                            })
+                            .toArray();
+                        return session.remove(deleteNodes.toArray())
+                            .thenCompose(res -> session.persist(newNodes))
+                            .thenCompose(res -> session.persist(updateNodes.toArray()))
+                            .thenCompose(res -> {
+                                List<CompletableFuture<Void>> completables = new ArrayList<>();
+                                for (Map.Entry<String, List<MetricValue>> entry : mvToPersist.entrySet()) {
+                                    CompletableFuture<Void> completable = metricRepository
+                                        .findByMetric(session, entry.getKey())
+                                        .thenCompose(metric -> {
+                                            entry.getValue().forEach(mv -> mv.setMetric(metric));
+                                            return session.persist(entry.getValue().toArray());
+                                        })
+                                        .toCompletableFuture();
+                                    completables.add(completable);
+                                }
+                                return CompletableFuture.allOf(completables.toArray(CompletableFuture[]::new));
+                            });
+                    } else {
+                        // Log cluster not found
+                        return CompletionStages.completedFuture(null);
+                    }
+                })
+                .thenAccept(res -> {}));
+        return sessionToFuture(updateClusterResource);
+    }
+
+    private void createNewMetricValue(SubResource resource, K8sMonitoringMetricEnum metric, K8sNode node,
+            Map<String, List<MetricValue>> mvToPersist) {
+        MetricValue metricValue = new MetricValue();
+        metricValue.setResource(resource);
+        switch (metric) {
+            case HOSTNAME:
+                metricValue.setValueString(node.getHostname());
+                break;
+            case CPU:
+                metricValue.setValueNumber(node.getAllocatableCPU().doubleValue());
+                break;
+            case MEMORY_SIZE:
+                metricValue.setValueNumber(node.getAllocatableMemory().doubleValue());
+                break;
+        }
+        mvToPersist.putIfAbsent(metric.getName(), new ArrayList<>());
+        mvToPersist.get(metric.getName()).add(metricValue);
     }
 
     private JsonArray encodeResourceList(List<Resource> resourceList) {

@@ -122,7 +122,7 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
                 return result;
             })
             .ignoreElement()
-            .subscribe();
+            .blockingAwait();
     }
 }
 
