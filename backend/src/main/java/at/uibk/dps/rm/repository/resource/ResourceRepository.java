@@ -310,8 +310,10 @@ public class ResourceRepository extends Repository<Resource> {
     }
 
     public CompletionStage<MainResource> findClusterByName(Session session, String name) {
-        return session.createQuery("from MainResource mr " +
+        return session.createQuery("select distinct mr from MainResource mr " +
                 "left join fetch mr.subResources sr " +
+                "left join fetch sr.metricValues mv " +
+                "left join fetch mv.metric " +
                 "where mr.name=:name and mr.platform.platform=:platform", MainResource.class)
             .setParameter("name", name)
             .setParameter("platform", PlatformEnum.K8S.getValue())

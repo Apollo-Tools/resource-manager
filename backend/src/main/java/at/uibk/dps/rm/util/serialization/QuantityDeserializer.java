@@ -41,16 +41,8 @@ public class QuantityDeserializer extends StdDeserializer<Quantity> {
         if (value == null || value.isEmpty()) {
             throw new QuantityFormatException("");
         }
-        BigDecimal numericValue = parseNumericValue(value.get("number").asText());
+        BigDecimal numericValue = new BigDecimal(value.get("number").asText());
         Quantity.Format format = Quantity.Format.valueOf(value.get("format").asText());
         return new Quantity(numericValue, format);
-    }
-
-    private static BigDecimal parseNumericValue(String part) {
-        try {
-            return new BigDecimal(part);
-        } catch (NumberFormatException e) {
-            throw new QuantityFormatException("Unable to parse numeric part of quantity: " + part);
-        }
     }
 }

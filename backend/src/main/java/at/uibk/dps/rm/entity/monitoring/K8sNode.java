@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.entity.monitoring;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.kubernetes.client.custom.Quantity;
 import io.kubernetes.client.openapi.models.V1Node;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,11 +19,11 @@ public class K8sNode {
 
     private V1Node node;
 
-    private int cpuLoad;
+    private Quantity cpuLoad;
 
-    private int memoryLoad;
+    private Quantity memoryLoad;
 
-    private long storageLoad;
+    private Quantity storageLoad;
 
     public K8sNode(V1Node node) {
         this.node = node;
@@ -40,18 +41,41 @@ public class K8sNode {
         }
         throw new NullPointerException();
     }
+
     @JsonIgnore
-    public BigDecimal getAllocatableCPU() {
+    public BigDecimal getTotalCPU() {
         if (node.getStatus() != null && node.getStatus().getAllocatable() != null) {
             return node.getStatus().getAllocatable().get("cpu").getNumber();
         }
         throw new NullPointerException();
     }
+
     @JsonIgnore
-    public BigDecimal getAllocatableMemory() {
+    public BigDecimal getTotalMemory() {
         if (node.getStatus() != null && node.getStatus().getAllocatable() != null) {
             return node.getStatus().getAllocatable().get("memory").getNumber();
         }
         throw new NullPointerException();
+    }
+    @JsonIgnore
+    public BigDecimal getTotalStorage() {
+        if (node.getStatus() != null && node.getStatus().getAllocatable() != null) {
+            return node.getStatus().getAllocatable().get("ephemeral-storage").getNumber();
+        }
+        throw new NullPointerException();
+    }
+
+    @JsonIgnore
+    public BigDecimal getAvailableCPU() {
+        return getTotalCPU().subtract(getCpuLoad().getNumber());
+    }
+
+    @JsonIgnore
+    public BigDecimal getAvailableMemory() {
+        return getTotalMemory().subtract(getMemoryLoad().getNumber());
+    }
+    @JsonIgnore
+    public BigDecimal getAvailableStorage() {
+        return getTotalStorage().subtract(getStorageLoad().getNumber());
     }
 }

@@ -77,4 +77,19 @@ public class MetricValue {
     public int hashCode() {
         return metricValueId.hashCode();
     }
+
+    @JsonIgnore
+    public void setValue(Double value) {
+        setValueNumber(value);
+    }
+
+    @JsonIgnore
+    public void setValue(String value) {
+        setValueString(value);
+    }
+
+    @JsonIgnore
+    public void setValue(Boolean value) {
+        setValueBool(value);
+    }
 }

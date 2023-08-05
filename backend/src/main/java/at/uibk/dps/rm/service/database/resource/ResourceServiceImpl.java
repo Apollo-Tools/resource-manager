@@ -125,20 +125,33 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
             .map(this::encodeResourceList);
     }
 
+    @Override
     public Future<Void> updateClusterResource(String resourceName, K8sMonitoringData data) {
         CompletionStage<Void> updateClusterResource = withTransaction(session ->
             repository.findClusterByName(session, resourceName)
                 .thenCompose(cluster -> {
                     if (cluster != null) {
                         Map<String, List<MetricValue>> mvToPersist = new HashMap<>();
-                        List<SubResource> subResources = cluster.getSubResources();
-                        List<SubResource> updateNodes = new ArrayList<>();
+                        Set<SubResource> subResources =  Set.copyOf(cluster.getSubResources());
                         List<SubResource> deleteNodes = new ArrayList<>();
                         for(SubResource subResource : subResources) {
-                            if (data.getNodes().stream().anyMatch(node ->
-                                node.getName().equals(subResource.getName()))) {
-                                // TODO: update metric values
-                                updateNodes.add(subResource);
+                            Optional<K8sNode> matchingNode = data.getNodes().stream()
+                                .filter(node -> node.getName().equals(subResource.getName()))
+                                .findFirst();
+                            if (matchingNode.isPresent()) {
+                                K8sNode node = matchingNode.get();
+                                subResource.getMetricValues().forEach(metricValue -> {
+                                    K8sMonitoringMetricEnum metric =
+                                        K8sMonitoringMetricEnum.fromMetric(metricValue.getMetric());
+                                    if (metric != null) {
+                                        setMetricValue(metricValue, node, metric);
+                                    }
+                                });
+                                Arrays.stream(K8sMonitoringMetricEnum.values())
+                                    .filter(metric -> subResource.getMetricValues().stream()
+                                        .noneMatch(mv -> metric.getName().equals(mv.getMetric().getMetric())))
+                                    .forEach(missingMetric -> createNewMetricValue(subResource, missingMetric, node,
+                                        mvToPersist));
                             } else {
                                 deleteNodes.add(subResource);
                             }
@@ -151,15 +164,13 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
                                 subResource.setMainResource(cluster);
                                 subResource.setName(node.getName());
                                 subResource.setMetricValues(Set.of());
-                                createNewMetricValue(subResource, K8sMonitoringMetricEnum.HOSTNAME, node, mvToPersist);
-                                createNewMetricValue(subResource, K8sMonitoringMetricEnum.CPU, node, mvToPersist);
-                                createNewMetricValue(subResource, K8sMonitoringMetricEnum.MEMORY_SIZE, node, mvToPersist);
+                                Arrays.stream(K8sMonitoringMetricEnum.values())
+                                    .forEach(metric -> createNewMetricValue(subResource, metric, node, mvToPersist));
                                 return subResource;
                             })
                             .toArray();
                         return session.remove(deleteNodes.toArray())
                             .thenCompose(res -> session.persist(newNodes))
-                            .thenCompose(res -> session.persist(updateNodes.toArray()))
                             .thenCompose(res -> {
                                 List<CompletableFuture<Void>> completables = new ArrayList<>();
                                 for (Map.Entry<String, List<MetricValue>> entry : mvToPersist.entrySet()) {
@@ -187,19 +198,37 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
             Map<String, List<MetricValue>> mvToPersist) {
         MetricValue metricValue = new MetricValue();
         metricValue.setResource(resource);
-        switch (metric) {
-            case HOSTNAME:
-                metricValue.setValueString(node.getHostname());
-                break;
-            case CPU:
-                metricValue.setValueNumber(node.getAllocatableCPU().doubleValue());
-                break;
-            case MEMORY_SIZE:
-                metricValue.setValueNumber(node.getAllocatableMemory().doubleValue());
-                break;
-        }
+        setMetricValue(metricValue, node, metric);
         mvToPersist.putIfAbsent(metric.getName(), new ArrayList<>());
         mvToPersist.get(metric.getName()).add(metricValue);
+    }
+
+    private void setMetricValue(MetricValue metricValue, K8sNode node, K8sMonitoringMetricEnum metric) {
+        switch (metric) {
+            case HOSTNAME:
+                metricValue.setValue(node.getHostname());
+                break;
+            case CPU:
+                metricValue.setValue(node.getTotalCPU().doubleValue());
+                break;
+            case CPU_AVAILABLE:
+                metricValue.setValue(node.getAvailableCPU().doubleValue());
+                break;
+            case MEMORY_SIZE:
+                metricValue.setValue(node.getTotalMemory().doubleValue());
+                break;
+            case MEMORY_SIZE_AVAILABLE:
+                metricValue.setValue(node.getAvailableMemory().doubleValue());
+                break;
+            case STORAGE_SIZE:
+                metricValue.setValue(node.getTotalStorage().doubleValue());
+                break;
+            case STORAGE_SIZE_AVAILABLE:
+                metricValue.setValue(node.getAvailableStorage().doubleValue());
+                break;
+            default:
+                break;
+        }
     }
 
     private JsonArray encodeResourceList(List<Resource> resourceList) {
