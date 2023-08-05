@@ -7,20 +7,19 @@ import at.uibk.dps.rm.exception.MonitoringException;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.service.monitoring.k8s.K8sMonitoringService;
 import at.uibk.dps.rm.service.monitoring.k8s.K8sMonitoringServiceImpl;
-import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.models.*;
 import io.kubernetes.client.util.Config;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Observable;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.rxjava3.core.AbstractVerticle;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,31 +32,21 @@ public class MonitoringVerticle extends AbstractVerticle {
     @Override
     public Completable rxStart() {
         serviceProxyProvider = new ServiceProxyProvider(vertx);
-        return new ConfigUtility(vertx).getConfigDTO().map(config ->
-            vertx.executeBlocking(fut -> fut.complete(monitorK8s(config)))
-                .map(monitoringData -> (Map<String, K8sMonitoringData>) monitoringData)
-                .flatMapCompletable(monitoringData -> {
-                    List<Completable> completables = new ArrayList<>();
-                    for (Map.Entry<String, K8sMonitoringData> entry : monitoringData.entrySet()) {
-                        // Update cluster resources
-                        completables.add(serviceProxyProvider.getResourceService()
-                            .updateClusterResource(entry.getKey(), entry.getValue()));
-                        // Update namespaces
-                    }
-
-                    return Completable.merge(completables);
-                })
+        ConfigDTO config = config().mapTo(ConfigDTO.class);
+        vertx.executeBlocking(fut -> fut.complete(monitorK8s(config)))
+            .map(monitoringData -> (Map<String, K8sMonitoringData>) monitoringData)
+            .flatMapObservable(monitoringData -> Observable.fromIterable(monitoringData.entrySet()))
+            .flatMapCompletable(entry -> serviceProxyProvider.getResourceService()
+                .updateClusterResource(entry.getKey(), entry.getValue())
                 .doOnError(throwable -> {
                     if (throwable instanceof MonitoringException) {
                         logger.error(throwable.getMessage());
                     } else {
-                        logger.error(throwable.getMessage());
                         throw new RuntimeException(throwable);
                     }
-                })
-                .onErrorComplete()
-                .subscribe())
-        .ignoreElement();
+                }))
+            .subscribe(() -> {}, throwable -> logger.error(throwable.getMessage()));
+        return Completable.complete();
     }
 
     private Map<String, K8sMonitoringData> monitorK8s(ConfigDTO config) {
@@ -66,7 +55,7 @@ public class MonitoringVerticle extends AbstractVerticle {
             K8sMonitoringService monitoringService = new K8sMonitoringServiceImpl();
             Map<String, String> kubeConfigs = monitoringService.listSecrets(config);
             for (Map.Entry<String, String> entry: kubeConfigs.entrySet()) {
-                logger.info(entry.getKey());
+                logger.debug("Observe cluster: " + entry.getKey());
                 ApiClient externalClient = Config.fromConfig(new StringReader(entry.getValue()));
                 Configuration.setDefaultApiClient(externalClient);
                 try {

@@ -6,6 +6,7 @@ import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.monitoring.K8sMonitoringData;
 import at.uibk.dps.rm.entity.monitoring.K8sMonitoringMetricEnum;
 import at.uibk.dps.rm.entity.monitoring.K8sNode;
+import at.uibk.dps.rm.exception.MonitoringException;
 import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
@@ -17,7 +18,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.hibernate.Hibernate;
 import org.hibernate.reactive.stage.Stage.SessionFactory;
-import org.hibernate.reactive.util.impl.CompletionStages;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -187,7 +187,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
                             });
                     } else {
                         // Log cluster not found
-                        return CompletionStages.completedFuture(null);
+                        throw new MonitoringException("cluster " + resourceName + " is not registered");
                     }
                 })
                 .thenAccept(res -> {}));

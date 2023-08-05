@@ -4,8 +4,6 @@ import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.DeploymentOptions;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.rxjava3.core.AbstractVerticle;
 
 /**
@@ -14,9 +12,6 @@ import io.vertx.rxjava3.core.AbstractVerticle;
  * @author matthi-g
  */
 public class MainVerticle extends AbstractVerticle {
-
-    private static final Logger logger = LoggerFactory.getLogger(MainVerticle.class);
-
     @Override
     public Completable rxStart() {
         return new ConfigUtility(vertx).getConfigJson().flatMapCompletable(config -> {
@@ -35,8 +30,9 @@ public class MainVerticle extends AbstractVerticle {
             return deployMigrationVerticle
                 .flatMap(res -> deployDatabaseVerticle)
                 .flatMap(res -> deployDeploymentVerticle)
+                .flatMap(res -> deployApiVerticle)
                 .flatMap(res -> deployMonitoringVerticle)
-                .flatMap(res -> deployApiVerticle).ignoreElement();
+                .ignoreElement();
         });
     }
 }

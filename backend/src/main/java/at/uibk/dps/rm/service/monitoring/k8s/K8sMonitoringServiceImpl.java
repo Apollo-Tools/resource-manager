@@ -56,7 +56,7 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
                 null, null, null,null, config.getKubeApiTimeoutSeconds(),
                 null);
             if (list.getItems().isEmpty() || list.getItems().get(0).getData() == null){
-                logger.info("no secrets found");
+                logger.warn("no secrets found");
                 return new HashMap<>();
             }
             V1Secret item = list.getItems().get(0);
@@ -80,7 +80,7 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
         String header = "\n############### Namespaces ###############\n";
         String nodes = list.getItems().stream().map(item -> Objects.requireNonNull(item.getMetadata()).getName())
             .collect(Collectors.joining("\n"));
-        logger.info(header + nodes);
+        logger.debug(header + nodes);
         return list.getItems();
     }
 
@@ -93,7 +93,7 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
         String header = "\n############### Nodes ###############\n";
         String nodes = list.getItems().stream().map(item -> Objects.requireNonNull(item.getMetadata()).getName())
             .collect(Collectors.joining("\n"));
-        logger.info(header + nodes);
+        logger.debug(header + nodes);
         return list.getItems()
             .stream().map(K8sNode::new)
             .collect(Collectors.toList());
@@ -116,9 +116,9 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
             .map(ProcessOutput::getOutput)
             .map(result -> {
                 K8sDescribeParser.parseContent(result, node);
-                logger.info("cpu: " + node.getCpuLoad());
-                logger.info("memory: " + node.getMemoryLoad());
-                logger.info("storage: " + node.getStorageLoad());
+                logger.debug("cpu: " + node.getCpuLoad() +
+                    "\nmemory: " + node.getMemoryLoad() +
+                    "\nstorage: " + node.getStorageLoad());
                 return result;
             })
             .ignoreElement()
