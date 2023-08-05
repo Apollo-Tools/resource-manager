@@ -15,13 +15,15 @@ public class MigrationVerticle extends AbstractVerticle {
     public Completable rxStart() {
         String host = config().getString("db_host");
         String port = config().getString("db_port");
-        Flyway flyway = Flyway
-            .configure()
-            .dataSource("jdbc:postgresql://" + host + ":" + port + "/resource-manager",
-                config().getString("db_user"),
-                config().getString("db_password"))
-            .load();
-        flyway.migrate();
-        return Completable.complete();
+        return vertx.executeBlocking(fut -> {
+            Flyway flyway = Flyway
+                .configure()
+                .dataSource("jdbc:postgresql://" + host + ":" + port + "/resource-manager",
+                    config().getString("db_user"),
+                    config().getString("db_password"))
+                .load();
+            flyway.migrate();
+            fut.complete();
+        }).ignoreElement();
     }
 }
