@@ -47,4 +47,17 @@ public class NamespaceRepository extends Repository<K8sNamespace> {
             .setParameter("accountId", accountId)
             .getResultList();
     }
+
+    /**
+     * Find all namespaces and fetch the resource.
+     *
+     * @param session the database session
+     * @return a CompletionStage that emits a list of all namespaces
+     */
+    public CompletionStage<List<K8sNamespace>> findAllByClusterName(Session session, String clusterName) {
+        return session.createQuery("select distinct n from K8sNamespace n " +
+                "where n.resource.name=:clusterName", entityClass)
+            .setParameter("clusterName", clusterName)
+            .getResultList();
+    }
 }

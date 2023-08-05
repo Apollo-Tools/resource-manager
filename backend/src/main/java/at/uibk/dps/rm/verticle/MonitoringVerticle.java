@@ -23,6 +23,9 @@ import java.io.StringReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 public class MonitoringVerticle extends AbstractVerticle {
 
     private static final Logger logger = LoggerFactory.getLogger(MonitoringVerticle.class);
@@ -36,19 +39,27 @@ public class MonitoringVerticle extends AbstractVerticle {
         vertx.executeBlocking(fut -> fut.complete(monitorK8s(config)))
             .map(monitoringData -> (Map<String, K8sMonitoringData>) monitoringData)
             .flatMapObservable(monitoringData -> Observable.fromIterable(monitoringData.entrySet()))
-            .flatMapCompletable(entry -> serviceProxyProvider.getResourceService()
-                .updateClusterResource(entry.getKey(), entry.getValue())
-                .doOnError(throwable -> {
-                    if (throwable instanceof MonitoringException) {
-                        logger.error(throwable.getMessage());
-                    } else {
-                        throw new RuntimeException(throwable);
-                    }
-                }))
+            .flatMapCompletable(entry -> {
+                List<String> namespaces = entry.getValue().getNamespaces().stream()
+                    .map(namespace -> Objects.requireNonNull(namespace.getMetadata()).getName())
+                    .collect(Collectors.toList());
+                return serviceProxyProvider.getResourceService()
+                    .updateClusterResource(entry.getKey(), entry.getValue())
+                    .andThen(serviceProxyProvider.getNamespaceService().updateAllClusterNamespaces(entry.getKey(),
+                        namespaces))
+                    .doOnError(throwable -> {
+                        if (throwable instanceof MonitoringException) {
+                            logger.error(throwable.getMessage());
+                        } else {
+                            throw new RuntimeException(throwable);
+                        }
+                    });
+            })
             .subscribe(() -> {}, throwable -> logger.error(throwable.getMessage()));
         return Completable.complete();
     }
 
+    // TODO: parallelize monitoring of multiple clusters
     private Map<String, K8sMonitoringData> monitorK8s(ConfigDTO config) {
         try {
             Map<String, K8sMonitoringData> monitoringDataMap = new HashMap<>();
@@ -75,4 +86,5 @@ public class MonitoringVerticle extends AbstractVerticle {
             throw new MonitoringException();
         }
     }
+
 }

@@ -126,9 +126,9 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     }
 
     @Override
-    public Future<Void> updateClusterResource(String resourceName, K8sMonitoringData data) {
+    public Future<Void> updateClusterResource(String clusterName, K8sMonitoringData data) {
         CompletionStage<Void> updateClusterResource = withTransaction(session ->
-            repository.findClusterByName(session, resourceName)
+            repository.findClusterByName(session, clusterName)
                 .thenCompose(cluster -> {
                     if (cluster != null) {
                         Map<String, List<MetricValue>> mvToPersist = new HashMap<>();
@@ -187,7 +187,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
                             });
                     } else {
                         // Log cluster not found
-                        throw new MonitoringException("cluster " + resourceName + " is not registered");
+                        throw new MonitoringException("cluster " + clusterName + " is not registered");
                     }
                 })
                 .thenAccept(res -> {}));
