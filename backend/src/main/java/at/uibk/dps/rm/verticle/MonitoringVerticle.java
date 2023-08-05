@@ -14,6 +14,7 @@ import io.kubernetes.client.openapi.models.*;
 import io.kubernetes.client.util.Config;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
+import io.vertx.core.Handler;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.rxjava3.core.AbstractVerticle;
@@ -32,30 +33,39 @@ public class MonitoringVerticle extends AbstractVerticle {
 
     ServiceProxyProvider serviceProxyProvider;
 
+    private static Handler<Long> monitoringHandler;
+
     @Override
     public Completable rxStart() {
         serviceProxyProvider = new ServiceProxyProvider(vertx);
         ConfigDTO config = config().mapTo(ConfigDTO.class);
-        vertx.executeBlocking(fut -> fut.complete(monitorK8s(config)))
-            .map(monitoringData -> (Map<String, K8sMonitoringData>) monitoringData)
-            .flatMapObservable(monitoringData -> Observable.fromIterable(monitoringData.entrySet()))
-            .flatMapCompletable(entry -> {
-                List<String> namespaces = entry.getValue().getNamespaces().stream()
-                    .map(namespace -> Objects.requireNonNull(namespace.getMetadata()).getName())
-                    .collect(Collectors.toList());
-                return serviceProxyProvider.getResourceService()
-                    .updateClusterResource(entry.getKey(), entry.getValue())
-                    .andThen(serviceProxyProvider.getNamespaceService().updateAllClusterNamespaces(entry.getKey(),
-                        namespaces))
-                    .doOnError(throwable -> {
-                        if (throwable instanceof MonitoringException) {
-                            logger.error(throwable.getMessage());
-                        } else {
-                            throw new RuntimeException(throwable);
-                        }
-                    });
-            })
-            .subscribe(() -> {}, throwable -> logger.error(throwable.getMessage()));
+        long period = (long) (config.getKubeMonitoringPeriod() * 60 * 1000);
+        monitoringHandler = id -> {
+            logger.info("Started: monitor k8s resources");
+            vertx.executeBlocking(fut -> fut.complete(monitorK8s(config)))
+                .map(monitoringData -> (Map<String, K8sMonitoringData>) monitoringData)
+                .flatMapObservable(monitoringData -> Observable.fromIterable(monitoringData.entrySet()))
+                .flatMapCompletable(entry -> {
+                    List<String> namespaces = entry.getValue().getNamespaces().stream()
+                        .map(namespace -> Objects.requireNonNull(namespace.getMetadata()).getName())
+                        .collect(Collectors.toList());
+                    return serviceProxyProvider.getResourceService()
+                        .updateClusterResource(entry.getKey(), entry.getValue())
+                        .andThen(serviceProxyProvider.getNamespaceService().updateAllClusterNamespaces(entry.getKey(),
+                            namespaces))
+                        .doOnError(throwable -> {
+                            if (throwable instanceof MonitoringException) {
+                                logger.error(throwable.getMessage());
+                            } else {
+                                throw new RuntimeException(throwable);
+                            }
+                        });
+                }).subscribe(() -> {
+                    logger.info("Finished: monitor k8s resources");
+                    vertx.setTimer(period, monitoringHandler);
+                }, throwable -> logger.error(throwable.getMessage()));
+        };
+        vertx.setTimer(period, monitoringHandler);
         return Completable.complete();
     }
 

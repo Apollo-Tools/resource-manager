@@ -11,7 +11,6 @@
   "upload_persist_directory": "persist/dir",
   "upload_temp_directory": "temp/dir",
   "max_file_size": 100000000,
-  "kube_config_directory": "temp/kubeconfig/config",
 
   "jwt_secret": "**secret**",
   "jwt_algorithm": "HS256",
@@ -21,5 +20,6 @@
 
   "kube_config_secrets_name": "rm-kubeconfigs",
   "kube_config_secrets_namespace": "default",
-  "kube_api_timeout_seconds": 30
+  "kube_api_timeout_seconds": 30,
+  "kube_monitoring_period": 5
 }
