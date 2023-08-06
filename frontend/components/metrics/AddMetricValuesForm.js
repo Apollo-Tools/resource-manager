@@ -40,6 +40,7 @@ const AddMetricValuesForm = ({
   resource,
   excludeMetricIds,
   setFinished,
+  isNewResource,
 }) => {
   const [form] = Form.useForm();
   const {token, checkTokenExpired} = useAuth();
@@ -51,27 +52,22 @@ const AddMetricValuesForm = ({
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listPlatformMetrics(resource.platform.platform_id, token, setMetrics, setError)
-          .then(() => {
-
-          });
+      listPlatformMetrics(resource.platform.platform_id, token, setMetrics, setError);
     }
   }, [excludeMetricIds]);
 
   useEffect(() => {
     setFilteredMetrics(() => {
-      let filtered = metrics;
-      if (excludeMetricIds != null) {
-        filtered = metrics
-            .filter((metric) => {
-              const excludedMetric = !excludeMetricIds.includes(metric.metric.metric_id);
-              if (resource == null || !Object.hasOwn(resource, 'main_resource_id')) {
-                return metric.is_main_resource_metric && excludedMetric;
-              } else {
-                return metric.is_sub_resource_metric && excludedMetric;
-              }
-            });
-      }
+      const filtered = metrics
+          .filter((metric) => {
+            const includeMetric = excludeMetricIds != null ?
+              !excludeMetricIds.includes(metric.metric.metric_id) : true;
+            if (resource == null || !isNewResource || !Object.hasOwn(resource, 'main_resource_id')) {
+              return metric.is_main_resource_metric && includeMetric;
+            } else {
+              return metric.is_sub_resource_metric && includeMetric;
+            }
+          });
       return filtered
           .map((metric) => {
             return {
@@ -249,6 +245,7 @@ AddMetricValuesForm.propTypes = {
   resource: PropTypes.object.isRequired,
   excludeMetricIds: PropTypes.arrayOf(PropTypes.number.isRequired),
   setFinished: PropTypes.func.isRequired,
+  isNewResource: PropTypes.bool,
 };
 
 export default AddMetricValuesForm;

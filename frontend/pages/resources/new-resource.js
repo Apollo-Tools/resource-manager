@@ -38,7 +38,7 @@ const NewResource = () => {
                       }
                     /> :
                     (newResource ?
-                    <AddMetricValuesForm resource={newResource} setFinished={setFinished} />:
+                    <AddMetricValuesForm resource={newResource} setFinished={setFinished} isNewResource />:
                     <NewResourceForm setNewResource={setNewResource} />)
         }
       </div>
