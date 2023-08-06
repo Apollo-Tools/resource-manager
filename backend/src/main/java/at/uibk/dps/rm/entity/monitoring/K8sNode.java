@@ -15,7 +15,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @Getter
 @Setter
-public class K8sNode {
+public class K8sNode implements K8sEntityData {
 
     private V1Node node;
 
@@ -42,6 +42,7 @@ public class K8sNode {
         throw new NullPointerException();
     }
 
+    @Override
     @JsonIgnore
     public BigDecimal getTotalCPU() {
         if (node.getStatus() != null && node.getStatus().getAllocatable() != null) {
@@ -50,6 +51,7 @@ public class K8sNode {
         throw new NullPointerException();
     }
 
+    @Override
     @JsonIgnore
     public BigDecimal getTotalMemory() {
         if (node.getStatus() != null && node.getStatus().getAllocatable() != null) {
@@ -57,6 +59,8 @@ public class K8sNode {
         }
         throw new NullPointerException();
     }
+
+    @Override
     @JsonIgnore
     public BigDecimal getTotalStorage() {
         if (node.getStatus() != null && node.getStatus().getAllocatable() != null) {
@@ -65,15 +69,19 @@ public class K8sNode {
         throw new NullPointerException();
     }
 
+    @Override
     @JsonIgnore
     public BigDecimal getAvailableCPU() {
         return getTotalCPU().subtract(getCpuLoad().getNumber());
     }
 
+    @Override
     @JsonIgnore
     public BigDecimal getAvailableMemory() {
         return getTotalMemory().subtract(getMemoryLoad().getNumber());
     }
+
+    @Override
     @JsonIgnore
     public BigDecimal getAvailableStorage() {
         return getTotalStorage().subtract(getStorageLoad().getNumber());

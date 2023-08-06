@@ -1,47 +1,47 @@
 package at.uibk.dps.rm.entity.monitoring;
 
-import at.uibk.dps.rm.entity.dto.metric.MetricTypeEnum;
 import at.uibk.dps.rm.entity.model.Metric;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.Arrays;
 
+// TODO: remove hard coded stuff, retrieve from database
 @AllArgsConstructor
 @Getter
 public enum K8sMonitoringMetricEnum {
     /**
      * K8s Hostname
      */
-    HOSTNAME("hostname", MetricTypeEnum.STRING),
+    HOSTNAME("hostname", false, true),
     /**
      * Total available CPU
      */
-    CPU("cpu", MetricTypeEnum.NUMBER),
+    CPU("cpu", true, true),
     /**
      * Allocatable CPU
      */
-    CPU_AVAILABLE("cpu-available", MetricTypeEnum.NUMBER),
+    CPU_AVAILABLE("cpu-available", true, true),
     /**
      * Total available memory
      */
-    MEMORY_SIZE("memory-size", MetricTypeEnum.NUMBER),
+    MEMORY_SIZE("memory-size", true, true),
     /**
      * Available memory
      */
-    MEMORY_SIZE_AVAILABLE("memory-size-available", MetricTypeEnum.NUMBER),
+    MEMORY_SIZE_AVAILABLE("memory-size-available", true, true),
     /**
      * Total available storage
      */
-    STORAGE_SIZE("storage-size", MetricTypeEnum.NUMBER),
+    STORAGE_SIZE("storage-size", true, true),
     /**
      * Allocatable storage
      */
-    STORAGE_SIZE_AVAILABLE("storage-size-available", MetricTypeEnum.NUMBER);
+    STORAGE_SIZE_AVAILABLE("storage-size-available", true, true);
 
     private final String name;
-
-    private final MetricTypeEnum metricType;
+    private final boolean isMainResourceMetric;
+    private final boolean isSubResourceMetric;
 
     /**
      * Create an instance from a metric. This is necessary because a public method is not

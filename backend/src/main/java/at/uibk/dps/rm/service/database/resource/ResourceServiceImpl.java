@@ -3,6 +3,7 @@ package at.uibk.dps.rm.service.database.resource;
 import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.entity.dto.resource.SubResourceDTO;
 import at.uibk.dps.rm.entity.model.*;
+import at.uibk.dps.rm.entity.monitoring.K8sEntityData;
 import at.uibk.dps.rm.entity.monitoring.K8sMonitoringData;
 import at.uibk.dps.rm.entity.monitoring.K8sMonitoringMetricEnum;
 import at.uibk.dps.rm.entity.monitoring.K8sNode;
@@ -17,6 +18,7 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.hibernate.Hibernate;
+import org.hibernate.reactive.stage.Stage.Session;
 import org.hibernate.reactive.stage.Stage.SessionFactory;
 
 import java.util.*;
@@ -131,60 +133,8 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
             repository.findClusterByName(session, clusterName)
                 .thenCompose(cluster -> {
                     if (cluster != null) {
-                        Map<String, List<MetricValue>> mvToPersist = new HashMap<>();
-                        Set<SubResource> subResources =  Set.copyOf(cluster.getSubResources());
-                        List<SubResource> deleteNodes = new ArrayList<>();
-                        for(SubResource subResource : subResources) {
-                            Optional<K8sNode> matchingNode = data.getNodes().stream()
-                                .filter(node -> node.getName().equals(subResource.getName()))
-                                .findFirst();
-                            if (matchingNode.isPresent()) {
-                                K8sNode node = matchingNode.get();
-                                subResource.getMetricValues().forEach(metricValue -> {
-                                    K8sMonitoringMetricEnum metric =
-                                        K8sMonitoringMetricEnum.fromMetric(metricValue.getMetric());
-                                    if (metric != null) {
-                                        setMetricValue(metricValue, node, metric);
-                                    }
-                                });
-                                Arrays.stream(K8sMonitoringMetricEnum.values())
-                                    .filter(metric -> subResource.getMetricValues().stream()
-                                        .noneMatch(mv -> metric.getName().equals(mv.getMetric().getMetric())))
-                                    .forEach(missingMetric -> createNewMetricValue(subResource, missingMetric, node,
-                                        mvToPersist));
-                            } else {
-                                deleteNodes.add(subResource);
-                            }
-                        }
-                        Object[] newNodes = data.getNodes().stream()
-                            .filter(node -> subResources.stream().noneMatch(subResource ->
-                                subResource.getName().equals(node.getName())))
-                            .map(node -> {
-                                SubResource subResource = new SubResource();
-                                subResource.setMainResource(cluster);
-                                subResource.setName(node.getName());
-                                subResource.setMetricValues(Set.of());
-                                Arrays.stream(K8sMonitoringMetricEnum.values())
-                                    .forEach(metric -> createNewMetricValue(subResource, metric, node, mvToPersist));
-                                return subResource;
-                            })
-                            .toArray();
-                        return session.remove(deleteNodes.toArray())
-                            .thenCompose(res -> session.persist(newNodes))
-                            .thenCompose(res -> {
-                                List<CompletableFuture<Void>> completables = new ArrayList<>();
-                                for (Map.Entry<String, List<MetricValue>> entry : mvToPersist.entrySet()) {
-                                    CompletableFuture<Void> completable = metricRepository
-                                        .findByMetric(session, entry.getKey())
-                                        .thenCompose(metric -> {
-                                            entry.getValue().forEach(mv -> mv.setMetric(metric));
-                                            return session.persist(entry.getValue().toArray());
-                                        })
-                                        .toCompletableFuture();
-                                    completables.add(completable);
-                                }
-                                return CompletableFuture.allOf(completables.toArray(CompletableFuture[]::new));
-                            });
+                        return updateClusterNodes(session, cluster, data)
+                            .thenCompose(res -> updateCluster(session, cluster, data));
                     } else {
                         // Log cluster not found
                         throw new MonitoringException("cluster " + clusterName + " is not registered");
@@ -194,41 +144,128 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
         return sessionToFuture(updateClusterResource);
     }
 
-    private void createNewMetricValue(SubResource resource, K8sMonitoringMetricEnum metric, K8sNode node,
+    private CompletionStage<Void> updateClusterNodes(Session session, MainResource cluster, K8sMonitoringData data) {
+        Map<String, List<MetricValue>> mvToPersist = new HashMap<>();
+        Set<SubResource> subResources =  Set.copyOf(cluster.getSubResources());
+        List<SubResource> deleteNodes = new ArrayList<>();
+        for(SubResource subResource : subResources) {
+            Optional<K8sNode> matchingNode = data.getNodes().stream()
+                .filter(node -> node.getName().equals(subResource.getName()))
+                .findFirst();
+            if (matchingNode.isPresent()) {
+                K8sNode node = matchingNode.get();
+                updateExistingMetricValues(subResource.getMetricValues(), node);
+                Arrays.stream(K8sMonitoringMetricEnum.values())
+                    .filter(metric -> subResource.getMetricValues().stream()
+                        .noneMatch(mv -> metric.getName().equals(mv.getMetric().getMetric())))
+                    .filter(K8sMonitoringMetricEnum::getIsSubResourceMetric)
+                    .forEach(missingMetric -> createNewMetricValue(subResource, missingMetric, node,
+                        mvToPersist));
+            } else {
+                deleteNodes.add(subResource);
+            }
+        }
+        Object[] newNodes = data.getNodes().stream()
+            .filter(node -> subResources.stream().noneMatch(subResource ->
+                subResource.getName().equals(node.getName())))
+            .map(node -> {
+                SubResource subResource = new SubResource();
+                subResource.setMainResource(cluster);
+                subResource.setName(node.getName());
+                subResource.setMetricValues(Set.of());
+                Arrays.stream(K8sMonitoringMetricEnum.values())
+                    .filter(K8sMonitoringMetricEnum::getIsSubResourceMetric)
+                    .forEach(metric -> createNewMetricValue(subResource, metric, node, mvToPersist));
+                return subResource;
+            })
+            .toArray();
+        return session.remove(deleteNodes.toArray())
+            .thenCompose(res -> session.persist(newNodes))
+            .thenCompose(res -> persistMetricValues(session, mvToPersist));
+    }
+
+    private CompletionStage<Void> updateCluster(Session session, MainResource cluster, K8sMonitoringData data) {
+        Map<String, List<MetricValue>> mvToPersist = new HashMap<>();
+        updateExistingMetricValues(cluster.getMetricValues(), data);
+        composeMissingMetricValues(cluster, data, mvToPersist);
+
+        return persistMetricValues(session, mvToPersist);
+    }
+
+    private void updateExistingMetricValues(Set<MetricValue> metricValues, K8sEntityData entityData) {
+        metricValues.forEach(metricValue -> {
+            K8sMonitoringMetricEnum metric =
+                K8sMonitoringMetricEnum.fromMetric(metricValue.getMetric());
+            if (metric != null) {
+                setMetricValue(metricValue, entityData, metric);
+            }
+        });
+    }
+
+    private void composeMissingMetricValues(Resource resource, K8sEntityData entityData,
+            Map<String, List<MetricValue>> mvToPersist) {
+        boolean isMainResources = resource instanceof MainResource;
+        Arrays.stream(K8sMonitoringMetricEnum.values())
+            .filter(metric -> resource.getMetricValues().stream()
+                .noneMatch(mv -> metric.getName().equals(mv.getMetric().getMetric())))
+            .filter(metric -> (isMainResources && metric.getIsMainResourceMetric()) ||
+                (!isMainResources && metric.getIsSubResourceMetric()))
+            .forEach(missingMetric -> createNewMetricValue(resource, missingMetric, entityData,
+                mvToPersist));
+    }
+
+    private void createNewMetricValue(Resource resource, K8sMonitoringMetricEnum metric, K8sEntityData entityData,
             Map<String, List<MetricValue>> mvToPersist) {
         MetricValue metricValue = new MetricValue();
         metricValue.setResource(resource);
-        setMetricValue(metricValue, node, metric);
+        setMetricValue(metricValue, entityData, metric);
         mvToPersist.putIfAbsent(metric.getName(), new ArrayList<>());
         mvToPersist.get(metric.getName()).add(metricValue);
     }
 
-    private void setMetricValue(MetricValue metricValue, K8sNode node, K8sMonitoringMetricEnum metric) {
+    private void setMetricValue(MetricValue metricValue, K8sEntityData entityData, K8sMonitoringMetricEnum metric) {
         switch (metric) {
             case HOSTNAME:
-                metricValue.setValue(node.getHostname());
+                if (entityData instanceof K8sNode) {
+                    metricValue.setValue(((K8sNode) entityData).getHostname());
+                }
                 break;
             case CPU:
-                metricValue.setValue(node.getTotalCPU().doubleValue());
+                metricValue.setValue(entityData.getTotalCPU().doubleValue());
                 break;
             case CPU_AVAILABLE:
-                metricValue.setValue(node.getAvailableCPU().doubleValue());
+                metricValue.setValue(entityData.getAvailableCPU().doubleValue());
                 break;
             case MEMORY_SIZE:
-                metricValue.setValue(node.getTotalMemory().doubleValue());
+                metricValue.setValue(entityData.getTotalMemory().doubleValue());
                 break;
             case MEMORY_SIZE_AVAILABLE:
-                metricValue.setValue(node.getAvailableMemory().doubleValue());
+                metricValue.setValue(entityData.getAvailableMemory().doubleValue());
                 break;
             case STORAGE_SIZE:
-                metricValue.setValue(node.getTotalStorage().doubleValue());
+                metricValue.setValue(entityData.getTotalStorage().doubleValue());
                 break;
             case STORAGE_SIZE_AVAILABLE:
-                metricValue.setValue(node.getAvailableStorage().doubleValue());
+                metricValue.setValue(entityData.getAvailableStorage().doubleValue());
                 break;
             default:
                 break;
         }
+    }
+
+    private CompletionStage<Void> persistMetricValues(Session session, Map<String, List<MetricValue>> mvToPersist) {
+        List<CompletableFuture<Void>> completables = new ArrayList<>();
+        for (Map.Entry<String, List<MetricValue>> entry : mvToPersist.entrySet()) {
+            CompletableFuture<Void> completable = metricRepository
+                .findByMetric(session, entry.getKey())
+                .thenCompose(metric -> {
+                    entry.getValue().forEach(mv -> mv.setMetric(metric));
+                    return session.persist(entry.getValue().toArray());
+                })
+                .toCompletableFuture();
+            completables.add(completable);
+        }
+        return CompletableFuture.allOf(completables.toArray(CompletableFuture[]::new));
     }
 
     private JsonArray encodeResourceList(List<Resource> resourceList) {
