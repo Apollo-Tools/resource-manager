@@ -17,6 +17,4 @@ public class ResourceHandler extends ValidationHandler {
     public ResourceHandler(ResourceChecker resourceChecker) {
         super(resourceChecker);
     }
-
-    // TODO: delete metric values on delete check if resource has metric values
 }

@@ -128,6 +128,17 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     }
 
     @Override
+    public Future<Void> delete(long id) {
+        CompletionStage<Void> delete = withTransaction(session -> repository.findByIdAndFetch(session, id)
+            .thenCompose(entity -> {
+                ServiceResultValidator.checkFound(entity, Resource.class);
+                return session.remove(entity);
+            })
+        );
+        return sessionToFuture(delete);
+    }
+
+    @Override
     public Future<Void> updateClusterResource(String clusterName, K8sMonitoringData data) {
         CompletionStage<Void> updateClusterResource = withTransaction(session ->
             repository.findClusterByName(session, clusterName)
