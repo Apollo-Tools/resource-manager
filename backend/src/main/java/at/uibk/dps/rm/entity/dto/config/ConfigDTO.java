@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -26,4 +28,5 @@ public class ConfigDTO {
     private String kubeConfigSecretsNamespace;
     private Integer kubeApiTimeoutSeconds;
     private Double kubeMonitoringPeriod;
+    private List<String> kubeImagePullSecrets;
 }

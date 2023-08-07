@@ -1,12 +1,14 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
 import at.uibk.dps.rm.entity.deployment.PrePullGroup;
+import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.util.misc.MetricValueMapper;
 import io.vertx.rxjava3.core.file.FileSystem;
 
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Extension of the #TerraformFileService to set up the container pre pull module of service
@@ -22,6 +24,8 @@ public class ContainerPullFileService extends TerraformFileService {
 
     private final Path rootFolder;
 
+    private final ConfigDTO config;
+
     /**
      * Create an instance from the filesystem, rootFolder, serviceDeployments and deploymentId.
      *
@@ -31,11 +35,12 @@ public class ContainerPullFileService extends TerraformFileService {
      * @param deploymentId the id of the deployment
      */
     public ContainerPullFileService(FileSystem fileSystem, Path rootFolder, List<ServiceDeployment> serviceDeployments,
-            long deploymentId) {
+            long deploymentId, ConfigDTO config) {
         super(fileSystem, rootFolder);
         this.rootFolder = rootFolder;
         this.serviceDeployments = serviceDeployments;
         this.deploymentId = deploymentId;
+        this.config = config;
     }
 
     @Override
@@ -79,6 +84,8 @@ public class ContainerPullFileService extends TerraformFileService {
 
         String configPath = Path.of(rootFolder.toString(), "config").toAbsolutePath().toString()
             .replace("\\", "/");
+        String imagePullSecrets = config.getKubeImagePullSecrets().stream()
+            .map(secret -> "\"" + secret + "\"").collect(Collectors.joining(","));
         prePullGroups.forEach((prePullGroup, imageList) ->
             functionsString.append(String.format(
                 "module \"pre_pull_%s\" {\n" +
@@ -90,9 +97,10 @@ public class ContainerPullFileService extends TerraformFileService {
                     "  images = [%s]\n" +
                     "  timeout = \"%sm\"\n" +
                     "  hostname = %s\n" +
+                    "  image_pull_secrets = [%s]\n" +
                     "}\n", prePullGroup.getIdentifier(), deploymentId, configPath, prePullGroup.getNamespace(),
                 prePullGroup.getContext(), String.join(",", imageList), prePullGroup.getTimeout(),
-                prePullGroup.getHostname()
+                prePullGroup.getHostname(), imagePullSecrets
         )));
         return functionsString.toString();
     }

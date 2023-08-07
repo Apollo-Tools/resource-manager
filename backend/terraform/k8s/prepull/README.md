@@ -23,6 +23,7 @@ module "k8s_pre_pull" {
   images = ["nginx:latest"]
   timeout = "2m"
   hostname = "node1"
+  image_pull_secrets = ["regcred"]
 }
 ```
 
@@ -47,20 +48,21 @@ module "k8s_pre_pull" {
 
 ## Inputs
 
-| Name           | Description                                                              | Type                                                           | Default            | Required |
-|----------------|--------------------------------------------------------------------------|----------------------------------------------------------------|--------------------|:--------:|
-| name           | The name of the service.                                                 | `string`                                                       | `"service"`        |    no    |
-| deployment_id  | The id of the deployment.                                                | `number`                                                       | n/a                |   yes    |
-| namespace      | The k8s namespace that should be used.                                   | `string`                                                       | `"default"`        |    no    |
-| config_path    | The path to the k8s config.                                              | `string`                                                       | `"~/.kube/config"` |    no    |
-| config_context | The selected k8s context.                                                | `string`                                                       | n/a                |   yes    |
-| image          | The image to use.                                                        | `string`                                                       | n/a                |   yes    |
-| replicas       | The amount of replicas for this service.                                 | `number`                                                       | `1`                |    no    |
-| cpu            | The amount of requested and limited compute processing units.            | `string`                                                       | `"50m"`            |    no    |
-| memory         | The amount of requested and limited memory.                              | `string`                                                       | `"50Mi"`           |    no    |
-| ports          | The ports to expose.                                                     | `list(object({container_port: number, service_port: number}))` | `[]`               |    no    |
-| service_type   | The type of the service. Valid values are `NodePort` and `LoadBalancer`. | `string`                                                       | `"NodePort"`       |    no    |
-| external_ip    | The external ip used for the load balancer if present.                   | `string`                                                       | `""`               |    no    |
-| hostname       | The value of the hostname label of a k8s node.                           | `string`                                                       | n/a                |    no    |
+| Name               | Description                                                              | Type                                                           | Default            | Required |
+|--------------------|--------------------------------------------------------------------------|----------------------------------------------------------------|--------------------|:--------:|
+| name               | The name of the service.                                                 | `string`                                                       | `"service"`        |    no    |
+| deployment_id      | The id of the deployment.                                                | `number`                                                       | n/a                |   yes    |
+| namespace          | The k8s namespace that should be used.                                   | `string`                                                       | `"default"`        |    no    |
+| config_path        | The path to the k8s config.                                              | `string`                                                       | `"~/.kube/config"` |    no    |
+| config_context     | The selected k8s context.                                                | `string`                                                       | n/a                |   yes    |
+| image              | The image to use.                                                        | `string`                                                       | n/a                |   yes    |
+| replicas           | The amount of replicas for this service.                                 | `number`                                                       | `1`                |    no    |
+| cpu                | The amount of requested and limited compute processing units.            | `string`                                                       | `"50m"`            |    no    |
+| memory             | The amount of requested and limited memory.                              | `string`                                                       | `"50Mi"`           |    no    |
+| ports              | The ports to expose.                                                     | `list(object({container_port: number, service_port: number}))` | `[]`               |    no    |
+| service_type       | The type of the service. Valid values are `NodePort` and `LoadBalancer`. | `string`                                                       | `"NodePort"`       |    no    |
+| external_ip        | The external ip used for the load balancer if present.                   | `string`                                                       | `""`               |    no    |
+| hostname           | The value of the hostname label of a k8s node.                           | `string`                                                       | n/a                |    no    |
+| image_pull_secrets | The secrets to use to pull images from private docker registries         | `list(string)`                                                 | `[]`               |    no    |
 
 <!-- END_TF_DOCS -->

@@ -3,6 +3,7 @@ package at.uibk.dps.rm.service.deployment.terraform;
 import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.module.ContainerModule;
 import at.uibk.dps.rm.entity.deployment.module.FaasModule;
+import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
@@ -78,7 +79,7 @@ public class TerraformSetupService {
      *
      * @return a Single that emits a list of all terraform modules from the deployment
      */
-    public Single<List<TerraformModule>> setUpTFModuleDirs() {
+    public Single<List<TerraformModule>> setUpTFModuleDirs(ConfigDTO config) {
         if (deployRequest == null) {
             return Single.error(new IllegalStateException("deployRequest must not be null"));
         }
@@ -93,7 +94,7 @@ public class TerraformSetupService {
             composeOpenFaasLoginData(regionFunctionDeployments);
         }
         if (!deployRequest.getServiceDeployments().isEmpty()) {
-            singles.add(containerDeployment(deployRequest.getServiceDeployments()));
+            singles.add(containerDeployment(deployRequest.getServiceDeployments(), config));
         }
 
         return Single.zip(singles, objects -> Arrays.stream(objects).map(object -> (TerraformModule) object)
@@ -190,19 +191,19 @@ public class TerraformSetupService {
      * @param serviceDeployments the service deployments
      * @return a Single that emits the created terraform module
      */
-    private Single<TerraformModule> containerDeployment(List<ServiceDeployment> serviceDeployments) {
+    private Single<TerraformModule> containerDeployment(List<ServiceDeployment> serviceDeployments, ConfigDTO config) {
         FileSystem fileSystem = vertx.fileSystem();
         long deploymentId = deployRequest.getDeployment().getDeploymentId();
         TerraformModule module = new ContainerModule();
         Path containerFolder = deploymentPath.getModuleFolder(module);
         Path configPath = Path.of(containerFolder.toString(), "config");
         ContainerPullFileService containerFileService = new ContainerPullFileService(fileSystem, containerFolder,
-            serviceDeployments, deploymentId);
+            serviceDeployments, deploymentId, config);
         List<Completable> completables = new ArrayList<>();
         for (ServiceDeployment serviceDeployment : serviceDeployments) {
             Path deployFolder = Path.of(containerFolder.toString(),  serviceDeployment.getResourceDeploymentId().toString());
             ContainerDeployFileService containerDeployFileService = new ContainerDeployFileService(fileSystem,
-                deployFolder, serviceDeployment, deploymentId);
+                deployFolder, serviceDeployment, deploymentId, config);
             completables.add(containerDeployFileService.setUpDirectory());
         }
 

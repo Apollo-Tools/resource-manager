@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
+import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.model.Service;
@@ -25,6 +26,8 @@ public class ContainerDeployFileService extends TerraformFileService {
 
     private final Path rootFolder;
 
+    private final ConfigDTO config;
+
     /**
      * Create an instance from the fileSystem, rootFolder, serviceDeployment and deploymentId.
      *
@@ -34,11 +37,12 @@ public class ContainerDeployFileService extends TerraformFileService {
      * @param deploymentId the id of the deployment
      */
     public ContainerDeployFileService(FileSystem fileSystem, Path rootFolder, ServiceDeployment serviceDeployment,
-            long deploymentId) {
+            long deploymentId, ConfigDTO config) {
         super(fileSystem, rootFolder);
         this.rootFolder = rootFolder;
         this.serviceDeployment = serviceDeployment;
         this.deploymentId = deploymentId;
+        this.config = config;
     }
 
     @Override
@@ -86,6 +90,8 @@ public class ContainerDeployFileService extends TerraformFileService {
             .collect(Collectors.joining(","));
         String hostname = metricValues.containsKey("hostname") ?
             "\"" + metricValues.get("hostname").getValueString() + "\"" : "null";
+        String imagePullSecrets = config.getKubeImagePullSecrets().stream()
+            .map(secret -> "\"" + secret + "\"").collect(Collectors.joining(","));
         containerString.append(String.format(
             "module \"deployment_%s\" {\n" +
             "  source = \"../../../../terraform/k8s/deployment\"\n" +
@@ -102,10 +108,11 @@ public class ContainerDeployFileService extends TerraformFileService {
             "  service_type = \"%s\"\n" +
             "  external_ip = \"%s\"\n" +
             "  hostname = %s\n" +
+            "  image_pull_secrets = [%s]\n" +
             "}\n", identifier, configPath, serviceDeployment.getContext(),
             serviceDeployment.getNamespace(), service.getName(), service.getImage(), deploymentId,
             service.getReplicas(), service.getCpu(), service.getMemory(), ports,
-            service.getServiceType().getName(), externalIp, hostname));
+            service.getServiceType().getName(), externalIp, hostname, imagePullSecrets));
         return containerString.toString();
     }
 

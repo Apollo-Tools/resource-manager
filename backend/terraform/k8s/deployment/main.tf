@@ -77,6 +77,12 @@ resource "kubernetes_deployment_v1" "deployment" {
             }
           }
         }
+        dynamic "image_pull_secrets" {
+          for_each = var.image_pull_secrets
+          content {
+            name = image_pull_secrets.value
+          }
+        }
         node_selector = var.hostname != null ? {"kubernetes.io/hostname" = var.hostname} : null
       }
     }

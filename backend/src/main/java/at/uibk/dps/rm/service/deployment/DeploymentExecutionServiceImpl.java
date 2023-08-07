@@ -51,7 +51,7 @@ public class DeploymentExecutionServiceImpl extends ServiceProxy implements Depl
             TerraformSetupService tfSetupService = new TerraformSetupService(vertx, deployRequest,
                 deploymentPath, credentials);
             return tfSetupService
-            .setUpTFModuleDirs()
+            .setUpTFModuleDirs(config)
             .flatMapCompletable(tfModules -> {
                 // TF: main files
                 MainFileService mainFileService = new MainFileService(vertx.fileSystem(), deploymentPath.getRootFolder()

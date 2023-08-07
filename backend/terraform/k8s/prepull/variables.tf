@@ -36,3 +36,9 @@ variable "hostname" {
   type = string
   default = null
 }
+
+variable "image_pull_secrets" {
+  description = "The secrets to use to pull images from private docker registries"
+  type = list(string)
+  default = []
+}
