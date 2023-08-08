@@ -72,14 +72,13 @@ const AddCredentials = ({functionResources, serviceResources, next, prev, onSubm
         });
       });
     });
-    const dockerCredentials = needsDockerCreds ? {
-      registry: 'https://index.docker.io/v1/',
+    const dockerCredentials = {
+      registry: values.dockerRegistry,
       username: values.dockerUsername,
       access_token: values.dockerAccessToken,
-    } : null;
-    // TODO: fix
+    };
     requestBody.credentials = {
-      docker_credentials: [dockerCredentials],
+      ...(needsDockerCreds && {docker_credentials: dockerCredentials}),
       kube_config: values.kubeconfig,
     };
     requestBody.function_resources = functionDeployments;
@@ -104,6 +103,20 @@ const AddCredentials = ({functionResources, serviceResources, next, prev, onSubm
         autoComplete="off"
         layout="vertical"
       >
+        <Form.Item
+          label="Docker registry"
+          name="dockerRegistry"
+          hidden={!needsDockerCreds}
+          rules={[
+            {
+              required: needsDockerCreds,
+              message: 'Please input a valid docker registry!',
+            },
+          ]}
+        >
+          <Input prefix={<UserOutlined className="site-form-item-icon" />} placeholder="docker.io/v1/"/>
+        </Form.Item>
+
         <Form.Item
           label="Docker Username"
           name="dockerUsername"

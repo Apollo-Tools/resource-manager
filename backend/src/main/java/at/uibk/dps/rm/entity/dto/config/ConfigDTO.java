@@ -24,6 +24,7 @@ public class ConfigDTO {
     private String jwtAlgorithm;
     private Long tokenMinutesValid;
     private Double ensembleValidationPeriod;
+    private List<String> dockerInsecureRegistries;
     private String kubeConfigSecretsName;
     private String kubeConfigSecretsNamespace;
     private Integer kubeApiTimeoutSeconds;

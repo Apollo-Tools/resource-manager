@@ -12,7 +12,7 @@ import java.util.List;
 @Data
 public class DeploymentCredentials {
 
-    private List<DockerCredentials> dockerCredentials;
+    private DockerCredentials dockerCredentials;
 
     private String kubeConfig = "";
 }

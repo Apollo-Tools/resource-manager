@@ -1755,15 +1755,7 @@ paths:
                   additionalProperties: false
                   properties:
                     docker_credentials:
-                      type: array
-                      description: |
-                        Define credentials for all docker registries that have to be accessed. 
-                        You must not define more than one user per registry. If the deployment 
-                        contains resources with OpenFaaS or AWS EC2 as platform, the first entry
-                        is used to push and pull the function images and hence at least one entry
-                        must be present.
-                      items:
-                        $ref: '#/components/schemas/DockerCredentials'
+                      $ref: '#/components/schemas/DockerCredentials'
                     kube_config:
                       $ref: '#/components/schemas/KubeConfig'
       responses:
@@ -3542,6 +3534,9 @@ components:
         - username
         - access_token
       additionalProperties: false
+      description: |
+        If the deployment contains resources with OpenFaaS or AWS EC2 as platform, 
+        these credentials are used to push and pull the function images.
       properties:
         registry:
           description: |

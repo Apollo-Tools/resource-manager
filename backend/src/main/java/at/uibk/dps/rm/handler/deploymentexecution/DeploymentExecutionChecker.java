@@ -122,7 +122,7 @@ public class DeploymentExecutionChecker {
    * @param deploymentPath the path of the current deployment
    * @return a Single that emits the process output of the docker process
    */
-    private Single<ProcessOutput> buildAndPushOpenFaasImages(Vertx vertx, List<DockerCredentials> dockerCredentials,
+    private Single<ProcessOutput> buildAndPushOpenFaasImages(Vertx vertx, DockerCredentials dockerCredentials,
             FunctionsToDeploy functionsToDeploy, DeploymentPath deploymentPath) {
         OpenFaasImageService openFaasImageService = new OpenFaasImageService(vertx, dockerCredentials,
             functionsToDeploy.getDockerFunctionIdentifiers(), deploymentPath.getFunctionsFolder());

@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * This service can be used to build docker images for OpenFaaS and push them to a docker registry.
@@ -24,7 +25,7 @@ public class OpenFaasImageService {
 
     private final Vertx vertx;
 
-    private final List<DockerCredentials> dockerCredentials;
+    private final DockerCredentials dockerCredentials;
 
     private final List<String> functionIdentifiers;
 
@@ -99,18 +100,35 @@ public class OpenFaasImageService {
         List<String> dockerCommands = new java.util.ArrayList<>(List.of("docker", "run", "-v",
             "/var/run/docker.sock:/var/run/docker.sock", "--privileged", "--rm", "-v",
             Path.of(dindDir, rootFolder.toString()).toAbsolutePath().toString().replace("\\", "/") +
-                "/build:/build", "docker:latest", "/bin/sh", "-c"));
-        //TODO: fix for multiple docker credentials
-        StringBuilder dockerInteractiveCommands = new StringBuilder("cd ./build && docker login -u " +
-            dockerCredentials.get(0).getUsername() + " -p " + dockerCredentials.get(0).getAccessToken() +
-            " && docker buildx create --name multiarch --driver docker-container --bootstrap --use");
-        for (String functionIdentifier : functionIdentifiers) {
-            dockerInteractiveCommands.append(String.format(" && docker buildx build -t %s/%s ./%s --platform " +
-                    "linux/arm/v7,linux/amd64 --push", dockerCredentials.get(0).getUsername(), functionIdentifier,
-                functionIdentifier));
-        }
+                "/build:/build","docker:24.0-cli", "/bin/sh", "-c"));
+        StringBuilder dockerInteractiveCommands = getBuildxCreateCommands(config).append(getBuildxBuildCommands());
         dockerCommands.add(dockerInteractiveCommands.toString());
         ProcessExecutor processExecutor = new ProcessExecutor(rootFolder, dockerCommands);
         return processExecutor.executeCli();
+    }
+
+    private StringBuilder getBuildxCreateCommands(ConfigDTO config) {
+        String buildxConfig = config.getDockerInsecureRegistries()
+                .stream()
+                .map(registry -> "[registry.\\\"" + registry + "\\\"]\n  insecure = true")
+                .collect(Collectors.joining("\n"));
+        return new StringBuilder("cd ./build && docker login " +
+            dockerCredentials.getRegistry() + " -u " + dockerCredentials.getUsername() + " -p " +
+            dockerCredentials.getAccessToken() +
+            " && docker buildx create --name multiarch --driver docker-container --bootstrap --use --config " +
+                "<(echo '" + buildxConfig + "') --driver-opt network=host");
+    }
+
+    private StringBuilder getBuildxBuildCommands() {
+        StringBuilder dockerInteractiveCommands = new StringBuilder();
+        for (String functionIdentifier : functionIdentifiers) {
+            dockerInteractiveCommands.append(String.format(" && docker buildx build " +
+                            "-t %s/%s/%s ./%s --platform " +
+                            "linux/arm/v7,linux/amd64 --push  --provenance=false", dockerCredentials.getRegistry(),
+                    dockerCredentials.getUsername(),
+                    functionIdentifier, functionIdentifier)
+            );
+        }
+        return dockerInteractiveCommands;
     }
 }

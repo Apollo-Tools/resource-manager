@@ -18,6 +18,8 @@
 
   "ensemble_validation_period": 60,
 
+  "docker_insecure_registries": ["localhost:5000"],
+
   "kube_config_secrets_name": "rm-kubeconfigs",
   "kube_config_secrets_namespace": "default",
   "kube_api_timeout_seconds": 30,

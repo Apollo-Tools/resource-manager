@@ -355,11 +355,11 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
         }
     }
 
-    private void checkDockerCredentials(List<DockerCredentials> dockerCredentials, long platformId,
-        PlatformEnum platform, Set<Long> platformIds) {
+    private void checkDockerCredentials(DockerCredentials dockerCredentials, long platformId, PlatformEnum platform,
+            Set<Long> platformIds) {
         if (!platformIds.contains(platformId) && (platform.equals(PlatformEnum.EC2)) ||
             platform.equals(PlatformEnum.OPENFAAS)) {
-            if (dockerCredentials == null || dockerCredentials.isEmpty()) {
+            if (dockerCredentials == null) {
                 throw new UnauthorizedException("missing docker credentials for " + platform);
             }
             platformIds.add(platformId);

@@ -36,7 +36,6 @@ public class DeploymentInputHandler {
         checkForListDuplicates(requestDTO.getFunctionResources())
             .andThen(checkForListDuplicates(requestDTO.getServiceResources()))
             .andThen(checkForListDuplicates(requestDTO.getLockResources()))
-            .andThen(checkForListDuplicates(requestDTO.getCredentials().getDockerCredentials()))
             .andThen(Observable.fromIterable(requestDTO.getLockResources())
                 .flatMapCompletable(resourceId -> checkLockResourceIsInDeployment(resourceId.getResourceId(),
                     requestDTO.getFunctionResources(), requestDTO.getServiceResources()))
