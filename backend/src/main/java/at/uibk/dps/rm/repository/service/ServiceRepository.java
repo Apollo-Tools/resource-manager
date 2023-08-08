@@ -48,6 +48,7 @@ public class ServiceRepository extends Repository<Service> {
     public CompletionStage<Service> findByIdAndFetch(Session session, long id) {
         return session.createQuery("from Service s " +
                 "left join fetch s.serviceType " +
+                "left join fetch s.k8sServiceType " +
                 "where s.serviceId=:serviceId", entityClass)
             .setParameter("serviceId", id)
             .getSingleResultOrNull();
@@ -78,7 +79,9 @@ public class ServiceRepository extends Repository<Service> {
      * @return a CompletionStage that emits a list of all services
      */
     public CompletionStage<List<Service>> findAllAndFetch(Session session) {
-        return session.createQuery("from Service s left join fetch s.serviceType", entityClass)
+        return session.createQuery("from Service s " +
+                        "left join fetch s.serviceType " +
+                        "left join fetch s.k8sServiceType", entityClass)
             .getResultList();
     }
 }
