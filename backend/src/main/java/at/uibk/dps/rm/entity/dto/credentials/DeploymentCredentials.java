@@ -2,8 +2,6 @@ package at.uibk.dps.rm.entity.dto.credentials;
 
 import lombok.Data;
 
-import java.util.List;
-
 /**
  * Represents credentials from the deploy resources request.
  *

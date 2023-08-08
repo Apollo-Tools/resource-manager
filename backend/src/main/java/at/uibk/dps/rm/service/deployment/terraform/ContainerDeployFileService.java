@@ -112,7 +112,7 @@ public class ContainerDeployFileService extends TerraformFileService {
             "}\n", identifier, configPath, serviceDeployment.getContext(),
             serviceDeployment.getNamespace(), service.getName(), service.getImage(), deploymentId,
             service.getReplicas(), service.getCpu(), service.getMemory(), ports,
-            service.getServiceType().getName(), externalIp, hostname, imagePullSecrets));
+            service.getK8sServiceType().getName(), externalIp, hostname, imagePullSecrets));
         return containerString.toString();
     }
 

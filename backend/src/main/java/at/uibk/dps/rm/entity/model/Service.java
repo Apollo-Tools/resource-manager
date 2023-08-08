@@ -28,6 +28,10 @@ public class Service {
 
     private String name;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "type_id")
+    private ServiceType serviceType;
+
     private String image;
 
     private Integer replicas;
@@ -44,7 +48,7 @@ public class Service {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_type_id")
-    private ServiceType serviceType;
+    private K8sServiceType k8sServiceType;
 
     @Column(insertable = false, updatable = false)
     private  @Setter(AccessLevel.NONE) Timestamp createdAt;

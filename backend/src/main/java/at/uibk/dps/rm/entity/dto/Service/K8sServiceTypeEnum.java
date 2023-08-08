@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.entity.dto.Service;
 
-import at.uibk.dps.rm.entity.model.ServiceType;
+import at.uibk.dps.rm.entity.model.K8sServiceType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -13,7 +13,7 @@ import java.util.Arrays;
  */
 @AllArgsConstructor
 @Getter
-public enum ServiceTypeEnum {
+public enum K8sServiceTypeEnum {
     /**
      * Cluster IP
      */
@@ -42,8 +42,8 @@ public enum ServiceTypeEnum {
      * @param serviceType the serviceType
      * @return the created object
      */
-    public static ServiceTypeEnum fromServiceType(ServiceType serviceType) {
-        return Arrays.stream(ServiceTypeEnum.values())
+    public static K8sServiceTypeEnum fromServiceType(K8sServiceType serviceType) {
+        return Arrays.stream(K8sServiceTypeEnum.values())
             .filter(value -> value.value.equals(serviceType.getName()))
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("unknown value: " + serviceType.getName()));

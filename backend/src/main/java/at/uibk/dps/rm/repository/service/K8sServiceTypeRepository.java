@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.repository.service;
 
-import at.uibk.dps.rm.entity.model.ServiceType;
+import at.uibk.dps.rm.entity.model.K8sServiceType;
 import at.uibk.dps.rm.repository.Repository;
 
 /**
@@ -8,11 +8,11 @@ import at.uibk.dps.rm.repository.Repository;
  *
  * @author matthi-g
  */
-public class ServiceTypeRepository extends Repository<ServiceType> {
+public class K8sServiceTypeRepository extends Repository<K8sServiceType> {
     /**
      * Create an instance.
      */
-    public ServiceTypeRepository() {
-        super(ServiceType.class);
+    public K8sServiceTypeRepository() {
+        super(K8sServiceType.class);
     }
 }

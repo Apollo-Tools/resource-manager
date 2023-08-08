@@ -2,7 +2,7 @@ package at.uibk.dps.rm.service.database.service;
 
 import at.uibk.dps.rm.entity.model.Service;
 import at.uibk.dps.rm.repository.service.ServiceRepository;
-import at.uibk.dps.rm.repository.service.ServiceTypeRepository;
+import at.uibk.dps.rm.repository.service.K8sServiceTypeRepository;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestServiceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
@@ -39,7 +39,7 @@ public class ServiceServiceImplTest {
     private ServiceRepository serviceRepository;
 
     @Mock
-    private ServiceTypeRepository serviceTypeRepository;
+    private K8sServiceTypeRepository serviceTypeRepository;
 
     @Mock
     private Stage.SessionFactory sessionFactory;

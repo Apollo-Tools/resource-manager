@@ -25,6 +25,10 @@ public class Function {
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "type_id")
+    private FunctionType functionType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "runtime_id")
     private Runtime runtime;
 

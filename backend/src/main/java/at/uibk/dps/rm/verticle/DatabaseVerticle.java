@@ -23,7 +23,7 @@ import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
 import at.uibk.dps.rm.repository.service.ServiceRepository;
-import at.uibk.dps.rm.repository.service.ServiceTypeRepository;
+import at.uibk.dps.rm.repository.service.K8sServiceTypeRepository;
 import at.uibk.dps.rm.service.database.account.*;
 import at.uibk.dps.rm.service.database.ensemble.*;
 import at.uibk.dps.rm.service.database.function.*;
@@ -37,8 +37,8 @@ import at.uibk.dps.rm.service.database.resourceprovider.*;
 import at.uibk.dps.rm.service.database.metric.*;
 import at.uibk.dps.rm.service.database.service.ServiceService;
 import at.uibk.dps.rm.service.database.service.ServiceServiceImpl;
-import at.uibk.dps.rm.service.database.service.ServiceTypeService;
-import at.uibk.dps.rm.service.database.service.ServiceTypeServiceImpl;
+import at.uibk.dps.rm.service.database.service.K8sServiceTypeService;
+import at.uibk.dps.rm.service.database.service.K8sServiceTypeServiceImpl;
 import at.uibk.dps.rm.service.util.FilePathService;
 import at.uibk.dps.rm.service.util.FilePathServiceImpl;
 import at.uibk.dps.rm.service.ServiceProxyBinder;
@@ -150,11 +150,11 @@ public class DatabaseVerticle extends AbstractVerticle {
             serviceProxyBinder.bind(RuntimeService.class,
                 new RuntimeServiceImpl(new RuntimeRepository(), sessionFactory));
             serviceProxyBinder.bind(ServiceService.class,
-                new ServiceServiceImpl(new ServiceRepository(), new ServiceTypeRepository(), sessionFactory));
+                new ServiceServiceImpl(new ServiceRepository(), new K8sServiceTypeRepository(), sessionFactory));
             serviceProxyBinder.bind(ServiceDeploymentService.class,
                 new ServiceDeploymentServiceImpl(new ServiceDeploymentRepository(), sessionFactory));
-            serviceProxyBinder.bind(ServiceTypeService.class,
-                new ServiceTypeServiceImpl(new ServiceTypeRepository(), sessionFactory));
+            serviceProxyBinder.bind(K8sServiceTypeService.class,
+                new K8sServiceTypeServiceImpl(new K8sServiceTypeRepository(), sessionFactory));
             serviceProxyBinder.bind(VPCService.class, new VPCServiceImpl(new VPCRepository(), new RegionRepository(),
                 sessionFactory));
             serviceProxyBinder.bind(FilePathService.class, new FilePathServiceImpl(vertx.getDelegate()));

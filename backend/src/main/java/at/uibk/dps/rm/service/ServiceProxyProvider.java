@@ -23,7 +23,7 @@ import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceTypeService;
 import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.VPCService;
 import at.uibk.dps.rm.service.rxjava3.database.service.ServiceService;
-import at.uibk.dps.rm.service.rxjava3.database.service.ServiceTypeService;
+import at.uibk.dps.rm.service.rxjava3.database.service.K8sServiceTypeService;
 import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentExecutionService;
 import at.uibk.dps.rm.service.rxjava3.util.FilePathService;
 import at.uibk.dps.rm.verticle.DatabaseVerticle;
@@ -63,7 +63,7 @@ public class ServiceProxyProvider {
     private final RuntimeService runtimeService;
     private final ServiceDeploymentService serviceDeploymentService;
     private final ServiceService serviceService;
-    private final ServiceTypeService serviceTypeService;
+    private final K8sServiceTypeService k8sServiceTypeService;
     private final VPCService vpcService;
     private final DeploymentExecutionService deploymentExecutionService;
     private final FilePathService filePathService;
@@ -98,7 +98,7 @@ public class ServiceProxyProvider {
         runtimeService = RuntimeService.createProxy(vertx);
         serviceDeploymentService = ServiceDeploymentService.createProxy(vertx);
         serviceService = ServiceService.createProxy(vertx);
-        serviceTypeService = ServiceTypeService.createProxy(vertx);
+        k8sServiceTypeService = K8sServiceTypeService.createProxy(vertx);
         vpcService = VPCService.createProxy(vertx);
         deploymentExecutionService = DeploymentExecutionService.createProxy(vertx);
         filePathService = FilePathService.createProxy(vertx);

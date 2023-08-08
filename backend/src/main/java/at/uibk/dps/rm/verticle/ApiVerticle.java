@@ -17,7 +17,7 @@ import at.uibk.dps.rm.router.deployment.ResourceDeploymentRoute;
 import at.uibk.dps.rm.router.resource.*;
 import at.uibk.dps.rm.router.resourceprovider.*;
 import at.uibk.dps.rm.router.service.ServiceRoute;
-import at.uibk.dps.rm.router.service.ServiceTypeRoute;
+import at.uibk.dps.rm.router.service.K8sServiceTypeRoute;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import at.uibk.dps.rm.util.configuration.JWTAuthProvider;
@@ -117,7 +117,7 @@ public class ApiVerticle extends AbstractVerticle {
         new ResourceDeploymentRoute().init(routerBuilder, serviceProxyProvider);
         new PlatformMetricRoute().init(routerBuilder, serviceProxyProvider);
         new ServiceRoute().init(routerBuilder, serviceProxyProvider);
-        new ServiceTypeRoute().init(routerBuilder, serviceProxyProvider);
+        new K8sServiceTypeRoute().init(routerBuilder, serviceProxyProvider);
         new SubresourceRoute().init(routerBuilder, serviceProxyProvider);
         new VPCRoute().init(routerBuilder, serviceProxyProvider);
     }

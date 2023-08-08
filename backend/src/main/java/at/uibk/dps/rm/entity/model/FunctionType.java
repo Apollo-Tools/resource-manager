@@ -7,13 +7,13 @@ import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 
 /**
- * Represents the artifact type entity with type service.
+ * Represents the artifact type entity with type function.
  *
  * @author matthi-g
  */
 @Entity
-@DiscriminatorValue("service")
+@DiscriminatorValue("function")
 @Getter
 @Setter
-public class ServiceType extends ArtifactType {
+public class FunctionType extends ArtifactType {
 }

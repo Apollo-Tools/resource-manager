@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.handler.service;
 
 import at.uibk.dps.rm.handler.EntityChecker;
-import at.uibk.dps.rm.service.rxjava3.database.service.ServiceTypeService;
+import at.uibk.dps.rm.service.rxjava3.database.service.K8sServiceTypeService;
 
 /**
  * Implements methods to perform CRUD operations on the service_type entity.
@@ -10,13 +10,13 @@ import at.uibk.dps.rm.service.rxjava3.database.service.ServiceTypeService;
  *
  * @author matthi-g
  */
-public class ServiceTypeChecker extends EntityChecker {
+public class K8sServiceTypeChecker extends EntityChecker {
     /**
      * Create an instance from the service.
      *
      * @param service the service type service
      */
-    public ServiceTypeChecker(ServiceTypeService service) {
+    public K8sServiceTypeChecker(K8sServiceTypeService service) {
         super(service);
     }
 }

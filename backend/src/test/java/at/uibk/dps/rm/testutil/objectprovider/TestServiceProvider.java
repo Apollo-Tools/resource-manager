@@ -28,14 +28,14 @@ public class TestServiceProvider {
         return List.of(ids1, ids2);
     }
 
-    public static ServiceType createServiceType(long id, String name) {
-        ServiceType serviceType = new ServiceType();
+    public static K8sServiceType createServiceType(long id, String name) {
+        K8sServiceType serviceType = new K8sServiceType();
         serviceType.setServiceTypeId(id);
         serviceType.setName(name);
         return serviceType;
     }
 
-    public static ServiceType createServiceType(long id) {
+    public static K8sServiceType createServiceType(long id) {
         return createServiceType(id, "NodePort");
     }
 
@@ -44,7 +44,7 @@ public class TestServiceProvider {
         service.setServiceId(id);
         service.setName(name);
         service.setImage(name + ":latest");
-        service.setServiceType(createServiceType(1L));
+        service.setK8sServiceType(createServiceType(1L));
         service.setCpu(new BigDecimal("0.1"));
         service.setMemory(1024);
         service.setPorts(List.of("80:8000"));

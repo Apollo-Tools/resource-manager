@@ -7,13 +7,13 @@ import at.uibk.dps.rm.handler.ValidationHandler;
  *
  * @author matthi-g
  */
-public class ServiceTypeHandler extends ValidationHandler {
+public class K8sServiceTypeHandler extends ValidationHandler {
     /**
      * Create an instance from the serviceTypeChecker.
      *
      * @param serviceTypeChecker the service type checker
      */
-    public ServiceTypeHandler(ServiceTypeChecker serviceTypeChecker) {
+    public K8sServiceTypeHandler(K8sServiceTypeChecker serviceTypeChecker) {
         super(serviceTypeChecker);
     }
 }
