@@ -11,8 +11,8 @@ const LogsDisplay = ({logs}) => {
 
   return <Collapse accordion style={{whiteSpace: 'pre-wrap'}} size="small">
     {logs.map((log) =>
-      (<Panel header={<DateFormatter dateTimestamp={log.created_at} includeTime/>} key={log.log_id} className="p-0">
-        <div className="max-h-56 overflow-auto m-[-16px] p-2">
+      (<Panel header={<DateFormatter dateTimestamp={log.created_at} includeTime/>} key={log.log_id}>
+        <div className="max-h-56 overflow-auto m-[-12px] px-2">
           {log.log_value}
         </div>
       </Panel>))
