@@ -1,6 +1,8 @@
 package at.uibk.dps.rm.service;
 
 import at.uibk.dps.rm.service.rxjava3.database.account.NamespaceService;
+import at.uibk.dps.rm.service.rxjava3.database.artifact.FunctionTypeService;
+import at.uibk.dps.rm.service.rxjava3.database.artifact.ServiceTypeService;
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.EnsembleService;
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.ResourceEnsembleService;
 import at.uibk.dps.rm.service.rxjava3.database.log.DeploymentLogService;
@@ -45,7 +47,9 @@ public class ServiceProxyProvider {
     private final EnsembleService ensembleService;
     private final EnvironmentService environmentService;
     private final FunctionService functionService;
+    private final FunctionTypeService functionTypeService;
     private final LogService logService;
+    private final K8sServiceTypeService k8sServiceTypeService;
     private final MetricService metricService;
     private final MetricTypeService metricTypeService;
     private final MetricValueService metricValueService;
@@ -63,7 +67,7 @@ public class ServiceProxyProvider {
     private final RuntimeService runtimeService;
     private final ServiceDeploymentService serviceDeploymentService;
     private final ServiceService serviceService;
-    private final K8sServiceTypeService k8sServiceTypeService;
+    private final ServiceTypeService serviceTypeService;
     private final VPCService vpcService;
     private final DeploymentExecutionService deploymentExecutionService;
     private final FilePathService filePathService;
@@ -80,6 +84,8 @@ public class ServiceProxyProvider {
         ensembleService = EnsembleService.createProxy(vertx);
         environmentService = EnvironmentService.createProxy(vertx);
         functionService = FunctionService.createProxy(vertx);
+        functionTypeService = FunctionTypeService.createProxy(vertx);
+        k8sServiceTypeService = K8sServiceTypeService.createProxy(vertx);
         logService = LogService.createProxy(vertx);
         metricService = MetricService.createProxy(vertx);
         metricTypeService = MetricTypeService.createProxy(vertx);
@@ -98,7 +104,7 @@ public class ServiceProxyProvider {
         runtimeService = RuntimeService.createProxy(vertx);
         serviceDeploymentService = ServiceDeploymentService.createProxy(vertx);
         serviceService = ServiceService.createProxy(vertx);
-        k8sServiceTypeService = K8sServiceTypeService.createProxy(vertx);
+        serviceTypeService = ServiceTypeService.createProxy(vertx);
         vpcService = VPCService.createProxy(vertx);
         deploymentExecutionService = DeploymentExecutionService.createProxy(vertx);
         filePathService = FilePathService.createProxy(vertx);

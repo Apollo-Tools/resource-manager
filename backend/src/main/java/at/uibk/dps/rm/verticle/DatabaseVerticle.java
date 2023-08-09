@@ -3,6 +3,8 @@ package at.uibk.dps.rm.verticle;
 import at.uibk.dps.rm.repository.DeploymentRepositoryProvider;
 import at.uibk.dps.rm.repository.EnsembleRepositoryProvider;
 import at.uibk.dps.rm.repository.account.*;
+import at.uibk.dps.rm.repository.artifact.FunctionTypeRepository;
+import at.uibk.dps.rm.repository.artifact.ServiceTypeRepository;
 import at.uibk.dps.rm.repository.ensemble.EnsembleRepository;
 import at.uibk.dps.rm.repository.ensemble.EnsembleSLORepository;
 import at.uibk.dps.rm.repository.ensemble.ResourceEnsembleRepository;
@@ -25,6 +27,10 @@ import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
 import at.uibk.dps.rm.repository.service.ServiceRepository;
 import at.uibk.dps.rm.repository.service.K8sServiceTypeRepository;
 import at.uibk.dps.rm.service.database.account.*;
+import at.uibk.dps.rm.service.database.artifact.FunctionTypeService;
+import at.uibk.dps.rm.service.database.artifact.FunctionTypeServiceImpl;
+import at.uibk.dps.rm.service.database.artifact.ServiceTypeService;
+import at.uibk.dps.rm.service.database.artifact.ServiceTypeServiceImpl;
 import at.uibk.dps.rm.service.database.ensemble.*;
 import at.uibk.dps.rm.service.database.function.*;
 import at.uibk.dps.rm.service.database.log.DeploymentLogService;
@@ -117,6 +123,8 @@ public class DatabaseVerticle extends AbstractVerticle {
                 new EnvironmentServiceImpl(new EnvironmentRepository(), sessionFactory));
             serviceProxyBinder.bind(FunctionService.class,
                 new FunctionServiceImpl(new FunctionRepository(), new RuntimeRepository(), sessionFactory));
+            serviceProxyBinder.bind(FunctionTypeService.class,
+                new FunctionTypeServiceImpl(new FunctionTypeRepository(), sessionFactory));
             serviceProxyBinder.bind(LogService.class, new LogServiceImpl(new LogRepository(), sessionFactory));
             serviceProxyBinder.bind(MetricService.class, new MetricServiceImpl(new MetricRepository(), sessionFactory));
             serviceProxyBinder.bind(MetricTypeService.class,
@@ -133,6 +141,8 @@ public class DatabaseVerticle extends AbstractVerticle {
                 new DeploymentServiceImpl(new DeploymentRepositoryProvider(), sessionFactory));
             serviceProxyBinder.bind(DeploymentLogService.class,
                 new DeploymentLogServiceImpl(new DeploymentLogRepository(), sessionFactory));
+            serviceProxyBinder.bind(K8sServiceTypeService.class,
+                    new K8sServiceTypeServiceImpl(new K8sServiceTypeRepository(), sessionFactory));
             serviceProxyBinder.bind(ResourceEnsembleService.class,
                 new ResourceEnsembleServiceImpl(new ResourceEnsembleRepository(), new EnsembleSLORepository(),
                     new EnsembleRepository(), new ResourceRepository(), sessionFactory));
@@ -153,8 +163,8 @@ public class DatabaseVerticle extends AbstractVerticle {
                 new ServiceServiceImpl(new ServiceRepository(), new K8sServiceTypeRepository(), sessionFactory));
             serviceProxyBinder.bind(ServiceDeploymentService.class,
                 new ServiceDeploymentServiceImpl(new ServiceDeploymentRepository(), sessionFactory));
-            serviceProxyBinder.bind(K8sServiceTypeService.class,
-                new K8sServiceTypeServiceImpl(new K8sServiceTypeRepository(), sessionFactory));
+            serviceProxyBinder.bind(ServiceTypeService.class,
+                new ServiceTypeServiceImpl(new ServiceTypeRepository(), sessionFactory));
             serviceProxyBinder.bind(VPCService.class, new VPCServiceImpl(new VPCRepository(), new RegionRepository(),
                 sessionFactory));
             serviceProxyBinder.bind(FilePathService.class, new FilePathServiceImpl(vertx.getDelegate()));

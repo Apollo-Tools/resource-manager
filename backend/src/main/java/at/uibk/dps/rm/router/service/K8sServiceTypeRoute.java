@@ -20,7 +20,7 @@ public class K8sServiceTypeRoute implements Route {
         ResultHandler resultHandler = new ResultHandler(serviceTypeHandler);
 
         router
-            .operation("listServiceTypes")
+            .operation("listK8sServiceTypes")
             .handler(resultHandler::handleFindAllRequest);
     }
 }
