@@ -4,15 +4,15 @@ import at.uibk.dps.rm.entity.dto.Service.K8sServiceTypeEnum;
 import at.uibk.dps.rm.entity.dto.Service.UpdateServiceDTO;
 import at.uibk.dps.rm.entity.model.Service;
 import at.uibk.dps.rm.entity.model.K8sServiceType;
+import at.uibk.dps.rm.entity.model.ServiceType;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.repository.service.ServiceRepository;
-import at.uibk.dps.rm.repository.service.K8sServiceTypeRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import at.uibk.dps.rm.util.validation.ServiceResultValidator;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import org.hibernate.reactive.stage.Stage;
+import org.hibernate.reactive.stage.Stage.SessionFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,18 +28,14 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
 
     private final ServiceRepository repository;
 
-    private final K8sServiceTypeRepository serviceTypeRepository;
-
     /**
      * Create an instance from the repository.
      *
      * @param repository  the repository
      */
-    public ServiceServiceImpl(ServiceRepository repository, K8sServiceTypeRepository serviceTypeRepository,
-            Stage.SessionFactory sessionFactory) {
+    public ServiceServiceImpl(ServiceRepository repository, SessionFactory sessionFactory) {
         super(repository, Service.class, sessionFactory);
         this.repository = repository;
-        this.serviceTypeRepository = serviceTypeRepository;
     }
 
     @Override
@@ -65,18 +61,22 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
     public Future<JsonObject> save(JsonObject data) {
         Service service = data.mapTo(Service.class);
         CompletionStage<Service> create = withTransaction(session ->
-            serviceTypeRepository.findById(session, service.getK8sServiceType().getServiceTypeId())
-                .thenCompose(serviceType -> {
-                    ServiceResultValidator.checkFound(serviceType, K8sServiceType.class);
-                    service.setK8sServiceType(serviceType);
-                    checkServiceTypePorts(serviceType, service.getPorts().size());
+            session.find(K8sServiceType.class, service.getK8sServiceType().getServiceTypeId())
+                .thenCompose(k8sServiceType -> {
+                    ServiceResultValidator.checkFound(k8sServiceType, K8sServiceType.class);
+                    service.setK8sServiceType(k8sServiceType);
+                    checkServiceTypePorts(k8sServiceType, service.getPorts().size());
                     return repository.findOneByName(session, service.getName());
                 })
-                .thenApply(existingService -> {
+                .thenCompose(existingService -> {
                     ServiceResultValidator.checkExists(existingService, Service.class);
-                    session.persist(service);
-                    return service;
+                    return session.find(ServiceType.class, service.getServiceType().getArtifactTypeId());
                 })
+                .thenCompose(serviceType -> {
+                    ServiceResultValidator.checkFound(serviceType, ServiceType.class);
+                    return session.persist(service);
+                })
+                .thenApply(res -> service)
         );
         return sessionToFuture(create).map(JsonObject::mapFrom);
     }
@@ -92,7 +92,7 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
                     service.getK8sServiceType().getServiceTypeId());
                 int portAmount = fields.containsKey("ports") ?
                     fields.getJsonArray("ports").size() : service.getPorts().size();
-                return serviceTypeRepository.findById(session, serviceTypeId)
+                return session.find(K8sServiceType.class, serviceTypeId)
                     .thenApply(serviceType -> {
                         ServiceResultValidator.checkFound(serviceType, K8sServiceType.class);
                         checkServiceTypePorts(serviceType, portAmount);

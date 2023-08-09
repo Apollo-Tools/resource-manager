@@ -3,7 +3,6 @@ package at.uibk.dps.rm.service.database.function;
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.repository.function.FunctionRepository;
-import at.uibk.dps.rm.repository.function.RuntimeRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -25,7 +24,7 @@ public interface FunctionService extends DatabaseServiceInterface {
     @Generated
     @GenIgnore
     static FunctionService create(Stage.SessionFactory sessionFactory) {
-        return new FunctionServiceImpl(new FunctionRepository(), new RuntimeRepository(), sessionFactory);
+        return new FunctionServiceImpl(new FunctionRepository(), sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

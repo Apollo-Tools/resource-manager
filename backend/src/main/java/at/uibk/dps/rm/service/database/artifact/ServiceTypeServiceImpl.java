@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.service.database.artifact;
 
 import at.uibk.dps.rm.entity.model.ServiceType;
-import at.uibk.dps.rm.repository.artifact.FunctionTypeRepository;
 import at.uibk.dps.rm.repository.artifact.ServiceTypeRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import at.uibk.dps.rm.util.validation.ServiceResultValidator;

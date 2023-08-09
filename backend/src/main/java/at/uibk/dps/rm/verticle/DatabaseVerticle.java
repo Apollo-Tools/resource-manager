@@ -122,7 +122,7 @@ public class DatabaseVerticle extends AbstractVerticle {
             serviceProxyBinder.bind(EnvironmentService.class,
                 new EnvironmentServiceImpl(new EnvironmentRepository(), sessionFactory));
             serviceProxyBinder.bind(FunctionService.class,
-                new FunctionServiceImpl(new FunctionRepository(), new RuntimeRepository(), sessionFactory));
+                new FunctionServiceImpl(new FunctionRepository(), sessionFactory));
             serviceProxyBinder.bind(FunctionTypeService.class,
                 new FunctionTypeServiceImpl(new FunctionTypeRepository(), sessionFactory));
             serviceProxyBinder.bind(LogService.class, new LogServiceImpl(new LogRepository(), sessionFactory));
@@ -160,7 +160,7 @@ public class DatabaseVerticle extends AbstractVerticle {
             serviceProxyBinder.bind(RuntimeService.class,
                 new RuntimeServiceImpl(new RuntimeRepository(), sessionFactory));
             serviceProxyBinder.bind(ServiceService.class,
-                new ServiceServiceImpl(new ServiceRepository(), new K8sServiceTypeRepository(), sessionFactory));
+                new ServiceServiceImpl(new ServiceRepository(), sessionFactory));
             serviceProxyBinder.bind(ServiceDeploymentService.class,
                 new ServiceDeploymentServiceImpl(new ServiceDeploymentRepository(), sessionFactory));
             serviceProxyBinder.bind(ServiceTypeService.class,
