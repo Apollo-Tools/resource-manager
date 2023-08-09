@@ -24,6 +24,10 @@ public class Function {
 
     private String name;
 
+    private Short timeoutSeconds;
+
+    private Short memoryMegabytes;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "type_id")
     private FunctionType functionType;

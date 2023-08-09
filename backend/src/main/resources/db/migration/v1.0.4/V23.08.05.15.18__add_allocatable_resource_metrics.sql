@@ -22,4 +22,4 @@ VALUES ((SELECT platform_id FROM platform WHERE platform = 'k8s'),
         (SELECT metric_id FROM metric WHERE metric = 'cpu-available'), false, true, true);
 INSERT INTO platform_metric (platform_id, metric_id, required, is_main_resource_metric, is_sub_resource_metric)
 VALUES ((SELECT platform_id FROM platform WHERE platform = 'k8s'),
-        (SELECT metric_id FROM metric WHERE metric = 'memory-available'), false, true, true);
+        (SELECT metric_id FROM metric WHERE metric = 'memory-size-available'), false, true, true);

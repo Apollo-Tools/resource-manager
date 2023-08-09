@@ -38,6 +38,9 @@ public class FunctionHandler extends ValidationHandler {
             requestBody = new JsonObject();
             requestBody.put("name", attributes.get("name"));
             requestBody.put("runtime", new JsonObject(attributes.get("runtime")));
+            requestBody.put("function_type", new JsonObject(attributes.get("function_type")));
+            requestBody.put("timeout_seconds", Short.valueOf(attributes.get("timeout_seconds")));
+            requestBody.put("memory_megabytes", Short.valueOf(attributes.get("memory_megabytes")));
             FileUpload file = rc.fileUploads().get(0);
             String[] filePath = file.uploadedFileName()
                 .replace("\\", "/")

@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.entity.dto.Service;
+package at.uibk.dps.rm.entity.dto.service;
 
 import at.uibk.dps.rm.entity.model.K8sServiceType;
 import lombok.AllArgsConstructor;

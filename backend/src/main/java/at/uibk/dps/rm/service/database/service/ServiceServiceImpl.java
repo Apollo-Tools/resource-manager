@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.service.database.service;
 
-import at.uibk.dps.rm.entity.dto.Service.K8sServiceTypeEnum;
-import at.uibk.dps.rm.entity.dto.Service.UpdateServiceDTO;
+import at.uibk.dps.rm.entity.dto.service.K8sServiceTypeEnum;
+import at.uibk.dps.rm.entity.dto.service.UpdateServiceDTO;
 import at.uibk.dps.rm.entity.model.Service;
 import at.uibk.dps.rm.entity.model.K8sServiceType;
 import at.uibk.dps.rm.entity.model.ServiceType;

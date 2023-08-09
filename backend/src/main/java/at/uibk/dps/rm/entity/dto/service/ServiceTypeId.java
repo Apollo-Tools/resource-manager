@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.entity.dto.Service;
+package at.uibk.dps.rm.entity.dto.service;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

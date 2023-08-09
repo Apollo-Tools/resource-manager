@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.database.function;
 
+import at.uibk.dps.rm.entity.dto.function.UpdateFunctionDTO;
 import at.uibk.dps.rm.entity.dto.resource.RuntimeEnum;
 import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.entity.model.FunctionType;
@@ -96,10 +97,11 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
 
     @Override
     public Future<Void> update(long id, JsonObject fields) {
-        CompletionStage<Function> update = withTransaction(session -> repository.findByIdAndFetch(session, id)
+        UpdateFunctionDTO updateFunction = fields.mapTo(UpdateFunctionDTO.class);
+        CompletionStage<Void> update = withTransaction(session -> repository.findByIdAndFetch(session, id)
             .thenCompose(function -> {
                 ServiceResultValidator.checkFound(function, Function.class);
-                boolean updateIsFile = fields.getBoolean("is_file");
+                boolean updateIsFile = updateFunction.getIsFile();
                 String message = "";
                 if (function.getIsFile() != updateIsFile && updateIsFile) {
                     message = "Function can't be updated with zip packaged code";
@@ -110,17 +112,21 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
                     throw new BadInputException(message);
                 }
                 if (function.getIsFile()) {
-                    return UploadFileHelper.updateFile(vertx, function.getCode(), fields.getString("code"))
+                    return UploadFileHelper.updateFile(vertx, function.getCode(), updateFunction.getCode())
                         .toCompletionStage(function);
+                } else {
+                    function.setCode(updateNonNullValue(function.getCode(), updateFunction.getCode()));
+                    return CompletionStages.completedFuture(function);
                 }
-                return CompletionStages.completedFuture(function);
             })
-            .thenApply(function -> {
-                function.setCode(fields.getString("code"));
-                return function;
+            .thenAccept(function -> {
+                function.setTimeoutSeconds(updateNonNullValue(function.getTimeoutSeconds(),
+                        updateFunction.getTimeoutSeconds()));
+                function.setMemoryMegabytes(updateNonNullValue(function.getMemoryMegabytes(),
+                        updateFunction.getMemoryMegabytes()));
             })
         );
-        return sessionToFuture(update).mapEmpty();
+        return sessionToFuture(update);
     }
 
     @Override

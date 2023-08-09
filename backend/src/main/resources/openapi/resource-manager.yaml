@@ -1364,8 +1364,7 @@ paths:
           application/json:
             schema:
               type: object
-              required:
-                - code
+              minProperties: 1
               additionalProperties: false
               properties:
                 code:
@@ -1377,6 +1376,17 @@ paths:
                           "input1": input1
                       }
                       return res
+                timeout_seconds:
+                  type: integer
+                  minimum: 5
+                  maximum: 900
+                  example: 60
+                memory_megabytes:
+                  type: integer
+                  minimum: 128
+                  maximum: 10240
+                  example: 128
+
       responses:
         204:
           description: Successful update of a function
@@ -1456,6 +1466,8 @@ paths:
                 - function_type
                 - runtime
                 - code
+                - timeout_seconds
+                - memory_megabytes
               additionalProperties: false
               properties:
                 name:
@@ -1495,6 +1507,16 @@ paths:
                           "input1": input1
                       }
                       return res
+                timeout_seconds:
+                  type: integer
+                  minimum: 5
+                  maximum: 900
+                  example: 60
+                memory_megabytes:
+                  type: integer
+                  minimum: 128
+                  maximum: 10240
+                  example: 128
       responses:
         201:
           description: Successful creation of a new function
@@ -1533,9 +1555,9 @@ paths:
           multipart/form-data:
             schema:
               type: object
+              additionalProperties: false
               required:
                 - code
-              additionalProperties: false
               properties:
                 code:
                   type: string
@@ -1544,16 +1566,8 @@ paths:
               code:
                 contentType: 'application/*zip*'
       responses:
-        201:
+        204:
           description: Successful update of the function
-          headers:
-            content-length:
-              schema:
-                type: integer
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Function"
         400:
           $ref: "#/components/responses/400"
         401:
@@ -1582,6 +1596,8 @@ paths:
                 - function_type
                 - runtime
                 - code
+                - timeout_seconds
+                - memory_megabytes
               additionalProperties: false
               properties:
                 name:
@@ -1613,6 +1629,16 @@ paths:
                 code:
                   type: string
                   format: binary
+                timeout_seconds:
+                  type: integer
+                  minimum: 5
+                  maximum: 900
+                  example: 60
+                memory_megabytes:
+                  type: integer
+                  minimum: 128
+                  maximum: 10240
+                  example: 128
             encoding:
               code:
                 contentType: 'application/*zip*'
