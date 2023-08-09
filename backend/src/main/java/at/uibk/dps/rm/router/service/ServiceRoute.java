@@ -27,6 +27,7 @@ public class ServiceRoute implements Route {
 
         router
             .operation("updateService")
+            .handler(ServiceInputHandler::validateUpdateServiceRequest)
             .handler(resultHandler::handleUpdateRequest);
 
         router
