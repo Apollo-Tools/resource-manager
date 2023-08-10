@@ -1,14 +1,14 @@
 import env from '@beam-australia/react-env';
-const API_ROUTE = `${env('API_URL')}/service-types`;
+const API_ROUTE = `${env('API_URL')}/k8s-service-types`;
 
 /**
- * List all service types.
+ * List all supported k8s service types.
  *
  * @param {string} token the access token
- * @param {function} setServiceTypes the function to set the retrieved service types
+ * @param {function} setServiceTypes the function to set the retrieved k8s service types
  * @param {function} setError the function to set the error if one occurred
  */
-export async function listServiceTypes(token, setServiceTypes, setError) {
+export async function listK8sServiceTypes(token, setServiceTypes, setError) {
   try {
     const response = await fetch(`${API_ROUTE}`, {
       method: 'GET',

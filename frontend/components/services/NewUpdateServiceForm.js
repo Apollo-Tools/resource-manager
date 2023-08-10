@@ -9,20 +9,23 @@ import TextDataDisplay from '../misc/TextDataDisplay';
 import DateFormatter from '../misc/DateFormatter';
 import TooltipIcon from '../misc/TooltipIcon';
 import {nameRegexValidationRule, nameValidationRule} from '../../lib/FormValidationRules';
+import {listServiceTypes} from '../../lib/ServiceTypeService';
 
 
 const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished}) => {
   const [form] = Form.useForm();
   const {token, checkTokenExpired} = useAuth();
   const [error, setError] = useState();
+  const [k8sServiceTypes, setK8sServiceTypes] = useState([]);
   const [serviceTypes, setServiceTypes] = useState([]);
   const [initialPorts, setInitialPorts] = useState();
-  const [selectedServiceType, setSelectedServiceType] = useState(null);
+  const [selectedK8sServiceType, setSelectedK8sServiceType] = useState(null);
   const [isModified, setModified] = useState(false);
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listK8sServiceTypes(token, setServiceTypes, setError);
+      listServiceTypes(token, setServiceTypes, setError);
+      listK8sServiceTypes(token, setK8sServiceTypes, setError);
     }
   }, []);
 
@@ -38,10 +41,10 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
   }, [service]);
 
   useEffect(() => {
-    if (mode==='update' && serviceTypes!=null && serviceTypes.length>0) {
-      setSelectedServiceType(service.service_type);
+    if (mode==='update' && k8sServiceTypes!=null && k8sServiceTypes.length>0) {
+      setSelectedK8sServiceType(service.service_type);
     }
-  }, [serviceTypes]);
+  }, [k8sServiceTypes]);
 
   // TODO: improve error handling
   useEffect(() => {
@@ -73,15 +76,15 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
   };
 
   const onChangeServiceType = (value) => {
-    const serviceType = serviceTypes.find((serviceType) => serviceType.service_type_id === value);
-    setSelectedServiceType(serviceType ? serviceType : null);
+    const serviceType = k8sServiceTypes.find((serviceType) => serviceType.service_type_id === value);
+    setSelectedK8sServiceType(serviceType ? serviceType : null);
     setModified(true);
   };
 
   const onReset = () => {
     form.resetFields();
-    if (mode==='update' && serviceTypes!=null && serviceTypes.length>0) {
-      setSelectedServiceType(service.service_type);
+    if (mode==='update' && k8sServiceTypes!=null && k8sServiceTypes.length>0) {
+      setSelectedK8sServiceType(service.service_type);
     }
     setModified(false);
   };
@@ -100,6 +103,27 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
         <div className="grid lg:grid-cols-12 grid-cols-6 gap-4">
           {mode === 'new' ?
             (<>
+              <Form.Item
+                label="Service Type"
+                name="serviceType"
+                rules={[
+                  {
+                    required: true,
+                    message: 'Please select a service type!',
+                  },
+                ]}
+                className="col-span-6"
+              >
+                <Select className="w-40">
+                  {serviceTypes.map((serviceType) => {
+                    return (
+                      <Select.Option value={serviceType.artifact_type_id} key={serviceType.artifact_type_id} >
+                        {serviceType.name}
+                      </Select.Option>
+                    );
+                  })}
+                </Select>
+              </Form.Item>
               <Form.Item
                 label="Name"
                 name="name"
@@ -135,7 +159,7 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
               <Divider className="col-span-12"/>
             </>
           }
-
+          <Divider className="lg:col-span-12 col-span-6"/>
           <Form.Item
             label={<>
               Replicas
@@ -192,21 +216,21 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
 
           <Form.Item
             label={<>
-              Service Type
+              K8s Service Type
               <TooltipIcon text="the k8s service type" />
             </>}
-            name="serviceType"
+            name="k8sServiceType"
             initialValue={service?.service_type.service_type_id}
             rules={[
               {
                 required: true,
-                message: 'Missing service type',
+                message: 'Missing k8s service type',
               },
             ]}
             className="col-span-6"
           >
             <Select className="w-40" onSelect={onChangeServiceType}>
-              {serviceTypes.sort((st1, st2) => st1.name.localeCompare(st2.name))
+              {k8sServiceTypes.sort((st1, st2) => st1.name.localeCompare(st2.name))
                   .map((serviceType) => {
                     return (
                       <Select.Option
@@ -220,7 +244,7 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
           </Form.Item>
         </div>
 
-        {selectedServiceType!=null && selectedServiceType?.name !== 'NoService' &&
+        {selectedK8sServiceType!=null && selectedK8sServiceType?.name !== 'NoService' &&
           <div className="col-span-6">
             <Typography.Text>Ports</Typography.Text>
             <TooltipIcon text={
