@@ -2947,7 +2947,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /k8-service-types:
+  /k8s-service-types:
     get:
       description: Return details about all k8s service types that are supported by the resource manager
       operationId: listK8sServiceTypes
