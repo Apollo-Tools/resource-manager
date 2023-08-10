@@ -3,7 +3,7 @@ import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import PropTypes from 'prop-types';
 import {createService, updateService} from '../../lib/ServiceService';
-import {listServiceTypes} from '../../lib/ServiceTypeService';
+import {listK8sServiceTypes} from '../../lib/K8sServiceTypeService';
 import {MinusCircleOutlined, PlusOutlined} from '@ant-design/icons';
 import TextDataDisplay from '../misc/TextDataDisplay';
 import DateFormatter from '../misc/DateFormatter';
@@ -22,7 +22,7 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listServiceTypes(token, setServiceTypes, setError);
+      listK8sServiceTypes(token, setServiceTypes, setError);
     }
   }, []);
 
@@ -129,7 +129,8 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
             <>
               <TextDataDisplay label="Name" value={service.name} className="col-span-6"/>
               <TextDataDisplay label="Image" value={service.image} className="col-span-6"/>
-              <TextDataDisplay label="Created at" value={<DateFormatter dateTimestamp={service.created_at} />}
+              <TextDataDisplay label="Created at"
+                value={<DateFormatter dateTimestamp={service.created_at} includeTime/>}
                 className="col-span-6"/>
               <Divider className="col-span-12"/>
             </>

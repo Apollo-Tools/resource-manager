@@ -26,14 +26,14 @@ export async function createFunctionCode(name, functionTypeId, runtimeId, code,
       body: JSON.stringify({
         name: name,
         function_type: {
-          artifact_type_id: functionTypeId
+          artifact_type_id: functionTypeId,
         },
         runtime: {
           runtime_id: runtimeId,
         },
         code: code,
         timeout_seconds: timeout,
-        memory_megabytes: memory
+        memory_megabytes: memory,
       }),
     });
     const data = await response.json();
@@ -134,11 +134,14 @@ export async function getFunction(id, token, setFunction, setError) {
  *
  * @param {number} id the id of the function
  * @param {string} code the code to update
+ * @param {number} timeout the timeout of the function
+ * @param {number} memory the memory of the function
  * @param {string} token the access token
  * @param {function} setError the function to set the error if one occurs
  * @return {Promise<boolean>} true if the request was successful
  */
-export async function updateFunction(id, code, token, setError) {
+export async function updateFunctionSettings(id, code, timeout, memory, token,
+    setError) {
   try {
     const response = await fetch(`${API_ROUTE}/${id}`, {
       method: 'PATCH',
@@ -148,6 +151,8 @@ export async function updateFunction(id, code, token, setError) {
       },
       body: JSON.stringify({
         code: code,
+        timeout_seconds: timeout,
+        memory_megabytes: memory,
       }),
     });
     return response.ok;

@@ -80,7 +80,7 @@ const ResourceDetails = () => {
   };
 
   return (
-    <div className="card container w-full md:w-11/12 w-11/12 max-w-7xl mt-2 mb-2">
+    <div className="card container w-full md:w-11/12 max-w-7xl mt-2 mb-2">
       <Typography.Title level={2}>Resource Details ({resource?.resource_id})</Typography.Title>
       <Divider />
       <Segmented options={segments} value={selectedSegment}

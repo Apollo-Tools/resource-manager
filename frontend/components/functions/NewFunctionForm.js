@@ -1,4 +1,4 @@
-import { Button, Form, Input, InputNumber, Select, Switch, Upload } from 'antd';
+import {Button, Form, Input, InputNumber, Select, Switch, Upload} from 'antd';
 import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import PropTypes from 'prop-types';
@@ -8,7 +8,7 @@ import CodeMirror from '@uiw/react-codemirror';
 import {getEditorExtension} from '../../lib/CodeEditorService';
 import {PlusOutlined} from '@ant-design/icons';
 import {nameRegexValidationRule, nameValidationRule} from '../../lib/FormValidationRules';
-import { listFunctionTypes } from '../../lib/FunctionTypeService';
+import {listFunctionTypes} from '../../lib/FunctionTypeService';
 import TooltipIcon from '../misc/TooltipIcon';
 
 
@@ -47,8 +47,8 @@ const NewFunctionFrom = ({setNewFunction}) => {
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
       if (values.isFile) {
-        await createFunctionUpload(values.name, values.functionType, values.runtime, values.upload.originFileObj, values.timeout,
-            values.memorySize, token, setNewFunction, setError);
+        await createFunctionUpload(values.name, values.functionType, values.runtime, values.upload.originFileObj,
+            values.timeout, values.memorySize, token, setNewFunction, setError);
       } else {
         await createFunctionCode(values.name, values.functionType, values.runtime, values.code, values.timeout,
             values.memorySize, token, setNewFunction, setError);
@@ -92,22 +92,22 @@ const NewFunctionFrom = ({setNewFunction}) => {
       >
         <div className="grid lg:grid-cols-12 grid-cols-6 gap-4">
           <Form.Item
-              label="Function Type"
-              name="functionType"
-              rules={[
-                {
-                  required: true,
-                  message: 'Please input a function type!',
-                },
-              ]}
-              className="col-span-6"
+            label="Function Type"
+            name="functionType"
+            rules={[
+              {
+                required: true,
+                message: 'Please input a function type!',
+              },
+            ]}
+            className="col-span-6"
           >
             <Select className="w-40">
               {functionTypes.map((functionType) => {
                 return (
-                    <Select.Option value={functionType.artifact_type_id} key={functionType.artifact_type_id} >
-                      {functionType.name}
-                    </Select.Option>
+                  <Select.Option value={functionType.artifact_type_id} key={functionType.artifact_type_id} >
+                    {functionType.name}
+                  </Select.Option>
                 );
               })}
             </Select>
@@ -122,58 +122,58 @@ const NewFunctionFrom = ({setNewFunction}) => {
           </Form.Item>
 
           <Form.Item
-              label={<>
+            label={<>
                 Timeout
-                <TooltipIcon text="the timeout of the function in seconds" />
-              </>}
-              name="timeout"
-              rules={[
-                {
-                  required: true,
-                  message: 'Please input the function timeout!',
-                },
-              ]}
-              initialValue={60}
-              className="col-span-6"
+              <TooltipIcon text="the timeout of the function in seconds" />
+            </>}
+            name="timeout"
+            rules={[
+              {
+                required: true,
+                message: 'Please input the function timeout!',
+              },
+            ]}
+            initialValue={60}
+            className="col-span-6"
           >
             <InputNumber className="w-40" controls={false} min={5} max={900} precision={0} addonAfter="s"/>
           </Form.Item>
 
           <Form.Item
-              label={<>
+            label={<>
                 Memory
-                <TooltipIcon text="the memory size of the function in megabytes (only used by AWS Lambda)" />
-              </>}
-              name="memorySize"
-              rules={[
-                {
-                  required: true,
-                  message: 'Please input the memory size!',
-                },
-              ]}
-              initialValue={128}
-              className="col-span-6"
+              <TooltipIcon text="the memory size of the function in megabytes (only used by AWS Lambda)" />
+            </>}
+            name="memorySize"
+            rules={[
+              {
+                required: true,
+                message: 'Please input the memory size!',
+              },
+            ]}
+            initialValue={128}
+            className="col-span-6"
           >
             <InputNumber className="w-40" controls={false} min={128} max={10240} precision={0} addonAfter="MB"/>
           </Form.Item>
 
           <Form.Item
-              label="Runtime"
-              name="runtime"
-              rules={[
-                {
-                  required: true,
-                  message: 'Please input a runtime!',
-                },
-              ]}
-              className="col-span-6"
+            label="Runtime"
+            name="runtime"
+            rules={[
+              {
+                required: true,
+                message: 'Please input a runtime!',
+              },
+            ]}
+            className="col-span-6"
           >
             <Select className="w-40" onChange={onRuntimeChange}>
               {runtimes.map((runtime) => {
                 return (
-                    <Select.Option value={runtime.runtime_id} key={runtime.runtime_id} >
-                      {runtime.name}
-                    </Select.Option>
+                  <Select.Option value={runtime.runtime_id} key={runtime.runtime_id} >
+                    {runtime.name}
+                  </Select.Option>
                 );
               })}
             </Select>
@@ -206,12 +206,11 @@ const NewFunctionFrom = ({setNewFunction}) => {
                   },
                   {
                     validator: (_, value) => {
-                      if (!value.originFileObj.name.endsWith('.zip')) {
+                      if (value == null || !value.originFileObj.name.endsWith('.zip')) {
                         return Promise.reject(new Error('Invalid file type. Make sure to upload a zip archive'));
                       } else if (value.status !== 'done') {
                         return Promise.reject(new Error('File upload in progress / No file uploaded yet'));
                       }
-
                       return Promise.resolve();
                     },
                   },

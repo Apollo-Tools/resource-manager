@@ -101,6 +101,9 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
         CompletionStage<Void> update = withTransaction(session -> repository.findByIdAndFetch(session, id)
             .thenCompose(function -> {
                 ServiceResultValidator.checkFound(function, Function.class);
+                if (updateFunction.getCode() == null) {
+                    return CompletionStages.completedFuture(function);
+                }
                 boolean updateIsFile = updateFunction.getIsFile();
                 String message = "";
                 if (function.getIsFile() != updateIsFile && updateIsFile) {
