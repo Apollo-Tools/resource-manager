@@ -42,7 +42,7 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
 
   useEffect(() => {
     if (mode==='update' && k8sServiceTypes!=null && k8sServiceTypes.length>0) {
-      setSelectedK8sServiceType(service.service_type);
+      setSelectedK8sServiceType(service.k8s_service_type);
     }
   }, [k8sServiceTypes]);
 
@@ -61,11 +61,11 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
         ports = values.ports.map((portEntries) => `${portEntries.containerPort}:${portEntries.servicePort}`);
       }
       if (mode === 'new') {
-        await createService(values.name, values.image, values.replicas, ports, values.cpu, values.memory,
-            values.serviceType, token, setNewService, setError);
+        await createService(values.serviceType, values.name, values.image, values.replicas, ports, values.cpu, values.memory,
+            values.k8sServiceType, token, setNewService, setError);
       } else {
         await updateService(service.service_id, values.replicas, ports, values.cpu, values.memory,
-            values.serviceType, token, setError);
+            values.k8sServiceType, token, setError);
       }
       setFinished?.(true);
       setModified(false);
@@ -75,9 +75,9 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
     console.log('Failed:', errorInfo);
   };
 
-  const onChangeServiceType = (value) => {
-    const serviceType = k8sServiceTypes.find((serviceType) => serviceType.service_type_id === value);
-    setSelectedK8sServiceType(serviceType ? serviceType : null);
+  const onChangeK8sServiceType = (value) => {
+    const k8sServiceType = k8sServiceTypes.find((k8sServiceType) => k8sServiceType.service_type_id === value);
+    setSelectedK8sServiceType(k8sServiceType ? k8sServiceType : null);
     setModified(true);
   };
 
@@ -151,12 +151,15 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
               </Form.Item>
             </>) :
             <>
+              <TextDataDisplay label="Service Type" value={service.service_type.name} className="col-span-6"/>
               <TextDataDisplay label="Name" value={service.name} className="col-span-6"/>
               <TextDataDisplay label="Image" value={service.image} className="col-span-6"/>
               <TextDataDisplay label="Created at"
                 value={<DateFormatter dateTimestamp={service.created_at} includeTime/>}
                 className="col-span-6"/>
-              <Divider className="col-span-12"/>
+              <TextDataDisplay label="Updated at"
+                value={<DateFormatter dateTimestamp={service.updated_at} includeTime/>}
+                className="col-span-6"/>
             </>
           }
           <Divider className="lg:col-span-12 col-span-6"/>
@@ -220,7 +223,7 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
               <TooltipIcon text="the k8s service type" />
             </>}
             name="k8sServiceType"
-            initialValue={service?.service_type.service_type_id}
+            initialValue={service?.k8s_service_type.service_type_id}
             rules={[
               {
                 required: true,
@@ -229,14 +232,14 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
             ]}
             className="col-span-6"
           >
-            <Select className="w-40" onSelect={onChangeServiceType}>
+            <Select className="w-40" onSelect={onChangeK8sServiceType}>
               {k8sServiceTypes.sort((st1, st2) => st1.name.localeCompare(st2.name))
-                  .map((serviceType) => {
+                  .map((k8sServiceType) => {
                     return (
                       <Select.Option
-                        value={serviceType.service_type_id}
-                        key={serviceType.service_type_id}>
-                        {serviceType.name}
+                        value={k8sServiceType.service_type_id}
+                        key={k8sServiceType.service_type_id}>
+                        {k8sServiceType.name}
                       </Select.Option>
                     );
                   })}

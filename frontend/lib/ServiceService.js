@@ -3,20 +3,21 @@ const API_ROUTE = `${env('API_URL')}/services`;
 
 /**
  * Create a new service.
- *
+ * *
+ * @param {number} serviceTypeId the service type
  * @param {string} name the name of the service
  * @param {string} image the name of the image
  * @param {number} replicas the amount of replicas
  * @param {string[]} ports the ports to expose
- * @param {number} cpu the necessary cpu ressources
+ * @param {number} cpu the necessary cpu resources
  * @param {number} memory the necessary memory
- * @param {number} serviceTypeId the service type
+ * @param {number} k8sServiceTypeId the k8s service type
  * @param {string} token the access token
  * @param {function} setService the function to set the created service
  * @param {function} setError the function to set the error if one occurred
  */
-export async function createService(name, image, replicas, ports, cpu, memory,
-    serviceTypeId, token, setService, setError) {
+export async function createService(serviceTypeId, name, image, replicas, ports, cpu, memory,
+    k8sServiceTypeId, token, setService, setError) {
   try {
     const response = await fetch(`${API_ROUTE}`, {
       method: 'POST',
@@ -25,14 +26,17 @@ export async function createService(name, image, replicas, ports, cpu, memory,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        service_type: {
+          artifact_type_id: serviceTypeId
+        },
         name: name,
         image: image,
         replicas: replicas,
         ports: ports,
         cpu: cpu,
         memory: memory,
-        service_type: {
-          service_type_id: serviceTypeId,
+        k8s_service_type: {
+          service_type_id: k8sServiceTypeId,
         },
       }),
     });
