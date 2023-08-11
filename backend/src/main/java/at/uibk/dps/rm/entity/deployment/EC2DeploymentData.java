@@ -25,6 +25,7 @@ public class EC2DeploymentData {
     private final List<Long> resourceIds = new ArrayList<>();
     private final List<String> functionIdentifiers = new ArrayList<>();
     private final List<String> resourceNames = new ArrayList<>();
+    private final List<Integer> timeouts = new ArrayList<>();
     private final Map<String, String> instanceTypeMapping = new HashMap<>();
     private long functionCount = 0;
 
@@ -36,11 +37,12 @@ public class EC2DeploymentData {
      * @param resourceId the id of the resource
      * @param functionIdentifier the function identifier
      */
-    public void appendValues(String resourceName, String instanceType, long resourceId, String functionIdentifier) {
+    public void appendValues(String resourceName, String instanceType, long resourceId, String functionIdentifier,
+            int timeout) {
         if (!instanceTypeMapping.containsKey(resourceName)) {
             this.instanceTypeMapping.put(resourceName, instanceType);
         }
-        appendValues(resourceName, resourceId, functionIdentifier);
+        appendValues(resourceName, resourceId, functionIdentifier, timeout);
     }
 
     /**
@@ -50,10 +52,11 @@ public class EC2DeploymentData {
      * @param resourceId the id of the resource
      * @param functionIdentifier the function identifier
      */
-    public void appendValues(String resourceName, long resourceId, String functionIdentifier) {
+    public void appendValues(String resourceName, long resourceId, String functionIdentifier, int timeout) {
         this.resourceNames.add(resourceName);
         this.resourceIds.add(resourceId);
         this.functionIdentifiers.add(functionIdentifier);
+        this.timeouts.add(timeout);
         this.functionCount++;
     }
 

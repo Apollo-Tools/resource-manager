@@ -3,7 +3,6 @@ package at.uibk.dps.rm.entity.deployment;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.math.BigDecimal;
 import java.nio.file.Path;
 
 /**
@@ -40,8 +39,8 @@ public class LambdaDeploymentData {
      * @param runtime the name of the function runtime
      * @param deploymentRole the AWS role used for deployment
      */
-    public void appendValues(String functionName, String path, String handler, BigDecimal timeout,
-            BigDecimal memorySize, String layer, String runtime, String deploymentRole) {
+    public void appendValues(String functionName, String path, String handler, int timeout,
+            int memorySize, String layer, String runtime, String deploymentRole) {
         this.functionNames += addQuotes(functionName);
         this.paths += addQuotes(path);
         this.handlers += addQuotes(handler);

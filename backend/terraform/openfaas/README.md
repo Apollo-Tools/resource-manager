@@ -23,6 +23,7 @@ module "openfaas" {
   image = "duser/add"
   basic_auth_user = "admin"
   vm_props = {gateway_url= "http://localhost:8080", auth_password= "11111"}
+  timeout = 30
 }
 ```
 
@@ -56,10 +57,11 @@ module "openfaas" {
 | vm\_props           | A map containing the gateway url and auth password of the deployed resource | `object` | n/a     |   yes    |
 | basic_auth_user     | The basic auth user name.                                                   | `string` | "admin" |    no    |
 | openfaas_depends_on | A dependency to wait for. This can be used to wait for a vm startup.        | `any`    | 0       |    no    |
+| timeout             | The timeout of the function in seconds                                      | `number` | 5       |    no    |
 
 ## Outputs
 
-| Name | Description                      |
-|------|----------------------------------|
+| Name         | Description                      |
+|--------------|----------------------------------|
 | function_url | The trigger url of the function. |
 <!-- END_TF_DOCS -->

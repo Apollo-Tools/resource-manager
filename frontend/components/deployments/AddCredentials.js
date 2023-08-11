@@ -114,7 +114,7 @@ const AddCredentials = ({functionResources, serviceResources, next, prev, onSubm
             },
           ]}
         >
-          <Input prefix={<UserOutlined className="site-form-item-icon" />} placeholder="docker.io/v1/"/>
+          <Input prefix={<UserOutlined className="site-form-item-icon" />} placeholder="docker.io"/>
         </Form.Item>
 
         <Form.Item
