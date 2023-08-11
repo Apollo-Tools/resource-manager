@@ -8,5 +8,8 @@ services:
       POSTGRES_DB: resource-manager
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
+      TZ: 'UTC'
+      PGTZ: 'UTC'
+
     ports:
       - "5432:5432"
