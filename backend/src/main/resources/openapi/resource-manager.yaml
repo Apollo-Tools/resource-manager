@@ -216,7 +216,6 @@ paths:
         - $ref: "#/components/parameters/idParam"
       tags:
         - accounts
-      x-role: admin
       responses:
         200:
           description: Successful pull of the user account

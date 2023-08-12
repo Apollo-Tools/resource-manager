@@ -65,9 +65,9 @@ export async function changePassword(oldPassword, newPassword, token, setRespons
  * @param {function} setAccount the function to set the account details
  * @param {function} setError the function to set the error if one occurs
  */
-export async function getAccount(token, setAccount, setError) {
+export async function getMyAccount(token, setAccount, setError) {
   try {
-    const response = await fetch(`${API_ROUTE}`, {
+    const response = await fetch(`${API_ROUTE}/me`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
