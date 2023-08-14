@@ -90,7 +90,7 @@ public class AccountHandlerTest {
         long accountId = 1L;
         String username = "user";
         String password = "password";
-        Account entity = TestAccountProvider.createAccount(accountId, username, password);
+        Account entity = TestAccountProvider.createAccount(accountId, username, password, "default");
         JsonObject entityJson = JsonObject.mapFrom(entity);
         JsonObject requestBody = new JsonObject("{\n" +
             "\"username\": \"" + username + "\",\n" +
@@ -106,6 +106,7 @@ public class AccountHandlerTest {
             .subscribe(user -> testContext.verify(() -> {
                 assertThat(user.principal().getLong("account_id")).isEqualTo(accountId);
                 assertThat(user.principal().getString("username")).isEqualTo(username);
+                assertThat(user.principal().getJsonArray("role").getString(0)).isEqualTo("default");
                 testContext.completeNow();
             }),
             throwable -> testContext.verify(() -> fail("method has thrown exception")));

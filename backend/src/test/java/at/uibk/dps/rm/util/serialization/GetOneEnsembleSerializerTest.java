@@ -37,17 +37,17 @@ public class GetOneEnsembleSerializerTest {
         ensemble.setRegions(List.of());
         JsonObject result = JsonObject.mapFrom(ensemble);
 
-        assertThat(result.encode()).isEqualTo("{\"ensemble_id\":1,\"name\":\"ensemble\",\"resources\":[" +
-            "{\"resource_id\":1,\"name\":null,\"created_at\":null,\"updated_at\":null,\"metric_values\":[{" +
-            "\"metric_value_id\":1,\"count\":10,\"value_number\":0.99,\"value_string\":null,\"value_bool\":null," +
+        assertThat(result.encode()).isEqualTo("{\"ensemble_id\":1,\"name\":\"ensemble\",\"resources\":" +
+            "[{\"resource_id\":1,\"name\":null,\"created_at\":null,\"updated_at\":null,\"metric_values\":" +
+            "[{\"metric_value_id\":1,\"count\":10,\"value_number\":0.99,\"value_string\":null,\"value_bool\":null," +
             "\"metric\":{\"metric_id\":1,\"metric\":\"availability\",\"description\":\"Blah\",\"metric_type\":" +
             "{\"metric_type_id\":1,\"type\":\"number\"},\"created_at\":null,\"is_monitored\":false},\"created_at\":" +
             "null,\"updated_at\":null}],\"region\":{\"region_id\":1,\"name\":\"us-east-1\",\"resource_provider\":" +
             "{\"provider_id\":1,\"provider\":\"aws\",\"provider_platforms\":[],\"environment\":null,\"created_at\":" +
             "null},\"created_at\":null},\"platform\":null,\"sub_resources\":[]},{\"resource_id\":2,\"name\":null," +
             "\"created_at\":null,\"updated_at\":null,\"metric_values\":[{\"metric_value_id\":1,\"count\":10," +
-            "\"value_number\":0.99,\"value_string\":null,\"value_bool\":null,\"metric\":{\"metric_id\":1,\"metric\":" +
-            "\"availability\",\"description\":\"Blah\",\"metric_type\":{\"metric_type_id\":1,\"type\":\"number\"}," +
+            "\"value_string\":\"t1.micro\",\"value_bool\":null,\"metric\":{\"metric_id\":3,\"metric\":" +
+            "\"instance-type\",\"description\":\"Blah\",\"metric_type\":{\"metric_type_id\":2,\"type\":\"string\"}," +
             "\"created_at\":null,\"is_monitored\":false},\"created_at\":null,\"updated_at\":null}],\"region\":{" +
             "\"region_id\":2,\"name\":\"us-west-1\",\"resource_provider\":{\"provider_id\":1,\"provider\":\"aws\"," +
             "\"provider_platforms\":[],\"environment\":null,\"created_at\":null},\"created_at\":null},\"platform\":" +

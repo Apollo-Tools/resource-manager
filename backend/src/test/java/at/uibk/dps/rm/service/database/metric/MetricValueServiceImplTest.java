@@ -2,9 +2,12 @@ package at.uibk.dps.rm.service.database.metric;
 
 import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.entity.model.MetricValue;
+import at.uibk.dps.rm.entity.model.Resource;
+import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestMetricProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -121,8 +124,10 @@ public class MetricValueServiceImplTest {
         entity2.setMetricValueId(2L);
         entity2.setMetric(metric2);
         entity2.setValueString("ubuntu");
+        Resource r1 = TestResourceProvider.createResource(1L);
 
         SessionMockHelper.mockSession(sessionFactory, session);
+        when(session.find(Resource.class, resourceId)).thenReturn(CompletionStages.completedFuture(r1));
         when(metricValueRepository.findByResourceAndFetch(session, resourceId))
             .thenReturn(CompletionStages.completedFuture(List.of(entity1, entity2)));
 
@@ -149,8 +154,10 @@ public class MetricValueServiceImplTest {
         entity1.setMetric(metric1);
         MetricValue entity2 = new MetricValue();
         entity2.setMetric(metric2);
+        Resource r1 = TestResourceProvider.createResource(1L);
 
         SessionMockHelper.mockSession(sessionFactory, session);
+        when(session.find(Resource.class, resourceId)).thenReturn(CompletionStages.completedFuture(r1));
         when(metricValueRepository.findByResourceAndFetch(session, resourceId))
             .thenReturn(CompletionStages.completedFuture(List.of(entity1, entity2)));
 
@@ -161,6 +168,22 @@ public class MetricValueServiceImplTest {
                     assertThat(result.getJsonObject(1).getLong("metric_id")).isEqualTo(2L);
                     testContext.completeNow();
                 })));
+    }
+
+    @Test
+    void findAllByResourceNotFound(VertxTestContext testContext) {
+        long resourceId = 1L;
+        boolean includeValue = true;
+
+        SessionMockHelper.mockSession(sessionFactory, session);
+        when(session.find(Resource.class, resourceId)).thenReturn(CompletionStages.nullFuture());
+
+        metricValueService.findAllByResource(resourceId, includeValue)
+            .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
+                assertThat(throwable).isInstanceOf(NotFoundException.class);
+                assertThat(throwable.getMessage()).isEqualTo("Resource not found");
+                testContext.completeNow();
+            })));
     }
 
     @Test
@@ -190,14 +213,34 @@ public class MetricValueServiceImplTest {
     void deleteByResourceAndMetric(VertxTestContext testContext) {
         long resourceId = 1L;
         long metricId = 2L;
+        MetricValue mv1 = new MetricValue();
 
         SessionMockHelper.mockTransaction(sessionFactory, session);
+        when(metricValueRepository.findByResourceAndMetric(session, resourceId, metricId))
+            .thenReturn(CompletionStages.completedFuture(mv1));
         when(metricValueRepository.deleteByResourceAndMetric(session, resourceId, metricId))
             .thenReturn(CompletionStages.completedFuture(0));
 
         metricValueService.deleteByResourceAndMetric(resourceId, metricId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
+                testContext.completeNow();
+        })));
+    }
+
+    @Test
+    void deleteByResourceAndMetricNotFound(VertxTestContext testContext) {
+        long resourceId = 1L;
+        long metricId = 2L;
+
+        SessionMockHelper.mockTransaction(sessionFactory, session);
+        when(metricValueRepository.findByResourceAndMetric(session, resourceId, metricId))
+            .thenReturn(CompletionStages.nullFuture());
+
+        metricValueService.deleteByResourceAndMetric(resourceId, metricId)
+            .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
+                assertThat(throwable).isInstanceOf(NotFoundException.class);
+                assertThat(throwable.getMessage()).isEqualTo("MetricValue not found");
                 testContext.completeNow();
         })));
     }

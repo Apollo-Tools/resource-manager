@@ -99,7 +99,7 @@ public class DeploymentExecutionServiceImplTest {
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
             MockedConstruction<TerraformSetupService> ignoredTFS =
-                Mockprovider.mockTFSetupServiceSetupModuleDirs(Single.just(List.of(m1, m2)));
+                Mockprovider.mockTFSetupServiceSetupModuleDirs(config, Single.just(List.of(m1, m2)));
             MockedConstruction<MainFileService> ignoredMFS = Mockprovider.mockMainFileService(Completable.complete())) {
                 deploymentExecutionService.setUpTFModules(deployRequest)
                     .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -120,7 +120,7 @@ public class DeploymentExecutionServiceImplTest {
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
             MockedConstruction<TerraformSetupService> ignoredTFS =
-                Mockprovider.mockTFSetupServiceSetupModuleDirs(Single.just(List.of(m1, m2)));
+                Mockprovider.mockTFSetupServiceSetupModuleDirs(config, Single.just(List.of(m1, m2)));
             MockedConstruction<MainFileService> ignoredMFS = Mockprovider
                 .mockMainFileService(Completable.error(RuntimeException::new))) {
                 deploymentExecutionService.setUpTFModules(deployRequest)
@@ -137,7 +137,7 @@ public class DeploymentExecutionServiceImplTest {
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
              MockedConstruction<TerraformSetupService> ignoredTFS = Mockprovider
-                 .mockTFSetupServiceSetupModuleDirs(Single.error(RuntimeException::new))) {
+                 .mockTFSetupServiceSetupModuleDirs(config, Single.error(RuntimeException::new))) {
                 deploymentExecutionService.setUpTFModules(deployRequest)
                     .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
                         assertThat(throwable).isInstanceOf(RuntimeException.class);

@@ -86,6 +86,7 @@ public class TestDTOProvider {
         DockerCredentials dockerCredentials = new DockerCredentials();
         dockerCredentials.setUsername("testuser");
         dockerCredentials.setAccessToken("abcdef12234");
+        dockerCredentials.setRegistry("docker.io");
         return dockerCredentials;
     }
 
@@ -254,6 +255,10 @@ public class TestDTOProvider {
         return Arrays.stream(values).map(TestDTOProvider::createSLOValue).collect(Collectors.toList());
     }
 
+    public static List<SLOValue> createSLOValueList(String... values) {
+        return Arrays.stream(values).map(TestDTOProvider::createSLOValue).collect(Collectors.toList());
+    }
+
     public static SLORequest createSLORequest(List<ServiceLevelObjective> slos) {
         SLORequest request = new ListResourcesBySLOsRequest();
         request.setEnvironments(List.of(1L));
@@ -308,7 +313,7 @@ public class TestDTOProvider {
         Region region1 = TestResourceProviderProvider.createRegion(1L, "us-east-1");
         Region region2 = TestResourceProviderProvider.createRegion(2L, "us-west-1");
         Resource r1 = TestResourceProvider.createResourceFaaS(1L, region1, 200.0, 1024.0);
-        Resource r2 = TestResourceProvider.createResourceEC2(2L, region2, 100.0, 1024.0, "t1.micro");
+        Resource r2 = TestResourceProvider.createResourceEC2(2L, region2, "t1.micro");
         getOneEnsemble.setResources(List.of(r1, r2));
         return getOneEnsemble;
     }

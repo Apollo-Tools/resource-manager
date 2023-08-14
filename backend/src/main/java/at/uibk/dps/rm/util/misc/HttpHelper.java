@@ -4,6 +4,7 @@ import at.uibk.dps.rm.exception.BadInputException;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 import lombok.experimental.UtilityClass;
+import org.apache.commons.lang3.math.NumberUtils;
 
 /**
  * This class is a utility class for http requests.
@@ -22,6 +23,8 @@ public class HttpHelper {
         String param = rc.pathParam(pathParam);
         if (param == null) {
             return Single.error(new BadInputException("path parameter not found"));
+        } else if (!NumberUtils.isParsable(param)) {
+            return Single.error(new BadInputException("path parameter is not a number"));
         }
         return Single.just(Long.parseLong(param));
     }

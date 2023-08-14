@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.testutil.objectprovider;
 
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
+import at.uibk.dps.rm.entity.dto.resource.ResourceDTO;
 import at.uibk.dps.rm.entity.dto.resource.ResourceId;
 import at.uibk.dps.rm.entity.dto.resource.ResourceTypeEnum;
 import at.uibk.dps.rm.entity.model.*;
@@ -44,81 +45,63 @@ public class TestResourceProvider {
         return createResource(resourceId, platform, region);
     }
 
-    public static Resource createResourceLambda(long id, Region region, Double timeout, Double memorySize) {
+    public static Resource createResourceLambda(long id, Region region) {
         MainResource resource = new MainResource();
         resource.setResourceId(id);
         resource.setRegion(region);
         Platform platform = TestPlatformProvider.createPlatformFaas(1L, PlatformEnum.LAMBDA.getValue());
         resource.setPlatform(platform);
-        MetricType mt1 = TestMetricProvider.createMetricTypeNumber();
-        MetricType mt2 = TestMetricProvider.createMetricTypeString();
-        Metric m1 = TestMetricProvider.createMetric(1L, "timeout", mt1, false);
-        Metric m2 = TestMetricProvider.createMetric(2L, "memory-size", mt1, false);
-        Metric m3 = TestMetricProvider.createMetric(3L, "deployment-role", mt2, false);
-        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, m1, timeout);
-        MetricValue mv2 = TestMetricProvider.createMetricValue(2L, m2, memorySize);
-        MetricValue mv3 = TestMetricProvider.createMetricValue(3L, m3, "labRole");
-        resource.setMetricValues(Set.of(mv1, mv2, mv3));
+        MetricType mt1 = TestMetricProvider.createMetricTypeString();
+        Metric m1 = TestMetricProvider.createMetric(1L, "deployment-role", mt1, false);
+        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, m1, "labRole");
+        resource.setMetricValues(Set.of(mv1));
         return resource;
     }
 
-    public static Resource createResourceLambda(long id, Double timeout, Double memorySize) {
+    public static Resource createResourceLambda(long id) {
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1");
-        return createResourceLambda(id, region, timeout, memorySize);
+        return createResourceLambda(id, region);
     }
 
-    public static Resource createResourceEC2(long id, Region region, Double timeout, Double memorySize,
-            String instanceType) {
+    public static Resource createResourceEC2(long id, Region region, String instanceType) {
         MainResource resource = new MainResource();
         resource.setResourceId(id);
         resource.setRegion(region);
         Platform platform = TestPlatformProvider.createPlatformFaas(1L, PlatformEnum.EC2.getValue());
         resource.setPlatform(platform);
-        MetricType mt1 = TestMetricProvider.createMetricTypeNumber();
-        MetricType mt2 = TestMetricProvider.createMetricTypeString();
-        Metric m1 = TestMetricProvider.createMetric(1L, "timeout", mt1, false);
-        Metric m2 = TestMetricProvider.createMetric(2L, "memory-size", mt1, false);
-        Metric m3 = TestMetricProvider.createMetric(3L, "instance-type", mt2, false);
-        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, m1, timeout);
-        MetricValue mv2 = TestMetricProvider.createMetricValue(2L, m2, memorySize);
-        MetricValue mv3 = TestMetricProvider.createMetricValue(3L, m3, instanceType);
-        resource.setMetricValues(Set.of(mv1, mv2, mv3));
+        MetricType mt1 = TestMetricProvider.createMetricTypeString();
+        Metric m1 = TestMetricProvider.createMetric(3L, "instance-type", mt1, false);
+        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, m1, instanceType);
+        resource.setMetricValues(Set.of(mv1));
         return resource;
     }
 
-    public static Resource createResourceEC2(long id, Double timeout, Double memorySize,
-            String instanceType) {
+    public static Resource createResourceEC2(long id, String instanceType) {
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1");
-        return createResourceEC2(id, region, timeout, memorySize, instanceType);
+        return createResourceEC2(id, region, instanceType);
     }
 
-    public static Resource createResourceOpenFaas(long id, Region region, Double timeout, Double memorySize,
-            String gatewayUrl, String openfaasUser, String openfaasPw) {
+    public static Resource createResourceOpenFaas(long id, Region region, String gatewayUrl, String openfaasUser,
+            String openfaasPw) {
         MainResource resource = new MainResource();
         resource.setResourceId(id);
         resource.setRegion(region);
         Platform platform = TestPlatformProvider.createPlatformFaas(1L, PlatformEnum.OPENFAAS.getValue());
         resource.setPlatform(platform);
-        MetricType mt1 = TestMetricProvider.createMetricTypeNumber();
-        MetricType mt2 = TestMetricProvider.createMetricTypeString();
-        Metric m1 = TestMetricProvider.createMetric(1L, "timeout", mt1, false);
-        Metric m2 = TestMetricProvider.createMetric(2L, "memory-size", mt1, false);
-        Metric m3 = TestMetricProvider.createMetric(3L, "gateway-url", mt2, false);
-        Metric m4 = TestMetricProvider.createMetric(4L, "openfaas-user", mt2, false);
-        Metric m5 = TestMetricProvider.createMetric(5L, "openfaas-pw", mt2, false);
-        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, m1, timeout);
-        MetricValue mv2 = TestMetricProvider.createMetricValue(2L, m2, memorySize);
-        MetricValue mv3 = TestMetricProvider.createMetricValue(3L, m3, gatewayUrl);
-        MetricValue mv4 = TestMetricProvider.createMetricValue(4L, m4, openfaasUser);
-        MetricValue mv5 = TestMetricProvider.createMetricValue(5L, m5, openfaasPw);
-        resource.setMetricValues(Set.of(mv1, mv2, mv3, mv4, mv5));
+        MetricType mt1 = TestMetricProvider.createMetricTypeString();
+        Metric m1 = TestMetricProvider.createMetric(1L, "gateway-url", mt1, false);
+        Metric m2 = TestMetricProvider.createMetric(2L, "openfaas-user", mt1, false);
+        Metric m3 = TestMetricProvider.createMetric(3L, "openfaas-pw", mt1, false);
+        MetricValue mv1 = TestMetricProvider.createMetricValue(3L, m1, gatewayUrl);
+        MetricValue mv2 = TestMetricProvider.createMetricValue(4L, m2, openfaasUser);
+        MetricValue mv3 = TestMetricProvider.createMetricValue(5L, m3, openfaasPw);
+        resource.setMetricValues(Set.of(mv1, mv2, mv3));
         return resource;
     }
 
-    public static Resource createResourceOpenFaas(long id, Double timeout, Double memorySize,
-        String gatewayUrl, String openfaasUser, String openfaasPw) {
+    public static Resource createResourceOpenFaas(long id, String gatewayUrl, String openfaasUser, String openfaasPw) {
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1");
-        return createResourceOpenFaas(id, region, timeout, memorySize, gatewayUrl, openfaasUser, openfaasPw);
+        return createResourceOpenFaas(id, region, gatewayUrl, openfaasUser, openfaasPw);
     }
 
 
@@ -222,5 +205,9 @@ public class TestResourceProvider {
                 return resourceId;
             })
             .collect(Collectors.toList());
+    }
+
+    public static ResourceDTO createResourceDTO(Resource resource) {
+        return new ResourceDTO(resource);
     }
 }

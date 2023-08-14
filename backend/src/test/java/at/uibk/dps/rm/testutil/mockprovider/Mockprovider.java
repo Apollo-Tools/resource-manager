@@ -16,7 +16,6 @@ import at.uibk.dps.rm.service.deployment.executor.ProcessExecutor;
 import at.uibk.dps.rm.service.deployment.executor.TerraformExecutor;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackagePythonCode;
 import at.uibk.dps.rm.service.deployment.terraform.*;
-import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -159,10 +158,10 @@ public class Mockprovider {
             (mock, context) -> given(mock.packageCode()).willReturn(Single.just(functionsToDeploy)));
     }
 
-    public static MockedConstruction<TerraformSetupService> mockTFSetupServiceSetupModuleDirs(
+    public static MockedConstruction<TerraformSetupService> mockTFSetupServiceSetupModuleDirs(ConfigDTO config,
             Single<List<TerraformModule>> result) {
         return Mockito.mockConstruction(TerraformSetupService.class, (mock, context) ->
-            given(mock.setUpTFModuleDirs(TestConfigProvider.getConfigDTO())).willReturn(result));
+            given(mock.setUpTFModuleDirs(config)).willReturn(result));
     }
 
     public static MockedConstruction<TerraformSetupService> mockTFSetupServiceGetTerminationCreds(

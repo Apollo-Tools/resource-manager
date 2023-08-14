@@ -45,14 +45,21 @@ public class TestFunctionProvider {
         return createRuntime(runtimeId, "python3.9");
     }
 
-    public static Function createFunction(long functionId, String name, String code, Runtime runtime, boolean isFile) {
+    public static Function createFunction(long functionId, String name, String code, Runtime runtime, boolean isFile,
+            int timeout, int memory) {
         Function function = new Function();
         function.setFunctionId(functionId);
         function.setName(name);
         function.setRuntime(runtime);
         function.setCode(code);
         function.setIsFile(isFile);
+        function.setTimeoutSeconds((short) timeout);
+        function.setMemoryMegabytes((short) memory);
         return function;
+    }
+
+    public static Function createFunction(long functionId, String name, String code, Runtime runtime, boolean isFile) {
+        return createFunction(functionId, name, code, runtime, isFile, 60, 128);
     }
 
     public static Function createFunction(long functionId, String name, String code, long runtimeId) {

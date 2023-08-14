@@ -106,8 +106,7 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
     public Future<JsonArray> findAll() {
         CompletionStage<List<Ensemble>> findAll = withSession(session ->
             repositoryProvider.getEnsembleRepository().findAll(session));
-        return Future
-            .fromCompletionStage(findAll)
+        return sessionToFuture(findAll)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Ensemble entity: result) {
@@ -143,8 +142,7 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
         CompletionStage<GetOneEnsemble> findOne = withSession(session ->
             fetchAndPopulateEnsemble(session, id, accountId)
         );
-        return Future.fromCompletionStage(findOne)
-            .map(JsonObject::mapFrom);
+        return sessionToFuture(findOne).map(JsonObject::mapFrom);
     }
 
     private CompletionStage<GetOneEnsemble> fetchAndPopulateEnsemble(Session session, long id, long accountId) {
@@ -187,7 +185,7 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
     public Future<JsonObject> findOne(long id) {
         CompletionStage<Ensemble> findOne = withSession(session ->
             repositoryProvider.getEnsembleRepository().findById(session, id));
-        return Future.fromCompletionStage(findOne)
+        return sessionToFuture(findOne)
             .map(result -> {
                 if (result != null) {
                     result.setCreatedBy(null);

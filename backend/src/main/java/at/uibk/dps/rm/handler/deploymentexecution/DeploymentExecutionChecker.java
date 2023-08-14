@@ -77,9 +77,11 @@ public class DeploymentExecutionChecker {
                             deployResources.getDeploymentCredentials().getDockerCredentials(), functionsToDeploy,
                             deploymentPath)
                         .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, deployResources.getDeployment()))
-                        .andThen(buildJavaLambdaFaaS(deployResources.getFunctionDeployments(), deploymentPath))
+                        .andThen(buildJavaLambdaFaaS(deployResources.getFunctionDeployments(), deploymentPath,
+                            config.getDindDirectory()))
                         .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, deployResources.getDeployment()))
-                        .andThen(buildLambdaLayers(deployResources.getFunctionDeployments(), deploymentPath))
+                        .andThen(buildLambdaLayers(deployResources.getFunctionDeployments(), deploymentPath,
+                            config.getDindDirectory()))
                         .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, deployResources.getDeployment())))
                     .andThen(deploymentService.setUpTFModules(deployResources))
                     .flatMap(deploymentCredentials -> {
@@ -137,10 +139,9 @@ public class DeploymentExecutionChecker {
    * @return a Single that emits the process output of the docker process
    */
     private Single<ProcessOutput> buildJavaLambdaFaaS(List<FunctionDeployment> functionDeployments,
-            DeploymentPath deploymentPath) {
+            DeploymentPath deploymentPath, String dindDirectory) {
         LambdaJavaBuildService lambdaService = new LambdaJavaBuildService(functionDeployments, deploymentPath);
-        return new ConfigUtility(Vertx.currentContext().owner()).getConfigDTO()
-            .flatMap(config ->lambdaService.buildAndZipJavaFunctions(config.getDindDirectory()));
+        return lambdaService.buildAndZipJavaFunctions(dindDirectory);
     }
 
   /**
@@ -151,10 +152,9 @@ public class DeploymentExecutionChecker {
    * @return a Single that emits the process output of the docker process
    */
     private Single<ProcessOutput> buildLambdaLayers(List<FunctionDeployment> functionDeployments,
-            DeploymentPath deploymentPath) {
+            DeploymentPath deploymentPath, String dindDirectory) {
         LambdaLayerService layerService = new LambdaLayerService(functionDeployments, deploymentPath);
-        return  new ConfigUtility(Vertx.currentContext().owner()).getConfigDTO()
-            .flatMap(config -> layerService.buildLambdaLayers(config.getDindDirectory()));
+        return  layerService.buildLambdaLayers(dindDirectory);
     }
 
   /**

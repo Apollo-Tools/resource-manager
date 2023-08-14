@@ -74,6 +74,9 @@ dependencies {
   testImplementation("org.assertj:assertj-core:3.23.1")
   testImplementation("org.mockito:mockito-inline:3.+")
   testImplementation("org.mockito:mockito-junit-jupiter:4.8.0")
+
+  // Commons
+  implementation("org.apache.commons:commons-lang3:3.13.0")
 }
 
 java {

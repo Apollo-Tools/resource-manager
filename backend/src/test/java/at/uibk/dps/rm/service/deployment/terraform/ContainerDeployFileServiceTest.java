@@ -75,6 +75,7 @@ public class ContainerDeployFileServiceTest {
                 "  config_path = \"" + configPath + "\"\n" +
                 "  config_context = \"k8s-context\"\n" +
                 "  namespace = \"default\"\n" +
+                "  name = \"test\"\n" +
                 "  image = \"test:latest\"\n" +
                 "  deployment_id = 1\n" +
                 "  replicas = 1\n" +
@@ -83,6 +84,8 @@ public class ContainerDeployFileServiceTest {
                 "  ports = [{container_port = 80, service_port = 8000}]\n" +
                 "  service_type = \"NodePort\"\n" +
                 "  external_ip = \"" + (hasExternalIp ? "0.0.0.0" : "") + "\"\n" +
+                "  hostname = null\n" +
+                "  image_pull_secrets = [\"regcred\"]\n" +
                 "}\n"
         );
     }

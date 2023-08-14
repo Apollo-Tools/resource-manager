@@ -63,11 +63,10 @@ public class TestRequestProvider {
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");
         Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime, false);
         Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime, false);
-        Resource r1 = TestResourceProvider.createResourceLambda(1L, region,250.0, 612.0);
-        Resource r2 = TestResourceProvider.createResourceEC2(2L, region, 150.0, 512.0,
-            "t2.micro");
-        Resource r3 = TestResourceProvider.createResourceOpenFaas(3L, region,250.0, 512.0,
-            "http://localhost:8080", "user", "pw");
+        Resource r1 = TestResourceProvider.createResourceLambda(1L, region);
+        Resource r2 = TestResourceProvider.createResourceEC2(2L, region, "t2.micro");
+        Resource r3 = TestResourceProvider.createResourceOpenFaas(3L, region, "http://localhost:8080",
+            "user", "pw");
         Resource r4 = TestResourceProvider.createResourceContainer(3L, "https://localhost", true);
         FunctionDeployment fd1 = TestFunctionProvider.createFunctionDeployment(1L, f1, r1);
         FunctionDeployment fd2 = TestFunctionProvider.createFunctionDeployment(2L, f1, r2);
@@ -93,9 +92,9 @@ public class TestRequestProvider {
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");
         Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime, false);
         Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime, false);
-        Resource r1 = TestResourceProvider.createResourceLambda(1L, region, 250.0, 512.0);
-        Resource r2 = TestResourceProvider.createResourceEC2(2L, region, 100.0, 1024.0, "t2.micro");
-        Resource r3 = TestResourceProvider.createResourceOpenFaas(3L, 100.0, 512.0, "http://localhost:8080", "user",
+        Resource r1 = TestResourceProvider.createResourceLambda(1L, region);
+        Resource r2 = TestResourceProvider.createResourceEC2(2L, region, "t2.micro");
+        Resource r3 = TestResourceProvider.createResourceOpenFaas(3L, "http://localhost:8080", "user",
             "pw");
         Resource r4 = TestResourceProvider.createResourceContainer(3L, "http://localhost", true);
         FunctionDeployment fr1 = TestFunctionProvider.createFunctionDeployment(1L, f1, r1);

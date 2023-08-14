@@ -63,7 +63,7 @@ public class FunctionPrepareServiceTest {
                         assertThat(result.getDockerFunctionsString()).isEqualTo("  foo2_python38:\n" +
                             "    lang: python38-apollo-rm\n" +
                             "    handler: ./foo2_python38\n" +
-                            "    image: user/foo2_python38:latest\n");
+                            "    image: docker.io/user/foo2_python38:latest\n");
                         testContext.completeNow();
                     }),
                     throwable -> testContext.verify(() -> fail("method has thrown exception"))
@@ -90,11 +90,11 @@ public class FunctionPrepareServiceTest {
                         assertThat(result.getDockerFunctionsString()).isEqualTo("  foo1_python38:\n" +
                             "    lang: python38-apollo-rm\n" +
                             "    handler: ./foo1_python38\n" +
-                            "    image: user/foo1_python38:latest\n" +
+                            "    image: docker.io/user/foo1_python38:latest\n" +
                             "  foo2_python38:\n" +
                             "    lang: python38-apollo-rm\n" +
                             "    handler: ./foo2_python38\n" +
-                            "    image: user/foo2_python38:latest\n");
+                            "    image: docker.io/user/foo2_python38:latest\n");
                         testContext.completeNow();
                     }),
                     throwable -> testContext.verify(() -> fail("method has thrown exception"))
@@ -120,7 +120,7 @@ public class FunctionPrepareServiceTest {
                         assertThat(result.getDockerFunctionsString()).isEqualTo("  foo1_python38:\n" +
                             "    lang: python38-apollo-rm\n" +
                             "    handler: ./foo1_python38\n" +
-                            "    image: user/foo1_python38:latest\n");
+                            "    image: docker.io/user/foo1_python38:latest\n");
                         testContext.completeNow();
                     }),
                     throwable -> testContext.verify(() -> fail("method has thrown exception"))

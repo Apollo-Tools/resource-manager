@@ -114,13 +114,13 @@ public class ResourceServiceImplTest {
 
     @Test
     void findAllBySLOs(VertxTestContext testContext) {
-        Metric availability = TestMetricProvider.createMetric(1L, "timeout");
-        ServiceLevelObjective slo1 = new ServiceLevelObjective("timeout", ExpressionType.GT,
-            TestDTOProvider.createSLOValueList(200));
-        List<String> metrics = List.of("timeout");
-        Resource r1 = TestResourceProvider.createResourceLambda(1L, 300.0, 1024.0);
-        Resource r2 = TestResourceProvider.createResourceEC2(1L, 200.0, 1024.0,
-            "t2.micro");
+        Metric availability = TestMetricProvider.createMetric(1L, "instance-type",
+            TestMetricProvider.createMetricTypeString(), false);
+        ServiceLevelObjective slo1 = new ServiceLevelObjective("instance-type", ExpressionType.EQ,
+            TestDTOProvider.createSLOValueList("t2.micro"));
+        List<String> metrics = List.of("instance-type");
+        Resource r1 = TestResourceProvider.createResourceLambda(1L);
+        Resource r2 = TestResourceProvider.createResourceEC2(1L, "t2.micro");
         List<Long> regions = List.of();
         List<Long> resourceProviders = List.of();
         List<Long> resourceTypes = List.of();

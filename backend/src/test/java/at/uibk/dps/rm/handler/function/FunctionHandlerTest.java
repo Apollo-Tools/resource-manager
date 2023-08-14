@@ -52,14 +52,21 @@ public class FunctionHandlerTest {
 
     private static Stream<Arguments> providePostBody() {
         String name = "func";
-        long runtimeId = 1L;
-        JsonObject requestBody = new JsonObject("{\"name\": \"" + name + "\", \"runtime\": {\"runtime_id\": " +
-           runtimeId + "}, \"code\": \"x = 10\"}");
-        JsonObject attributeBody = new JsonObject("{\"name\": \"" + name + "\", \"runtime\": {\"runtime_id\": " +
-           runtimeId + "}, \"code\": \"testfile\", \"is_file\":true}");
+        long runtimeId = 1L, functionTypeId = 2L;
+        int timeout = 60, memory = 128;
+        JsonObject requestBody = new JsonObject("{\"name\": \"" + name + "\", \"function_type\": " +
+            "{\"artifact_type_id\": " + functionTypeId + "}, \"runtime\": {\"runtime_id\":" + runtimeId + "}, " +
+            "\"code\": \"x = 10\", \"timeout_seconds\": " + timeout + ", \"memory_megabytes\": " + memory + "}");
+        JsonObject attributeBody = new JsonObject("{\"name\": \"" + name + "\", \"function_type\": " +
+            "{\"artifact_type_id\": " + functionTypeId + "}, \"runtime\": {\"runtime_id\": " + runtimeId + "}, " +
+            "\"code\": \"testfile\", \"timeout_seconds\": " + timeout + ", \"memory_megabytes\": " + memory +
+            ", \"is_file\":true}");
         MultiMap attributes = MultiMap.caseInsensitiveMultiMap();
         attributes.add("name", name);
+        attributes.add("function_type", "{\"artifact_type_id\": " + functionTypeId + "}");
         attributes.add("runtime", "{\"runtime_id\": " + runtimeId + "}");
+        attributes.add("timeout_seconds", String.valueOf(timeout));
+        attributes.add("memory_megabytes", String.valueOf(memory));
         return Stream.of(Arguments.of(false, "application/json", requestBody, null),
             Arguments.of(true, "multipart/form-data", attributeBody, attributes));
     }

@@ -60,7 +60,7 @@ public class DeploymentServiceImplTest {
         long deploymentId = 1L, accountId = 2L;
         Account account = TestAccountProvider.createAccount(accountId);
         Deployment deployment = TestDeploymentProvider.createDeployment(deploymentId, true, account);
-        Resource r1 = TestResourceProvider.createResourceLambda(1L, 200.0, 1024.0);
+        Resource r1 = TestResourceProvider.createResourceLambda(1L);
         Resource r2 = TestResourceProvider.createResourceContainer(2L, "localhost", true);
         Credentials c1 = TestAccountProvider.createCredentials(1L,
             r1.getMain().getRegion().getResourceProvider());
@@ -76,7 +76,7 @@ public class DeploymentServiceImplTest {
         long deploymentId = 1L, accountId = 2L;
         Account account = TestAccountProvider.createAccount(accountId);
         Deployment deployment = TestDeploymentProvider.createDeployment(deploymentId, true, account);
-        Resource r1 = TestResourceProvider.createResourceLambda(1L, 200.0, 1024.0);
+        Resource r1 = TestResourceProvider.createResourceLambda(1L);
         Credentials c1 = TestAccountProvider.createCredentials(1L,
             r1.getMain().getRegion().getResourceProvider());
 

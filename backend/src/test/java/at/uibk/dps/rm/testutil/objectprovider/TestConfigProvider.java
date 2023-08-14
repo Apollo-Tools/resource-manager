@@ -19,7 +19,7 @@ public class TestConfigProvider {
         configDTO.setDbPassword("root");
         configDTO.setApiPort(8888);
         configDTO.setBuildDirectory("build");
-        configDTO.setDindDirectory("var/lib/apollo-rm");
+        configDTO.setDindDirectory("var/lib/apollo-rm/");
         configDTO.setUploadPersistDirectory("upload/persist");
         configDTO.setUploadTempDirectory("upload/temp");
         configDTO.setMaxFileSize(100_000_000L);

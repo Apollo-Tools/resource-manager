@@ -1,9 +1,6 @@
 package at.uibk.dps.rm.testutil.objectprovider;
 
-import at.uibk.dps.rm.entity.model.Account;
-import at.uibk.dps.rm.entity.model.AccountCredentials;
-import at.uibk.dps.rm.entity.model.Credentials;
-import at.uibk.dps.rm.entity.model.ResourceProvider;
+import at.uibk.dps.rm.entity.model.*;
 import lombok.experimental.UtilityClass;
 
 /**
@@ -13,13 +10,21 @@ import lombok.experimental.UtilityClass;
  */
 @UtilityClass
 public class TestAccountProvider {
-    public static Account createAccount(long accountId, String username, String password) {
+    public static Account createAccount(long accountId, String username, String password, String roleName) {
         Account account = new Account();
         account.setAccountId(accountId);
         account.setUsername(username);
         account.setPassword(password);
         account.setIsActive(true);
+        Role role = new Role();
+        role.setRoleId(11L);
+        role.setRole(roleName);
+        account.setRole(role);
         return account;
+    }
+
+    public static Account createAccount(long accountId, String username, String password) {
+        return createAccount(accountId, username, password, "default");
     }
 
     public static Credentials createCredentials(long credentialsId, ResourceProvider resourceProvider) {

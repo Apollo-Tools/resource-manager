@@ -125,7 +125,6 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
                     return repository.deleteByResourceAndMetric(session, resourceId, metricId);
                 })
         );
-        return Future.fromCompletionStage(delete)
-            .mapEmpty();
+        return sessionToFuture(delete).mapEmpty();
     }
 }

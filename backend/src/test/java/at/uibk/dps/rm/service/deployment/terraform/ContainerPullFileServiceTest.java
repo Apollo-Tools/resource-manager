@@ -70,6 +70,8 @@ public class ContainerPullFileServiceTest {
                 "  config_context = \"k8s-context\"\n" +
                 "  images = [\"test1:latest\"]\n" +
                 "  timeout = \"2m\"\n" +
+                "  hostname = null\n" +
+                "  image_pull_secrets = [\"regcred\"]\n" +
                 "}\n" +
                 "module \"pre_pull_1default\" {\n" +
                 "  source = \"../../../terraform/k8s/prepull\"\n" +
@@ -79,6 +81,8 @@ public class ContainerPullFileServiceTest {
                 "  config_context = \"k8s-context\"\n" +
                 "  images = [\"test1:latest\",\"test2:latest\"]\n" +
                 "  timeout = \"2m\"\n" +
+                "  hostname = null\n" +
+                "  image_pull_secrets = [\"regcred\"]\n" +
                 "}\n"
         );
     }
