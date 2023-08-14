@@ -3,6 +3,7 @@ package at.uibk.dps.rm.service.deployment;
 import at.uibk.dps.rm.entity.deployment.*;
 import at.uibk.dps.rm.entity.deployment.module.FaasModule;
 import at.uibk.dps.rm.entity.deployment.module.TerraformModule;
+import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
@@ -20,7 +21,6 @@ import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.RunTestOnContext;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -46,9 +46,9 @@ public class DeploymentExecutionServiceImplTest {
     private DeploymentExecutionService deploymentExecutionService;
 
     @RegisterExtension
-    private static final RunTestOnContext rtoc = new RunTestOnContext();
+    public static final RunTestOnContext rtoc = new RunTestOnContext();
 
-    private final JsonObject config = TestConfigProvider.getConfig();
+    private final ConfigDTO config = TestConfigProvider.getConfigDTO();
 
     @BeforeEach
     void initTest() {

@@ -23,7 +23,7 @@ import java.util.List;
 public class TestFileServiceProvider {
     public static RegionFaasFileService createRegionFaasFileService(FileSystem fileSystem, Resource r1, Resource r2,
             Resource r3, Runtime runtime, Region region) {
-        DeploymentPath path = new DeploymentPath(1L, TestConfigProvider.getConfig());
+        DeploymentPath path = new DeploymentPath(1L, TestConfigProvider.getConfigDTO());
         Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime, false);
         Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime, false);
         FunctionDeployment fr1 = TestFunctionProvider.createFunctionDeployment(1L, f1, r1);
@@ -62,8 +62,8 @@ public class TestFileServiceProvider {
         DockerCredentials credentials = new DockerCredentials();
         credentials.setUsername("user");
         credentials.setAccessToken("access-token");
-        DeploymentPath path = new DeploymentPath(1L, TestConfigProvider.getConfig());
-        return new FunctionPrepareService(vertx, functionDeployments, path, List.of(credentials));
+        DeploymentPath path = new DeploymentPath(1L, TestConfigProvider.getConfigDTO());
+        return new FunctionPrepareService(vertx, functionDeployments, path, credentials);
     }
 
     public static FunctionPrepareService createFunctionFileServiceNoFunctions(Vertx vertx) {
@@ -71,8 +71,8 @@ public class TestFileServiceProvider {
         DockerCredentials credentials = new DockerCredentials();
         credentials.setUsername("user");
         credentials.setAccessToken("access-token");
-        DeploymentPath path = new DeploymentPath(1L, TestConfigProvider.getConfig());
-        return new FunctionPrepareService(vertx, functionDeployments, path, List.of(credentials));
+        DeploymentPath path = new DeploymentPath(1L, TestConfigProvider.getConfigDTO());
+        return new FunctionPrepareService(vertx, functionDeployments, path, credentials);
     }
 
     public static FunctionPrepareService createFunctionFileServiceLambdaEc2Python(Vertx vertx) {
@@ -130,7 +130,7 @@ public class TestFileServiceProvider {
             Deployment deployment) {
         ServiceDeployment serviceDeployment = TestServiceProvider.createServiceDeployment(1L, deployment);
         return new ContainerDeployFileService(fileSystem, rootFolder, serviceDeployment,
-            deployment.getDeploymentId());
+            deployment.getDeploymentId(), TestConfigProvider.getConfigDTO());
     }
 
     public static ContainerDeployFileService createContainerDeployFileService(FileSystem fileSystem, Path rootFolder,
@@ -138,19 +138,19 @@ public class TestFileServiceProvider {
         ServiceDeployment serviceDeployment =
             TestServiceProvider.createServiceDeployment(1L, resource, deployment);
         return new ContainerDeployFileService(fileSystem, rootFolder, serviceDeployment,
-            deployment.getDeploymentId());
+            deployment.getDeploymentId(), TestConfigProvider.getConfigDTO());
     }
 
     public static ContainerPullFileService createContainerPullFileService(FileSystem fileSystem, Path rootFolder,
         Deployment deployment) {
         ServiceDeployment serviceDeployment = TestServiceProvider.createServiceDeployment(1L, deployment);
         return new ContainerPullFileService(fileSystem, rootFolder, List.of(serviceDeployment),
-            deployment.getDeploymentId());
+            deployment.getDeploymentId(), TestConfigProvider.getConfigDTO());
     }
 
     public static ContainerPullFileService createContainerPullFileService(FileSystem fileSystem, Path rootFolder,
         Deployment deployment, List<ServiceDeployment> serviceDeployments) {
         return new ContainerPullFileService(fileSystem, rootFolder, serviceDeployments,
-            deployment.getDeploymentId());
+            deployment.getDeploymentId(), TestConfigProvider.getConfigDTO());
     }
 }

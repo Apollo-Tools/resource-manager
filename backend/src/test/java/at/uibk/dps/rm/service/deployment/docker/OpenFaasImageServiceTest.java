@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.service.deployment.docker;
 
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
+import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.service.deployment.executor.ProcessExecutor;
 import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
@@ -8,7 +9,6 @@ import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import io.reactivex.rxjava3.core.Completable;
-import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
@@ -44,7 +44,7 @@ import static org.mockito.Mockito.when;
 public class OpenFaasImageServiceTest {
     private OpenFaasImageService dockerImageService;
 
-    private final JsonObject config = TestConfigProvider.getConfig();
+    private final ConfigDTO config = TestConfigProvider.getConfigDTO();
 
     @Mock
     private Vertx vertx;
@@ -65,7 +65,7 @@ public class OpenFaasImageServiceTest {
         DockerCredentials dockerCredentials = TestDTOProvider.createDockerCredentials();
         List<String> functionIdentifiers = List.of("func_identifier");
         functionsDir = Path.of("./functions");
-        dockerImageService = new OpenFaasImageService(vertx, List.of(dockerCredentials), functionIdentifiers,
+        dockerImageService = new OpenFaasImageService(vertx, dockerCredentials, functionIdentifiers,
             functionsDir);
     }
 
@@ -148,7 +148,7 @@ public class OpenFaasImageServiceTest {
         List<String> functionIdentifiers = List.of();
         functionsDir = Path.of("./functions");
         DockerCredentials dockerCredentials = TestDTOProvider.createDockerCredentials();
-        dockerImageService = new OpenFaasImageService(vertx, List.of(dockerCredentials), functionIdentifiers,
+        dockerImageService = new OpenFaasImageService(vertx, dockerCredentials, functionIdentifiers,
             functionsDir);
 
         dockerImageService.buildOpenFaasImages(functionString)

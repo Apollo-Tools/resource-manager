@@ -2,7 +2,6 @@ package at.uibk.dps.rm.service.database.function;
 
 import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.repository.function.FunctionRepository;
-import at.uibk.dps.rm.repository.function.RuntimeRepository;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
@@ -38,22 +37,19 @@ public class FunctionServiceImplTest {
     private FunctionRepository functionRepository;
 
     @Mock
-    private RuntimeRepository runtimeRepository;
-
-    @Mock
     private Stage.SessionFactory sessionFactory;
 
     @Mock
     private Stage.Session session;
 
     @RegisterExtension
-    private static final RunTestOnContext rtoc = new RunTestOnContext();
+    public static final RunTestOnContext rtoc = new RunTestOnContext();
 
     @BeforeEach
     void initTest() {
         rtoc.vertx();
         JsonMapperConfig.configJsonMapper();
-        functionService = new FunctionServiceImpl(functionRepository, runtimeRepository, sessionFactory);
+        functionService = new FunctionServiceImpl(functionRepository, sessionFactory);
     }
 
     @Test

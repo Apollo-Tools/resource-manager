@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
+import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
@@ -65,11 +66,11 @@ import static org.mockito.Mockito.when;
 public class DeploymentExecutionCheckerTest {
 
     @RegisterExtension
-    private static final RunTestOnContext rtoc = new RunTestOnContext();
+    public static final RunTestOnContext rtoc = new RunTestOnContext();
 
     private DeploymentExecutionChecker deploymentChecker;
 
-    private final JsonObject config = TestConfigProvider.getConfig();
+    private final ConfigDTO config = TestConfigProvider.getConfigDTO();
 
     @Mock
     private DeploymentExecutionService deploymentExecutionService;
@@ -303,7 +304,7 @@ public class DeploymentExecutionCheckerTest {
     void deleteTFDirs(boolean isValid, VertxTestContext testContext) {
         long deploymentId = 1L;
 
-        try(MockedConstruction<ConfigUtility> ignored = Mockprovider.mockConfig(TestConfigProvider.getConfig());
+        try(MockedConstruction<ConfigUtility> ignored = Mockprovider.mockConfig(config);
             MockedStatic<TerraformFileService> mocked = mockStatic(TerraformFileService.class)) {
             mocked.when(() -> TerraformFileService.deleteAllDirs(any(FileSystem.class), any(Path.class)))
                 .thenReturn(isValid ? Completable.complete() : Completable.error(IOException::new));

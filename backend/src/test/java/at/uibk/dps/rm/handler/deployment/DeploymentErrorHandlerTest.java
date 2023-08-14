@@ -37,7 +37,7 @@ import static org.mockito.Mockito.*;
 public class DeploymentErrorHandlerTest {
 
     @RegisterExtension
-    private static final RunTestOnContext rtoc = new RunTestOnContext();
+    public static final RunTestOnContext rtoc = new RunTestOnContext();
 
     private DeploymentErrorHandler errorHandler;
 
@@ -80,7 +80,7 @@ public class DeploymentErrorHandlerTest {
         when(deploymentExecutionChecker.deleteTFDirs(deployResourcesDTO.getDeployment().getDeploymentId()))
             .thenReturn(Completable.complete());
 
-        try (MockedConstruction<ConfigUtility> ignored = Mockprovider.mockConfig(TestConfigProvider.getConfig())) {
+        try (MockedConstruction<ConfigUtility> ignored = Mockprovider.mockConfig(TestConfigProvider.getConfigDTO())) {
             errorHandler.handleDeployResources(completable, deployResourcesDTO);
             testContext.completeNow();
         }

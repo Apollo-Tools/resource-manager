@@ -11,10 +11,10 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ConfigDTO {
     private String dbHost;
-    private Long dbPort;
+    private Integer dbPort;
     private String dbUser;
     private String dbPassword;
-    private Long apiPort;
+    private Integer apiPort;
     private String buildDirectory;
     private String dindDirectory;
     private String uploadPersistDirectory;
@@ -22,7 +22,7 @@ public class ConfigDTO {
     private Long maxFileSize;
     private String jwtSecret;
     private String jwtAlgorithm;
-    private Long tokenMinutesValid;
+    private Integer tokenMinutesValid;
     private Double ensembleValidationPeriod;
     private List<String> dockerInsecureRegistries;
     private String kubeConfigSecretsName;

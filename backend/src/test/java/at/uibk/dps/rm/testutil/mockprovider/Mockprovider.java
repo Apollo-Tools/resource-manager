@@ -5,6 +5,7 @@ import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.deployment.module.TerraformModule;
+import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateDTO;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.service.deployment.docker.LambdaJavaBuildService;
@@ -15,10 +16,10 @@ import at.uibk.dps.rm.service.deployment.executor.ProcessExecutor;
 import at.uibk.dps.rm.service.deployment.executor.TerraformExecutor;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackagePythonCode;
 import at.uibk.dps.rm.service.deployment.terraform.*;
+import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
 import lombok.experimental.UtilityClass;
 import org.mockito.MockedConstruction;
@@ -41,9 +42,9 @@ import static org.mockito.Mockito.mockStatic;
 @UtilityClass
 public class Mockprovider {
 
-    public static MockedConstruction<ConfigUtility> mockConfig(JsonObject config) {
+    public static MockedConstruction<ConfigUtility> mockConfig(ConfigDTO config) {
         return Mockito.mockConstruction(ConfigUtility.class,
-            (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)));
+            (mock, context) -> given(mock.getConfigDTO()).willReturn(Single.just(config)));
     }
 
     public static MockedConstruction<OpenFaasImageService> mockDockerImageService(FunctionsToDeploy functionsToDeploy,
@@ -161,7 +162,7 @@ public class Mockprovider {
     public static MockedConstruction<TerraformSetupService> mockTFSetupServiceSetupModuleDirs(
             Single<List<TerraformModule>> result) {
         return Mockito.mockConstruction(TerraformSetupService.class, (mock, context) ->
-            given(mock.setUpTFModuleDirs()).willReturn(result));
+            given(mock.setUpTFModuleDirs(TestConfigProvider.getConfigDTO())).willReturn(result));
     }
 
     public static MockedConstruction<TerraformSetupService> mockTFSetupServiceGetTerminationCreds(

@@ -29,7 +29,7 @@ public class TestRequestProvider {
         request.setFunctionResources(functionResources);
         request.setServiceResources(serviceResources);
         DeploymentCredentials deploymentCredentials = new DeploymentCredentials();
-        deploymentCredentials.setDockerCredentials(List.of(dockerCredentials));
+        deploymentCredentials.setDockerCredentials(dockerCredentials);
         deploymentCredentials.setKubeConfig(kubeConfig);
         request.setCredentials(deploymentCredentials);
         request.setLockResources(lockResources);
@@ -57,7 +57,7 @@ public class TestRequestProvider {
         deployRequest.setVpcList(List.of(vpc));
         DockerCredentials dockerCredentials = TestDTOProvider.createDockerCredentials();
         DeploymentCredentials deploymentCredentials = new DeploymentCredentials();
-        deploymentCredentials.setDockerCredentials(List.of(dockerCredentials));
+        deploymentCredentials.setDockerCredentials(dockerCredentials);
         deploymentCredentials.setKubeConfig(TestDTOProvider.createKubeConfigValue());
         deployRequest.setDeploymentCredentials(deploymentCredentials);
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");
