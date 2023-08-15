@@ -16,6 +16,11 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+/**
+ * A utility class that provides different methods to validate metric values.
+ *
+ * @author matthi-g
+ */
 @RequiredArgsConstructor
 public class MetricValueUtility {
 

@@ -63,6 +63,11 @@ public abstract class Resource {
         return resourceId.hashCode();
     }
 
+    /**
+     * Get the main resource of this resource.
+     *
+     * @return the main resource if the resource is a sub resource, else this resource
+     */
     @JsonIgnore
     public MainResource getMain() {
         if (this instanceof MainResource) {

@@ -14,11 +14,11 @@ public class DockerCredentials {
     private String accessToken;
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
 
-        DockerCredentials that = (DockerCredentials) o;
+        DockerCredentials that = (DockerCredentials) obj;
 
         return registry.equals(that.registry);
     }

@@ -6,6 +6,11 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
+/**
+ * Processes the http requests that concern the sub resource entity.
+ *
+ * @author matthi-g
+ */
 public class SubResourceHandler  extends ValidationHandler {
 
     private final ResourceChecker resourceChecker;

@@ -28,6 +28,14 @@ public class ResourceRepository extends Repository<Resource> {
         super(Resource.class);
     }
 
+    /**
+     * Find a resource by its name and region.
+     *
+     * @param session the database session
+     * @param name the name of the resource
+     * @param regionId the id of the region
+     * @return a CompletionStage that emits the resource, else null
+     */
     public CompletionStage<Resource> findByNameAndRegionId(Session session, String name, long regionId) {
         return session.createQuery("from MainResource r " +
                 "where r.name=:name and r.region.regionId=:regionId", entityClass)
@@ -300,6 +308,13 @@ public class ResourceRepository extends Repository<Resource> {
         });
     }
 
+    /**
+     * Find all sub resources for a resource.
+     *
+     * @param session the database session
+     * @param resourceId the id of the resource
+     * @return a CompletionStage that emits a list of all found sub resources
+     */
     public CompletionStage<List<SubResource>> findAllSubresources(Session session, long resourceId) {
         return session.createQuery("select distinct sr from SubResource  sr " +
                 "left join fetch sr.metricValues mv " +
@@ -309,6 +324,13 @@ public class ResourceRepository extends Repository<Resource> {
             .getResultList();
     }
 
+    /**
+     * Find a main resource with the platform k8s and name.
+     *
+     * @param session the database session
+     * @param name the name of the resource
+     * @return a CompletionStage that emits the resource if it exists, else null
+     */
     public CompletionStage<MainResource> findClusterByName(Session session, String name) {
         return session.createQuery("select distinct mr from MainResource mr " +
                 "left join fetch mr.metricValues mmv " +

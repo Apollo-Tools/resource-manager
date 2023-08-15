@@ -16,12 +16,24 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+/**
+ * This class provides methods to validate SLOs and find and filter resources by SLOs.
+ *
+ * @author matthi-g
+ */
 @AllArgsConstructor
 public class SLOUtility {
     private final ResourceRepository resourceRepository;
 
     private final MetricRepository metricRepository;
 
+    /**
+     * Find, filter and sort resources by service level objectives from the sloRequest.
+     *
+     * @param session the database session
+     * @param sloRequest the slo request
+     * @return a CompletableFuture that emits a list of the filtered and sorted resources
+     */
     public CompletableFuture<List<Resource>> findAndFilterResourcesBySLOs(Session session, SLORequest sloRequest) {
         List<CompletableFuture<Void>> checkSLOs = sloRequest.getServiceLevelObjectives().stream().map(slo ->
                 metricRepository.findByMetric(session, slo.getName())
@@ -43,6 +55,12 @@ public class SLOUtility {
                 sloRequest.getServiceLevelObjectives()));
     }
 
+    /**
+     * Validate whether the data type of the slo is the same as the data type of the metric.
+     *
+     * @param slo the service level objective
+     * @param metric the metric
+     */
     private void validateSLOType(ServiceLevelObjective slo, Metric metric) {
         ServiceResultValidator.checkFound(metric, ServiceLevelObjective.class);
         String sloValueType = slo.getValue().get(0).getSloValueType().name();

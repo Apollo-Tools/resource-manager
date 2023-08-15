@@ -2,6 +2,12 @@ package at.uibk.dps.rm.exception;
 
 import io.vertx.serviceproxy.ServiceException;
 
+/**
+ * The MonitoringException indicates that an error occurred during the process of monitoring
+ * resources.
+ *
+ * @author matthi-g
+ */
 public class MonitoringException extends ServiceException {
 
     private static final long serialVersionUID = 569220910175564167L;

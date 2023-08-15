@@ -36,6 +36,12 @@ public class DeploymentErrorHandler {
         this.deploymentExecutionChecker = deploymentExecutionChecker;
     }
 
+    /**
+     * Handle errors for a deployment process.
+     *
+     * @param deployment the deployment process
+     * @param deployResources the deployment request
+     */
     public void handleDeployResources(Completable deployment, DeployResourcesDTO deployResources) {
         deployment.doOnError(throwable -> logger.error(throwable.getMessage()))
             .onErrorResumeNext(throwable ->
@@ -45,6 +51,12 @@ public class DeploymentErrorHandler {
             .subscribe();
     }
 
+    /**
+     * Handle errors for the termination process.
+     *
+     * @param termination the termination process
+     * @param deploymentId the deployment id
+     */
     public void handleTerminateResources(Completable termination, long deploymentId) {
         termination.doOnError(throwable -> logger.error(throwable.getMessage()))
             .onErrorResumeNext(throwable ->

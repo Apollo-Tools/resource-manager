@@ -38,10 +38,22 @@ public class EnsembleChecker extends EntityChecker {
         return ensembleService.validateCreateEnsembleRequest(requestBody);
     }
 
+    /**
+     * Validate whether all resources of an existing ensemble fulfill its service level objectives.
+     *
+     * @param accountId the id of the account
+     * @param ensembleId the id of the ensemble
+     * @return a Single that emits a JsonArray containing every resource with its slo fulfillment state
+     */
     public Single<JsonArray> checkValidateExistingEnsemble(long accountId, long ensembleId) {
         return ensembleService.validateExistingEnsemble(accountId, ensembleId);
     }
 
+    /**
+     * Validate whether all resources of all existing ensembles fulfill their service level objectives.
+     *
+     * @return a Completable
+     */
     public Completable checkValidateAllExistingEnsembles() {
         return ensembleService.validateAllExistingEnsembles();
     }

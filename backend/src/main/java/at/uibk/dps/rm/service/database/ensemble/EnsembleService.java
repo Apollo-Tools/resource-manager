@@ -65,9 +65,14 @@ public interface EnsembleService extends DatabaseServiceInterface {
      * Check if all resources from an existing ensemble fulfill its service level objectives.
      *
      * @param ensembleId the id of the ensemble
-     * @return a Future that emits nothing
+     * @return a Future that emits all found resources and their validity state
      */
     Future<JsonArray> validateExistingEnsemble(long accountId, long ensembleId);
 
+    /**
+     * Check if all resources from all existing ensembles fulfill their service level objectives.
+     *
+     * @return a Future that emits nothing
+     */
     Future<Void> validateAllExistingEnsembles();
 }

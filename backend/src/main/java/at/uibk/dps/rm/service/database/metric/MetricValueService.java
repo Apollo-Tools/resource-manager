@@ -36,6 +36,13 @@ public interface MetricValueService extends DatabaseServiceInterface {
             ServiceProxyAddress.getServiceProxyAddress(MetricValue.class));
     }
 
+    /**
+     * Save all metric values from data to a resource.
+     *
+     * @param resourceId the id of the resource
+     * @param data the metric value data to set
+     * @return an empty Future
+     */
     Future<Void> saveAllToResource(long resourceId, JsonArray data);
 
     /**

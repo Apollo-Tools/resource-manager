@@ -7,6 +7,12 @@ import lombok.Getter;
 import java.util.Arrays;
 
 // TODO: remove hard coded stuff, retrieve from database
+
+/**
+ * Represents the currently monitored metrics for k8s resources.
+ *
+ * @author matthi-g
+ */
 @AllArgsConstructor
 @Getter
 public enum K8sMonitoringMetricEnum {

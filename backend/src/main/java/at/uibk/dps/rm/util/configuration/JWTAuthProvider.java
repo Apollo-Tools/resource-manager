@@ -44,6 +44,11 @@ public class JWTAuthProvider {
                 .setExpiresInMinutes(expiresInMinutes)));
     }
 
+    /**
+     * Return a handler that verifies incoming requests if the sender has the admin role.
+     *
+     * @return the authorization handler
+     */
     public static AuthorizationHandler getAdminAuthorizationHandler() {
         AuthorizationProvider authorizationProvider = JWTAuthorization.create(ROLE_CLAIM);
         return AuthorizationHandler.create(PermissionBasedAuthorization.create(ADMIN))

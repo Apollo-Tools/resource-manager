@@ -27,6 +27,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * All monitoring processes of the resource manager are executed on the ApiVerticle.
+ *
+ * @author matthi-g
+ */
 public class MonitoringVerticle extends AbstractVerticle {
 
     private static final Logger logger = LoggerFactory.getLogger(MonitoringVerticle.class);

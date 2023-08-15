@@ -10,6 +10,11 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents an existing deployment, that contains resources.
+ *
+ * @author matthi-g
+ */
 @Getter
 @Setter
 public class DeploymentWithResourcesDTO extends Deployment {

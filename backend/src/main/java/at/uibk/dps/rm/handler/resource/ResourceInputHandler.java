@@ -17,6 +17,11 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class ResourceInputHandler {
 
+    /**
+     * Validate a add resources request.
+     *
+     * @param rc the routing context
+     */
     public static void validateAddResourceRequest(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
         String resourceName = requestBody.getString("name");

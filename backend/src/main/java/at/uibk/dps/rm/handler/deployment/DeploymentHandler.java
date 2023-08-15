@@ -30,6 +30,12 @@ public class DeploymentHandler extends ValidationHandler {
         return super.postOneToAccount(rc);
     }
 
+    /**
+     * Cancel an existing deployment and deploy all resources.
+     *
+     * @param rc the routing context
+     * @return a Single that emits the updated deployment entity
+     */
     public Single<JsonObject> cancelDeployment(RoutingContext rc) {
         long accountId = rc.user().principal().getLong("account_id");
         return HttpHelper.getLongPathParam(rc, "id")

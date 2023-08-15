@@ -6,6 +6,11 @@ import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import lombok.Getter;
 
+/**
+ * Provides all repositories that are necessary to validate, modify and persist ensembles.
+ *
+ * @author matthi-g
+ */
 @Getter
 public class EnsembleRepositoryProvider {
     private final EnsembleRepository ensembleRepository;
@@ -16,6 +21,9 @@ public class EnsembleRepositoryProvider {
 
     private final MetricRepository metricRepository;
 
+    /**
+     * Create an instance.
+     */
     public EnsembleRepositoryProvider() {
         this.ensembleRepository = new EnsembleRepository();
         this.ensembleSLORepository = new EnsembleSLORepository();

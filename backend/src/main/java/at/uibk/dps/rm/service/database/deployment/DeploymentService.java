@@ -62,7 +62,21 @@ public interface DeploymentService extends DatabaseServiceInterface {
      */
     Future<JsonObject> findOneByIdAndAccountId(long id, long accountId);
 
+    /**
+     * Handle a deployment error.
+     *
+     * @param id the id of the deployment
+     * @param errorMessage the error message of the error
+     * @return an empty Future
+     */
     Future<Void> handleDeploymentError(long id, String errorMessage);
 
+    /**
+     * Handle a successful deployment.
+     *
+     * @param terraformOutput the output of the deployment process
+     * @param request the deployment request
+     * @return an empty Future
+     */
     Future<Void> handleDeploymentSuccessful(JsonObject terraformOutput, DeployResourcesDTO request);
 }

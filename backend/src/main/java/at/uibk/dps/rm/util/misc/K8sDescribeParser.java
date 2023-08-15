@@ -7,9 +7,19 @@ import lombok.experimental.UtilityClass;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * This class can be used to parse the output of the kubectl command "kube describe node".
+ *
+ * @author matthi-g
+ */
 @UtilityClass
 public class K8sDescribeParser {
-
+    /**
+     * Parse describe block of node.
+     *
+     * @param describeBlock the describe block
+     * @param node the node
+     */
     public static void parseContent(String describeBlock, K8sNode node) {
         String allocationPattern = "^\\s*(cpu|memory|ephemeral-storage)\\s+(\\d+[A-Za-z]*)\\s+\\(\\d+%\\)";
         Pattern pattern = Pattern.compile(allocationPattern, Pattern.MULTILINE);

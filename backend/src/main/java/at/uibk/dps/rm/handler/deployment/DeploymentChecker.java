@@ -41,10 +41,24 @@ public class DeploymentChecker extends EntityChecker {
         return deploymentService.cancelDeployment(deploymentId, accountId);
     }
 
-    public Completable handleDeploymentError(long id, String errorMessage) {
-        return deploymentService.handleDeploymentError(id, errorMessage);
+    /**
+     * Handle errors that occur during the deployment process.
+     *
+     * @param deploymentId the deploymentId of the deployment
+     * @param errorMessage the error message
+     * @return a Completable
+     */
+    public Completable handleDeploymentError(long deploymentId, String errorMessage) {
+        return deploymentService.handleDeploymentError(deploymentId, errorMessage);
     }
 
+    /**
+     * Handle a successful deployment.
+     *
+     * @param tfOutput the output of the deployment
+     * @param deployResourcesDTO the deploy resources request
+     * @return a Completable
+     */
     public Completable handleDeploymentSuccessful(ProcessOutput tfOutput, DeployResourcesDTO deployResourcesDTO) {
         return deploymentService.handleDeploymentSuccessful(new JsonObject(tfOutput.getOutput()),
             deployResourcesDTO);

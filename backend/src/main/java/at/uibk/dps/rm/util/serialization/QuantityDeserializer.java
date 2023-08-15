@@ -9,6 +9,12 @@ import io.kubernetes.client.custom.QuantityFormatException;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+
+/**
+ * This class can be used to deserialize the {@link Quantity}.
+ *
+ * @author matthi-g
+ */
 public class QuantityDeserializer extends StdDeserializer<Quantity> {
 
     private static final long serialVersionUID = 2489015244524901705L;
@@ -37,6 +43,12 @@ public class QuantityDeserializer extends StdDeserializer<Quantity> {
         return parse(node);
     }
 
+    /**
+     * Parse a quantity value
+     *
+     * @param value the quantity value
+     * @return the parse Quantity
+     */
     public Quantity parse(JsonNode value) {
         if (value == null || value.isEmpty()) {
             throw new QuantityFormatException("");

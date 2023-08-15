@@ -10,6 +10,11 @@ import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
 import at.uibk.dps.rm.repository.service.ServiceRepository;
 import lombok.Getter;
 
+/**
+ * Provides all repositories that are necessary to validate, modify and persist deployments.
+ *
+ * @author matthi-g
+ */
 @Getter
 public class DeploymentRepositoryProvider {
 
@@ -26,6 +31,9 @@ public class DeploymentRepositoryProvider {
     private final CredentialsRepository credentialsRepository;
     private final AccountRepository accountRepository;
 
+    /**
+     * Create an instance.
+     */
     public DeploymentRepositoryProvider() {
         deploymentRepository = new DeploymentRepository();
         resourceDeploymentRepository = new ResourceDeploymentRepository();

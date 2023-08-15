@@ -7,12 +7,26 @@ import lombok.Setter;
 import java.sql.Timestamp;
 import java.util.Set;
 
+/**
+ * Represents a sub resource which is used for the de-/serialization of the
+ * {@link at.uibk.dps.rm.entity.model.SubResource} class
+ *
+ * @author matthi-g
+ */
 @Getter
 @Setter
 public class SubResourceDTO extends Resource {
 
+    /**
+     * Create an instance.
+     */
     public SubResourceDTO() {}
 
+    /**
+     * Create an instance from the subResource.
+     *
+     * @param subResource the sub resource
+     */
     public SubResourceDTO(SubResource subResource) {
         MainResource mainResource = subResource.getMain();
         this.setResourceId(subResource.getResourceId());

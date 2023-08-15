@@ -34,6 +34,14 @@ public class AccountHandler extends ValidationHandler {
         this.jwtAuth = jwtAuth;
     }
 
+    /**
+     * Get the details of a user account by either using the path parameter id or the id of the
+     * logged-in user.
+     *
+     * @param rc the routing context
+     * @param usePrincipal whether to use the id of the logged-in user or path parameter
+     * @return details of the user account
+     */
     public Single<JsonObject> getOne(RoutingContext rc, boolean usePrincipal) {
         Single<Long> getAccountId;
         if (usePrincipal) {

@@ -11,6 +11,11 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.util.Objects;
 
+/**
+ * Implements the monitored {@link K8sEntityData} for a k8s cluster node resource.
+ *
+ * @author matthi-g
+ */
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -25,15 +30,30 @@ public class K8sNode implements K8sEntityData {
 
     private Quantity storageLoad;
 
+    /**
+     * Create an instance from the node.
+     *
+     * @param node a k8s node
+     */
     public K8sNode(V1Node node) {
         this.node = node;
     }
 
+    /**
+     * Get the name of the node.
+     *
+     * @return the name of the node
+     */
     @JsonIgnore
     public String getName() {
         return Objects.requireNonNull(node.getMetadata()).getName();
     }
 
+    /**
+     * Get the value of the kubernetes.io/hostname label
+     *
+     * @return the hostname
+     */
     @JsonIgnore
     public String getHostname() {
         if (node.getMetadata() != null && node.getMetadata().getLabels() != null) {

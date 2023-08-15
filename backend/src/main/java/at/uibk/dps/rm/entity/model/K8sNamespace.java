@@ -8,6 +8,11 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.sql.Timestamp;
 
+/**
+ * Represents the k8s_namespace entity.
+ *
+ * @author matthi-g
+ */
 @Entity
 @Getter
 @Setter

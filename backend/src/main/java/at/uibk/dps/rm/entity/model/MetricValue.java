@@ -78,16 +78,31 @@ public class MetricValue {
         return metricValueId.hashCode();
     }
 
+    /**
+     * Set the number value.
+     *
+     * @param value the new value
+     */
     @JsonIgnore
     public void setValue(Double value) {
         setValueNumber(value);
     }
 
+    /**
+     * Set the string value.
+     *
+     * @param value the new value
+     */
     @JsonIgnore
     public void setValue(String value) {
         setValueString(value);
     }
 
+    /**
+     * Set the boolean value
+     *
+     * @param value the new value
+     */
     @JsonIgnore
     public void setValue(Boolean value) {
         setValueBool(value);

@@ -8,6 +8,11 @@ import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import lombok.Getter;
 import org.mockito.Mockito;
 
+/**
+ * Utility class to mock the {@link EnsembleRepositoryProviderMock} for tests.
+ *
+ * @author matthi-g
+ */
 @Getter
 public class EnsembleRepositoryProviderMock {
 

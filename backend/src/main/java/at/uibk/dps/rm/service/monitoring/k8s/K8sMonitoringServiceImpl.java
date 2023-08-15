@@ -23,11 +23,16 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * This is the implementation of the {@link K8sMonitoringService}.
+ *
+ * @author matthi-g
+ */
 public class K8sMonitoringServiceImpl implements K8sMonitoringService {
 
     private static final Logger logger = LoggerFactory.getLogger(MonitoringVerticle.class);
 
-    public CoreV1Api setUpLocalClient() {
+    private CoreV1Api setUpLocalClient() {
         try {
             ApiClient localClient = Config.defaultClient();
             Configuration.setDefaultApiClient(localClient);
@@ -37,7 +42,7 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
         }
     }
 
-    public CoreV1Api setUpExternalClient(String kubeConfig) {
+    private CoreV1Api setUpExternalClient(String kubeConfig) {
         try {
             ApiClient externalClient = Config.fromConfig(new StringReader(kubeConfig));
             Configuration.setDefaultApiClient(externalClient);

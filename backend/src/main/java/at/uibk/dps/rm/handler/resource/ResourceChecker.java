@@ -39,6 +39,12 @@ public class ResourceChecker extends EntityChecker {
         return ErrorHandler.handleFindAll(findAllByMultipleMetrics);
     }
 
+    /**
+     * Find all sub resources of a main resource.
+     *
+     * @param resourceId the id of the resource
+     * @return a Single that emits all found resources as JsonArray
+     */
     public Single<JsonArray> checkFindAllSubResources(long resourceId) {
         Single<JsonArray> findAllSubResources = resourceService.findAllSubResources(resourceId);
         return ErrorHandler.handleFindAll(findAllSubResources);

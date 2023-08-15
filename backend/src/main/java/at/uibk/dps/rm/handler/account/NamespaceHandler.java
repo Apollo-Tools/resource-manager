@@ -22,6 +22,14 @@ public class NamespaceHandler extends ValidationHandler {
         super(namespaceChecker);
     }
 
+    /**
+     * List all namespaces of a user account by either using the path parameter id or the id of the
+     * logged-in user.
+     *
+     * @param rc the routing context
+     * @param usePrincipal whether to use the id of the logged-in user or path parameter
+     * @return all namespaces of the user account
+     */
     public Single<JsonArray> getAllByAccount(RoutingContext rc, boolean usePrincipal) {
         Single<Long> getAccountId;
         if (usePrincipal) {

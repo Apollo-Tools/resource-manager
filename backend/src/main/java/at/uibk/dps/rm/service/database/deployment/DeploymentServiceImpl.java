@@ -503,6 +503,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
             .thenAccept(request::setServiceDeployments);
     }
 
+    @Override
     public Future<Void> handleDeploymentError(long id, String errorMessage) {
         CompletionStage<Void> handleError = withTransaction(session -> {
             CompletableFuture<Integer> updateStatus = repositoryProvider.getResourceDeploymentRepository()
@@ -524,6 +525,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
         return sessionToFuture(handleError);
     }
 
+    @Override
     public Future<Void> handleDeploymentSuccessful(JsonObject terraformOutput, DeployResourcesDTO request) {
         DeploymentOutput deploymentOutput = DeploymentOutput.fromJson(terraformOutput);
         List<CompletableFuture<Integer>> completables = new ArrayList<>();

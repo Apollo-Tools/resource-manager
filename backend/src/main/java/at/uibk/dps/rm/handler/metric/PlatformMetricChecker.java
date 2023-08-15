@@ -26,6 +26,12 @@ public class PlatformMetricChecker extends EntityChecker {
         this.service = service;
     }
 
+    /**
+     * Find all metrics that are supported by a platform.
+     *
+     * @param platformId the id of the platform
+     * @return a Single that emits all found metrics as a JsonArray
+     */
     public Single<JsonArray> checkFindAllByPlatformId(long platformId) {
         return service.findAllByPlatformId(platformId);
     }

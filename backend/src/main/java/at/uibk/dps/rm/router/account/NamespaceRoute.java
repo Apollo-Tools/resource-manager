@@ -8,6 +8,11 @@ import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.util.configuration.JWTAuthProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
+/**
+ * Used to initialise the namespace route.
+ *
+ * @author matthi-g
+ */
 public class NamespaceRoute implements Route {
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {

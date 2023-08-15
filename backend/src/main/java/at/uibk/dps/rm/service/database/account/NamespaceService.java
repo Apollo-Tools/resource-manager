@@ -37,5 +37,12 @@ public interface NamespaceService extends DatabaseServiceInterface {
         return new NamespaceServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(K8sNamespace.class));
     }
 
+    /**
+     * Update all namespaces for a cluster resource.
+     *
+     * @param clusterName the name of the cluster resource
+     * @param namespaces the list of namespaces
+     * @return an empty Future
+     */
     Future<Void> updateAllClusterNamespaces(String clusterName, List<String> namespaces);
 }

@@ -12,6 +12,11 @@ import at.uibk.dps.rm.repository.service.ServiceRepository;
 import lombok.Getter;
 import org.mockito.Mockito;
 
+/**
+ * Utility class to mock the {@link DeploymentRepositoryProvider} for tests.
+ *
+ * @author matthi-g
+ */
 @Getter
 public class DeploymentRepositoryProviderMock {
     private final DeploymentRepositoryProvider repositoryProvider = Mockito.mock(DeploymentRepositoryProvider.class);

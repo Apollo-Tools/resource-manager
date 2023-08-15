@@ -50,6 +50,12 @@ public interface ResourceService extends DatabaseServiceInterface {
      */
     Future<JsonArray> findAllBySLOs(JsonObject data);
 
+    /**
+     * Find all sub resources by their main resource.
+     *
+     * @param resourceId the id of the main resource
+     * @return a Future that emits all sub resources as JsonArray
+     */
     Future<JsonArray> findAllSubResources(long resourceId);
 
     /**
@@ -60,5 +66,12 @@ public interface ResourceService extends DatabaseServiceInterface {
      */
     Future<JsonArray> findAllByResourceIds(List<Long> resourceIds);
 
+    /**
+     * Update a cluster resource using the contents of the data object.
+     *
+     * @param resourceName the name of the cluster resource
+     * @param data the monitoring data
+     * @return an empty Future
+     */
     Future<Void> updateClusterResource(String resourceName, K8sMonitoringData data);
 }

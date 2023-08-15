@@ -9,6 +9,11 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.util.List;
 
+/**
+ * Implements the monitored {@link K8sEntityData} for a k8s cluster resource.
+ *
+ * @author matthi-g
+ */
 @Getter
 @Setter
 @AllArgsConstructor

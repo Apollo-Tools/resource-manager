@@ -36,5 +36,11 @@ public interface PlatformMetricService extends DatabaseServiceInterface {
             ServiceProxyAddress.getServiceProxyAddress(PlatformMetric.class));
     }
 
+    /**
+     * Find all platform metrics by a platform.
+     *
+     * @param platformId the id of the platform
+     * @return a Future that emits all platform metrics as JsonArray
+     */
     Future<JsonArray> findAllByPlatformId(long platformId);
 }

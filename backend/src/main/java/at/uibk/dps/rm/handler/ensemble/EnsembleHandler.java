@@ -41,13 +41,21 @@ public class EnsembleHandler extends ValidationHandler {
         return ensembleChecker.checkCreateEnsembleRequestFulfillsSLOs(requestBody);
     }
 
+    /**
+     * Validate an existing ensemble.
+     *
+     * @param rc the routing context
+     * @return a Single that emits all resources with their validity state
+     */
     public Single<JsonArray> validateExistingEnsemble(RoutingContext rc) {
         long accountId = rc.user().principal().getLong("account_id");
         return HttpHelper.getLongPathParam(rc, "id")
         .flatMap(id -> ensembleChecker.checkValidateExistingEnsemble(accountId, id));
     }
 
-
+    /**
+     * Validate all existing ensembles.
+     */
     public void validateAllExistingEnsembles() {
         ensembleChecker.checkValidateAllExistingEnsembles()
             .subscribe();

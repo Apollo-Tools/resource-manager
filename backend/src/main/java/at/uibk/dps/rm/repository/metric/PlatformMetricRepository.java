@@ -21,6 +21,13 @@ public class PlatformMetricRepository extends Repository<PlatformMetric> {
         super(PlatformMetric.class);
     }
 
+    /**
+     * Find all platform metrics by their platform
+     *
+     * @param session the database session
+     * @param platformId the id of the platform
+     * @return a CompletionStage that emits all platform metrics
+     */
     public CompletionStage<List<PlatformMetric>> findAllByPlatform(Session session, long platformId) {
         return session.createQuery("from PlatformMetric pm " +
                 "left join fetch pm.metric m " +

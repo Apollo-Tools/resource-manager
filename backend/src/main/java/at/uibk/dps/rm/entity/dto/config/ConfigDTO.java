@@ -6,6 +6,11 @@ import lombok.Setter;
 
 import java.util.List;
 
+/**
+ * Represents the vertx config.
+ *
+ * @author matthi-g
+ */
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
