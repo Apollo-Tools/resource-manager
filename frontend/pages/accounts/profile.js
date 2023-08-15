@@ -15,7 +15,7 @@ const Profile = () => {
       <Head>
         <title>{`${siteTitle}: Profile`}</title>
       </Head>
-      <div className="card container w-11/12 max-w-7xl p-10">
+      <div className="default-card">
         <Title>Profile</Title>
         <Divider />
         <Segmented options={['Account Info', 'Cloud Credentials', 'Virtual Private Clouds']} value={selectedSegment}

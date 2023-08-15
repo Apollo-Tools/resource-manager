@@ -6,20 +6,20 @@ import Link from 'next/link';
 import PropTypes from 'prop-types';
 
 
-const NewEntityContainer = ({entityName, newEntity, setNewEntity, rootPath, children, overviewName}) => {
+const NewEntityContainer = ({entityName, isFinished, onReset, rootPath, children, overviewName}) => {
   const backButtonLabel = overviewName == null ? entityName : overviewName;
 
   const onClickRestart = () => {
-    setNewEntity(null);
+    onReset();
   };
 
   return <>
     <Head>
       <title>{`${siteTitle}: New ${entityName}`}</title>
     </Head>
-    <div className="card container w-full md:w-11/12 max-w-7xl p-10 mt-2 mb-2">
+    <div className="default-card">
       <Typography.Title level={2}>New {entityName}</Typography.Title>
-      {newEntity ?
+      {isFinished ?
         <Result
           icon={<SmileOutlined />}
           title={`The ${entityName} has been created!`}
@@ -39,8 +39,8 @@ const NewEntityContainer = ({entityName, newEntity, setNewEntity, rootPath, chil
 
 NewEntityContainer.propTypes = {
   entityName: PropTypes.string.isRequired,
-  newEntity: PropTypes.object.isRequired,
-  setNewEntity: PropTypes.func.isRequired,
+  isFinished: PropTypes.bool.isRequired,
+  onReset: PropTypes.func.isRequired,
   rootPath: PropTypes.string.isRequired,
   children: PropTypes.node.isRequired,
   overviewName: PropTypes.string,

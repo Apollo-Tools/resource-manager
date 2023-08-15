@@ -8,8 +8,8 @@ const NewType = () => {
   return <>
     <NewEntityContainer
       entityName="Function Type"
-      newEntity={newFunctionType}
-      setNewEntity={setNewFunctionType}
+      isFinished={newFunctionType != null}
+      onReset={() => setNewFunctionType(null)}
       rootPath="/functions/functions"
       overviewName="Function"
     >

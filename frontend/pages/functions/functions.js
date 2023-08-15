@@ -14,7 +14,7 @@ const Functions = () => {
       <Head>
         <title>{`${siteTitle}: Functions`}</title>
       </Head>
-      <div className="card container w-11/12 max-w-7xl p-10">
+      <div className="default-card">
         <Typography.Title level={2}>All Functions</Typography.Title>
         <Segmented options={segments} value={selectedSegment}
           onChange={(e) => setSelectedSegment(e)} size="large" block/>

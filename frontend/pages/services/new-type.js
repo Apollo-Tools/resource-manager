@@ -8,8 +8,8 @@ const NewType = () => {
   return <>
     <NewEntityContainer
       entityName="Service Type"
-      newEntity={newServiceType}
-      setNewEntity={setNewServiceType}
+      isFinished={newServiceType != null}
+      onReset={() => setNewServiceType(null)}
       rootPath="/services/services"
       overviewName="Service"
     >

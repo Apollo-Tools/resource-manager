@@ -34,7 +34,7 @@ const FunctionDetails = () => {
   };
 
   return (
-    <div className="card container w-full md:w-11/12 max-w-7xl mt-2 mb-2">
+    <div className="default-card">
       <Typography.Title level={2}>Function Details ({func.function_id})</Typography.Title>
       <Divider />
       {

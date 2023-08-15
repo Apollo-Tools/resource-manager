@@ -76,7 +76,7 @@ const NewDeployment = () => {
       <Head>
         <title>{`${siteTitle}: Resources`}</title>
       </Head>
-      <div className="card container w-11/12 max-w-7xl p-10 ">
+      <div className="default-card">
         <Typography.Title level={2}>New Deployment</Typography.Title>
         <Steps current={current} items={items} className="mb-1 p-5 shadow-lg bg-cyan-50"/>
         {current === 0 &&

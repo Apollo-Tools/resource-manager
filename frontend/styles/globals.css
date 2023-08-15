@@ -29,6 +29,10 @@
   .custom-select div.ant-select-selector {
     @apply rounded-r-none !important;
   }
+
+  .default-card {
+    @apply card container w-full md:w-11/12 max-w-7xl p-10 min-h-[700px]
+  }
 }
 
 html,
