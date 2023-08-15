@@ -27,7 +27,7 @@ export async function createService(serviceTypeId, name, image, replicas, ports,
       },
       body: JSON.stringify({
         service_type: {
-          artifact_type_id: serviceTypeId
+          artifact_type_id: serviceTypeId,
         },
         name: name,
         image: image,

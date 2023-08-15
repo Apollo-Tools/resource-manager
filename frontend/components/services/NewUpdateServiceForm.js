@@ -61,8 +61,8 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
         ports = values.ports.map((portEntries) => `${portEntries.containerPort}:${portEntries.servicePort}`);
       }
       if (mode === 'new') {
-        await createService(values.serviceType, values.name, values.image, values.replicas, ports, values.cpu, values.memory,
-            values.k8sServiceType, token, setNewService, setError);
+        await createService(values.serviceType, values.name, values.image, values.replicas, ports, values.cpu,
+            values.memory, values.k8sServiceType, token, setNewService, setError);
       } else {
         await updateService(service.service_id, values.replicas, ports, values.cpu, values.memory,
             values.k8sServiceType, token, setError);
