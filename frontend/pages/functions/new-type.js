@@ -11,6 +11,7 @@ const NewType = () => {
       newEntity={newFunctionType}
       setNewEntity={setNewFunctionType}
       rootPath="/functions/functions"
+      overviewName="Function"
     >
       <NewArtifactTypeForm artifact='function' setNewArtifactType={setNewFunctionType} />
     </NewEntityContainer>

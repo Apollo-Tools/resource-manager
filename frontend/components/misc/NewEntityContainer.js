@@ -6,7 +6,9 @@ import Link from 'next/link';
 import PropTypes from 'prop-types';
 
 
-const NewEntityContainer = ({entityName, newEntity, setNewEntity, rootPath, children}) => {
+const NewEntityContainer = ({entityName, newEntity, setNewEntity, rootPath, children, overviewName}) => {
+  const backButtonLabel = overviewName == null ? entityName : overviewName;
+
   const onClickRestart = () => {
     setNewEntity(null);
   };
@@ -20,12 +22,12 @@ const NewEntityContainer = ({entityName, newEntity, setNewEntity, rootPath, chil
       {newEntity ?
         <Result
           icon={<SmileOutlined />}
-          title="The function type has been created!"
+          title={`The ${entityName} has been created!`}
           extra={
             <>
               <Button type="primary" icon={<UndoOutlined />} onClick={onClickRestart}>Restart</Button>
               <Link href={rootPath}>
-                <Button type="default" icon={<FunctionOutlined />}>All Functions</Button>
+                <Button type="default" icon={<FunctionOutlined />}>All {backButtonLabel}s</Button>
               </Link>
             </>
           }
@@ -41,6 +43,7 @@ NewEntityContainer.propTypes = {
   setNewEntity: PropTypes.func.isRequired,
   rootPath: PropTypes.string.isRequired,
   children: PropTypes.node.isRequired,
+  overviewName: PropTypes.string,
 };
 
 export default NewEntityContainer;
