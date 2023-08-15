@@ -52,24 +52,45 @@ spec:
             # The path of the build directory
             - name: build_directory
               value: build
-            # The temp path for upload files
-            - name: upload_temp_directory
-              value: "build/upload/temp"
-            # The persistence path for upload files
-            - name: upload_persist_directory
-              value: "build/upload"
             # The path on the host to the build directory
             - name: dind_directory
               value: "var/lib/apollo-rm/"
+            # The persistence path for upload files
+            - name: upload_persist_directory
+              value: "build/upload"
+            # The temp path for upload files
+            - name: upload_temp_directory
+              value: "build/upload/temp"
+            # The maximum size of uploaded files in bytes
+            - name: max_file_size
+              value: "10000000"
             # The secret to use for the JWT
             - name: jwt_secret
               value: "todo-swap-with-real-secret"
             # The time until a newly created token expires
             - name: token_minutes_valid
               value: "10080"
-            # The period of time between each validation performed on all existing ensembles
+            # The period of time between each validation performed on all existing ensembles in minutes
             - name: ensemble_validation_period
               value: "60"
+            # The insecure registries that are accessed for openfaas and ec2 deployments
+            - name: docker_insecure_registries
+              value: "[]"
+            # The k8s secrets that contain the kubeconfigs for all monitored k8s resources
+            - name: kube_config_secrets_name
+              value: "rm_kubeconfigs"
+            # The namespace where the kube config secrets are stored
+            - name: kube_config_secrets_namespace
+              value: "default"
+            # The timeout of k8s api requests in seconds
+            - name: kube_api_timeout_seconds
+              value: "10"
+            # The period of time between each monitoring run performed on all existing k8s resources in minutes
+            - name: kube_monitoring_period
+              value: "5"
+            # The secrets that contain credentials to private repositories
+            - name: kube_image_pull_secrets
+              value: "[\"regcred\"]"
           resources:
             # The resource limits
             limits:
