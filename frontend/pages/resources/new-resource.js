@@ -25,21 +25,21 @@ const NewResource = () => {
       <div className="card container w-full md:w-11/12 max-w-7xl p-10 mt-2 mb-2">
         <Typography.Title level={2}>New Resource</Typography.Title>
         {finished ?
-                    <Result
-                      icon={<SmileOutlined />}
-                      title="The resource has been created!"
-                      extra={
-                        <>
-                          <Button type="primary" icon={<UndoOutlined />} onClick={onClickRestart}>Restart</Button>
-                          <Link href={`/resources/resources`}>
-                            <Button type="default" icon={<CloudServerOutlined />}>All Resources</Button>
-                          </Link>
-                        </>
-                      }
-                    /> :
-                    (newResource ?
-                    <AddMetricValuesForm resource={newResource} setFinished={setFinished} isNewResource />:
-                    <NewResourceForm setNewResource={setNewResource} />)
+          <Result
+            icon={<SmileOutlined />}
+            title="The resource has been created!"
+            extra={
+              <>
+                <Button type="primary" icon={<UndoOutlined />} onClick={onClickRestart}>Restart</Button>
+                <Link href={`/resources/resources`}>
+                  <Button type="default" icon={<CloudServerOutlined />}>All Resources</Button>
+                </Link>
+              </>
+            }
+          /> :
+          (newResource ?
+          <AddMetricValuesForm resource={newResource} setFinished={setFinished} isNewResource />:
+          <NewResourceForm setNewResource={setNewResource} />)
         }
       </div>
     </>
