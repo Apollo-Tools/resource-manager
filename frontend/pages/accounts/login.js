@@ -6,7 +6,6 @@ import {useAuth} from '../../lib/AuthenticationProvider';
 import {siteTitle} from '../../components/misc/Sidebar';
 import Head from 'next/head';
 import {useRouter} from 'next/router';
-import Link from 'next/link';
 
 const {Title} = Typography;
 
@@ -83,11 +82,6 @@ const login = () => {
           <Input.Password prefix={<LockOutlined className="site-form-item-icon" />}/>
         </Form.Item>
         <Form.Item>
-          <Link href={`/accounts/signup`} className="float-left">
-            <Button type="link">
-              Create new account
-            </Button>
-          </Link>
           <Button type="primary" htmlType="submit" className="float-right">
             Login
           </Button>

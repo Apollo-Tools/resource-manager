@@ -9,7 +9,7 @@ import {
   FunctionOutlined,
   CloudServerOutlined,
   DeploymentUnitOutlined,
-  DatabaseOutlined,
+  DatabaseOutlined, TeamOutlined,
 } from '@ant-design/icons';
 import {Layout, Menu} from 'antd';
 import {useAuth} from '../../lib/AuthenticationProvider';
@@ -20,7 +20,7 @@ const {Content, Footer, Sider} = Layout;
 export const siteTitle = 'Apollo Tools - Resource Manager';
 
 const Sidebar = ({children}) => {
-  const {logout, checkTokenExpired} = useAuth();
+  const {payload, logout, checkTokenExpired} = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
 
@@ -53,7 +53,9 @@ const Sidebar = ({children}) => {
       getItem(<Link href="/deployments/deployments" ><GroupOutlined /><span>Deployments</span></Link>, '2.2'),
     ]),
     getItem(<Link href="/accounts/profile" ><UserOutlined /><span>Profile</span></Link>, '3'),
-    getItem(<div onClick={onClickLogout}><LogoutOutlined /><span>Logout</span></div>, '4'),
+    payload?.role[0] === 'admin' ?
+        getItem(<Link href="/accounts/accounts"><TeamOutlined /><span>Accounts</span></Link>, '4') : undefined,
+    getItem(<div onClick={onClickLogout}><LogoutOutlined /><span>Logout</span></div>, '5'),
   ];
 
   return (

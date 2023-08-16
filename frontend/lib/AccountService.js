@@ -107,3 +107,26 @@ export async function signUp(username, password, setResponse, setError) {
     console.log(error);
   }
 }
+
+/**
+ * List all accounts.
+ *
+ * @param {string} token the access token
+ * @param {function} setAccounts the function to set the retrieved accounts
+ * @param {function} setError the function to set the error if one occurred
+ */
+export async function listAccounts(token, setAccounts, setError) {
+  try {
+    const response = await fetch(`${API_ROUTE}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await response.json();
+    setAccounts(() => data);
+  } catch (error) {
+    setError(true);
+    console.log(error);
+  }
+}
