@@ -32,6 +32,7 @@ public class ServiceDeploymentRepository extends Repository<ServiceDeployment> {
         return session.createQuery("select distinct sd from ServiceDeployment sd " +
                 "left join fetch sd.service s " +
                 "left join fetch s.serviceType " +
+                "left join fetch s.k8sServiceType " +
                 "left join fetch sd.resource r " +
                 "left join fetch r.metricValues mv " +
                 "left join fetch mv.metric " +
