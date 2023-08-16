@@ -87,3 +87,22 @@ variable "image_pull_secrets" {
   type = list(string)
   default = []
 }
+
+variable "volume_mounts" {
+  description = "The volumes to mount to the pod"
+  type = list(object({
+    name: string
+    mountPath: string
+    sizeMegaBytes: number
+  }))
+  default = []
+}
+
+variable "env_vars" {
+  description = "The environment variables for the container"
+  type = list(object({
+    name: string
+    value: string
+  }))
+  default = []
+}

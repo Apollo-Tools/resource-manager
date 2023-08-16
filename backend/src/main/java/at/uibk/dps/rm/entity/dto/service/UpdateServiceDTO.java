@@ -1,5 +1,7 @@
 package at.uibk.dps.rm.entity.dto.service;
 
+import at.uibk.dps.rm.entity.model.EnvVar;
+import at.uibk.dps.rm.entity.model.VolumeMount;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -25,5 +27,9 @@ public class UpdateServiceDTO {
 
     private Integer memory;
 
-    private ServiceTypeId serviceType;
+    private ServiceTypeId k8sServiceType;
+
+    private List<EnvVar> envVars;
+
+    private List<VolumeMount> volumeMounts;
 }

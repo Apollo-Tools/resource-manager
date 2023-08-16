@@ -8,11 +8,8 @@ import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import org.hibernate.reactive.stage.Stage;
-
-import java.util.Set;
 
 /**
  * The interface of the service proxy for the service entity.
@@ -35,12 +32,4 @@ public interface ServiceService extends DatabaseServiceInterface {
         return new ServiceServiceVertxEBProxy(vertx,
             ServiceProxyAddress.getServiceProxyAddress(Service.class));
     }
-
-    /**
-     * Check if all services exists by serviceIds.
-     *
-     * @param serviceIds the list of service ids
-     * @return a Future that emits true if all services exist, else false
-     */
-    Future<Boolean> existsAllByIds(Set<Long> serviceIds);
 }

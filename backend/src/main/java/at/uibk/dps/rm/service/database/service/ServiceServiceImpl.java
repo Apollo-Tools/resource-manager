@@ -16,7 +16,6 @@ import org.hibernate.reactive.stage.Stage.SessionFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CompletionStage;
 
 /**
@@ -40,17 +39,29 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
 
     @Override
     public Future<JsonObject> findOne(long id) {
-        CompletionStage<Service> findOne = withSession(session -> repository.findByIdAndFetch(session, id));
+        CompletionStage<Service> findOne = withSession(session -> repository.findByIdAndFetch(session, id)
+            .thenCompose(result -> {
+                ServiceResultValidator.checkFound(result, Service.class);
+                return session.fetch(result.getEnvVars())
+                    .thenCompose(res -> session.fetch(result.getVolumeMounts()))
+                    .thenApply(res -> result);
+            })
+        );
+
         return sessionToFuture(findOne).map(JsonObject::mapFrom);
     }
 
     @Override
     public Future<JsonArray> findAll() {
         CompletionStage<List<Service>> findAll = withSession(repository::findAllAndFetch);
-        return Future.fromCompletionStage(findAll)
+        return sessionToFuture(findAll)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Service entity: result) {
+                    entity.setReplicas(null);
+                    entity.setPorts(null);
+                    entity.setCpu(null);
+                    entity.setMemory(null);
                     objects.add(JsonObject.mapFrom(entity));
                 }
                 return new JsonArray(objects);
@@ -87,13 +98,13 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
         CompletionStage<Service> update = withTransaction(session -> repository.findByIdAndFetch(session, id)
             .thenCompose(service -> {
                 ServiceResultValidator.checkFound(service, Service.class);
-                long serviceTypeId = (fields.containsKey("service_type") ?
-                    fields.getJsonObject("service_type").getLong("service_type_id") :
-                    service.getK8sServiceType().getServiceTypeId());
-                int portAmount = fields.containsKey("ports") ?
-                    fields.getJsonArray("ports").size() : service.getPorts().size();
-                return session.find(K8sServiceType.class, serviceTypeId)
-                    .thenApply(serviceType -> {
+                long k8sServiceTypeId = updateService.getK8sServiceType() != null ?
+                    updateService.getK8sServiceType().getServiceTypeId() :
+                    service.getK8sServiceType().getServiceTypeId();
+                int portAmount = updateService.getPorts() != null ?
+                    updateService.getPorts().size() : service.getPorts().size();
+                return session.find(K8sServiceType.class, k8sServiceTypeId)
+                    .thenCompose(serviceType -> {
                         ServiceResultValidator.checkFound(serviceType, K8sServiceType.class);
                         checkServiceTypePorts(serviceType, portAmount);
                         service.setReplicas(updateNonNullValue(service.getReplicas(), updateService.getReplicas()));
@@ -101,19 +112,17 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
                         service.setMemory(updateNonNullValue(service.getMemory(), updateService.getMemory()));
                         service.setK8sServiceType(serviceType);
                         service.setPorts(updateNonNullValue(service.getPorts(), updateService.getPorts()));
+                        return session.fetch(service.getEnvVars())
+                            .thenCompose(res -> session.fetch(service.getVolumeMounts()));
+                    })
+                    .thenApply(res -> {
+                        service.setEnvVars(updateNonNullValue(service.getEnvVars(), updateService.getEnvVars()));
+                        service.setVolumeMounts(updateNonNullValue(service.getVolumeMounts(), updateService.getVolumeMounts()));
                         return service;
                     });
             })
         );
         return sessionToFuture(update).mapEmpty();
-    }
-
-    @Override
-    public Future<Boolean> existsAllByIds(Set<Long> serviceIds) {
-        CompletionStage<List<Service>> findAll = withSession(session ->
-            repository.findAllByIds(session, serviceIds));
-        return Future.fromCompletionStage(findAll)
-            .map(result -> result.size() == serviceIds.size());
     }
 
     private void checkServiceTypePorts(K8sServiceType serviceType, int portAmount) {

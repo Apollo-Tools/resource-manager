@@ -2733,7 +2733,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Service"
+                $ref: "#/components/schemas/ServiceDetails"
         400:
           $ref: "#/components/responses/400"
         401:
@@ -2778,7 +2778,7 @@ paths:
                   type: integer
                   format: int32
                   example: 128
-                service_type:
+                k8s_service_type:
                   type: object
                   required:
                     - service_type_id
@@ -2788,6 +2788,48 @@ paths:
                       type: integer
                       format: int64
                       example: 1
+                env_vars:
+                  description: the environment variables of the container
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - name
+                      - value
+                    additionalProperties: false
+                    properties:
+                      name:
+                        type: string
+                        minLength: 3
+                        maxLength: 128
+                        example: db_user
+                      value:
+                        type: string
+                        maxLength: 512
+                        example: root
+                volume_mounts:
+                  description: the volumes to mount (emptyDir)
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - name
+                      - mount_path
+                      - size_megabytes
+                    additionalProperties: false
+                    properties:
+                      name:
+                        type: string
+                        minLength: 3
+                        maxLength: 128
+                        example: file-upload
+                      mount_path:
+                        type: string
+                        maxLength: 512
+                        example: /uploads
+                      size_megabytes:
+                        type: number
+                        example: 10.0
       responses:
         204:
           description: Successful update of a function
@@ -2869,6 +2911,8 @@ paths:
                 - cpu
                 - memory
                 - k8s_service_type
+                - volume_mounts
+                - env_vars
               additionalProperties: false
               properties:
                 name:
@@ -2925,7 +2969,48 @@ paths:
                       type: integer
                       format: int64
                       example: 1
-
+                env_vars:
+                  description: the environment variables of the container
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - name
+                      - value
+                    additionalProperties: false
+                    properties:
+                      name:
+                        type: string
+                        minLength: 3
+                        maxLength: 128
+                        example: db_user
+                      value:
+                        type: string
+                        maxLength: 512
+                        example: root
+                volume_mounts:
+                  description: the volumes to mount (emptyDir)
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - name
+                      - mount_path
+                      - size_megabytes
+                    additionalProperties: false
+                    properties:
+                      name:
+                        type: string
+                        minLength: 3
+                        maxLength: 128
+                        example: file-upload
+                      mount_path:
+                        type: string
+                        maxLength: 512
+                        example: /uploads
+                      size_megabytes:
+                        type: number
+                        example: 10.0
       responses:
         201:
           description: Successful creation of a new service
@@ -2936,7 +3021,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Service"
+                $ref: "#/components/schemas/ServiceDetails"
         400:
           $ref: "#/components/responses/400"
         401:
@@ -3641,29 +3726,94 @@ components:
         image:
           type: string
           example: user/image:latest
-        replicas:
-          type: integer
-          minimum: 1
-          format: int32
-          example: 1
-        ports:
-          type: array
-          items:
-            type: string
-            example: 80:8080
-        cpu:
-          type: number
-          example: 0.1
-        memory:
-          type: integer
-          format: int32
-          example: 128
         service_type:
           $ref: "#/components/schemas/K8sServiceType"
         created_at:
           type: integer
           format: int64
           example: 1679496667103
+        updated_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+
+    ServiceDetails:
+      allOf:
+        - $ref: '#/components/schemas/Service'
+        - type: object
+          properties:
+            service_id:
+              type: integer
+              format: int64
+              example: 1
+            name:
+              type: string
+              example: servicename
+              minLength: 3
+              maxLength: 4096
+              description: only lower case letters or digits are allowed
+            image:
+              type: string
+              example: user/image:latest
+            replicas:
+              type: integer
+              minimum: 1
+              format: int32
+              example: 1
+            ports:
+              type: array
+              items:
+                type: string
+                example: 80:8080
+            cpu:
+              type: number
+              example: 0.1
+            memory:
+              type: integer
+              format: int32
+              example: 128
+            service_type:
+              $ref: "#/components/schemas/K8sServiceType"
+            created_at:
+              type: integer
+              format: int64
+              example: 1679496667103
+            env_vars:
+              description: the environment variables of the container
+              type: array
+              items:
+                type: object
+                required:
+                  - name
+                  - value
+                additionalProperties: false
+                properties:
+                  name:
+                    type: string
+                    example: db_user
+                  value:
+                    type: string
+                    example: root
+            volume_mounts:
+              description: the volumes to mount (emptyDir)
+              type: array
+              items:
+                type: object
+                required:
+                  - name
+                  - mount_path
+                  - size_megabytes
+                additionalProperties: false
+                properties:
+                  name:
+                    type: string
+                    example: file-upload
+                  mount_path:
+                    type: string
+                    example: /uploads
+                  size_megabytes:
+                    type: number
+                    example: 10.0
 
     K8sServiceType:
       type: object

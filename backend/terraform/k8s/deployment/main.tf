@@ -69,6 +69,14 @@ resource "kubernetes_deployment_v1" "deployment" {
             }
           }
 
+          dynamic "env" {
+            for_each = var.env_vars
+            content {
+              name = env.value.name
+              value = env.value.value
+            }
+          }
+
           dynamic "port" {
             for_each = var.ports
             content {
@@ -76,6 +84,15 @@ resource "kubernetes_deployment_v1" "deployment" {
               container_port = port.value.container_port
             }
           }
+
+          dynamic "volume_mount" {
+            for_each = var.volume_mounts
+            content {
+              mount_path = volume_mount.value.mountPath
+              name = volume_mount.value.name
+            }
+          }
+
         }
         dynamic "image_pull_secrets" {
           for_each = var.image_pull_secrets
@@ -84,6 +101,16 @@ resource "kubernetes_deployment_v1" "deployment" {
           }
         }
         node_selector = var.hostname != null ? {"kubernetes.io/hostname" = var.hostname} : null
+
+        dynamic "volume" {
+          for_each = var.volume_mounts
+          content {
+            name = volume.value.name
+            empty_dir {
+              size_limit = "${volume.value.sizeMegaBytes}M"
+            }
+          }
+        }
       }
     }
   }

@@ -10,7 +10,9 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Represents the service entity.
@@ -38,7 +40,7 @@ public class Service {
 
     @Convert(converter = StringArrayType.class)
     @Column(columnDefinition = "_text")
-    private List<String> ports;
+    private List<String> ports = new ArrayList<>();
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @Column(precision = 3, scale = 3)
@@ -49,6 +51,12 @@ public class Service {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_type_id")
     private K8sServiceType k8sServiceType;
+
+    @OneToMany(mappedBy = "service", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<EnvVar> envVars = new ArrayList<>();
+
+    @OneToMany(mappedBy = "service", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<VolumeMount> volumeMounts = new ArrayList<>();
 
     @Column(insertable = false, updatable = false)
     private  @Setter(AccessLevel.NONE) Timestamp createdAt;
@@ -73,5 +81,19 @@ public class Service {
     @Generated
     public int hashCode() {
         return serviceId.hashCode();
+    }
+
+    public void setEnvVars(List<EnvVar> envVars) {
+        this.envVars.clear();
+        this.envVars.addAll(envVars.stream()
+            .peek(envVar -> envVar.setService(this))
+            .collect(Collectors.toList()));
+    }
+
+    public void setVolumeMounts(List<VolumeMount> volumeMounts) {
+        this.volumeMounts.clear();
+        this.volumeMounts.addAll(volumeMounts.stream()
+            .peek(volumeMount -> volumeMount.setService(this))
+            .collect(Collectors.toList()));
     }
 }
