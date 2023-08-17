@@ -92,6 +92,15 @@ public class ContainerDeployFileService extends TerraformFileService {
             "\"" + metricValues.get("hostname").getValueString() + "\"" : "null";
         String imagePullSecrets = config.getKubeImagePullSecrets().stream()
             .map(secret -> "\"" + secret + "\"").collect(Collectors.joining(","));
+        String volumeMounts = service.getVolumeMounts().stream()
+                .map(volumeMount -> "{name:\"" + volumeMount.getName() +
+                        "\",mountPath:\"" + volumeMount.getMountPath() +
+                        "\",sizeMegaBytes:" + volumeMount.getSizeMegabytes() + "}")
+                .collect(Collectors.joining(","));
+        String envVars = service.getEnvVars().stream()
+                .map(envVar -> "{name:\"" + envVar.getName() +
+                        "\",value:\"" + envVar.getValue() + "\"}")
+                .collect(Collectors.joining(","));
         containerString.append(String.format(
             "module \"deployment_%s\" {\n" +
             "  source = \"../../../../terraform/k8s/deployment\"\n" +
@@ -109,10 +118,12 @@ public class ContainerDeployFileService extends TerraformFileService {
             "  external_ip = \"%s\"\n" +
             "  hostname = %s\n" +
             "  image_pull_secrets = [%s]\n" +
+            "  volume_mounts = [%s]\n" +
+            "  env_vars = [%s]\n" +
             "}\n", identifier, configPath, serviceDeployment.getContext(),
             serviceDeployment.getNamespace(), service.getName(), service.getImage(), deploymentId,
             service.getReplicas(), service.getCpu(), service.getMemory(), ports,
-            service.getK8sServiceType().getName(), externalIp, hostname, imagePullSecrets));
+            service.getK8sServiceType().getName(), externalIp, hostname, imagePullSecrets, volumeMounts, envVars));
         return containerString.toString();
     }
 

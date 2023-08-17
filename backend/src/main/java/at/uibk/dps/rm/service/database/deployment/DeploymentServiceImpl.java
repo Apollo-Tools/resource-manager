@@ -499,7 +499,19 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
         return repositoryProvider.getFunctionDeploymentRepository().findAllByDeploymentId(session, deploymentId)
             .thenAccept(request::setFunctionDeployments)
             .thenCompose(res -> repositoryProvider.getServiceDeploymentRepository().findAllByDeploymentId(session,
-                deploymentId))
+                deploymentId)
+                .thenCompose(serviceDeployments -> {
+                    List<CompletableFuture<Void>> completables = new ArrayList<>();
+                    for (ServiceDeployment deployment : serviceDeployments) {
+                        completables.add(session.fetch(deployment.getService().getEnvVars())
+                                .thenCompose(envVars -> session.fetch(deployment.getService().getVolumeMounts()))
+                                .thenAccept(volumeMounts -> {})
+                                .toCompletableFuture()
+                        );
+                    }
+                    return CompletableFuture.allOf(completables.toArray(CompletableFuture[]::new))
+                        .thenApply(res1 -> serviceDeployments);
+                }))
             .thenAccept(request::setServiceDeployments);
     }
 
