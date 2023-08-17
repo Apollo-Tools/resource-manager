@@ -12,12 +12,14 @@ const API_ROUTE = `${env('API_URL')}/services`;
  * @param {number} cpu the necessary cpu resources
  * @param {number} memory the necessary memory
  * @param {number} k8sServiceTypeId the k8s service type
+ * @param {object[]} envVars the environment variables to set
+ * @param {object[]} volumeMounts the volume mounts for the service
  * @param {string} token the access token
  * @param {function} setService the function to set the created service
  * @param {function} setError the function to set the error if one occurred
  */
 export async function createService(serviceTypeId, name, image, replicas, ports, cpu, memory,
-    k8sServiceTypeId, token, setService, setError) {
+    k8sServiceTypeId, envVars, volumeMounts, token, setService, setError) {
   try {
     const response = await fetch(`${API_ROUTE}`, {
       method: 'POST',
@@ -38,6 +40,8 @@ export async function createService(serviceTypeId, name, image, replicas, ports,
         k8s_service_type: {
           service_type_id: k8sServiceTypeId,
         },
+        env_vars: envVars,
+        volume_mounts: volumeMounts,
       }),
     });
     const data = await response.json();
@@ -56,13 +60,15 @@ export async function createService(serviceTypeId, name, image, replicas, ports,
  * @param {string[]} ports the ports to expose
  * @param {number} cpu the necessary cpu ressources
  * @param {number} memory the necessary memory
- * @param {number} serviceTypeId the service type
+ * @param {number} k8sServiceTypeId the service type
+ * @param {object[]} envVars the environment variables to set
+ * @param {object[]} volumeMounts the volume mounts for the service
  * @param {string} token the access token
  * @param {function} setError the function to set the error if one occurred *
  * @return {Promise<boolean>} true if the request was successful
  */
 export async function updateService(id, replicas, ports, cpu, memory,
-    serviceTypeId, token, setError) {
+    k8sServiceTypeId, envVars, volumeMounts, token, setError) {
   try {
     const response = await fetch(`${API_ROUTE}/${id}`, {
       method: 'PATCH',
@@ -75,9 +81,19 @@ export async function updateService(id, replicas, ports, cpu, memory,
         ports: ports,
         cpu: cpu,
         memory: memory,
-        service_type: {
-          service_type_id: serviceTypeId,
+        k8s_service_type: {
+          service_type_id: k8sServiceTypeId,
         },
+        env_vars: envVars.map((envVar) => {
+          delete envVar.env_var_id;
+          delete envVar.created_at;
+          return envVar;
+        }),
+        volume_mounts: volumeMounts.map((volumeMount) => {
+          delete volumeMount.volume_mount_id;
+          delete volumeMount.created_at;
+          return volumeMount;
+        }),
       }),
     });
     return response.ok;

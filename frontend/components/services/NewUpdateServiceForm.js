@@ -1,4 +1,4 @@
-import {Button, Divider, Form, Input, InputNumber, Select, Space, Typography} from 'antd';
+import {Button, Divider, Form, Input, InputNumber, Select, Space} from 'antd';
 import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import PropTypes from 'prop-types';
@@ -62,10 +62,10 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
       }
       if (mode === 'new') {
         await createService(values.serviceType, values.name, values.image, values.replicas, ports, values.cpu,
-            values.memory, values.k8sServiceType, token, setNewService, setError);
+            values.memory, values.k8sServiceType, values.envVars, values.volumeMounts, token, setNewService, setError);
       } else {
         await updateService(service.service_id, values.replicas, ports, values.cpu, values.memory,
-            values.k8sServiceType, token, setError);
+            values.k8sServiceType, values.envVars, values.volumeMounts, token, setError);
       }
       setFinished?.(true);
       setModified(false);
@@ -163,23 +163,6 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
             </>
           }
           <Divider className="lg:col-span-12 col-span-6"/>
-          <Form.Item
-            label={<>
-              Replicas
-              <TooltipIcon text="the amount of replicas to deploy" />
-            </>}
-            name="replicas"
-            rules={[
-              {
-                required: true,
-                message: 'Please input the amount of replicas!',
-              },
-            ]}
-            initialValue={service?.replicas ?? 1}
-            className="col-span-6"
-          >
-            <InputNumber className="w-40" controls={false} min={1} precision={0}/>
-          </Form.Item>
 
           <Form.Item
             label={<>
@@ -218,8 +201,192 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
           </Form.Item>
 
           <Form.Item
+            name="envList"
             label={<>
-              K8s Service Type
+            Environment Variables
+              <TooltipIcon text={
+                <div className="m-0 text-start">
+                  The environment variables for the service
+                </div>
+              } />
+            </>}
+            className="col-span-6 mb-0"
+            rules={[{
+              validator: () => {
+                const values = form.getFieldValue(['envVars']) ?? [];
+                if (new Set(values.map((envVar) => envVar.name)).size !== values.length) {
+                  return Promise.reject(new Error('Duplicates are not allowed'));
+                }
+                return Promise.resolve();
+              },
+            }]}
+          >
+            <Form.List
+              name="envVars"
+              initialValue={service?.env_vars}
+            >
+              {(fields, {add, remove}) => (
+                <>
+                  <Form.Item className="mb-1">
+                    <Button className="w-40" type="dashed"
+                      onClick={() => {
+                        add();
+                        setModified(true);
+                      }}
+                      block
+                      icon={<PlusOutlined />}
+                    >
+                      Add variable
+                    </Button>
+                  </Form.Item>
+                  <div className="h-52 overflow-y-auto">
+                    {fields.map(({index, key, name, ...field}) => (
+                      <Space
+                        key={key}
+                        className="flex"
+                        align="center mb-3"
+                      >
+                        <div>
+                          <Form.Item
+                            {...field}
+                            name={[name, 'name']}
+                            rules={[
+                              {
+                                required: true,
+                                message: 'Missing name',
+                              },
+                            ]}
+                            className="mb-0"
+                          >
+                            <Input addonBefore={<div className="w-14">Name</div>} className="w-60"/>
+                          </Form.Item>
+                          <Form.Item
+                            {...field}
+                            name={[name, 'value']}
+                            rules={[
+                              {
+                                required: true,
+                                message: 'Missing value',
+                              },
+                            ]}
+                            className="mb-0"
+                          >
+                            <Input addonBefore={<div className="w-14">Value</div>} className="w-60"/>
+                          </Form.Item>
+                        </div>
+                        <MinusCircleOutlined onClick={() => {
+                          remove(name);
+                          setModified(true);
+                        }} />
+                      </Space>
+                    ))}
+                  </div>
+                </>
+              )}
+            </Form.List>
+          </Form.Item>
+          <Form.Item
+            name="volumeMountList"
+            label={<>
+              Volume Mounts
+              <TooltipIcon text={
+                <div className="m-0 text-start">.
+                  The volume mounts for the service
+                </div>
+              } />
+            </>}
+            rules={[{
+              validator: () => {
+                const values = form.getFieldValue(['volumeMounts']) ?? [];
+                if (new Set(values.map((volumeMounts) => volumeMounts.name)).size !== values.length) {
+                  return Promise.reject(new Error('Duplicates are not allowed'));
+                }
+                return Promise.resolve();
+              },
+            }]}
+            className="col-span-6 mb-0"
+          >
+            <Form.List
+              name="volumeMounts"
+              initialValue={service?.volume_mounts}
+            >
+              {(fields, {add, remove}) => (
+                <>
+                  <Form.Item className="mb-1">
+                    <Button className="w-40" type="dashed"
+                      onClick={() => {
+                        add();
+                        setModified(true);
+                      }}
+                      block
+                      icon={<PlusOutlined />}
+                    >
+                      Add volume mount
+                    </Button>
+                  </Form.Item>
+                  <div className="h-52 overflow-y-auto">
+                    {fields.map(({index, key, name, ...field}) => (
+                      <Space
+                        key={key}
+                        className="flex mb-3"
+                        align="center"
+                      >
+                        <div>
+                          <Form.Item
+                            {...field}
+                            name={[name, 'name']}
+                            rules={[
+                              {
+                                required: true,
+                                message: 'Missing name',
+                              },
+                            ]}
+                            className="mb-0"
+                          >
+                            <Input addonBefore={<div className="w-14">Name</div>} className="w-60"/>
+                          </Form.Item>
+                          <Form.Item
+                            {...field}
+                            name={[name, 'mount_path']}
+                            rules={[
+                              {
+                                required: true,
+                                message: 'Missing value',
+                              },
+                            ]}
+                            className="mb-0"
+                          >
+                            <Input addonBefore={<div className="w-14">Mountpath</div>} className="w-60"/>
+                          </Form.Item>
+                          <Form.Item
+                            {...field}
+                            name={[name, 'size_megabytes']}
+                            rules={[
+                              {
+                                required: true,
+                                message: 'Missing size',
+                              },
+                            ]}
+                            className="mb-0"
+                          >
+                            <InputNumber addonBefore={<div className="w-14">Size [MB]</div>} className="w-60" controls={false} min={1} precision={3}/>
+                          </Form.Item>
+                        </div>
+                        <MinusCircleOutlined onClick={() => {
+                          remove(name);
+                          setModified(true);
+                        }} />
+                      </Space>
+                    ))}
+                  </div>
+                </>
+              )}
+            </Form.List>
+          </Form.Item>
+
+          <Form.Item
+            label={<>
+                K8s Service Type
               <TooltipIcon text="the k8s service type" />
             </>}
             name="k8sServiceType"
@@ -230,7 +397,7 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
                 message: 'Missing k8s service type',
               },
             ]}
-            className="col-span-6"
+            className="col-span-6 mb-0"
           >
             <Select className="w-40" onSelect={onChangeK8sServiceType}>
               {k8sServiceTypes.sort((st1, st2) => st1.name.localeCompare(st2.name))
@@ -245,81 +412,120 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
                   })}
             </Select>
           </Form.Item>
+
+          {selectedK8sServiceType!=null && selectedK8sServiceType?.name !== 'NoService' &&
+              <Form.Item
+                name="portsList"
+                rules={[{
+                  validator: () => {
+                    const values = form.getFieldValue(['ports']) ?? [];
+                    if (!values || values.length === 0) {
+                      return Promise.reject(new Error('Please add at least one port or select \'NoService\' as' +
+                            ' Service Type'));
+                    }
+                    if (new Set(values.map((port) => `${port.containerPort}${port.servicePort}`)).size !== values.length) {
+                      return Promise.reject(new Error('Duplicates are not allowed'));
+                    }
+                    return Promise.resolve();
+                  },
+                }]}
+                label={<>
+                    Ports
+                  <TooltipIcon text={
+                    <div className="m-0 text-start">
+                        The mapping of container ports to service (external) ports.<br />
+                        - Container Port = port exposed by container <br />
+                        - Service Port = port exposed by service (external port)
+                    </div>
+                  } />
+                </>}
+                className="col-span-6 mb-0"
+              >
+                <Form.List
+                  name="ports"
+                  initialValue={initialPorts}
+                >
+                  {(fields, {add, remove}) => (
+                    <>
+                      <Form.Item className="mb-1">
+                        <Button className="w-40" type="dashed"
+                          onClick={() => {
+                            add();
+                            setModified(true);
+                          }}
+                          block
+                          icon={<PlusOutlined />}
+                        >
+                          Add Port
+                        </Button>
+                      </Form.Item>
+                      <div className="h-36 overflow-y-auto">
+                        {fields.map(({index, key, name, ...field}) => (
+                          <Space
+                            key={key}
+                            className="flex mb-3"
+                            align="center"
+                          >
+                            <div>
+                              <Form.Item
+                                {...field}
+                                name={[name, 'containerPort']}
+                                rules={[
+                                  {
+                                    required: true,
+                                    message: 'Missing container port',
+                                  },
+                                ]}
+                                className="mb-0"
+                              >
+                                <InputNumber addonBefore={<div className="w-20">Container Port</div>} className="w-60" controls={false} min={1} precision={0}/>
+                              </Form.Item>
+                              <Form.Item
+                                {...field}
+                                name={[name, 'servicePort']}
+                                rules={[
+                                  {
+                                    required: true,
+                                    message: 'Missing service port',
+                                  },
+                                ]}
+                                className="mb-0"
+                              >
+                                <InputNumber addonBefore={<div className="w-20">Service Port</div>} className="w-60" controls={false} min={1} precision={0}/>
+                              </Form.Item>
+                            </div>
+                            <MinusCircleOutlined onClick={() => {
+                              remove(name);
+                              setModified(true);
+                            }}/>
+                          </Space>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </Form.List>
+              </Form.Item>
+          }
+
+          <Form.Item
+            label={<>
+              Replicas
+              <TooltipIcon text="the amount of replicas to deploy" />
+            </>}
+            name="replicas"
+            rules={[
+              {
+                required: true,
+                message: 'Please input the amount of replicas!',
+              },
+            ]}
+            initialValue={service?.replicas ?? 1}
+            className="col-span-6"
+          >
+            <InputNumber className="w-40" controls={false} min={1} precision={0}/>
+          </Form.Item>
         </div>
 
-        {selectedK8sServiceType!=null && selectedK8sServiceType?.name !== 'NoService' &&
-          <div className="col-span-6">
-            <Typography.Text>Ports</Typography.Text>
-            <TooltipIcon text={
-              <div className="m-0 text-start">
-                The mapping of container ports to service (external) ports.<br />
-                - Container Port = port exposed by container <br />
-                - Service Port = port exposed by service (external port)
-              </div>
-            } />
-            <Form.Item
-              name="portsList"
-              rules={[{
-                validator: () => {
-                  const values = form.getFieldValue(['ports']) ?? [];
-                  if (!values || values.length === 0) {
-                    return Promise.reject(new Error('Please add at least one port or select \'NoService\' as' +
-                      ' Service Type'));
-                  }
-                  return Promise.resolve();
-                },
-              }]}
-            >
-              <Form.List
-                name="ports"
-                initialValue={initialPorts}
-              >
-                {(fields, {add, remove}) => (
-                  <>
-                    {fields.map(({index, key, name, ...field}) => (
-                      <Space
-                        key={key}
-                        className="flex"
-                        align="baseline"
-                      >
-                        <Form.Item
-                          {...field}
-                          name={[name, 'containerPort']}
-                          rules={[
-                            {
-                              required: true,
-                              message: 'Missing container port',
-                            },
-                          ]}
-                        >
-                          <InputNumber addonBefore="Container Port" className="w-40" controls={false} min={1} precision={0}/>
-                        </Form.Item>
-                        <Form.Item
-                          {...field}
-                          name={[name, 'servicePort']}
-                          rules={[
-                            {
-                              required: true,
-                              message: 'Missing service port',
-                            },
-                          ]}
-                        >
-                          <InputNumber addonBefore="Service Port" className="w-40" controls={false} min={1} precision={0}/>
-                        </Form.Item>
-                        <MinusCircleOutlined onClick={() => remove(name)} />
-                      </Space>
-                    ))}
-                    <Form.Item>
-                      <Button className="w-40" type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
-                      Add Port
-                      </Button>
-                    </Form.Item>
-                  </>
-                )}
-              </Form.List>
-            </Form.Item>
-          </div>
-        }
         <Form.Item>
           <Space size={'large'}>
             <Button type="primary" htmlType="submit" disabled={!isModified && mode === 'update'}>
