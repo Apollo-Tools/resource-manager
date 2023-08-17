@@ -125,6 +125,19 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
         return sessionToFuture(update).mapEmpty();
     }
 
+    @Override
+    public Future<Void> delete(long id) {
+        CompletionStage<Void> delete = withTransaction(session -> repository.findByIdAndFetch(session, id)
+                .thenCompose(service -> {
+                    ServiceResultValidator.checkFound(service, Service.class);
+                    return session.fetch(service.getEnvVars())
+                        .thenCompose(res -> session.fetch(service.getVolumeMounts()))
+                        .thenCompose(res -> session.remove(service));
+                })
+        );
+        return sessionToFuture(delete);
+    }
+
     private void checkServiceTypePorts(K8sServiceType serviceType, int portAmount) {
         K8sServiceTypeEnum serviceTypeEnum = K8sServiceTypeEnum.fromServiceType(serviceType);
         if (!checkHasNoService(serviceTypeEnum, portAmount) && !checkHasService(serviceTypeEnum, portAmount)) {
