@@ -49,6 +49,8 @@ public class TestServiceProvider {
         service.setMemory(1024);
         service.setPorts(List.of("80:8000"));
         service.setReplicas(1);
+        service.setVolumeMounts(List.of(createVolumeMount(11L)));
+        service.setEnvVars(List.of(createEnvVar(22L)));
         return service;
     }
 
@@ -106,5 +108,22 @@ public class TestServiceProvider {
     public static ServiceDeployment createServiceDeployment(long id, Service service, Resource resource) {
         Deployment deployment = TestDeploymentProvider.createDeployment(1L);
         return createServiceDeployment(id, service, resource, false, deployment);
+    }
+
+    public static VolumeMount createVolumeMount(long id) {
+        VolumeMount volumeMount = new VolumeMount();
+        volumeMount.setVolumeMountId(id);
+        volumeMount.setName("vm");
+        volumeMount.setMountPath("/build");
+        volumeMount.setSizeMegabytes(BigDecimal.valueOf(100));
+        return volumeMount;
+    }
+
+    public static EnvVar createEnvVar(long id) {
+        EnvVar envVar = new EnvVar();
+        envVar.setEnvVarId(id);
+        envVar.setName("env_var");
+        envVar.setValue("value");
+        return envVar;
     }
 }

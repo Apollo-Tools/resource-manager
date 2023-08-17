@@ -113,6 +113,7 @@ public class DeploymentServiceImplTest {
             .thenReturn(CompletionStages.completedFuture(fdList));
         when(repositoryMock.getServiceDeploymentRepository().findAllByDeploymentId(session, deploymentId))
             .thenReturn(CompletionStages.completedFuture(sdList));
+        when(session.fetch(anyList())).thenReturn(CompletionStages.completedFuture(List.of()));
 
         deploymentService.cancelDeployment(deploymentId, accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {

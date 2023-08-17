@@ -86,6 +86,8 @@ public class ContainerDeployFileServiceTest {
                 "  external_ip = \"" + (hasExternalIp ? "0.0.0.0" : "") + "\"\n" +
                 "  hostname = null\n" +
                 "  image_pull_secrets = [\"regcred\"]\n" +
+                "  volume_mounts = [{name:\"vm\",mountPath:\"/build\",sizeMegaBytes:100}]\n" +
+                "  env_vars = [{name:\"env_var\",value:\"value\"}]\n" +
                 "}\n"
         );
     }
