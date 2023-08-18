@@ -8,7 +8,6 @@ import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.service.monitoring.k8s.K8sMonitoringService;
 import at.uibk.dps.rm.service.monitoring.k8s.K8sMonitoringServiceImpl;
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.models.*;
 import io.kubernetes.client.util.Config;
@@ -59,9 +58,8 @@ public class MonitoringVerticle extends AbstractVerticle {
                         .andThen(serviceProxyProvider.getNamespaceService().updateAllClusterNamespaces(entry.getKey(),
                             namespaces))
                         .doOnError(throwable -> {
-                            if (throwable instanceof MonitoringException) {
-                                logger.error(throwable.getMessage());
-                            } else {
+                            logger.error(throwable.getMessage());
+                            if (!(throwable instanceof MonitoringException)) {
                                 throw new RuntimeException(throwable);
                             }
                         });
@@ -81,24 +79,20 @@ public class MonitoringVerticle extends AbstractVerticle {
             K8sMonitoringService monitoringService = new K8sMonitoringServiceImpl();
             Map<String, String> kubeConfigs = monitoringService.listSecrets(config);
             for (Map.Entry<String, String> entry: kubeConfigs.entrySet()) {
-                logger.debug("Observe cluster: " + entry.getKey());
+                logger.info("Observe cluster: " + entry.getKey());
                 ApiClient externalClient = Config.fromConfig(new StringReader(entry.getValue()));
                 Configuration.setDefaultApiClient(externalClient);
-                try {
-                    List<K8sNode> nodes = monitoringService.listNodes(entry.getValue(), config);
-                    List<V1Namespace> namespaces = monitoringService.listNamespaces(entry.getValue(), config);
-                    for (K8sNode node: nodes) {
-                        monitoringService.getCurrentNodeAllocation(node, entry.getValue(), config);
-                    }
-                    K8sMonitoringData k8sMonitoringData = new K8sMonitoringData(nodes, namespaces);
-                    monitoringDataMap.put(entry.getKey(), k8sMonitoringData);
-                } catch (ApiException ex) {
-                    logger.warn("connection for config " + entry.getKey() + " failed");
+                List<K8sNode> nodes = monitoringService.listNodes(entry.getValue(), config);
+                List<V1Namespace> namespaces = monitoringService.listNamespaces(entry.getValue(), config);
+                for (K8sNode node: nodes) {
+                    monitoringService.getCurrentNodeAllocation(node, entry.getValue(), config);
                 }
+                K8sMonitoringData k8sMonitoringData = new K8sMonitoringData(nodes, namespaces);
+                monitoringDataMap.put(entry.getKey(), k8sMonitoringData);
             }
             return monitoringDataMap;
         } catch (IOException e) {
-            throw new MonitoringException();
+            throw new MonitoringException("failed to setup config");
         }
     }
 

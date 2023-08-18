@@ -1,6 +1,5 @@
 package at.uibk.dps.rm.service.monitoring.k8s;
 
-import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.monitoring.K8sNode;
 import at.uibk.dps.rm.exception.MonitoringException;
@@ -72,36 +71,47 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
             }
             return configs;
         } catch (ApiException ex) {
+            logger.warn(ex.getResponseBody());
             throw new MonitoringException("failed to list secrets");
         }
     }
 
     @Override
-    public List<V1Namespace> listNamespaces(String kubeConfig, ConfigDTO config) throws ApiException {
-        CoreV1Api api = setUpExternalClient(kubeConfig);
-        V1NamespaceList list = api.listNamespace(null, null,  null, null,
-            null, null, null, null, config.getKubeApiTimeoutSeconds(),
-            null);
-        String header = "\n############### Namespaces ###############\n";
-        String nodes = list.getItems().stream().map(item -> Objects.requireNonNull(item.getMetadata()).getName())
-            .collect(Collectors.joining("\n"));
-        logger.debug(header + nodes);
-        return list.getItems();
+    public List<V1Namespace> listNamespaces(String kubeConfig, ConfigDTO config) {
+        try {
+            CoreV1Api api = setUpExternalClient(kubeConfig);
+            V1NamespaceList list = api.listNamespace(null, null,  null, null,
+                    null, null, null, null, config.getKubeApiTimeoutSeconds(),
+                    null);
+            String header = "\n############### Namespaces ###############\n";
+            String nodes = list.getItems().stream().map(item -> Objects.requireNonNull(item.getMetadata()).getName())
+                .collect(Collectors.joining("\n"));
+            logger.debug(header + nodes);
+            return list.getItems();
+        } catch (ApiException ex) {
+            logger.warn(ex.getResponseBody());
+            throw new MonitoringException("failed to list namespaces");
+        }
     }
 
     @Override
-    public List<K8sNode> listNodes(String kubeConfig, ConfigDTO config) throws ApiException {
-        CoreV1Api api = setUpExternalClient(kubeConfig);
-        V1NodeList list = api.listNode(null, null,  null, null,
-            null, null, null, null, config.getKubeApiTimeoutSeconds(),
-            false);
-        String header = "\n############### Nodes ###############\n";
-        String nodes = list.getItems().stream().map(item -> Objects.requireNonNull(item.getMetadata()).getName())
-            .collect(Collectors.joining("\n"));
-        logger.debug(header + nodes);
-        return list.getItems()
-            .stream().map(K8sNode::new)
-            .collect(Collectors.toList());
+    public List<K8sNode> listNodes(String kubeConfig, ConfigDTO config) {
+        try {
+            CoreV1Api api = setUpExternalClient(kubeConfig);
+            V1NodeList list = api.listNode(null, null,  null, null,
+                null, null, null, null, config.getKubeApiTimeoutSeconds(),
+                false);
+            String header = "\n############### Nodes ###############\n";
+            String nodes = list.getItems().stream().map(item -> Objects.requireNonNull(item.getMetadata()).getName())
+                .collect(Collectors.joining("\n"));
+            logger.debug(header + nodes);
+            return list.getItems()
+                .stream().map(K8sNode::new)
+                .collect(Collectors.toList());
+        } catch (ApiException ex) {
+            logger.warn(ex.getResponseBody());
+            throw new MonitoringException("failed to list nodes");
+        }
     }
 
     @Override
@@ -112,19 +122,22 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
                 "Out-File -FilePath $tempfile -Encoding UTF8; kubectl describe node " + node.getName() +
                 " --kubeconfig $tempfile");
         } else {
-            // TODO: test if works
-            commands = List.of("kubectl", "describe", "node", node.getName(), "--kubeconfig",
-                "<(echo " + kubeConfig + ")");
+            commands = List.of("bash", "-c", "echo <(echo '" + kubeConfig + "') && kubectl describe node "
+                + node.getName() + " --kubeconfig <(echo '" + kubeConfig + "')");
         }
         ProcessExecutor processExecutor = new ProcessExecutor(Paths.get("").toAbsolutePath(), commands);
+        logger.info(String.join(" ", commands));
         processExecutor.executeCli()
-            .map(ProcessOutput::getOutput)
-            .map(result -> {
-                K8sDescribeParser.parseContent(result, node);
+            .map(processOutput -> {
+                if (processOutput.getProcess().exitValue() != 0) {
+                    logger.warn(processOutput.getOutput());
+                    throw new MonitoringException("Retrieving node allocation failed");
+                }
+                K8sDescribeParser.parseContent(processOutput.getOutput(), node);
                 logger.debug("cpu: " + node.getCpuLoad() +
                     "\nmemory: " + node.getMemoryLoad() +
                     "\nstorage: " + node.getStorageLoad());
-                return result;
+                return processOutput.getOutput();
             })
             .ignoreElement()
             .blockingAwait();
