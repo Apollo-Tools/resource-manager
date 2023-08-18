@@ -19,6 +19,13 @@ public class NotFoundException extends ServiceException {
     }
 
     /**
+     * Create an instance with the message.
+     */
+    public NotFoundException(String message) {
+        super(404, message);
+    }
+
+    /**
      * Create an instance from the entity class.
      */
     public NotFoundException(Class<?> entityClass) {

@@ -3,7 +3,8 @@ import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {Divider, Typography} from 'antd';
 import {getFunction} from '../../lib/FunctionService';
-import UpdateFunctionForm from '../../components/functions/UpdateFunctionForm';
+import UpdateFunctionFileForm from '../../components/functions/UpdateFunctionFileForm';
+import UpdateFunctionSettingsForm from '../../components/functions/UpdateFunctionSettingsForm';
 
 const FunctionDetails = () => {
   const {token, checkTokenExpired} = useAuth();
@@ -33,12 +34,15 @@ const FunctionDetails = () => {
   };
 
   return (
-    <div className="card container w-full md:w-11/12 w-11/12 max-w-7xl mt-2 mb-2">
+    <div className="default-card">
       <Typography.Title level={2}>Function Details ({func.function_id})</Typography.Title>
       <Divider />
       {
-        func &&
-        <UpdateFunctionForm func={func} reloadFunction={reloadFunction}/>
+        func && <>
+          <UpdateFunctionSettingsForm func={func} reloadFunction={reloadFunction}/>
+          <Divider/>
+          <UpdateFunctionFileForm func={func} reloadFunction={reloadFunction}/>
+        </>
       }
     </div>
   );

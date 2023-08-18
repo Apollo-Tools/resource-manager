@@ -33,7 +33,7 @@ public class ExpressionValidatorTest {
         JsonObject slo3 = new JsonObject("{\"name\": \"region\", \"expression\": \"" + s3 +"\", \"value\": [1]}");
         JsonArray slos = new JsonArray(List.of(slo1, slo2, slo3));
 
-        ExpressionValidator.checkExpressionAreValid(slos)
+        ExpressionValidator.checkExpressionsAreValid(slos)
             .blockingSubscribe(() -> testContext.verify(() -> {
                     if (!isValid) {
                         fail("method did not throw exception");
@@ -53,7 +53,7 @@ public class ExpressionValidatorTest {
 
     @Test
     void checkExpressionsAreValidNull(VertxTestContext testContext) {
-        ExpressionValidator.checkExpressionAreValid(null)
+        ExpressionValidator.checkExpressionsAreValid(null)
             .blockingSubscribe(() -> {},
             throwable -> testContext.verify(() -> fail("method has thrown exception")));
         testContext.completeNow();

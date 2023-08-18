@@ -23,7 +23,7 @@ import java.util.List;
 public class TestFileServiceProvider {
     public static RegionFaasFileService createRegionFaasFileService(FileSystem fileSystem, Resource r1, Resource r2,
             Resource r3, Runtime runtime, Region region) {
-        DeploymentPath path = new DeploymentPath(1L, TestConfigProvider.getConfig());
+        DeploymentPath path = new DeploymentPath(1L, TestConfigProvider.getConfigDTO());
         Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime, false);
         Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime, false);
         FunctionDeployment fr1 = TestFunctionProvider.createFunctionDeployment(1L, f1, r1);
@@ -42,9 +42,9 @@ public class TestFileServiceProvider {
     public static RegionFaasFileService createRegionFaasFileServiceAllFaas(FileSystem fileSystem, Runtime runtime) {
         ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
-        Resource r1 = TestResourceProvider.createResourceLambda(1L, region, 250.0, 512.0);
-        Resource r2 = TestResourceProvider.createResourceEC2(2L, region, 100.0, 1024.0, "t2.micro");
-        Resource r3 = TestResourceProvider.createResourceOpenFaas(3L, region, 100.0, 512.0, "http://localhost:8080",
+        Resource r1 = TestResourceProvider.createResourceLambda(1L, region);
+        Resource r2 = TestResourceProvider.createResourceEC2(2L, region, "t2.micro");
+        Resource r3 = TestResourceProvider.createResourceOpenFaas(3L, region, "http://localhost:8080",
             "user", "pw");
         return createRegionFaasFileService(fileSystem, r1, r2, r3, runtime, region);
     }
@@ -62,7 +62,8 @@ public class TestFileServiceProvider {
         DockerCredentials credentials = new DockerCredentials();
         credentials.setUsername("user");
         credentials.setAccessToken("access-token");
-        DeploymentPath path = new DeploymentPath(1L, TestConfigProvider.getConfig());
+        credentials.setRegistry("docker.io");
+        DeploymentPath path = new DeploymentPath(1L, TestConfigProvider.getConfigDTO());
         return new FunctionPrepareService(vertx, functionDeployments, path, credentials);
     }
 
@@ -71,7 +72,8 @@ public class TestFileServiceProvider {
         DockerCredentials credentials = new DockerCredentials();
         credentials.setUsername("user");
         credentials.setAccessToken("access-token");
-        DeploymentPath path = new DeploymentPath(1L, TestConfigProvider.getConfig());
+        credentials.setRegistry("docker.io");
+        DeploymentPath path = new DeploymentPath(1L, TestConfigProvider.getConfigDTO());
         return new FunctionPrepareService(vertx, functionDeployments, path, credentials);
     }
 
@@ -81,8 +83,8 @@ public class TestFileServiceProvider {
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "python3.8");
         Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime, false);
         Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime, false);
-        Resource r1 = TestResourceProvider.createResourceLambda(1L, region, 250.0, 512.0);
-        Resource r2 = TestResourceProvider.createResourceEC2(2L, region, 150.0, 1024.0,"t2.micro");
+        Resource r1 = TestResourceProvider.createResourceLambda(1L, region);
+        Resource r2 = TestResourceProvider.createResourceEC2(2L, region,"t2.micro");
         return createFunctionFileService(vertx, r1, r2, f1, f2);
     }
 
@@ -92,9 +94,9 @@ public class TestFileServiceProvider {
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "python3.8");
         Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime, false);
         Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime, false);
-        Resource r1 = TestResourceProvider.createResourceOpenFaas(1L,  region, 400.0, 200.0,
-            "http://localhost:8081", "user1", "pw1");
-        Resource r2 = TestResourceProvider.createResourceEC2(2L, region, 100.0, 1024.0, "t2.micro");
+        Resource r1 = TestResourceProvider.createResourceOpenFaas(1L,  region, "http://localhost:8081",
+            "user1", "pw1");
+        Resource r2 = TestResourceProvider.createResourceEC2(2L, region, "t2.micro");
         return createFunctionFileService(vertx, r1, r2, f1, f2);
     }
 
@@ -104,9 +106,9 @@ public class TestFileServiceProvider {
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "invalid");
         Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime, false);
         Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime, false);
-        Resource r1 = TestResourceProvider.createResourceOpenFaas(1L,  region, 400.0, 200.0,
-            "http://localhost:8081", "user1", "pw1");
-        Resource r2 = TestResourceProvider.createResourceEC2(2L, region, 100.0, 1024.0, "t2.micro");
+        Resource r1 = TestResourceProvider.createResourceOpenFaas(1L,  region, "http://localhost:8081",
+            "user1", "pw1");
+        Resource r2 = TestResourceProvider.createResourceEC2(2L, region, "t2.micro");
         return createFunctionFileService(vertx, r1, r2, f1, f2);
     }
 
@@ -115,9 +117,9 @@ public class TestFileServiceProvider {
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "python3.8");
         Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime, false);
-        Resource r1 = TestResourceProvider.createResourceOpenFaas(1L,  region, 400.0, 200.0,
-            "http://localhost:8081", "user1", "pw1");
-        Resource r2 = TestResourceProvider.createResourceEC2(2L, region, 100.0, 1024.0, "t2.micro");
+        Resource r1 = TestResourceProvider.createResourceOpenFaas(1L,  region, "http://localhost:8081",
+            "user1", "pw1");
+        Resource r2 = TestResourceProvider.createResourceEC2(2L, region, "t2.micro");
         return createFunctionFileService(vertx, r1, r2, f1, f1);
     }
 
@@ -130,7 +132,7 @@ public class TestFileServiceProvider {
             Deployment deployment) {
         ServiceDeployment serviceDeployment = TestServiceProvider.createServiceDeployment(1L, deployment);
         return new ContainerDeployFileService(fileSystem, rootFolder, serviceDeployment,
-            deployment.getDeploymentId());
+            deployment.getDeploymentId(), TestConfigProvider.getConfigDTO());
     }
 
     public static ContainerDeployFileService createContainerDeployFileService(FileSystem fileSystem, Path rootFolder,
@@ -138,19 +140,19 @@ public class TestFileServiceProvider {
         ServiceDeployment serviceDeployment =
             TestServiceProvider.createServiceDeployment(1L, resource, deployment);
         return new ContainerDeployFileService(fileSystem, rootFolder, serviceDeployment,
-            deployment.getDeploymentId());
+            deployment.getDeploymentId(), TestConfigProvider.getConfigDTO());
     }
 
     public static ContainerPullFileService createContainerPullFileService(FileSystem fileSystem, Path rootFolder,
         Deployment deployment) {
         ServiceDeployment serviceDeployment = TestServiceProvider.createServiceDeployment(1L, deployment);
         return new ContainerPullFileService(fileSystem, rootFolder, List.of(serviceDeployment),
-            deployment.getDeploymentId());
+            deployment.getDeploymentId(), TestConfigProvider.getConfigDTO());
     }
 
     public static ContainerPullFileService createContainerPullFileService(FileSystem fileSystem, Path rootFolder,
         Deployment deployment, List<ServiceDeployment> serviceDeployments) {
         return new ContainerPullFileService(fileSystem, rootFolder, serviceDeployments,
-            deployment.getDeploymentId());
+            deployment.getDeploymentId(), TestConfigProvider.getConfigDTO());
     }
 }

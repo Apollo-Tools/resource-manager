@@ -45,14 +45,21 @@ public class TestFunctionProvider {
         return createRuntime(runtimeId, "python3.9");
     }
 
-    public static Function createFunction(long functionId, String name, String code, Runtime runtime, boolean isFile) {
+    public static Function createFunction(long functionId, String name, String code, Runtime runtime, boolean isFile,
+            int timeout, int memory) {
         Function function = new Function();
         function.setFunctionId(functionId);
         function.setName(name);
         function.setRuntime(runtime);
         function.setCode(code);
         function.setIsFile(isFile);
+        function.setTimeoutSeconds((short) timeout);
+        function.setMemoryMegabytes((short) memory);
         return function;
+    }
+
+    public static Function createFunction(long functionId, String name, String code, Runtime runtime, boolean isFile) {
+        return createFunction(functionId, name, code, runtime, isFile, 60, 128);
     }
 
     public static Function createFunction(long functionId, String name, String code, long runtimeId) {
@@ -71,15 +78,22 @@ public class TestFunctionProvider {
 
 
     public static FunctionDeployment createFunctionDeployment(long id, Function function, Resource resource,
-                                                                boolean isDeployed, Deployment deployment) {
+            boolean isDeployed, Deployment deployment, ResourceDeploymentStatus deploymentStatus) {
         FunctionDeployment functionDeployment = new FunctionDeployment();
         functionDeployment.setResourceDeploymentId(id);
         functionDeployment.setFunction(function);
         functionDeployment.setResource(resource);
         functionDeployment.setIsDeployed(isDeployed);
-        functionDeployment.setStatus(TestDeploymentProvider.createResourceDeploymentStatusNew());
+        functionDeployment.setStatus(deploymentStatus);
         functionDeployment.setDeployment(deployment);
         return functionDeployment;
+    }
+
+
+    public static FunctionDeployment createFunctionDeployment(long id, Function function, Resource resource,
+            boolean isDeployed, Deployment deployment) {
+        ResourceDeploymentStatus status = TestDeploymentProvider.createResourceDeploymentStatusNew();
+        return createFunctionDeployment(id, function, resource, isDeployed, deployment, status);
     }
 
     public static FunctionDeployment createFunctionDeployment(long id, long resourceId, Deployment deployment) {
@@ -92,10 +106,20 @@ public class TestFunctionProvider {
         return createFunctionDeployment(id, 33L, deployment);
     }
 
-    public static FunctionDeployment createFunctionDeployment(long id, Resource resource) {
+    public static FunctionDeployment createFunctionDeployment(long id, Resource resource, Deployment deployment) {
         Function function = createFunction(22L, "func-test", "false");
-        Deployment deployment = TestDeploymentProvider.createDeployment(1L);
         return createFunctionDeployment(id, function, resource, true, deployment);
+    }
+
+    public static FunctionDeployment createFunctionDeployment(long id, Resource resource, Deployment deployment,
+            ResourceDeploymentStatus status) {
+        Function function = createFunction(22L, "func-test", "false");
+        return createFunctionDeployment(id, function, resource, true, deployment, status);
+    }
+
+    public static FunctionDeployment createFunctionDeployment(long id, Resource resource) {
+        Deployment deployment = TestDeploymentProvider.createDeployment(1L);
+        return createFunctionDeployment(id, resource, deployment);
     }
 
     public static FunctionDeployment createFunctionDeployment(long id, Function function, Resource resource) {

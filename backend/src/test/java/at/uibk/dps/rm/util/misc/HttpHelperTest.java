@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.util.misc;
 
+import at.uibk.dps.rm.exception.BadInputException;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.ext.web.RoutingContext;
@@ -9,8 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 /**
  * Implements tests for the {@link HttpHelper} class.
@@ -26,7 +26,7 @@ public class HttpHelperTest {
 
     @Test
     void getLongPathParamValid(VertxTestContext testContext) {
-        doReturn("10").when(rc).pathParam(anyString());
+        when(rc.pathParam("id")).thenReturn("10");
 
         HttpHelper.getLongPathParam(rc, "id")
                 .subscribe(result -> testContext.verify(() -> {
@@ -37,13 +37,14 @@ public class HttpHelperTest {
 
     @Test
     void getLongPathParamInValid(VertxTestContext testContext) {
-        doReturn("test").when(rc).pathParam(anyString());
+        when(rc.pathParam("id")).thenReturn("test");
 
         HttpHelper.getLongPathParam(rc, "id")
-                .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
-                        throwable -> testContext.verify(() -> {
-                            assertThat(throwable).isInstanceOf(NumberFormatException.class);
-                            testContext.completeNow();
-                        }));
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(BadInputException.class);
+                    assertThat(throwable.getMessage()).isEqualTo("path parameter is not a number");
+                    testContext.completeNow();
+            }));
     }
 }

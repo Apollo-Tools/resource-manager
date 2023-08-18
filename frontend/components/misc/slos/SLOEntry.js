@@ -1,5 +1,5 @@
 import {Radio, Select, Space} from 'antd';
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import SLOValue from './SLOValue';
 import PropTypes from 'prop-types';
 import TooltipIcon from '../TooltipIcon';
@@ -17,19 +17,11 @@ const SLOEntry = ({metrics, selectedMetrics, slo, selectables, updateMetric, upd
     selectable: ['=='],
   };
 
-  useEffect(() => {
-    console.log(selectables);
-  }, [selectables]);
-
   const onChangeMetric = (value) => {
     updateMetric?.(value, slo.id);
     setSelecteMetric(metrics.find((metric) => metric.metric_id === value));
     onChangeExpression('');
   };
-
-  useEffect(() => {
-    console.log(selectedMetric);
-  }, [selectedMetric]);
 
   const onChangeExpression = (value) => {
     updateExpression?.(value, slo.id);
@@ -60,8 +52,8 @@ const SLOEntry = ({metrics, selectedMetrics, slo, selectables, updateMetric, upd
           </Option>
         ))}
       </Select>
-      <span className={selectedMetric?.description ? 'flex content-center h-[32px]' : 'invisible' }>
-        <TooltipIcon text={selectedMetric?.description}/>
+      <span className='flex content-center h-[32px] w-[23px]'>
+        {selectedMetric != null && <TooltipIcon text={selectedMetric?.description}/>}
       </span>
       <Radio.Group name="radiogroup" value={expression}
         onChange={(e) => onChangeExpression(e.target.value)} className="w-32"

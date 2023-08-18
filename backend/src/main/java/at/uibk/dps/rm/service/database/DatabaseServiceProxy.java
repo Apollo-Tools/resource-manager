@@ -1,9 +1,6 @@
 package at.uibk.dps.rm.service.database;
 
-import at.uibk.dps.rm.exception.AlreadyExistsException;
-import at.uibk.dps.rm.exception.BadInputException;
-import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.exception.UnauthorizedException;
+import at.uibk.dps.rm.exception.*;
 import at.uibk.dps.rm.repository.Repository;
 import at.uibk.dps.rm.service.ServiceProxy;
 import at.uibk.dps.rm.util.validation.ServiceResultValidator;
@@ -82,7 +79,7 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
         T entity = data.mapTo(entityClass);
         CompletionStage<T> save = withTransaction(session -> session.persist(entity)
             .thenApply(res -> entity));
-        return transactionToFuture(save).map(JsonObject::mapFrom);
+        return sessionToFuture(save).map(JsonObject::mapFrom);
     }
 
     @Override
@@ -97,27 +94,33 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
             .map(object -> ((JsonObject) object).mapTo(entityClass))
             .collect(Collectors.toList());
         CompletionStage<Void> createAll = withTransaction(session -> repository.createAll(session, entities));
-        return transactionToFuture(createAll);
+        return sessionToFuture(createAll);
     }
 
     @Override
     public Future<JsonObject> findOne(long id) {
         CompletionStage<T> findOne = withSession(session -> repository.findById(session, id));
-        return transactionToFuture(findOne).map(JsonObject::mapFrom);
+        return sessionToFuture(findOne).map(JsonObject::mapFrom);
+    }
+
+
+    @Override
+    public Future<JsonObject> findOneByIdAndAccountId(long id, long accountId) {
+        CompletionStage<T> findOne = withSession(session ->
+            repository.findByIdAndAccountId(session, id, accountId));
+        return sessionToFuture(findOne).map(JsonObject::mapFrom);
     }
 
     @Override
     public Future<Boolean> existsOneById(long id) {
         CompletionStage<T> findOne = withSession(session -> repository.findById(session, id));
-        return transactionToFuture(findOne).map(Objects::nonNull);
+        return sessionToFuture(findOne).map(Objects::nonNull);
     }
 
     @Override
     public Future<JsonArray> findAll() {
         CompletionStage<List<T>> findAll = withSession(repository::findAll);
-        return Future
-            .fromCompletionStage(findAll)
-            .recover(this::recoverFailure)
+        return sessionToFuture(findAll)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (T entity: result) {
@@ -130,7 +133,7 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
     @Override
     public Future<JsonArray> findAllByAccountId(long accountId) {
         CompletionStage<List<T>> findAll = withSession(session -> repository.findAllByAccountId(session, accountId));
-        return Future.fromCompletionStage(findAll)
+        return sessionToFuture(findAll)
             .map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (T entity: result) {
@@ -151,7 +154,7 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
                 return session.merge(updatedEntity);
             })
         );
-        return transactionToFuture(update).mapEmpty();
+        return sessionToFuture(update).mapEmpty();
     }
 
     @Override
@@ -162,7 +165,7 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
                 return session.remove(entity);
             })
         );
-        return transactionToFuture(delete);
+        return sessionToFuture(delete);
     }
 
     @Override
@@ -174,7 +177,7 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
                     return session.remove(entity);
                 })
         );
-        return transactionToFuture(delete);
+        return sessionToFuture(delete);
     }
 
     /**
@@ -194,6 +197,8 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
             throw new BadInputException((BadInputException) throwable.getCause());
         } else if (throwable.getCause() instanceof AlreadyExistsException) {
             throw new AlreadyExistsException((AlreadyExistsException) throwable.getCause());
+        } else if (throwable.getCause() instanceof MonitoringException) {
+            throw new MonitoringException((MonitoringException) throwable.getCause());
         }
         return Future.failedFuture(throwable);
     }
@@ -211,14 +216,14 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
     }
 
     /**
-     * Map a session transaction to a future.
+     * Map a session to a future.
      *
-     * @param transaction the transaction
-     * @return a Future that emits the result of the transaction
+     * @param session the session
+     * @return a Future that emits the result of the session
      * @param <E> any datatype
      */
-    protected <E> Future<E> transactionToFuture(CompletionStage<E> transaction) {
-        return Future.fromCompletionStage(transaction)
+    protected <E> Future<E> sessionToFuture(CompletionStage<E> session) {
+        return Future.fromCompletionStage(session)
             .recover(this::recoverFailure);
     }
 }

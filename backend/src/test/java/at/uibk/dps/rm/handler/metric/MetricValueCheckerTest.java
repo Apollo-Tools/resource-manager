@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.handler.metric;
 
 import at.uibk.dps.rm.entity.model.MetricValue;
-import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
 import at.uibk.dps.rm.testutil.SingleHelper;
@@ -95,72 +94,6 @@ public class MetricValueCheckerTest {
 
         metricValueChecker.checkFindAllByResource(resourceId, true)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(NotFoundException.class);
-                    testContext.completeNow();
-                })
-            );
-    }
-
-    @Test
-    void checkForDuplicateEntityByResourceAndMetricNotExists(VertxTestContext testContext) {
-        long resourceId = 1L;
-        long metricId = 1L;
-
-        when(metricValueService.existsOneByResourceAndMetric(resourceId, metricId)).thenReturn(Single.just(false));
-
-        metricValueChecker.checkForDuplicateByResourceAndMetric(resourceId, metricId)
-            .blockingSubscribe(() -> {
-                },
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-
-        verify(metricValueService).existsOneByResourceAndMetric(resourceId, metricId);
-        testContext.completeNow();
-    }
-
-    @Test
-    void checkForDuplicateEntityExists(VertxTestContext testContext) {
-        long resourceId = 1L;
-        long metricId = 1L;
-
-        when(metricValueService.existsOneByResourceAndMetric(resourceId, metricId)).thenReturn(Single.just(true));
-
-        metricValueChecker.checkForDuplicateByResourceAndMetric(resourceId, metricId)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
-                throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
-                    testContext.completeNow();
-                })
-            );
-    }
-
-    @Test
-    void checkMetricValueExistsByResourceAndMetricExists(VertxTestContext testContext) {
-        long resourceId = 1L;
-        long metricId = 1L;
-
-        when(metricValueService.existsOneByResourceAndMetric(resourceId, metricId)).thenReturn(Single.just(true));
-
-        metricValueChecker.checkMetricValueExistsByResourceAndMetric(resourceId, metricId)
-            .blockingSubscribe(() -> {
-                },
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-
-        verify(metricValueService).existsOneByResourceAndMetric(resourceId, metricId);
-        testContext.completeNow();
-    }
-
-    @Test
-    void checkMetricValueExistsByResourceAndMetricNotExists(VertxTestContext testContext) {
-        long resourceId = 1L;
-        long metricId = 1L;
-
-        when(metricValueService.existsOneByResourceAndMetric(resourceId, metricId)).thenReturn(Single.just(false));
-
-        metricValueChecker.checkMetricValueExistsByResourceAndMetric(resourceId, metricId)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();

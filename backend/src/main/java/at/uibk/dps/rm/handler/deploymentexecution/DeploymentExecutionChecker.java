@@ -2,6 +2,7 @@ package at.uibk.dps.rm.handler.deploymentexecution;
 
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
+import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
@@ -14,6 +15,7 @@ import at.uibk.dps.rm.service.deployment.docker.LambdaLayerService;
 import at.uibk.dps.rm.service.deployment.docker.OpenFaasImageService;
 import at.uibk.dps.rm.service.deployment.executor.MainTerraformExecutor;
 import at.uibk.dps.rm.service.deployment.executor.TerraformExecutor;
+import at.uibk.dps.rm.service.deployment.terraform.TerraformFileService;
 import at.uibk.dps.rm.service.rxjava3.database.log.LogService;
 import at.uibk.dps.rm.service.rxjava3.database.log.DeploymentLogService;
 import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentExecutionService;
@@ -57,41 +59,46 @@ public class DeploymentExecutionChecker {
     }
 
     /**
-    * Deploy resources at multiple regions.
-    *
-    * @param request the request containing all data that is necessary for the deployment
-    * @return a Single that emits the process output of the last step.
-    */
-    public Single<ProcessOutput> applyResourceDeployment(DeployResourcesDTO request) {
-        long deploymentId = request.getDeployment().getDeploymentId();
+     * Deploy all resources from the deployResources object. The
+     * docker credentials must contain valid data for all deployments that involve OpenFaaS. The
+     * list of VPCs must be non-empty for EC2 deployments.
+     *
+     * @param deployResources the data of the deployment
+     * @return a Completable
+     */
+    public Single<ProcessOutput> applyResourceDeployment(DeployResourcesDTO deployResources) {
+        long deploymentId = deployResources.getDeployment().getDeploymentId();
         Vertx vertx = Vertx.currentContext().owner();
-        return new ConfigUtility(vertx).getConfig()
+        return new ConfigUtility(vertx).getConfigDTO()
             .flatMap(config -> {
                 DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
-                return deploymentService.packageFunctionsCode(request)
-                    .flatMapCompletable(functionsToDeploy -> buildAndPushOpenFaasImages(vertx, request, functionsToDeploy,
-                        deploymentPath)
-                        .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, request.getDeployment()))
-                        .andThen(buildJavaLambdaFaaS(request.getFunctionDeployments(), deploymentPath))
-                        .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, request.getDeployment()))
-                        .andThen(buildLambdaLayers(request.getFunctionDeployments(), deploymentPath))
-                        .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, request.getDeployment())))
-                    .andThen(deploymentService.setUpTFModules(request))
+                return deploymentService.packageFunctionsCode(deployResources)
+                    .flatMapCompletable(functionsToDeploy -> buildAndPushOpenFaasImages(vertx,
+                            deployResources.getDeploymentCredentials().getDockerCredentials(), functionsToDeploy,
+                            deploymentPath)
+                        .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, deployResources.getDeployment()))
+                        .andThen(buildJavaLambdaFaaS(deployResources.getFunctionDeployments(), deploymentPath,
+                            config.getDindDirectory()))
+                        .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, deployResources.getDeployment()))
+                        .andThen(buildLambdaLayers(deployResources.getFunctionDeployments(), deploymentPath,
+                            config.getDindDirectory()))
+                        .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, deployResources.getDeployment())))
+                    .andThen(deploymentService.setUpTFModules(deployResources))
                     .flatMap(deploymentCredentials -> {
                         TerraformExecutor terraformExecutor = new MainTerraformExecutor(vertx, deploymentCredentials);
                         return Single.fromCallable(() ->
                                 terraformExecutor.setPluginCacheFolder(deploymentPath.getTFCacheFolder()))
-                            .flatMapCompletable(res -> initialiseAllContainerModules(request, deploymentPath))
+                            .flatMapCompletable(res -> initialiseAllContainerModules(deployResources, deploymentPath))
                             .andThen(Single.just(terraformExecutor));
                     })
                     .flatMap(terraformExecutor -> terraformExecutor.init(deploymentPath.getRootFolder())
-                        .flatMapCompletable(initOutput -> persistLogs(initOutput, request.getDeployment()))
+                        .flatMapCompletable(initOutput -> persistLogs(initOutput, deployResources.getDeployment()))
                         .andThen(Single.just(terraformExecutor)))
                     .flatMap(terraformExecutor -> terraformExecutor.apply(deploymentPath.getRootFolder())
-                        .flatMapCompletable(applyOutput -> persistLogs(applyOutput, request.getDeployment()))
+                        .flatMapCompletable(applyOutput -> persistLogs(applyOutput, deployResources.getDeployment()))
                         .andThen(Single.just(terraformExecutor)))
                     .flatMap(terraformExecutor -> terraformExecutor.getOutput(deploymentPath.getRootFolder()))
-                    .flatMap(tfOutput -> persistLogs(tfOutput, request.getDeployment())
+                    .flatMap(tfOutput -> persistLogs(tfOutput, deployResources.getDeployment())
                         .toSingle(() -> tfOutput));
             });
     }
@@ -112,14 +119,14 @@ public class DeploymentExecutionChecker {
    * Build docker images and push them to a docker registry.
    *
    * @param vertx the vertx instance of current context
-   * @param request the deploy resources request containing all deployment data
+   * @param dockerCredentials the docker credentials
    * @param functionsToDeploy the functions to deploy
    * @param deploymentPath the path of the current deployment
    * @return a Single that emits the process output of the docker process
    */
-    private Single<ProcessOutput> buildAndPushOpenFaasImages(Vertx vertx, DeployResourcesDTO request,
-        FunctionsToDeploy functionsToDeploy, DeploymentPath deploymentPath) {
-        OpenFaasImageService openFaasImageService = new OpenFaasImageService(vertx, request.getDockerCredentials(),
+    private Single<ProcessOutput> buildAndPushOpenFaasImages(Vertx vertx, DockerCredentials dockerCredentials,
+            FunctionsToDeploy functionsToDeploy, DeploymentPath deploymentPath) {
+        OpenFaasImageService openFaasImageService = new OpenFaasImageService(vertx, dockerCredentials,
             functionsToDeploy.getDockerFunctionIdentifiers(), deploymentPath.getFunctionsFolder());
         return openFaasImageService.buildOpenFaasImages(functionsToDeploy.getDockerFunctionsString());
     }
@@ -132,10 +139,9 @@ public class DeploymentExecutionChecker {
    * @return a Single that emits the process output of the docker process
    */
     private Single<ProcessOutput> buildJavaLambdaFaaS(List<FunctionDeployment> functionDeployments,
-            DeploymentPath deploymentPath) {
+            DeploymentPath deploymentPath, String dindDirectory) {
         LambdaJavaBuildService lambdaService = new LambdaJavaBuildService(functionDeployments, deploymentPath);
-        return new ConfigUtility(Vertx.currentContext().owner()).getConfig()
-            .flatMap(config ->lambdaService.buildAndZipJavaFunctions(config.getString("dind_directory")));
+        return lambdaService.buildAndZipJavaFunctions(dindDirectory);
     }
 
   /**
@@ -146,10 +152,9 @@ public class DeploymentExecutionChecker {
    * @return a Single that emits the process output of the docker process
    */
     private Single<ProcessOutput> buildLambdaLayers(List<FunctionDeployment> functionDeployments,
-            DeploymentPath deploymentPath) {
+            DeploymentPath deploymentPath, String dindDirectory) {
         LambdaLayerService layerService = new LambdaLayerService(functionDeployments, deploymentPath);
-        return  new ConfigUtility(Vertx.currentContext().owner()).getConfig()
-            .flatMap(config -> layerService.buildLambdaLayers(config.getString("dind_directory")));
+        return  layerService.buildLambdaLayers(dindDirectory);
     }
 
   /**
@@ -186,20 +191,20 @@ public class DeploymentExecutionChecker {
   /**
    * Terminate resources of a deployment.
    *
-   * @param request the request containing all data that is necessary for the termination
+   * @param terminateResources the object containing all data that is necessary for the termination
    * @return a Completable
    */
-    public Completable terminateResources(TerminateResourcesDTO request) {
-        long deploymentId = request.getDeployment().getDeploymentId();
+    public Completable terminateResources(TerminateResourcesDTO terminateResources) {
+        long deploymentId = terminateResources.getDeployment().getDeploymentId();
         Vertx vertx = Vertx.currentContext().owner();
-        return new ConfigUtility(vertx).getConfig()
+        return new ConfigUtility(vertx).getConfigDTO()
             .flatMapCompletable(config -> {
                 DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
-                return terminateAllContainerResources(request, deploymentPath)
-                    .andThen(deploymentService.getNecessaryCredentials(request))
+                return terminateAllContainerResources(terminateResources, deploymentPath)
+                    .andThen(deploymentService.getNecessaryCredentials(terminateResources))
                     .map(deploymentCredentials -> new MainTerraformExecutor(vertx, deploymentCredentials))
                     .flatMap(terraformExecutor -> terraformExecutor.destroy(deploymentPath.getRootFolder()))
-                    .flatMapCompletable(terminateOutput -> persistLogs(terminateOutput, request.getDeployment()));
+                    .flatMapCompletable(terminateOutput -> persistLogs(terminateOutput, terminateResources.getDeployment()));
             });
     }
 
@@ -221,18 +226,6 @@ public class DeploymentExecutionChecker {
             }).toList()
             .flatMapCompletable(Completable::merge);
     }
-
-    /**
-    * Delete all folders and files that were created for the deployment. Usually this
-    * gets called when the termination of all resources is done.
-    *
-    * @param deploymentId the id of the deployment
-    * @return a Completable
-    */
-    public Completable deleteTFDirs(long deploymentId) {
-        return deploymentService.deleteTFDirs(deploymentId);
-    }
-
     /**
      * Start a container from a deployment.
      *
@@ -244,7 +237,7 @@ public class DeploymentExecutionChecker {
         Vertx vertx = Vertx.currentContext().owner();
         Deployment deployment = new Deployment();
         deployment.setDeploymentId(deploymentId);
-        return new ConfigUtility(vertx).getConfig()
+        return new ConfigUtility(vertx).getConfigDTO()
             .flatMapCompletable(config -> {
                 TerraformExecutor terraformExecutor = new TerraformExecutor(vertx);
                 DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
@@ -266,7 +259,7 @@ public class DeploymentExecutionChecker {
         Vertx vertx = Vertx.currentContext().owner();
         Deployment deployment = new Deployment();
         deployment.setDeploymentId(deploymentId);
-        return new ConfigUtility(vertx).getConfig()
+        return new ConfigUtility(vertx).getConfigDTO()
             .flatMapCompletable(config -> {
                 TerraformExecutor terraformExecutor = new TerraformExecutor(vertx);
                 DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
@@ -275,5 +268,33 @@ public class DeploymentExecutionChecker {
                 return terraformExecutor.destroy(containerPath)
                     .flatMapCompletable(destroyOutput -> persistLogs(destroyOutput, deployment));
             });
+    }
+
+    /**
+     * Delete all folders and files that were created for the deployment. This
+     * can be used after the termination of all resources is done.
+     *
+     * @param deploymentId the id of the deployment
+     * @return a Completable
+     */
+    public Completable deleteTFDirs(long deploymentId) {
+        Vertx vertx = Vertx.currentContext().owner();
+        return new ConfigUtility(vertx).getConfigDTO().flatMapCompletable(config -> {
+            DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
+            return TerraformFileService.deleteAllDirs(vertx.fileSystem(), deploymentPath.getRootFolder());
+        });
+    }
+
+    /**
+     * Check whether a terraform lock file exists at the tfPath or not. The existence
+     * of this file indicates, that resources may be deployed.
+     *
+     * @param tfPath the root path to a terraform module
+     * @return a Single that emits true if the lock file exists, else false
+     */
+    public Single<Boolean> tfLockFileExists(String tfPath) {
+        Path lockFilePath = Path.of(tfPath, ".terraform.lock.hcl");
+        Vertx vertx = Vertx.currentContext().owner();
+        return vertx.fileSystem().exists(lockFilePath.toString());
     }
 }

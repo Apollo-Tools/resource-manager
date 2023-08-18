@@ -116,6 +116,14 @@ const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources
         sorter={(a, b) => a.service_id - b.service_id}
         defaultSortOrder="ascend"
       />
+      <Column title="Type" dataIndex={['service_type', 'name']} key="service_type"
+        sorter={(a, b) => a.service_type.name - b.service_type.name}
+        defaultSortOrder="ascend"
+        filterDropdown={({setSelectedKeys, selectedKeys, confirm, clearFilters}) =>
+          <ColumnFilterDropdown setSelectedKeys={setSelectedKeys} clearFilters={clearFilters}
+            selectedKeys={selectedKeys} confirm={confirm} columnName="name" />}
+        onFilter={(value, record) => record.service_type.name.startsWith(value)}
+      />
       <Column title="Name" dataIndex="name" key="name"
         sorter={(a, b) =>
           a.name.localeCompare(b.name)}

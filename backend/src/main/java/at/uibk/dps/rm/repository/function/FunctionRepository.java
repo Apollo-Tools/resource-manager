@@ -34,29 +34,11 @@ public class FunctionRepository extends Repository<Function> {
      */
     public CompletionStage<Function> findByIdAndFetch(Session session, long id) {
         return session.createQuery(
-                "from Function f left join fetch f.runtime where f.functionId =:id", entityClass)
-            .setParameter("id", id)
-            .getSingleResultOrNull();
-    }
-
-    /**
-     * Find a function by its name and runtime but exclude it if its id is equal to excludeId
-     *
-     * @param session the database session
-     * @param excludeId the id to be excluded from the result
-     * @param name the name of the function
-     * @param runtimeId the id of the runtime
-     * @return a CompletionStage that emits the function if it exists, else null
-     */
-    public CompletionStage<Function> findOneByNameAndRuntimeId(Session session, long excludeId, String name,
-            long runtimeId) {
-        return session.createQuery(
                 "from Function f " +
-                "left join fetch f.runtime r " +
-                "where f.functionId!=:excludeId and f.name=:name and r.runtimeId =:runtimeId", entityClass)
-            .setParameter("excludeId", excludeId)
-            .setParameter("name", name)
-            .setParameter("runtimeId", runtimeId)
+                    "left join fetch f.runtime " +
+                    "left join fetch f.functionType " +
+                    "where f.functionId =:id", entityClass)
+            .setParameter("id", id)
             .getSingleResultOrNull();
     }
 
@@ -72,6 +54,7 @@ public class FunctionRepository extends Repository<Function> {
         return session.createQuery(
                 "from Function f " +
                 "left join fetch f.runtime r " +
+                "left join fetch f.functionType " +
                 "where f.name=:name and r.runtimeId =:runtimeId", entityClass)
             .setParameter("name", name)
             .setParameter("runtimeId", runtimeId)
@@ -86,7 +69,8 @@ public class FunctionRepository extends Repository<Function> {
      */
     public CompletionStage<List<Function>> findAllAndFetch(Session session) {
         return session.createQuery("select distinct f from Function f " +
-                "left join fetch f.runtime ", entityClass)
+                "left join fetch f.runtime " +
+                "left join fetch f.functionType", entityClass)
             .getResultList();
     }
 

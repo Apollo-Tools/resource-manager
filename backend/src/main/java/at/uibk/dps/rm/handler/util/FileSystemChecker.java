@@ -48,14 +48,4 @@ public class FileSystemChecker {
         Single<String> getFileTemplate = filePathService.getRuntimeTemplate(templatePath);
         return ErrorHandler.handleTemplateHasContent(getFileTemplate);
     }
-
-    /**
-     * Check whether a terraform lockfile exists at the tfPath.
-     *
-     * @param tfPath the path of the terraform module
-     * @return a Single that emits true if the terraform lockfile exists, else false
-     */
-    public Single<Boolean> checkTFLockFileExists(String tfPath) {
-        return filePathService.tfLocFileExists(tfPath);
-    }
 }

@@ -10,6 +10,7 @@ import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
 import org.hibernate.reactive.stage.Stage;
 
 /**
@@ -36,10 +37,10 @@ public interface PlatformMetricService extends DatabaseServiceInterface {
     }
 
     /**
-     * Check if a resource is missing required metrics.
+     * Find all platform metrics by a platform.
      *
-     * @param resourceId the id of the resource
-     * @return a Future that emits true if the resource is missing required metrics, else false
+     * @param platformId the id of the platform
+     * @return a Future that emits all platform metrics as JsonArray
      */
-    Future<Boolean> missingRequiredPlatformMetricsByResourceId(long resourceId);
+    Future<JsonArray> findAllByPlatformId(long platformId);
 }

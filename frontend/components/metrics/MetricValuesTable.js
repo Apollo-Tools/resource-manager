@@ -1,10 +1,11 @@
 import DateFormatter from '../misc/DateFormatter';
 import {Button, Modal, Table} from 'antd';
-import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
+import {CheckCircleTwoTone, CloseCircleTwoTone, DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
 import {deleteResourceMetric} from '../../lib/MetricValueService';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
+import TooltipIcon from '../misc/TooltipIcon';
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -51,11 +52,20 @@ const MetricValuesTable = ({resourceId, metricValues, setMetricValues}) => {
       <Column title="Metric" dataIndex={['metric', 'metric']} key="metric"
         sorter={(a, b) =>
           a.metric.metric.localeCompare(b.metric.metric)}
+        render={(_, metric) => {
+          return <>{metric.metric.metric} <TooltipIcon text={metric.metric.description} /></>;
+        }}
       />
       <Column title="Is monitored" dataIndex={['metric', 'is_monitored']} key="is_monitored"
-        render={(isMonitored) => isMonitored.toString()}
+        render={(isMonitored) => {
+          if (isMonitored) {
+            return <CheckCircleTwoTone twoToneColor="#00ff00"/>;
+          } else {
+            return <CloseCircleTwoTone twoToneColor="#ff0000"/>;
+          }
+        }}
       />
-      <Column title="Value" dataIndex="value" key="is_monitored" />
+      <Column title="Value" dataIndex="value" key="value" />
       <Column title="Created at" dataIndex="created_at" key="created_at"
         render={(createdAt) => <DateFormatter dateTimestamp={createdAt}/>}
         sorter={(a, b) => a.created_at - b.created_at}

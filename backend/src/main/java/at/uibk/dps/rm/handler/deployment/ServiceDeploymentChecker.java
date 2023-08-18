@@ -5,7 +5,6 @@ import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.deployment.ServiceDeploymentService;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.json.JsonArray;
 
 /**
  * Implements methods to perform CRUD operations on the service_deployment entity.
@@ -26,17 +25,6 @@ public class ServiceDeploymentChecker extends EntityChecker {
     public ServiceDeploymentChecker(ServiceDeploymentService service) {
         super(service);
         this.service = service;
-    }
-
-    /**
-     * Find all service deployments by deployment.
-     *
-     * @param id the id of the deployment
-     * @return a Single that emits all found service deployments as JsonArray
-     */
-    public Single<JsonArray> checkFindAllByDeploymentId(long id) {
-        final Single<JsonArray> findAllByDeploymentId = service.findAllByDeploymentId(id);
-        return ErrorHandler.handleFindAll(findAllByDeploymentId);
     }
 
     /**

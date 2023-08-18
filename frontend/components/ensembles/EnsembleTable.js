@@ -92,7 +92,6 @@ const EnsembleTable = ({rowSelection}) => {
       dataSource={ensembles}
       rowKey={(record) => record.ensemble_id}
       rowSelection={rowSelection}
-      className="h-[600px]"
       size='small'
     >
       <Column title="Id" dataIndex="ensemble_id" key="id"

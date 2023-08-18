@@ -52,9 +52,14 @@ dependencies {
   implementation("de.mkammerer:argon2-jvm:2.11")
 
   // Json parsing
-  implementation("com.fasterxml.jackson.core:jackson-databind:2.15.0")
+  implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
+  implementation("com.fasterxml.jackson.datatype:jackson-datatype-hibernate5:2.15.2")
+  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2")
   // YAML parsing
-  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.15.0")
+  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.15.2")
+
+  // K8S
+  implementation("io.kubernetes:client-java:18.0.0")
 
   // DB
   implementation("com.ongres.scram:client:2.1")
@@ -69,6 +74,9 @@ dependencies {
   testImplementation("org.assertj:assertj-core:3.23.1")
   testImplementation("org.mockito:mockito-inline:3.+")
   testImplementation("org.mockito:mockito-junit-jupiter:4.8.0")
+
+  // Commons
+  implementation("org.apache.commons:commons-lang3:3.13.0")
 }
 
 java {

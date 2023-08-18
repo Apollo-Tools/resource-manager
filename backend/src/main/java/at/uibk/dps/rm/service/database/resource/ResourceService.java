@@ -2,8 +2,10 @@ package at.uibk.dps.rm.service.database.resource;
 
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.Resource;
+import at.uibk.dps.rm.entity.monitoring.K8sMonitoringData;
 import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
+import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -16,7 +18,6 @@ import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage.SessionFactory;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * The interface of the service proxy for the resource entity.
@@ -31,7 +32,8 @@ public interface ResourceService extends DatabaseServiceInterface {
     @Generated
     @GenIgnore
     static ResourceService create(SessionFactory sessionFactory) {
-        return new ResourceServiceImpl(new ResourceRepository(), new MetricRepository(), sessionFactory);
+        return new ResourceServiceImpl(new ResourceRepository(), new RegionRepository(), new MetricRepository(),
+            sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
@@ -49,29 +51,12 @@ public interface ResourceService extends DatabaseServiceInterface {
     Future<JsonArray> findAllBySLOs(JsonObject data);
 
     /**
-     * Check if a resource exists by its resource type.
+     * Find all sub resources by their main resource.
      *
-     * @param typeId the id of the resource type
-     * @return a Future that emits true if it exists, else false
+     * @param resourceId the id of the main resource
+     * @return a Future that emits all sub resources as JsonArray
      */
-    Future<Boolean> existsOneByResourceType(long typeId);
-
-    /**
-     * Find all resources by ensembleId.
-     *
-     * @param ensembleId the id of the ensemble
-     * @return a Future that emits all resources as JsonArray
-     */
-    Future<JsonArray> findAllByEnsembleId(long ensembleId);
-
-    /**
-     * Check if all resources exists by resourceIds and resourceTypes.
-     *
-     * @param resourceIds the list of resource ids
-     * @param resourceTypes the list of resource types
-     * @return a Future that emits true if all resources exist, else false
-     */
-    Future<Boolean> existsAllByIdsAndResourceTypes(Set<Long> resourceIds, List<String> resourceTypes);
+    Future<JsonArray> findAllSubResources(long resourceId);
 
     /**
      * Find all resources by resourceIds.
@@ -80,4 +65,13 @@ public interface ResourceService extends DatabaseServiceInterface {
      * @return a Future that emits all resources as JsonArray
      */
     Future<JsonArray> findAllByResourceIds(List<Long> resourceIds);
+
+    /**
+     * Update a cluster resource using the contents of the data object.
+     *
+     * @param resourceName the name of the cluster resource
+     * @param data the monitoring data
+     * @return an empty Future
+     */
+    Future<Void> updateClusterResource(String resourceName, K8sMonitoringData data);
 }

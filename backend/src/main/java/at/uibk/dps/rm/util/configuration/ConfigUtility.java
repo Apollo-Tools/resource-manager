@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.util.configuration;
 
+import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.config.ConfigRetrieverOptions;
 import io.vertx.config.ConfigStoreOptions;
@@ -34,9 +35,19 @@ public class ConfigUtility {
     /**
      * Get the config.
      *
+     * @return a Single that emits the config as DTO
+     */
+    public Single<ConfigDTO> getConfigDTO() {
+        return this.configRetriever.getConfig()
+            .map(config -> config.mapTo(ConfigDTO.class));
+    }
+
+    /**
+     * Get the config.
+     *
      * @return a Single that emits the config as JsonObject
      */
-    public Single<JsonObject> getConfig() {
+    public Single<JsonObject> getConfigJson() {
         return this.configRetriever.getConfig();
     }
 }

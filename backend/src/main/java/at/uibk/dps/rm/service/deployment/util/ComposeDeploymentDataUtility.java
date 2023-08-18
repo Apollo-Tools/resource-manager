@@ -11,7 +11,6 @@ import at.uibk.dps.rm.exception.RuntimeNotSupportedException;
 import at.uibk.dps.rm.util.misc.MetricValueMapper;
 import lombok.experimental.UtilityClass;
 
-import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -56,11 +55,9 @@ public class ComposeDeploymentDataUtility {
                 throw new RuntimeNotSupportedException();
         }
         Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
-        BigDecimal timeout =  metricValues.get("timeout").getValueNumber();
-        BigDecimal memorySize = metricValues.get("memory-size").getValueNumber();
         String deploymentRole = metricValues.get("deployment-role").getValueString();
-        deploymentData.appendValues(functionName.toString(), functionPath.toString(), functionHandler, timeout,
-            memorySize, layer, runtime.getValue(), deploymentRole);
+        deploymentData.appendValues(functionName.toString(), functionPath.toString(), functionHandler,
+            function.getTimeoutSeconds(), function.getMemoryMegabytes(), layer, runtime.getValue(), deploymentRole);
     }
 
     /**
@@ -80,9 +77,11 @@ public class ComposeDeploymentDataUtility {
         // TODO: swap with check, if vm is already deployed
         if (checkMustDeployVM(resource, deploymentData)) {
             String instanceType = metricValues.get("instance-type").getValueString();
-            deploymentData.appendValues(resourceName, instanceType, resource.getResourceId(), functionIdentifier);
+            deploymentData.appendValues(resourceName, instanceType, resource.getResourceId(), functionIdentifier,
+                function.getTimeoutSeconds());
         } else {
-            deploymentData.appendValues(resourceName, resource.getResourceId(), functionIdentifier);
+            deploymentData.appendValues(resourceName, resource.getResourceId(), functionIdentifier,
+                function.getTimeoutSeconds());
         }
     }
 
@@ -98,7 +97,8 @@ public class ComposeDeploymentDataUtility {
         String functionIdentifier =  function.getFunctionDeploymentId();
         Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
         String gatewayUrl = metricValues.get("gateway-url").getValueString();
-        deploymentData.appendValues(resource.getResourceId(), functionIdentifier, gatewayUrl);
+        deploymentData.appendValues(resource.getResourceId(), functionIdentifier, gatewayUrl,
+            function.getTimeoutSeconds());
     }
 
     /**

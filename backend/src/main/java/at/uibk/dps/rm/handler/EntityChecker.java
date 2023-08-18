@@ -38,6 +38,19 @@ public abstract class EntityChecker {
     }
 
     /**
+     * Find the entity by its id and account id and return it, if found.
+     *
+     * @param id the id of the entity
+     * @param accountId  the id of the account
+     * @return a Single that emits the found entity as JsonObject if found, else a NotFoundException
+     * gets thrown
+     */
+    public Single<JsonObject> checkFindOne(long id, long accountId) {
+        Single<JsonObject> findOneById = service.findOneByIdAndAccountId(id, accountId);
+        return ErrorHandler.handleFindOne(findOneById);
+    }
+
+    /**
      * Find all entities, that exist.
      *
      * @return a Single that emits the list of found entities as JsonArray if found

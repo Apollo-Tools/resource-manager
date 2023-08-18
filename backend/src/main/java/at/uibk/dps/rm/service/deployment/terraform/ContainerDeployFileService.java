@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
+import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.model.Service;
@@ -25,6 +26,8 @@ public class ContainerDeployFileService extends TerraformFileService {
 
     private final Path rootFolder;
 
+    private final ConfigDTO config;
+
     /**
      * Create an instance from the fileSystem, rootFolder, serviceDeployment and deploymentId.
      *
@@ -34,11 +37,12 @@ public class ContainerDeployFileService extends TerraformFileService {
      * @param deploymentId the id of the deployment
      */
     public ContainerDeployFileService(FileSystem fileSystem, Path rootFolder, ServiceDeployment serviceDeployment,
-            long deploymentId) {
+            long deploymentId, ConfigDTO config) {
         super(fileSystem, rootFolder);
         this.rootFolder = rootFolder;
         this.serviceDeployment = serviceDeployment;
         this.deploymentId = deploymentId;
+        this.config = config;
     }
 
     @Override
@@ -69,11 +73,13 @@ public class ContainerDeployFileService extends TerraformFileService {
         Resource resource = serviceDeployment.getResource();
         Service service = serviceDeployment.getService();
         String identifier = resource.getResourceId() + "_" + service.getServiceId();
+        Map<String, MetricValue> mainMetricValues =
+            MetricValueMapper.mapMetricValues(resource.getMain().getMetricValues());
         Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
 
         String externalIp = "";
-        if (metricValues.containsKey("external-ip")) {
-            externalIp = metricValues.get("external-ip").getValueString();
+        if (mainMetricValues.containsKey("external-ip")) {
+            externalIp = mainMetricValues.get("external-ip").getValueString();
         }
 
         String configPath = Path.of(rootFolder.getParent().toString(), "config").toAbsolutePath().toString()
@@ -82,12 +88,26 @@ public class ContainerDeployFileService extends TerraformFileService {
             .map(portEntry -> String.format("{container_port = %s, service_port = %s}", portEntry.split(":")[0],
                 portEntry.split(":")[1]))
             .collect(Collectors.joining(","));
+        String hostname = metricValues.containsKey("hostname") ?
+            "\"" + metricValues.get("hostname").getValueString() + "\"" : "null";
+        String imagePullSecrets = config.getKubeImagePullSecrets().stream()
+            .map(secret -> "\"" + secret + "\"").collect(Collectors.joining(","));
+        String volumeMounts = service.getVolumeMounts().stream()
+                .map(volumeMount -> "{name:\"" + volumeMount.getName() +
+                        "\",mountPath:\"" + volumeMount.getMountPath() +
+                        "\",sizeMegaBytes:" + volumeMount.getSizeMegabytes() + "}")
+                .collect(Collectors.joining(","));
+        String envVars = service.getEnvVars().stream()
+                .map(envVar -> "{name:\"" + envVar.getName() +
+                        "\",value:\"" + envVar.getValue() + "\"}")
+                .collect(Collectors.joining(","));
         containerString.append(String.format(
             "module \"deployment_%s\" {\n" +
             "  source = \"../../../../terraform/k8s/deployment\"\n" +
             "  config_path = \"%s\"\n" +
             "  config_context = \"%s\"\n" +
             "  namespace = \"%s\"\n" +
+            "  name = \"%s\"\n" +
             "  image = \"%s\"\n" +
             "  deployment_id = %s\n" +
             "  replicas = %s\n" +
@@ -96,10 +116,14 @@ public class ContainerDeployFileService extends TerraformFileService {
             "  ports = [%s]\n" +
             "  service_type = \"%s\"\n" +
             "  external_ip = \"%s\"\n" +
+            "  hostname = %s\n" +
+            "  image_pull_secrets = [%s]\n" +
+            "  volume_mounts = [%s]\n" +
+            "  env_vars = [%s]\n" +
             "}\n", identifier, configPath, serviceDeployment.getContext(),
-            serviceDeployment.getNamespace(), service.getImage(), deploymentId,
+            serviceDeployment.getNamespace(), service.getName(), service.getImage(), deploymentId,
             service.getReplicas(), service.getCpu(), service.getMemory(), ports,
-            service.getServiceType().getName(), externalIp));
+            service.getK8sServiceType().getName(), externalIp, hostname, imagePullSecrets, volumeMounts, envVars));
         return containerString.toString();
     }
 

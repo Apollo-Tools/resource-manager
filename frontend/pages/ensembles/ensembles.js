@@ -10,7 +10,7 @@ const Ensembles = () => {
       <Head>
         <title>{`${siteTitle}: Ensembles`}</title>
       </Head>
-      <div className="card container w-11/12 max-w-7xl p-10">
+      <div className="default-card">
         <Typography.Title level={2}>All Ensembles</Typography.Title>
         <NewEntityButton name="Ensemble"/>
         <EnsembleTable />

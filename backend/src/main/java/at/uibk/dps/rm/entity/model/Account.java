@@ -29,6 +29,10 @@ public class Account {
     @JsonProperty("is_active")
     private Boolean isActive = true;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "role_id")
+    private Role role;
+
     @Column(insertable = false, updatable = false)
     private @Setter(AccessLevel.NONE) Timestamp createdAt;
 

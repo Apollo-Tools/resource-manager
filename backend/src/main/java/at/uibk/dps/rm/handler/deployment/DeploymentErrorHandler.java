@@ -1,17 +1,14 @@
 package at.uibk.dps.rm.handler.deployment;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
-import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
-import at.uibk.dps.rm.entity.model.Log;
-import at.uibk.dps.rm.entity.model.Deployment;
-import at.uibk.dps.rm.entity.model.DeploymentLog;
-import at.uibk.dps.rm.handler.deploymentexecution.DeploymentExecutionHandler;
-import at.uibk.dps.rm.handler.log.LogChecker;
-import at.uibk.dps.rm.handler.log.DeploymentLogChecker;
-import at.uibk.dps.rm.handler.util.FileSystemChecker;
+import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
+import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
+import at.uibk.dps.rm.handler.deploymentexecution.DeploymentExecutionChecker;
+import at.uibk.dps.rm.router.deployment.DeploymentRoute;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import io.reactivex.rxjava3.core.Completable;
-import io.vertx.core.json.JsonObject;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.rxjava3.core.Vertx;
 
 /**
@@ -21,98 +18,74 @@ import io.vertx.rxjava3.core.Vertx;
  */
 public class DeploymentErrorHandler {
 
-    private final ResourceDeploymentChecker resourceDeploymentChecker;
+    private static final Logger logger = LoggerFactory.getLogger(DeploymentRoute.class);
 
-    private final LogChecker logChecker;
+    private final DeploymentChecker deploymentChecker;
 
-    private final DeploymentLogChecker deploymentLogChecker;
-
-    private final FileSystemChecker fileSystemChecker;
-
-    private final DeploymentExecutionHandler deploymentHandler;
+    private final DeploymentExecutionChecker deploymentExecutionChecker;
 
     /**
-     * Create an instance from the resourceDeploymentChecker, logChecker, deploymentLogChecker,
-     * fileSystemChecker and deploymentHandler.
+     * Create an instance from the deploymentChecker and deploymentExecutionChecker.
      *
-     * @param resourceDeploymentChecker the resource deployment checker
-     * @param logChecker the log checker
-     * @param deploymentLogChecker the deployment log checker
-     * @param fileSystemChecker the file system checker
-     * @param deploymentHandler the deployment handler
+     * @param deploymentChecker the deployment checker
+     * @param deploymentExecutionChecker the deployment execution checker
      */
-    public DeploymentErrorHandler(ResourceDeploymentChecker resourceDeploymentChecker, LogChecker logChecker,
-                                   DeploymentLogChecker deploymentLogChecker, FileSystemChecker fileSystemChecker,
-                                   DeploymentExecutionHandler deploymentHandler) {
-        this.resourceDeploymentChecker = resourceDeploymentChecker;
-        this.logChecker = logChecker;
-        this.deploymentLogChecker = deploymentLogChecker;
-        this.fileSystemChecker = fileSystemChecker;
-        this.deploymentHandler = deploymentHandler;
+    public DeploymentErrorHandler(DeploymentChecker deploymentChecker,
+            DeploymentExecutionChecker deploymentExecutionChecker) {
+        this.deploymentChecker = deploymentChecker;
+        this.deploymentExecutionChecker = deploymentExecutionChecker;
     }
 
     /**
-     * Handle an error that occurred during deployment.
+     * Handle errors for a deployment process.
      *
-     * @param accountId the id of the creator of the deployment
-     * @param deployment the deployment
-     * @param throwable the thrown error
+     * @param deployment the deployment process
+     * @param deployResources the deployment request
+     */
+    public void handleDeployResources(Completable deployment, DeployResourcesDTO deployResources) {
+        deployment.doOnError(throwable -> logger.error(throwable.getMessage()))
+            .onErrorResumeNext(throwable ->
+                deploymentChecker.handleDeploymentError(deployResources.getDeployment().getDeploymentId(),
+                        throwable.getMessage())
+                    .andThen(this.terminateFailedDeployment(deployResources)))
+            .subscribe();
+    }
+
+    /**
+     * Handle errors for the termination process.
+     *
+     * @param termination the termination process
+     * @param deploymentId the deployment id
+     */
+    public void handleTerminateResources(Completable termination, long deploymentId) {
+        termination.doOnError(throwable -> logger.error(throwable.getMessage()))
+            .onErrorResumeNext(throwable ->
+                deploymentChecker.handleDeploymentError(deploymentId, throwable.getMessage()))
+            .subscribe();
+    }
+
+    /**
+     * Terminate all resources from the deployment.
+     *
+     * @param deployResources the data of the deployment
      * @return a Completable
      */
-    public Completable onDeploymentError(long accountId, Deployment deployment, Throwable throwable) {
+    private Completable terminateFailedDeployment(DeployResourcesDTO deployResources) {
+        TerminateResourcesDTO terminateResources = new TerminateResourcesDTO(deployResources);
         Vertx vertx = Vertx.currentContext().owner();
-        return handleError(deployment, throwable)
-            .andThen(new ConfigUtility(vertx).getConfig()
-                .flatMap(config -> {
-                    String path = new DeploymentPath(deployment.getDeploymentId(), config).getRootFolder()
-                        .toString();
-                    return fileSystemChecker
-                        .checkTFLockFileExists(path);
-                }))
-            .flatMapCompletable(tfLockFileExists -> {
-                if (tfLockFileExists) {
-                    return deploymentHandler.terminateResources(deployment, accountId)
-                        .onErrorComplete();
-                } else {
-                    return Completable.complete();
+        return new ConfigUtility(vertx).getConfigDTO()
+            .flatMap(config -> {
+                String path = new DeploymentPath(deployResources.getDeployment().getDeploymentId(), config)
+                    .getRootFolder().toString();
+                return deploymentExecutionChecker.tfLockFileExists(path);
+            })
+            .flatMapCompletable(locFileExists -> {
+                if (locFileExists) {
+                    return deploymentExecutionChecker.terminateResources(terminateResources).onErrorComplete();
                 }
-            });
-    }
-
-    /**
-     * Handle an error that occurred during termination.
-     *
-     * @param deployment the deployment
-     * @param throwable the thrown error
-     * @return a Completable
-     */
-    public Completable onTerminationError(Deployment deployment, Throwable throwable) {
-        return handleError(deployment, throwable);
-    }
-
-    /**
-     * Handle an error of a deployment.
-     *
-     * @param deployment the deployment
-     * @param throwable the thrown error
-     * @return a Completable
-     */
-    private Completable handleError(Deployment deployment, Throwable throwable) {
-        return resourceDeploymentChecker
-            .submitUpdateStatus(deployment.getDeploymentId(), DeploymentStatusValue.ERROR)
-            .toSingle(() -> {
-                Log log = new Log();
-                log.setLogValue(throwable.getMessage());
-                return logChecker.submitCreate(JsonObject.mapFrom(log));
+                return Completable.complete();
             })
-            .flatMap(res -> res)
-            .flatMap(logResult -> {
-                Log logStored = logResult.mapTo(Log.class);
-                DeploymentLog deploymentLog = new DeploymentLog();
-                deploymentLog.setDeployment(deployment);
-                deploymentLog.setLog(logStored);
-                return deploymentLogChecker.submitCreate(JsonObject.mapFrom(deploymentLog));
-            })
-            .ignoreElement();
+            .andThen(Completable.defer(() ->
+                deploymentExecutionChecker.deleteTFDirs(deployResources.getDeployment().getDeploymentId())));
     }
 }

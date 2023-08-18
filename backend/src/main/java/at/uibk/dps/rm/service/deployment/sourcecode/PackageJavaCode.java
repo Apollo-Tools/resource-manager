@@ -48,8 +48,8 @@ public class PackageJavaCode extends PackageSourceCode {
     @Override
     protected Completable createSourceCode() {
         if (function.getIsFile()) {
-            return new ConfigUtility(vertx).getConfig().flatMapCompletable(config -> {
-                Path zipPath = Path.of(config.getString("upload_persist_directory"), function.getCode());
+            return new ConfigUtility(vertx).getConfigDTO().flatMapCompletable(config -> {
+                Path zipPath = Path.of(config.getUploadPersistDirectory(), function.getCode());
                 return vertx.executeBlocking(fut -> {
                     unzipAllFiles(zipPath);
                     fut.complete();

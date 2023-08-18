@@ -1,11 +1,14 @@
 package at.uibk.dps.rm.service;
 
-import at.uibk.dps.rm.service.rxjava3.database.ensemble.EnsembleSLOService;
+import at.uibk.dps.rm.service.rxjava3.database.account.NamespaceService;
+import at.uibk.dps.rm.service.rxjava3.database.artifact.FunctionTypeService;
+import at.uibk.dps.rm.service.rxjava3.database.artifact.ServiceTypeService;
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.EnsembleService;
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.ResourceEnsembleService;
 import at.uibk.dps.rm.service.rxjava3.database.log.DeploymentLogService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.PlatformMetricService;
 import at.uibk.dps.rm.service.rxjava3.database.deployment.*;
+import at.uibk.dps.rm.service.rxjava3.database.account.AccountNamespaceService;
 import at.uibk.dps.rm.service.rxjava3.database.account.AccountService;
 import at.uibk.dps.rm.service.rxjava3.database.account.CredentialsService;
 import at.uibk.dps.rm.service.rxjava3.database.function.FunctionService;
@@ -22,7 +25,7 @@ import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceTypeService;
 import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.VPCService;
 import at.uibk.dps.rm.service.rxjava3.database.service.ServiceService;
-import at.uibk.dps.rm.service.rxjava3.database.service.ServiceTypeService;
+import at.uibk.dps.rm.service.rxjava3.database.service.K8sServiceTypeService;
 import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentExecutionService;
 import at.uibk.dps.rm.service.rxjava3.util.FilePathService;
 import at.uibk.dps.rm.verticle.DatabaseVerticle;
@@ -38,17 +41,19 @@ import lombok.Getter;
  */
 @Getter
 public class ServiceProxyProvider {
+    private final AccountNamespaceService accountNamespaceService;
     private final AccountService accountService;
     private final CredentialsService credentialsService;
     private final EnsembleService ensembleService;
-    private final EnsembleSLOService ensembleSLOService;
     private final EnvironmentService environmentService;
     private final FunctionService functionService;
-    private final FunctionDeploymentService functionDeploymentService;
+    private final FunctionTypeService functionTypeService;
     private final LogService logService;
+    private final K8sServiceTypeService k8sServiceTypeService;
     private final MetricService metricService;
     private final MetricTypeService metricTypeService;
     private final MetricValueService metricValueService;
+    private final NamespaceService namespaceService;
     private final PlatformService platformService;
     private final RegionService regionService;
     private final DeploymentService deploymentService;
@@ -57,8 +62,6 @@ public class ServiceProxyProvider {
     private final ResourceService resourceService;
     private final ResourceProviderService resourceProviderService;
     private final ResourceDeploymentService resourceDeploymentService;
-    @SuppressWarnings("PMD.LongVariable")
-    private final ResourceDeploymentStatusService resourceDeploymentStatusService;
     private final ResourceTypeService resourceTypeService;
     private final PlatformMetricService platformMetricService;
     private final RuntimeService runtimeService;
@@ -75,17 +78,19 @@ public class ServiceProxyProvider {
      * @param vertx the current vertx instance
      */
     public ServiceProxyProvider(Vertx vertx) {
+        accountNamespaceService = AccountNamespaceService.createProxy(vertx);
         accountService = AccountService.createProxy(vertx);
         credentialsService = CredentialsService.createProxy(vertx);
         ensembleService = EnsembleService.createProxy(vertx);
-        ensembleSLOService = EnsembleSLOService.createProxy(vertx);
         environmentService = EnvironmentService.createProxy(vertx);
         functionService = FunctionService.createProxy(vertx);
-        functionDeploymentService = FunctionDeploymentService.createProxy(vertx);
+        functionTypeService = FunctionTypeService.createProxy(vertx);
+        k8sServiceTypeService = K8sServiceTypeService.createProxy(vertx);
         logService = LogService.createProxy(vertx);
         metricService = MetricService.createProxy(vertx);
         metricTypeService = MetricTypeService.createProxy(vertx);
         metricValueService = MetricValueService.createProxy(vertx);
+        namespaceService = NamespaceService.createProxy(vertx);
         platformService = PlatformService.createProxy(vertx);
         platformMetricService = PlatformMetricService.createProxy(vertx);
         regionService = RegionService.createProxy(vertx);
@@ -95,7 +100,6 @@ public class ServiceProxyProvider {
         resourceService = ResourceService.createProxy(vertx);
         resourceProviderService = ResourceProviderService.createProxy(vertx);
         resourceDeploymentService = ResourceDeploymentService.createProxy(vertx);
-        resourceDeploymentStatusService = ResourceDeploymentStatusService.createProxy(vertx);
         resourceTypeService = ResourceTypeService.createProxy(vertx);
         runtimeService = RuntimeService.createProxy(vertx);
         serviceDeploymentService = ServiceDeploymentService.createProxy(vertx);

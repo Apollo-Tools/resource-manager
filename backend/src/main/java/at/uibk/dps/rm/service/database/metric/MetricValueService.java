@@ -37,6 +37,15 @@ public interface MetricValueService extends DatabaseServiceInterface {
     }
 
     /**
+     * Save all metric values from data to a resource.
+     *
+     * @param resourceId the id of the resource
+     * @param data the metric value data to set
+     * @return an empty Future
+     */
+    Future<Void> saveAllToResource(long resourceId, JsonArray data);
+
+    /**
      * Find all metric values by their resource and add the values based on includeValue.
      *
      * @param resourceId the id of the resource
@@ -44,15 +53,6 @@ public interface MetricValueService extends DatabaseServiceInterface {
      * @return a Future that emits all metric values as JsonArray
      */
     Future<JsonArray> findAllByResource(long resourceId, boolean includeValue);
-
-    /**
-     * Check if a metric value exists by its resource and metric.
-     *
-     * @param resourceId the id of the resource
-     * @param metricId the id of the metric
-     * @return a Future that emits true if the metric value exists, else false
-     */
-    Future<Boolean> existsOneByResourceAndMetric(long resourceId, long metricId);
 
     /**
      * Update a metric value based on its resource and metric. Set the new value using the

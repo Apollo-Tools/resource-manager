@@ -7,6 +7,7 @@ import {listResourcesBySLOs} from '../../lib/ResourceService';
 import {SearchOutlined} from '@ant-design/icons';
 import ResourceTableFormItem from '../resources/ResourceTableFormItem';
 import {createEnsemble} from '../../lib/EnsembleService';
+import {nameRegexValidationRule, nameValidationRule} from '../../lib/FormValidationRules';
 
 const NewEnsembleForm = ({setNewEnsemble}) => {
   const [form] = Form.useForm();
@@ -74,12 +75,7 @@ const NewEnsembleForm = ({setNewEnsemble}) => {
         <Form.Item
           label="Name"
           name="name"
-          rules={[
-            {
-              required: true,
-              message: 'Please input a name!',
-            },
-          ]}
+          rules={[nameValidationRule, nameRegexValidationRule]}
         >
           <Input className="w-40" />
         </Form.Item>

@@ -1,12 +1,18 @@
 package at.uibk.dps.rm.service.database.metric;
 
+import at.uibk.dps.rm.entity.model.Platform;
 import at.uibk.dps.rm.entity.model.PlatformMetric;
 import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.util.validation.ServiceResultValidator;
 import io.vertx.core.Future;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
+import java.util.List;
 import java.util.concurrent.CompletionStage;
+import java.util.stream.Collectors;
 
 /**
  * This is the implementation of the #PlatformMetricService.
@@ -28,10 +34,21 @@ public class PlatformMetricServiceImpl extends DatabaseServiceProxy<PlatformMetr
     }
 
     @Override
-    public Future<Boolean> missingRequiredPlatformMetricsByResourceId(long resourceId) {
-        CompletionStage<Long> count = withSession(session ->
-            repository.countMissingRequiredMetricValuesByResourceId(session, resourceId));
-        return Future.fromCompletionStage(count)
-            .map(result -> result > 0);
+    public Future<JsonArray> findAllByPlatformId(long platformId) {
+        CompletionStage<List<PlatformMetric>> getAll = withSession(session ->
+            session.find(Platform.class, platformId)
+                .thenCompose(platform -> {
+                    ServiceResultValidator.checkFound(platform, Platform.class);
+                    return repository.findAllByPlatform(session, platformId);
+                })
+        );
+        return sessionToFuture(getAll)
+            .map(platformMetrics -> {
+                List<JsonObject> result = platformMetrics.stream()
+                    .peek(platformMetric -> platformMetric.setPlatform(null))
+                    .map(JsonObject::mapFrom)
+                    .collect(Collectors.toList());
+                return new JsonArray(result);
+            });
     }
 }

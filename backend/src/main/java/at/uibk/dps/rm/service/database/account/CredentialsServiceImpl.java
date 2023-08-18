@@ -17,7 +17,6 @@ import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CompletionStage;
 
 //TODO: discuss if it is necessary to encrypt secrets / store secrets
@@ -73,14 +72,6 @@ public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> im
     }
 
     @Override
-    public Future<Boolean> existsOneByAccountIdAndProviderId(long accountId, long providerId) {
-        CompletionStage<Credentials> findOne = withSession(session ->
-            repository.findByAccountIdAndProviderId(session, accountId, providerId));
-        return Future.fromCompletionStage(findOne)
-            .map(Objects::nonNull);
-    }
-
-    @Override
     public Future<JsonObject> saveToAccount(long accountId, JsonObject data) {
         Credentials newCredentials = data.mapTo(Credentials.class);
         long providerId = newCredentials.getResourceProvider().getProviderId();
@@ -110,7 +101,7 @@ public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> im
                 .thenCompose(session::persist)
                 .thenApply(res -> newCredentials)
         );
-        return transactionToFuture(save).map(credentials -> {
+        return sessionToFuture(save).map(credentials -> {
             credentials.getResourceProvider().setProviderPlatforms(null);
             credentials.getResourceProvider().setEnvironment(null);
             return JsonObject.mapFrom(credentials);

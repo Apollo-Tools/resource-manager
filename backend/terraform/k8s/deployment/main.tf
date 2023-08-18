@@ -4,7 +4,7 @@ provider "kubernetes" {
 }
 
 locals {
-  name = "${replace(var.name, "-", "_")}-${var.deployment_id}-${formatdate("YYYY-MM-DD-hh-mm-ss", timestamp())}"
+  name = "${replace(var.name, "-", "_")}-${var.deployment_id}${var.hostname != null ? var.hostname : ""}-${formatdate("YYYY-MM-DD-hh-mm-ss", timestamp())}"
 }
 
 resource "kubernetes_service_v1" "service" {
@@ -69,11 +69,45 @@ resource "kubernetes_deployment_v1" "deployment" {
             }
           }
 
+          dynamic "env" {
+            for_each = var.env_vars
+            content {
+              name = env.value.name
+              value = env.value.value
+            }
+          }
+
           dynamic "port" {
             for_each = var.ports
             content {
               name = "port-${port.value.service_port}-${port.value.container_port}"
               container_port = port.value.container_port
+            }
+          }
+
+          dynamic "volume_mount" {
+            for_each = var.volume_mounts
+            content {
+              mount_path = volume_mount.value.mountPath
+              name = volume_mount.value.name
+            }
+          }
+
+        }
+        dynamic "image_pull_secrets" {
+          for_each = var.image_pull_secrets
+          content {
+            name = image_pull_secrets.value
+          }
+        }
+        node_selector = var.hostname != null ? {"kubernetes.io/hostname" = var.hostname} : null
+
+        dynamic "volume" {
+          for_each = var.volume_mounts
+          content {
+            name = volume.value.name
+            empty_dir {
+              size_limit = "${volume.value.sizeMegaBytes}M"
             }
           }
         }

@@ -115,6 +115,14 @@ const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resource
         sorter={(a, b) => a.function_id - b.function_id}
         defaultSortOrder="ascend"
       />
+      <Column title="Type" dataIndex={['function_type', 'name']} key="function_type"
+        sorter={(a, b) => a.function_type.name - b.function_type.name}
+        defaultSortOrder="ascend"
+        filterDropdown={({setSelectedKeys, selectedKeys, confirm, clearFilters}) =>
+          <ColumnFilterDropdown setSelectedKeys={setSelectedKeys} clearFilters={clearFilters}
+            selectedKeys={selectedKeys} confirm={confirm} columnName="name" />}
+        onFilter={(value, record) => record.function_type.name.startsWith(value)}
+      />
       <Column title="Name" dataIndex="name" key="name"
         sorter={(a, b) =>
           a.name.localeCompare(b.name)}

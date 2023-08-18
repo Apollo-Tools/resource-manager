@@ -1,8 +1,10 @@
 package at.uibk.dps.rm.verticle;
 
-import at.uibk.dps.rm.repository.account.AccountCredentialsRepository;
-import at.uibk.dps.rm.repository.account.AccountRepository;
-import at.uibk.dps.rm.repository.account.CredentialsRepository;
+import at.uibk.dps.rm.repository.DeploymentRepositoryProvider;
+import at.uibk.dps.rm.repository.EnsembleRepositoryProvider;
+import at.uibk.dps.rm.repository.account.*;
+import at.uibk.dps.rm.repository.artifact.FunctionTypeRepository;
+import at.uibk.dps.rm.repository.artifact.ServiceTypeRepository;
 import at.uibk.dps.rm.repository.ensemble.EnsembleRepository;
 import at.uibk.dps.rm.repository.ensemble.EnsembleSLORepository;
 import at.uibk.dps.rm.repository.ensemble.ResourceEnsembleRepository;
@@ -23,8 +25,12 @@ import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
 import at.uibk.dps.rm.repository.service.ServiceRepository;
-import at.uibk.dps.rm.repository.service.ServiceTypeRepository;
+import at.uibk.dps.rm.repository.service.K8sServiceTypeRepository;
 import at.uibk.dps.rm.service.database.account.*;
+import at.uibk.dps.rm.service.database.artifact.FunctionTypeService;
+import at.uibk.dps.rm.service.database.artifact.FunctionTypeServiceImpl;
+import at.uibk.dps.rm.service.database.artifact.ServiceTypeService;
+import at.uibk.dps.rm.service.database.artifact.ServiceTypeServiceImpl;
 import at.uibk.dps.rm.service.database.ensemble.*;
 import at.uibk.dps.rm.service.database.function.*;
 import at.uibk.dps.rm.service.database.log.DeploymentLogService;
@@ -37,8 +43,8 @@ import at.uibk.dps.rm.service.database.resourceprovider.*;
 import at.uibk.dps.rm.service.database.metric.*;
 import at.uibk.dps.rm.service.database.service.ServiceService;
 import at.uibk.dps.rm.service.database.service.ServiceServiceImpl;
-import at.uibk.dps.rm.service.database.service.ServiceTypeService;
-import at.uibk.dps.rm.service.database.service.ServiceTypeServiceImpl;
+import at.uibk.dps.rm.service.database.service.K8sServiceTypeService;
+import at.uibk.dps.rm.service.database.service.K8sServiceTypeServiceImpl;
 import at.uibk.dps.rm.service.util.FilePathService;
 import at.uibk.dps.rm.service.util.FilePathServiceImpl;
 import at.uibk.dps.rm.service.ServiceProxyBinder;
@@ -104,47 +110,49 @@ public class DatabaseVerticle extends AbstractVerticle {
             ServiceBinder serviceBinder = new ServiceBinder(vertx.getDelegate());
             ServiceProxyBinder serviceProxyBinder = new ServiceProxyBinder(serviceBinder);
 
+            serviceProxyBinder.bind(AccountNamespaceService.class,
+                new AccountNamespaceServiceImpl(new AccountNamespaceRepository(), sessionFactory));
             serviceProxyBinder.bind(AccountService.class,
                 new AccountServiceImpl(new AccountRepository(), sessionFactory));
             serviceProxyBinder.bind(CredentialsService.class, new CredentialsServiceImpl(new CredentialsRepository(),
                 new AccountRepository(), new AccountCredentialsRepository(), new ResourceProviderRepository(),
                 sessionFactory));
-            serviceProxyBinder.bind(EnsembleService.class, new EnsembleServiceImpl(new EnsembleRepository(),
-                new ResourceRepository(), sessionFactory));
-            serviceProxyBinder.bind(EnsembleSLOService.class,
-                new EnsembleSLOServiceImpl(new EnsembleSLORepository(), sessionFactory));
+            serviceProxyBinder.bind(EnsembleService.class, new EnsembleServiceImpl(new EnsembleRepositoryProvider(),
+                sessionFactory));
             serviceProxyBinder.bind(EnvironmentService.class,
                 new EnvironmentServiceImpl(new EnvironmentRepository(), sessionFactory));
             serviceProxyBinder.bind(FunctionService.class,
-                new FunctionServiceImpl(new FunctionRepository(), new RuntimeRepository(), sessionFactory));
-            serviceProxyBinder.bind(FunctionDeploymentService.class,
-                new FunctionDeploymentServiceImpl(new FunctionDeploymentRepository(), sessionFactory));
+                new FunctionServiceImpl(new FunctionRepository(), sessionFactory));
+            serviceProxyBinder.bind(FunctionTypeService.class,
+                new FunctionTypeServiceImpl(new FunctionTypeRepository(), sessionFactory));
             serviceProxyBinder.bind(LogService.class, new LogServiceImpl(new LogRepository(), sessionFactory));
             serviceProxyBinder.bind(MetricService.class, new MetricServiceImpl(new MetricRepository(), sessionFactory));
             serviceProxyBinder.bind(MetricTypeService.class,
                 new MetricTypeServiceImpl(new MetricTypeRepository(), sessionFactory));
             serviceProxyBinder.bind(MetricValueService.class,
                 new MetricValueServiceImpl(new MetricValueRepository(), sessionFactory));
+            serviceProxyBinder.bind(NamespaceService.class,
+                new NamespaceServiceImpl(new NamespaceRepository(), new ResourceRepository(), sessionFactory));
             serviceProxyBinder.bind(PlatformService.class,
                 new PlatformServiceImpl(new PlatformRepository(), sessionFactory));
             serviceProxyBinder.bind(RegionService.class, new RegionServiceImpl(new RegionRepository(),
                 new ResourceProviderRepository(), sessionFactory));
             serviceProxyBinder.bind(DeploymentService.class,
-                new DeploymentServiceImpl(new DeploymentRepository(), new ResourceDeploymentRepository(),
-                    new ResourceDeploymentStatusRepository(), sessionFactory));
+                new DeploymentServiceImpl(new DeploymentRepositoryProvider(), sessionFactory));
             serviceProxyBinder.bind(DeploymentLogService.class,
                 new DeploymentLogServiceImpl(new DeploymentLogRepository(), sessionFactory));
+            serviceProxyBinder.bind(K8sServiceTypeService.class,
+                    new K8sServiceTypeServiceImpl(new K8sServiceTypeRepository(), sessionFactory));
             serviceProxyBinder.bind(ResourceEnsembleService.class,
                 new ResourceEnsembleServiceImpl(new ResourceEnsembleRepository(), new EnsembleSLORepository(),
                     new EnsembleRepository(), new ResourceRepository(), sessionFactory));
             serviceProxyBinder.bind(ResourceService.class,
-                new ResourceServiceImpl(new ResourceRepository(), new MetricRepository(), sessionFactory));
+                new ResourceServiceImpl(new ResourceRepository(), new RegionRepository(), new MetricRepository(),
+                    sessionFactory));
             serviceProxyBinder.bind(ResourceProviderService.class,
                 new ResourceProviderServiceImpl(new ResourceProviderRepository(), sessionFactory));
             serviceProxyBinder.bind(ResourceDeploymentService.class,
                 new ResourceDeploymentServiceImpl(new ResourceDeploymentRepository(), sessionFactory));
-            serviceProxyBinder.bind(ResourceDeploymentStatusService.class,
-                new ResourceDeploymentStatusServiceImpl(new ResourceDeploymentStatusRepository(), sessionFactory));
             serviceProxyBinder.bind(ResourceTypeService.class,
                 new ResourceTypeServiceImpl(new ResourceTypeRepository(), sessionFactory));
             serviceProxyBinder.bind(PlatformMetricService.class,
@@ -152,7 +160,7 @@ public class DatabaseVerticle extends AbstractVerticle {
             serviceProxyBinder.bind(RuntimeService.class,
                 new RuntimeServiceImpl(new RuntimeRepository(), sessionFactory));
             serviceProxyBinder.bind(ServiceService.class,
-                new ServiceServiceImpl(new ServiceRepository(), new ServiceTypeRepository(), sessionFactory));
+                new ServiceServiceImpl(new ServiceRepository(), sessionFactory));
             serviceProxyBinder.bind(ServiceDeploymentService.class,
                 new ServiceDeploymentServiceImpl(new ServiceDeploymentRepository(), sessionFactory));
             serviceProxyBinder.bind(ServiceTypeService.class,

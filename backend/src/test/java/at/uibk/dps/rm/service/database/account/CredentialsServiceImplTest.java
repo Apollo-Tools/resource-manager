@@ -89,38 +89,6 @@ public class CredentialsServiceImplTest {
     }
 
     @Test
-    void existsOneByAccountIdAndProviderIdTrue(VertxTestContext testContext) {
-        long accountId = 1L, providerId = 2L;
-        ResourceProvider rp = TestResourceProviderProvider.createResourceProvider(providerId);
-        Credentials credentials = TestAccountProvider.createCredentials(1L, rp);
-
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(credentialsRepository.findByAccountIdAndProviderId(session, accountId, providerId))
-            .thenReturn(CompletionStages.completedFuture(credentials));
-
-        credentialsService.existsOneByAccountIdAndProviderId(accountId, providerId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result).isEqualTo(true);
-                testContext.completeNow();
-            })));
-    }
-
-    @Test
-    void existsOneByAccountIdAndProviderIdFalse(VertxTestContext testContext) {
-        long accountId = 1L, providerId = 2L;
-
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(credentialsRepository.findByAccountIdAndProviderId(session, accountId, providerId))
-            .thenReturn(CompletionStages.completedFuture(null));
-
-        credentialsService.existsOneByAccountIdAndProviderId(accountId, providerId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result).isEqualTo(false);
-                testContext.completeNow();
-            })));
-    }
-
-    @Test
     void saveToAccount(VertxTestContext testContext) {
         long accountId = 1L, providerId = 2L;
         Account account = TestAccountProvider.createAccount(accountId);

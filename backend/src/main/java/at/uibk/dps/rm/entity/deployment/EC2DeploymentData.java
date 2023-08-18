@@ -25,6 +25,7 @@ public class EC2DeploymentData {
     private final List<Long> resourceIds = new ArrayList<>();
     private final List<String> functionIdentifiers = new ArrayList<>();
     private final List<String> resourceNames = new ArrayList<>();
+    private final List<Integer> timeouts = new ArrayList<>();
     private final Map<String, String> instanceTypeMapping = new HashMap<>();
     private long functionCount = 0;
 
@@ -36,11 +37,12 @@ public class EC2DeploymentData {
      * @param resourceId the id of the resource
      * @param functionIdentifier the function identifier
      */
-    public void appendValues(String resourceName, String instanceType, long resourceId, String functionIdentifier) {
+    public void appendValues(String resourceName, String instanceType, long resourceId, String functionIdentifier,
+            int timeout) {
         if (!instanceTypeMapping.containsKey(resourceName)) {
             this.instanceTypeMapping.put(resourceName, instanceType);
         }
-        appendValues(resourceName, resourceId, functionIdentifier);
+        appendValues(resourceName, resourceId, functionIdentifier, timeout);
     }
 
     /**
@@ -50,10 +52,11 @@ public class EC2DeploymentData {
      * @param resourceId the id of the resource
      * @param functionIdentifier the function identifier
      */
-    public void appendValues(String resourceName, long resourceId, String functionIdentifier) {
+    public void appendValues(String resourceName, long resourceId, String functionIdentifier, int timeout) {
         this.resourceNames.add(resourceName);
         this.resourceIds.add(resourceId);
         this.functionIdentifiers.add(functionIdentifier);
+        this.timeouts.add(timeout);
         this.functionCount++;
     }
 
@@ -75,7 +78,7 @@ public class EC2DeploymentData {
      * @param resourceName the name of the resource
      * @return the OpenFaaS module definition string
      */
-    private String getOpenFaasString(long resourceId, String functionIdentifier, String resourceName) {
+    private String getOpenFaasString(long resourceId, String functionIdentifier, String resourceName, int timeout) {
         return String.format(
             "module \"r%s_%s\" {\n" +
                 "  openfaas_depends_on = module.ec2\n" +
@@ -85,8 +88,9 @@ public class EC2DeploymentData {
                 "  image = \"%s/%s\"\n" +
                 "  basic_auth_user = \"admin\"\n" +
                 "  vm_props = module.ec2.vm_props[\"%s\"]\n" +
+                "  timeout = %s\n" +
                 "}\n", resourceId, functionIdentifier, resourceId, functionIdentifier, deploymentId, deploymentId,
-            dockerUserName, functionIdentifier, resourceName
+            dockerUserName, functionIdentifier, resourceName, timeout
         );
     }
 
@@ -105,7 +109,8 @@ public class EC2DeploymentData {
         String instanceTypes = instanceTypeMapping.values().stream().map(this::addQuotes).collect(Collectors.joining());
         StringBuilder openFaaS = new StringBuilder();
         for(int i=0; i< functionCount; i++) {
-            openFaaS.append(getOpenFaasString(resourceIds.get(i), functionIdentifiers.get(i), resourceNames.get(i)));
+            openFaaS.append(getOpenFaasString(resourceIds.get(i), functionIdentifiers.get(i), resourceNames.get(i),
+                timeouts.get(i)));
         }
 
         return String.format(

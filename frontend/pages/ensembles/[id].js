@@ -125,7 +125,7 @@ const EnsembleDetails = () => {
   };
 
   return (
-    <div className="card container w-full md:w-11/12 w-11/12 max-w-7xl mt-2 mb-2">
+    <div className="default-card">
       <Typography.Title level={2}>Ensemble Details ({ensemble?.ensemble_id})</Typography.Title>
       <Divider />
       <Segmented options={['Details', 'Resources', 'Add Resources']} value={selectedSegment}

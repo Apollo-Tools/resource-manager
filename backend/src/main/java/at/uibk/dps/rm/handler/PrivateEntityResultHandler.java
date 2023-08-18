@@ -1,6 +1,5 @@
 package at.uibk.dps.rm.handler;
 
-import io.reactivex.rxjava3.disposables.Disposable;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
 /**
@@ -31,22 +30,29 @@ public class PrivateEntityResultHandler extends ResultHandler {
     }
 
     @Override
-    public Disposable handleSaveOneRequest(final RoutingContext rc) {
-        return validationHandler.postOneToAccount(rc)
+    public void handleSaveOneRequest(final RoutingContext rc) {
+        validationHandler.postOneToAccount(rc)
             .subscribe(result -> getSaveResponse(rc, result),
                 throwable -> handleRequestError(rc, throwable));
     }
 
     @Override
-    public Disposable handleDeleteRequest(final RoutingContext rc) {
-        return validationHandler.deleteOneFromAccount(rc)
+    public void handleFindOneRequest(RoutingContext rc) {
+        validationHandler.getOneFromAccount(rc)
+            .subscribe(result -> getFindOneResponse(rc, result),
+                throwable -> handleRequestError(rc, throwable));
+    }
+
+    @Override
+    public void handleDeleteRequest(final RoutingContext rc) {
+        validationHandler.deleteOneFromAccount(rc)
             .subscribe(() -> getSaveAllUpdateDeleteResponse(rc),
                 throwable -> handleRequestError(rc, throwable));
     }
 
     @Override
-    public Disposable handleFindAllRequest(RoutingContext rc) {
-        return validationHandler.getAllFromAccount(rc)
+    public void handleFindAllRequest(RoutingContext rc) {
+        validationHandler.getAllFromAccount(rc)
             .subscribe(result -> getFindAllResponse(rc, result),
                 throwable -> handleRequestError(rc, throwable));
     }

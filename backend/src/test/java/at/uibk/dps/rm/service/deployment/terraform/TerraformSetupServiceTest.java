@@ -2,13 +2,13 @@ package at.uibk.dps.rm.service.deployment.terraform;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
+import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestRequestProvider;
 import io.reactivex.rxjava3.core.Completable;
-import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
@@ -31,7 +31,7 @@ import static org.assertj.core.api.Assertions.fail;
 @ExtendWith(MockitoExtension.class)
 public class TerraformSetupServiceTest {
 
-    private final JsonObject config = TestConfigProvider.getConfig();
+    private final ConfigDTO config = TestConfigProvider.getConfigDTO();
 
     @Test
     void setupTFModuleDirs(Vertx vertx, VertxTestContext testContext) {
@@ -43,7 +43,7 @@ public class TerraformSetupServiceTest {
         System.setProperty("os.name", "Linux");
         try (MockedConstruction<RegionFaasFileService> ignored = Mockprovider
             .mockRegionFaasFileService(Completable.complete())) {
-                service.setUpTFModuleDirs()
+                service.setUpTFModuleDirs(config)
                     .subscribe(result -> testContext.verify(() -> {
                             assertThat(result.size()).isEqualTo(2);
                             assertThat(result.get(0).getModuleName()).isEqualTo("aws_us_east_1");
@@ -68,7 +68,7 @@ public class TerraformSetupServiceTest {
         TerraformSetupService service = new TerraformSetupService(vertx, terminateRequest, deploymentPath,
             deploymentCredentials);
 
-        service.setUpTFModuleDirs()
+        service.setUpTFModuleDirs(config)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(IllegalStateException.class);

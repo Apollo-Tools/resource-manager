@@ -3,7 +3,9 @@ package at.uibk.dps.rm.service.deployment.terraform;
 import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.module.ContainerModule;
 import at.uibk.dps.rm.entity.deployment.module.FaasModule;
+import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
+import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
@@ -34,7 +36,7 @@ public class TerraformSetupService {
 
     private DeployResourcesDTO deployRequest;
 
-    private TerminateResourcesDTO terminateRequest;
+    private DeployTerminateDTO terminateRequest;
 
     private final DeploymentPath deploymentPath;
 
@@ -77,7 +79,7 @@ public class TerraformSetupService {
      *
      * @return a Single that emits a list of all terraform modules from the deployment
      */
-    public Single<List<TerraformModule>> setUpTFModuleDirs() {
+    public Single<List<TerraformModule>> setUpTFModuleDirs(ConfigDTO config) {
         if (deployRequest == null) {
             return Single.error(new IllegalStateException("deployRequest must not be null"));
         }
@@ -92,7 +94,7 @@ public class TerraformSetupService {
             composeOpenFaasLoginData(regionFunctionDeployments);
         }
         if (!deployRequest.getServiceDeployments().isEmpty()) {
-            singles.add(containerDeployment(deployRequest.getServiceDeployments()));
+            singles.add(containerDeployment(deployRequest.getServiceDeployments(), config));
         }
 
         return Single.zip(singles, objects -> Arrays.stream(objects).map(object -> (TerraformModule) object)
@@ -133,7 +135,7 @@ public class TerraformSetupService {
         for (FunctionDeployment functionDeployment : regionFunctionDeployments) {
             Resource resource = functionDeployment.getResource();
             if (credentialResources.contains(resource.getResourceId()) ||
-                !resource.getPlatform().getPlatform().equals(PlatformEnum.OPENFAAS.getValue())) {
+                !resource.getMain().getPlatform().getPlatform().equals(PlatformEnum.OPENFAAS.getValue())) {
                 continue;
             }
             Map<String, MetricValue> metricValues = resource.getMetricValues()
@@ -169,13 +171,13 @@ public class TerraformSetupService {
      * @param regionVPCMap all available vpc grouped by region
      * @return a Single that emits the created terraform module
      */
-    private Single<TerraformModule> functionDeployment(Region region, List<FunctionDeployment> regionFunctionDeployments,
-                                                    Map<Region, VPC> regionVPCMap) {
+    private Single<TerraformModule> functionDeployment(Region region,
+            List<FunctionDeployment> regionFunctionDeployments, Map<Region, VPC> regionVPCMap) {
         String provider = region.getResourceProvider().getProvider();
         ResourceProviderEnum resourceProvider = ResourceProviderEnum.fromString(provider);
         FaasModule module = new FaasModule(resourceProvider, region);
         long deploymentId = deployRequest.getDeployment().getDeploymentId();
-        String dockerUsername = deployRequest.getDockerCredentials().getUsername();
+        String dockerUsername = deployRequest.getDeploymentCredentials().getDockerCredentials().getUsername();
         RegionFaasFileService fileService = new RegionFaasFileService(vertx.fileSystem(), deploymentPath, region,
             regionFunctionDeployments, deploymentId, module, dockerUsername, regionVPCMap.get(region));
         return fileService.setUpDirectory()
@@ -188,26 +190,26 @@ public class TerraformSetupService {
      * @param serviceDeployments the service deployments
      * @return a Single that emits the created terraform module
      */
-    private Single<TerraformModule> containerDeployment(List<ServiceDeployment> serviceDeployments) {
+    private Single<TerraformModule> containerDeployment(List<ServiceDeployment> serviceDeployments, ConfigDTO config) {
         FileSystem fileSystem = vertx.fileSystem();
         long deploymentId = deployRequest.getDeployment().getDeploymentId();
         TerraformModule module = new ContainerModule();
         Path containerFolder = deploymentPath.getModuleFolder(module);
         Path configPath = Path.of(containerFolder.toString(), "config");
         ContainerPullFileService containerFileService = new ContainerPullFileService(fileSystem, containerFolder,
-            serviceDeployments, deploymentId);
+            serviceDeployments, deploymentId, config);
         List<Completable> completables = new ArrayList<>();
         for (ServiceDeployment serviceDeployment : serviceDeployments) {
             Path deployFolder = Path.of(containerFolder.toString(),  serviceDeployment.getResourceDeploymentId().toString());
             ContainerDeployFileService containerDeployFileService = new ContainerDeployFileService(fileSystem,
-                deployFolder, serviceDeployment, deploymentId);
+                deployFolder, serviceDeployment, deploymentId, config);
             completables.add(containerDeployFileService.setUpDirectory());
         }
 
         return containerFileService.setUpDirectory()
             .andThen(Completable.merge(completables))
             .andThen(Completable.defer(() -> fileSystem.writeFile(configPath.toString(),
-                Buffer.buffer(deployRequest.getKubeConfig()))))
+                Buffer.buffer(deployRequest.getDeploymentCredentials().getKubeConfig()))))
             .toSingle(() -> module);
     }
 }

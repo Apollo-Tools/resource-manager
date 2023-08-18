@@ -32,3 +32,9 @@ variable "openfaas_depends_on" {
   type        = any
   default     = 0
 }
+
+variable "timeout" {
+    description = "The timeout of the function in seconds"
+    type =  number
+    default = 5
+}

@@ -24,7 +24,7 @@ public class ResourceSLOInputHandler {
      */
     public static void validateGetResourcesBySLOsRequest(RoutingContext rc) {
         JsonObject body = rc.body().asJsonObject();
-        ExpressionValidator.checkExpressionAreValid(body.getJsonArray("slos"))
+        ExpressionValidator.checkExpressionsAreValid(body.getJsonArray("slos"))
             .concatWith(Completable.defer(() -> checkArrayDuplicates(body)))
             .subscribe(rc::next, throwable -> rc.fail(400, throwable))
             .dispose();

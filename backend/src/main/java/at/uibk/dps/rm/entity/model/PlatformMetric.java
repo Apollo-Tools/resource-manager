@@ -32,6 +32,10 @@ public class PlatformMetric {
 
     private Boolean required;
 
+    private Boolean isMainResourceMetric;
+
+    private Boolean isSubResourceMetric;
+
     @Column(insertable = false, updatable = false)
     private @Setter(AccessLevel.NONE) Timestamp createdAt;
 

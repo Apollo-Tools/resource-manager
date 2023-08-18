@@ -3,7 +3,6 @@ package at.uibk.dps.rm.handler.resourceprovider;
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.RegionService;
-import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 
@@ -48,16 +47,5 @@ public class RegionChecker extends EntityChecker {
     public Single<JsonArray> checkFindAllByPlatform(long platformId) {
         Single<JsonArray> checkFindAllByPlatform = regionService.findAllByPlatformId(platformId);
         return ErrorHandler.handleFindAll(checkFindAllByPlatform);
-    }
-
-    /**
-     * Find if a region exists by platform.
-     *
-     * @param platformId the id of the platform
-     * @return a Completable
-     */
-    public Completable checkExistsByPlatform(long regionId, long platformId) {
-        Single<Boolean> checkExistsByPlatform = regionService.existsByPlatformId(regionId, platformId);
-        return ErrorHandler.handleExistsOne(checkExistsByPlatform).ignoreElement();
     }
 }

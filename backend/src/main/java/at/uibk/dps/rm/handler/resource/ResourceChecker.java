@@ -1,19 +1,11 @@
 package at.uibk.dps.rm.handler.resource;
 
-import at.uibk.dps.rm.entity.dto.deployment.FunctionResourceIds;
-import at.uibk.dps.rm.entity.dto.deployment.ServiceResourceIds;
-import at.uibk.dps.rm.entity.dto.resource.ResourceTypeEnum;
 import at.uibk.dps.rm.handler.EntityChecker;
 import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
-import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * Implements methods to perform CRUD operations on the resource entity.
@@ -48,55 +40,13 @@ public class ResourceChecker extends EntityChecker {
     }
 
     /**
-     * Find all resources by ensemble.
+     * Find all sub resources of a main resource.
      *
-     * @param ensembleId the id of the ensemble
+     * @param resourceId the id of the resource
      * @return a Single that emits all found resources as JsonArray
      */
-    public Single<JsonArray> checkFindAllByEnsemble(long ensembleId) {
-        Single<JsonArray> findAllByEnsemble = resourceService.findAllByEnsembleId(ensembleId);
-        return ErrorHandler.handleFindAll(findAllByEnsemble);
-    }
-
-    /**
-     * Find all resources by a list of resource ids.
-     *
-     * @param resourceIds the list of resource ids
-     * @return a Single that emits all found resources as JsonArray
-     */
-    public Single<JsonArray> checkFindAllByResourceIds(List<Long> resourceIds) {
-        Single<JsonArray> findAllByResourceIds = resourceService.findAllByResourceIds(resourceIds);
-        return ErrorHandler.handleFindAll(findAllByResourceIds);
-    }
-
-    /**
-     * Check whether all resources from the serviceResourceIds and functionResourceIds exists with
-     * a suitable resource type.
-     *
-     * @param serviceResourceIds the list of service resource ids
-     * @param functionResourceIds the list of function resource ids
-     * @return a Completable if all resources exists, else  a NotFoundException gets thrown
-     */
-    public Completable checkExistAllByIdsAndResourceType(List<ServiceResourceIds> serviceResourceIds,
-        List<FunctionResourceIds> functionResourceIds) {
-        List<String> functionResourceTypes = List.of(ResourceTypeEnum.FAAS.getValue());
-        List<String> serviceResourceTypes = List.of(ResourceTypeEnum.CONTAINER.getValue());
-
-        Single<Boolean> existsAllServiceResources = Observable.fromIterable(serviceResourceIds)
-            .map(ServiceResourceIds::getResourceId)
-            .toList()
-            .map(Set::copyOf)
-            .flatMap(result -> resourceService.existsAllByIdsAndResourceTypes(result, serviceResourceTypes));
-
-        Single<Boolean> existsAllFunctionResources =  Observable.fromIterable(functionResourceIds)
-            .map(FunctionResourceIds::getResourceId)
-            .toList()
-            .map(Set::copyOf)
-            .flatMap(result -> resourceService.existsAllByIdsAndResourceTypes(result, functionResourceTypes));
-
-        Single<Boolean> existsAll = existsAllFunctionResources
-            .flatMap(existsAllSR -> existsAllServiceResources.map(existsAllFR -> existsAllSR && existsAllFR));
-
-        return ErrorHandler.handleExistsOne(existsAll).ignoreElement();
+    public Single<JsonArray> checkFindAllSubResources(long resourceId) {
+        Single<JsonArray> findAllSubResources = resourceService.findAllSubResources(resourceId);
+        return ErrorHandler.handleFindAll(findAllSubResources);
     }
 }

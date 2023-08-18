@@ -5,8 +5,11 @@ import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.deployment.module.TerraformModule;
+import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateDTO;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
+import at.uibk.dps.rm.service.deployment.docker.LambdaJavaBuildService;
+import at.uibk.dps.rm.service.deployment.docker.LambdaLayerService;
 import at.uibk.dps.rm.service.deployment.docker.OpenFaasImageService;
 import at.uibk.dps.rm.service.deployment.executor.MainTerraformExecutor;
 import at.uibk.dps.rm.service.deployment.executor.ProcessExecutor;
@@ -16,9 +19,10 @@ import at.uibk.dps.rm.service.deployment.terraform.*;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.json.JsonObject;
+import io.vertx.rxjava3.core.Vertx;
 import lombok.experimental.UtilityClass;
 import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -27,6 +31,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mockStatic;
 
 /**
  * Utility class to mock (mocked construction) objects for tests.
@@ -36,9 +41,9 @@ import static org.mockito.BDDMockito.given;
 @UtilityClass
 public class Mockprovider {
 
-    public static MockedConstruction<ConfigUtility> mockConfig(JsonObject config) {
+    public static MockedConstruction<ConfigUtility> mockConfig(ConfigDTO config) {
         return Mockito.mockConstruction(ConfigUtility.class,
-            (mock, context) -> given(mock.getConfig()).willReturn(Single.just(config)));
+            (mock, context) -> given(mock.getConfigDTO()).willReturn(Single.just(config)));
     }
 
     public static MockedConstruction<OpenFaasImageService> mockDockerImageService(FunctionsToDeploy functionsToDeploy,
@@ -106,6 +111,18 @@ public class Mockprovider {
             });
     }
 
+    public static MockedConstruction<LambdaJavaBuildService> mockLambdaJavaService(ProcessOutput processOutput) {
+        return Mockito.mockConstruction(LambdaJavaBuildService.class,
+            (mock, context) -> given(mock.buildAndZipJavaFunctions("var/lib/apollo-rm/"))
+                .willReturn(Single.just(processOutput)));
+    }
+
+    public static MockedConstruction<LambdaLayerService> mockLambdaLayerService(ProcessOutput processOutput) {
+        return Mockito.mockConstruction(LambdaLayerService.class,
+            (mock, context) -> given(mock.buildLambdaLayers("var/lib/apollo-rm/"))
+                .willReturn(Single.just(processOutput)));
+    }
+
     public static MockedConstruction<ProcessExecutor> mockProcessExecutor(DeploymentPath deploymentPath,
             ProcessOutput processOutput, List<String> commands) {
         return Mockito.mockConstruction(ProcessExecutor .class,
@@ -141,10 +158,10 @@ public class Mockprovider {
             (mock, context) -> given(mock.packageCode()).willReturn(Single.just(functionsToDeploy)));
     }
 
-    public static MockedConstruction<TerraformSetupService> mockTFSetupServiceSetupModuleDirs(
+    public static MockedConstruction<TerraformSetupService> mockTFSetupServiceSetupModuleDirs(ConfigDTO config,
             Single<List<TerraformModule>> result) {
         return Mockito.mockConstruction(TerraformSetupService.class, (mock, context) ->
-            given(mock.setUpTFModuleDirs()).willReturn(result));
+            given(mock.setUpTFModuleDirs(config)).willReturn(result));
     }
 
     public static MockedConstruction<TerraformSetupService> mockTFSetupServiceGetTerminationCreds(
@@ -161,5 +178,9 @@ public class Mockprovider {
     public static MockedConstruction<RegionFaasFileService> mockRegionFaasFileService(Completable result) {
         return Mockito.mockConstruction(RegionFaasFileService.class,
             (mock, context) -> given(mock.setUpDirectory()).willReturn(result));
+    }
+
+    public static MockedStatic<Vertx> mockVertx() {
+        return mockStatic(Vertx.class);
     }
 }

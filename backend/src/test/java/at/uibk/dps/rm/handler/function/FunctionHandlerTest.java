@@ -2,6 +2,7 @@ package at.uibk.dps.rm.handler.function;
 
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -49,22 +50,29 @@ public class FunctionHandlerTest {
         functionHandler = new FunctionHandler(functionChecker);
     }
 
-    private static Stream<Arguments> provideRequestBody() {
+    private static Stream<Arguments> providePostBody() {
         String name = "func";
-        long runtimeId = 1L;
-        JsonObject requestBody = new JsonObject("{\"name\": \"" + name + "\", \"runtime\": {\"runtime_id\": " +
-           runtimeId + "}, \"code\": \"x = 10\"}");
-        JsonObject attributeBody = new JsonObject("{\"name\": \"" + name + "\", \"runtime\": {\"runtime_id\": " +
-           runtimeId + "}, \"code\": \"testfile\", \"is_file\":true}");
+        long runtimeId = 1L, functionTypeId = 2L;
+        int timeout = 60, memory = 128;
+        JsonObject requestBody = new JsonObject("{\"name\": \"" + name + "\", \"function_type\": " +
+            "{\"artifact_type_id\": " + functionTypeId + "}, \"runtime\": {\"runtime_id\":" + runtimeId + "}, " +
+            "\"code\": \"x = 10\", \"timeout_seconds\": " + timeout + ", \"memory_megabytes\": " + memory + "}");
+        JsonObject attributeBody = new JsonObject("{\"name\": \"" + name + "\", \"function_type\": " +
+            "{\"artifact_type_id\": " + functionTypeId + "}, \"runtime\": {\"runtime_id\": " + runtimeId + "}, " +
+            "\"code\": \"testfile\", \"timeout_seconds\": " + timeout + ", \"memory_megabytes\": " + memory +
+            ", \"is_file\":true}");
         MultiMap attributes = MultiMap.caseInsensitiveMultiMap();
         attributes.add("name", name);
+        attributes.add("function_type", "{\"artifact_type_id\": " + functionTypeId + "}");
         attributes.add("runtime", "{\"runtime_id\": " + runtimeId + "}");
+        attributes.add("timeout_seconds", String.valueOf(timeout));
+        attributes.add("memory_megabytes", String.valueOf(memory));
         return Stream.of(Arguments.of(false, "application/json", requestBody, null),
             Arguments.of(true, "multipart/form-data", attributeBody, attributes));
     }
 
     @ParameterizedTest
-    @MethodSource("provideRequestBody")
+    @MethodSource("providePostBody")
     void postOne(boolean isFile, String contentType, JsonObject requestBody, MultiMap attributes,
              VertxTestContext testContext) {
         String fileName = "testfile";
@@ -92,5 +100,37 @@ public class FunctionHandlerTest {
                 }),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
+    }
+
+    private static Stream<Arguments> provideUpdateBody() {
+        JsonObject requestBody = new JsonObject("{\"code\": \"x = 10\"}");
+        JsonObject attributeBody = new JsonObject("{\"code\": \"testfile\"}");
+        return Stream.of(Arguments.of(false, "application/json", requestBody),
+            Arguments.of(true, "multipart/form-data", attributeBody));
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideUpdateBody")
+    void updateOne(boolean isFile, String contentType, JsonObject requestBody, VertxTestContext testContext) {
+        long functionId = 1L;
+        String fileName = "testfile";
+        MultiMap multiMap = MultiMap.caseInsensitiveMultiMap();
+        multiMap.add("Content-Type", contentType);
+        if (isFile) {
+            RoutingContextMockHelper.mockFileUpload(rc, fileName);
+        } else {
+            RoutingContextMockHelper.mockBody(rc, requestBody);
+        }
+        JsonObject transferData = requestBody.copy();
+        transferData.put("is_file", isFile);
+        RoutingContextMockHelper.mockHeaders(rc, request, multiMap);
+        when(rc.pathParam("id")).thenReturn(String.valueOf(functionId));
+        when(functionChecker.submitUpdate(functionId, transferData)).thenReturn(Completable.complete());
+
+        functionHandler.updateOne(rc)
+            .blockingSubscribe(() -> testContext.verify(() -> {}),
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
+            );
+        testContext.completeNow();
     }
 }

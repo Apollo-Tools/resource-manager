@@ -1,11 +1,11 @@
 package at.uibk.dps.rm.handler.deployment;
 
-import at.uibk.dps.rm.entity.model.*;
+import at.uibk.dps.rm.entity.deployment.ProcessOutput;
+import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.handler.EntityChecker;
-import at.uibk.dps.rm.handler.ErrorHandler;
 import at.uibk.dps.rm.service.rxjava3.database.deployment.DeploymentService;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
@@ -31,43 +31,6 @@ public class DeploymentChecker extends EntityChecker {
     }
 
     /**
-     * Find all deployments by account.
-     *
-     * @param accountId the id of the account
-     * @return a Single that emits all found deployments as JsonArray
-     */
-    public Single<JsonArray> checkFindAll(long accountId) {
-        return ErrorHandler.handleFindAll(deploymentService.findAllByAccountId(accountId));
-    }
-
-    /**
-     * Find a deployment by its id and account.
-     *
-     * @param id the id of the deployment
-     * @param accountId  the id of the account
-     * @return a Single that emits the found deployment as JsonObject
-     */
-    public Single<JsonObject> checkFindOne(long id, long accountId) {
-        Single<JsonObject> findOneById = deploymentService.findOneByIdAndAccountId(id, accountId);
-        return ErrorHandler.handleFindOne(findOneById);
-    }
-
-    /**
-     * Submit the creation of a new entity.
-     *
-     * @param accountId id of the account
-     * @return a Single that emits the persisted entity
-     */
-    public Single<JsonObject> submitCreateDeployment(long accountId) {
-        Deployment deployment = new Deployment();
-        deployment.setIsActive(true);
-        Account account = new Account();
-        account.setAccountId(accountId);
-        deployment.setCreatedBy(account);
-        return this.submitCreate(JsonObject.mapFrom(deployment));
-    }
-
-    /**
      * Submit the cancellation of an existing deployment.
      *
      * @param deploymentId the id of the deployment
@@ -76,5 +39,28 @@ public class DeploymentChecker extends EntityChecker {
      */
     public Single<JsonObject> submitCancelDeployment(long deploymentId, long accountId) {
         return deploymentService.cancelDeployment(deploymentId, accountId);
+    }
+
+    /**
+     * Handle errors that occur during the deployment process.
+     *
+     * @param deploymentId the deploymentId of the deployment
+     * @param errorMessage the error message
+     * @return a Completable
+     */
+    public Completable handleDeploymentError(long deploymentId, String errorMessage) {
+        return deploymentService.handleDeploymentError(deploymentId, errorMessage);
+    }
+
+    /**
+     * Handle a successful deployment.
+     *
+     * @param tfOutput the output of the deployment
+     * @param deployResourcesDTO the deploy resources request
+     * @return a Completable
+     */
+    public Completable handleDeploymentSuccessful(ProcessOutput tfOutput, DeployResourcesDTO deployResourcesDTO) {
+        return deploymentService.handleDeploymentSuccessful(new JsonObject(tfOutput.getOutput()),
+            deployResourcesDTO);
     }
 }

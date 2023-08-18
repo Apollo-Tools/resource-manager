@@ -1,21 +1,15 @@
 package at.uibk.dps.rm.router.deployment;
 
+import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
+import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
+import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
+import at.uibk.dps.rm.handler.PrivateEntityResultHandler;
 import at.uibk.dps.rm.handler.ResultHandler;
-import at.uibk.dps.rm.handler.account.CredentialsChecker;
 import at.uibk.dps.rm.handler.deploymentexecution.DeploymentExecutionChecker;
-import at.uibk.dps.rm.handler.deploymentexecution.DeploymentExecutionHandler;
-import at.uibk.dps.rm.handler.function.FunctionChecker;
-import at.uibk.dps.rm.handler.log.LogChecker;
-import at.uibk.dps.rm.handler.log.DeploymentLogChecker;
-import at.uibk.dps.rm.handler.metric.PlatformMetricChecker;
 import at.uibk.dps.rm.handler.deployment.*;
-import at.uibk.dps.rm.handler.resource.ResourceChecker;
-import at.uibk.dps.rm.handler.resourceprovider.VPCChecker;
-import at.uibk.dps.rm.handler.service.ServiceChecker;
-import at.uibk.dps.rm.handler.util.FileSystemChecker;
 import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
-import at.uibk.dps.rm.handler.deployment.DeploymentPreconditionHandler;
+import io.reactivex.rxjava3.core.Completable;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 /**
@@ -31,39 +25,14 @@ public class DeploymentRoute implements Route {
         DeploymentExecutionChecker deploymentExecutionChecker =
             new DeploymentExecutionChecker(serviceProxyProvider.getDeploymentExecutionService(),
             serviceProxyProvider.getLogService(), serviceProxyProvider.getDeploymentLogService());
-        CredentialsChecker credentialsChecker = new CredentialsChecker(serviceProxyProvider
-            .getCredentialsService());
-        FunctionChecker functionChecker = new FunctionChecker(serviceProxyProvider.getFunctionService());
-        ServiceChecker serviceChecker = new ServiceChecker(serviceProxyProvider.getServiceService());
-        ResourceChecker resourceChecker = new ResourceChecker(serviceProxyProvider.getResourceService());
         ResourceDeploymentChecker resourceDeploymentChecker =
             new ResourceDeploymentChecker(serviceProxyProvider.getResourceDeploymentService());
-        FunctionDeploymentChecker functionDeploymentChecker = new FunctionDeploymentChecker(serviceProxyProvider
-            .getFunctionDeploymentService());
-        ServiceDeploymentChecker serviceDeploymentChecker = new ServiceDeploymentChecker(serviceProxyProvider
-            .getServiceDeploymentService());
-        LogChecker logChecker = new LogChecker(serviceProxyProvider.getLogService());
-        DeploymentLogChecker deploymentLogChecker = new DeploymentLogChecker(serviceProxyProvider
-            .getDeploymentLogService());
-        FileSystemChecker fileSystemChecker = new FileSystemChecker(serviceProxyProvider.getFilePathService());
         DeploymentChecker deploymentChecker = new DeploymentChecker(serviceProxyProvider.getDeploymentService());
-        ResourceDeploymentStatusChecker statusChecker = new ResourceDeploymentStatusChecker(serviceProxyProvider
-            .getResourceDeploymentStatusService());
-        PlatformMetricChecker platformMetricChecker = new PlatformMetricChecker(serviceProxyProvider
-            .getPlatformMetricService());
-        VPCChecker vpcChecker = new VPCChecker(serviceProxyProvider.getVpcService());
-        DeploymentPreconditionHandler preconditionChecker =
-            new DeploymentPreconditionHandler(functionChecker, serviceChecker,
-                resourceChecker, platformMetricChecker, vpcChecker, credentialsChecker);
         /* Handler initialization */
-        DeploymentExecutionHandler deploymentExecutionHandler = new DeploymentExecutionHandler(deploymentExecutionChecker, credentialsChecker,
-            functionDeploymentChecker, serviceDeploymentChecker, resourceDeploymentChecker);
-        DeploymentErrorHandler deploymentErrorHandler = new DeploymentErrorHandler(resourceDeploymentChecker,
-            logChecker, deploymentLogChecker, fileSystemChecker, deploymentExecutionHandler);
-        DeploymentHandler deploymentHandler = new DeploymentHandler(deploymentChecker,
-            resourceDeploymentChecker, functionDeploymentChecker, serviceDeploymentChecker, statusChecker,
-            deploymentExecutionHandler, deploymentErrorHandler, preconditionChecker);
-        ResultHandler resultHandler = new ResultHandler(deploymentHandler);
+        DeploymentErrorHandler deploymentErrorHandler = new DeploymentErrorHandler(deploymentChecker,
+            deploymentExecutionChecker);
+        DeploymentHandler deploymentHandler = new DeploymentHandler(deploymentChecker);
+        ResultHandler resultHandler = new PrivateEntityResultHandler(deploymentHandler);
 
         router
             .operation("getDeployment")
@@ -76,10 +45,34 @@ public class DeploymentRoute implements Route {
         router
             .operation("deployResources")
             .handler(DeploymentInputHandler::validateResourceArrayHasNoDuplicates)
-            .handler(resultHandler::handleSaveOneRequest);
+            .handler(rc -> deploymentHandler.postOneToAccount(rc)
+                .map(result -> {
+                    DeployResourcesDTO deployResources = result.mapTo(DeployResourcesDTO.class);
+                    Completable completable = deploymentExecutionChecker.applyResourceDeployment(deployResources)
+                        .flatMapCompletable(tfOutput ->
+                            deploymentChecker.handleDeploymentSuccessful(tfOutput, deployResources));
+                    deploymentErrorHandler.handleDeployResources(completable, deployResources);
+                    return result.getJsonObject("deployment");
+                })
+                .subscribe(result -> ResultHandler.getSaveResponse(rc, result),
+                    throwable -> ResultHandler.handleRequestError(rc, throwable))
+            );
 
         router
             .operation("cancelDeployment")
-            .handler(resultHandler::handleUpdateRequest);
+            .handler(rc -> deploymentHandler.cancelDeployment(rc)
+                .flatMapCompletable(terminationJson -> {
+                    TerminateResourcesDTO terminateResources = terminationJson.mapTo(TerminateResourcesDTO.class);
+                    long deploymentId = terminateResources.getDeployment().getDeploymentId();
+                    Completable completable = deploymentExecutionChecker.terminateResources(terminateResources)
+                        .andThen(Completable.defer(() -> deploymentExecutionChecker.deleteTFDirs(deploymentId)))
+                        .andThen(Completable.defer(() -> resourceDeploymentChecker.submitUpdateStatus(deploymentId,
+                            DeploymentStatusValue.TERMINATED)));
+                    deploymentErrorHandler.handleTerminateResources(completable, deploymentId);
+                    return Completable.complete();
+                })
+                .subscribe(() -> ResultHandler.getSaveAllUpdateDeleteResponse(rc),
+                    throwable -> ResultHandler.handleRequestError(rc, throwable))
+            );
     }
 }

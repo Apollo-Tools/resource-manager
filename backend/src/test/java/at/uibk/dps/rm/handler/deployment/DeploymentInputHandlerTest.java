@@ -3,9 +3,12 @@ package at.uibk.dps.rm.handler.deployment;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.dto.deployment.FunctionResourceIds;
 import at.uibk.dps.rm.entity.dto.deployment.ServiceResourceIds;
+import at.uibk.dps.rm.entity.dto.resource.ResourceId;
+import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestRequestProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestServiceProvider;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -18,7 +21,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -41,7 +43,9 @@ public class DeploymentInputHandlerTest {
     void validateResourceArrayHasNoDuplicatesNoDuplicates(VertxTestContext testContext) {
         List<FunctionResourceIds> fids = TestFunctionProvider.createFunctionResourceIdsList(1L, 2L, 3L);
         List<ServiceResourceIds> sids = TestServiceProvider.createServiceResourceIdsList(4L);
-        DeployResourcesRequest request = TestRequestProvider.createDeployResourcesRequest(fids, sids);
+        List<ResourceId> lrids = TestResourceProvider.createResourceIdsList(1L, 4L);
+        DeployResourcesRequest request = TestRequestProvider.createDeployResourcesRequest(fids, sids, lrids);
+        request.getCredentials().setDockerCredentials(null);
         JsonObject requestBody = JsonObject.mapFrom(request);
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
@@ -66,8 +70,9 @@ public class DeploymentInputHandlerTest {
         FunctionResourceIds ids3 = TestFunctionProvider.createFunctionResourceIds(f3, r3);
         FunctionResourceIds ids4 = TestFunctionProvider.createFunctionResourceIds(f4, r4);
         List<FunctionResourceIds> fids = List.of(ids1, ids2, ids3, ids4);
-        List<ServiceResourceIds> sids = new ArrayList<>();
-        DeployResourcesRequest request = TestRequestProvider.createDeployResourcesRequest(fids, sids);
+        List<ServiceResourceIds> sids = List.of();
+        List<ResourceId> lrids = TestResourceProvider.createResourceIdsList();
+        DeployResourcesRequest request = TestRequestProvider.createDeployResourcesRequest(fids, sids, lrids);
         JsonObject requestBody = JsonObject.mapFrom(request);
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
@@ -75,6 +80,38 @@ public class DeploymentInputHandlerTest {
         DeploymentInputHandler.validateResourceArrayHasNoDuplicates(rc);
 
         verify(rc).fail(eq(400), any(Throwable.class));
+        testContext.completeNow();
+    }
+
+    @Test
+    void validateResourceArrayHasNoDuplicatesInvalidLockResource(VertxTestContext testContext) {
+        List<FunctionResourceIds> fids = List.of();
+        List<ServiceResourceIds> sids = List.of();
+        List<ResourceId> lrids = TestResourceProvider.createResourceIdsList(1L, 5L);
+        DeployResourcesRequest request = TestRequestProvider.createDeployResourcesRequest(fids, sids, lrids);
+        JsonObject requestBody = JsonObject.mapFrom(request);
+
+        RoutingContextMockHelper.mockBody(rc, requestBody);
+
+        DeploymentInputHandler.validateResourceArrayHasNoDuplicates(rc);
+
+        verify(rc).fail(eq(400), any(BadInputException.class));
+        testContext.completeNow();
+    }
+
+    @Test
+    void validateResourceArrayHasNoDuplicatesInvalidLockResource2(VertxTestContext testContext) {
+        List<FunctionResourceIds> fids = TestFunctionProvider.createFunctionResourceIdsList(1L, 2L, 3L);
+        List<ServiceResourceIds> sids = TestServiceProvider.createServiceResourceIdsList(4L);
+        List<ResourceId> lrids = TestResourceProvider.createResourceIdsList(1L, 5L);
+        DeployResourcesRequest request = TestRequestProvider.createDeployResourcesRequest(fids, sids, lrids);
+        JsonObject requestBody = JsonObject.mapFrom(request);
+
+        RoutingContextMockHelper.mockBody(rc, requestBody);
+
+        DeploymentInputHandler.validateResourceArrayHasNoDuplicates(rc);
+
+        verify(rc).fail(eq(400), any(BadInputException.class));
         testContext.completeNow();
     }
 }

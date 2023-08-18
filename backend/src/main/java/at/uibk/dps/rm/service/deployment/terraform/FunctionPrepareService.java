@@ -7,6 +7,7 @@ import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.dto.resource.RuntimeEnum;
 import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
+import at.uibk.dps.rm.entity.model.MainResource;
 import at.uibk.dps.rm.exception.RuntimeNotSupportedException;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackageJavaCode;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackagePythonCode;
@@ -49,8 +50,8 @@ public class FunctionPrepareService {
      * @param deploymentPath the deployment path of the module
      * @param dockerCredentials the credentials of the docker user
      */
-    public FunctionPrepareService(Vertx vertx, List<FunctionDeployment> functionDeployments, DeploymentPath deploymentPath,
-                               DockerCredentials dockerCredentials) {
+    public FunctionPrepareService(Vertx vertx, List<FunctionDeployment> functionDeployments,
+            DeploymentPath deploymentPath, DockerCredentials dockerCredentials) {
         this.vertx = vertx;
         this.fileSystem = vertx.fileSystem();
         this.functionDeployments = functionDeployments;
@@ -118,7 +119,8 @@ public class FunctionPrepareService {
      */
     private boolean deployFunctionOnOpenFaaS(Function function) {
         return functionDeployments.stream().anyMatch(functionDeployment -> {
-            PlatformEnum platform = PlatformEnum.fromPlatform(functionDeployment.getResource().getPlatform());
+            MainResource mainResource = functionDeployment.getResource().getMain();
+            PlatformEnum platform = PlatformEnum.fromPlatform(mainResource.getPlatform());
             return functionDeployment.getFunction().equals(function) &&
                 (platform.equals(PlatformEnum.OPENFAAS) || platform.equals(PlatformEnum.EC2));
         });
@@ -131,9 +133,9 @@ public class FunctionPrepareService {
             "  %s:\n" +
                 "    lang: %s-apollo-rm\n" +
                 "    handler: %s\n" +
-                "    image: %s/%s:latest\n",
-            functionIdentifier, runtimeEnum.getDotlessValue(), functionPath, dockerCredentials.getUsername(),
-            functionIdentifier);
+                "    image: %s/%s/%s:latest\n",
+            functionIdentifier, runtimeEnum.getDotlessValue(), functionPath, dockerCredentials.getRegistry(),
+                dockerCredentials.getUsername(), functionIdentifier);
     }
 
     private Completable copyOpenFaasTemplate(RuntimeEnum runtime) {

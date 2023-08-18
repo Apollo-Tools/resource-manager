@@ -1,11 +1,12 @@
 package at.uibk.dps.rm.service.database.function;
 
+import at.uibk.dps.rm.entity.dto.function.UpdateFunctionDTO;
 import at.uibk.dps.rm.entity.dto.resource.RuntimeEnum;
 import at.uibk.dps.rm.entity.model.Function;
+import at.uibk.dps.rm.entity.model.FunctionType;
 import at.uibk.dps.rm.entity.model.Runtime;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.repository.function.FunctionRepository;
-import at.uibk.dps.rm.repository.function.RuntimeRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import at.uibk.dps.rm.util.misc.UploadFileHelper;
 import at.uibk.dps.rm.util.validation.ServiceResultValidator;
@@ -13,12 +14,11 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
-import org.hibernate.reactive.stage.Stage;
+import org.hibernate.reactive.stage.Stage.SessionFactory;
 import org.hibernate.reactive.util.impl.CompletionStages;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CompletionStage;
 
 /**
@@ -29,8 +29,6 @@ import java.util.concurrent.CompletionStage;
 public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implements FunctionService {
     private final FunctionRepository repository;
 
-    private final RuntimeRepository runtimeRepository;
-
     private final Vertx vertx = Vertx.currentContext().owner();
 
     /**
@@ -38,11 +36,9 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
      *
      * @param repository the function repository
      */
-    public FunctionServiceImpl(FunctionRepository repository, RuntimeRepository runtimeRepository,
-            Stage.SessionFactory sessionFactory) {
+    public FunctionServiceImpl(FunctionRepository repository, SessionFactory sessionFactory) {
         super(repository, Function.class, sessionFactory);
         this.repository = repository;
-        this.runtimeRepository = runtimeRepository;
     }
 
     @Override
@@ -69,7 +65,7 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
     public Future<JsonObject> save(JsonObject data) {
         Function function = data.mapTo(Function.class);
         CompletionStage<Function> create = withTransaction(session ->
-            runtimeRepository.findById(session, function.getRuntime().getRuntimeId())
+            session.find(Runtime.class, function.getRuntime().getRuntimeId())
                 .thenCompose(runtime -> {
                     ServiceResultValidator.checkFound(runtime, Runtime.class);
                     RuntimeEnum selectedRuntime = RuntimeEnum.fromRuntime(runtime);
@@ -80,6 +76,10 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
                 })
                 .thenCompose(existingFunction -> {
                     ServiceResultValidator.checkExists(existingFunction, Function.class);
+                    return session.find(FunctionType.class, function.getFunctionType().getArtifactTypeId());
+                })
+                .thenCompose(functionType -> {
+                    ServiceResultValidator.checkFound(functionType, FunctionType.class);
                     return session.persist(function);
                 })
                 .thenCompose(res -> {
@@ -91,16 +91,20 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
                     return CompletionStages.completedFuture(function);
                 })
         );
-        return transactionToFuture(create)
+        return sessionToFuture(create)
             .map(JsonObject::mapFrom);
     }
 
     @Override
     public Future<Void> update(long id, JsonObject fields) {
-        CompletionStage<Function> update = withTransaction(session -> repository.findByIdAndFetch(session, id)
+        UpdateFunctionDTO updateFunction = fields.mapTo(UpdateFunctionDTO.class);
+        CompletionStage<Void> update = withTransaction(session -> repository.findByIdAndFetch(session, id)
             .thenCompose(function -> {
                 ServiceResultValidator.checkFound(function, Function.class);
-                boolean updateIsFile = fields.getBoolean("is_file");
+                if (updateFunction.getCode() == null) {
+                    return CompletionStages.completedFuture(function);
+                }
+                boolean updateIsFile = updateFunction.getIsFile();
                 String message = "";
                 if (function.getIsFile() != updateIsFile && updateIsFile) {
                     message = "Function can't be updated with zip packaged code";
@@ -111,17 +115,21 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
                     throw new BadInputException(message);
                 }
                 if (function.getIsFile()) {
-                    return UploadFileHelper.updateFile(vertx, function.getCode(), fields.getString("code"))
+                    return UploadFileHelper.updateFile(vertx, function.getCode(), updateFunction.getCode())
                         .toCompletionStage(function);
+                } else {
+                    function.setCode(updateNonNullValue(function.getCode(), updateFunction.getCode()));
+                    return CompletionStages.completedFuture(function);
                 }
-                return CompletionStages.completedFuture(function);
             })
-            .thenApply(function -> {
-                function.setCode(fields.getString("code"));
-                return function;
+            .thenAccept(function -> {
+                function.setTimeoutSeconds(updateNonNullValue(function.getTimeoutSeconds(),
+                        updateFunction.getTimeoutSeconds()));
+                function.setMemoryMegabytes(updateNonNullValue(function.getMemoryMegabytes(),
+                        updateFunction.getMemoryMegabytes()));
             })
         );
-        return transactionToFuture(update).mapEmpty();
+        return sessionToFuture(update);
     }
 
     @Override
@@ -139,13 +147,6 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
                 return deleteFunction;
             })
         );
-        return transactionToFuture(delete);
-    }
-
-    @Override
-    public Future<Boolean> existsAllByIds(Set<Long> functionIds) {
-        CompletionStage<List<Function>> findAll = withSession(session -> repository.findAllByIds(session, functionIds));
-        return Future.fromCompletionStage(findAll)
-            .map(result -> result.size() == functionIds.size());
+        return sessionToFuture(delete);
     }
 }

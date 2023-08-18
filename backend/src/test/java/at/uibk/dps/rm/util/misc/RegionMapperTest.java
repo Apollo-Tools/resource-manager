@@ -23,10 +23,10 @@ public class RegionMapperTest {
         Region region1 = TestResourceProviderProvider.createRegion(1L, "us-east-1");
         Region region2 = TestResourceProviderProvider.createRegion(2L, "us-east-2");
         Region region3 = TestResourceProviderProvider.createRegion(3L, "custom-edge");
-        Resource r1 = TestResourceProvider.createResourceLambda(1L, region1, 20.0, 20.0);
-        Resource r2 = TestResourceProvider.createResourceLambda(1L, region2, 20.0, 20.0);
-        Resource r3 = TestResourceProvider.createResourceOpenFaas(1L, region3, 20.0, 20.0,
-            "localhost", "admin", "pw");
+        Resource r1 = TestResourceProvider.createResourceLambda(1L, region1);
+        Resource r2 = TestResourceProvider.createResourceLambda(1L, region2);
+        Resource r3 = TestResourceProvider.createResourceOpenFaas(1L, region3, "localhost",
+            "admin", "pw");
         FunctionDeployment fr1 = TestFunctionProvider.createFunctionDeployment(1L, r1);
         FunctionDeployment fr2 = TestFunctionProvider.createFunctionDeployment(2L, r1);
         FunctionDeployment fr3 = TestFunctionProvider.createFunctionDeployment(3L, r2);

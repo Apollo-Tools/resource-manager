@@ -53,8 +53,8 @@ public class RegionFaasFileServiceTest {
             "  names = [\"r1_foo1_python38_1\",]\n" +
             "  paths = [\"%s\",]\n" +
             "  handlers = [\"lambda.handler\",]\n" +
-            "  timeouts = [250.0,]\n" +
-            "  memory_sizes = [512.0,]\n" +
+            "  timeouts = [60,]\n" +
+            "  memory_sizes = [128,]\n" +
             "  layers = {layers=[\"\",], path=\"%s\"}\n" +
             "  runtimes = [\"python3.8\",]\n" +
             "  deployment_roles = [\"labRole\",]\n" +
@@ -75,6 +75,7 @@ public class RegionFaasFileServiceTest {
             "  image = \"dockerUser/foo1_python38\"\n" +
             "  basic_auth_user = \"admin\"\n" +
             "  vm_props = module.ec2.vm_props[\"resource_2\"]\n" +
+            "  timeout = 60\n" +
             "}\n" +
             "module \"r2_foo2_python38\" {\n" +
             "  openfaas_depends_on = module.ec2\n" +
@@ -84,6 +85,7 @@ public class RegionFaasFileServiceTest {
             "  image = \"dockerUser/foo2_python38\"\n" +
             "  basic_auth_user = \"admin\"\n" +
             "  vm_props = module.ec2.vm_props[\"resource_2\"]\n" +
+            "  timeout = 60\n" +
             "}\n" +
             "module \"r3_foo1_python38\" {\n" +
             "  openfaas_depends_on = 0\n" +
@@ -96,6 +98,7 @@ public class RegionFaasFileServiceTest {
             "    gateway_url = \"http://localhost:8080\"\n" +
             "    auth_password = var.openfaas_login_data[\"r3\"].auth_pw\n" +
             "  }\n" +
+            "  timeout = 60\n" +
             "}\n", r1f1Path, layerPath));
     }
 
@@ -170,8 +173,8 @@ public class RegionFaasFileServiceTest {
             "  names = [\"r1_foo1_python38_1\",]\n" +
             "  paths = [\"" + rootFolder + "/foo1_python38.zip\",]\n" +
             "  handlers = [\"lambda.handler\",]\n" +
-            "  timeouts = [250.0,]\n" +
-            "  memory_sizes = [512.0,]\n" +
+            "  timeouts = [60,]\n" +
+            "  memory_sizes = [128,]\n" +
             "  layers = {layers=[\"\",], path=\"" + layerPath + "\"}\n" +
             "  runtimes = [\"python3.8\",]\n" +
             "  deployment_roles = [\"labRole\",]\n" +
@@ -192,6 +195,7 @@ public class RegionFaasFileServiceTest {
             "  image = \"dockerUser/foo1_python38\"\n" +
             "  basic_auth_user = \"admin\"\n" +
             "  vm_props = module.ec2.vm_props[\"resource_2\"]\n" +
+            "  timeout = 60\n" +
             "}\n" +
             "module \"r2_foo2_python38\" {\n" +
             "  openfaas_depends_on = module.ec2\n" +
@@ -201,6 +205,7 @@ public class RegionFaasFileServiceTest {
             "  image = \"dockerUser/foo2_python38\"\n" +
             "  basic_auth_user = \"admin\"\n" +
             "  vm_props = module.ec2.vm_props[\"resource_2\"]\n" +
+            "  timeout = 60\n" +
             "}\n" +
             "module \"r3_foo1_python38\" {\n" +
             "  openfaas_depends_on = 0\n" +
@@ -213,6 +218,7 @@ public class RegionFaasFileServiceTest {
             "    gateway_url = \"http://localhost:8080\"\n" +
             "    auth_password = var.openfaas_login_data[\"r3\"].auth_pw\n" +
             "  }\n" +
+            "  timeout = 60\n" +
             "}\n"
         );
     }

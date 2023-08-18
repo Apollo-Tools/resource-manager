@@ -2,7 +2,7 @@ import DateFormatter from '../misc/DateFormatter';
 import ResetPasswordForm from './ResetPasswordForm';
 import {Space} from 'antd';
 import {useEffect, useState} from 'react';
-import {getAccount} from '../../lib/AccountService';
+import {getMyAccount} from '../../lib/AccountService';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import TextDataDisplay from '../misc/TextDataDisplay';
 import DataDisplay from '../misc/DataDisplay';
@@ -14,7 +14,7 @@ const AccountInfoCard = () => {
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      getAccount(token, setAccount, setError);
+      getMyAccount(token, setAccount, setError);
     }
   }, []);
 

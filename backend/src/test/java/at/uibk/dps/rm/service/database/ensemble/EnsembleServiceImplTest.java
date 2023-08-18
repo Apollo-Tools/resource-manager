@@ -1,10 +1,13 @@
 package at.uibk.dps.rm.service.database.ensemble;
 
 import at.uibk.dps.rm.entity.model.Ensemble;
-import at.uibk.dps.rm.repository.ensemble.EnsembleRepository;
-import at.uibk.dps.rm.repository.resource.ResourceRepository;
+import at.uibk.dps.rm.entity.model.EnsembleSLO;
+import at.uibk.dps.rm.entity.model.Resource;
+import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
+import at.uibk.dps.rm.testutil.mockprovider.EnsembleRepositoryProviderMock;
 import at.uibk.dps.rm.testutil.objectprovider.TestEnsembleProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -13,15 +16,11 @@ import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.concurrent.CompletionStage;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -37,11 +36,7 @@ public class EnsembleServiceImplTest {
 
     private EnsembleService ensembleService;
 
-    @Mock
-    private EnsembleRepository ensembleRepository;
-
-    @Mock
-    private ResourceRepository resourceRepository;
+    private final EnsembleRepositoryProviderMock repositoryMock = new EnsembleRepositoryProviderMock();
 
     @Mock
     private Stage.SessionFactory sessionFactory;
@@ -52,7 +47,8 @@ public class EnsembleServiceImplTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        ensembleService = new EnsembleServiceImpl(ensembleRepository, resourceRepository, sessionFactory);
+        repositoryMock.mock();
+        ensembleService = new EnsembleServiceImpl(repositoryMock.getRepositoryProvider(), sessionFactory);
     }
 
     @Test
@@ -63,7 +59,7 @@ public class EnsembleServiceImplTest {
         CompletionStage<List<Ensemble>> completionStage = CompletionStages.completedFuture(List.of(e1, e2));
 
         SessionMockHelper.mockSession(sessionFactory, session);
-        when(ensembleRepository.findAllByAccountId(session, accountId)).thenReturn(completionStage);
+        when(repositoryMock.getEnsembleRepository().findAllByAccountId(session, accountId)).thenReturn(completionStage);
 
         ensembleService.findAllByAccountId(accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -84,10 +80,18 @@ public class EnsembleServiceImplTest {
     void findOneByIdAndAccountId(VertxTestContext testContext) {
         long ensembleId = 1L, accountId = 2L;
         Ensemble e1 = TestEnsembleProvider.createEnsemble(ensembleId, accountId);
-        CompletionStage<Ensemble> completionStage = CompletionStages.completedFuture(e1);
+        Resource r1 = TestResourceProvider.createResource(1L);
+        EnsembleSLO slo1 = TestEnsembleProvider.createEnsembleSLO(11L, "availability", ensembleId);
+        CompletionStage<Ensemble> cs1 = CompletionStages.completedFuture(e1);
+        CompletionStage<List<Resource>> cs2 = CompletionStages.completedFuture(List.of(r1));
+        CompletionStage<List<EnsembleSLO>> cs3 = CompletionStages.completedFuture(List.of(slo1));
+
 
         SessionMockHelper.mockSession(sessionFactory, session);
-        when(ensembleRepository.findByIdAndAccountId(session, ensembleId, accountId)).thenReturn(completionStage);
+        when(repositoryMock.getEnsembleRepository()
+            .findByIdAndAccountId(session, ensembleId, accountId)).thenReturn(cs1);
+        when(repositoryMock.getResourceRepository().findAllByEnsembleId(session, ensembleId)).thenReturn(cs2);
+        when(repositoryMock.getEnsembleSLORepository().findAllByEnsembleId(session, ensembleId)).thenReturn(cs3);
 
         ensembleService.findOneByIdAndAccountId(ensembleId, accountId)
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -104,55 +108,14 @@ public class EnsembleServiceImplTest {
         CompletionStage<Ensemble> completionStage = CompletionStages.nullFuture();
 
         SessionMockHelper.mockSession(sessionFactory, session);
-        when(ensembleRepository.findByIdAndAccountId(session, ensembleId, accountId)).thenReturn(completionStage);
+        when(repositoryMock.getEnsembleRepository()
+            .findByIdAndAccountId(session, ensembleId, accountId)).thenReturn(completionStage);
 
         ensembleService.findOneByIdAndAccountId(ensembleId, accountId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result).isNull();
+            .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
+                assertThat(throwable).isInstanceOf(NotFoundException.class);
+                assertThat(throwable.getMessage()).isEqualTo("Ensemble not found");
                 testContext.completeNow();
             })));
-    }
-
-    private static Stream<Arguments> provideExistsOneByNameAndAccount() {
-        String name = "ensemble";
-        long ensembleId = 1L, accountId = 2L;
-        Ensemble e1 = TestEnsembleProvider.createEnsemble(ensembleId, accountId, name);
-
-        return Stream.of(
-                Arguments.of(name, accountId, CompletionStages.completedFuture(e1), true),
-                Arguments.of(name, accountId, CompletionStages.nullFuture(), false)
-        );
-    }
-
-    @ParameterizedTest
-    @MethodSource("provideExistsOneByNameAndAccount")
-    void existsOneByNameAndAccountIdTrue(String name, long accountId, CompletionStage<Ensemble> completionStage,
-            boolean expected,
-            VertxTestContext testContext) {
-
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(ensembleRepository.findByNameAndAccountId(session, name, accountId)).thenReturn(completionStage);
-
-        ensembleService.existsOneByNameAndAccountId(name, accountId)
-                .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                    assertThat(result).isEqualTo(expected);
-                    testContext.completeNow();
-                })));
-    }
-
-    @Test
-    void updateEnsembleValidity(VertxTestContext testContext) {
-        long ensembleId = 1L;
-        boolean isValid = true;
-        CompletionStage<Integer> completionStage = CompletionStages.completedFuture(1);
-
-        SessionMockHelper.mockTransaction(sessionFactory, session);
-        when(ensembleRepository.updateValidity(session, ensembleId, isValid)).thenReturn(completionStage);
-
-        ensembleService.updateEnsembleValidity(ensembleId, isValid)
-                .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                    assertThat(result).isNull();
-                    testContext.completeNow();
-                })));
     }
 }

@@ -26,4 +26,16 @@ public class TerminateResourcesDTO extends DeployTerminateDTO {
         this.setCredentialsList(request.getCredentialsList());
         this.setDeployment(request.getDeployment());
     }
+
+    /**
+     * Transform a {@link DeployResourcesDTO} into a {@link TerminateResourcesDTO}.
+     *
+     * @param deployResourcesDTO the deploy resources object
+     */
+    public TerminateResourcesDTO(DeployResourcesDTO deployResourcesDTO) {
+        this.setDeployment(deployResourcesDTO.getDeployment());
+        this.setFunctionDeployments(deployResourcesDTO.getFunctionDeployments());
+        this.setServiceDeployments(deployResourcesDTO.getServiceDeployments());
+        this.setCredentialsList(deployResourcesDTO.getCredentialsList());
+    }
 }

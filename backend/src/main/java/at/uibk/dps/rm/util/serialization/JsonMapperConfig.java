@@ -3,6 +3,10 @@ package at.uibk.dps.rm.util.serialization;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import io.kubernetes.client.custom.Quantity;
 import io.vertx.core.json.jackson.DatabindCodec;
 import lombok.experimental.UtilityClass;
 
@@ -21,6 +25,11 @@ public class JsonMapperConfig {
         ObjectMapper mapper = DatabindCodec.mapper();
         PropertyNamingStrategies.SnakeCaseStrategy namingStrategy = new PropertyNamingStrategies.SnakeCaseStrategy();
         mapper.setPropertyNamingStrategy(namingStrategy);
+        mapper.registerModule(new Hibernate5Module());
+        mapper.registerModule(new JavaTimeModule());
+        SimpleModule customModule = new SimpleModule();
+        customModule.addDeserializer(Quantity.class, new QuantityDeserializer());
+        mapper.registerModule(customModule);
         // returns the ObjectMapper used by Vert.x when pretty printing JSON
         ObjectMapper prettyMapper = DatabindCodec.prettyMapper();
         prettyMapper.setPropertyNamingStrategy(namingStrategy);

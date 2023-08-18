@@ -70,8 +70,9 @@ public class MainTerraformExecutor extends TerraformExecutor{
             variables.add("-var="  + separator + prefix + "_access_key=" + entry.getAccessKey() + separator);
             variables.add("-var="  + separator + prefix + "_secret_access_key=" + entry.getSecretAccessKey() +
                 separator);
-            String sessionToken = entry.getSessionToken() != null ? entry.getSessionToken() : "";
-            variables.add("-var="  + separator + prefix + "_session_token=" + sessionToken + separator);
+            if (entry.getSessionToken() != null) {
+                variables.add("-var="  + separator + prefix + "_session_token=" + entry.getSessionToken() + separator);
+            }
         }
         return variables;
     }

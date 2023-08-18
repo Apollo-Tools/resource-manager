@@ -124,37 +124,4 @@ public class RegionServiceImplTest {
                 testContext.completeNow();
             })));
     }
-
-    @Test
-    void checkEntityByNameAndProviderIdExists(VertxTestContext testContext) {
-        String name = "us-east";
-        long providerId = 1L;
-        Region entity = new Region();
-
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(regionRepository.findOneByNameAndProviderId(session, name, providerId))
-            .thenReturn(CompletionStages.completedFuture(entity));
-
-        regionService.existsOneByNameAndProviderId(name, providerId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result).isEqualTo(true);
-                testContext.completeNow();
-            })));
-    }
-
-    @Test
-    void checkEntityByNameAndProviderIdNotExists(VertxTestContext testContext) {
-        String name = "us-east";
-        long providerId = 1L;
-
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(regionRepository.findOneByNameAndProviderId(session, name, providerId))
-            .thenReturn(CompletionStages.completedFuture(null));
-
-        regionService.existsOneByNameAndProviderId(name, providerId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result).isEqualTo(false);
-                testContext.completeNow();
-            })));
-    }
 }

@@ -1,10 +1,9 @@
 package at.uibk.dps.rm.service.database.deployment;
 
 import at.uibk.dps.rm.annotations.Generated;
+import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.model.Deployment;
-import at.uibk.dps.rm.repository.deployment.DeploymentRepository;
-import at.uibk.dps.rm.repository.deployment.ResourceDeploymentRepository;
-import at.uibk.dps.rm.repository.deployment.ResourceDeploymentStatusRepository;
+import at.uibk.dps.rm.repository.DeploymentRepositoryProvider;
 import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -29,8 +28,7 @@ public interface DeploymentService extends DatabaseServiceInterface {
     @Generated
     @GenIgnore
     static DeploymentService create(Stage.SessionFactory sessionFactory) {
-        return new DeploymentServiceImpl(new DeploymentRepository(), new ResourceDeploymentRepository(),
-            new ResourceDeploymentStatusRepository(), sessionFactory);
+        return new DeploymentServiceImpl(new DeploymentRepositoryProvider(), sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
@@ -63,4 +61,22 @@ public interface DeploymentService extends DatabaseServiceInterface {
      * @return a Future that emits the deployment as JsonObject if it exists, else null
      */
     Future<JsonObject> findOneByIdAndAccountId(long id, long accountId);
+
+    /**
+     * Handle a deployment error.
+     *
+     * @param id the id of the deployment
+     * @param errorMessage the error message of the error
+     * @return an empty Future
+     */
+    Future<Void> handleDeploymentError(long id, String errorMessage);
+
+    /**
+     * Handle a successful deployment.
+     *
+     * @param terraformOutput the output of the deployment process
+     * @param request the deployment request
+     * @return an empty Future
+     */
+    Future<Void> handleDeploymentSuccessful(JsonObject terraformOutput, DeployResourcesDTO request);
 }

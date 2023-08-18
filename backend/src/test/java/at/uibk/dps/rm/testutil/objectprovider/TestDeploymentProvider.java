@@ -2,10 +2,7 @@ package at.uibk.dps.rm.testutil.objectprovider;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.model.*;
-import io.vertx.core.json.JsonObject;
 import lombok.experimental.UtilityClass;
-
-import java.util.List;
 
 /**
  * Utility class to instantiate objects that are linked to the deployment entity.
@@ -22,6 +19,12 @@ public class TestDeploymentProvider {
         resourceDeployment.setDeployment(deployment);
         resourceDeployment.setStatus(resourceDeploymentStatus);
         return resourceDeployment;
+    }
+
+    public static ResourceDeployment createResourceDeployment(long id, Deployment deployment) {
+        Resource resource = TestResourceProvider.createResource(1L);
+        ResourceDeploymentStatus status = TestDeploymentProvider.createResourceDeploymentStatusNew();
+        return createResourceDeployment(id, deployment, resource, status);
     }
 
     public static Deployment createDeployment(long id, boolean isActive, Account account) {
@@ -62,21 +65,5 @@ public class TestDeploymentProvider {
 
     public static ResourceDeploymentStatus createResourceDeploymentStatusTerminated() {
         return createResourceDeploymentStatus(5L, DeploymentStatusValue.TERMINATED);
-    }
-
-    public static List<JsonObject> createFunctionDeploymentsJson(Deployment deployment) {
-        FunctionDeployment fr1 = TestFunctionProvider.createFunctionDeployment(1L, deployment);
-        FunctionDeployment fr2 = TestFunctionProvider.createFunctionDeployment(2L, deployment);
-        FunctionDeployment fr3 = TestFunctionProvider.createFunctionDeployment(3L, deployment);
-        return List.of(JsonObject.mapFrom(fr1), JsonObject.mapFrom(fr2),
-            JsonObject.mapFrom(fr3));
-    }
-
-    public static List<JsonObject> createServiceDeploymentsJson(Deployment deployment) {
-        ServiceDeployment sr1 = TestServiceProvider.createServiceDeployment(1L, deployment);
-        ServiceDeployment sr2 = TestServiceProvider.createServiceDeployment(2L, deployment);
-        ServiceDeployment sr3 = TestServiceProvider.createServiceDeployment(3L, deployment);
-        return List.of(JsonObject.mapFrom(sr1), JsonObject.mapFrom(sr2),
-            JsonObject.mapFrom(sr3));
     }
 }

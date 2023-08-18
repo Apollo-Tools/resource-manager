@@ -10,7 +10,7 @@ const Deployments = () => {
       <Head>
         <title>{`${siteTitle}: Deployments`}</title>
       </Head>
-      <div className="card container w-11/12 max-w-7xl p-10">
+      <div className="default-card">
         <Typography.Title level={2}>My Deployments</Typography.Title>
         <NewEntityButton name="Deployment"/>
         <DeploymentTable />

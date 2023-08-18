@@ -6,17 +6,17 @@ import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.service.database.util.MetricValueUtility;
 import at.uibk.dps.rm.util.validation.ServiceResultValidator;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import org.hibernate.reactive.stage.Stage;
+import org.hibernate.reactive.stage.Stage.SessionFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.stream.Collectors;
 
 /**
  * This is the implementation of the #MetricValueService.
@@ -27,30 +27,30 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
 
     private final MetricValueRepository repository;
 
+    private final MetricValueUtility metricValueUtility;
+
     /**
      * Create an instance from the metricValueRepository.
      *
      * @param repository the metric value repository
      */
-    public MetricValueServiceImpl(MetricValueRepository repository, Stage.SessionFactory sessionFactory) {
+    public MetricValueServiceImpl(MetricValueRepository repository, SessionFactory sessionFactory) {
         super(repository, MetricValue.class, sessionFactory);
         this.repository = repository;
+        this.metricValueUtility = new MetricValueUtility(repository);
     }
 
     @Override
-    public Future<Void> saveAll(JsonArray data) {
-        List<MetricValue> metricValues = data
-            .stream()
-            .map(object -> {
-                JsonObject metricValueJson = (JsonObject) object;
-                Resource resource = metricValueJson.getJsonObject("resource").mapTo(Resource.class);
-                MetricValue metricValue = metricValueJson.mapTo(MetricValue.class);
-                metricValue.setResource(resource);
-                return metricValue;
-            })
-            .collect(Collectors.toList());
-        CompletionStage<Void> createAll = withTransaction(session -> repository.createAll(session, metricValues));
-        return transactionToFuture(createAll);
+    public Future<Void> saveAllToResource(long resourceId, JsonArray data) {
+        CompletionStage<Void> createAll = withTransaction(session ->
+            session.find(Resource.class, resourceId)
+                .thenCompose(resource -> {
+                    ServiceResultValidator.checkFound(resource, Resource.class);
+                    return CompletableFuture.allOf(metricValueUtility.checkAddMetricList(session, resource, data)
+                        .toArray(CompletableFuture[]::new));
+                })
+        );
+        return sessionToFuture(createAll);
     }
 
     @Override
@@ -63,33 +63,29 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
     @Override
     public Future<JsonArray> findAllByResource(long resourceId, boolean includeValue) {
         CompletionStage<List<MetricValue>> findAll = withSession(session ->
-            repository.findByResourceAndFetch(session, resourceId));
-        return Future.fromCompletionStage(findAll)
-            .map(result -> {
-                ArrayList<JsonObject> objects = new ArrayList<>();
-                for (MetricValue metricValue: result) {
-                    // necessary check because when no metric values are present the result list contains one null value
-                    if (metricValue == null) {
-                        continue;
-                    }
-                    JsonObject entity;
-                    if (includeValue) {
-                        entity = JsonObject.mapFrom(metricValue);
-                    } else {
-                        entity = JsonObject.mapFrom(metricValue.getMetric());
-                    }
-                    objects.add(entity);
+            session.find(Resource.class, resourceId)
+                .thenCompose(resource -> {
+                    ServiceResultValidator.checkFound(resource, Resource.class);
+                    return repository.findByResourceAndFetch(session, resourceId);
+                })
+        );
+        return sessionToFuture(findAll).map(result -> {
+            ArrayList<JsonObject> objects = new ArrayList<>();
+            for (MetricValue metricValue: result) {
+                // necessary check because when no metric values are present the result list contains one null value
+                if (metricValue == null) {
+                    continue;
                 }
-                return new JsonArray(objects);
-            });
-    }
-
-    @Override
-    public Future<Boolean> existsOneByResourceAndMetric(long resourceId, long metricId) {
-        CompletionStage<MetricValue> findOne = withSession(session ->
-            repository.findByResourceAndMetric(session, resourceId, metricId));
-        return Future.fromCompletionStage(findOne)
-            .map(Objects::nonNull);
+                JsonObject entity;
+                if (includeValue) {
+                    entity = JsonObject.mapFrom(metricValue);
+                } else {
+                    entity = JsonObject.mapFrom(metricValue.getMetric());
+                }
+                objects.add(entity);
+            }
+            return new JsonArray(objects);
+        });
     }
 
     @Override
@@ -103,9 +99,9 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
                         throw new BadInputException("monitored metrics can't be updated manually");
                     }
                     MetricTypeEnum metricType = MetricTypeEnum.fromMetricType(metricValue.getMetric().getMetricType());
-                    if (!metricTypeMatchesValue(metricType, valueString) &&
-                        !metricTypeMatchesValue(metricType, valueNumber) &&
-                        !metricTypeMatchesValue(metricType, valueBool)) {
+                    if (!metricValueUtility.metricTypeMatchesValue(metricType, valueString) &&
+                        !metricValueUtility.metricTypeMatchesValue(metricType, valueNumber) &&
+                        !metricValueUtility.metricTypeMatchesValue(metricType, valueBool)) {
                         throw new BadInputException("invalid metric type");
                     }
 
@@ -117,39 +113,18 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
                     return metricValue;
                 })
         );
-        return transactionToFuture(update).mapEmpty();
+        return sessionToFuture(update).mapEmpty();
     }
 
     @Override
     public Future<Void> deleteByResourceAndMetric(long resourceId, long metricId) {
         CompletionStage<Integer> delete = withTransaction(session ->
-            repository.deleteByResourceAndMetric(session, resourceId, metricId));
-        return Future.fromCompletionStage(delete)
-            .mapEmpty();
-    }
-
-    /**
-     * Check if a value is a string and if the metric type is string as well.
-     *
-     * @param metricType the metric type
-     * @param value the value
-     * @return true if the types match, else false
-     */
-    private boolean metricTypeMatchesValue(MetricTypeEnum metricType, String value) {
-        return value!=null && metricType.equals(MetricTypeEnum.STRING);
-    }
-
-    /**
-     * @see #metricTypeMatchesValue(MetricTypeEnum metricType, String value)
-     */
-    private boolean metricTypeMatchesValue(MetricTypeEnum metricType, Double value) {
-        return value!=null && metricType.equals(MetricTypeEnum.NUMBER);
-    }
-
-    /**
-     * @see #metricTypeMatchesValue(MetricTypeEnum metricType, String value)
-     */
-    private boolean metricTypeMatchesValue(MetricTypeEnum metricType, Boolean value) {
-        return value!=null && metricType.equals(MetricTypeEnum.BOOLEAN);
+            repository.findByResourceAndMetric(session, resourceId, metricId)
+                .thenCompose(metricValue -> {
+                    ServiceResultValidator.checkFound(metricValue, MetricValue.class);
+                    return repository.deleteByResourceAndMetric(session, resourceId, metricId);
+                })
+        );
+        return sessionToFuture(delete).mapEmpty();
     }
 }

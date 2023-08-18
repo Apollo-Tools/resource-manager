@@ -19,7 +19,13 @@ locals {
       ]
     }
   ]
-  name = "pre-puller-${var.deployment_id}-${formatdate("YYYY-MM-DD-hh-mm-ss", timestamp())}"
+  name = "pre-puller-${var.deployment_id}${var.hostname != null ? var.hostname : ""}-${formatdate("YYYY-MM-DD-hh-mm-ss", timestamp())}"
+  image_pull_secrets = [
+    for secret in var.image_pull_secrets:
+    {
+      name = secret
+    }
+  ]
 }
 
 resource "kubernetes_manifest" "pre_puller" {
@@ -53,7 +59,11 @@ resource "kubernetes_manifest" "pre_puller" {
               "image" = "gcr.io/google_containers/pause"
               "name" = "pause"
             },
-          ]
+          ],
+          "imagePullSecrets" = length(local.image_pull_secrets) > 0 ? local.image_pull_secrets : null
+          "nodeSelector" = var.hostname != null ? {
+            "kubernetes.io/hostname" = var.hostname
+          } : null
         }
       }
     }

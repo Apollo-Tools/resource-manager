@@ -2,8 +2,7 @@ package at.uibk.dps.rm.service.database.ensemble;
 
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.Ensemble;
-import at.uibk.dps.rm.repository.ensemble.EnsembleRepository;
-import at.uibk.dps.rm.repository.resource.ResourceRepository;
+import at.uibk.dps.rm.repository.EnsembleRepositoryProvider;
 import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -27,7 +26,7 @@ public interface EnsembleService extends DatabaseServiceInterface {
     @Generated
     @GenIgnore
     static EnsembleService create(Stage.SessionFactory sessionFactory) {
-        return new EnsembleServiceImpl(new EnsembleRepository(), new ResourceRepository(), sessionFactory);
+        return new EnsembleServiceImpl(new EnsembleRepositoryProvider(), sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
@@ -55,20 +54,25 @@ public interface EnsembleService extends DatabaseServiceInterface {
     Future<JsonObject> findOneByIdAndAccountId(long id, long accountId);
 
     /**
-     * Check if an ensemble exists by its name and creator.
+     * Check if all resources from a create ensemble request fulfill its service level objectives.
      *
-     * @param name the name of the ensemble
-     * @param accountId the account id of the creator
-     * @return a Future that emits true if it exists, else false
+     * @param data the request data
+     * @return a Future that emits nothing
      */
-    Future<Boolean> existsOneByNameAndAccountId(String name, long accountId);
+    Future<Void> validateCreateEnsembleRequest(JsonObject data);
 
     /**
-     * Update the validity of an existing ensemble.
+     * Check if all resources from an existing ensemble fulfill its service level objectives.
      *
      * @param ensembleId the id of the ensemble
-     * @param isValid the new validity value
-     * @return an empty Future
+     * @return a Future that emits all found resources and their validity state
      */
-    Future<Void> updateEnsembleValidity(long ensembleId, boolean isValid);
+    Future<JsonArray> validateExistingEnsemble(long accountId, long ensembleId);
+
+    /**
+     * Check if all resources from all existing ensembles fulfill their service level objectives.
+     *
+     * @return a Future that emits nothing
+     */
+    Future<Void> validateAllExistingEnsembles();
 }

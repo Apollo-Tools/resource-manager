@@ -63,25 +63,6 @@ public class AccountHandlerTest {
     }
 
     @Test
-    void getOne(VertxTestContext testContext) {
-        long accountId = 1L;
-        Account entity = TestAccountProvider.createAccount(1L, "user", "password");
-
-        RoutingContextMockHelper.mockUserPrincipal(rc, entity);
-        when(accountChecker.checkFindOne(accountId)).thenReturn(Single.just(JsonObject.mapFrom(entity)));
-
-        accountHandler.getOne(rc)
-            .subscribe(result -> testContext.verify(() -> {
-                    assertThat(result.getLong("account_id")).isEqualTo(accountId);
-                    assertThat(result.getString("username")).isEqualTo("user");
-                    assertThat(result.containsKey("password")).isEqualTo(false);
-                    testContext.completeNow();
-                }),
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
-    }
-
-    @Test
     void updateOne(VertxTestContext testContext) {
         long entityId = 1L;
         String oldPassword = "oldpassword";
@@ -109,7 +90,7 @@ public class AccountHandlerTest {
         long accountId = 1L;
         String username = "user";
         String password = "password";
-        Account entity = TestAccountProvider.createAccount(accountId, username, password);
+        Account entity = TestAccountProvider.createAccount(accountId, username, password, "default");
         JsonObject entityJson = JsonObject.mapFrom(entity);
         JsonObject requestBody = new JsonObject("{\n" +
             "\"username\": \"" + username + "\",\n" +
@@ -125,6 +106,7 @@ public class AccountHandlerTest {
             .subscribe(user -> testContext.verify(() -> {
                 assertThat(user.principal().getLong("account_id")).isEqualTo(accountId);
                 assertThat(user.principal().getString("username")).isEqualTo(username);
+                assertThat(user.principal().getJsonArray("role").getString(0)).isEqualTo("default");
                 testContext.completeNow();
             }),
             throwable -> testContext.verify(() -> fail("method has thrown exception")));

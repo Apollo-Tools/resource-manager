@@ -59,12 +59,4 @@ public interface DeploymentExecutionService {
      * @return the credentials that are necessary for termination
      */
     Future<DeploymentCredentials> getNecessaryCredentials(TerminateResourcesDTO terminateRequest);
-
-    /**
-     * Delete all terraform directories that exist for a deployment.
-     *
-     * @param deploymentId the id of the deployment
-     * @return an empty Future
-     */
-    Future<Void> deleteTFDirs(long deploymentId);
 }

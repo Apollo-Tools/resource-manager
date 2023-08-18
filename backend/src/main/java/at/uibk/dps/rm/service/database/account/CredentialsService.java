@@ -47,13 +47,4 @@ public interface CredentialsService extends DatabaseServiceInterface {
      * @return a Future that emits all credentials
      */
     Future<JsonArray> findAllByAccountIdAndIncludeExcludeSecrets(long accountId, boolean includeSecrets);
-
-    /**
-     * Check if a set of credentials exists by the creator account and resource provider.
-     *
-     * @param accountId the id of the account
-     * @param providerId the id of the resource provider
-     * @return a Future that emits true if the set of credentials exists, else false
-     */
-    Future<Boolean> existsOneByAccountIdAndProviderId(long accountId, long providerId);
 }

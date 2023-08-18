@@ -6,13 +6,20 @@
         <provider>org.hibernate.reactive.provider.ReactivePersistenceProvider</provider>
         <class>at.uibk.dps.rm.entity.model.Account</class>
         <class>at.uibk.dps.rm.entity.model.AccountCredentials</class>
+        <class>at.uibk.dps.rm.entity.model.AccountNamespace</class>
+        <class>at.uibk.dps.rm.entity.model.ArtifactType</class>
         <class>at.uibk.dps.rm.entity.model.Credentials</class>
         <class>at.uibk.dps.rm.entity.model.Ensemble</class>
         <class>at.uibk.dps.rm.entity.model.EnsembleSLO</class>
         <class>at.uibk.dps.rm.entity.model.Environment</class>
+        <class>at.uibk.dps.rm.entity.model.EnvVar</class>
         <class>at.uibk.dps.rm.entity.model.Function</class>
         <class>at.uibk.dps.rm.entity.model.FunctionDeployment</class>
+        <class>at.uibk.dps.rm.entity.model.FunctionType</class>
+        <class>at.uibk.dps.rm.entity.model.K8sNamespace</class>
+        <class>at.uibk.dps.rm.entity.model.K8sServiceType</class>
         <class>at.uibk.dps.rm.entity.model.Log</class>
+        <class>at.uibk.dps.rm.entity.model.MainResource</class>
         <class>at.uibk.dps.rm.entity.model.Metric</class>
         <class>at.uibk.dps.rm.entity.model.MetricType</class>
         <class>at.uibk.dps.rm.entity.model.MetricValue</class>
@@ -28,10 +35,13 @@
         <class>at.uibk.dps.rm.entity.model.ResourceDeployment</class>
         <class>at.uibk.dps.rm.entity.model.ResourceDeploymentStatus</class>
         <class>at.uibk.dps.rm.entity.model.ResourceType</class>
+        <class>at.uibk.dps.rm.entity.model.Role</class>
         <class>at.uibk.dps.rm.entity.model.Runtime</class>
         <class>at.uibk.dps.rm.entity.model.Service</class>
         <class>at.uibk.dps.rm.entity.model.ServiceDeployment</class>
         <class>at.uibk.dps.rm.entity.model.ServiceType</class>
+        <class>at.uibk.dps.rm.entity.model.SubResource</class>
+        <class>at.uibk.dps.rm.entity.model.VolumeMount</class>
         <class>at.uibk.dps.rm.entity.model.VPC</class>
         <properties>
             <!-- The Vert.x SQL Client connection pool size -->
@@ -51,6 +61,8 @@
             <property name="hibernate.show_sql" value="true"/>
             <property name="hibernate.format_sql" value="true"/>
             <property name="hibernate.highlight_sql" value="true"/>
+            <!-- handle timestamps as UTC -->
+            <property name="hibernate.jdbc.time_zone" value="UTC"/>
         </properties>
     </persistence-unit>
 </persistence>

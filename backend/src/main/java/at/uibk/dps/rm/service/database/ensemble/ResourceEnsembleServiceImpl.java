@@ -16,7 +16,6 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
-import java.util.Objects;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
@@ -68,7 +67,7 @@ public class ResourceEnsembleServiceImpl  extends DatabaseServiceProxy<ResourceE
                 .thenCompose(resource -> {
                     ServiceResultValidator.checkFound(resource, Resource.class);
                     resourceEnsemble.setResource(resource);
-                    return repository.findByEnsembleIdAndResourceId(session, ensembleId, resourceId);
+                    return repository.findByEnsembleIdAndResourceId(session, accountId, ensembleId, resourceId);
                 })
                 .thenCompose(existingResourceEnsemble -> {
                     ServiceResultValidator.checkExists(existingResourceEnsemble, ResourceEnsemble.class);
@@ -90,8 +89,7 @@ public class ResourceEnsembleServiceImpl  extends DatabaseServiceProxy<ResourceE
                     return resourceEnsemble;
                 })
         );
-        return Future.fromCompletionStage(create)
-            .recover(this::recoverFailure)
+        return sessionToFuture(create)
             .map(result -> {
                 JsonObject response = new JsonObject();
                 response.put("ensemble_id", result.getEnsemble().getEnsembleId());
@@ -103,21 +101,12 @@ public class ResourceEnsembleServiceImpl  extends DatabaseServiceProxy<ResourceE
     @Override
     public Future<Void> deleteByEnsembleIdAndResourceId(long accountId, long ensembleId, long resourceId) {
         CompletionStage<Void> delete = withTransaction(session ->
-            repository.findByEnsembleIdAndResourceId(session, ensembleId, resourceId)
+            repository.findByEnsembleIdAndResourceId(session, accountId, ensembleId, resourceId)
                 .thenAccept(resourceEnsemble -> {
                     ServiceResultValidator.checkFound(resourceEnsemble, ResourceEnsemble.class);
                     session.remove(resourceEnsemble);
                 })
         );
-        return Future.fromCompletionStage(delete)
-            .recover(this::recoverFailure);
-    }
-
-    @Override
-    public Future<Boolean> checkExistsByEnsembleIdAndResourceId(long ensembleId, long resourceId) {
-        CompletionStage<ResourceEnsemble> findOne = withSession(session ->
-            repository.findByEnsembleIdAndResourceId(session, ensembleId, resourceId));
-        return Future.fromCompletionStage(findOne)
-            .map(Objects::nonNull);
+        return sessionToFuture(delete);
     }
 }

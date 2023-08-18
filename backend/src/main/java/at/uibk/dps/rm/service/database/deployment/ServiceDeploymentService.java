@@ -10,7 +10,6 @@ import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonArray;
 import org.hibernate.reactive.stage.Stage;
 
 /**
@@ -35,14 +34,6 @@ public interface ServiceDeploymentService extends DatabaseServiceInterface {
         return new ServiceDeploymentServiceVertxEBProxy(vertx,
             ServiceProxyAddress.getServiceProxyAddress(ServiceDeployment.class));
     }
-
-    /**
-     * Find all service deployments that belong to a deployment.
-     *
-     * @param deploymentId the id of the deployment
-     * @return a Future that emits all service deployments as JsonArray
-     */
-    Future<JsonArray> findAllByDeploymentId(long deploymentId);
 
     /**
      * Check if a service deployment is ready for startup or termination

@@ -2,7 +2,6 @@ package at.uibk.dps.rm.handler;
 
 import at.uibk.dps.rm.exception.*;
 import io.reactivex.rxjava3.core.Single;
-import io.reactivex.rxjava3.disposables.Disposable;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
@@ -35,12 +34,10 @@ public class ResultHandler {
      * Handle the FIND ONE request of the validation handler.
      *
      * @param rc the RoutingContext of the request
-     * @return a Disposable
      */
-    public Disposable handleFindOneRequest(final RoutingContext rc) {
-        return validationHandler.getOne(rc)
-            .subscribe(result -> getFindOneResponse(rc, result),
-                throwable -> handleRequestError(rc, throwable));
+    public void handleFindOneRequest(final RoutingContext rc) {
+        validationHandler.getOne(rc)
+            .subscribe(result -> getFindOneResponse(rc, result), throwable -> handleRequestError(rc, throwable));
     }
 
     /**
@@ -48,22 +45,18 @@ public class ResultHandler {
      *
      * @param rc the RoutingContext of the request
      * @param handler the handler of the get one request
-     * @return a Disposable
      */
-    public Disposable handleFindOneRequest(final RoutingContext rc, final Single<JsonObject> handler) {
-        return handler
-            .subscribe(result -> getFindOneResponse(rc, result),
-                throwable -> handleRequestError(rc, throwable));
+    public void handleFindOneRequest(final RoutingContext rc, final Single<JsonObject> handler) {
+        handler.subscribe(result -> getFindOneResponse(rc, result), throwable -> handleRequestError(rc, throwable));
     }
 
     /**
      * Handle the FIND ALL request of the validation handler.
      *
      * @param rc the RoutingContext of the request
-     * @return a Disposable
      */
-    public Disposable handleFindAllRequest(final RoutingContext rc) {
-        return validationHandler.getAll(rc)
+    public void handleFindAllRequest(final RoutingContext rc) {
+        validationHandler.getAll(rc)
             .subscribe(result -> getFindAllResponse(rc, result),
                 throwable -> handleRequestError(rc, throwable));
     }
@@ -73,60 +66,49 @@ public class ResultHandler {
      *
      * @param rc the RoutingContext of the request
      * @param handler the handler of the get one request
-     * @return a Disposable
      */
-    public Disposable handleFindAllRequest(final RoutingContext rc, final Single<JsonArray> handler) {
-        return handler
-            .subscribe(result -> getFindAllResponse(rc, result),
-                throwable -> handleRequestError(rc, throwable));
+    public void handleFindAllRequest(final RoutingContext rc, final Single<JsonArray> handler) {
+        handler.subscribe(result -> getFindAllResponse(rc, result), throwable -> handleRequestError(rc, throwable));
     }
 
     /**
      * Handle the POST ONE request of the validation handler.
      *
      * @param rc the RoutingContext of the request
-     * @return a Disposable
      */
-    public Disposable handleSaveOneRequest(final RoutingContext rc) {
-        return validationHandler.postOne(rc)
-            .subscribe(result -> getSaveResponse(rc, result),
-                throwable -> handleRequestError(rc, throwable));
+    public void handleSaveOneRequest(final RoutingContext rc) {
+        validationHandler.postOne(rc)
+            .subscribe(result -> getSaveResponse(rc, result), throwable -> handleRequestError(rc, throwable));
     }
 
     /**
      * Handle the POST ALL request of the validation handler.
      *
      * @param rc the RoutingContext of the request
-     * @return a Disposable
      */
-    public Disposable handleSaveAllRequest(final RoutingContext rc) {
-        return validationHandler.postAll(rc)
-            .subscribe(() -> getSaveAllUpdateDeleteResponse(rc),
-                throwable -> handleRequestError(rc, throwable));
+    public void handleSaveAllRequest(final RoutingContext rc) {
+        validationHandler.postAll(rc)
+            .subscribe(() -> getSaveAllUpdateDeleteResponse(rc), throwable -> handleRequestError(rc, throwable));
     }
 
     /**
      * Handle the UPDATE ONE request of the validation handler.
      *
      * @param rc the RoutingContext of the request
-     * @return a Disposable
      */
-    public Disposable handleUpdateRequest(final RoutingContext rc) {
-        return validationHandler.updateOne(rc)
-            .subscribe(() -> getSaveAllUpdateDeleteResponse(rc),
-                throwable -> handleRequestError(rc, throwable));
+    public void handleUpdateRequest(final RoutingContext rc) {
+        validationHandler.updateOne(rc)
+            .subscribe(() -> getSaveAllUpdateDeleteResponse(rc), throwable -> handleRequestError(rc, throwable));
     }
 
     /**
      * Handle the DELETE ONE request of the validation handler.
      *
      * @param rc the RoutingContext of the request
-     * @return a Disposable
      */
-    public Disposable handleDeleteRequest(final RoutingContext rc) {
-        return validationHandler.deleteOne(rc)
-            .subscribe(() -> getSaveAllUpdateDeleteResponse(rc),
-                throwable -> handleRequestError(rc, throwable));
+    public void handleDeleteRequest(final RoutingContext rc) {
+        validationHandler.deleteOne(rc)
+            .subscribe(() -> getSaveAllUpdateDeleteResponse(rc), throwable -> handleRequestError(rc, throwable));
     }
 
     /**
@@ -135,7 +117,7 @@ public class ResultHandler {
      * @param rc the RoutingContext of the request
      * @param result the content of the response
      */
-    private static void getFindOneResponse(final RoutingContext rc, final JsonObject result) {
+    public static void getFindOneResponse(final RoutingContext rc, final JsonObject result) {
         rc.response().setStatusCode(200).end(result.encodePrettily());
     }
 
@@ -145,7 +127,7 @@ public class ResultHandler {
      * @param rc the RoutingContext of the request
      * @param result the content of the response
      */
-    protected static void getFindAllResponse(final RoutingContext rc, final JsonArray result) {
+    public static void getFindAllResponse(final RoutingContext rc, final JsonArray result) {
         rc.response().setStatusCode(200).end(result.encodePrettily());
     }
 
@@ -155,7 +137,7 @@ public class ResultHandler {
      * @param rc the RoutingContext of the request
      * @param result the content of the response
      */
-    protected static void getSaveResponse(final RoutingContext rc, final JsonObject result) {
+    public static void getSaveResponse(final RoutingContext rc, final JsonObject result) {
         rc.response().setStatusCode(201).end(result.encodePrettily());
     }
 
@@ -165,7 +147,7 @@ public class ResultHandler {
      *
      * @param rc the RoutingContext of the request
      */
-    protected static void getSaveAllUpdateDeleteResponse(final RoutingContext rc) {
+    public static void getSaveAllUpdateDeleteResponse(final RoutingContext rc) {
         rc.response().setStatusCode(204).end();
     }
 

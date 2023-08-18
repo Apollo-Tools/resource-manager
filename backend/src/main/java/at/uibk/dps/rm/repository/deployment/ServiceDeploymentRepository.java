@@ -32,6 +32,7 @@ public class ServiceDeploymentRepository extends Repository<ServiceDeployment> {
         return session.createQuery("select distinct sd from ServiceDeployment sd " +
                 "left join fetch sd.service s " +
                 "left join fetch s.serviceType " +
+                "left join fetch s.k8sServiceType " +
                 "left join fetch sd.resource r " +
                 "left join fetch r.metricValues mv " +
                 "left join fetch mv.metric " +
@@ -39,6 +40,13 @@ public class ServiceDeploymentRepository extends Repository<ServiceDeployment> {
                 "left join fetch p.resourceType " +
                 "left join fetch r.region reg " +
                 "left join fetch reg.resourceProvider rp " +
+                "left join fetch r.mainResource mr " +
+                "left join fetch mr.metricValues mmv " +
+                "left join fetch mmv.metric " +
+                "left join fetch mr.platform p " +
+                "left join fetch p.resourceType " +
+                "left join fetch mr.region mreg " +
+                "left join fetch reg.resourceProvider mrp " +
                 "left join fetch rp.environment " +
                 "left join fetch sd.status " +
                 "where sd.deployment.deploymentId=:deploymentId", entityClass)

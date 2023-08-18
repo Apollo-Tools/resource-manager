@@ -1,18 +1,19 @@
 package at.uibk.dps.rm.service.deployment.docker;
 
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
+import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.service.deployment.executor.ProcessExecutor;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import lombok.AllArgsConstructor;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * This service can be used to build docker images for OpenFaaS and push them to a docker registry.
@@ -54,7 +55,7 @@ public class OpenFaasImageService {
                 if (buildOutput.getProcess().exitValue() != 0) {
                     return Single.just(buildOutput);
                 }
-                return new ConfigUtility(vertx).getConfig()
+                return new ConfigUtility(vertx).getConfigDTO()
                         .flatMap(config -> buildAndPushDockerImages(functionsDir, config))
                         .map(pushOutput -> {
                             pushOutput.setOutput(buildOutput.getOutput() + pushOutput.getOutput());
@@ -94,22 +95,40 @@ public class OpenFaasImageService {
      * @param config the vertx config
      * @return a Single that emits the process output of the build and pushing process
      */
-    private Single<ProcessOutput> buildAndPushDockerImages(Path rootFolder, JsonObject config) {
-        String dindDir = config.getString("dind_directory");
+    private Single<ProcessOutput> buildAndPushDockerImages(Path rootFolder, ConfigDTO config) {
+        String dindDir = config.getDindDirectory();
         List<String> dockerCommands = new java.util.ArrayList<>(List.of("docker", "run", "-v",
             "/var/run/docker.sock:/var/run/docker.sock", "--privileged", "--rm", "-v",
             Path.of(dindDir, rootFolder.toString()).toAbsolutePath().toString().replace("\\", "/") +
-                "/build:/build", "docker:latest", "/bin/sh", "-c"));
-        StringBuilder dockerInteractiveCommands = new StringBuilder("cd ./build && docker login -u " +
-            dockerCredentials.getUsername() + " -p " + dockerCredentials.getAccessToken() +
-            " && docker buildx create --name multiarch --driver docker-container --bootstrap --use");
-        for (String functionIdentifier : functionIdentifiers) {
-            dockerInteractiveCommands.append(String.format(" && docker buildx build -t %s/%s ./%s --platform " +
-                    "linux/arm/v7,linux/amd64 --push", dockerCredentials.getUsername(), functionIdentifier,
-                functionIdentifier));
-        }
+                "/build:/build","docker:24.0-cli", "/bin/sh", "-c"));
+        StringBuilder dockerInteractiveCommands = getBuildxCreateCommands(config).append(getBuildxBuildCommands());
         dockerCommands.add(dockerInteractiveCommands.toString());
         ProcessExecutor processExecutor = new ProcessExecutor(rootFolder, dockerCommands);
         return processExecutor.executeCli();
+    }
+
+    private StringBuilder getBuildxCreateCommands(ConfigDTO config) {
+        String buildxConfig = config.getDockerInsecureRegistries()
+                .stream()
+                .map(registry -> "[registry.\\\"" + registry + "\\\"]\n  insecure = true")
+                .collect(Collectors.joining("\n"));
+        return new StringBuilder("cd ./build && docker login " +
+            dockerCredentials.getRegistry() + " -u " + dockerCredentials.getUsername() + " -p " +
+            dockerCredentials.getAccessToken() +
+            " && docker buildx create --name multiarch --driver docker-container --bootstrap --use --config " +
+                "<(echo '" + buildxConfig + "') --driver-opt network=host");
+    }
+
+    private StringBuilder getBuildxBuildCommands() {
+        StringBuilder dockerInteractiveCommands = new StringBuilder();
+        for (String functionIdentifier : functionIdentifiers) {
+            dockerInteractiveCommands.append(String.format(" && docker buildx build " +
+                            "-t %s/%s/%s ./%s --platform " +
+                            "linux/arm/v7,linux/amd64 --push  --provenance=false", dockerCredentials.getRegistry(),
+                    dockerCredentials.getUsername(),
+                    functionIdentifier, functionIdentifier)
+            );
+        }
+        return dockerInteractiveCommands;
     }
 }
