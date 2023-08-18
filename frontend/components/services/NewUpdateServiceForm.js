@@ -57,15 +57,17 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
       let ports = [];
+      const envVars = values.envVars != null ? values.envVars : [];
+      const volumeMounts = values.volumeMounts != null ? values.volumeMounts : [];
       if (values.ports != null) {
         ports = values.ports.map((portEntries) => `${portEntries.containerPort}:${portEntries.servicePort}`);
       }
       if (mode === 'new') {
         await createService(values.serviceType, values.name, values.image, values.replicas, ports, values.cpu,
-            values.memory, values.k8sServiceType, values.envVars, values.volumeMounts, token, setNewService, setError);
+            values.memory, values.k8sServiceType, envVars, volumeMounts, token, setNewService, setError);
       } else {
         await updateService(service.service_id, values.replicas, ports, values.cpu, values.memory,
-            values.k8sServiceType, values.envVars, values.volumeMounts, token, setError);
+            values.k8sServiceType, envVars, volumeMounts, token, setError);
       }
       setFinished?.(true);
       setModified(false);
