@@ -116,3 +116,5 @@ spec:
         - name: rm-api-storage
           hostPath:
             path: /var/lib/apollo-rm/build
+      # Define service account with cluster role binding
+      serviceAccountName: <service-account>
