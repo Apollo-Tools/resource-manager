@@ -24,11 +24,10 @@ info:
     
     ## Metrics
     Metrics are associated with resources and are used for deployment and monitoring. There are two types of metrics:
-    - **monitored**: Monitored resources are automatically updated by the monitoring service of the RM (not 
-    yet implemented). Examples of this type of metric are price, availability and the heartbeat of a resource.
+    - **monitored**: Monitored resources are automatically updated by the monitoring service of the RM. Examples of 
+    this type of metric are price, availability and the heartbeat of a resource.
     - **non monitored**: These are user-set properties that are used primarily for resource deployment. Examples
     for this type of metric are the memory required for serverless functions or the instance type of a virtual machine.
-    
     
     Not all platforms support/require the same metrics. The /platforms/{id}/metrics route can be used to get all 
     metrics that are supported for a particular platform. The value types for metrics can be *string*, *number* and 
@@ -62,19 +61,22 @@ info:
     
     ## Functions and Services
     Functions and Services represent the two different deployable entities in the context of the rm. They don't have 
-    the same structure and are only available for deployment on predefined platforms as described in the 
-    platforms section.
-    - **functions**: Function entities consist of a name, a runtime and a function code that can be executed by that 
-    runtime. Currently python 3.8 and java 11 are the supported runtimes. In general function code has to be
-    uploaded as a zip file. Templates for all available runtimes can be found at the git repository of the RM 
+    the same structure and are only available for deployments on predefined platforms as described in the 
+    platforms section. They also are always linked to a function type or service type. A type is the abstract
+    description of the functionality while the function or service is a specific implementation of the type.
+    - **functions**: Function entities consist of a function type, name, a runtime and a function code that can be 
+    executed by that runtime. Currently python 3.8 and java 11 are the supported runtimes. In general function code has
+    to be uploaded as a zip file. Templates for all available runtimes can be found at the git repository of the RM 
     (backend/faas-templates). For python functions it is also possible to directly save the function code of the 
     function.
-    - **services**: Service entities consist of a name, the title of the docker image, the number of replicas for that 
-    service, the ports that should be exposed, the required cpu amount, the required memory amount and the k8s 
-    service type. Currently *ClientIP*, *NodePort*, *LoadBalancer*, *NoService* are supported service types. If 
-    *NoService* is the selected service type no ports are allowed. The schema for ports to expose looks like this: 
-    - ``containerPort:servicePort`` - e.g. your container exposes the port 80 and you want to expose it to service port
-    8080 you would have to provide it like this ``80:8080``.
+    - **services**: Service entities consist of a service type, name, the title of the docker image, the number of
+    replicas for that service, the ports that should be exposed, the required cpu amount, the required memory amount
+    and the k8s service type. Currently *ClientIP*, *NodePort*, *LoadBalancer*, *NoService* are supported k8s service 
+    types. If *NoService* is the selected service type no ports are allowed. The schema for ports to expose looks like
+    this: 
+    - ``containerPort:servicePort`` 
+    - e.g. your container exposes the port 80 and you want to expose it to service port 8080 you would have to provide 
+    it like this ``80:8080``.
     
     ## Deployment
     Deployments consist of mappings of functions and services to resources and the necessary credentials. 
@@ -137,6 +139,15 @@ info:
     The RM uses **Bearer tokens** for authentication because it's a simple authentication method. 
     New users can be created using the *accounts/signup* route. A new token can be retrieved using the *accounts/login*
     route.  
+    
+    ### Roles
+    Different routes required different roles. The property *x-role* defines the necessary role on operation level.
+    If an operation does not define the *x-role* property it is accessible by every user.
+    The available roles are:
+    - admin
+    - default
+    The default role is the basic role, which is assigned to every user by default. Accounts with the admin role have
+    special permissions to manage users.
     
     ## Note 
     Please be aware that the API provided is in the early stage of development and is subject to change in the near
