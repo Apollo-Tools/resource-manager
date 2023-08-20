@@ -17,6 +17,6 @@ import javax.persistence.*;
 public class SubResource extends Resource {
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "subresource_id")
+    @JoinColumn(name = "main_resource_id")
     private MainResource mainResource;
 }
