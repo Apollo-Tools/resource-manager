@@ -6,6 +6,7 @@ import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.handler.deployment.ServiceDeploymentChecker;
 import at.uibk.dps.rm.util.misc.HttpHelper;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
 /**
@@ -58,16 +59,16 @@ public class ContainerStartupHandler {
     private void processDeployTerminateRequest(RoutingContext rc, boolean isStartup) {
         long accountId = rc.user().principal().getLong("account_id");
         HttpHelper.getLongPathParam(rc, "deploymentId")
-            .flatMapMaybe(deploymentId -> HttpHelper.getLongPathParam(rc, "resourceDeploymentId")
-                .flatMapMaybe(resourceDeploymentId -> serviceDeploymentChecker
+            .flatMap(deploymentId -> HttpHelper.getLongPathParam(rc, "resourceDeploymentId")
+                .flatMap(resourceDeploymentId -> serviceDeploymentChecker
                     .checkReadyForStartup(deploymentId, resourceDeploymentId, accountId)
                     .andThen(Single.defer(() -> Single.just(1L)))
-                    .flatMapMaybe(result -> {
+                    .flatMap(result -> {
                         if (isStartup) {
-                            return deploymentChecker.startContainer(deploymentId, resourceDeploymentId).toMaybe();
+                            return deploymentChecker.startContainer(deploymentId, resourceDeploymentId);
                         } else {
                             return deploymentChecker.stopContainer(deploymentId, resourceDeploymentId)
-                                .toMaybe();
+                                .toSingle(JsonObject::new);
                         }
                     })))
             .subscribe(result -> {
