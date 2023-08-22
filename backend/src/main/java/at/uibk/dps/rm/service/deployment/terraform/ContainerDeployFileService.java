@@ -72,7 +72,7 @@ public class ContainerDeployFileService extends TerraformFileService {
         StringBuilder containerString = new StringBuilder();
         Resource resource = serviceDeployment.getResource();
         Service service = serviceDeployment.getService();
-        String identifier = resource.getResourceId() + "_" + service.getServiceId();
+        String identifier = getServiceDeploymentIdentifier();
         Map<String, MetricValue> mainMetricValues =
             MetricValueMapper.mapMetricValues(resource.getMain().getMetricValues());
         Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
@@ -134,6 +134,17 @@ public class ContainerDeployFileService extends TerraformFileService {
 
     @Override
     protected String getOutputsFileContent() {
-        return "";
+        String identifier = getServiceDeploymentIdentifier();
+        return String.format(
+            "output \"service_info\" {\n" +
+            "  value = module.deployment_%s.service_info\n" +
+            "}", identifier
+        );
+    }
+
+    private String getServiceDeploymentIdentifier() {
+        Resource resource = serviceDeployment.getResource();
+        Service service = serviceDeployment.getService();
+        return resource.getResourceId() + "_" + service.getServiceId();
     }
 }
