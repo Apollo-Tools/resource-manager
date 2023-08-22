@@ -85,10 +85,8 @@ public class DeploymentExecutionChecker {
                         .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, deployResources.getDeployment())))
                     .andThen(deploymentService.setUpTFModules(deployResources))
                     .flatMap(deploymentCredentials -> {
-                        TerraformExecutor terraformExecutor = new MainTerraformExecutor(vertx, deploymentCredentials);
-                        return Single.fromCallable(() ->
-                                terraformExecutor.setPluginCacheFolder(deploymentPath.getTFCacheFolder()))
-                            .flatMapCompletable(res -> initialiseAllContainerModules(deployResources, deploymentPath))
+                        TerraformExecutor terraformExecutor = new MainTerraformExecutor(deploymentCredentials);
+                        return initialiseAllContainerModules(deployResources, deploymentPath)
                             .andThen(Single.just(terraformExecutor));
                     })
                     .flatMap(terraformExecutor -> terraformExecutor.init(deploymentPath.getRootFolder())
@@ -106,7 +104,7 @@ public class DeploymentExecutionChecker {
     private Completable initialiseAllContainerModules(DeployResourcesDTO request, DeploymentPath deploymentPath) {
         return Observable.fromIterable(request.getServiceDeployments())
             .map(serviceDeployment -> {
-                TerraformExecutor terraformExecutor = new TerraformExecutor(Vertx.currentContext().owner());
+                TerraformExecutor terraformExecutor = new TerraformExecutor();
                 Path containerPath = Path.of(deploymentPath.getRootFolder().toString(), "container",
                     String.valueOf(serviceDeployment.getResourceDeploymentId()));
                 return terraformExecutor.init(containerPath)
@@ -202,7 +200,7 @@ public class DeploymentExecutionChecker {
                 DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
                 return terminateAllContainerResources(terminateResources, deploymentPath)
                     .andThen(deploymentService.getNecessaryCredentials(terminateResources))
-                    .map(deploymentCredentials -> new MainTerraformExecutor(vertx, deploymentCredentials))
+                    .map(MainTerraformExecutor::new)
                     .flatMap(terraformExecutor -> terraformExecutor.destroy(deploymentPath.getRootFolder()))
                     .flatMapCompletable(terminateOutput -> persistLogs(terminateOutput, terminateResources.getDeployment()));
             });
@@ -218,7 +216,7 @@ public class DeploymentExecutionChecker {
     public Completable terminateAllContainerResources(TerminateResourcesDTO request, DeploymentPath deploymentPath) {
         return Observable.fromIterable(request.getServiceDeployments())
             .map(serviceDeployment -> {
-                TerraformExecutor terraformExecutor = new TerraformExecutor(Vertx.currentContext().owner());
+                TerraformExecutor terraformExecutor = new TerraformExecutor();
                 Path containerPath = Path.of(deploymentPath.getRootFolder().toString(), "container",
                     String.valueOf(serviceDeployment.getResourceDeploymentId()));
                 return terraformExecutor.destroy(containerPath)
@@ -239,7 +237,7 @@ public class DeploymentExecutionChecker {
         deployment.setDeploymentId(deploymentId);
         return new ConfigUtility(vertx).getConfigDTO()
             .flatMapCompletable(config -> {
-                TerraformExecutor terraformExecutor = new TerraformExecutor(vertx);
+                TerraformExecutor terraformExecutor = new TerraformExecutor();
                 DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
                 Path containerPath = Path.of(deploymentPath.getRootFolder().toString(), "container",
                     String.valueOf(resourceDeploymentId));
@@ -261,7 +259,7 @@ public class DeploymentExecutionChecker {
         deployment.setDeploymentId(deploymentId);
         return new ConfigUtility(vertx).getConfigDTO()
             .flatMapCompletable(config -> {
-                TerraformExecutor terraformExecutor = new TerraformExecutor(vertx);
+                TerraformExecutor terraformExecutor = new TerraformExecutor();
                 DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
                 Path containerPath = Path.of(deploymentPath.getRootFolder().toString(), "container",
                     String.valueOf(resourceDeploymentId));

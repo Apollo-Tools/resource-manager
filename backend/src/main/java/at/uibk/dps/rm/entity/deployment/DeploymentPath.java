@@ -48,13 +48,4 @@ public class DeploymentPath {
     public Path getModuleFolder(TerraformModule module) {
         return Path.of(rootFolder.toString(), module.getModuleName());
     }
-
-    /**
-     * Get the path of the terraform cache.
-     *
-     * @return the terraform cache
-     */
-    public Path getTFCacheFolder() {
-        return Path.of(buildFolder.toString(), "plugin_cache").toAbsolutePath();
-    }
 }
