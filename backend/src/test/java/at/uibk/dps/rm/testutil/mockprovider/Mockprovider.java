@@ -57,7 +57,6 @@ public class Mockprovider {
             ProcessOutput poInit, ProcessOutput poApply, ProcessOutput poOutput) {
         return Mockito.mockConstruction(MainTerraformExecutor.class,
             (mock, context) -> {
-                given(mock.setPluginCacheFolder(deploymentPath.getTFCacheFolder())).willReturn(Completable.complete());
                 given(mock.init(deploymentPath.getRootFolder())).willReturn(Single.just(poInit));
                 given(mock.apply(deploymentPath.getRootFolder())).willReturn(Single.just(poApply));
                 given(mock.getOutput(deploymentPath.getRootFolder())).willReturn(Single.just(poOutput));
@@ -67,10 +66,7 @@ public class Mockprovider {
     public static MockedConstruction<MainTerraformExecutor> mockMainTerraformExecutor(DeploymentPath deploymentPath,
             ProcessOutput poDestroy) {
         return Mockito.mockConstruction(MainTerraformExecutor.class,
-            (mock, context) -> {
-                given(mock.setPluginCacheFolder(deploymentPath.getTFCacheFolder())).willReturn(Completable.complete());
-                given(mock.destroy(deploymentPath.getRootFolder())).willReturn(Single.just(poDestroy));
-            });
+            (mock, context) -> given(mock.destroy(deploymentPath.getRootFolder())).willReturn(Single.just(poDestroy)));
     }
 
     private static void mockTerraformExecutor(TerraformExecutor mock, Path path, String mode,

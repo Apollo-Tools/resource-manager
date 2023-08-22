@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.testutil.objectprovider;
 
+import at.uibk.dps.rm.entity.dto.account.RoleEnum;
 import at.uibk.dps.rm.entity.model.*;
 import lombok.experimental.UtilityClass;
 
@@ -53,5 +54,12 @@ public class TestAccountProvider {
         account.setPassword("password");
         account.setIsActive(true);
         return account;
+    }
+
+    public static Role createRoleDefault() {
+        Role role = new Role();
+        role.setRoleId(2L);
+        role.setRole(RoleEnum.DEFAULT.getValue());
+        return role;
     }
 }

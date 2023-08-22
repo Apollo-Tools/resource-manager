@@ -1,10 +1,13 @@
 package at.uibk.dps.rm.service.database.account;
 
+import at.uibk.dps.rm.entity.dto.account.RoleEnum;
 import at.uibk.dps.rm.entity.model.Account;
+import at.uibk.dps.rm.entity.model.Role;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.repository.account.AccountRepository;
+import at.uibk.dps.rm.repository.account.RoleRepository;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.util.misc.PasswordUtility;
@@ -38,6 +41,9 @@ public class AccountServiceImplTest {
     private AccountRepository accountRepository;
 
     @Mock
+    private RoleRepository roleRepository;
+
+    @Mock
     private Stage.SessionFactory sessionFactory;
 
     @Mock
@@ -46,7 +52,7 @@ public class AccountServiceImplTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        accountService = new AccountServiceImpl(accountRepository, sessionFactory);
+        accountService = new AccountServiceImpl(accountRepository, roleRepository, sessionFactory);
     }
 
     @Test
@@ -108,8 +114,12 @@ public class AccountServiceImplTest {
     void save(VertxTestContext testContext) {
         String username = "user1", password = "pw1";
         Account entity = TestAccountProvider.createAccount(1L, username, password);
+        Role role = TestAccountProvider.createRoleDefault();
         SessionMockHelper.mockTransaction(sessionFactory, session);
-        when(accountRepository.findByUsername(session, username)).thenReturn(CompletionStages.completedFuture(null));
+        when(accountRepository.findByUsername(session, username))
+            .thenReturn(CompletionStages.completedFuture(null));
+        when(roleRepository.findByRoleName(session, RoleEnum.DEFAULT.getValue()))
+            .thenReturn(CompletionStages.completedFuture(role));
         when(session.persist(entity)).thenReturn(CompletionStages.voidFuture());
 
         accountService.save(JsonObject.mapFrom(entity))
@@ -117,6 +127,7 @@ public class AccountServiceImplTest {
                 assertThat(result.getLong("account_id")).isEqualTo(1L);
                 assertThat(result.getString("username")).isEqualTo("user1");
                 assertThat(result.containsKey("password")).isEqualTo(false);
+                assertThat(result.getJsonObject("role").getString("role")).isEqualTo("default");
                 testContext.completeNow();
             })));
     }
