@@ -113,7 +113,7 @@ public class DatabaseVerticle extends AbstractVerticle {
             serviceProxyBinder.bind(AccountNamespaceService.class,
                 new AccountNamespaceServiceImpl(new AccountNamespaceRepository(), sessionFactory));
             serviceProxyBinder.bind(AccountService.class,
-                new AccountServiceImpl(new AccountRepository(), sessionFactory));
+                new AccountServiceImpl(new AccountRepository(), new RoleRepository(), sessionFactory));
             serviceProxyBinder.bind(CredentialsService.class, new CredentialsServiceImpl(new CredentialsRepository(),
                 new AccountRepository(), new AccountCredentialsRepository(), new ResourceProviderRepository(),
                 sessionFactory));

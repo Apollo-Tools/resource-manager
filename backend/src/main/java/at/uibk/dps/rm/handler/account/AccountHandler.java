@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.handler.account;
 
+import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.util.configuration.JWTAuthProvider;
 import at.uibk.dps.rm.util.misc.HttpHelper;
@@ -79,5 +80,33 @@ public class AccountHandler extends ValidationHandler {
                 result.put(JWTAuthProvider.ROLE_CLAIM, List.of(role));
                 return new JsonObject().put("token", jwtAuth.generateToken(result));
             });
+    }
+
+    /**
+     * Process lock account request
+     *
+     * @param rc the routing context
+     * @return a Completable
+     */
+    public Completable lockAccount(RoutingContext rc) {
+        return HttpHelper.getLongPathParam(rc, "id")
+            .flatMapCompletable(id -> {
+                long principalId = rc.user().principal().getLong("account_id");
+                if (principalId == id) {
+                    return Completable.error(new BadInputException("can't lock own account"));
+                }
+                return accountChecker.lockAccount(id);
+            });
+    }
+
+    /**
+     * Process unlock account request
+     *
+     * @param rc the routing context
+     * @return a Completable
+     */
+    public Completable unlockAccount(RoutingContext rc) {
+        return HttpHelper.getLongPathParam(rc, "id")
+            .flatMapCompletable(accountChecker::unlockAccount);
     }
 }

@@ -38,6 +38,16 @@ public class AccountRoute implements AuthenticationRoute {
             .handler(resultHandler::handleFindAllRequest);
 
         router
+            .operation("lockAccount")
+            .handler(JWTAuthProvider.getAdminAuthorizationHandler())
+            .handler(rc -> resultHandler.handleUpdateRequest(rc, accountHandler.lockAccount(rc)));
+
+        router
+            .operation("unlockAccount")
+            .handler(JWTAuthProvider.getAdminAuthorizationHandler())
+            .handler(rc -> resultHandler.handleUpdateRequest(rc, accountHandler.unlockAccount(rc)));
+
+        router
             .operation("signUp")
             .handler(JWTAuthProvider.getAdminAuthorizationHandler())
             .handler(AccountInputHandler::validateSignupRequest)

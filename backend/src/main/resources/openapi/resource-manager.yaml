@@ -248,6 +248,54 @@ paths:
           $ref: "#/components/responses/404"
         500:
           $ref: "#/components/responses/500"
+  /accounts/{id}/lock:
+    post:
+      description: Lock an existing account
+      operationId: lockAccount
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      tags:
+        - accounts
+      x-role: admin
+      responses:
+        204:
+          description: Successful lock of the user account
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        403:
+          $ref: "#/components/responses/403"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+  /accounts/{id}/unlock:
+    post:
+      description: Unlock an existing account
+      operationId: unlockAccount
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      tags:
+        - accounts
+      x-role: admin
+      responses:
+        204:
+          description: Successful unlock of the user account
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        403:
+          $ref: "#/components/responses/403"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
   /accounts/{id}/k8snamespaces:
     get:
       description: Return all namespaces that are registered for an user account

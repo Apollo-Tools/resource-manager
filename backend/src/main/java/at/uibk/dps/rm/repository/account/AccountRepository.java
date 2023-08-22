@@ -11,7 +11,7 @@ import java.util.concurrent.CompletionStage;
  *
  * @author matthi-g
  */
-public class AccountRepository  extends Repository<Account> {
+public class AccountRepository extends Repository<Account> {
 
     /**
      * Create an instance.
@@ -35,7 +35,7 @@ public class AccountRepository  extends Repository<Account> {
      * @return a CompletionStage that emits the account if it exists, else null
      */
     public CompletionStage<Account> findByUsername(Session session, String username) {
-        return session.createQuery("from Account a where a.username=:username and a.isActive=true", entityClass)
+        return session.createQuery("from Account a where a.username=:username", entityClass)
             .setParameter("username", username)
             .getSingleResultOrNull();
     }

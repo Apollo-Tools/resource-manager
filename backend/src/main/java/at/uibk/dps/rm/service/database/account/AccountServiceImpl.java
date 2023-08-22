@@ -1,8 +1,10 @@
 package at.uibk.dps.rm.service.database.account;
 
+import at.uibk.dps.rm.entity.dto.account.RoleEnum;
 import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.repository.account.AccountRepository;
+import at.uibk.dps.rm.repository.account.RoleRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import at.uibk.dps.rm.util.misc.PasswordUtility;
 import at.uibk.dps.rm.util.validation.ServiceResultValidator;
@@ -24,21 +26,26 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
 
     private final AccountRepository repository;
 
+    private final RoleRepository roleRepository;
+
     /**
-     * Create an instance from the repository.
+     * Create an instance from the repository and role repository.
      *
      * @param repository the account repository
+     * @param roleRepository the role repository
      */
-    public AccountServiceImpl(AccountRepository repository, Stage.SessionFactory sessionFactory) {
+    public AccountServiceImpl(AccountRepository repository, RoleRepository roleRepository,
+            Stage.SessionFactory sessionFactory) {
         super(repository, Account.class, sessionFactory);
         this.repository = repository;
+        this.roleRepository = roleRepository;
     }
 
     @Override
     public Future<JsonObject> loginAccount(String username, String password) {
         CompletionStage<Account> login = withSession(session -> repository.findByUsername(session, username)
             .thenApply(account -> {
-                if (account == null) {
+                if (account == null || !account.getIsActive()) {
                     throw new UnauthorizedException("invalid credentials");
                 }
                 PasswordUtility passwordUtility = new PasswordUtility();
@@ -60,6 +67,11 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
             repository.findByUsername(session, newAccount.getUsername())
                 .thenCompose(account -> {
                     ServiceResultValidator.checkExists(account, Account.class);
+                    return roleRepository.findByRoleName(session, RoleEnum.DEFAULT.getValue());
+                })
+                .thenCompose(role -> {
+                    ServiceResultValidator.checkFound(role, "default role not found");
+                    newAccount.setRole(role);
                     PasswordUtility passwordUtility = new PasswordUtility();
                     char[] password = newAccount.getPassword().toCharArray();
                     String hash = passwordUtility.hashPassword(password);
@@ -105,5 +117,15 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
                 }
                 return new JsonArray(objects);
             });
+    }
+
+    @Override
+    public Future<Void> setAccountActive(long accountId, boolean activityLevel) {
+        CompletionStage<Void> lockAccount = withTransaction(session -> session.find(Account.class, accountId)
+            .thenAccept(account -> {
+                ServiceResultValidator.checkFound(account, Account.class);
+                account.setIsActive(activityLevel);
+            }));
+        return sessionToFuture(lockAccount);
     }
 }

@@ -5,10 +5,12 @@ import {siteTitle} from '../../components/misc/Sidebar';
 import Head from 'next/head';
 import Link from 'next/link';
 import {signUp} from '../../lib/AccountService';
+import {useAuth} from "../../lib/AuthenticationProvider";
 
 const {Title} = Typography;
 
-const signup = () => {
+const NewAccount = () => {
+  const {token, checkTokenExpired} = useAuth();
   const [error, setError] = useState();
   const [messageApi, contextHolder] = message.useMessage();
   const [response, setResponse] = useState();
@@ -18,7 +20,7 @@ const signup = () => {
     if (response && response.ok) {
       messageApi.open({
         type: 'success',
-        content: 'Signup was successful! Navigate back to login.',
+        content: 'Account has been created!',
       });
       form.resetFields();
     } else if (response && !response.ok) {
@@ -46,7 +48,9 @@ const signup = () => {
   }, [error]);
 
   const onFinish = async (values) => {
-    await signUp(values.username, values.password, setResponse, setError);
+    if (!checkTokenExpired()) {
+      await signUp(values.username, values.password, token, setResponse, setError);
+    }
   };
 
   const onFinishFailed = (errorInfo) => {
@@ -83,7 +87,7 @@ const signup = () => {
           rules={[
             {
               required: true,
-              message: 'Please input a new username!',
+              message: 'Please provide a new username!',
             },
             {
               pattern: /^[a-z_0-9]+$/,
@@ -99,7 +103,7 @@ const signup = () => {
           rules={[
             {
               required: true,
-              message: 'Please input your password!',
+              message: 'Please provide a password!',
             },
             {
               pattern: /^(?=.*\d)(?=.*\p{Ll})(?=.*\p{Lu})(?=.*\p{P})(?!.*\s).{8,512}$/u,
@@ -117,7 +121,7 @@ const signup = () => {
           rules={[
             {
               required: true,
-              message: 'Please confirm your password!',
+              message: 'Please confirm the password!',
             },
             {
               validator: validateConfirmPassword,
@@ -127,9 +131,9 @@ const signup = () => {
           <Input.Password prefix={<LockOutlined className="site-form-item-icon" />}/>
         </Form.Item>
         <Form.Item>
-          <Link href={`/accounts/login`} className="float-left">
+          <Link href={`/accounts/accounts`} className="float-left">
             <Button type="default">
-              Return to login
+              Cancel
             </Button>
           </Link>
           <Button type="primary" htmlType="submit" className="float-right">
@@ -141,4 +145,4 @@ const signup = () => {
   );
 };
 
-export default signup;
+export default NewAccount;

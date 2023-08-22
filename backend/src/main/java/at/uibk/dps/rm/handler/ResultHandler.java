@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler;
 
 import at.uibk.dps.rm.exception.*;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -99,6 +100,15 @@ public class ResultHandler {
     public void handleUpdateRequest(final RoutingContext rc) {
         validationHandler.updateOne(rc)
             .subscribe(() -> getSaveAllUpdateDeleteResponse(rc), throwable -> handleRequestError(rc, throwable));
+    }
+
+    /**
+     * Handle the UPDATE ONE request of the validation handler.
+     *
+     * @param rc the RoutingContext of the request
+     */
+    public void handleUpdateRequest(final RoutingContext rc, final Completable handler) {
+        handler.subscribe(() -> getSaveAllUpdateDeleteResponse(rc), throwable -> handleRequestError(rc, throwable));
     }
 
     /**
