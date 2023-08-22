@@ -2059,8 +2059,43 @@ paths:
             format: int64
             example: 1
       responses:
-        204:
+        200:
           description: Successful start up of a container
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cluster_ips:
+                    type: array
+                    items:
+                      type: string
+                      example: "10.10.10.10"
+                  external_ips:
+                    type: array
+                    items:
+                      type: string
+                      example: "200.200.200.200"
+                  name:
+                    type: string
+                    example: "servicename"
+                  ports:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        port:
+                          type: integer
+                          format: int64
+                          example: 8080
+                        node_port:
+                          type: integer
+                          format: int64
+                          example: 31002
         400:
           $ref: "#/components/responses/400"
         401:

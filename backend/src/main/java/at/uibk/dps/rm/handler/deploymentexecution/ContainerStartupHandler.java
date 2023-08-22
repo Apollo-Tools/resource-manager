@@ -58,18 +58,25 @@ public class ContainerStartupHandler {
     private void processDeployTerminateRequest(RoutingContext rc, boolean isStartup) {
         long accountId = rc.user().principal().getLong("account_id");
         HttpHelper.getLongPathParam(rc, "deploymentId")
-            .flatMapCompletable(deploymentId -> HttpHelper.getLongPathParam(rc, "resourceDeploymentId")
-                .flatMapCompletable(resourceDeploymentId -> serviceDeploymentChecker
+            .flatMapMaybe(deploymentId -> HttpHelper.getLongPathParam(rc, "resourceDeploymentId")
+                .flatMapMaybe(resourceDeploymentId -> serviceDeploymentChecker
                     .checkReadyForStartup(deploymentId, resourceDeploymentId, accountId)
                     .andThen(Single.defer(() -> Single.just(1L)))
-                    .flatMapCompletable(result -> {
+                    .flatMapMaybe(result -> {
                         if (isStartup) {
-                            return deploymentChecker.startContainer(deploymentId, resourceDeploymentId);
+                            return deploymentChecker.startContainer(deploymentId, resourceDeploymentId).toMaybe();
                         } else {
-                            return deploymentChecker.stopContainer(deploymentId, resourceDeploymentId);
+                            return deploymentChecker.stopContainer(deploymentId, resourceDeploymentId)
+                                .toMaybe();
                         }
                     })))
-            .subscribe(() -> rc.response().setStatusCode(204).end(),
+            .subscribe(result -> {
+                    if (isStartup) {
+                        rc.response().setStatusCode(200).end(result.encodePrettily());
+                    } else {
+                        rc.response().setStatusCode(204).end();
+                    }
+                },
                 throwable -> {
                     Throwable throwable1 = throwable;
                     if (throwable instanceof DeploymentTerminationFailedException) {

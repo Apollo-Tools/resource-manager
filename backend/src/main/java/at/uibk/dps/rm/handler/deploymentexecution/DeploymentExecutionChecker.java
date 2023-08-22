@@ -231,18 +231,29 @@ public class DeploymentExecutionChecker {
      * @param resourceDeploymentId the id of the resource deployment
      * @return a Completable
      */
-    public Completable startContainer(long deploymentId, long resourceDeploymentId) {
+    public Single<JsonObject> startContainer(long deploymentId, long resourceDeploymentId) {
         Vertx vertx = Vertx.currentContext().owner();
         Deployment deployment = new Deployment();
         deployment.setDeploymentId(deploymentId);
         return new ConfigUtility(vertx).getConfigDTO()
-            .flatMapCompletable(config -> {
+            .flatMap(config -> {
                 TerraformExecutor terraformExecutor = new TerraformExecutor();
                 DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
                 Path containerPath = Path.of(deploymentPath.getRootFolder().toString(), "container",
                     String.valueOf(resourceDeploymentId));
                 return terraformExecutor.apply(containerPath)
-                    .flatMapCompletable(applyOutput -> persistLogs(applyOutput, deployment));
+                    .flatMapCompletable(applyOutput -> persistLogs(applyOutput, deployment))
+                    .andThen(terraformExecutor.getOutput(containerPath))
+                    .flatMap(tfOutput -> persistLogs(tfOutput, deployment)
+                        .toSingle(() -> {
+                            JsonObject jsonOutput = new JsonObject(tfOutput.getOutput());
+                            if (jsonOutput.containsKey("service_info")) {
+                                return jsonOutput.getJsonObject("service_info").getJsonObject("value");
+                            } else {
+                                return new JsonObject();
+                            }
+                        })
+                    );
             });
     }
 
