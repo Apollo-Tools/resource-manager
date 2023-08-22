@@ -10,6 +10,7 @@ import Link from 'next/link';
 const ResourceDetailsCard = ({resource}) => {
   return (
     <div className="grid lg:grid-cols-12 grid-cols-6 gap-4">
+      <TextDataDisplay label="Name" value={resource.name} className="col-span-6"/>
       <TextDataDisplay label="Environment" value={resource.region.resource_provider.environment.environment} className="col-span-6"/>
       <TextDataDisplay label="Resource Type" value={resource.platform.resource_type.resource_type} className="col-span-6"/>
       <TextDataDisplay label="Platform" value={resource.platform.platform} className="col-span-6"/>
@@ -20,7 +21,7 @@ const ResourceDetailsCard = ({resource}) => {
         </>}
         className="col-span-6" />
       <TextDataDisplay label="Region" value={resource.region.name} className="col-span-6" />
-      <TextDataDisplay label="Created at" value={<DateFormatter dateTimestamp={resource.created_at} />} className="col-span-6"/>
+      <TextDataDisplay label="Created at" value={<DateFormatter dateTimestamp={resource.created_at} includeTime/>} className="col-span-6"/>
       {resource.main_resource_id &&
         <Link href={`/resources/${resource.main_resource_id}`}>
           <Button type="primary" icon={<ClusterOutlined />}>Main Resource</Button>
