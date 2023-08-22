@@ -64,4 +64,10 @@ module "k8s_deployment" {
 | hostname           | The value of the hostname label of a k8s node.                         | `string`       | n/a                |    no    |
 | image_pull_secrets | The secrets to use to pull images from private docker registries       | `list(string)` | `[]`               |    no    |
 
+## Outputs
+
+| Name         | Description                                     |
+|--------------|-------------------------------------------------|
+| service_info | Info like IPs and ports of the deployed service |
+
 <!-- END_TF_DOCS -->

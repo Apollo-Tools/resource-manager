@@ -24,14 +24,14 @@ public class PrePullGroup {
      * @param hostname the hostname label of the node
      */
     public PrePullGroup(Long resourceId, String context, String namespace, long timeout, String hostname) {
-        this.identifier = resourceId + namespace;
+        this.resourceId = resourceId;
         this.context = context;
         this.namespace = namespace;
         this.timeout = timeout;
         this.hostname = hostname;
     }
 
-    private final String identifier;
+    private final Long resourceId;
 
     private final String context;
 
@@ -51,13 +51,13 @@ public class PrePullGroup {
             return false;
         }
         PrePullGroup prePullGroup = (PrePullGroup) obj;
-        return identifier.equals(prePullGroup.identifier);
+        return resourceId.equals(prePullGroup.resourceId);
     }
 
     @Override
     @Generated
     public int hashCode() {
-        return identifier.hashCode();
+        return resourceId.hashCode();
     }
 
 }
