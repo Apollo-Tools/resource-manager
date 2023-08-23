@@ -1983,8 +1983,6 @@ paths:
                   properties:
                     docker_credentials:
                       $ref: '#/components/schemas/DockerCredentials'
-                    kube_config:
-                      $ref: '#/components/schemas/KubeConfig'
       responses:
         201:
           description: Successful deployment of resources
@@ -4073,30 +4071,6 @@ components:
           type: integer
           format: int64
           example: 1679496667103
-    KubeConfig:
-      description: |
-        The kube config to use for the resource deployment. For the requirements see the
-          Deployment section of API description.
-      type: string
-      example: |
-        apiVersion: v1
-        clusters:
-        - cluster:
-            certificate-authority-data: <authority-certificate>
-            server: <cluster-ip>
-          name: <cluster-name>
-        contexts:
-        - context:
-            cluster: <cluster-name>
-            user: <user-name>
-          name: <context-name>
-        kind: Config
-        preferences: {}
-        users:
-        - name: <user-name>
-          user:
-            client-certificate-data: <client-certificate-data>
-            client-key-data: <client-key-data>
     DockerCredentials:
       type: object
       required:

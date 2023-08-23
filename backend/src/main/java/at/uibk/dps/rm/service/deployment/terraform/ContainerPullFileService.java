@@ -22,8 +22,6 @@ public class ContainerPullFileService extends TerraformFileService {
 
     private final List<ServiceDeployment> serviceDeployments;
 
-    private final Path rootFolder;
-
     private final ConfigDTO config;
 
     /**
@@ -37,7 +35,6 @@ public class ContainerPullFileService extends TerraformFileService {
     public ContainerPullFileService(FileSystem fileSystem, Path rootFolder, List<ServiceDeployment> serviceDeployments,
             long deploymentId, ConfigDTO config) {
         super(fileSystem, rootFolder);
-        this.rootFolder = rootFolder;
         this.serviceDeployments = serviceDeployments;
         this.deploymentId = deploymentId;
         this.config = config;
@@ -72,7 +69,7 @@ public class ContainerPullFileService extends TerraformFileService {
                 "\"" + metricValues.get("hostname").getValueString() + "\"" : null;
             PrePullGroup pullGroup = new PrePullGroup(resource.getResourceId(), serviceDeployment.getContext(),
                 serviceDeployment.getNamespace(), mainMetricValues.get("pre-pull-timeout").getValueNumber().longValue(),
-                hostname);
+                hostname, resource.getMain().getName());
             if (!prePullGroups.containsKey(pullGroup)) {
                 imageSet = new HashSet<>();
                 prePullGroups.put(pullGroup, imageSet);
@@ -82,11 +79,11 @@ public class ContainerPullFileService extends TerraformFileService {
             imageSet.add("\"" + service.getImage() + "\"");
         }
 
-        String configPath = Path.of(rootFolder.toString(), "config").toAbsolutePath().toString()
-            .replace("\\", "/");
         String imagePullSecrets = config.getKubeImagePullSecrets().stream()
             .map(secret -> "\"" + secret + "\"").collect(Collectors.joining(","));
-        prePullGroups.forEach((prePullGroup, imageSet) ->
+        prePullGroups.forEach((prePullGroup, imageSet) -> {
+            String configPath = Path.of(config.getKubeConfigDirectory(), prePullGroup.getMainResourceName())
+                .toAbsolutePath().toString().replace("\\", "/");
             functionsString.append(String.format(
                 "module \"pre_pull_%s\" {\n" +
                     "  source = \"../../../terraform/k8s/prepull\"\n" +
@@ -101,7 +98,8 @@ public class ContainerPullFileService extends TerraformFileService {
                     "}\n", prePullGroup.getResourceId(), deploymentId, configPath, prePullGroup.getNamespace(),
                 prePullGroup.getContext(), String.join(",", imageSet), prePullGroup.getTimeout(),
                 prePullGroup.getHostname(), imagePullSecrets
-        )));
+            ));
+        });
         return functionsString.toString();
     }
 

@@ -4,9 +4,6 @@ import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
-import at.uibk.dps.rm.entity.dto.credentials.KubeConfig;
-import at.uibk.dps.rm.entity.dto.credentials.k8s.Cluster;
-import at.uibk.dps.rm.entity.dto.credentials.k8s.Context;
 import at.uibk.dps.rm.entity.dto.deployment.*;
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.dto.resource.ResourceTypeEnum;
@@ -16,10 +13,7 @@ import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.repository.DeploymentRepositoryProvider;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
-import at.uibk.dps.rm.util.misc.MetricValueMapper;
 import at.uibk.dps.rm.util.validation.ServiceResultValidator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -240,8 +234,11 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                     .thenCompose(statusNew -> {
                         CompletableFuture<Void> saveFunctionDeployments = saveFunctionDeployments(session, deployment,
                             request, statusNew, resources);
-                        CompletableFuture<Void> saveServiceDeployments = saveServiceDeployments(session, deployment,
-                            request, statusNew, resources);
+                        CompletableFuture<Void> saveServiceDeployments = repositoryProvider.getNamespaceRepository()
+                            .findAllByAccountIdAndFetch(session, deployment.getCreatedBy().getAccountId())
+                            .thenCompose(namespaces -> saveServiceDeployments(session, deployment, request, statusNew,
+                                namespaces, resources))
+                            .toCompletableFuture();
                         return CompletableFuture.allOf(saveFunctionDeployments, saveServiceDeployments);
                     })
                 )
@@ -417,11 +414,11 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
     }
 
     private CompletableFuture<Void> saveServiceDeployments(Session session, Deployment deployment,
-            DeployResourcesRequest request, ResourceDeploymentStatus status, List<Resource> resources) {
+            DeployResourcesRequest request, ResourceDeploymentStatus status, List<K8sNamespace> namespaces,
+            List<Resource> resources) {
         if (request.getServiceResources().isEmpty()) {
             return CompletableFuture.completedFuture(null);
         }
-        KubeConfig kubeConfig = deserializeKubeConfig(request);
         List<ServiceDeployment> serviceDeployments = request.getServiceResources()
             .stream()
             .map(serviceResourceIds -> {
@@ -429,23 +426,11 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                     .filter(r -> r.getResourceId() == serviceResourceIds.getResourceId())
                     .findFirst()
                     .orElseThrow(IllegalStateException::new);
-                return createNewResourceDeployment(deployment, resource, serviceResourceIds,
-                    kubeConfig, status);
+                return createNewResourceDeployment(deployment, resource, serviceResourceIds, namespaces, status);
             })
             .collect(Collectors.toList());
         return repositoryProvider.getServiceDeploymentRepository().createAll(session, serviceDeployments)
             .toCompletableFuture();
-    }
-
-    private Context getContextByClusterUrl(KubeConfig kubeConfig, String clusterUrl) {
-        Cluster cluster = kubeConfig.getClusters().stream()
-            .filter(c -> c.getCluster().getServer().equals(clusterUrl))
-            .findFirst()
-            .orElseThrow(() -> new UnauthorizedException("Cluster url not found in kube config"));
-        return kubeConfig.getContexts().stream()
-            .filter(c -> c.getContext().getCluster().equals(cluster.getName()))
-            .findFirst()
-            .orElseThrow(() -> new UnauthorizedException("No suitable context found in kube config"));
     }
 
     private FunctionDeployment createNewResourceDeployment(Deployment deployment, FunctionResourceIds ids,
@@ -461,12 +446,12 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
     }
 
     private ServiceDeployment createNewResourceDeployment(Deployment deployment, Resource resource,
-            ServiceResourceIds ids, KubeConfig kubeConfig, ResourceDeploymentStatus status) {
-        Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMain().getMetricValues());
-        String clusterUrl = metricValues.get("cluster-url").getValueString();
-        Context context = getContextByClusterUrl(kubeConfig, clusterUrl);
-        String namespace = context.getContext().getNamespace() != null ? context.getContext().getNamespace() :
-            "default";
+            ServiceResourceIds ids, List<K8sNamespace> namespaces, ResourceDeploymentStatus status) {
+        K8sNamespace k8sNamespace = namespaces.stream()
+            .filter(namespace -> namespace.getResource().getResourceId().equals(resource.getMain().getResourceId()))
+            .findFirst()
+            .orElseThrow(() -> new UnauthorizedException("missing namespace for resource " + resource.getName() + " (" +
+                resource.getResourceId() + ")"));
         Service service = new Service();
         service.setServiceId(ids.getServiceId());
         ServiceDeployment serviceDeployment = new ServiceDeployment();
@@ -474,17 +459,9 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
         serviceDeployment.setResource(resource);
         serviceDeployment.setService(service);
         serviceDeployment.setStatus(status);
-        serviceDeployment.setNamespace(namespace);
-        serviceDeployment.setContext(context.getName());
+        serviceDeployment.setNamespace(k8sNamespace.getNamespace());
+        serviceDeployment.setContext("");
         return serviceDeployment;
-    }
-
-    private KubeConfig deserializeKubeConfig(DeployResourcesRequest request) {
-        try {
-            return new YAMLMapper().readValue(request.getCredentials().getKubeConfig(), KubeConfig.class);
-        } catch (JsonProcessingException e) {
-            throw new BadInputException("Unsupported schema of kube config");
-        }
     }
 
 

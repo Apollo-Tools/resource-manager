@@ -2,6 +2,7 @@ package at.uibk.dps.rm.repository;
 
 import at.uibk.dps.rm.repository.account.AccountRepository;
 import at.uibk.dps.rm.repository.account.CredentialsRepository;
+import at.uibk.dps.rm.repository.account.NamespaceRepository;
 import at.uibk.dps.rm.repository.deployment.*;
 import at.uibk.dps.rm.repository.function.FunctionRepository;
 import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
@@ -30,6 +31,7 @@ public class DeploymentRepositoryProvider {
     private final VPCRepository vpcRepository;
     private final CredentialsRepository credentialsRepository;
     private final AccountRepository accountRepository;
+    private final NamespaceRepository namespaceRepository;
 
     /**
      * Create an instance.
@@ -47,5 +49,6 @@ public class DeploymentRepositoryProvider {
         vpcRepository = new VPCRepository();
         credentialsRepository = new CredentialsRepository();
         accountRepository = new AccountRepository();
+        namespaceRepository = new NamespaceRepository();
     }
 }

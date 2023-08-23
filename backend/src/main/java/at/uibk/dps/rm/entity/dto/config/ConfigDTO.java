@@ -32,6 +32,7 @@ public class ConfigDTO {
     private List<String> dockerInsecureRegistries;
     private String kubeConfigSecretsName;
     private String kubeConfigSecretsNamespace;
+    private String kubeConfigDirectory;
     private Integer kubeApiTimeoutSeconds;
     private Double kubeMonitoringPeriod;
     private List<String> kubeImagePullSecrets;

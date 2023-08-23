@@ -16,7 +16,6 @@ import at.uibk.dps.rm.util.misc.RegionMapper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.core.Vertx;
-import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.file.FileSystem;
 
 import java.nio.file.Path;
@@ -195,7 +194,6 @@ public class TerraformSetupService {
         long deploymentId = deployRequest.getDeployment().getDeploymentId();
         TerraformModule module = new ContainerModule();
         Path containerFolder = deploymentPath.getModuleFolder(module);
-        Path configPath = Path.of(containerFolder.toString(), "config");
         ContainerPullFileService containerFileService = new ContainerPullFileService(fileSystem, containerFolder,
             serviceDeployments, deploymentId, config);
         List<Completable> completables = new ArrayList<>();
@@ -208,8 +206,6 @@ public class TerraformSetupService {
 
         return containerFileService.setUpDirectory()
             .andThen(Completable.merge(completables))
-            .andThen(Completable.defer(() -> fileSystem.writeFile(configPath.toString(),
-                Buffer.buffer(deployRequest.getDeploymentCredentials().getKubeConfig()))))
             .toSingle(() -> module);
     }
 }

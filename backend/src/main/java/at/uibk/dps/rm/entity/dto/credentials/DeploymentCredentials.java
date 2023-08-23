@@ -9,8 +9,5 @@ import lombok.Data;
  */
 @Data
 public class DeploymentCredentials {
-
     private DockerCredentials dockerCredentials;
-
-    private String kubeConfig = "";
 }
