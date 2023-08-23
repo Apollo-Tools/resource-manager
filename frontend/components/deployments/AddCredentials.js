@@ -1,11 +1,9 @@
 import {useEffect, useState} from 'react';
-import {Button, Form, Input} from 'antd';
+import {Button, Form, Input, Typography} from 'antd';
 import {LockOutlined, UserOutlined} from '@ant-design/icons';
 import {deployResources} from '../../lib/DeploymentService';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import PropTypes from 'prop-types';
-import TooltipIcon from '../misc/TooltipIcon';
-import Link from 'next/link';
 
 
 const AddCredentials = ({functionResources, serviceResources, next, prev, onSubmit}) => {
@@ -13,12 +11,10 @@ const AddCredentials = ({functionResources, serviceResources, next, prev, onSubm
   const {token, checkTokenExpired} = useAuth();
   const [error, setError] = useState(false);
   const [needsDockerCreds, setNeedsDockerCreds] = useState(false);
-  const [needsK8SCreds, setNeedsK8SCreds] = useState(false);
   const [newDeployment, setNewDeployment] = useState();
 
   useEffect(() => {
     atLeastOneEdgeOrVMPresent();
-    atLeastOneContainer();
   }, []);
 
   // TODO: improve error handling
@@ -48,10 +44,6 @@ const AddCredentials = ({functionResources, serviceResources, next, prev, onSubm
     }
   };
 
-  const atLeastOneContainer = () => {
-    setNeedsK8SCreds(serviceResources.size > 0);
-  };
-
   const onFinish = async (values) => {
     const requestBody = {};
     const functionDeployments = [];
@@ -79,7 +71,6 @@ const AddCredentials = ({functionResources, serviceResources, next, prev, onSubm
     };
     requestBody.credentials = {
       ...(needsDockerCreds && {docker_credentials: dockerCredentials}),
-      kube_config: values.kubeconfig,
     };
     requestBody.function_resources = functionDeployments;
     requestBody.service_resources = serviceDeployments;
@@ -103,6 +94,11 @@ const AddCredentials = ({functionResources, serviceResources, next, prev, onSubm
         autoComplete="off"
         layout="vertical"
       >
+        {!needsDockerCreds &&
+          <Typography.Title
+            level={3}
+            className="p-6 text-center bg-cyan-50 rounded-md shadow-lg">
+          No credentials required for this deployment</Typography.Title>}
         <Form.Item
           label="Docker registry"
           name="dockerRegistry"
@@ -143,27 +139,6 @@ const AddCredentials = ({functionResources, serviceResources, next, prev, onSubm
           ]}
         >
           <Input.Password prefix={<LockOutlined className="site-form-item-icon" />}/>
-        </Form.Item>
-
-        <Form.Item
-          label={<>
-            Kube Config
-            <TooltipIcon text={<>see section
-              <Link legacyBehavior={true} href="https://github.com/Apollo-Tools/resource-manager/blob/main/backend/src/main/resources/openapi/resource-manager.yaml">
-                Deployments
-              </Link> for an example
-            </>} />
-          </>}
-          name="kubeconfig"
-          hidden={!needsK8SCreds}
-          rules={[
-            {
-              required: needsK8SCreds,
-              message: 'Please input a valid kube config!',
-            },
-          ]}
-        >
-          <Input.TextArea className="h-[400px]" style={{resize: 'none'}}/>
         </Form.Item>
         <Form.Item>
           <Button type="primary" htmlType="submit" className="float-right">Deploy</Button>
