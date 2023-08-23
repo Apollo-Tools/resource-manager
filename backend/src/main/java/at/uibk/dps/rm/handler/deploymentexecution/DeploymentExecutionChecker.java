@@ -247,11 +247,7 @@ public class DeploymentExecutionChecker {
                     .flatMap(tfOutput -> persistLogs(tfOutput, deployment)
                         .toSingle(() -> {
                             JsonObject jsonOutput = new JsonObject(tfOutput.getOutput());
-                            if (jsonOutput.containsKey("service_info")) {
-                                return jsonOutput.getJsonObject("service_info").getJsonObject("value");
-                            } else {
-                                return new JsonObject();
-                            }
+                            return jsonOutput.getJsonObject("deployment_data").getJsonObject("value");
                         })
                     );
             });

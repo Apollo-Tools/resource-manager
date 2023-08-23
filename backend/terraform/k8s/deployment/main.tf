@@ -121,3 +121,11 @@ resource "kubernetes_deployment_v1" "deployment" {
     delete = "2m"
   }
 }
+
+data "kubernetes_resources" "pods" {
+  depends_on = [kubernetes_deployment_v1.deployment]
+  api_version    = "v1"
+  kind           = "Pod"
+  label_selector = "app=${local.name}"
+  namespace = var.namespace
+}

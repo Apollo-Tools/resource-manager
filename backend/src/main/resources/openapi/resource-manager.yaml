@@ -2068,32 +2068,49 @@ paths:
               schema:
                 type: object
                 properties:
-                  cluster_ips:
-                    type: array
-                    items:
-                      type: string
-                      example: "10.10.10.10"
-                  external_ips:
-                    type: array
-                    items:
-                      type: string
-                      example: "200.200.200.200"
-                  name:
-                    type: string
-                    example: "servicename"
-                  ports:
+                  service:
+                    type: object
+                    properties:
+                      cluster_ips:
+                        type: array
+                        items:
+                          type: string
+                          example: "10.10.10.10"
+                      external_ips:
+                        type: array
+                        items:
+                          type: string
+                          example: "200.200.200.200"
+                      name:
+                        type: string
+                        example: "servicename"
+                      ports:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            port:
+                              type: integer
+                              format: int64
+                              example: 8080
+                            node_port:
+                              type: integer
+                              format: int64
+                              example: 31002
+                  pods:
                     type: array
                     items:
                       type: object
                       properties:
-                        port:
-                          type: integer
-                          format: int64
-                          example: 8080
-                        node_port:
-                          type: integer
-                          format: int64
-                          example: 31002
+                        pod_name:
+                          type: string
+                          example: "pod-name-10-2023-01-01-20-10-00-xyz"
+                        node_name:
+                          type: string
+                          example: "node1"
+                        node_ip:
+                          type: string
+                          example: "192.168.0.1"
         400:
           $ref: "#/components/responses/400"
         401:

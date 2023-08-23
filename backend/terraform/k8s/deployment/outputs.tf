@@ -14,3 +14,14 @@ output "service_info" {
     ]
   })
 }
+
+output "pods_info" {
+  value = [
+    for pod in data.kubernetes_resources.pods.objects:
+    {
+      pod_name: pod.metadata.name
+      node_name: pod.spec.nodeName
+      node_ip: pod.status.hostIP
+    }
+  ]
+}
