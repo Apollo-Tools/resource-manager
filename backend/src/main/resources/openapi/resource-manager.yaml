@@ -518,7 +518,7 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /accounts/{accountId}/k8namespaces/{namespaceId}:
+  /accounts/{accountId}/k8snamespaces/{namespaceId}:
     post:
       description: |
         Add a namespace to an account. It is only possible to add one namespace per resource to the same account.

@@ -9,6 +9,7 @@ import {useEffect, useState} from 'react';
 import {deleteEnsemble, listEnsembles, validateEnsemble} from '../../lib/EnsembleService';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 import PropTypes from 'prop-types';
+import {ICON_GREEN, ICON_RED} from '../misc/Constants';
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -109,9 +110,9 @@ const EnsembleTable = ({rowSelection}) => {
       <Column title="Valid" dataIndex="is_valid" key="is_valid"
         render={(isValid) => {
           if (isValid) {
-            return <CheckCircleTwoTone twoToneColor="#00ff00"/>;
+            return <CheckCircleTwoTone twoToneColor={ICON_GREEN}/>;
           } else {
-            return <CloseCircleTwoTone twoToneColor="#ff0000"/>;
+            return <CloseCircleTwoTone twoToneColor={ICON_RED}/>;
           }
         }}
         sorter={(a, b) =>

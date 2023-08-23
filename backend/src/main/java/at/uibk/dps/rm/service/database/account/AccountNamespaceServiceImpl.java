@@ -72,9 +72,9 @@ public class AccountNamespaceServiceImpl extends DatabaseServiceProxy<AccountNam
     public Future<Void> deleteByAccountIdAndNamespaceId(long accountId, long namespaceId) {
         CompletionStage<Void> delete = withTransaction(session ->
             repository.findByAccountIdAndNamespaceId(session, accountId, namespaceId)
-                .thenCompose(resourceEnsemble -> {
-                    ServiceResultValidator.checkFound(resourceEnsemble, ResourceEnsemble.class);
-                    return session.remove(resourceEnsemble);
+                .thenCompose(accountNamespace -> {
+                    ServiceResultValidator.checkFound(accountNamespace, AccountNamespace.class);
+                    return session.remove(accountNamespace);
                 })
         );
         return Future.fromCompletionStage(delete)

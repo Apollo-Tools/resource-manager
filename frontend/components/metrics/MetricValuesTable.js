@@ -6,6 +6,7 @@ import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import TooltipIcon from '../misc/TooltipIcon';
+import {ICON_GREEN, ICON_RED} from '../misc/Constants';
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -59,9 +60,9 @@ const MetricValuesTable = ({resourceId, metricValues, setMetricValues}) => {
       <Column title="Is monitored" dataIndex={['metric', 'is_monitored']} key="is_monitored"
         render={(isMonitored) => {
           if (isMonitored) {
-            return <CheckCircleTwoTone twoToneColor="#00ff00"/>;
+            return <CheckCircleTwoTone twoToneColor={ICON_GREEN}/>;
           } else {
-            return <CloseCircleTwoTone twoToneColor="#ff0000"/>;
+            return <CloseCircleTwoTone twoToneColor={ICON_RED}/>;
           }
         }}
       />

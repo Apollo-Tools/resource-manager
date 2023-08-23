@@ -9,9 +9,10 @@ import {
   CloseCircleTwoTone,
   LockTwoTone,
   InfoCircleOutlined,
-  ExclamationCircleFilled, UnlockTwoTone
+  ExclamationCircleFilled, UnlockTwoTone,
 } from '@ant-design/icons';
-import Link from "next/link";
+import Link from 'next/link';
+import {ICON_GREEN, ICON_RED} from '../misc/Constants';
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -44,16 +45,16 @@ const AccountTable = () => {
         updateActivity = lockUser(id, token, setError);
       }
       updateActivity
-        .then((result) => {
-          if (result) {
-            setAccounts(accounts.map((account) => {
-              if (account.account_id === id) {
-                account.is_active = activityLevel;
-              }
-              return account;
-            }));
-          }
-        });
+          .then((result) => {
+            if (result) {
+              setAccounts(accounts.map((account) => {
+                if (account.account_id === id) {
+                  account.is_active = activityLevel;
+                }
+                return account;
+              }));
+            }
+          });
     }
   };
 
@@ -111,31 +112,30 @@ const AccountTable = () => {
       <Column title="Is active" dataIndex={'is_active'} key="is_active"
         render={(isActive) => {
           if (isActive) {
-            return <CheckCircleTwoTone twoToneColor="#00ff00"/>;
+            return <CheckCircleTwoTone twoToneColor={ICON_GREEN}/>;
           } else {
-            return <CloseCircleTwoTone twoToneColor="#ff0000"/>;
+            return <CloseCircleTwoTone twoToneColor={ICON_RED}/>;
           }
         }}
       />
       <Column title="Actions" key="action"
         render={(_, record) => (
+          record.is_active ?
             <Space size="middle">
+              <Tooltip title="Lock account">
+                <Button onClick={() => showUpdateActivityConfirm(record.account_id, false)}
+                  icon={<LockTwoTone twoToneColor={ICON_RED}/>}/>
+              </Tooltip>
               <Tooltip title="Details">
                 <Link href={`/accounts/${record.account_id}`}>
-                  <Button icon={<InfoCircleOutlined />}/>
+                  <Button icon={<InfoCircleOutlined/>}/>
                 </Link>
               </Tooltip>
-              {record.is_active ?
-                <Tooltip title="Lock account">
-                  <Button onClick={() => showUpdateActivityConfirm(record.account_id, false)}
-                    icon={<LockTwoTone twoToneColor="#ff0000"/>}/>
-                </Tooltip> :
-                <Tooltip title="Unlock account">
-                  <Button onClick={() => showUpdateActivityConfirm(record.account_id, true)}
-                    icon={<UnlockTwoTone twoToneColor="#00ff00"/>}/>
-                </Tooltip>
-              }
-            </Space>
+            </Space> :
+            <Tooltip title="Unlock account">
+              <Button onClick={() => showUpdateActivityConfirm(record.account_id, true)}
+                icon={<UnlockTwoTone twoToneColor={ICON_GREEN}/>}/>
+            </Tooltip>
         )}
       />
     </Table>

@@ -5,6 +5,8 @@ import {Divider, Typography} from 'antd';
 import {getFunction} from '../../lib/FunctionService';
 import UpdateFunctionFileForm from '../../components/functions/UpdateFunctionFileForm';
 import UpdateFunctionSettingsForm from '../../components/functions/UpdateFunctionSettingsForm';
+import Head from 'next/head';
+import {siteTitle} from '../../components/misc/Sidebar';
 
 const FunctionDetails = () => {
   const {token, checkTokenExpired} = useAuth();
@@ -34,17 +36,22 @@ const FunctionDetails = () => {
   };
 
   return (
-    <div className="default-card">
-      <Typography.Title level={2}>Function Details ({func.function_id})</Typography.Title>
-      <Divider />
-      {
-        func && <>
-          <UpdateFunctionSettingsForm func={func} reloadFunction={reloadFunction}/>
-          <Divider/>
-          <UpdateFunctionFileForm func={func} reloadFunction={reloadFunction}/>
-        </>
-      }
-    </div>
+    <>
+      <Head>
+        <title>{`${siteTitle}: Function Details`}</title>
+      </Head>
+      <div className="default-card">
+        <Typography.Title level={2}>Function Details ({func.function_id})</Typography.Title>
+        <Divider />
+        {
+          func && <>
+            <UpdateFunctionSettingsForm func={func} reloadFunction={reloadFunction}/>
+            <Divider/>
+            <UpdateFunctionFileForm func={func} reloadFunction={reloadFunction}/>
+          </>
+        }
+      </div>
+    </>
   );
 };
 

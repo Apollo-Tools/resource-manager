@@ -8,6 +8,8 @@ import EnsembleDetailsCard from '../../components/ensembles/EnsembleDetailsCard'
 import {ExclamationCircleFilled, PlusCircleOutlined} from '@ant-design/icons';
 import {addResourceToEnsemble, deleteResourceFromEnsemble} from '../../lib/ResourceEnsembleService';
 import {listResourcesBySLOs} from '../../lib/ResourceService';
+import Head from 'next/head';
+import {siteTitle} from '../../components/misc/Sidebar';
 
 const {confirm} = Modal;
 
@@ -125,41 +127,46 @@ const EnsembleDetails = () => {
   };
 
   return (
-    <div className="default-card">
-      <Typography.Title level={2}>Ensemble Details ({ensemble?.ensemble_id})</Typography.Title>
-      <Divider />
-      <Segmented options={['Details', 'Resources', 'Add Resources']} value={selectedSegment}
-        onChange={(e) => setSelectedSegment(e)} size="large" block/>
-      <Divider />
-      {
-        selectedSegment === 'Details' && ensemble &&
+    <>
+      <Head>
+        <title>{`${siteTitle}: Ensemble Details`}</title>
+      </Head>
+      <div className="default-card">
+        <Typography.Title level={2}>Ensemble Details ({ensemble?.ensemble_id})</Typography.Title>
+        <Divider />
+        <Segmented options={['Details', 'Resources', 'Add Resources']} value={selectedSegment}
+          onChange={(e) => setSelectedSegment(e)} size="large" block/>
+        <Divider />
+        {
+          selectedSegment === 'Details' && ensemble &&
         <EnsembleDetailsCard ensemble={ensemble}/>
-      }
-      {
-        selectedSegment === 'Resources' && ensemble && (
-          <>
-            <div>
+        }
+        {
+          selectedSegment === 'Resources' && ensemble && (
+            <>
+              <div>
+                <ResourceTable
+                  resources={ensemble.resources}
+                  hasActions onDelete={showDeleteConfirm}
+                  getRowClassname={setInvalidRowClasses}
+                />
+              </div>
+            </>)
+        }
+        {
+          selectedSegment === 'Add Resources' && ensemble && invalidResourceIds && (
+            <>
+              <Typography.Title level={3}>Add Resources</Typography.Title>
               <ResourceTable
-                resources={ensemble.resources}
-                hasActions onDelete={showDeleteConfirm}
-                getRowClassname={setInvalidRowClasses}
+                resources={filteredResources}
+                hasActions
+                customButton={{icon: <PlusCircleOutlined />, onClick: showAddConfirm, tooltip: 'Add'}}
               />
-            </div>
-          </>)
-      }
-      {
-        selectedSegment === 'Add Resources' && ensemble && invalidResourceIds && (
-          <>
-            <Typography.Title level={3}>Add Resources</Typography.Title>
-            <ResourceTable
-              resources={filteredResources}
-              hasActions
-              customButton={{icon: <PlusCircleOutlined />, onClick: showAddConfirm, tooltip: 'Add'}}
-            />
-          </>
-        )
-      }
-    </div>
+            </>
+          )
+        }
+      </div>
+    </>
   );
 };
 

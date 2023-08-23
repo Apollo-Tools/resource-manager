@@ -5,7 +5,7 @@ import {siteTitle} from '../../components/misc/Sidebar';
 import Head from 'next/head';
 import Link from 'next/link';
 import {signUp} from '../../lib/AccountService';
-import {useAuth} from "../../lib/AuthenticationProvider";
+import {useAuth} from '../../lib/AuthenticationProvider';
 
 const {Title} = Typography;
 

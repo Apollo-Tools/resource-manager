@@ -43,7 +43,7 @@ export async function changePassword(oldPassword, newPassword, token, setRespons
     const response = await fetch(`${API_ROUTE}`, {
       method: 'PATCH',
       headers: {
-        Authorization: `Bearer ${token}`,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -52,6 +52,30 @@ export async function changePassword(oldPassword, newPassword, token, setRespons
       }),
     });
     setResponse(response);
+  } catch (error) {
+    setError(true);
+    console.log(error);
+  }
+}
+
+/**
+ * Get details of the currently logged in account.
+ *
+ * @param {accountId} accountId the id of the account
+ * @param {string} token the access token
+ * @param {function} setAccount the function to set the account details
+ * @param {function} setError the function to set the error if one occurs
+ */
+export async function getAccount(accountId, token, setAccount, setError) {
+  try {
+    const response = await fetch(`${API_ROUTE}/${accountId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await response.json();
+    setAccount(() => data);
   } catch (error) {
     setError(true);
     console.log(error);
@@ -95,7 +119,7 @@ export async function signUp(username, password, token, setResponse, setError) {
     const response = await fetch(`${API_ROUTE}/signup`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -139,15 +163,15 @@ export async function listAccounts(token, setAccounts, setError) {
  * @param {number} accountId the id of the account
  * @param {string} token the access token
  * @param {function} setError the function to set the error if one occurs
- * @return true if the request was successful else false
+ * @return {boolean} true if the request was successful else false
  */
 export async function lockUser(accountId, token, setError) {
   try {
     const response = await fetch(`${API_ROUTE}/${accountId}/lock`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
     return response.ok;
   } catch (error) {
@@ -162,15 +186,15 @@ export async function lockUser(accountId, token, setError) {
  * @param {number} accountId the id of the account
  * @param {string} token the access token
  * @param {function} setError the function to set the error if one occurs
- * @return true if the request was successful else false
+ * @return {boolean} true if the request was successful else false
  */
 export async function unlockUser(accountId, token, setError) {
   try {
     const response = await fetch(`${API_ROUTE}/${accountId}/unlock`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
     return response.ok;
   } catch (error) {

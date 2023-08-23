@@ -8,6 +8,8 @@ import AddMetricValuesForm from '../../components/metrics/AddMetricValuesForm';
 import {listResourceMetrics} from '../../lib/MetricValueService';
 import MetricValuesTable from '../../components/metrics/MetricValuesTable';
 import ResourceTable from '../../components/resources/ResourceTable';
+import Head from 'next/head';
+import {siteTitle} from '../../components/misc/Sidebar';
 
 // TODO: add way to update values
 const ResourceDetails = () => {
@@ -80,42 +82,47 @@ const ResourceDetails = () => {
   };
 
   return (
-    <div className="default-card">
-      <Typography.Title level={2}>Resource Details ({resource?.resource_id})</Typography.Title>
-      <Divider />
-      <Segmented options={segments} value={selectedSegment}
-        onChange={(e) => setSelectedSegment(e)} size="large" block/>
-      <Divider />
-      {
-        selectedSegment === 'Details' && resource != null &&
+    <>
+      <Head>
+        <title>{`${siteTitle}: Resource Details`}</title>
+      </Head>
+      <div className="default-card">
+        <Typography.Title level={2}>Resource Details ({resource?.resource_id})</Typography.Title>
+        <Divider />
+        <Segmented options={segments} value={selectedSegment}
+          onChange={(e) => setSelectedSegment(e)} size="large" block/>
+        <Divider />
+        {
+          selectedSegment === 'Details' && resource != null &&
           <ResourceDetailsCard resource={resource}/>
-      }
-      {
-        selectedSegment === 'Metric Values' && resource != null && (
-          <>
-            <div>
-              <MetricValuesTable
-                resourceId={id}
-                metricValues={mappedMetricValues}
-                setMetricValues={setMappedMetricValues}
+        }
+        {
+          selectedSegment === 'Metric Values' && resource != null && (
+            <>
+              <div>
+                <MetricValuesTable
+                  resourceId={id}
+                  metricValues={mappedMetricValues}
+                  setMetricValues={setMappedMetricValues}
+                />
+              </div>
+              <Divider />
+              <AddMetricValuesForm
+                resource={resource}
+                excludeMetricIds={mappedMetricValues.map((metricValue) => metricValue.metric.metric_id)}
+                setFinished={setFinished}
               />
-            </div>
-            <Divider />
-            <AddMetricValuesForm
-              resource={resource}
-              excludeMetricIds={mappedMetricValues.map((metricValue) => metricValue.metric.metric_id)}
-              setFinished={setFinished}
-            />
-          </>)
-      }
-      {
-        selectedSegment === 'Subresources' && subresources != null && (
-          <>
-            <ResourceTable resources={subresources} resourceType='sub' hasActions/>
-          </>
-        )
-      }
-    </div>
+            </>)
+        }
+        {
+          selectedSegment === 'Subresources' && subresources != null && (
+            <>
+              <ResourceTable resources={subresources} resourceType='sub' hasActions/>
+            </>
+          )
+        }
+      </div>
+    </>
   );
 };
 
