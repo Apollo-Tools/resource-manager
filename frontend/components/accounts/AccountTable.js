@@ -18,7 +18,7 @@ const {Column} = Table;
 const {confirm} = Modal;
 
 const AccountTable = () => {
-  const {token, checkTokenExpired} = useAuth();
+  const {payload, token, checkTokenExpired} = useAuth();
   const [error, setError] = useState(false);
   const [accounts, setAccounts] = useState([]);
 
@@ -124,7 +124,8 @@ const AccountTable = () => {
             <Space size="middle">
               <Tooltip title="Lock account">
                 <Button onClick={() => showUpdateActivityConfirm(record.account_id, false)}
-                  icon={<LockTwoTone twoToneColor={ICON_RED}/>}/>
+                  disabled={payload?.account_id === record.account_id}
+                  icon={<LockTwoTone twoToneColor={payload?.account_id === record.account_id ? 'Gainsboro' : ICON_RED}/>}/>
               </Tooltip>
               <Tooltip title="Details">
                 <Link href={`/accounts/${record.account_id}`}>

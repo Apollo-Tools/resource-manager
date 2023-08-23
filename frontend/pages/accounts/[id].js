@@ -29,7 +29,7 @@ const AccountDetails = () => {
         <Typography.Title level={2}>Account Details ({id})</Typography.Title>
         <Divider />
         { id &&
-          <AccountInfoCard accountId={id} isAdmin={payload?.role?.[0] === 'admin'}/>
+          <AccountInfoCard accountId={Number(id)} isAdmin={payload?.role?.[0] === 'admin'}/>
         }
       </div>
     </>

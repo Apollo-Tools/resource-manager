@@ -7,7 +7,6 @@ const AccountNamespaceSelect = ({value = {}, onChange, namespaces}) => {
   const [selectedNamespace, setSelectedNamespace] = useState();
   const [selectedResource, setSelectedResource] = useState();
   const triggerChange = (changedValue) => {
-    console.log(value);
     setSelectedNamespace(changedValue);
     onChange?.(changedValue);
   };

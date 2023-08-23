@@ -36,10 +36,6 @@ const AddNamespaceForm = ({accountId, existingNamespaces, setFinished}) => {
     }
   }, [namespaces, existingNamespaces]);
 
-  useEffect(() => {
-    console.log(filteredNamespaces);
-  }, [filteredNamespaces]);
-
   // TODO: improve error handling
   useEffect(() => {
     if (error) {
@@ -83,7 +79,7 @@ const AddNamespaceForm = ({accountId, existingNamespaces, setFinished}) => {
         ]}
         className="col-span-6"
       >
-        <AccountNamespaceSelect namespaces={filteredNamespaces} onChange={(value) => console.log(value)} />
+        <AccountNamespaceSelect namespaces={filteredNamespaces} />
       </Form.Item>
     </div>
     <Form.Item>
@@ -97,7 +93,7 @@ const AddNamespaceForm = ({accountId, existingNamespaces, setFinished}) => {
 AddNamespaceForm.propTypes = {
   accountId: PropTypes.number.isRequired,
   existingNamespaces: PropTypes.arrayOf(PropTypes.object).isRequired,
-  setFinished: PropTypes.bool.isRequired,
+  setFinished: PropTypes.func.isRequired,
 };
 
 export default AddNamespaceForm;
