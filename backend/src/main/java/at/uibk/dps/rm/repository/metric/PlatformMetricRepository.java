@@ -38,6 +38,44 @@ public class PlatformMetricRepository extends Repository<PlatformMetric> {
     }
 
     /**
+     * Find a platform metric by its platform and metric
+     *
+     * @param session the database session
+     * @param platformId the id of the platform
+     * @param metricId the id of the metric
+     * @return a CompletionStage that emits the platform metric if it exists else null
+     */
+    public CompletionStage<PlatformMetric> findByPlatformAndMetric(Session session, long platformId, long metricId) {
+        return session.createQuery("from PlatformMetric pm " +
+                "left join fetch pm.metric m " +
+                "left join fetch m.metricType " +
+                "where pm.platform.platformId=:platformId and m.metricId=:metricId", entityClass)
+            .setParameter("platformId", platformId)
+            .setParameter("metricId", metricId)
+            .getSingleResultOrNull();
+    }
+
+    /**
+     * Find a platform metric by resource and metric
+     *
+     * @param session the database session
+     * @param resourceId the id of the resource
+     * @param metricId the id of the metric
+     * @return a CompletionStage that emits the platform metric if it exists else null
+     */
+    public CompletionStage<PlatformMetric> findByResourceAndMetric(Session session, long resourceId, long metricId) {
+        return session.createQuery("select distinct pm from PlatformMetric pm " +
+                "where (pm.platform.platformId=(" +
+                    "select mr.platform.platformId from MainResource mr where mr.resourceId=:resourceId) " +
+                "or pm.platform.platformId=(" +
+                    "select sr.mainResource.platform.platformId from SubResource sr where sr.resourceId=:resourceId)) " +
+                "and pm.metric.metricId=:metricId", entityClass)
+            .setParameter("resourceId", resourceId)
+            .setParameter("metricId", metricId)
+            .getSingleResultOrNull();
+    }
+
+    /**
      * Count how many required metrics are not registered for a resource.
      *
      * @param session the database session

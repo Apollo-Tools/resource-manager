@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.entity.model;
 
 import at.uibk.dps.rm.annotations.Generated;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,9 +23,6 @@ public class Metric {
 
     @SuppressWarnings("PMD")
     private String metric;
-
-    @JsonProperty("is_monitored")
-    private Boolean isMonitored;
 
     private String description;
 

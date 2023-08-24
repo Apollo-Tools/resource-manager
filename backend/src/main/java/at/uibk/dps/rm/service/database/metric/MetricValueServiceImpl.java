@@ -1,10 +1,12 @@
 package at.uibk.dps.rm.service.database.metric;
 
 import at.uibk.dps.rm.entity.dto.metric.MetricTypeEnum;
+import at.uibk.dps.rm.entity.model.PlatformMetric;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.entity.model.MetricValue;
+import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import at.uibk.dps.rm.service.database.util.MetricValueUtility;
 import at.uibk.dps.rm.util.validation.ServiceResultValidator;
@@ -27,6 +29,8 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
 
     private final MetricValueRepository repository;
 
+    private final PlatformMetricRepository platformMetricRepository;
+
     private final MetricValueUtility metricValueUtility;
 
     /**
@@ -34,10 +38,12 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
      *
      * @param repository the metric value repository
      */
-    public MetricValueServiceImpl(MetricValueRepository repository, SessionFactory sessionFactory) {
+    public MetricValueServiceImpl(MetricValueRepository repository, PlatformMetricRepository platformMetricRepository,
+            SessionFactory sessionFactory) {
         super(repository, MetricValue.class, sessionFactory);
         this.repository = repository;
-        this.metricValueUtility = new MetricValueUtility(repository);
+        this.platformMetricRepository = platformMetricRepository;
+        this.metricValueUtility = new MetricValueUtility(repository, platformMetricRepository);
     }
 
     @Override
@@ -93,24 +99,29 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
             Double valueNumber, Boolean valueBool, boolean isExternalSource) {
         CompletionStage<MetricValue> update = withTransaction(session ->
             repository.findByResourceAndMetricAndFetch(session, resourceId, metricId)
-                .thenApply(metricValue -> {
+                .thenCompose(metricValue -> {
                     ServiceResultValidator.checkFound(metricValue, MetricValue.class);
-                    if (metricValue.getMetric().getIsMonitored() && isExternalSource) {
-                        throw new BadInputException("monitored metrics can't be updated manually");
-                    }
-                    MetricTypeEnum metricType = MetricTypeEnum.fromMetricType(metricValue.getMetric().getMetricType());
-                    if (!metricValueUtility.metricTypeMatchesValue(metricType, valueString) &&
-                        !metricValueUtility.metricTypeMatchesValue(metricType, valueNumber) &&
-                        !metricValueUtility.metricTypeMatchesValue(metricType, valueBool)) {
-                        throw new BadInputException("invalid metric type");
-                    }
+                    return platformMetricRepository.findByResourceAndMetric(session, resourceId, metricId)
+                        .thenApply(platformMetric -> {
+                            ServiceResultValidator.checkFound(platformMetric, PlatformMetric.class);
+                            if (platformMetric.getIsMonitored() && isExternalSource) {
+                                throw new BadInputException("monitored metrics can't be updated manually");
+                            }
+                            MetricTypeEnum metricType = MetricTypeEnum
+                                .fromMetricType(metricValue.getMetric().getMetricType());
+                            if (!metricValueUtility.metricTypeMatchesValue(metricType, valueString) &&
+                                !metricValueUtility.metricTypeMatchesValue(metricType, valueNumber) &&
+                                !metricValueUtility.metricTypeMatchesValue(metricType, valueBool)) {
+                                throw new BadInputException("invalid metric type");
+                            }
 
-                    metricValue.setValueString(valueString);
-                    if (valueNumber!= null) {
-                        metricValue.setValueNumber(valueNumber);
-                    }
-                    metricValue.setValueBool(valueBool);
-                    return metricValue;
+                            metricValue.setValueString(valueString);
+                            if (valueNumber!= null) {
+                                metricValue.setValueNumber(valueNumber);
+                            }
+                            metricValue.setValueBool(valueBool);
+                            return metricValue;
+                    });
                 })
         );
         return sessionToFuture(update).mapEmpty();

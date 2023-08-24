@@ -3,9 +3,11 @@ package at.uibk.dps.rm.service.database.util;
 import at.uibk.dps.rm.entity.dto.metric.MetricTypeEnum;
 import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.entity.model.MetricValue;
+import at.uibk.dps.rm.entity.model.PlatformMetric;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
+import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.util.validation.ServiceResultValidator;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -26,6 +28,8 @@ public class MetricValueUtility {
 
     private final MetricValueRepository repository;
 
+    private final PlatformMetricRepository platformMetricRepository;
+
 
     /**
      * Check new metric values for violations and create them if none occur.
@@ -42,12 +46,13 @@ public class MetricValueUtility {
                 return repository.findByResourceAndMetric(session, resource.getResourceId(), metricId)
                     .thenCompose(existingMetric -> {
                         ServiceResultValidator.checkExists(existingMetric, MetricValue.class);
-                        return session.find(Metric.class, metricId);
+                        return platformMetricRepository.findByPlatformAndMetric(session,
+                            resource.getMain().getPlatform().getPlatformId(), metricId);
                     })
-                    .thenCompose(metric -> {
-                        metricValue.setMetric(metric);
+                    .thenCompose(platformMetric -> {
+                        metricValue.setMetric(platformMetric.getMetric());
                         metricValue.setResource(resource);
-                        checkAddMetricValueSetCorrectly(metric, jsonMetric, metricValue);
+                        checkAddMetricValueSetCorrectly(platformMetric, jsonMetric, metricValue);
                         return session.persist(metricValue);
                     })
                     .toCompletableFuture();
@@ -59,15 +64,16 @@ public class MetricValueUtility {
     /***
      * Check whether the value of a metric value to add is set with the correct value type
      *
-     * @param metric the metric
+     * @param platformMetric the platform metric
      * @param jsonValue the value
      * @param metricValue the metric value to set
      */
-    public void checkAddMetricValueSetCorrectly(Metric metric, JsonObject jsonValue,
-        MetricValue metricValue) {
+    public void checkAddMetricValueSetCorrectly(PlatformMetric platformMetric, JsonObject jsonValue,
+            MetricValue metricValue) {
         Object value = jsonValue.getValue("value");
         boolean valueHasCorrectType = true;
-        if (metric.getIsMonitored()) {
+        Metric metric = platformMetric.getMetric();
+        if (platformMetric.getIsMonitored()) {
             setDefaultMonitoredMetricValue(metricValue, metric);
         }
         else if (stringMetricHasStringValue(metric, value)) {

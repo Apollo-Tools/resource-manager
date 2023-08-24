@@ -10,6 +10,7 @@ import MetricValuesTable from '../../components/metrics/MetricValuesTable';
 import ResourceTable from '../../components/resources/ResourceTable';
 import Head from 'next/head';
 import {siteTitle} from '../../components/misc/Sidebar';
+import {listPlatformMetrics} from '../../lib/PlatformMetricService';
 
 // TODO: add way to update values
 const ResourceDetails = () => {
@@ -19,6 +20,7 @@ const ResourceDetails = () => {
   const [metricValues, setMetricValues] = useState([]);
   const [mappedMetricValues, setMappedMetricValues] = useState([]);
   const [subresources, setSubresources] = useState([]);
+  const [platformMetrics, setPlatformMetrics] = useState([]);
   const [isFinished, setFinished] = useState(false);
   const [error, setError] = useState(false);
   const [segments, setSegments] = useState([]);
@@ -27,14 +29,20 @@ const ResourceDetails = () => {
 
   useEffect(() => {
     if (!checkTokenExpired() && id != null) {
-      getResource(id, token, setResource, setError)
-          .then(listSubresources(id, token, setSubresources, setError))
-          .then(listResourceMetrics(id, token, setMetricValues, setError));
+      getResource(id, token, setResource, setError);
+      listSubresources(id, token, setSubresources, setError);
+      listResourceMetrics(id, token, setMetricValues, setError);
     }
   }, [id]);
 
   useEffect(() => {
-    if (subresources != null) {
+    if (!checkTokenExpired() && resource != null) {
+      listPlatformMetrics(resource.platform.platform_id, token, setPlatformMetrics, setError);
+    }
+  }, [resource]);
+
+  useEffect(() => {
+    if (!checkTokenExpired() && subresources != null) {
       setSelectedSegment('Details');
       setSegments(subresources.length ?
         ['Details', 'Subresources', 'Metric Values'] : ['Details', 'Metric Values']);
@@ -46,6 +54,15 @@ const ResourceDetails = () => {
       mapValuesToValueField();
     }
   }, [metricValues]);
+
+  useEffect(() => {
+    setMappedMetricValues(metricValues.map((metricValue) => {
+      const platformMetric = platformMetrics
+          .find((metric) => metric.metric.metric_id === metricValue.metric.metric_id);
+      metricValue.is_monitored = platformMetric?.is_monitored;
+      return metricValue;
+    }));
+  }, [platformMetrics, metricValues]);
 
   useEffect(() => {
     if (isFinished) {

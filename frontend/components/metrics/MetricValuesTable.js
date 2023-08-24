@@ -57,7 +57,7 @@ const MetricValuesTable = ({resourceId, metricValues, setMetricValues}) => {
           return <>{metric.metric.metric} <TooltipIcon text={metric.metric.description} /></>;
         }}
       />
-      <Column title="Is monitored" dataIndex={['metric', 'is_monitored']} key="is_monitored"
+      <Column title="Is monitored" dataIndex='is_monitored' key="is_monitored"
         render={(isMonitored) => {
           if (isMonitored) {
             return <CheckCircleTwoTone twoToneColor={ICON_GREEN}/>;
