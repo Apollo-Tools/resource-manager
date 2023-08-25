@@ -21,4 +21,6 @@ public class UpdateFunctionDTO {
     private Short timeoutSeconds;
 
     private Short memoryMegabytes;
+
+    private Boolean isPublic;
 }

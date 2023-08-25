@@ -130,7 +130,7 @@ public abstract class ValidationHandler {
     }
 
     /**
-     * Update an entitiy identified by its id.
+     * Update an entity identified by its id.
      *
      * @param rc the RoutingContext of the request
      * @return a Completable
@@ -139,5 +139,18 @@ public abstract class ValidationHandler {
         JsonObject requestBody = rc.body().asJsonObject();
         return HttpHelper.getLongPathParam(rc, "id")
             .flatMapCompletable(id -> entityChecker.submitUpdate(id, requestBody));
+    }
+
+    /**
+     * Update an entity that is identified by its id and owned by the logged in account.
+     *
+     * @param rc the RoutingContext of the request
+     * @return a Completable
+     */
+    protected Completable updateOneOwned(RoutingContext rc) {
+        JsonObject requestBody = rc.body().asJsonObject();
+        long accountId = rc.user().principal().getLong("account_id");
+        return HttpHelper.getLongPathParam(rc, "id")
+            .flatMapCompletable(id -> entityChecker.submitUpdate(id, accountId, requestBody));
     }
 }

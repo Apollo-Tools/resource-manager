@@ -3,6 +3,7 @@ package at.uibk.dps.rm.entity.model;
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.usertypes.StringArrayType;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -34,6 +35,9 @@ public class Service {
     @JoinColumn(name = "type_id")
     private ServiceType serviceType;
 
+    @JsonProperty("is_public")
+    private Boolean isPublic;
+
     private String image;
 
     private Integer replicas;
@@ -57,6 +61,10 @@ public class Service {
 
     @OneToMany(mappedBy = "service", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VolumeMount> volumeMounts = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_id")
+    private Account createdBy;
 
     @Column(insertable = false, updatable = false)
     private  @Setter(AccessLevel.NONE) Timestamp createdAt;

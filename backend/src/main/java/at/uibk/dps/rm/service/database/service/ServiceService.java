@@ -8,7 +8,9 @@ import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
 import org.hibernate.reactive.stage.Stage;
 
 /**
@@ -32,4 +34,11 @@ public interface ServiceService extends DatabaseServiceInterface {
         return new ServiceServiceVertxEBProxy(vertx,
             ServiceProxyAddress.getServiceProxyAddress(Service.class));
     }
+
+    /**
+     * Find all public services.
+     *
+     * @return a Future that emits all found services as JsonArray
+     */
+    Future<JsonArray> findAllPublicServices();
 }

@@ -32,4 +32,6 @@ public class UpdateServiceDTO {
     private List<EnvVar> envVars;
 
     private List<VolumeMount> volumeMounts;
+
+    private Boolean isPublic;
 }

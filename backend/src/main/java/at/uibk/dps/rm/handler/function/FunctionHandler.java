@@ -4,6 +4,7 @@ import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.util.misc.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.MultiMap;
 import io.vertx.rxjava3.ext.web.FileUpload;
@@ -70,5 +71,15 @@ public class FunctionHandler extends ValidationHandler {
         requestBody.put("is_file", isFile);
         return HttpHelper.getLongPathParam(rc, "id")
             .flatMapCompletable(id -> entityChecker.submitUpdate(id, requestBody));
+    }
+
+    @Override
+    public Single<JsonArray> getAll(RoutingContext rc) {
+        return super.getAll(rc);
+    }
+
+    @Override
+    public Single<JsonArray> getAllFromAccount(RoutingContext rc) {
+        return super.getAllFromAccount(rc);
     }
 }

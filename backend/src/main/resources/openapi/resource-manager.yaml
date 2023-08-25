@@ -1444,6 +1444,9 @@ paths:
                   minimum: 128
                   maximum: 10240
                   example: 128
+                is_public:
+                  type: boolean
+                  example: true
 
       responses:
         204:
@@ -1480,10 +1483,10 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /functions:
+  /functions/public:
     get:
-      description: Return details about all functions managed by the resource manager
-      operationId: listFunctions
+      description: Return details about all public functions managed by the resource manager
+      operationId: listPublicFunctions
       security:
         - bearerAuth: []
       tags:
@@ -1506,6 +1509,33 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
+  /functions/personal:
+    get:
+      description: |
+        Return details about all functions managed by the resource manager that were created by the logged in user.
+      operationId: listMyFunctions
+      security:
+        - bearerAuth: []
+      tags:
+        - functions
+      responses:
+        200:
+          description: Successful pull of all personal functions
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Function"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+  /functions:
     post:
       description: Create a new function
       operationId: createFunction
@@ -1526,6 +1556,7 @@ paths:
                 - code
                 - timeout_seconds
                 - memory_megabytes
+                - is_public
               additionalProperties: false
               properties:
                 name:
@@ -1575,6 +1606,9 @@ paths:
                   minimum: 128
                   maximum: 10240
                   example: 128
+                is_public:
+                  type: boolean
+                  example: true
       responses:
         201:
           description: Successful creation of a new function
@@ -1656,6 +1690,7 @@ paths:
                 - code
                 - timeout_seconds
                 - memory_megabytes
+                - is_public
               additionalProperties: false
               properties:
                 name:
@@ -1697,6 +1732,9 @@ paths:
                   minimum: 128
                   maximum: 10240
                   example: 128
+                is_public:
+                  type: boolean
+                  example: true
             encoding:
               code:
                 contentType: 'application/*zip*'
@@ -2853,7 +2891,8 @@ paths:
           $ref: "#/components/responses/500"
 
     patch:
-      description: Update details about a service managed by the resource manager
+      description: | 
+        Update details about a service managed by the resource manager that is owned by the logged in user.
       operationId: updateService
       security:
         - bearerAuth: []
@@ -2939,9 +2978,12 @@ paths:
                       size_megabytes:
                         type: number
                         example: 10.0
+                is_public:
+                  type: boolean
+                  example: true
       responses:
         204:
-          description: Successful update of a function
+          description: Successful update of a service
         400:
           $ref: "#/components/responses/400"
         401:
@@ -2952,7 +2994,7 @@ paths:
           $ref: "#/components/responses/500"
 
     delete:
-      description: Delete a service
+      description: Delete a service that is owned by the logged in user.
       operationId: deleteService
       security:
         - bearerAuth: []
@@ -2972,10 +3014,10 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /services:
+  /services/public:
     get:
-      description: Return details about all services managed by the resource manager
-      operationId: listServices
+      description: Return details about all public services managed by the resource manager
+      operationId: listPublicServices
       security:
         - bearerAuth: []
       tags:
@@ -2998,6 +3040,32 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
+  /services/personal:
+    get:
+      description: Return details about all public services managed by the resource manager
+      operationId: listMyServices
+      security:
+        - bearerAuth: []
+      tags:
+        - services
+      responses:
+        200:
+          description: Successful pull of all services
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Service"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+  /services:
     post:
       description: Create a new service
       operationId: createService
@@ -3022,6 +3090,7 @@ paths:
                 - k8s_service_type
                 - volume_mounts
                 - env_vars
+                - is_public
               additionalProperties: false
               properties:
                 name:
@@ -3120,6 +3189,9 @@ paths:
                       size_megabytes:
                         type: number
                         example: 10.0
+                is_public:
+                  type: boolean
+                  example: true
       responses:
         201:
           description: Successful creation of a new service
@@ -3782,7 +3854,14 @@ components:
         is_file:
           type: boolean
           example: true
+        is_public:
+          type: boolean
+          example: true
         created_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+        updated_at:
           type: integer
           format: int64
           example: 1679496667103
@@ -3837,6 +3916,9 @@ components:
           example: user/image:latest
         service_type:
           $ref: "#/components/schemas/K8sServiceType"
+        is_public:
+          type: boolean
+          example: true
         created_at:
           type: integer
           format: int64

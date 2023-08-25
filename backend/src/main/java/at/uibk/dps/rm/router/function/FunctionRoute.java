@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.router.function;
 
+import at.uibk.dps.rm.handler.PrivateEntityResultHandler;
 import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.handler.function.FunctionChecker;
 import at.uibk.dps.rm.handler.function.FunctionHandler;
@@ -19,7 +20,7 @@ public class FunctionRoute implements Route {
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         FunctionChecker functionChecker = new FunctionChecker(serviceProxyProvider.getFunctionService());
         FunctionHandler functionHandler = new FunctionHandler(functionChecker);
-        ResultHandler resultHandler = new ResultHandler(functionHandler);
+        PrivateEntityResultHandler resultHandler = new PrivateEntityResultHandler(functionHandler);
 
         router
             .operation("createFunction")
@@ -32,8 +33,18 @@ public class FunctionRoute implements Route {
             .handler(resultHandler::handleSaveOneRequest);
 
         router
-            .operation("listFunctions")
-            .handler(resultHandler::handleFindAllRequest);
+            .operation("listMyFunctions")
+            .handler(rc -> functionHandler.getAllFromAccount(rc)
+                .subscribe(result -> ResultHandler.getFindAllResponse(rc, result),
+                    throwable -> ResultHandler.handleRequestError(rc, throwable))
+            );
+
+        router
+            .operation("listPublicFunctions")
+            .handler(rc -> functionHandler.getAll(rc)
+                .subscribe(result -> ResultHandler.getFindAllResponse(rc, result),
+                    throwable -> ResultHandler.handleRequestError(rc, throwable))
+            );
 
         router
             .operation("getFunction")

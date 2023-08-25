@@ -2,6 +2,7 @@ package at.uibk.dps.rm.service.database.service;
 
 import at.uibk.dps.rm.entity.dto.service.K8sServiceTypeEnum;
 import at.uibk.dps.rm.entity.dto.service.UpdateServiceDTO;
+import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.entity.model.Service;
 import at.uibk.dps.rm.entity.model.K8sServiceType;
 import at.uibk.dps.rm.entity.model.ServiceType;
@@ -52,24 +53,47 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
     }
 
     @Override
-    public Future<JsonArray> findAll() {
-        CompletionStage<List<Service>> findAll = withSession(repository::findAllAndFetch);
-        return sessionToFuture(findAll)
-            .map(result -> {
-                ArrayList<JsonObject> objects = new ArrayList<>();
-                for (Service entity: result) {
-                    entity.setReplicas(null);
-                    entity.setPorts(null);
-                    entity.setCpu(null);
-                    entity.setMemory(null);
-                    objects.add(JsonObject.mapFrom(entity));
-                }
-                return new JsonArray(objects);
-            });
+    public Future<JsonObject> findOneByIdAndAccountId(long id, long accountId) {
+        CompletionStage<Service> findOne = withSession(session ->
+            repository.findByIdAndAccountId(session, id, accountId, true));
+        return sessionToFuture(findOne).map(JsonObject::mapFrom);
     }
 
     @Override
-    public Future<JsonObject> save(JsonObject data) {
+    public Future<JsonArray> findAll() {
+        CompletionStage<List<Service>> findAll = withSession(repository::findAllAndFetch);
+        return sessionToFuture(findAll)
+            .map(ServiceServiceImpl::mapServicesToJsonArray);
+    }
+
+    @Override
+    public Future<JsonArray> findAllPublicServices() {
+        CompletionStage<List<Service>> findAll = withSession(repository::findAllPublicAndFetch);
+        return sessionToFuture(findAll)
+            .map(ServiceServiceImpl::mapServicesToJsonArray);
+    }
+
+    @Override
+    public Future<JsonArray> findAllByAccountId(long accountId) {
+        CompletionStage<List<Service>> findAll = withSession(session -> repository.findAllByAccountId(session, accountId));
+        return sessionToFuture(findAll)
+            .map(ServiceServiceImpl::mapServicesToJsonArray);
+    }
+
+    private static JsonArray mapServicesToJsonArray(List<Service> result) {
+        ArrayList<JsonObject> objects = new ArrayList<>();
+        for (Service entity: result) {
+            entity.setReplicas(null);
+            entity.setPorts(null);
+            entity.setCpu(null);
+            entity.setMemory(null);
+            objects.add(JsonObject.mapFrom(entity));
+        }
+        return new JsonArray(objects);
+    }
+
+    @Override
+    public Future<JsonObject> saveToAccount(long accountId, JsonObject data) {
         Service service = data.mapTo(Service.class);
         CompletionStage<Service> create = withTransaction(session ->
             session.find(K8sServiceType.class, service.getK8sServiceType().getServiceTypeId())
@@ -77,7 +101,8 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
                     ServiceResultValidator.checkFound(k8sServiceType, K8sServiceType.class);
                     service.setK8sServiceType(k8sServiceType);
                     checkServiceTypePorts(k8sServiceType, service.getPorts().size());
-                    return repository.findOneByName(session, service.getName());
+                    return repository.findOneByNameTypeAndCreator(session, service.getName(),
+                        service.getServiceType().getArtifactTypeId(), accountId);
                 })
                 .thenCompose(existingService -> {
                     ServiceResultValidator.checkExists(existingService, Service.class);
@@ -85,6 +110,12 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
                 })
                 .thenCompose(serviceType -> {
                     ServiceResultValidator.checkFound(serviceType, ServiceType.class);
+                    service.setServiceType(serviceType);
+                    return session.find(Account.class, accountId);
+                })
+                .thenCompose(account -> {
+                    ServiceResultValidator.checkFound(account, Account.class);
+                    service.setCreatedBy(account);
                     return session.persist(service);
                 })
                 .thenApply(res -> service)
@@ -93,9 +124,10 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
     }
 
     @Override
-    public Future<Void> update(long id, JsonObject fields) {
+    public Future<Void> updateOwned(long id, long accountId, JsonObject fields) {
         UpdateServiceDTO updateService = fields.mapTo(UpdateServiceDTO.class);
-        CompletionStage<Service> update = withTransaction(session -> repository.findByIdAndFetch(session, id)
+        CompletionStage<Service> update = withTransaction(session -> repository
+            .findByIdAndAccountId(session, id, accountId, false)
             .thenCompose(service -> {
                 ServiceResultValidator.checkFound(service, Service.class);
                 long k8sServiceTypeId = updateService.getK8sServiceType() != null ?
@@ -112,6 +144,7 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
                         service.setMemory(updateNonNullValue(service.getMemory(), updateService.getMemory()));
                         service.setK8sServiceType(serviceType);
                         service.setPorts(updateNonNullValue(service.getPorts(), updateService.getPorts()));
+                        service.setIsPublic(updateNonNullValue(service.getIsPublic(), updateService.getIsPublic()));
                         return session.fetch(service.getEnvVars())
                             .thenCompose(res -> session.fetch(service.getVolumeMounts()));
                     })
@@ -126,13 +159,12 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
     }
 
     @Override
-    public Future<Void> delete(long id) {
-        CompletionStage<Void> delete = withTransaction(session -> repository.findByIdAndFetch(session, id)
+    public Future<Void> deleteFromAccount(long accountId, long id) {
+        CompletionStage<Void> delete = withTransaction(session ->
+            repository.findByIdAndAccountId(session, id, accountId, false)
                 .thenCompose(service -> {
                     ServiceResultValidator.checkFound(service, Service.class);
-                    return session.fetch(service.getEnvVars())
-                        .thenCompose(res -> session.fetch(service.getVolumeMounts()))
-                        .thenCompose(res -> session.remove(service));
+                    return session.remove(service);
                 })
         );
         return sessionToFuture(delete);

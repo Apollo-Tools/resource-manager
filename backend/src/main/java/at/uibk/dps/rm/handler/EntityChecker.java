@@ -121,6 +121,18 @@ public abstract class EntityChecker {
     }
 
     /**
+     * Submit the update of all fields for an owned entity.
+     *
+     * @param id the id of the entity
+     * @param accountId the id of the owner
+     * @param fields the updated fields
+     * @return a Completable
+     */
+    public Completable submitUpdate(long id, long accountId, JsonObject fields) {
+        return service.updateOwned(id, accountId, fields);
+    }
+
+    /**
      * Submit the deletion of an entity by its id.
      *
      * @param id the id of the entity

@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.router.service;
 
+import at.uibk.dps.rm.handler.PrivateEntityResultHandler;
 import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.handler.service.ServiceChecker;
 import at.uibk.dps.rm.handler.service.ServiceHandler;
@@ -18,7 +19,7 @@ public class ServiceRoute implements Route {
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         ServiceChecker serviceChecker = new ServiceChecker(serviceProxyProvider.getServiceService());
         ServiceHandler serviceHandler = new ServiceHandler(serviceChecker);
-        ResultHandler resultHandler = new ResultHandler(serviceHandler);
+        PrivateEntityResultHandler resultHandler = new PrivateEntityResultHandler(serviceHandler);
 
         router
             .operation("createService")
@@ -31,8 +32,18 @@ public class ServiceRoute implements Route {
             .handler(resultHandler::handleUpdateRequest);
 
         router
-            .operation("listServices")
-            .handler(resultHandler::handleFindAllRequest);
+            .operation("listMyServices")
+            .handler(rc -> serviceHandler.getAllFromAccount(rc)
+                .subscribe(result -> ResultHandler.getFindAllResponse(rc, result),
+                    throwable -> ResultHandler.handleRequestError(rc, throwable))
+            );
+
+        router
+            .operation("listPublicServices")
+            .handler(rc -> serviceHandler.getAll(rc)
+                .subscribe(result -> ResultHandler.getFindAllResponse(rc, result),
+                    throwable -> ResultHandler.handleRequestError(rc, throwable))
+            );
 
         router
             .operation("getService")

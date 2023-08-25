@@ -83,10 +83,21 @@ public interface DatabaseServiceInterface extends ServiceInterface {
     /**
      * Update an existing entity.
      *
-     * @param data the existing entity with updated values
+     * @param id the id of the entity
+     * @param fields the existing entity with updated values
      * @return an empty Future
      */
-    Future<Void> update(long id, JsonObject data);
+    Future<Void> update(long id, JsonObject fields);
+
+    /**
+     * Update an existing entity that is owned by the account.
+     *
+     * @param id the id of the entity
+     * @param accountId the id of the account
+     * @param fields the existing entity with updated values
+     * @return an empty Future
+     */
+    Future<Void> updateOwned(long id, long accountId, JsonObject fields);
 
     /**
      * Delete an entity by its id.

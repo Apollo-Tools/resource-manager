@@ -2,6 +2,7 @@ package at.uibk.dps.rm.repository.service;
 
 import at.uibk.dps.rm.entity.model.Service;
 import at.uibk.dps.rm.repository.Repository;
+import org.hibernate.reactive.stage.Stage;
 import org.hibernate.reactive.stage.Stage.Session;
 import org.hibernate.reactive.util.impl.CompletionStages;
 
@@ -30,11 +31,18 @@ public class ServiceRepository extends Repository<Service> {
      *
      * @param session the database session
      * @param name the name of the service
+     * @param typeId the id of the service type
+     * @param accountId the id of the account
      * @return a CompletionStage that emits the service if it exists, else null
      */
-    public CompletionStage<Service> findOneByName(Session session, String name) {
-        return session.createQuery("from Service s where s.name=:name", entityClass)
+    public CompletionStage<Service> findOneByNameTypeAndCreator(Session session, String name, long typeId,
+            long accountId) {
+        return session.createQuery("from Service s " +
+                "where s.name=:name and s.serviceType.artifactTypeId=:typeId and s.createdBy.accountId=:accountId",
+                entityClass)
             .setParameter("name", name)
+            .setParameter("typeId", typeId)
+            .setParameter("accountId", accountId)
             .getSingleResultOrNull();
     }
 
@@ -51,6 +59,28 @@ public class ServiceRepository extends Repository<Service> {
                 "left join fetch s.k8sServiceType " +
                 "where s.serviceId=:serviceId", entityClass)
             .setParameter("serviceId", id)
+            .getSingleResultOrNull();
+    }
+
+    /**
+     * Find a service by its id and accountId.
+     *
+     * @param session the database session
+     * @param serviceId the id of the service
+     * @param accountId the id of the owner
+     * @param includePublic whether to include public services
+     * @return a CompletionStage that emits the entity if it exists, else null
+     */
+    public CompletionStage<Service> findByIdAndAccountId(Session session, long serviceId, long accountId,
+            boolean includePublic) {
+        return session.createQuery("from Service s " +
+                "left join fetch s.serviceType " +
+                "left join fetch s.k8sServiceType " +
+                "where s.serviceId=:serviceId and " +
+                "(s.createdBy.accountId=:accountId or (:includePublic=true and s.isPublic=true))", entityClass)
+            .setParameter("serviceId", serviceId)
+            .setParameter("accountId", accountId)
+            .setParameter("includePublic", includePublic)
             .getSingleResultOrNull();
     }
 
@@ -80,6 +110,25 @@ public class ServiceRepository extends Repository<Service> {
      */
     public CompletionStage<List<Service>> findAllAndFetch(Session session) {
         return session.createQuery("from Service s left join fetch s.serviceType", entityClass)
+            .getResultList();
+    }
+
+    /**
+     * Find all public services and fetch the resource type and k8s resource type.
+     *
+     * @param session the database session
+     * @return a CompletionStage that emits a list of all services
+     */
+    public CompletionStage<List<Service>> findAllPublicAndFetch(Session session) {
+        return session.createQuery("from Service s left join fetch s.serviceType where s.isPublic = true",
+                entityClass).getResultList();
+    }
+
+    @Override
+    public CompletionStage<List<Service>> findAllByAccountId(Stage.Session session, long accountId) {
+        return session.createQuery("from Service s left join fetch s.serviceType " +
+                "where s.createdBy.accountId=:accountId", entityClass)
+            .setParameter("accountId", accountId)
             .getResultList();
     }
 }

@@ -37,6 +37,12 @@ public class PrivateEntityResultHandler extends ResultHandler {
     }
 
     @Override
+    public void handleUpdateRequest(final RoutingContext rc) {
+        validationHandler.updateOneOwned(rc)
+            .subscribe(() -> getSaveAllUpdateDeleteResponse(rc), throwable -> handleRequestError(rc, throwable));
+    }
+
+    @Override
     public void handleFindOneRequest(RoutingContext rc) {
         validationHandler.getOneFromAccount(rc)
             .subscribe(result -> getFindOneResponse(rc, result),

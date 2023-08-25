@@ -2,8 +2,7 @@ package at.uibk.dps.rm.service.database.function;
 
 import at.uibk.dps.rm.entity.dto.function.UpdateFunctionDTO;
 import at.uibk.dps.rm.entity.dto.resource.RuntimeEnum;
-import at.uibk.dps.rm.entity.model.Function;
-import at.uibk.dps.rm.entity.model.FunctionType;
+import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.model.Runtime;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.repository.function.FunctionRepository;
@@ -49,20 +48,45 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
     }
 
     @Override
-    public Future<JsonArray> findAll() {
-        CompletionStage<List<Function>> findAll = withSession(repository::findAllAndFetch);
-        return Future.fromCompletionStage(findAll)
-            .map(result -> {
-                ArrayList<JsonObject> objects = new ArrayList<>();
-                for (Function entity: result) {
-                    objects.add(JsonObject.mapFrom(entity));
-                }
-                return new JsonArray(objects);
-            });
+    public Future<JsonObject> findOneByIdAndAccountId(long id, long accountId) {
+        CompletionStage<Function> findOne = withSession(session -> repository
+            .findByIdAndAccountId(session, id, accountId, true));
+        return Future.fromCompletionStage(findOne)
+            .map(JsonObject::mapFrom);
     }
 
     @Override
-    public Future<JsonObject> save(JsonObject data) {
+    public Future<JsonArray> findAll() {
+        CompletionStage<List<Function>> findAll = withSession(repository::findAllAndFetch);
+        return Future.fromCompletionStage(findAll)
+            .map(FunctionServiceImpl::mapFunctionsToJsonArray);
+    }
+
+    @Override
+    public Future<JsonArray> findAllPublicFunctions() {
+        CompletionStage<List<Function>> findAll = withSession(repository::findAllPublicAndFetch);
+        return sessionToFuture(findAll)
+            .map(FunctionServiceImpl::mapFunctionsToJsonArray);
+    }
+
+    @Override
+    public Future<JsonArray> findAllByAccountId(long accountId) {
+        CompletionStage<List<Function>> findAll = withSession(session -> repository
+            .findAllByAccountId(session, accountId));
+        return sessionToFuture(findAll)
+            .map(FunctionServiceImpl::mapFunctionsToJsonArray);
+    }
+
+    private static JsonArray mapFunctionsToJsonArray(List<Function> result) {
+        ArrayList<JsonObject> objects = new ArrayList<>();
+        for (Function entity: result) {
+            objects.add(JsonObject.mapFrom(entity));
+        }
+        return new JsonArray(objects);
+    }
+
+    @Override
+    public Future<JsonObject> saveToAccount(long accountId, JsonObject data) {
         Function function = data.mapTo(Function.class);
         CompletionStage<Function> create = withTransaction(session ->
             session.find(Runtime.class, function.getRuntime().getRuntimeId())
@@ -72,7 +96,8 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
                     if (!function.getIsFile() && !selectedRuntime.equals(RuntimeEnum.PYTHON38)) {
                         throw new BadInputException("runtime only supports zip archives");
                     }
-                    return repository.findOneByNameAndRuntimeId(session, function.getName(), runtime.getRuntimeId());
+                    return repository.findOneByNameTypeRuntimeAndCreator(session, function.getName(),
+                        function.getFunctionType().getArtifactTypeId(), runtime.getRuntimeId(), accountId);
                 })
                 .thenCompose(existingFunction -> {
                     ServiceResultValidator.checkExists(existingFunction, Function.class);
@@ -80,6 +105,12 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
                 })
                 .thenCompose(functionType -> {
                     ServiceResultValidator.checkFound(functionType, FunctionType.class);
+                    function.setFunctionType(functionType);
+                    return session.find(Account.class, accountId);
+                })
+                .thenCompose(account -> {
+                    ServiceResultValidator.checkFound(account, Account.class);
+                    function.setCreatedBy(account);
                     return session.persist(function);
                 })
                 .thenCompose(res -> {
@@ -96,9 +127,10 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
     }
 
     @Override
-    public Future<Void> update(long id, JsonObject fields) {
+    public Future<Void> updateOwned(long id, long accountId, JsonObject fields) {
         UpdateFunctionDTO updateFunction = fields.mapTo(UpdateFunctionDTO.class);
-        CompletionStage<Void> update = withTransaction(session -> repository.findByIdAndFetch(session, id)
+        CompletionStage<Void> update = withTransaction(session -> repository
+            .findByIdAndAccountId(session, id, accountId, false)
             .thenCompose(function -> {
                 ServiceResultValidator.checkFound(function, Function.class);
                 if (updateFunction.getCode() == null) {
@@ -127,14 +159,16 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
                         updateFunction.getTimeoutSeconds()));
                 function.setMemoryMegabytes(updateNonNullValue(function.getMemoryMegabytes(),
                         updateFunction.getMemoryMegabytes()));
+                function.setIsPublic(updateNonNullValue(function.getIsPublic(), updateFunction.getIsPublic()));
             })
         );
         return sessionToFuture(update);
     }
 
     @Override
-    public Future<Void> delete(long id) {
-        CompletionStage<Void> delete = withTransaction(session -> repository.findById(session, id)
+    public Future<Void> deleteFromAccount(long accountId, long id) {
+        CompletionStage<Void> delete = withTransaction(session -> repository
+            .findByIdAndAccountId(session, id, accountId, false)
             .thenCompose(function -> {
                 ServiceResultValidator.checkFound(function, Function.class);
                 CompletionStage<Void> deleteFunction = session.remove(function);

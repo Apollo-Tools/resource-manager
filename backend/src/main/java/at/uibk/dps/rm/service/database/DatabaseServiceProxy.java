@@ -158,6 +158,11 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
     }
 
     @Override
+    public Future<Void> updateOwned(long id, long accountId, JsonObject fields) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Future<Void> delete(long id) {
         CompletionStage<Void> delete = withTransaction(session -> repository.findById(session, id)
             .thenCompose(entity -> {
