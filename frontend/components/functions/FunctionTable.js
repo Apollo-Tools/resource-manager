@@ -4,16 +4,17 @@ import Link from 'next/link';
 import {DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined} from '@ant-design/icons';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
-import {deleteFunction, listFunctions} from '../../lib/FunctionService';
+import {deleteFunction, listMyFunctions, listPublicFunctions} from '../../lib/FunctionService';
 import ResourceTable from '../resources/ResourceTable';
 import PropTypes from 'prop-types';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 import RuntimeIcon from '../misc/RuntimeIcon';
+import BoolValueDisplay from "../misc/BoolValueDisplay";
 
 const {Column} = Table;
 const {confirm} = Modal;
 
-const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resources}) => {
+const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resources, publicFunctions = false}) => {
   const {token, checkTokenExpired} = useAuth();
   const [error, setError] = useState(false);
   const [expandedKeys, setExpandedKeys] = useState([]);
@@ -22,10 +23,15 @@ const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resource
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listFunctions(token, setFunctions, setError);
+      console.log(publicFunctions)
+      if (publicFunctions) {
+        listPublicFunctions(token, setFunctions, setError);
+      } else {
+        listMyFunctions(token, setFunctions, setError);
+      }
       setSelectedResources(value);
     }
-  }, []);
+  }, [publicFunctions]);
 
   // TODO: improve error handling
   useEffect(() => {
@@ -139,6 +145,9 @@ const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resource
         sorter={(a, b) =>
           a.runtime.name.localeCompare(b.runtime.name)}
       />
+      <Column title="Is Public" dataIndex="is_public" key="is_public"
+              render={(isPublic) => <BoolValueDisplay value={isPublic} />}
+      />
       <Column title="Created at" dataIndex="created_at" key="created_at"
         render={(createdAt) => <DateFormatter dateTimestamp={createdAt}/>}
         sorter={(a, b) => a.created_at - b.created_at}
@@ -151,7 +160,7 @@ const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resource
                 <Button icon={<InfoCircleOutlined />}/>
               </Link>
             </Tooltip>
-            {!hideDelete && (
+            {!hideDelete && !publicFunctions && (
               <Tooltip title="Delete">
                 <Button onClick={() => showDeleteConfirm(record.function_id)} icon={<DeleteOutlined />}/>
               </Tooltip>)}
@@ -168,6 +177,7 @@ FunctionTable.propTypes = {
   hideDelete: PropTypes.bool,
   isExpandable: PropTypes.bool,
   resources: PropTypes.arrayOf(PropTypes.object),
+  publicFunctions: PropTypes.bool
 };
 
 export default FunctionTable;

@@ -83,15 +83,38 @@ export async function createFunctionUpload(name, functionTypeId, runtimeId, uplo
 }
 
 /**
- * List all existing functions.
+ * List all owned functions.
  *
  * @param {string} token the access token
  * @param {function} setFunctions the function to set the retrieved functions
  * @param {function} setError the function to set the error if one occurs
  */
-export async function listFunctions(token, setFunctions, setError) {
+export async function listMyFunctions(token, setFunctions, setError) {
   try {
-    const response = await fetch(API_ROUTE, {
+    const response = await fetch(`${API_ROUTE}/personal`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await response.json();
+    setFunctions(() => data);
+  } catch (error) {
+    setError(true);
+    console.log(error);
+  }
+}
+
+/**
+ * List all public functions.
+ *
+ * @param {string} token the access token
+ * @param {function} setFunctions the function to set the retrieved functions
+ * @param {function} setError the function to set the error if one occurs
+ */
+export async function listPublicFunctions(token, setFunctions, setError) {
+  try {
+    const response = await fetch(`${API_ROUTE}/public`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,

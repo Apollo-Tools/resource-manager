@@ -5,14 +5,13 @@ import {useEffect, useState} from 'react';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 import {listAccounts, lockUser, unlockUser} from '../../lib/AccountService';
 import {
-  CheckCircleTwoTone,
-  CloseCircleTwoTone,
   LockTwoTone,
   InfoCircleOutlined,
   ExclamationCircleFilled, UnlockTwoTone,
 } from '@ant-design/icons';
 import Link from 'next/link';
 import {ICON_GREEN, ICON_RED} from '../misc/Constants';
+import BoolValueDisplay from "../misc/BoolValueDisplay";
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -110,13 +109,7 @@ const AccountTable = () => {
         sorter={(a, b) => a.created_at - b.created_at}
       />
       <Column title="Is active" dataIndex={'is_active'} key="is_active"
-        render={(isActive) => {
-          if (isActive) {
-            return <CheckCircleTwoTone twoToneColor={ICON_GREEN}/>;
-          } else {
-            return <CloseCircleTwoTone twoToneColor={ICON_RED}/>;
-          }
-        }}
+        render={(isActive) => <BoolValueDisplay value={isActive} />}
       />
       <Column title="Actions" key="action"
         render={(_, record) => (

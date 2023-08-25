@@ -104,15 +104,38 @@ export async function updateService(id, replicas, ports, cpu, memory,
 }
 
 /**
+ * List all owned services.
+ *
+ * @param {string} token the access token
+ * @param {function} setServices the function to set the retrieved services
+ * @param {function} setError the function to set the error if one occurred
+ */
+export async function listMyServices(token, setServices, setError) {
+  try {
+    const response = await fetch(`${API_ROUTE}/personal`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await response.json();
+    setServices(() => data);
+  } catch (error) {
+    setError(true);
+    console.log(error);
+  }
+}
+
+/**
  * List all existing services.
  *
  * @param {string} token the access token
  * @param {function} setServices the function to set the retrieved services
  * @param {function} setError the function to set the error if one occurred
  */
-export async function listServices(token, setServices, setError) {
+export async function listPublicServices(token, setServices, setError) {
   try {
-    const response = await fetch(API_ROUTE, {
+    const response = await fetch(`${API_ROUTE}/public`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,

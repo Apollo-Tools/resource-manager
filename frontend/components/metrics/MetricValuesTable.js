@@ -1,12 +1,12 @@
 import DateFormatter from '../misc/DateFormatter';
 import {Button, Modal, Table} from 'antd';
-import {CheckCircleTwoTone, CloseCircleTwoTone, DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
+import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
 import {deleteResourceMetric} from '../../lib/MetricValueService';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import TooltipIcon from '../misc/TooltipIcon';
-import {ICON_GREEN, ICON_RED} from '../misc/Constants';
+import BoolValueDisplay from "../misc/BoolValueDisplay";
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -58,13 +58,7 @@ const MetricValuesTable = ({resourceId, metricValues, setMetricValues}) => {
         }}
       />
       <Column title="Is monitored" dataIndex='is_monitored' key="is_monitored"
-        render={(isMonitored) => {
-          if (isMonitored) {
-            return <CheckCircleTwoTone twoToneColor={ICON_GREEN}/>;
-          } else {
-            return <CloseCircleTwoTone twoToneColor={ICON_RED}/>;
-          }
-        }}
+        render={(isMonitored) => <BoolValueDisplay value={isMonitored} />}
       />
       <Column title="Value" dataIndex="value" key="value" />
       <Column title="Created at" dataIndex="created_at" key="created_at"

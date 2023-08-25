@@ -2,14 +2,14 @@ import DateFormatter from '../misc/DateFormatter';
 import {Button, Modal, Space, Table, Tooltip} from 'antd';
 import Link from 'next/link';
 import {
-  DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined, CloseCircleTwoTone, CheckCircleTwoTone, SyncOutlined,
+  DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined, SyncOutlined,
 } from '@ant-design/icons';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import {deleteEnsemble, listEnsembles, validateEnsemble} from '../../lib/EnsembleService';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 import PropTypes from 'prop-types';
-import {ICON_GREEN, ICON_RED} from '../misc/Constants';
+import BoolValueDisplay from "../misc/BoolValueDisplay";
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -108,13 +108,7 @@ const EnsembleTable = ({rowSelection}) => {
         onFilter={(value, record) => record.name.startsWith(value)}
       />
       <Column title="Valid" dataIndex="is_valid" key="is_valid"
-        render={(isValid) => {
-          if (isValid) {
-            return <CheckCircleTwoTone twoToneColor={ICON_GREEN}/>;
-          } else {
-            return <CloseCircleTwoTone twoToneColor={ICON_RED}/>;
-          }
-        }}
+        render={(isValid) => <BoolValueDisplay value={isValid}/>}
         sorter={(a, b) =>
           a.is_valid - b.is_valid}
       />

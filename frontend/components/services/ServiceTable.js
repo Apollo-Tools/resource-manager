@@ -5,14 +5,15 @@ import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import ResourceTable from '../resources/ResourceTable';
 import PropTypes from 'prop-types';
-import {deleteService, listServices} from '../../lib/ServiceService';
+import {deleteService, listMyServices, listPublicServices} from '../../lib/ServiceService';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 import Link from 'next/link';
+import BoolValueDisplay from "../misc/BoolValueDisplay";
 
 const {Column} = Table;
 const {confirm} = Modal;
 
-const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources}) => {
+const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources, publicServices = false}) => {
   const {token, checkTokenExpired} = useAuth();
   const [error, setError] = useState(false);
   const [expandedKeys, setExpandedKeys] = useState([]);
@@ -21,10 +22,14 @@ const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listServices(token, setServices, setError);
+      if (publicServices) {
+        listPublicServices(token, setServices, setError)
+      } else {
+        listMyServices(token, setServices, setError);
+      }
       setSelectedResources(value);
     }
-  }, []);
+  }, [publicServices]);
 
   // TODO: improve error handling
   useEffect(() => {
@@ -140,6 +145,9 @@ const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources
             selectedKeys={selectedKeys} confirm={confirm} columnName="image" />}
         onFilter={(value, record) => record.image.startsWith(value)}
       />
+      <Column title="Is Public" dataIndex="is_public" key="is_public"
+              render={(isPublic) => <BoolValueDisplay value={isPublic} />}
+      />
       <Column title="Created at" dataIndex="created_at" key="created_at"
         render={(createdAt) => <DateFormatter dateTimestamp={createdAt}/>}
         sorter={(a, b) => a.created_at - b.created_at}
@@ -152,9 +160,9 @@ const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources
                 <Button icon={<InfoCircleOutlined />}/>
               </Link>
             </Tooltip>
-            <Tooltip title="Delete">
+            {!publicServices && <Tooltip title="Delete">
               <Button onClick={() => showDeleteConfirm(record.service_id)} icon={<DeleteOutlined />}/>
-            </Tooltip>
+            </Tooltip>}
           </Space>
         )}
       />}
