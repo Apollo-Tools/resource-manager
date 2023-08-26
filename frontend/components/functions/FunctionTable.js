@@ -9,6 +9,7 @@ import PropTypes from 'prop-types';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 import RuntimeIcon from '../misc/RuntimeIcon';
 import DateColumnRender from "../misc/DateColumnRender";
+import BoolValueDisplay from "../misc/BoolValueDisplay";
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -144,11 +145,14 @@ const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resource
         sorter={(a, b) =>
           a.runtime.name.localeCompare(b.runtime.name)}
       />
-      {publicFunctions &&
+      {publicFunctions ?
         <Column title="Created by" dataIndex="created_by" key="created_by"
           render={(createdBy) => <div><UserOutlined /> {createdBy?.username}</div> }
           sorter={(a, b) => a.created_by.username.localeCompare(b.created_by.username)}
-        />
+        /> :
+        <Column title="Is Public" dataIndex="is_public" key="is_public"
+        render={(isPublic) => <BoolValueDisplay value={isPublic} />}
+/>
       }
       <Column title="Created at" dataIndex="created_at" key="created_at"
         render={(createdAt) =>  <DateColumnRender value={createdAt}/> }
