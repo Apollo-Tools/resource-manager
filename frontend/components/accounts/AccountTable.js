@@ -1,4 +1,3 @@
-import DateFormatter from '../misc/DateFormatter';
 import {Button, Modal, Space, Table, Tag, Tooltip} from 'antd';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
@@ -12,6 +11,7 @@ import {
 import Link from 'next/link';
 import {ICON_GREEN, ICON_RED} from '../misc/Constants';
 import BoolValueDisplay from "../misc/BoolValueDisplay";
+import DateColumnRender from "../misc/DateColumnRender";
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -105,7 +105,7 @@ const AccountTable = () => {
         }}
       />
       <Column title="Created at" dataIndex="created_at" key="created_at"
-        render={(createdAt) => <DateFormatter dateTimestamp={createdAt}/>}
+        render={(createdAt) => <DateColumnRender value={createdAt}/>}
         sorter={(a, b) => a.created_at - b.created_at}
       />
       <Column title="Is active" dataIndex={'is_active'} key="is_active"

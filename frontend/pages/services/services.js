@@ -23,7 +23,7 @@ const Services = () => {
         {selectedSegment === 'Services' ?
             <div className="grid grid-cols-6 gap-5 content-center">
                 <div className="grid col-span-1 content-center">
-                    <NewEntityButton name="Service" marginBottom={0}/>
+                    <NewEntityButton name="Service" marginBottom={false}/>
                 </div>
                 <div className="grid col-start-6 col-span-1 content-center justify-end">
                     <Switch

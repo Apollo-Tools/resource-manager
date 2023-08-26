@@ -1,10 +1,10 @@
-import DateFormatter from '../misc/DateFormatter';
 import {Button, Modal, Space, Table} from 'antd';
 import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
 import {useEffect, useState} from 'react';
 import {deleteCredentials} from '../../lib/CredentialsService';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import PropTypes from 'prop-types';
+import DateColumnRender from "../misc/DateColumnRender";
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -55,7 +55,7 @@ const CredentialsList = ({credentials, setCredentials}) => {
           defaultSortOrder="ascend"
         />
         <Column title="Created at" dataIndex="created_at" key="created_at"
-          render={(createdAt) => <DateFormatter dateTimestamp={createdAt}/>}
+          render={(createdAt) => <DateColumnRender value={createdAt}/>}
           sorter={(a, b) => a.created_at - b.created_at}
         />
         <Column title="Actions" key="action"

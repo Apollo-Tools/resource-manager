@@ -24,7 +24,7 @@ const Functions = () => {
         {selectedSegment === 'Functions' ?
               <div className="grid grid-cols-6 gap-5 content-center">
                 <div className="grid col-span-1 content-center">
-                    <NewEntityButton name="Function" marginBottom={0}/>
+                    <NewEntityButton name="Function" marginBottom={false}/>
                 </div>
                 <div className="grid col-start-6 col-span-1 content-center justify-end">
                     <Switch

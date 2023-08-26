@@ -1,10 +1,10 @@
 import {Button, Table} from 'antd';
 import {CopyOutlined} from '@ant-design/icons';
-import DateFormatter from '../misc/DateFormatter';
 import Link from 'next/link';
 import PropTypes from 'prop-types';
 import DeploymentStatusBadge from './DeploymentStatusBadge';
 import env from '@beam-australia/react-env';
+import DateColumnRender from "../misc/DateColumnRender";
 
 const {Column} = Table;
 
@@ -60,7 +60,7 @@ const ResourceDeploymentTable = ({resourceDeployments, type}) => {
         sorter={ (a, b) => a.status_value - b.status_value }
       />
       <Column title="Created at" dataIndex="created_at" key="created_at"
-        render={ (createdAt) => <DateFormatter dateTimestamp={ createdAt }/> }
+        render={ (createdAt) => <DateColumnRender value={createdAt}/> }
         sorter={ (a, b) => a.created_at - b.created_at }
       />
     </Table>);

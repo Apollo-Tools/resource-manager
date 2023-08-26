@@ -1,4 +1,3 @@
-import DateFormatter from '../misc/DateFormatter';
 import {Button, Modal, Table, Tooltip} from 'antd';
 import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
 import {useAuth} from '../../lib/AuthenticationProvider';
@@ -7,6 +6,7 @@ import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 import {deleteFunctionType, listFunctionTypes} from '../../lib/FunctionTypeService';
 import PropTypes from 'prop-types';
 import {deleteServiceType, listServiceTypes} from '../../lib/ServiceTypeService';
+import DateColumnRender from "../misc/DateColumnRender";
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -83,7 +83,7 @@ const ArtifactTypeTable = ({artifact}) => {
         onFilter={(value, record) => record.name.startsWith(value)}
       />
       <Column title="Created at" dataIndex="created_at" key="created_at"
-        render={(createdAt) => <DateFormatter dateTimestamp={createdAt}/>}
+        render={(createdAt) => <DateColumnRender value={createdAt}/>}
         sorter={(a, b) => a.created_at - b.created_at}
       />
       <Column title="Actions" key="action"

@@ -1,4 +1,3 @@
-import DateFormatter from '../misc/DateFormatter';
 import {Button, Modal, Table, Tooltip} from 'antd';
 import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
 import {useAuth} from '../../lib/AuthenticationProvider';
@@ -6,6 +5,7 @@ import {useEffect, useState} from 'react';
 import Link from 'next/link';
 import {deleteNamespaceFromAccount} from '../../lib/AccountNamespaceService';
 import PropTypes from 'prop-types';
+import DateColumnRender from "../misc/DateColumnRender";
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -69,7 +69,7 @@ const NamespaceTable = ({namespaces, setFinished, accountId, hasActions}) => {
         sorter={ (a, b) => a.resource.name.localeCompare(b.resource.name) }
       />
       <Column title="Created at" dataIndex="created_at" key="created_at"
-        render={(createdAt) => <DateFormatter dateTimestamp={createdAt}/>}
+        render={(createdAt) => <DateColumnRender value={createdAt}/>}
         sorter={(a, b) => a.created_at - b.created_at}
       />
       {hasActions && <Column title="Actions" key="action"

@@ -1,4 +1,3 @@
-import DateFormatter from '../misc/DateFormatter';
 import {Button, Modal, Table} from 'antd';
 import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
 import {deleteResourceMetric} from '../../lib/MetricValueService';
@@ -7,6 +6,7 @@ import {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import TooltipIcon from '../misc/TooltipIcon';
 import BoolValueDisplay from "../misc/BoolValueDisplay";
+import DateColumnRender from "../misc/DateColumnRender";
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -62,11 +62,11 @@ const MetricValuesTable = ({resourceId, metricValues, setMetricValues}) => {
       />
       <Column title="Value" dataIndex="value" key="value" />
       <Column title="Created at" dataIndex="created_at" key="created_at"
-        render={(createdAt) => <DateFormatter dateTimestamp={createdAt}/>}
+        render={(createdAt) => <DateColumnRender value={createdAt}/>}
         sorter={(a, b) => a.created_at - b.created_at}
       />
       <Column title="Modified at" dataIndex="updated_at" key="updated_at"
-        render={(updatedAt) => <DateFormatter dateTimestamp={updatedAt}/>}
+        render={(updatedAt) => <DateColumnRender value={updatedAt}/>}
         sorter={(a, b) => a.updated_at - b.updated_at}
       />
       <Column title="Actions" key="action"

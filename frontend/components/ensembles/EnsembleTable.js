@@ -1,4 +1,3 @@
-import DateFormatter from '../misc/DateFormatter';
 import {Button, Modal, Space, Table, Tooltip} from 'antd';
 import Link from 'next/link';
 import {
@@ -10,6 +9,7 @@ import {deleteEnsemble, listEnsembles, validateEnsemble} from '../../lib/Ensembl
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 import PropTypes from 'prop-types';
 import BoolValueDisplay from "../misc/BoolValueDisplay";
+import DateColumnRender from "../misc/DateColumnRender";
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -113,12 +113,8 @@ const EnsembleTable = ({rowSelection}) => {
           a.is_valid - b.is_valid}
       />
       <Column title="Created at" dataIndex="created_at" key="created_at"
-        render={(createdAt) => <DateFormatter dateTimestamp={createdAt}/>}
+        render={(createdAt) => <DateColumnRender value={createdAt}/>}
         sorter={(a, b) => a.created_at - b.created_at}
-      />
-      <Column title="Updated at" dataIndex="updated_at" key="updated_at"
-        render={(updatedAt) => <DateFormatter dateTimestamp={updatedAt}/>}
-        sorter={(a, b) => a.updated_at - b.updated_at}
       />
       <Column title="Actions" key="action"
         render={(_, record) => (
