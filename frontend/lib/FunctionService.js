@@ -163,7 +163,7 @@ export async function getFunction(id, token, setFunction, setError) {
  * @param {string} code the code to update
  * @param {number} timeout the timeout of the function
  * @param {number} memory the memory of the function
- * @param {boolean} isPublic
+ * @param {boolean} isPublic whether the public should be publicly available
  * @param {string} token the access token
  * @param {function} setError the function to set the error if one occurs
  * @return {Promise<boolean>} true if the request was successful

@@ -14,12 +14,13 @@ const API_ROUTE = `${env('API_URL')}/services`;
  * @param {number} k8sServiceTypeId the k8s service type
  * @param {object[]} envVars the environment variables to set
  * @param {object[]} volumeMounts the volume mounts for the service
+ * @param {boolean} isPublic whether the public should be publicly available
  * @param {string} token the access token
  * @param {function} setService the function to set the created service
  * @param {function} setError the function to set the error if one occurred
  */
 export async function createService(serviceTypeId, name, image, replicas, ports, cpu, memory,
-    k8sServiceTypeId, envVars, volumeMounts, token, setService, setError) {
+    k8sServiceTypeId, envVars, volumeMounts, isPublic, token, setService, setError) {
   try {
     const response = await fetch(`${API_ROUTE}`, {
       method: 'POST',
@@ -42,6 +43,7 @@ export async function createService(serviceTypeId, name, image, replicas, ports,
         },
         env_vars: envVars,
         volume_mounts: volumeMounts,
+        is_public: isPublic
       }),
     });
     const data = await response.json();
@@ -58,17 +60,18 @@ export async function createService(serviceTypeId, name, image, replicas, ports,
  * @param {number} id the id of the service
  * @param {number} replicas the amount of replicas
  * @param {string[]} ports the ports to expose
- * @param {number} cpu the necessary cpu ressources
+ * @param {number} cpu the necessary cpu resources
  * @param {number} memory the necessary memory
  * @param {number} k8sServiceTypeId the service type
  * @param {object[]} envVars the environment variables to set
  * @param {object[]} volumeMounts the volume mounts for the service
+ * @param {boolean} isPublic whether the public should be publicly available
  * @param {string} token the access token
  * @param {function} setError the function to set the error if one occurred *
  * @return {Promise<boolean>} true if the request was successful
  */
 export async function updateService(id, replicas, ports, cpu, memory,
-    k8sServiceTypeId, envVars, volumeMounts, token, setError) {
+    k8sServiceTypeId, envVars, volumeMounts, isPublic, token, setError) {
   try {
     const response = await fetch(`${API_ROUTE}/${id}`, {
       method: 'PATCH',
@@ -94,6 +97,7 @@ export async function updateService(id, replicas, ports, cpu, memory,
           delete volumeMount.created_at;
           return volumeMount;
         }),
+        is_public: isPublic
       }),
     });
     return response.ok;
