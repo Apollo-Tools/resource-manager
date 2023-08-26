@@ -10,12 +10,13 @@ const API_ROUTE = `${env('API_URL')}/functions`;
  * @param {string} code the code of the function
  * @param {number} timeout the timeout of the function
  * @param {number} memory the memory of the function
+ * @param {boolean} isPublic whether the public should be publicly available
  * @param {string} token the access token
  * @param {function} setFunction the function to set the created function
  * @param {function} setError the function to set the error if one occurs
  */
 export async function createFunctionCode(name, functionTypeId, runtimeId, code,
-    timeout, memory, token, setFunction, setError) {
+    timeout, memory, isPublic, token, setFunction, setError) {
   try {
     const response = await fetch(`${API_ROUTE}`, {
       method: 'POST',
@@ -34,6 +35,7 @@ export async function createFunctionCode(name, functionTypeId, runtimeId, code,
         code: code,
         timeout_seconds: timeout,
         memory_megabytes: memory,
+        is_public: isPublic
       }),
     });
     const data = await response.json();
@@ -53,12 +55,13 @@ export async function createFunctionCode(name, functionTypeId, runtimeId, code,
  * @param {File} upload the packaged function
  * @param {number} timeout the timeout of the function
  * @param {number} memory the memory of the function
+ * @param {boolean} isPublic whether the public should be publicly available
  * @param {string} token the access token
  * @param {function} setFunction the function to set the created function
  * @param {function} setError the function to set the error if one occurs
  */
 export async function createFunctionUpload(name, functionTypeId, runtimeId, upload,
-    timeout, memory, token, setFunction, setError) {
+    timeout, memory, isPublic, token, setFunction, setError) {
   try {
     const formData = new FormData();
     formData.append('name', name);
@@ -66,6 +69,7 @@ export async function createFunctionUpload(name, functionTypeId, runtimeId, uplo
     formData.append('runtime', JSON.stringify({runtime_id: runtimeId}));
     formData.append('timeout_seconds', JSON.stringify(timeout));
     formData.append('memory_megabytes', JSON.stringify(memory));
+    formData.append('is_public', JSON.stringify(isPublic))
     formData.append('code', upload);
     const response = await fetch(`${API_ROUTE}/file`, {
       method: 'POST',
@@ -159,12 +163,13 @@ export async function getFunction(id, token, setFunction, setError) {
  * @param {string} code the code to update
  * @param {number} timeout the timeout of the function
  * @param {number} memory the memory of the function
+ * @param {boolean} isPublic
  * @param {string} token the access token
  * @param {function} setError the function to set the error if one occurs
  * @return {Promise<boolean>} true if the request was successful
  */
-export async function updateFunctionSettings(id, code, timeout, memory, token,
-    setError) {
+export async function updateFunctionSettings(id, code, timeout, memory, isPublic,
+    token, setError) {
   try {
     const response = await fetch(`${API_ROUTE}/${id}`, {
       method: 'PATCH',
@@ -176,6 +181,7 @@ export async function updateFunctionSettings(id, code, timeout, memory, token,
         code: code,
         timeout_seconds: timeout,
         memory_megabytes: memory,
+        is_public: isPublic
       }),
     });
     return response.ok;

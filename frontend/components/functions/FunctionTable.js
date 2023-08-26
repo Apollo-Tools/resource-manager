@@ -1,4 +1,3 @@
-import DateFormatter from '../misc/DateFormatter';
 import {Button, Modal, Space, Table, Tooltip} from 'antd';
 import Link from 'next/link';
 import {DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined} from '@ant-design/icons';
@@ -10,6 +9,7 @@ import PropTypes from 'prop-types';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 import RuntimeIcon from '../misc/RuntimeIcon';
 import BoolValueDisplay from "../misc/BoolValueDisplay";
+import DateColumnRender from "../misc/DateColumnRender";
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -149,8 +149,12 @@ const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resource
               render={(isPublic) => <BoolValueDisplay value={isPublic} />}
       />
       <Column title="Created at" dataIndex="created_at" key="created_at"
-        render={(createdAt) => <DateFormatter dateTimestamp={createdAt}/>}
+        render={(createdAt) =>  <DateColumnRender value={createdAt}/> }
         sorter={(a, b) => a.created_at - b.created_at}
+      />
+      <Column title="Updated at" dataIndex="updated_at" key="updated_at"
+        render={(updatedAt) =>  <DateColumnRender value={updatedAt}/> }
+        sorter={(a, b) => a.updated_at - b.updated_at}
       />
       <Column title="Actions" key="action"
         render={(_, record) => (

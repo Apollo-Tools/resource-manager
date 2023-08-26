@@ -146,11 +146,11 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
                 if (!message.isBlank()) {
                     throw new BadInputException(message);
                 }
+                function.setCode(updateNonNullValue(function.getCode(), updateFunction.getCode()));
                 if (function.getIsFile()) {
                     return UploadFileHelper.updateFile(vertx, function.getCode(), updateFunction.getCode())
                         .toCompletionStage(function);
                 } else {
-                    function.setCode(updateNonNullValue(function.getCode(), updateFunction.getCode()));
                     return CompletionStages.completedFuture(function);
                 }
             })

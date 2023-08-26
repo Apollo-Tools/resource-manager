@@ -1,4 +1,4 @@
-import {Button, Form, Input, InputNumber, Select, Switch, Upload} from 'antd';
+import {Button, Divider, Form, Input, InputNumber, Select, Switch, Upload} from 'antd';
 import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import PropTypes from 'prop-types';
@@ -46,12 +46,13 @@ const NewFunctionFrom = ({setNewFunction}) => {
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
+      console.log(values)
       if (values.isFile) {
         await createFunctionUpload(values.name, values.functionType, values.runtime, values.upload.originFileObj,
-            values.timeout, values.memorySize, token, setNewFunction, setError);
+            values.timeout, values.memorySize, values.isPublic, token, setNewFunction, setError);
       } else {
         await createFunctionCode(values.name, values.functionType, values.runtime, values.code, values.timeout,
-            values.memorySize, token, setNewFunction, setError);
+            values.memorySize, values.isPublic, token, setNewFunction, setError);
       }
     }
   };
@@ -156,7 +157,19 @@ const NewFunctionFrom = ({setNewFunction}) => {
           >
             <InputNumber className="w-40" controls={false} min={128} max={10240} precision={0} addonAfter="MB"/>
           </Form.Item>
-
+          <Form.Item
+              label={<>
+                Is Public
+                <TooltipIcon text="share function with all users" />
+              </>}
+              name="isPublic"
+              valuePropName={'checked'}
+              initialValue={false}
+              className="col-span-6"
+          >
+            <Switch checkedChildren="true" unCheckedChildren="false"/>
+          </Form.Item>
+          <Divider className="col-span-full"/>
           <Form.Item
             label="Runtime"
             name="runtime"
@@ -178,8 +191,6 @@ const NewFunctionFrom = ({setNewFunction}) => {
               })}
             </Select>
           </Form.Item>
-
-
           {selectedRuntime != null && (<>
             <Form.Item
               label="Editor / Upload"
@@ -191,9 +202,9 @@ const NewFunctionFrom = ({setNewFunction}) => {
               }
               valuePropName={'checked'}
               initialValue={isFile}
-              className="lg:col-span-12 col-span-6 mb-0"
+              className="col-span-full mb-0"
             >
-              <Switch checked={isFile} onChange={onChangeIsFile}/>
+              <Switch checked={isFile} onChange={onChangeIsFile} checkedChildren="true" unCheckedChildren="false"/>
             </Form.Item>
             {isFile ?
               <Form.Item
@@ -216,7 +227,7 @@ const NewFunctionFrom = ({setNewFunction}) => {
                   },
                 ]}
                 getValueFromEvent={({file}) => file}
-                className="lg:col-span-12 col-span-6"
+                className="col-span-full"
               >
                 <Upload
                   accept=".zip"
@@ -247,7 +258,7 @@ const NewFunctionFrom = ({setNewFunction}) => {
                     message: 'Please input the function code!',
                   },
                 ]}
-                className="lg:col-span-12 col-span-6"
+                className="col-span-full"
               >
                 <CodeMirror height="500px" extensions={editorExtensions}/>
               </Form.Item>

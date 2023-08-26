@@ -1,4 +1,4 @@
-import {Button, Divider, Form, InputNumber, Space, Typography} from 'antd';
+import {Button, Divider, Form, InputNumber, Space, Switch, Typography} from 'antd';
 import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import PropTypes from 'prop-types';
@@ -35,14 +35,15 @@ const UpdateFunctionSettingsForm = ({func, reloadFunction}) => {
       code: func.code,
       timeout: func.timeout_seconds,
       memorySize: func.memory_megabytes,
+      isPublic: func.is_public
     });
     setModified(false);
   };
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
-      await updateFunctionSettings(func.function_id, values.code, values.timeout, values.memorySize, token, setError)
-          .then(() => reloadFunction().then(() => setModified(false)));
+      await updateFunctionSettings(func.function_id, values.code, values.timeout, values.memorySize, values.isPublic,
+          token, setError).then(() => reloadFunction().then(() => setModified(false)));
     }
   };
   const onFinishFailed = (errorInfo) => {
@@ -76,7 +77,7 @@ const UpdateFunctionSettingsForm = ({func, reloadFunction}) => {
             className="col-span-6"/>
           <TextDataDisplay label="Updated at" value={<DateFormatter dateTimestamp={func.updated_at} includeTime/>}
             className="col-span-6"/>
-          <Divider className="lg:col-span-12 col-span-6"/>
+          <Divider className="col-span-full"/>
           <Form.Item
             label={<>
                 Timeout
@@ -110,6 +111,19 @@ const UpdateFunctionSettingsForm = ({func, reloadFunction}) => {
           >
             <InputNumber className="w-40" controls={false} min={128} max={10240} precision={0} addonAfter="MB"/>
           </Form.Item>
+          <Form.Item
+              label={<>
+                Is Public
+                <TooltipIcon text="share function with all users" />
+              </>}
+              name="isPublic"
+              valuePropName={'checked'}
+              className="col-span-6"
+          >
+            <Switch checkedChildren="true" unCheckedChildren="false" onChange={() => {
+              console.log('change')
+              setModified(true)}}/>
+          </Form.Item>
 
           {!func.is_file && (
             <Form.Item
@@ -121,7 +135,7 @@ const UpdateFunctionSettingsForm = ({func, reloadFunction}) => {
                   message: 'Please input the function code!',
                 },
               ]}
-              className="lg:col-span-12 col-span-6"
+              className="col-span-full"
             >
               <CodeMirror
                 height="500px"
@@ -131,7 +145,7 @@ const UpdateFunctionSettingsForm = ({func, reloadFunction}) => {
             </Form.Item>
           )}
         </div>
-        <Form.Item className="lg:col-span-12 col-span-6">
+        <Form.Item className="col-span-full">
           <Space>
             <Button type="primary" htmlType="submit" disabled={!isModified}>
                       Update

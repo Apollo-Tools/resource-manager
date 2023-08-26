@@ -27,7 +27,7 @@ public class FunctionHandler extends ValidationHandler {
     }
 
     @Override
-    public Single<JsonObject> postOne(RoutingContext rc) {
+    public Single<JsonObject> postOneToAccount(RoutingContext rc) {
         JsonObject requestBody;
         boolean isFile;
         if (rc.request().headers().get("Content-Type").equals("application/json")) {
@@ -42,6 +42,7 @@ public class FunctionHandler extends ValidationHandler {
             requestBody.put("function_type", new JsonObject(attributes.get("function_type")));
             requestBody.put("timeout_seconds", Short.valueOf(attributes.get("timeout_seconds")));
             requestBody.put("memory_megabytes", Short.valueOf(attributes.get("memory_megabytes")));
+            requestBody.put("is_public", Boolean.valueOf(attributes.get("is_public")));
             FileUpload file = rc.fileUploads().get(0);
             String[] filePath = file.uploadedFileName()
                 .replace("\\", "/")
@@ -49,11 +50,12 @@ public class FunctionHandler extends ValidationHandler {
             requestBody.put("code", filePath[filePath.length - 1]);
         }
         requestBody.put("is_file", isFile);
-        return entityChecker.submitCreate(requestBody);
+        long accountId = rc.user().principal().getLong("account_id");
+        return entityChecker.submitCreate(accountId, requestBody);
     }
 
     @Override
-    protected Completable updateOne(RoutingContext rc) {
+    protected Completable updateOneOwned(RoutingContext rc) {
         JsonObject requestBody;
         boolean isFile;
         if (rc.request().headers().get("Content-Type").equals("application/json")) {
@@ -69,8 +71,9 @@ public class FunctionHandler extends ValidationHandler {
             requestBody.put("code", filePath[filePath.length - 1]);
         }
         requestBody.put("is_file", isFile);
+        long accountId = rc.user().principal().getLong("account_id");
         return HttpHelper.getLongPathParam(rc, "id")
-            .flatMapCompletable(id -> entityChecker.submitUpdate(id, requestBody));
+            .flatMapCompletable(id -> entityChecker.submitUpdate(id, accountId, requestBody));
     }
 
     @Override

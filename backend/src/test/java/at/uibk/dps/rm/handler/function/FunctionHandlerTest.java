@@ -87,7 +87,7 @@ public class FunctionHandlerTest {
         RoutingContextMockHelper.mockHeaders(rc, request, multiMap);
         when(functionChecker.submitCreate(requestBody)).thenReturn(Single.just(requestBody));
 
-        functionHandler.postOne(rc)
+        functionHandler.postOneToAccount(rc)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.getJsonObject("runtime").getLong("runtime_id")).isEqualTo(1L);
                     if (isFile) {
@@ -127,7 +127,7 @@ public class FunctionHandlerTest {
         when(rc.pathParam("id")).thenReturn(String.valueOf(functionId));
         when(functionChecker.submitUpdate(functionId, transferData)).thenReturn(Completable.complete());
 
-        functionHandler.updateOne(rc)
+        functionHandler.updateOneOwned(rc)
             .blockingSubscribe(() -> testContext.verify(() -> {}),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
