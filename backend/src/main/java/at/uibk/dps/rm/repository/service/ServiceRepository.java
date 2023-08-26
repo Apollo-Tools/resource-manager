@@ -76,6 +76,7 @@ public class ServiceRepository extends Repository<Service> {
         return session.createQuery("from Service s " +
                 "left join fetch s.serviceType " +
                 "left join fetch s.k8sServiceType " +
+                "left join fetch s.createdBy " +
                 "where s.serviceId=:serviceId and " +
                 "(s.createdBy.accountId=:accountId or (:includePublic=true and s.isPublic=true))", entityClass)
             .setParameter("serviceId", serviceId)
@@ -120,13 +121,18 @@ public class ServiceRepository extends Repository<Service> {
      * @return a CompletionStage that emits a list of all services
      */
     public CompletionStage<List<Service>> findAllPublicAndFetch(Session session) {
-        return session.createQuery("from Service s left join fetch s.serviceType where s.isPublic = true",
+        return session.createQuery("from Service s " +
+                    "left join fetch s.serviceType " +
+                    "left join fetch s.createdBy " +
+                    "where s.isPublic = true",
                 entityClass).getResultList();
     }
 
     @Override
     public CompletionStage<List<Service>> findAllByAccountId(Stage.Session session, long accountId) {
-        return session.createQuery("from Service s left join fetch s.serviceType " +
+        return session.createQuery("from Service s " +
+                "left join fetch s.serviceType " +
+                "left join fetch s.createdBy " +
                 "where s.createdBy.accountId=:accountId", entityClass)
             .setParameter("accountId", accountId)
             .getResultList();

@@ -58,6 +58,7 @@ public class FunctionRepository extends Repository<Function> {
         return session.createQuery("from Function f " +
                 "left join fetch f.runtime " +
                 "left join fetch f.functionType " +
+                "left join fetch f.createdBy " +
                 "where f.functionId=:functionId and " +
                 "(f.createdBy.accountId=:accountId or (:includePublic=true and f.isPublic=true))", entityClass)
             .setParameter("functionId", functionId)
@@ -131,6 +132,7 @@ public class FunctionRepository extends Repository<Function> {
         return session.createQuery("from Function f " +
                 "left join fetch f.runtime " +
                 "left join fetch f.functionType " +
+                "left join fetch f.createdBy " +
                 "where f.isPublic = true",
             entityClass).getResultList();
     }

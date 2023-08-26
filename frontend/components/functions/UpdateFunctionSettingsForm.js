@@ -12,15 +12,21 @@ import DateFormatter from '../misc/DateFormatter';
 
 const UpdateFunctionSettingsForm = ({func, reloadFunction}) => {
   const [form] = Form.useForm();
-  const {token, checkTokenExpired} = useAuth();
+  const {payload, token, checkTokenExpired} = useAuth();
   const [error, setError] = useState();
+  const [canEdit, setCanEdit] = useState(false);
   const [isModified, setModified] = useState(false);
 
   useEffect(() => {
     if (func != null) {
+      setCanEdit(payload?.account_id === func.created_by.account_id);
       resetFields();
     }
   }, [func]);
+
+  useEffect(() => {
+    console.log(canEdit)
+  }, [canEdit]);
 
   // TODO: improve error handling
   useEffect(() => {
@@ -68,11 +74,13 @@ const UpdateFunctionSettingsForm = ({func, reloadFunction}) => {
         autoComplete="off"
         layout="vertical"
         onChange={() => setModified(true)}
+        disabled={!canEdit}
       >
         <div className="grid lg:grid-cols-12 grid-cols-6 gap-4">
           <TextDataDisplay label="Function Type" value={func.function_type.name} className="col-span-6"/>
           <TextDataDisplay label="Name" value={func.name} className="col-span-6"/>
           <TextDataDisplay label="Runtime" value={func.runtime.name} className="col-span-6"/>
+          <TextDataDisplay label="Created by" value={func.created_by.username} className="col-span-6" />
           <TextDataDisplay label="Created at" value={<DateFormatter dateTimestamp={func.created_at} includeTime/>}
             className="col-span-6"/>
           <TextDataDisplay label="Updated at" value={<DateFormatter dateTimestamp={func.updated_at} includeTime/>}
@@ -109,7 +117,7 @@ const UpdateFunctionSettingsForm = ({func, reloadFunction}) => {
             ]}
             className="col-span-6"
           >
-            <InputNumber className="w-40" controls={false} min={128} max={10240} precision={0} addonAfter="MB"/>
+            <InputNumber className="w-40" controls={false} min={128} max={10240} precision={0} addonAfter="MB" />
           </Form.Item>
           <Form.Item
               label={<>
@@ -141,11 +149,12 @@ const UpdateFunctionSettingsForm = ({func, reloadFunction}) => {
                 height="500px"
                 extensions={getEditorExtension(func.runtime.name)}
                 onChange={() => setModified(checkCodeIsModified())}
+                editable={canEdit}
               />
             </Form.Item>
           )}
         </div>
-        <Form.Item className="col-span-full">
+        {canEdit && <Form.Item className="col-span-full">
           <Space>
             <Button type="primary" htmlType="submit" disabled={!isModified}>
                       Update
@@ -154,7 +163,7 @@ const UpdateFunctionSettingsForm = ({func, reloadFunction}) => {
                 Reset
             </Button>
           </Space>
-        </Form.Item>
+        </Form.Item>}
       </Form>
     </>
   );

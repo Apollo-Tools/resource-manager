@@ -1,6 +1,6 @@
 import {Button, Modal, Space, Table, Tooltip} from 'antd';
 import Link from 'next/link';
-import {DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined} from '@ant-design/icons';
+import {DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined, UserOutlined} from '@ant-design/icons';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import {deleteFunction, listMyFunctions, listPublicFunctions} from '../../lib/FunctionService';
@@ -8,7 +8,6 @@ import ResourceTable from '../resources/ResourceTable';
 import PropTypes from 'prop-types';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 import RuntimeIcon from '../misc/RuntimeIcon';
-import BoolValueDisplay from "../misc/BoolValueDisplay";
 import DateColumnRender from "../misc/DateColumnRender";
 
 const {Column} = Table;
@@ -145,9 +144,12 @@ const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resource
         sorter={(a, b) =>
           a.runtime.name.localeCompare(b.runtime.name)}
       />
-      <Column title="Is Public" dataIndex="is_public" key="is_public"
-              render={(isPublic) => <BoolValueDisplay value={isPublic} />}
-      />
+      {publicFunctions &&
+        <Column title="Created by" dataIndex="created_by" key="created_by"
+          render={(createdBy) => <div><UserOutlined /> {createdBy?.username}</div> }
+          sorter={(a, b) => a.created_by.username.localeCompare(b.created_by.username)}
+        />
+      }
       <Column title="Created at" dataIndex="created_at" key="created_at"
         render={(createdAt) =>  <DateColumnRender value={createdAt}/> }
         sorter={(a, b) => a.created_at - b.created_at}
