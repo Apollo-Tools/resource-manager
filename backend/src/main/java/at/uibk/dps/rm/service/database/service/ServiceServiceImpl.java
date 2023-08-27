@@ -67,8 +67,9 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
     }
 
     @Override
-    public Future<JsonArray> findAllPublicServices() {
-        CompletionStage<List<Service>> findAll = withSession(repository::findAllPublicAndFetch);
+    public Future<JsonArray> findAllAccessibleServices(long accountId) {
+        CompletionStage<List<Service>> findAll = withSession((session) -> repository
+            .findAllAccessibleAndFetch(session, accountId));
         return sessionToFuture(findAll)
             .map(ServiceServiceImpl::mapServicesToJsonArray);
     }

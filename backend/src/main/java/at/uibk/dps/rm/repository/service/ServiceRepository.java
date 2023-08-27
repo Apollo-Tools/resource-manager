@@ -115,17 +115,18 @@ public class ServiceRepository extends Repository<Service> {
     }
 
     /**
-     * Find all public services and fetch the resource type and k8s resource type.
+     * Find all accessible services and fetch the resource type and k8s resource type.
      *
      * @param session the database session
      * @return a CompletionStage that emits a list of all services
      */
-    public CompletionStage<List<Service>> findAllPublicAndFetch(Session session) {
+    public CompletionStage<List<Service>> findAllAccessibleAndFetch(Session session, long accountId) {
         return session.createQuery("from Service s " +
-                    "left join fetch s.serviceType " +
-                    "left join fetch s.createdBy " +
-                    "where s.isPublic = true",
-                entityClass).getResultList();
+                "left join fetch s.serviceType " +
+                "left join fetch s.createdBy " +
+                "where s.isPublic = true or s.createdBy.accountId=:accountId", entityClass)
+            .setParameter("accountId", accountId)
+            .getResultList();
     }
 
     @Override

@@ -110,15 +110,15 @@ export async function listMyFunctions(token, setFunctions, setError) {
 }
 
 /**
- * List all public functions.
+ * List all accessible functions.
  *
  * @param {string} token the access token
  * @param {function} setFunctions the function to set the retrieved functions
  * @param {function} setError the function to set the error if one occurs
  */
-export async function listPublicFunctions(token, setFunctions, setError) {
+export async function listAllFunctions(token, setFunctions, setError) {
   try {
-    const response = await fetch(`${API_ROUTE}/public`, {
+    const response = await fetch(API_ROUTE, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,

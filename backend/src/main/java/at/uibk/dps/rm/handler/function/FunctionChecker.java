@@ -26,8 +26,13 @@ public class FunctionChecker extends EntityChecker {
         this.service = functionService;
     }
 
-    @Override
-    public Single<JsonArray> checkFindAll() {
-        return ErrorHandler.handleFindAll(service.findAllPublicFunctions());
+    /**
+     * Find all functions that are accessible by the account.
+     *
+     * @param accountId the id of the account
+     * @return a Single that emits the list of found functions as JsonArray
+     */
+    public Single<JsonArray> checkFindAllAccessible(long accountId) {
+        return ErrorHandler.handleFindAll(service.findAllAccessibleFunctions(accountId));
     }
 }

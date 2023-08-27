@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.router.function;
 
 import at.uibk.dps.rm.handler.PrivateEntityResultHandler;
-import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.handler.function.FunctionChecker;
 import at.uibk.dps.rm.handler.function.FunctionHandler;
 import at.uibk.dps.rm.handler.function.FunctionInputHandler;
@@ -34,17 +33,11 @@ public class FunctionRoute implements Route {
 
         router
             .operation("listMyFunctions")
-            .handler(rc -> functionHandler.getAllFromAccount(rc)
-                .subscribe(result -> ResultHandler.getFindAllResponse(rc, result),
-                    throwable -> ResultHandler.handleRequestError(rc, throwable))
-            );
+            .handler(rc -> resultHandler.handleFindAllRequest(rc, functionHandler.getAllFromAccount(rc)));
 
         router
-            .operation("listPublicFunctions")
-            .handler(rc -> functionHandler.getAll(rc)
-                .subscribe(result -> ResultHandler.getFindAllResponse(rc, result),
-                    throwable -> ResultHandler.handleRequestError(rc, throwable))
-            );
+            .operation("listAllFunctions")
+            .handler(rc -> resultHandler.handleFindAllRequest(rc, functionHandler.getAll(rc)));
 
         router
             .operation("getFunction")

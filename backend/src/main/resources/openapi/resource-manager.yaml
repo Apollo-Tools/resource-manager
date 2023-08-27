@@ -1483,32 +1483,6 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /functions/public:
-    get:
-      description: Return details about all public functions managed by the resource manager
-      operationId: listPublicFunctions
-      security:
-        - bearerAuth: []
-      tags:
-        - functions
-      responses:
-        200:
-          description: Successful pull of all functions
-          headers:
-            content-length:
-              schema:
-                type: integer
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Function"
-        401:
-          $ref: "#/components/responses/401"
-        500:
-          $ref: "#/components/responses/500"
-
   /functions/personal:
     get:
       description: |
@@ -1536,6 +1510,30 @@ paths:
         500:
           $ref: "#/components/responses/500"
   /functions:
+    get:
+      description: List all functions that are public or owned by the logged in account
+      operationId: listAllFunctions
+      security:
+        - bearerAuth: []
+      tags:
+        - functions
+      responses:
+        200:
+          description: Successful pull of all functions
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Function"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
     post:
       description: Create a new function
       operationId: createFunction
@@ -3013,33 +3011,6 @@ paths:
           $ref: "#/components/responses/404"
         500:
           $ref: "#/components/responses/500"
-
-  /services/public:
-    get:
-      description: Return details about all public services managed by the resource manager
-      operationId: listPublicServices
-      security:
-        - bearerAuth: []
-      tags:
-        - services
-      responses:
-        200:
-          description: Successful pull of all services
-          headers:
-            content-length:
-              schema:
-                type: integer
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Service"
-        401:
-          $ref: "#/components/responses/401"
-        500:
-          $ref: "#/components/responses/500"
-
   /services/personal:
     get:
       description: Return details about all public services managed by the resource manager
@@ -3066,6 +3037,30 @@ paths:
         500:
           $ref: "#/components/responses/500"
   /services:
+    get:
+      description: List all services that are public or owned by the logged in account
+      operationId: listAllServices
+      security:
+        - bearerAuth: []
+      tags:
+        - services
+      responses:
+        200:
+          description: Successful pull of all services
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Service"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
     post:
       description: Create a new service
       operationId: createService

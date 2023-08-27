@@ -9,7 +9,7 @@ import ArtifactTypeTable from '../../components/artifacttypes/ArtifactTypeTable'
 const Services = () => {
   const [selectedSegment, setSelectedSegment] = useState('Services');
   const segments = ['Services', 'Types'];
-    const [showPublicServices, setShowPublicServices] = useState(false);
+    const [showAllServices, setShowAllServices] = useState(false);
   return (
     <>
       <Head>
@@ -27,14 +27,14 @@ const Services = () => {
                 </div>
                 <div className="grid col-start-6 col-span-1 content-center justify-end">
                     <Switch
-                        checkedChildren="public service"
-                        unCheckedChildren="own services"
-                        checked={showPublicServices}
-                        onChange={setShowPublicServices}
+                        checkedChildren="all service"
+                        unCheckedChildren="my services"
+                        checked={showAllServices}
+                        onChange={setShowAllServices}
                     />
                 </div>
                 <div className="col-span-full">
-                    <ServiceTable publicServices={showPublicServices}/>
+                    <ServiceTable allServices={showAllServices}/>
                 </div>
             </div> :
           <>

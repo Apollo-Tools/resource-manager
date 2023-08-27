@@ -9,7 +9,7 @@ import ArtifactTypeTable from '../../components/artifacttypes/ArtifactTypeTable'
 const Functions = () => {
   const [selectedSegment, setSelectedSegment] = useState('Functions');
   const segments = ['Functions', 'Types'];
-  const [showPublicFunctions, setShowPublicFunctions] = useState(false);
+  const [showAllFunctions, setShowAllFunctions] = useState(false);
 
   return (
     <>
@@ -28,14 +28,14 @@ const Functions = () => {
                 </div>
                 <div className="grid col-start-6 col-span-1 content-center justify-end">
                     <Switch
-                        checkedChildren="public functions"
-                        unCheckedChildren="own function"
-                        checked={showPublicFunctions}
-                        onChange={setShowPublicFunctions}
+                        checkedChildren="all functions"
+                        unCheckedChildren="my functions"
+                        checked={showAllFunctions}
+                        onChange={setShowAllFunctions}
                     />
                 </div>
                 <div className="col-span-full">
-                    <FunctionTable publicFunctions={showPublicFunctions}/>
+                    <FunctionTable allFunctions={showAllFunctions}/>
                 </div>
               </div> :
               <>

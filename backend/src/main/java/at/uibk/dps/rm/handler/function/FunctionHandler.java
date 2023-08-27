@@ -17,6 +17,8 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
  */
 public class FunctionHandler extends ValidationHandler {
 
+    private final FunctionChecker functionChecker;
+
     /**
      * Create an instance from the functionChecker.
      *
@@ -24,6 +26,7 @@ public class FunctionHandler extends ValidationHandler {
      */
     public FunctionHandler(FunctionChecker functionChecker) {
         super(functionChecker);
+        this.functionChecker = functionChecker;
     }
 
     @Override
@@ -78,7 +81,8 @@ public class FunctionHandler extends ValidationHandler {
 
     @Override
     public Single<JsonArray> getAll(RoutingContext rc) {
-        return super.getAll(rc);
+        long accountId = rc.user().principal().getLong("account_id");
+        return functionChecker.checkFindAllAccessible(accountId);
     }
 
     @Override

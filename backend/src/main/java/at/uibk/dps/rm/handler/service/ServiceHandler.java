@@ -12,6 +12,7 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
  */
 public class ServiceHandler extends ValidationHandler {
 
+    private final ServiceChecker serviceChecker;
     /**
      * Create an instance from the serviceChecker.
      *
@@ -19,11 +20,13 @@ public class ServiceHandler extends ValidationHandler {
      */
     public ServiceHandler(ServiceChecker serviceChecker) {
         super(serviceChecker);
+        this.serviceChecker = serviceChecker;
     }
 
     @Override
     public Single<JsonArray> getAll(RoutingContext rc) {
-        return super.getAll(rc);
+        long accountId = rc.user().principal().getLong("account_id");
+        return serviceChecker.checkFindAllAccessible(accountId);
     }
 
     @Override

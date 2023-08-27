@@ -123,18 +123,19 @@ public class FunctionRepository extends Repository<Function> {
 
 
     /**
-     * Find all public functions and fetch the function type and runtime.
+     * Find all accessible functions and fetch the function type and runtime.
      *
      * @param session the database session
      * @return a CompletionStage that emits a list of all function
      */
-    public CompletionStage<List<Function>> findAllPublicAndFetch(Session session) {
+    public CompletionStage<List<Function>> findAllAccessibleAndFetch(Session session, long accountId) {
         return session.createQuery("from Function f " +
                 "left join fetch f.runtime " +
                 "left join fetch f.functionType " +
                 "left join fetch f.createdBy " +
-                "where f.isPublic = true",
-            entityClass).getResultList();
+                "where f.isPublic = true or f.createdBy.accountId=:accountId", entityClass)
+            .setParameter("accountId", accountId)
+            .getResultList();
     }
 
     @Override

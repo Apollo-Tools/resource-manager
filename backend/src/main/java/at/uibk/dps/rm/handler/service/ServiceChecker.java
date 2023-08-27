@@ -27,8 +27,13 @@ public class ServiceChecker extends EntityChecker {
         this.service = service;
     }
 
-    @Override
-    public Single<JsonArray> checkFindAll() {
-        return ErrorHandler.handleFindAll(service.findAllPublicServices());
+    /**
+     * Find all services that are accessible by the account.
+     *
+     * @param accountId the id of the account
+     * @return a Single that emits the list of found services as JsonArray
+     */
+    public Single<JsonArray> checkFindAllAccessible(long accountId) {
+        return ErrorHandler.handleFindAll(service.findAllAccessibleServices(accountId));
     }
 }

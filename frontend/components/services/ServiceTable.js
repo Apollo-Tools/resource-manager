@@ -4,7 +4,7 @@ import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import ResourceTable from '../resources/ResourceTable';
 import PropTypes from 'prop-types';
-import {deleteService, listMyServices, listPublicServices} from '../../lib/ServiceService';
+import {deleteService, listAllServices, listMyServices} from '../../lib/ServiceService';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 import Link from 'next/link';
 import DateColumnRender from "../misc/DateColumnRender";
@@ -13,7 +13,7 @@ import BoolValueDisplay from "../misc/BoolValueDisplay";
 const {Column} = Table;
 const {confirm} = Modal;
 
-const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources, publicServices = false}) => {
+const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources, allServices = false}) => {
   const {token, checkTokenExpired} = useAuth();
   const [error, setError] = useState(false);
   const [expandedKeys, setExpandedKeys] = useState([]);
@@ -22,14 +22,14 @@ const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      if (publicServices) {
-        listPublicServices(token, setServices, setError)
+      if (allServices) {
+        listAllServices(token, setServices, setError)
       } else {
         listMyServices(token, setServices, setError);
       }
       setSelectedResources(value);
     }
-  }, [publicServices]);
+  }, [allServices]);
 
   // TODO: improve error handling
   useEffect(() => {
@@ -145,10 +145,14 @@ const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources
             selectedKeys={selectedKeys} confirm={confirm} columnName="image" />}
         onFilter={(value, record) => record.image.startsWith(value)}
       />
-      {publicServices ?
+      {allServices ?
           <Column title="Created by" dataIndex="created_by" key="created_by"
                   render={(createdBy) => <div><UserOutlined /> {createdBy?.username}</div> }
                   sorter={(a, b) => a.created_by.username.localeCompare(b.created_by.username)}
+                  filterDropdown={({setSelectedKeys, selectedKeys, confirm, clearFilters}) =>
+                      <ColumnFilterDropdown setSelectedKeys={setSelectedKeys} clearFilters={clearFilters}
+                                            selectedKeys={selectedKeys} confirm={confirm} columnName="name" />}
+                  onFilter={(value, record) => record.created_by.username.startsWith(value)}
           /> :
           <Column title="Is Public" dataIndex="is_public" key="is_public"
                   render={(isPublic) => <BoolValueDisplay value={isPublic} />}
@@ -170,7 +174,7 @@ const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources
                 <Button icon={<InfoCircleOutlined />}/>
               </Link>
             </Tooltip>
-            {!publicServices && <Tooltip title="Delete">
+            {!allServices && <Tooltip title="Delete">
               <Button onClick={() => showDeleteConfirm(record.service_id)} icon={<DeleteOutlined />}/>
             </Tooltip>}
           </Space>

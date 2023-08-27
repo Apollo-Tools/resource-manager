@@ -63,8 +63,9 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
     }
 
     @Override
-    public Future<JsonArray> findAllPublicFunctions() {
-        CompletionStage<List<Function>> findAll = withSession(repository::findAllPublicAndFetch);
+    public Future<JsonArray> findAllAccessibleFunctions(long accountId) {
+        CompletionStage<List<Function>> findAll = withSession((session) -> repository
+                .findAllAccessibleAndFetch(session, accountId));
         return sessionToFuture(findAll)
             .map(FunctionServiceImpl::mapFunctionsToJsonArray);
     }

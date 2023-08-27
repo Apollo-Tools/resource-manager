@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.router.service;
 
 import at.uibk.dps.rm.handler.PrivateEntityResultHandler;
-import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.handler.service.ServiceChecker;
 import at.uibk.dps.rm.handler.service.ServiceHandler;
 import at.uibk.dps.rm.handler.service.ServiceInputHandler;
@@ -33,17 +32,11 @@ public class ServiceRoute implements Route {
 
         router
             .operation("listMyServices")
-            .handler(rc -> serviceHandler.getAllFromAccount(rc)
-                .subscribe(result -> ResultHandler.getFindAllResponse(rc, result),
-                    throwable -> ResultHandler.handleRequestError(rc, throwable))
-            );
+            .handler(rc -> resultHandler.handleFindAllRequest(rc, serviceHandler.getAllFromAccount(rc)));
 
         router
-            .operation("listPublicServices")
-            .handler(rc -> serviceHandler.getAll(rc)
-                .subscribe(result -> ResultHandler.getFindAllResponse(rc, result),
-                    throwable -> ResultHandler.handleRequestError(rc, throwable))
-            );
+            .operation("listAllServices")
+            .handler(rc -> resultHandler.handleFindAllRequest(rc, serviceHandler.getAll(rc)));
 
         router
             .operation("getService")

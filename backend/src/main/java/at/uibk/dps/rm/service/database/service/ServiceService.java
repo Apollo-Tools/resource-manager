@@ -36,9 +36,10 @@ public interface ServiceService extends DatabaseServiceInterface {
     }
 
     /**
-     * Find all public services.
+     * Find all services that are accessible by the account.
      *
+     * @param accountId the id of the account
      * @return a Future that emits all found services as JsonArray
      */
-    Future<JsonArray> findAllPublicServices();
+    Future<JsonArray> findAllAccessibleServices(long accountId);
 }

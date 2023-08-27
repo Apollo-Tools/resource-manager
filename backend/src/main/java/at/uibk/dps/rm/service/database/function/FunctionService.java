@@ -36,9 +36,10 @@ public interface FunctionService extends DatabaseServiceInterface {
     }
 
     /**
-     * Find all public functions.
+     * Find all functions accessible by the account.
      *
+     * @param accountId the id of the account
      * @return a Future that emits all found functions as JsonArray
      */
-    Future<JsonArray> findAllPublicFunctions();
+    Future<JsonArray> findAllAccessibleFunctions(long accountId);
 }

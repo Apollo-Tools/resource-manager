@@ -131,15 +131,15 @@ export async function listMyServices(token, setServices, setError) {
 }
 
 /**
- * List all existing services.
+ * List all accessible services.
  *
  * @param {string} token the access token
  * @param {function} setServices the function to set the retrieved services
  * @param {function} setError the function to set the error if one occurred
  */
-export async function listPublicServices(token, setServices, setError) {
+export async function listAllServices(token, setServices, setError) {
   try {
-    const response = await fetch(`${API_ROUTE}/public`, {
+    const response = await fetch(API_ROUTE, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
