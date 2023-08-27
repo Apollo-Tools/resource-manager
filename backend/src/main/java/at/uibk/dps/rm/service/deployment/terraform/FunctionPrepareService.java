@@ -5,13 +5,12 @@ import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.dto.resource.RuntimeEnum;
-import at.uibk.dps.rm.entity.model.Function;
-import at.uibk.dps.rm.entity.model.FunctionDeployment;
-import at.uibk.dps.rm.entity.model.MainResource;
+import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.RuntimeNotSupportedException;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackageJavaCode;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackagePythonCode;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackageSourceCode;
+import at.uibk.dps.rm.util.misc.MetricValueMapper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.core.Vertx;
@@ -72,10 +71,20 @@ public class FunctionPrepareService {
         Set<RuntimeEnum> copiedOpenFaasTemplates = new HashSet<>();
         for (FunctionDeployment fr : functionDeployments) {
             Function function = fr.getFunction();
+            Resource resource = fr.getResource();
+            String functionIdentifier =  function.getFunctionDeploymentId();
+            Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
+            Set<String> architectures;
+            if (functionsToDeploy.getFunctionArchitectures().containsKey(functionIdentifier)) {
+                architectures = functionsToDeploy.getFunctionArchitectures().get(functionIdentifier);
+            } else {
+                architectures = new HashSet<>();
+                functionsToDeploy.getFunctionArchitectures().put(functionIdentifier, architectures);
+            }
+            architectures.add(metricValues.get("docker-architecture").getValueString());
             if (functionIds.contains(function.getFunctionId())) {
                 continue;
             }
-            String functionIdentifier =  function.getFunctionDeploymentId();
             RuntimeEnum runtime;
             try {
                 runtime = RuntimeEnum.fromRuntime(function.getRuntime());
@@ -99,7 +108,6 @@ public class FunctionPrepareService {
                 functionsToDeploy.getDockerFunctionIdentifiers().add(functionIdentifier);
             }
             functionIds.add(function.getFunctionId());
-            functionsToDeploy.getFunctionIdentifiers().add(functionIdentifier);
         }
         functionsToDeploy.setDockerFunctionsString(functionsString.toString());
         // TODO: add check if this is necessary (=no changes since last push)

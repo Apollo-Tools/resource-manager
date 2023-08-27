@@ -125,8 +125,8 @@ public class DeploymentExecutionChecker {
     private Single<ProcessOutput> buildAndPushOpenFaasImages(Vertx vertx, DockerCredentials dockerCredentials,
             FunctionsToDeploy functionsToDeploy, DeploymentPath deploymentPath) {
         OpenFaasImageService openFaasImageService = new OpenFaasImageService(vertx, dockerCredentials,
-            functionsToDeploy.getDockerFunctionIdentifiers(), deploymentPath.getFunctionsFolder());
-        return openFaasImageService.buildOpenFaasImages(functionsToDeploy.getDockerFunctionsString());
+            functionsToDeploy, deploymentPath.getFunctionsFolder());
+        return openFaasImageService.buildOpenFaasImages();
     }
 
   /**
