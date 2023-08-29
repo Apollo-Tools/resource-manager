@@ -36,6 +36,7 @@ dependencies {
   // vert.x
   implementation("io.vertx:vertx-core:$vertxVersion")
   implementation("io.vertx:vertx-web:$vertxVersion")
+  implementation("io.vertx:vertx-web-client:$vertxVersion")
   implementation("io.vertx:vertx-pg-client:$vertxVersion")
   implementation("io.vertx:vertx-auth-oauth2:$vertxVersion")
   implementation("io.vertx:vertx-auth-jwt:$vertxVersion")

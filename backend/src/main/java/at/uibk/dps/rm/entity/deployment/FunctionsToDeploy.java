@@ -5,7 +5,8 @@ import io.vertx.core.json.JsonObject;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Class that is used in the deployment process to store the identifiers and names of functions,
@@ -23,7 +24,7 @@ public class FunctionsToDeploy {
 
     private final List<String> dockerFunctionIdentifiers = new ArrayList<>();
 
-    private final Map<String, Set<String>> functionArchitectures = new HashMap<>();
+    private final List<String> functionIdentifiers = new ArrayList<>();
 
     /**
      * Create an instance from a JsonObject. The creation fails, if the schema of the JsonObject
@@ -35,7 +36,7 @@ public class FunctionsToDeploy {
         FunctionsToDeploy functionsToDeploy = jsonObject.mapTo(FunctionsToDeploy.class);
         this.dockerFunctionsString = functionsToDeploy.getDockerFunctionsString();
         this.dockerFunctionIdentifiers.addAll(functionsToDeploy.getDockerFunctionIdentifiers());
-        this.functionArchitectures.putAll(functionsToDeploy.getFunctionArchitectures());
+        this.functionIdentifiers.addAll(functionsToDeploy.getFunctionIdentifiers());
     }
 
     /**

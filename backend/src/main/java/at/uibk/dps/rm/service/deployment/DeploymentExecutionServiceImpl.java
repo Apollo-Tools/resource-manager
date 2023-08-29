@@ -5,6 +5,8 @@ import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.service.ServiceProxy;
+import at.uibk.dps.rm.service.deployment.docker.DockerHubImageChecker;
+import at.uibk.dps.rm.service.deployment.docker.DockerImageChecker;
 import at.uibk.dps.rm.service.deployment.terraform.FunctionPrepareService;
 import at.uibk.dps.rm.service.deployment.terraform.MainFileService;
 import at.uibk.dps.rm.service.deployment.terraform.TerraformSetupService;
@@ -32,12 +34,17 @@ public class DeploymentExecutionServiceImpl extends ServiceProxy implements Depl
     @Override
     public Future<FunctionsToDeploy> packageFunctionsCode(DeployResourcesDTO deployRequest) {
         Single<FunctionsToDeploy> packageFunctions = new ConfigUtility(vertx).getConfigDTO().flatMap(config -> {
-            DeploymentPath deploymentPath = new DeploymentPath(deployRequest.getDeployment().getDeploymentId(),
-                config);
-            FunctionPrepareService functionFileService = new FunctionPrepareService(vertx,
-                deployRequest.getFunctionDeployments(), deploymentPath,
-                deployRequest.getDeploymentCredentials().getDockerCredentials());
-            return functionFileService.packageCode();
+            DockerImageChecker dockerImageChecker = new DockerHubImageChecker(vertx, deployRequest
+                .getDeploymentCredentials().getDockerCredentials());
+            return dockerImageChecker.getNecessaryFunctionBuilds(deployRequest.getFunctionDeployments())
+                .flatMap(openFaasFunctions -> {
+                    DeploymentPath deploymentPath = new DeploymentPath(deployRequest.getDeployment().getDeploymentId(),
+                        config);
+                    FunctionPrepareService functionFileService = new FunctionPrepareService(vertx,
+                        deployRequest.getFunctionDeployments(), deploymentPath, openFaasFunctions,
+                        deployRequest.getDeploymentCredentials().getDockerCredentials());
+                    return functionFileService.packageCode();
+                });
         });
         return SingleHelper.toFuture(packageFunctions);
     }

@@ -10,7 +10,6 @@ import at.uibk.dps.rm.exception.RuntimeNotSupportedException;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackageJavaCode;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackagePythonCode;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackageSourceCode;
-import at.uibk.dps.rm.util.misc.MetricValueMapper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.core.Vertx;
@@ -39,6 +38,8 @@ public class FunctionPrepareService {
 
     private final Set<Long> functionIds = new HashSet<>();
 
+    private final Set<Function> openFaasFunctionsToBuild;
+
     private FunctionsToDeploy functionsToDeploy = new FunctionsToDeploy();
 
     /**
@@ -50,11 +51,13 @@ public class FunctionPrepareService {
      * @param dockerCredentials the credentials of the docker user
      */
     public FunctionPrepareService(Vertx vertx, List<FunctionDeployment> functionDeployments,
-            DeploymentPath deploymentPath, DockerCredentials dockerCredentials) {
+            DeploymentPath deploymentPath, Set<Function> openFaasFunctionsToBuild,
+            DockerCredentials dockerCredentials) {
         this.vertx = vertx;
         this.fileSystem = vertx.fileSystem();
         this.functionDeployments = functionDeployments;
         this.deploymentPath = deploymentPath;
+        this.openFaasFunctionsToBuild = openFaasFunctionsToBuild;
         this.dockerCredentials = dockerCredentials;
     }
 
@@ -71,20 +74,10 @@ public class FunctionPrepareService {
         Set<RuntimeEnum> copiedOpenFaasTemplates = new HashSet<>();
         for (FunctionDeployment fr : functionDeployments) {
             Function function = fr.getFunction();
-            Resource resource = fr.getResource();
-            String functionIdentifier =  function.getFunctionDeploymentId();
-            Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
-            Set<String> architectures;
-            if (functionsToDeploy.getFunctionArchitectures().containsKey(functionIdentifier)) {
-                architectures = functionsToDeploy.getFunctionArchitectures().get(functionIdentifier);
-            } else {
-                architectures = new HashSet<>();
-                functionsToDeploy.getFunctionArchitectures().put(functionIdentifier, architectures);
-            }
-            architectures.add(metricValues.get("docker-architecture").getValueString());
             if (functionIds.contains(function.getFunctionId())) {
                 continue;
             }
+            String functionIdentifier =  function.getFunctionDeploymentId();
             RuntimeEnum runtime;
             try {
                 runtime = RuntimeEnum.fromRuntime(function.getRuntime());
@@ -99,7 +92,7 @@ public class FunctionPrepareService {
                 return Single.error(RuntimeNotSupportedException::new);
             }
             completables.add(packageSourceCode.composeSourceCode());
-            if (deployFunctionOnOpenFaaS(function)) {
+            if (openFaasFunctionsToBuild.contains(function) && deployFunctionOnOpenFaaS(function)) {
                 functionsString.append(getOpenFaasTemplateBlock(functionIdentifier, runtime));
                 if (!copiedOpenFaasTemplates.contains(runtime)) {
                     completables.add(copyOpenFaasTemplate(runtime));
@@ -108,9 +101,9 @@ public class FunctionPrepareService {
                 functionsToDeploy.getDockerFunctionIdentifiers().add(functionIdentifier);
             }
             functionIds.add(function.getFunctionId());
+            functionsToDeploy.getFunctionIdentifiers().add(functionIdentifier);
         }
         functionsToDeploy.setDockerFunctionsString(functionsString.toString());
-        // TODO: add check if this is necessary (=no changes since last push)
         if (completables.isEmpty()) {
             return Single.just(functionsToDeploy);
         }

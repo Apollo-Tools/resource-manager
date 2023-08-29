@@ -14,8 +14,6 @@ import lombok.AllArgsConstructor;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -41,7 +39,7 @@ public class OpenFaasImageService {
      * @return a Single that emits the process output of the build process
      */
     public Single<ProcessOutput> buildOpenFaasImages() {
-        if (functionsToDeploy.getFunctionArchitectures().isEmpty()) {
+        if (functionsToDeploy.getDockerFunctionIdentifiers().isEmpty()) {
             return Single.just(new ProcessOutput());
         }
         String stackFile = String.format(
@@ -123,14 +121,11 @@ public class OpenFaasImageService {
 
     private StringBuilder getBuildxBuildCommands() {
         StringBuilder dockerInteractiveCommands = new StringBuilder();
-        Set<Map.Entry<String, Set<String>>> entries = functionsToDeploy.getFunctionArchitectures().entrySet();
-
-        for (Map.Entry<String, Set<String>> functionArchitecture : entries) {
-            String functionIdentifier = functionArchitecture.getKey();
-            String architectures = String.join(",", functionArchitecture.getValue());
-            dockerInteractiveCommands.append(String.format(" && docker buildx build -t %s/%s/%s ./%s --platform " +
-                "%s --push --provenance=false", dockerCredentials.getRegistry(), dockerCredentials.getUsername(),
-                functionIdentifier, functionIdentifier, architectures)
+        for (String functionIdentifier : functionsToDeploy.getDockerFunctionIdentifiers()) {
+            String ARCHITECTURES = "linux/amd64,linux/arm/v7";
+            dockerInteractiveCommands.append(String.format(" && docker buildx build " +
+                    "-t %s/%s/%s ./%s --platform %s --push --provenance=false", dockerCredentials.getRegistry(),
+                dockerCredentials.getUsername(), functionIdentifier, functionIdentifier, ARCHITECTURES)
             );
         }
         return dockerInteractiveCommands;
