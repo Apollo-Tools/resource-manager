@@ -50,4 +50,17 @@ public class MetricRepository extends Repository<Metric> {
             .setParameter("metric", metric)
             .getSingleResultOrNull();
     }
+
+    /**
+     * Find a slo metric by its name.
+     *
+     * @param session the database session
+     * @param metric the name of the metric
+     * @return a CompletionStage that emits the metric if it exists, else null
+     */
+    public CompletionStage<Metric> findByMetricAndIsSLO(Session session, String metric) {
+        return session.createQuery("from Metric m where m.metric=:metric and m.isSlo=true", entityClass)
+            .setParameter("metric", metric)
+            .getSingleResultOrNull();
+    }
 }

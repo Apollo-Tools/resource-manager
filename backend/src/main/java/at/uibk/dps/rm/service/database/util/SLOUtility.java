@@ -36,7 +36,7 @@ public class SLOUtility {
      */
     public CompletableFuture<List<Resource>> findAndFilterResourcesBySLOs(Session session, SLORequest sloRequest) {
         List<CompletableFuture<Void>> checkSLOs = sloRequest.getServiceLevelObjectives().stream().map(slo ->
-                metricRepository.findByMetric(session, slo.getName())
+                metricRepository.findByMetricAndIsSLO(session, slo.getName())
                     .thenAccept(metric -> validateSLOType(slo, metric))
                     .toCompletableFuture()
             )

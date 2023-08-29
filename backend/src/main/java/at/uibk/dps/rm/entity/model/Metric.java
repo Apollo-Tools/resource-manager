@@ -26,6 +26,8 @@ public class Metric {
 
     private String description;
 
+    private Boolean isSlo;
+
     @ManyToOne
     @JoinColumn(name="metric_type_id", nullable = false)
     private MetricType metricType;
