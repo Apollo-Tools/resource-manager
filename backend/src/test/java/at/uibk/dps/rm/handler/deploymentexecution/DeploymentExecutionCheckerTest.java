@@ -263,7 +263,8 @@ public class DeploymentExecutionCheckerTest {
     void deployTerminateContainer(String testCase, boolean isValid, VertxTestContext testContext) {
         long deploymentId = 1L, resourceDeploymentId = 2L;
         DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
-        ProcessOutput processOutput = TestDTOProvider.createProcessOutput(processContainer, testCase);
+        ProcessOutput processOutput = TestDTOProvider.createProcessOutput(processContainer,
+            "{\"deployment_data\": {\"value\": {\"result\": \"test\"}}}");
         JsonObject log = JsonObject.mapFrom(TestLogProvider.createLog(1L));
 
         when(processContainer.exitValue()).thenReturn(isValid ? 0 : -1);
@@ -272,16 +273,17 @@ public class DeploymentExecutionCheckerTest {
 
         try(MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
             MockedConstruction<TerraformExecutor> ignoredTFE = Mockprovider.mockTerraformExecutor(deploymentPath,
-                resourceDeploymentId, processOutput, testCase)
+                resourceDeploymentId, processOutput, testCase, "output")
         ) {
             Single<JsonObject> single = deploymentChecker.startContainer(deploymentId, resourceDeploymentId);
             single.subscribe(result -> testContext.verify(() -> {
                 if (!isValid) {
                     fail("method did not throw exception");
                 }
-                fail("TODO: fix");
+                assertThat(result.getString("result")).isEqualTo("test");
                 testContext.completeNow();
             }), throwable -> testContext.verify(() -> {
+                throwable.printStackTrace();
                 if (isValid) {
                     fail("method has thrown exception");
                 } else {

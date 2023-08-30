@@ -80,6 +80,9 @@ public class Mockprovider {
             case "destroy":
                 given(mock.destroy(path)).willReturn(Single.just(processOutput));
                 break;
+            case "output":
+                given(mock.getOutput(path)).willReturn(Single.just(processOutput));
+                break;
         }
     }
 
@@ -97,12 +100,14 @@ public class Mockprovider {
 
 
     public static MockedConstruction<TerraformExecutor> mockTerraformExecutor(DeploymentPath deploymentPath,
-        long resourceDeploymentId, ProcessOutput processOutput, String mode) {
+        long resourceDeploymentId, ProcessOutput processOutput, String... modes) {
         return Mockito.mockConstruction(TerraformExecutor.class,
             (mock, context) -> {
                 Path containerPath = Path.of(deploymentPath.getRootFolder().toString(), "container",
                     String.valueOf(resourceDeploymentId));
-                mockTerraformExecutor(mock, containerPath, mode, processOutput);
+                for (String mode: modes) {
+                    mockTerraformExecutor(mock, containerPath, mode, processOutput);
+                }
             });
     }
 
