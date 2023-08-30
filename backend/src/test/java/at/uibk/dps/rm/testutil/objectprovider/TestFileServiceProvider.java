@@ -13,7 +13,9 @@ import io.vertx.rxjava3.core.file.FileSystem;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Utility class to instantiate objects that are different types of file services.
@@ -64,7 +66,10 @@ public class TestFileServiceProvider {
         credentials.setAccessToken("access-token");
         credentials.setRegistry("docker.io");
         DeploymentPath path = new DeploymentPath(1L, TestConfigProvider.getConfigDTO());
-        return new FunctionPrepareService(vertx, functionDeployments, path, credentials);
+        Set<Function> functions = new HashSet<>();
+        functions.add(f1);
+        functions.add(f2);
+        return new FunctionPrepareService(vertx, functionDeployments, path, functions, credentials);
     }
 
     public static FunctionPrepareService createFunctionFileServiceNoFunctions(Vertx vertx) {
@@ -74,7 +79,7 @@ public class TestFileServiceProvider {
         credentials.setAccessToken("access-token");
         credentials.setRegistry("docker.io");
         DeploymentPath path = new DeploymentPath(1L, TestConfigProvider.getConfigDTO());
-        return new FunctionPrepareService(vertx, functionDeployments, path, credentials);
+        return new FunctionPrepareService(vertx, functionDeployments, path, Set.of(), credentials);
     }
 
     public static FunctionPrepareService createFunctionFileServiceLambdaEc2Python(Vertx vertx) {

@@ -71,19 +71,18 @@ public class DeploymentExecutionServiceImplTest {
     void packageFunctionsCode(VertxTestContext testContext) {
         DeployResourcesDTO deployRequest = TestRequestProvider.createDeployRequest();
         FunctionsToDeploy functionsToDeploy = TestDTOProvider.createFunctionsToDeploy();
-
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
              MockedConstruction<FunctionPrepareService> ignoredFPS = Mockprovider
                 .mockFunctionPrepareService(functionsToDeploy)) {
             deploymentExecutionService.packageFunctionsCode(deployRequest)
                 .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                     assertThat(result.getFunctionIdentifiers().size()).isEqualTo(2);
-                    assertThat(result.getFunctionIdentifiers().get(0)).isEqualTo("foo1_python39");
-                    assertThat(result.getFunctionIdentifiers().get(1)).isEqualTo("foo2_python39");
-                    assertThat(result.getDockerFunctionsString()).isEqualTo("\"  foo1_python39:\\n    " +
+                    assertThat(result.getFunctionIdentifiers().get(0)).isEqualTo("foo1_python38");
+                    assertThat(result.getFunctionIdentifiers().get(1)).isEqualTo("foo2_python38");
+                    assertThat(result.getDockerFunctionsString()).isEqualTo("\"  foo1_python38:\\n    " +
                         "lang: python3-flask-debian\\n    handler: ./foo1_python39\\n    " +
-                        "image: user/foo1_python39:latest\\n  foo2_python39:\\n    lang: python3-flask-debian\\n    " +
-                        "handler: ./foo2_python39\\n    image: user/foo2_python39:latest\\n\"");
+                        "image: user/foo1_python38:latest\\n  foo2_python38:\\n    lang: python3-flask-debian\\n    " +
+                        "handler: ./foo2_python38\\n    image: user/foo2_python38:latest\\n\"");
                     testContext.completeNow();
                 })));
         }

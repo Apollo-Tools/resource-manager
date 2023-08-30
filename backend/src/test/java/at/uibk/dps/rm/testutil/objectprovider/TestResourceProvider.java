@@ -48,11 +48,12 @@ public class TestResourceProvider {
     public static Resource createResourceLambda(long id, Region region) {
         MainResource resource = new MainResource();
         resource.setResourceId(id);
+        resource.setName("mainresource" + id);
         resource.setRegion(region);
         Platform platform = TestPlatformProvider.createPlatformFaas(1L, PlatformEnum.LAMBDA.getValue());
         resource.setPlatform(platform);
         MetricType mt1 = TestMetricProvider.createMetricTypeString();
-        Metric m1 = TestMetricProvider.createMetric(1L, "deployment-role", mt1, false);
+        Metric m1 = TestMetricProvider.createMetric(1L, "deployment-role", mt1);
         MetricValue mv1 = TestMetricProvider.createMetricValue(1L, m1, "labRole");
         resource.setMetricValues(Set.of(mv1));
         return resource;
@@ -66,11 +67,12 @@ public class TestResourceProvider {
     public static Resource createResourceEC2(long id, Region region, String instanceType) {
         MainResource resource = new MainResource();
         resource.setResourceId(id);
+        resource.setName("mainresource" + id);
         resource.setRegion(region);
         Platform platform = TestPlatformProvider.createPlatformFaas(1L, PlatformEnum.EC2.getValue());
         resource.setPlatform(platform);
         MetricType mt1 = TestMetricProvider.createMetricTypeString();
-        Metric m1 = TestMetricProvider.createMetric(3L, "instance-type", mt1, false);
+        Metric m1 = TestMetricProvider.createMetric(3L, "instance-type", mt1);
         MetricValue mv1 = TestMetricProvider.createMetricValue(1L, m1, instanceType);
         resource.setMetricValues(Set.of(mv1));
         return resource;
@@ -85,13 +87,14 @@ public class TestResourceProvider {
             String openfaasPw) {
         MainResource resource = new MainResource();
         resource.setResourceId(id);
+        resource.setName("mainresource" + id);
         resource.setRegion(region);
         Platform platform = TestPlatformProvider.createPlatformFaas(1L, PlatformEnum.OPENFAAS.getValue());
         resource.setPlatform(platform);
         MetricType mt1 = TestMetricProvider.createMetricTypeString();
-        Metric m1 = TestMetricProvider.createMetric(1L, "gateway-url", mt1, false);
-        Metric m2 = TestMetricProvider.createMetric(2L, "openfaas-user", mt1, false);
-        Metric m3 = TestMetricProvider.createMetric(3L, "openfaas-pw", mt1, false);
+        Metric m1 = TestMetricProvider.createMetric(1L, "gateway-url", mt1);
+        Metric m2 = TestMetricProvider.createMetric(2L, "openfaas-user", mt1);
+        Metric m3 = TestMetricProvider.createMetric(3L, "openfaas-pw", mt1);
         MetricValue mv1 = TestMetricProvider.createMetricValue(3L, m1, gatewayUrl);
         MetricValue mv2 = TestMetricProvider.createMetricValue(4L, m2, openfaasUser);
         MetricValue mv3 = TestMetricProvider.createMetricValue(5L, m3, openfaasPw);
@@ -108,10 +111,11 @@ public class TestResourceProvider {
     public static Resource createResourceFaaS(long id, Region region, Double timeout, Double memorySize) {
         MainResource resource = new MainResource();
         resource.setResourceId(id);
+        resource.setName("mainresource" + id);
         resource.setRegion(region);
         MetricType mt = TestMetricProvider.createMetricType(1L, "number");
-        Metric m1 = TestMetricProvider.createMetric(1L, "timeout", mt, false);
-        Metric m2 = TestMetricProvider.createMetric(2L, "memory-size", mt, false);
+        Metric m1 = TestMetricProvider.createMetric(1L, "timeout", mt);
+        Metric m2 = TestMetricProvider.createMetric(2L, "memory-size", mt);
         MetricValue mv1 = TestMetricProvider.createMetricValue(1L, m1, timeout);
         MetricValue mv2 = TestMetricProvider.createMetricValue(2L, m2, memorySize);
         resource.setMetricValues(Set.of(mv1, mv2));
@@ -123,7 +127,7 @@ public class TestResourceProvider {
         resource.setResourceId(id);
         resource.setRegion(region);
         MetricType mt = TestMetricProvider.createMetricType(1L, "string");
-        Metric m1 = TestMetricProvider.createMetric(1L, "instance-type", mt, false);
+        Metric m1 = TestMetricProvider.createMetric(1L, "instance-type", mt);
         MetricValue mv1 = TestMetricProvider.createMetricValue(1L, m1, instanceType);
         resource.setMetricValues(Set.of(mv1));
         return resource;
@@ -136,9 +140,9 @@ public class TestResourceProvider {
         Region region = TestResourceProviderProvider.createRegion(2L, "edge", provider);
         resource.setRegion(region);
         MetricType mt = TestMetricProvider.createMetricType(1L, "string");
-        Metric m1 = TestMetricProvider.createMetric(1L, "gateway-url", mt, false);
-        Metric m2 = TestMetricProvider.createMetric(2L, "openfaas-user", mt, false);
-        Metric m3 = TestMetricProvider.createMetric(3L, "openfaas-pw", mt, false);
+        Metric m1 = TestMetricProvider.createMetric(1L, "gateway-url", mt);
+        Metric m2 = TestMetricProvider.createMetric(2L, "openfaas-user", mt);
+        Metric m3 = TestMetricProvider.createMetric(3L, "openfaas-pw", mt);
         MetricValue mv1 = TestMetricProvider.createMetricValue(1L, m1, gatewayUrl);
         MetricValue mv2 = TestMetricProvider.createMetricValue(2L, m2, openFaasUser);
         MetricValue mv3 = TestMetricProvider.createMetricValue(3L, m3, openfaasPw);
@@ -149,14 +153,15 @@ public class TestResourceProvider {
     public static Resource createResourceContainer(long id, Region region, String clusterUrl, boolean hasExternalIp) {
         MainResource resource = new MainResource();
         resource.setResourceId(id);
+        resource.setName("mainresource" + id);
         resource.setRegion(region);
         Platform platform = TestPlatformProvider.createPlatformContainer(1L, PlatformEnum.K8S.getValue());
         resource.setPlatform(platform);
         MetricType mt1 = TestMetricProvider.createMetricTypeNumber();
         MetricType mt2 = TestMetricProvider.createMetricTypeString();
-        Metric m1 = TestMetricProvider.createMetric(1L, "cluster-url", mt2, false);
-        Metric m2 = TestMetricProvider.createMetric(2L, "pre-pull-timeout", mt1, false);
-        Metric m3 = TestMetricProvider.createMetric(3L, "external-ip", mt2, false);
+        Metric m1 = TestMetricProvider.createMetric(1L, "cluster-url", mt2);
+        Metric m2 = TestMetricProvider.createMetric(2L, "pre-pull-timeout", mt1);
+        Metric m3 = TestMetricProvider.createMetric(3L, "external-ip", mt2);
         MetricValue mv1 = TestMetricProvider.createMetricValue(1L, m1, clusterUrl);
         MetricValue mv2 = TestMetricProvider.createMetricValue(2L, m2, 2);
         MetricValue mv3 = TestMetricProvider.createMetricValue(3L, m3, "0.0.0.0");

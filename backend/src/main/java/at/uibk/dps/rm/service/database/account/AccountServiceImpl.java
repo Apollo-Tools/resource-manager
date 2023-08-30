@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.database.account;
 
+import at.uibk.dps.rm.entity.dto.account.NewAccountDTO;
 import at.uibk.dps.rm.entity.dto.account.RoleEnum;
 import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.exception.UnauthorizedException;
@@ -62,29 +63,27 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
 
     @Override
     public Future<JsonObject> save(JsonObject data) {
-        Account newAccount = data.mapTo(Account.class);
+        NewAccountDTO accountDTO = data.mapTo(NewAccountDTO.class);
+        Account newAccount = new Account();
         CompletionStage<Account> save = withTransaction(session ->
-            repository.findByUsername(session, newAccount.getUsername())
-                .thenCompose(account -> {
-                    ServiceResultValidator.checkExists(account, Account.class);
+            repository.findByUsername(session, accountDTO.getUsername())
+                .thenCompose(existingAccount -> {
+                    ServiceResultValidator.checkExists(existingAccount, Account.class);
                     return roleRepository.findByRoleName(session, RoleEnum.DEFAULT.getValue());
                 })
                 .thenCompose(role -> {
                     ServiceResultValidator.checkFound(role, "default role not found");
+                    newAccount.setUsername(accountDTO.getUsername());
                     newAccount.setRole(role);
                     PasswordUtility passwordUtility = new PasswordUtility();
-                    char[] password = newAccount.getPassword().toCharArray();
+                    char[] password = accountDTO.getPassword().toCharArray();
                     String hash = passwordUtility.hashPassword(password);
                     newAccount.setPassword(hash);
                     return session.persist(newAccount)
                         .thenApply(res -> newAccount);
                 })
         );
-        return sessionToFuture(save).map(result -> {
-            JsonObject returnObject = JsonObject.mapFrom(result);
-            returnObject.remove("password");
-            return returnObject;
-        });
+        return sessionToFuture(save).map(JsonObject::mapFrom);
     }
 
     @Override

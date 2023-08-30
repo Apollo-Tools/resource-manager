@@ -55,7 +55,7 @@ public class ContainerDeployFileServiceTest {
         ContainerDeployFileService service =
             TestFileServiceProvider.createContainerDeployFileService(vertx.fileSystem(), rootFolder, resource,
                 deployment);
-        String configPath = Path.of(rootFolder.getParent().toString(), "config").toAbsolutePath().toString()
+        String configPath = Path.of("tmp", "kubeconfig", "mainresource1").toAbsolutePath().toString()
             .replace("\\", "/");
 
         String result = service.getMainFileContent();
@@ -107,6 +107,11 @@ public class ContainerDeployFileServiceTest {
             TestFileServiceProvider.createContainerDeployFileService(vertx.fileSystem(), rootFolder, deployment);
         String result = service.getOutputsFileContent();
 
-        assertThat(result).isEqualTo("");
+        assertThat(result).isEqualTo("output \"deployment_data\" {\n" +
+            "  value = {\n" +
+            "    service: module.deployment_33_22.service_info\n" +
+            "    pods: module.deployment_33_22.pods_info\n" +
+            "  }\n" +
+            "}");
     }
 }

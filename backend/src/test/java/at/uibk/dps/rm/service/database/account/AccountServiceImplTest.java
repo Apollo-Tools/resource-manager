@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.database.account;
 
+import at.uibk.dps.rm.entity.dto.account.NewAccountDTO;
 import at.uibk.dps.rm.entity.dto.account.RoleEnum;
 import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.entity.model.Role;
@@ -24,6 +25,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
@@ -70,7 +72,7 @@ public class AccountServiceImplTest {
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("account_id")).isEqualTo(1L);
                 assertThat(result.getString("username")).isEqualTo("user1");
-                assertThat(result.getString("password")).isEqualTo(hashedPw);
+                assertThat(result.getString("password")).isNull();
                 testContext.completeNow();
             })));
     }
@@ -113,20 +115,22 @@ public class AccountServiceImplTest {
     @Test
     void save(VertxTestContext testContext) {
         String username = "user1", password = "pw1";
-        Account entity = TestAccountProvider.createAccount(1L, username, password);
+        NewAccountDTO accountDTO = new NewAccountDTO();
+        accountDTO.setUsername(username);
+        accountDTO.setPassword(password);
         Role role = TestAccountProvider.createRoleDefault();
         SessionMockHelper.mockTransaction(sessionFactory, session);
         when(accountRepository.findByUsername(session, username))
             .thenReturn(CompletionStages.completedFuture(null));
         when(roleRepository.findByRoleName(session, RoleEnum.DEFAULT.getValue()))
             .thenReturn(CompletionStages.completedFuture(role));
-        when(session.persist(entity)).thenReturn(CompletionStages.voidFuture());
+        when(session.persist(any(Account.class))).thenReturn(CompletionStages.voidFuture());
 
-        accountService.save(JsonObject.mapFrom(entity))
+        accountService.save(JsonObject.mapFrom(accountDTO))
             .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result.getLong("account_id")).isEqualTo(1L);
+                assertThat(result.getLong("account_id")).isNull();
                 assertThat(result.getString("username")).isEqualTo("user1");
-                assertThat(result.containsKey("password")).isEqualTo(false);
+                assertThat(result.containsKey("password")).isFalse();
                 assertThat(result.getJsonObject("role").getString("role")).isEqualTo("default");
                 testContext.completeNow();
             })));
@@ -135,11 +139,14 @@ public class AccountServiceImplTest {
     @Test
     void saveAlreadyExists(VertxTestContext testContext) {
         String username = "user1", password = "pw1";
+        NewAccountDTO accountDTO = new NewAccountDTO();
+        accountDTO.setUsername(username);
+        accountDTO.setPassword(password);
         Account entity = TestAccountProvider.createAccount(1L, username, password);
         SessionMockHelper.mockTransaction(sessionFactory, session);
         when(accountRepository.findByUsername(session, username)).thenReturn(CompletionStages.completedFuture(entity));
 
-        accountService.save(JsonObject.mapFrom(entity))
+        accountService.save(JsonObject.mapFrom(accountDTO))
             .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
                 assertThat(throwable.getMessage()).isEqualTo("Account already exists");

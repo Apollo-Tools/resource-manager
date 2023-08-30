@@ -6,6 +6,11 @@ import org.hibernate.reactive.stage.Stage;
 
 import java.util.concurrent.CompletionStage;
 
+/**
+ * Implements database operations for the role entity.
+ *
+ * @author matthi-g
+ */
 public class RoleRepository extends Repository<Role> {
 
     /**

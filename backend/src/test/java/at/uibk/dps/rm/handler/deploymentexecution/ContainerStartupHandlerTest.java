@@ -9,6 +9,8 @@ import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.http.HttpServerResponse;
@@ -81,8 +83,8 @@ public class ContainerStartupHandlerTest {
         if (isStartup) {
             if (isValid || readyForStartup) {
                 when(deploymentChecker.startContainer(deploymentId, resourceDeploymentId))
-                    .thenReturn(successfulDeployment ? Completable.complete() :
-                        Completable.error(DeploymentTerminationFailedException::new));
+                    .thenReturn(successfulDeployment ? Single.just(new JsonObject()) :
+                        Single.error(DeploymentTerminationFailedException::new));
             }
             handler.deployContainer(rc);
         } else {

@@ -16,6 +16,11 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Implementation of {@link DockerImageChecker} for <a href="https://hub.docker.com">Docker Hub</a>
+ *
+ * @author matthi-g
+ */
 @RequiredArgsConstructor
 public class DockerHubImageChecker implements DockerImageChecker {
 
@@ -69,7 +74,14 @@ public class DockerHubImageChecker implements DockerImageChecker {
             });
     }
 
-    public Single<Boolean> isUpToDate(String imageName, Timestamp lastFunctionUpdate) {
+    /**
+     * See isUpToDate(String imageName, String tag, Date lastFunctionUpdate)
+     *
+     * @param imageName the name of the image
+     * @param lastFunctionUpdate the last update of the function
+     * @return a Single that emits true if the image is up-to-date, else false
+     */
+    private Single<Boolean> isUpToDate(String imageName, Timestamp lastFunctionUpdate) {
         return isUpToDate(imageName, "latest", lastFunctionUpdate);
     }
 }

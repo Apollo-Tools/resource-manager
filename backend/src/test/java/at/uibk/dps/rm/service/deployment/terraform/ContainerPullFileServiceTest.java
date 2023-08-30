@@ -55,31 +55,31 @@ public class ContainerPullFileServiceTest {
         ContainerPullFileService service =
             TestFileServiceProvider.createContainerPullFileService(vertx.fileSystem(), rootFolder, deployment,
                 List.of(sr1, sr2, sr3));
-        String configPath = Path.of(rootFolder.toString(), "config").toAbsolutePath().toString()
+        String configPath = Path.of("tmp", "kubeconfig", "mainresource").toAbsolutePath().toString()
             .replace("\\", "/");
 
         String result = service.getMainFileContent();
 
 
         assertThat(result).isEqualTo(
-            "module \"pre_pull_2default\" {\n" +
+            "module \"pre_pull_1\" {\n" +
                 "  source = \"../../../terraform/k8s/prepull\"\n" +
                 "  deployment_id = 1\n" +
-                "  config_path = \"" + configPath + "\"\n" +
+                "  config_path = \"" + configPath + "1\"\n" +
                 "  namespace = \"default\"\n" +
                 "  config_context = \"k8s-context\"\n" +
-                "  images = [\"test1:latest\"]\n" +
+                "  images = [\"test2:latest\",\"test1:latest\"]\n" +
                 "  timeout = \"2m\"\n" +
                 "  hostname = null\n" +
                 "  image_pull_secrets = [\"regcred\"]\n" +
                 "}\n" +
-                "module \"pre_pull_1default\" {\n" +
+                "module \"pre_pull_2\" {\n" +
                 "  source = \"../../../terraform/k8s/prepull\"\n" +
                 "  deployment_id = 1\n" +
-                "  config_path = \"" + configPath + "\"\n" +
+                "  config_path = \"" + configPath + "2\"\n" +
                 "  namespace = \"default\"\n" +
                 "  config_context = \"k8s-context\"\n" +
-                "  images = [\"test1:latest\",\"test2:latest\"]\n" +
+                "  images = [\"test1:latest\"]\n" +
                 "  timeout = \"2m\"\n" +
                 "  hostname = null\n" +
                 "  image_pull_secrets = [\"regcred\"]\n" +

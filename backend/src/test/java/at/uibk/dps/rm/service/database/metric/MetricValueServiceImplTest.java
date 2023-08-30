@@ -2,9 +2,11 @@ package at.uibk.dps.rm.service.database.metric;
 
 import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.entity.model.MetricValue;
+import at.uibk.dps.rm.entity.model.PlatformMetric;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
+import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestMetricProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
@@ -41,7 +43,10 @@ public class MetricValueServiceImplTest {
     private MetricValueService metricValueService;
 
     @Mock
-    MetricValueRepository metricValueRepository;
+    private MetricValueRepository metricValueRepository;
+
+    @Mock
+    private PlatformMetricRepository platformMetricRepository;
 
     @Mock
     private SessionFactory sessionFactory;
@@ -52,7 +57,8 @@ public class MetricValueServiceImplTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        metricValueService = new MetricValueServiceImpl(metricValueRepository, sessionFactory);
+        metricValueService = new MetricValueServiceImpl(metricValueRepository, platformMetricRepository,
+            sessionFactory);
     }
 
     @Test
@@ -192,13 +198,16 @@ public class MetricValueServiceImplTest {
         long metricId = 2L;
         double valueNumber = 13.37;
         Metric metric = TestMetricProvider.createMetric(metricId, "metric",
-            TestMetricProvider.createMetricTypeNumber(), false);
+            TestMetricProvider.createMetricTypeNumber());
         MetricValue metricValue = TestMetricProvider
             .createMetricValue(1L, metric, valueNumber);
+        PlatformMetric platformMetric = TestMetricProvider.createPlatformMetric(2L, metric);
 
         SessionMockHelper.mockTransaction(sessionFactory, session);
         when(metricValueRepository.findByResourceAndMetricAndFetch(session, resourceId, metricId))
             .thenReturn(CompletionStages.completedFuture(metricValue));
+        when(platformMetricRepository.findByResourceAndMetric(session, resourceId, metricId))
+            .thenReturn(CompletionStages.completedFuture(platformMetric));
 
 
         metricValueService.updateByResourceAndMetric(resourceId, metricId, null, valueNumber,

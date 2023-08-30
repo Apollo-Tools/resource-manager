@@ -135,7 +135,7 @@ public class DeploymentExecutionCheckerTest {
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
              MockedConstruction<OpenFaasImageService> ignoredDocker = Mockprovider
-                 .mockDockerImageService(functionsToDeploy, poDocker);
+                 .mockDockerImageService(poDocker);
              MockedConstruction<MainTerraformExecutor> ignoredMTFE =
                  Mockprovider.mockMainTerraformExecutor(deploymentPath, poInit, poApply, poOutput);
              MockedConstruction<TerraformExecutor> ignoredTFE =
@@ -251,18 +251,15 @@ public class DeploymentExecutionCheckerTest {
         }
     }
 
-
-    private static Stream<Arguments> provideDeployTerminateContainer() {
+    private static Stream<Arguments> provideDeployContainer() {
         return Stream.of(
             Arguments.of("apply", true),
-            Arguments.of("apply", false),
-            Arguments.of("destroy", true),
-            Arguments.of("destroy", false)
+            Arguments.of("apply", false)
         );
     }
 
     @ParameterizedTest
-    @MethodSource("provideDeployTerminateContainer")
+    @MethodSource("provideDeployContainer")
     void deployTerminateContainer(String testCase, boolean isValid, VertxTestContext testContext) {
         long deploymentId = 1L, resourceDeploymentId = 2L;
         DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
@@ -277,12 +274,48 @@ public class DeploymentExecutionCheckerTest {
             MockedConstruction<TerraformExecutor> ignoredTFE = Mockprovider.mockTerraformExecutor(deploymentPath,
                 resourceDeploymentId, processOutput, testCase)
         ) {
-            Completable completable;
-            if (testCase.equals("apply")) {
-                completable = deploymentChecker.startContainer(deploymentId, resourceDeploymentId);
-            } else {
-                completable = deploymentChecker.stopContainer(deploymentId, resourceDeploymentId);
-            }
+            Single<JsonObject> single = deploymentChecker.startContainer(deploymentId, resourceDeploymentId);
+            single.subscribe(result -> testContext.verify(() -> {
+                if (!isValid) {
+                    fail("method did not throw exception");
+                }
+                fail("TODO: fix");
+                testContext.completeNow();
+            }), throwable -> testContext.verify(() -> {
+                if (isValid) {
+                    fail("method has thrown exception");
+                } else {
+                    assertThat(throwable).isInstanceOf(DeploymentTerminationFailedException.class);
+                }
+                testContext.completeNow();
+            }));
+        }
+    }
+
+    private static Stream<Arguments> provideTerminateContainer() {
+        return Stream.of(
+            Arguments.of("destroy", true),
+            Arguments.of("destroy", false)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideTerminateContainer")
+    void terminateContainer(String testCase, boolean isValid, VertxTestContext testContext) {
+        long deploymentId = 1L, resourceDeploymentId = 2L;
+        DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
+        ProcessOutput processOutput = TestDTOProvider.createProcessOutput(processContainer, testCase);
+        JsonObject log = JsonObject.mapFrom(TestLogProvider.createLog(1L));
+
+        when(processContainer.exitValue()).thenReturn(isValid ? 0 : -1);
+        when(logService.save(any())).thenReturn(Single.just(log));
+        when(deploymentLogService.save(any())).thenReturn(Single.just(new JsonObject()));
+
+        try(MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
+            MockedConstruction<TerraformExecutor> ignoredTFE = Mockprovider.mockTerraformExecutor(deploymentPath,
+                resourceDeploymentId, processOutput, testCase)
+        ) {
+            Completable completable = deploymentChecker.stopContainer(deploymentId, resourceDeploymentId);
             completable.blockingSubscribe(() -> testContext.verify(() -> {
                 if (!isValid) {
                     fail("method did not throw exception");

@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.deployment.docker;
 
+import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
@@ -25,7 +26,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -63,17 +63,15 @@ public class OpenFaasImageServiceTest {
     @BeforeEach
     void initTest() {
         DockerCredentials dockerCredentials = TestDTOProvider.createDockerCredentials();
-        List<String> functionIdentifiers = List.of("func_identifier");
+        FunctionsToDeploy functionsToDeploy = TestDTOProvider.createFunctionsToDeploy();
         functionsDir = Path.of("./functions");
-        dockerImageService = new OpenFaasImageService(vertx, dockerCredentials, functionIdentifiers,
+        dockerImageService = new OpenFaasImageService(vertx, dockerCredentials, functionsToDeploy,
             functionsDir);
     }
 
     @ParameterizedTest
     @ValueSource(ints = {0, -1})
     void buildOpenFaasImages(int exitValue, VertxTestContext testContext) {
-        String functionString = "functions";
-
         when(vertx.fileSystem()).thenReturn(fileSystem);
         when(fileSystem.writeFile(eq(Path.of(functionsDir.toString(), "stack.yml").toString()), any(Buffer.class)))
             .thenReturn(Completable.complete());
@@ -87,7 +85,7 @@ public class OpenFaasImageServiceTest {
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
              MockedConstruction<ProcessExecutor> ignored = Mockprovider.mockProcessExecutor(processOutput)) {
-                dockerImageService.buildOpenFaasImages(functionString)
+                dockerImageService.buildOpenFaasImages()
                     .subscribe(result -> testContext.verify(() -> {
                             assertThat(result.getOutput()).isEqualTo("build output\npush output\n");
                             assertThat(result.getProcess().exitValue()).isEqualTo(exitValue);
@@ -100,8 +98,6 @@ public class OpenFaasImageServiceTest {
 
     @Test
     void buildOpenFaasImagesBuildFailed(VertxTestContext testContext) {
-        String functionString = "functions";
-
         when(vertx.fileSystem()).thenReturn(fileSystem);
         when(fileSystem.writeFile(eq(Path.of(functionsDir.toString(), "stack.yml").toString()), any(Buffer.class)))
             .thenReturn(Completable.complete());
@@ -112,7 +108,7 @@ public class OpenFaasImageServiceTest {
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
              MockedConstruction<ProcessExecutor> ignored = Mockprovider.mockProcessExecutor(processOutput)) {
-                dockerImageService.buildOpenFaasImages(functionString)
+                dockerImageService.buildOpenFaasImages()
                     .subscribe(result -> testContext.verify(() -> {
                             assertThat(result.getOutput()).isEqualTo("build output\n");
                             assertThat(result.getProcess().exitValue()).isEqualTo(-1);
@@ -125,14 +121,12 @@ public class OpenFaasImageServiceTest {
 
     @Test
     void buildOpenFaasImagesCreateStackFileFailed(VertxTestContext testContext) {
-        String functionString = "functions";
-
         when(vertx.fileSystem()).thenReturn(fileSystem);
         when(fileSystem.writeFile(eq(Path.of(functionsDir.toString(), "stack.yml").toString()), any(Buffer.class)))
             .thenReturn(Completable.error(IOException::new));
 
         try(MockedConstruction<ProcessExecutor> ignored = Mockprovider.mockProcessExecutor(processOutput)) {
-            dockerImageService.buildOpenFaasImages(functionString)
+            dockerImageService.buildOpenFaasImages()
                 .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                     throwable -> testContext.verify(() -> {
                         assertThat(throwable).isInstanceOf(IOException.class);
@@ -144,14 +138,13 @@ public class OpenFaasImageServiceTest {
 
     @Test
     void buildOpenFaasImagesEmptyFunctionIdentifiers(VertxTestContext testContext) {
-        String functionString = "";
-        List<String> functionIdentifiers = List.of();
+        FunctionsToDeploy functionsToDeploy = TestDTOProvider.createFunctionsToDeploy();
+        functionsToDeploy.getDockerFunctionIdentifiers().clear();
         functionsDir = Path.of("./functions");
         DockerCredentials dockerCredentials = TestDTOProvider.createDockerCredentials();
-        dockerImageService = new OpenFaasImageService(vertx, dockerCredentials, functionIdentifiers,
-            functionsDir);
+        dockerImageService = new OpenFaasImageService(vertx, dockerCredentials, functionsToDeploy, functionsDir);
 
-        dockerImageService.buildOpenFaasImages(functionString)
+        dockerImageService.buildOpenFaasImages()
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.getOutput()).isNull();
                     assertThat(result.getProcess()).isNull();

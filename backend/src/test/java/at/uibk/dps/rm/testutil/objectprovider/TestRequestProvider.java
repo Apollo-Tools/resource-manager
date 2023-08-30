@@ -24,23 +24,15 @@ public class TestRequestProvider {
 
     public static DeployResourcesRequest createDeployResourcesRequest(List<FunctionResourceIds> functionResources,
             List<ServiceResourceIds> serviceResources, List<ResourceId> lockResources,
-            DockerCredentials dockerCredentials, String kubeConfig) {
+            DockerCredentials dockerCredentials) {
         DeployResourcesRequest request = new DeployResourcesRequest();
         request.setFunctionResources(functionResources);
         request.setServiceResources(serviceResources);
         DeploymentCredentials deploymentCredentials = new DeploymentCredentials();
         deploymentCredentials.setDockerCredentials(dockerCredentials);
-        deploymentCredentials.setKubeConfig(kubeConfig);
         request.setCredentials(deploymentCredentials);
         request.setLockResources(lockResources);
         return request;
-    }
-
-    public static DeployResourcesRequest createDeployResourcesRequest(List<FunctionResourceIds> functionResources,
-            List<ServiceResourceIds> serviceResources, List<ResourceId> lockResources,
-            DockerCredentials dockerCredentials) {
-        return createDeployResourcesRequest(functionResources, serviceResources, lockResources, dockerCredentials,
-            TestDTOProvider.createKubeConfigValue());
     }
 
     public static DeployResourcesRequest createDeployResourcesRequest(List<FunctionResourceIds> functionResources,
@@ -58,9 +50,8 @@ public class TestRequestProvider {
         DockerCredentials dockerCredentials = TestDTOProvider.createDockerCredentials();
         DeploymentCredentials deploymentCredentials = new DeploymentCredentials();
         deploymentCredentials.setDockerCredentials(dockerCredentials);
-        deploymentCredentials.setKubeConfig(TestDTOProvider.createKubeConfigValue());
         deployRequest.setDeploymentCredentials(deploymentCredentials);
-        Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");
+        Runtime runtime = TestFunctionProvider.createRuntime(1L, "python3.8");
         Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime, false);
         Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime, false);
         Resource r1 = TestResourceProvider.createResourceLambda(1L, region);

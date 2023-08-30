@@ -46,10 +46,9 @@ public class Mockprovider {
             (mock, context) -> given(mock.getConfigDTO()).willReturn(Single.just(config)));
     }
 
-    public static MockedConstruction<OpenFaasImageService> mockDockerImageService(FunctionsToDeploy functionsToDeploy,
-            ProcessOutput processOutput) {
+    public static MockedConstruction<OpenFaasImageService> mockDockerImageService(ProcessOutput processOutput) {
         return Mockito.mockConstruction(OpenFaasImageService.class,
-            (mock, context) -> given(mock.buildOpenFaasImages(functionsToDeploy.getDockerFunctionsString()))
+            (mock, context) -> given(mock.buildOpenFaasImages())
                 .willReturn(Single.just(processOutput)));
     }
 

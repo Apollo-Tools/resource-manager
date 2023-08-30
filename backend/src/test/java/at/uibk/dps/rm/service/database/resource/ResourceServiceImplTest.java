@@ -115,7 +115,7 @@ public class ResourceServiceImplTest {
     @Test
     void findAllBySLOs(VertxTestContext testContext) {
         Metric availability = TestMetricProvider.createMetric(1L, "instance-type",
-            TestMetricProvider.createMetricTypeString(), false);
+            TestMetricProvider.createMetricTypeString());
         ServiceLevelObjective slo1 = new ServiceLevelObjective("instance-type", ExpressionType.EQ,
             TestDTOProvider.createSLOValueList("t2.micro"));
         List<String> metrics = List.of("instance-type");
@@ -131,7 +131,7 @@ public class ResourceServiceImplTest {
         SessionMockHelper.mockSession(sessionFactory, session);
         when(resourceRepository.findAllBySLOs(session, metrics, environments, resourceTypes, platforms, regions,
             resourceProviders)).thenReturn(CompletionStages.completedFuture(List.of(r1, r2)));
-        when(metricRepository.findByMetric(eq(session), any(String.class)))
+        when(metricRepository.findByMetricAndIsSLO(eq(session), any(String.class)))
             .thenReturn(CompletionStages.completedFuture(availability));
 
         resourceService.findAllBySLOs(JsonObject.mapFrom(sloRequest))

@@ -1,6 +1,8 @@
 package at.uibk.dps.rm.handler.function;
 
+import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
+import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -57,16 +59,17 @@ public class FunctionHandlerTest {
         JsonObject requestBody = new JsonObject("{\"name\": \"" + name + "\", \"function_type\": " +
             "{\"artifact_type_id\": " + functionTypeId + "}, \"runtime\": {\"runtime_id\":" + runtimeId + "}, " +
             "\"code\": \"x = 10\", \"timeout_seconds\": " + timeout + ", \"memory_megabytes\": " + memory + "}");
-        JsonObject attributeBody = new JsonObject("{\"name\": \"" + name + "\", \"function_type\": " +
-            "{\"artifact_type_id\": " + functionTypeId + "}, \"runtime\": {\"runtime_id\": " + runtimeId + "}, " +
-            "\"code\": \"testfile\", \"timeout_seconds\": " + timeout + ", \"memory_megabytes\": " + memory +
-            ", \"is_file\":true}");
+        JsonObject attributeBody = new JsonObject("{\"name\": \"" + name + "\", \"runtime\": " +
+            "{\"runtime_id\": " + runtimeId + "}, \"function_type\": {\"artifact_type_id\": " + functionTypeId + "}, " +
+            "\"timeout_seconds\": " + timeout + ", \"memory_megabytes\": " + memory + ",\"is_public\":true," +
+            "\"code\": \"testfile\",\"is_file\":true}");
         MultiMap attributes = MultiMap.caseInsensitiveMultiMap();
         attributes.add("name", name);
-        attributes.add("function_type", "{\"artifact_type_id\": " + functionTypeId + "}");
         attributes.add("runtime", "{\"runtime_id\": " + runtimeId + "}");
+        attributes.add("function_type", "{\"artifact_type_id\": " + functionTypeId + "}");
         attributes.add("timeout_seconds", String.valueOf(timeout));
         attributes.add("memory_megabytes", String.valueOf(memory));
+        attributes.add("is_public", String.valueOf(true));
         return Stream.of(Arguments.of(false, "application/json", requestBody, null),
             Arguments.of(true, "multipart/form-data", attributeBody, attributes));
     }
@@ -76,6 +79,7 @@ public class FunctionHandlerTest {
     void postOne(boolean isFile, String contentType, JsonObject requestBody, MultiMap attributes,
              VertxTestContext testContext) {
         String fileName = "testfile";
+        Account account = TestAccountProvider.createAccount(10L);
         MultiMap multiMap = MultiMap.caseInsensitiveMultiMap();
         multiMap.add("Content-Type", contentType);
         if (isFile) {
@@ -85,7 +89,8 @@ public class FunctionHandlerTest {
             RoutingContextMockHelper.mockBody(rc, requestBody);
         }
         RoutingContextMockHelper.mockHeaders(rc, request, multiMap);
-        when(functionChecker.submitCreate(requestBody)).thenReturn(Single.just(requestBody));
+        RoutingContextMockHelper.mockUserPrincipal(rc, account);
+        when(functionChecker.submitCreate(account.getAccountId(), requestBody)).thenReturn(Single.just(requestBody));
 
         functionHandler.postOneToAccount(rc)
             .subscribe(result -> testContext.verify(() -> {
@@ -113,6 +118,7 @@ public class FunctionHandlerTest {
     @MethodSource("provideUpdateBody")
     void updateOne(boolean isFile, String contentType, JsonObject requestBody, VertxTestContext testContext) {
         long functionId = 1L;
+        Account account = TestAccountProvider.createAccount(10L);
         String fileName = "testfile";
         MultiMap multiMap = MultiMap.caseInsensitiveMultiMap();
         multiMap.add("Content-Type", contentType);
@@ -124,8 +130,10 @@ public class FunctionHandlerTest {
         JsonObject transferData = requestBody.copy();
         transferData.put("is_file", isFile);
         RoutingContextMockHelper.mockHeaders(rc, request, multiMap);
+        RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(functionId));
-        when(functionChecker.submitUpdate(functionId, transferData)).thenReturn(Completable.complete());
+        when(functionChecker.submitUpdate(functionId, account.getAccountId(), transferData))
+            .thenReturn(Completable.complete());
 
         functionHandler.updateOneOwned(rc)
             .blockingSubscribe(() -> testContext.verify(() -> {}),

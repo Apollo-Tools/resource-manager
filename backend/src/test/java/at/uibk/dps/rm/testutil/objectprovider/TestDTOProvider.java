@@ -183,11 +183,13 @@ public class TestDTOProvider {
 
     public static FunctionsToDeploy createFunctionsToDeploy() {
         FunctionsToDeploy functionsToDeploy = new FunctionsToDeploy();
-        functionsToDeploy.getFunctionIdentifiers().add("foo1_python39");
-        functionsToDeploy.getFunctionIdentifiers().add("foo2_python39");
-        functionsToDeploy.setDockerFunctionsString("\"  foo1_python39:\\n    lang: python3-flask-debian\\n    " +
-            "handler: ./foo1_python39\\n    image: user/foo1_python39:latest\\n  foo2_python39:\\n    " +
-            "lang: python3-flask-debian\\n    handler: ./foo2_python39\\n    image: user/foo2_python39:latest\\n\"");
+        functionsToDeploy.getFunctionIdentifiers().add("foo1_python38");
+        functionsToDeploy.getFunctionIdentifiers().add("foo2_python38");
+        functionsToDeploy.getDockerFunctionIdentifiers().add("foo1_python38");
+        functionsToDeploy.getDockerFunctionIdentifiers().add("foo2_python38");
+        functionsToDeploy.setDockerFunctionsString("\"  foo1_python38:\\n    lang: python3-flask-debian\\n    " +
+            "handler: ./foo1_python38\\n    image: user/foo1_python38:latest\\n  foo2_python38:\\n    " +
+            "lang: python3-flask-debian\\n    handler: ./foo2_python38\\n    image: user/foo2_python38:latest\\n\"");
         return functionsToDeploy;
     }
 
