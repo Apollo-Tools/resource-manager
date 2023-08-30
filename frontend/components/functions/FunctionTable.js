@@ -8,8 +8,8 @@ import ResourceTable from '../resources/ResourceTable';
 import PropTypes from 'prop-types';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 import RuntimeIcon from '../misc/RuntimeIcon';
-import DateColumnRender from "../misc/DateColumnRender";
-import BoolValueDisplay from "../misc/BoolValueDisplay";
+import DateColumnRender from '../misc/DateColumnRender';
+import BoolValueDisplay from '../misc/BoolValueDisplay';
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -23,7 +23,7 @@ const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resource
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      console.log(allFunctions)
+      console.log(allFunctions);
       if (allFunctions) {
         listAllFunctions(token, setFunctions, setError);
       } else {
@@ -150,20 +150,20 @@ const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resource
           render={(createdBy) => <div><UserOutlined /> {createdBy?.username}</div> }
           sorter={(a, b) => a.created_by.username.localeCompare(b.created_by.username)}
           filterDropdown={({setSelectedKeys, selectedKeys, confirm, clearFilters}) =>
-              <ColumnFilterDropdown setSelectedKeys={setSelectedKeys} clearFilters={clearFilters}
-                                    selectedKeys={selectedKeys} confirm={confirm} columnName="name" />}
+            <ColumnFilterDropdown setSelectedKeys={setSelectedKeys} clearFilters={clearFilters}
+              selectedKeys={selectedKeys} confirm={confirm} columnName="name" />}
           onFilter={(value, record) => record.created_by.username.startsWith(value)}
         /> :
         <Column title="Is Public" dataIndex="is_public" key="is_public"
-        render={(isPublic) => <BoolValueDisplay value={isPublic} />}
-/>
+          render={(isPublic) => <BoolValueDisplay value={isPublic} />}
+        />
       }
       <Column title="Created at" dataIndex="created_at" key="created_at"
-        render={(createdAt) =>  <DateColumnRender value={createdAt}/> }
+        render={(createdAt) => <DateColumnRender value={createdAt}/> }
         sorter={(a, b) => a.created_at - b.created_at}
       />
       <Column title="Updated at" dataIndex="updated_at" key="updated_at"
-        render={(updatedAt) =>  <DateColumnRender value={updatedAt}/> }
+        render={(updatedAt) => <DateColumnRender value={updatedAt}/> }
         sorter={(a, b) => a.updated_at - b.updated_at}
       />
       <Column title="Actions" key="action"
@@ -191,7 +191,7 @@ FunctionTable.propTypes = {
   hideDelete: PropTypes.bool,
   isExpandable: PropTypes.bool,
   resources: PropTypes.arrayOf(PropTypes.object),
-  allFunctions: PropTypes.bool
+  allFunctions: PropTypes.bool,
 };
 
 export default FunctionTable;

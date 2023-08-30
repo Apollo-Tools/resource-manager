@@ -7,7 +7,7 @@ import {useEffect, useState} from 'react';
 import {listMyDeployments} from '../../lib/DeploymentService';
 import Link from 'next/link';
 import DeploymentStatusBadge from './DeploymentStatusBadge';
-import DateColumnRender from "../misc/DateColumnRender";
+import DateColumnRender from '../misc/DateColumnRender';
 
 const {Column} = Table;
 

@@ -35,7 +35,7 @@ export async function createFunctionCode(name, functionTypeId, runtimeId, code,
         code: code,
         timeout_seconds: timeout,
         memory_megabytes: memory,
-        is_public: isPublic
+        is_public: isPublic,
       }),
     });
     const data = await response.json();
@@ -69,7 +69,7 @@ export async function createFunctionUpload(name, functionTypeId, runtimeId, uplo
     formData.append('runtime', JSON.stringify({runtime_id: runtimeId}));
     formData.append('timeout_seconds', JSON.stringify(timeout));
     formData.append('memory_megabytes', JSON.stringify(memory));
-    formData.append('is_public', JSON.stringify(isPublic))
+    formData.append('is_public', JSON.stringify(isPublic));
     formData.append('code', upload);
     const response = await fetch(`${API_ROUTE}/file`, {
       method: 'POST',
@@ -181,7 +181,7 @@ export async function updateFunctionSettings(id, code, timeout, memory, isPublic
         code: code,
         timeout_seconds: timeout,
         memory_megabytes: memory,
-        is_public: isPublic
+        is_public: isPublic,
       }),
     });
     return response.ok;

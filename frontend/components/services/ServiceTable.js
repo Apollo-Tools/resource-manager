@@ -7,8 +7,8 @@ import PropTypes from 'prop-types';
 import {deleteService, listAllServices, listMyServices} from '../../lib/ServiceService';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 import Link from 'next/link';
-import DateColumnRender from "../misc/DateColumnRender";
-import BoolValueDisplay from "../misc/BoolValueDisplay";
+import DateColumnRender from '../misc/DateColumnRender';
+import BoolValueDisplay from '../misc/BoolValueDisplay';
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -23,7 +23,7 @@ const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources
   useEffect(() => {
     if (!checkTokenExpired()) {
       if (allServices) {
-        listAllServices(token, setServices, setError)
+        listAllServices(token, setServices, setError);
       } else {
         listMyServices(token, setServices, setError);
       }
@@ -147,15 +147,15 @@ const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources
       />
       {allServices ?
           <Column title="Created by" dataIndex="created_by" key="created_by"
-                  render={(createdBy) => <div><UserOutlined /> {createdBy?.username}</div> }
-                  sorter={(a, b) => a.created_by.username.localeCompare(b.created_by.username)}
-                  filterDropdown={({setSelectedKeys, selectedKeys, confirm, clearFilters}) =>
-                      <ColumnFilterDropdown setSelectedKeys={setSelectedKeys} clearFilters={clearFilters}
-                                            selectedKeys={selectedKeys} confirm={confirm} columnName="name" />}
-                  onFilter={(value, record) => record.created_by.username.startsWith(value)}
+            render={(createdBy) => <div><UserOutlined /> {createdBy?.username}</div> }
+            sorter={(a, b) => a.created_by.username.localeCompare(b.created_by.username)}
+            filterDropdown={({setSelectedKeys, selectedKeys, confirm, clearFilters}) =>
+              <ColumnFilterDropdown setSelectedKeys={setSelectedKeys} clearFilters={clearFilters}
+                selectedKeys={selectedKeys} confirm={confirm} columnName="name" />}
+            onFilter={(value, record) => record.created_by.username.startsWith(value)}
           /> :
           <Column title="Is Public" dataIndex="is_public" key="is_public"
-                  render={(isPublic) => <BoolValueDisplay value={isPublic} />}
+            render={(isPublic) => <BoolValueDisplay value={isPublic} />}
           />
       }
       <Column title="Created at" dataIndex="created_at" key="created_at"
@@ -190,6 +190,7 @@ ServiceTable.propTypes = {
   hideDelete: PropTypes.bool,
   isExpandable: PropTypes.bool,
   resources: PropTypes.arrayOf(PropTypes.object),
+  allServices: PropTypes.bool,
 };
 
 export default ServiceTable;

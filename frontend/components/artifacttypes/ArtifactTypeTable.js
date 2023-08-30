@@ -6,7 +6,7 @@ import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 import {deleteFunctionType, listFunctionTypes} from '../../lib/FunctionTypeService';
 import PropTypes from 'prop-types';
 import {deleteServiceType, listServiceTypes} from '../../lib/ServiceTypeService';
-import DateColumnRender from "../misc/DateColumnRender";
+import DateColumnRender from '../misc/DateColumnRender';
 
 const {Column} = Table;
 const {confirm} = Modal;

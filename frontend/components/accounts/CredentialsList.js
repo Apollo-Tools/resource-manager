@@ -4,7 +4,7 @@ import {useEffect, useState} from 'react';
 import {deleteCredentials} from '../../lib/CredentialsService';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import PropTypes from 'prop-types';
-import DateColumnRender from "../misc/DateColumnRender";
+import DateColumnRender from '../misc/DateColumnRender';
 
 const {Column} = Table;
 const {confirm} = Modal;

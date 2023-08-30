@@ -43,7 +43,7 @@ export async function createService(serviceTypeId, name, image, replicas, ports,
         },
         env_vars: envVars,
         volume_mounts: volumeMounts,
-        is_public: isPublic
+        is_public: isPublic,
       }),
     });
     const data = await response.json();
@@ -97,7 +97,7 @@ export async function updateService(id, replicas, ports, cpu, memory,
           delete volumeMount.created_at;
           return volumeMount;
         }),
-        is_public: isPublic
+        is_public: isPublic,
       }),
     });
     return response.ok;

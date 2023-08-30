@@ -2,7 +2,7 @@ import {Button, Modal, Space, Table} from 'antd';
 import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
 import ProviderIcon from '../misc/ProviderIcon';
 import PropTypes from 'prop-types';
-import DateColumnRender from "../misc/DateColumnRender";
+import DateColumnRender from '../misc/DateColumnRender';
 
 const {Column} = Table;
 const {confirm} = Modal;

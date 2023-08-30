@@ -10,8 +10,8 @@ import {
 } from '@ant-design/icons';
 import Link from 'next/link';
 import {ICON_GREEN, ICON_RED} from '../misc/Constants';
-import BoolValueDisplay from "../misc/BoolValueDisplay";
-import DateColumnRender from "../misc/DateColumnRender";
+import BoolValueDisplay from '../misc/BoolValueDisplay';
+import DateColumnRender from '../misc/DateColumnRender';
 
 const {Column} = Table;
 const {confirm} = Modal;

@@ -5,8 +5,8 @@ import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import TooltipIcon from '../misc/TooltipIcon';
-import BoolValueDisplay from "../misc/BoolValueDisplay";
-import DateColumnRender from "../misc/DateColumnRender";
+import BoolValueDisplay from '../misc/BoolValueDisplay';
+import DateColumnRender from '../misc/DateColumnRender';
 
 const {Column} = Table;
 const {confirm} = Modal;

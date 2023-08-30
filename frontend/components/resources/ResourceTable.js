@@ -5,7 +5,7 @@ import ProviderIcon from '../misc/ProviderIcon';
 import PropTypes from 'prop-types';
 import {useEffect, useState} from 'react';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
-import DateColumnRender from "../misc/DateColumnRender";
+import DateColumnRender from '../misc/DateColumnRender';
 
 const {Column} = Table;
 

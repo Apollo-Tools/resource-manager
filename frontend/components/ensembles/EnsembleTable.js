@@ -8,8 +8,8 @@ import {useEffect, useState} from 'react';
 import {deleteEnsemble, listEnsembles, validateEnsemble} from '../../lib/EnsembleService';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 import PropTypes from 'prop-types';
-import BoolValueDisplay from "../misc/BoolValueDisplay";
-import DateColumnRender from "../misc/DateColumnRender";
+import BoolValueDisplay from '../misc/BoolValueDisplay';
+import DateColumnRender from '../misc/DateColumnRender';
 
 const {Column} = Table;
 const {confirm} = Modal;

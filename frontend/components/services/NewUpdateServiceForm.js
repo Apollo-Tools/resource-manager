@@ -167,31 +167,31 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
           }
           <Divider className="col-span-full"/>
           <Form.Item
-              label={<>
+            label={<>
                 Is Public
-                <TooltipIcon text="share service with all users" />
-              </>}
-              name="isPublic"
-              valuePropName={'checked'}
-              initialValue={service?.is_public ?? false}
-              className="col-span-6"
+              <TooltipIcon text="share service with all users" />
+            </>}
+            name="isPublic"
+            valuePropName={'checked'}
+            initialValue={service?.is_public ?? false}
+            className="col-span-6"
           >
             <Switch checkedChildren="true" unCheckedChildren="false" onChange={() => setModified(true)}/>
           </Form.Item>
           <Form.Item
-              label={<>
+            label={<>
                 Replicas
-                <TooltipIcon text="the amount of replicas to deploy" />
-              </>}
-              name="replicas"
-              rules={[
-                {
-                  required: true,
-                  message: 'Please input the amount of replicas!',
-                },
-              ]}
-              initialValue={service?.replicas ?? 1}
-              className="col-span-6"
+              <TooltipIcon text="the amount of replicas to deploy" />
+            </>}
+            name="replicas"
+            rules={[
+              {
+                required: true,
+                message: 'Please input the amount of replicas!',
+              },
+            ]}
+            initialValue={service?.replicas ?? 1}
+            className="col-span-6"
           >
             <InputNumber className="w-40" controls={false} min={1} precision={0}/>
           </Form.Item>

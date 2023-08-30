@@ -5,7 +5,7 @@ import {useEffect, useState} from 'react';
 import Link from 'next/link';
 import {deleteNamespaceFromAccount} from '../../lib/AccountNamespaceService';
 import PropTypes from 'prop-types';
-import DateColumnRender from "../misc/DateColumnRender";
+import DateColumnRender from '../misc/DateColumnRender';
 
 const {Column} = Table;
 const {confirm} = Modal;

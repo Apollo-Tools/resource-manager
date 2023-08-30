@@ -25,7 +25,7 @@ const UpdateFunctionSettingsForm = ({func, reloadFunction}) => {
   }, [func]);
 
   useEffect(() => {
-    console.log(canEdit)
+    console.log(canEdit);
   }, [canEdit]);
 
   // TODO: improve error handling
@@ -41,7 +41,7 @@ const UpdateFunctionSettingsForm = ({func, reloadFunction}) => {
       code: func.code,
       timeout: func.timeout_seconds,
       memorySize: func.memory_megabytes,
-      isPublic: func.is_public
+      isPublic: func.is_public,
     });
     setModified(false);
   };
@@ -120,17 +120,18 @@ const UpdateFunctionSettingsForm = ({func, reloadFunction}) => {
             <InputNumber className="w-40" controls={false} min={128} max={10240} precision={0} addonAfter="MB" />
           </Form.Item>
           <Form.Item
-              label={<>
+            label={<>
                 Is Public
-                <TooltipIcon text="share function with all users" />
-              </>}
-              name="isPublic"
-              valuePropName={'checked'}
-              className="col-span-6"
+              <TooltipIcon text="share function with all users" />
+            </>}
+            name="isPublic"
+            valuePropName={'checked'}
+            className="col-span-6"
           >
             <Switch checkedChildren="true" unCheckedChildren="false" onChange={() => {
-              console.log('change')
-              setModified(true)}}/>
+              console.log('change');
+              setModified(true);
+            }}/>
           </Form.Item>
 
           {!func.is_file && (

@@ -9,7 +9,7 @@ import ArtifactTypeTable from '../../components/artifacttypes/ArtifactTypeTable'
 const Services = () => {
   const [selectedSegment, setSelectedSegment] = useState('Services');
   const segments = ['Services', 'Types'];
-    const [showAllServices, setShowAllServices] = useState(false);
+  const [showAllServices, setShowAllServices] = useState(false);
   return (
     <>
       <Head>
@@ -22,20 +22,20 @@ const Services = () => {
         <Divider />
         {selectedSegment === 'Services' ?
             <div className="grid grid-cols-6 gap-5 content-center">
-                <div className="grid col-span-1 content-center">
-                    <NewEntityButton name="Service" marginBottom={false}/>
-                </div>
-                <div className="grid col-start-6 col-span-1 content-center justify-end">
-                    <Switch
-                        checkedChildren="all service"
-                        unCheckedChildren="my services"
-                        checked={showAllServices}
-                        onChange={setShowAllServices}
-                    />
-                </div>
-                <div className="col-span-full">
-                    <ServiceTable allServices={showAllServices}/>
-                </div>
+              <div className="grid col-span-1 content-center">
+                <NewEntityButton name="Service" marginBottom={false}/>
+              </div>
+              <div className="grid col-start-6 col-span-1 content-center justify-end">
+                <Switch
+                  checkedChildren="all service"
+                  unCheckedChildren="my services"
+                  checked={showAllServices}
+                  onChange={setShowAllServices}
+                />
+              </div>
+              <div className="col-span-full">
+                <ServiceTable allServices={showAllServices}/>
+              </div>
             </div> :
           <>
             <NewEntityButton name="Service Type" path={`/services/new-type`}/>

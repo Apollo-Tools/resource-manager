@@ -46,7 +46,7 @@ const NewFunctionFrom = ({setNewFunction}) => {
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
-      console.log(values)
+      console.log(values);
       if (values.isFile) {
         await createFunctionUpload(values.name, values.functionType, values.runtime, values.upload.originFileObj,
             values.timeout, values.memorySize, values.isPublic, token, setNewFunction, setError);
@@ -158,14 +158,14 @@ const NewFunctionFrom = ({setNewFunction}) => {
             <InputNumber className="w-40" controls={false} min={128} max={10240} precision={0} addonAfter="MB"/>
           </Form.Item>
           <Form.Item
-              label={<>
+            label={<>
                 Is Public
-                <TooltipIcon text="share function with all users" />
-              </>}
-              name="isPublic"
-              valuePropName={'checked'}
-              initialValue={false}
-              className="col-span-6"
+              <TooltipIcon text="share function with all users" />
+            </>}
+            name="isPublic"
+            valuePropName={'checked'}
+            initialValue={false}
+            className="col-span-6"
           >
             <Switch checkedChildren="true" unCheckedChildren="false"/>
           </Form.Item>
