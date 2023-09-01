@@ -1,6 +1,7 @@
-package at.uibk.dps.rm.handler.service;
+package at.uibk.dps.rm.rx.handler.service;
 
-import at.uibk.dps.rm.handler.ValidationHandler;
+import at.uibk.dps.rm.rx.handler.ValidationHandler;
+import at.uibk.dps.rm.rx.service.rxjava3.database.service.ServiceService;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.rxjava3.ext.web.RoutingContext;
@@ -10,24 +11,23 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
  *
  * @author matthi-g
  */
-@Deprecated
 public class ServiceHandler extends ValidationHandler {
 
-    private final ServiceChecker serviceChecker;
+    private final ServiceService service;
     /**
-     * Create an instance from the serviceChecker.
+     * Create an instance from the service.
      *
-     * @param serviceChecker the service checker
+     * @param service the service
      */
-    public ServiceHandler(ServiceChecker serviceChecker) {
-        super(serviceChecker);
-        this.serviceChecker = serviceChecker;
+    public ServiceHandler(ServiceService service) {
+        super(service);
+        this.service = service;
     }
 
     @Override
     public Single<JsonArray> getAll(RoutingContext rc) {
         long accountId = rc.user().principal().getLong("account_id");
-        return serviceChecker.checkFindAllAccessible(accountId);
+        return service.findAllAccessibleServices(accountId);
     }
 
     @Override

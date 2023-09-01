@@ -24,8 +24,8 @@ import at.uibk.dps.rm.repository.resourceprovider.EnvironmentRepository;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
-import at.uibk.dps.rm.repository.service.ServiceRepository;
-import at.uibk.dps.rm.repository.service.K8sServiceTypeRepository;
+import at.uibk.dps.rm.rx.repository.service.ServiceRepository;
+import at.uibk.dps.rm.rx.repository.service.K8sServiceTypeRepository;
 import at.uibk.dps.rm.service.database.account.*;
 import at.uibk.dps.rm.service.database.artifact.FunctionTypeService;
 import at.uibk.dps.rm.service.database.artifact.FunctionTypeServiceImpl;
@@ -41,10 +41,10 @@ import at.uibk.dps.rm.service.database.deployment.*;
 import at.uibk.dps.rm.service.database.resource.*;
 import at.uibk.dps.rm.service.database.resourceprovider.*;
 import at.uibk.dps.rm.service.database.metric.*;
-import at.uibk.dps.rm.service.database.service.ServiceService;
-import at.uibk.dps.rm.service.database.service.ServiceServiceImpl;
-import at.uibk.dps.rm.service.database.service.K8sServiceTypeService;
-import at.uibk.dps.rm.service.database.service.K8sServiceTypeServiceImpl;
+import at.uibk.dps.rm.rx.service.database.service.ServiceService;
+import at.uibk.dps.rm.rx.service.database.service.ServiceServiceImpl;
+import at.uibk.dps.rm.rx.service.database.service.K8sServiceTypeService;
+import at.uibk.dps.rm.rx.service.database.service.K8sServiceTypeServiceImpl;
 import at.uibk.dps.rm.service.util.FilePathService;
 import at.uibk.dps.rm.service.util.FilePathServiceImpl;
 import at.uibk.dps.rm.service.ServiceProxyBinder;
@@ -109,6 +109,7 @@ public class DatabaseVerticle extends AbstractVerticle {
         Maybe<Void> setupEventBus = Maybe.create(emitter -> {
             ServiceBinder serviceBinder = new ServiceBinder(vertx.getDelegate());
             ServiceProxyBinder serviceProxyBinder = new ServiceProxyBinder(serviceBinder);
+            at.uibk.dps.rm.rx.service.ServiceProxyBinder rxServiceProxyBinder = new at.uibk.dps.rm.rx.service.ServiceProxyBinder(serviceBinder);
 
             serviceProxyBinder.bind(AccountNamespaceService.class,
                 new AccountNamespaceServiceImpl(new AccountNamespaceRepository(), sessionFactory));
@@ -142,7 +143,7 @@ public class DatabaseVerticle extends AbstractVerticle {
                 new DeploymentServiceImpl(new DeploymentRepositoryProvider(), sessionFactory));
             serviceProxyBinder.bind(DeploymentLogService.class,
                 new DeploymentLogServiceImpl(new DeploymentLogRepository(), sessionFactory));
-            serviceProxyBinder.bind(K8sServiceTypeService.class,
+            rxServiceProxyBinder.bind(K8sServiceTypeService.class,
                     new K8sServiceTypeServiceImpl(new K8sServiceTypeRepository(), sessionFactory));
             serviceProxyBinder.bind(ResourceEnsembleService.class,
                 new ResourceEnsembleServiceImpl(new ResourceEnsembleRepository(), new EnsembleSLORepository(),
@@ -160,7 +161,7 @@ public class DatabaseVerticle extends AbstractVerticle {
                 new PlatformMetricServiceImpl(new PlatformMetricRepository(), sessionFactory));
             serviceProxyBinder.bind(RuntimeService.class,
                 new RuntimeServiceImpl(new RuntimeRepository(), sessionFactory));
-            serviceProxyBinder.bind(ServiceService.class,
+            rxServiceProxyBinder.bind(ServiceService.class,
                 new ServiceServiceImpl(new ServiceRepository(), sessionFactory));
             serviceProxyBinder.bind(ServiceDeploymentService.class,
                 new ServiceDeploymentServiceImpl(new ServiceDeploymentRepository(), sessionFactory));

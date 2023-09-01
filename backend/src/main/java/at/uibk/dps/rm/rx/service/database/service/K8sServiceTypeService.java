@@ -1,10 +1,10 @@
-package at.uibk.dps.rm.service.database.service;
+package at.uibk.dps.rm.rx.service.database.service;
 
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.K8sServiceType;
-import at.uibk.dps.rm.repository.service.K8sServiceTypeRepository;
-import at.uibk.dps.rm.service.ServiceProxyAddress;
-import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
+import at.uibk.dps.rm.rx.service.ServiceProxyAddress;
+import at.uibk.dps.rm.rx.service.database.DatabaseServiceInterface;
+import at.uibk.dps.rm.rx.repository.service.K8sServiceTypeRepository;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
@@ -16,7 +16,6 @@ import org.hibernate.reactive.stage.Stage.SessionFactory;
  *
  * @author matthi-g
  */
-@Deprecated
 @ProxyGen
 @VertxGen
 public interface K8sServiceTypeService extends DatabaseServiceInterface {

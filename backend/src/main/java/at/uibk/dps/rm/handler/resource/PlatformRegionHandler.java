@@ -29,6 +29,7 @@ public class PlatformRegionHandler extends ValidationHandler {
         this.regionChecker = regionChecker;
     }
 
+    //TODO: move into service
     @Override
     protected Single<JsonArray> getAll(RoutingContext rc) {
         return HttpHelper.getLongPathParam(rc, "id")

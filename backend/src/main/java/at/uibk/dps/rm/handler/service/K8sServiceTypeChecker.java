@@ -10,6 +10,7 @@ import at.uibk.dps.rm.service.rxjava3.database.service.K8sServiceTypeService;
  *
  * @author matthi-g
  */
+@Deprecated
 public class K8sServiceTypeChecker extends EntityChecker {
     /**
      * Create an instance from the service.

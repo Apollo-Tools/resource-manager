@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.handler.service;
+package at.uibk.dps.rm.rx.handler.service;
 
 import at.uibk.dps.rm.entity.dto.service.UpdateServiceDTO;
 import at.uibk.dps.rm.entity.model.Service;
@@ -16,7 +16,6 @@ import java.util.List;
  *
  * @author matthi-g
  */
-@Deprecated
 @UtilityClass
 public class ServiceInputHandler {
     /**

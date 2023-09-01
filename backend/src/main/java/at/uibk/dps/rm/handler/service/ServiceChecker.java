@@ -13,6 +13,7 @@ import io.vertx.core.json.JsonArray;
  *
  * @author matthi-g
  */
+@Deprecated
 public class ServiceChecker extends EntityChecker {
 
     private final ServiceService service;
