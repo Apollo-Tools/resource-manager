@@ -13,6 +13,7 @@ import io.vertx.core.json.JsonArray;
  *
  * @author matthi-g
  */
+@Deprecated
 public class LogChecker extends EntityChecker {
 
     private final LogService logService;

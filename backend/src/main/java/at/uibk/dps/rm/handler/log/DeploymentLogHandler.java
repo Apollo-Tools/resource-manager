@@ -12,6 +12,7 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
  *
  * @author matthi-g
  */
+@Deprecated
 public class DeploymentLogHandler extends ValidationHandler {
 
     private final LogChecker logChecker;

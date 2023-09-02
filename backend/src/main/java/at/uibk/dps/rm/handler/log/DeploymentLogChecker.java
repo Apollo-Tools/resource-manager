@@ -10,6 +10,7 @@ import at.uibk.dps.rm.service.rxjava3.database.log.DeploymentLogService;
  *
  * @author matthi-g
  */
+@Deprecated
 public class DeploymentLogChecker extends EntityChecker {
 
     /**

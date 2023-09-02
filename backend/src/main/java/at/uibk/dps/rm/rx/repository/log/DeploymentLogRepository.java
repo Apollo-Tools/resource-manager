@@ -1,14 +1,13 @@
-package at.uibk.dps.rm.repository.log;
+package at.uibk.dps.rm.rx.repository.log;
 
 import at.uibk.dps.rm.entity.model.DeploymentLog;
-import at.uibk.dps.rm.repository.Repository;
+import at.uibk.dps.rm.rx.repository.Repository;
 
 /**
  * Implements database operations for the deployment_log entity.
  *
  * @author matthi-g
  */
-@Deprecated
 public class DeploymentLogRepository extends Repository<DeploymentLog> {
 
     /**

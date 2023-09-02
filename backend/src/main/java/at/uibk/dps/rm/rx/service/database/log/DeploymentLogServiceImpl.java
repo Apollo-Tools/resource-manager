@@ -1,16 +1,15 @@
-package at.uibk.dps.rm.service.database.log;
+package at.uibk.dps.rm.rx.service.database.log;
 
 import at.uibk.dps.rm.entity.model.DeploymentLog;
-import at.uibk.dps.rm.repository.log.DeploymentLogRepository;
-import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.rx.repository.log.DeploymentLogRepository;
+import at.uibk.dps.rm.rx.service.database.DatabaseServiceProxy;
 import org.hibernate.reactive.stage.Stage;
 
 /**
- * This is the implementation of the #DeploymentLogService.
+ * This is the implementation of the {@link DeploymentLogService}.
  *
  * @author matthi-g
  */
-@Deprecated
 public class DeploymentLogServiceImpl extends DatabaseServiceProxy<DeploymentLog> implements DeploymentLogService {
     /**
      * Create an instance from the deploymentLogRepository.
