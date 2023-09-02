@@ -3,8 +3,10 @@ package at.uibk.dps.rm.verticle;
 import at.uibk.dps.rm.repository.DeploymentRepositoryProvider;
 import at.uibk.dps.rm.repository.EnsembleRepositoryProvider;
 import at.uibk.dps.rm.repository.account.*;
+import at.uibk.dps.rm.rx.repository.account.AccountCredentialsRepository;
 import at.uibk.dps.rm.rx.repository.account.AccountNamespaceRepository;
 import at.uibk.dps.rm.rx.repository.account.AccountRepository;
+import at.uibk.dps.rm.rx.repository.account.CredentialsRepository;
 import at.uibk.dps.rm.rx.repository.account.RoleRepository;
 import at.uibk.dps.rm.repository.artifact.FunctionTypeRepository;
 import at.uibk.dps.rm.repository.artifact.ServiceTypeRepository;
@@ -34,6 +36,8 @@ import at.uibk.dps.rm.rx.service.database.account.AccountNamespaceService;
 import at.uibk.dps.rm.rx.service.database.account.AccountNamespaceServiceImpl;
 import at.uibk.dps.rm.rx.service.database.account.AccountService;
 import at.uibk.dps.rm.rx.service.database.account.AccountServiceImpl;
+import at.uibk.dps.rm.rx.service.database.account.CredentialsService;
+import at.uibk.dps.rm.rx.service.database.account.CredentialsServiceImpl;
 import at.uibk.dps.rm.service.database.artifact.FunctionTypeService;
 import at.uibk.dps.rm.service.database.artifact.FunctionTypeServiceImpl;
 import at.uibk.dps.rm.service.database.artifact.ServiceTypeService;
@@ -122,9 +126,8 @@ public class DatabaseVerticle extends AbstractVerticle {
                 new AccountNamespaceServiceImpl(new AccountNamespaceRepository(), sessionFactory));
             rxServiceProxyBinder.bind(AccountService.class,
                 new AccountServiceImpl(new AccountRepository(), new RoleRepository(), sessionFactory));
-            serviceProxyBinder.bind(CredentialsService.class, new CredentialsServiceImpl(new CredentialsRepository(),
-                new AccountCredentialsRepository(), new ResourceProviderRepository(),
-                sessionFactory));
+            rxServiceProxyBinder.bind(CredentialsService.class, new CredentialsServiceImpl(new CredentialsRepository(),
+                new AccountCredentialsRepository(), sessionFactory));
             serviceProxyBinder.bind(EnsembleService.class, new EnsembleServiceImpl(new EnsembleRepositoryProvider(),
                 sessionFactory));
             serviceProxyBinder.bind(EnvironmentService.class,

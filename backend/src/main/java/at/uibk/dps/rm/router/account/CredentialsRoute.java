@@ -1,8 +1,7 @@
 package at.uibk.dps.rm.router.account;
 
-import at.uibk.dps.rm.handler.PrivateEntityResultHandler;
-import at.uibk.dps.rm.handler.account.CredentialsChecker;
-import at.uibk.dps.rm.handler.account.CredentialsHandler;
+import at.uibk.dps.rm.rx.handler.PrivateEntityResultHandler;
+import at.uibk.dps.rm.rx.handler.account.CredentialsHandler;
 import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
@@ -15,9 +14,7 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 public class CredentialsRoute implements Route {
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
-        CredentialsChecker credentialsChecker = new CredentialsChecker(serviceProxyProvider
-            .getCredentialsService());
-        CredentialsHandler credentialsHandler = new CredentialsHandler(credentialsChecker);
+        CredentialsHandler credentialsHandler = new CredentialsHandler(serviceProxyProvider.getCredentialsService());
         PrivateEntityResultHandler resultHandler = new PrivateEntityResultHandler(credentialsHandler);
 
         router

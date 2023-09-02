@@ -1,17 +1,15 @@
-package at.uibk.dps.rm.repository.account;
+package at.uibk.dps.rm.rx.repository.account;
 
 import at.uibk.dps.rm.entity.model.AccountCredentials;
-import at.uibk.dps.rm.repository.Repository;
-import org.hibernate.reactive.stage.Stage.Session;
-
-import java.util.concurrent.CompletionStage;
+import at.uibk.dps.rm.rx.repository.Repository;
+import at.uibk.dps.rm.rx.service.database.util.SessionManager;
+import io.reactivex.rxjava3.core.Maybe;
 
 /**
  * Implements database operations for the account_credentials entity.
  *
  * @author matthi-g
  */
-@Deprecated
 public class AccountCredentialsRepository extends Repository<AccountCredentials> {
 
     /**
@@ -24,37 +22,41 @@ public class AccountCredentialsRepository extends Repository<AccountCredentials>
     /**
      * Find account credentials by the accountId and providerId.
      *
-     * @param session the database session
+     * @param sessionManager the database session manager
      * @param accountId the id of the credentials owner
      * @param providerId the id of the resource provider
-     * @return a CompletionStage that emits the account credentials if they exist, else null
+     * @return a Maybe that emits the account credentials if they exist, else null
      */
-    public CompletionStage<AccountCredentials> findByAccountAndProvider(Session session, long accountId,
+    public Maybe<AccountCredentials> findByAccountAndProvider(SessionManager sessionManager, long accountId,
             long providerId) {
-        return session.createQuery("from AccountCredentials ac " +
+        return Maybe.fromCompletionStage(sessionManager.getSession()
+            .createQuery("from AccountCredentials ac " +
                 "where ac.account.accountId=:accountId and " +
                 "ac.credentials.resourceProvider.providerId=:providerId", entityClass)
             .setParameter("accountId", accountId)
             .setParameter("providerId", providerId)
-            .getSingleResultOrNull();
+            .getSingleResultOrNull()
+        );
     }
 
     /**
      * Find account credentials by the credentialsId and accountId.
      *
-     * @param session the database session
+     * @param sessionManager the database session manager
      * @param credentialsId the id of the credentials
      * @param accountId the id of the credentials owner
-     * @return a CompletionStage that emits the account credentials if they exist, else null
+     * @return a Maybe that emits the account credentials if they exist, else null
      */
-    public CompletionStage<AccountCredentials> findByCredentialsAndAccount(Session session, long credentialsId,
-        long accountId) {
-        return session.createQuery("from AccountCredentials ac " +
+    public Maybe<AccountCredentials> findByCredentialsAndAccount(SessionManager sessionManager,
+        long credentialsId, long accountId) {
+        return Maybe.fromCompletionStage(sessionManager.getSession()
+            .createQuery("from AccountCredentials ac " +
                 "left join fetch ac.credentials " +
                 "left join fetch ac.account " +
                 "where ac.credentials.credentialsId=:credentialsId and ac.account.accountId=:accountId", entityClass)
             .setParameter("credentialsId", credentialsId)
             .setParameter("accountId", accountId)
-            .getSingleResultOrNull();
+            .getSingleResultOrNull()
+        );
     }
 }

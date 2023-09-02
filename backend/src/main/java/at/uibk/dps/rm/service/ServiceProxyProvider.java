@@ -10,7 +10,7 @@ import at.uibk.dps.rm.service.rxjava3.database.metric.PlatformMetricService;
 import at.uibk.dps.rm.service.rxjava3.database.deployment.*;
 import at.uibk.dps.rm.rx.service.rxjava3.database.account.AccountNamespaceService;
 import at.uibk.dps.rm.rx.service.rxjava3.database.account.AccountService;
-import at.uibk.dps.rm.service.rxjava3.database.account.CredentialsService;
+import at.uibk.dps.rm.rx.service.rxjava3.database.account.CredentialsService;
 import at.uibk.dps.rm.service.rxjava3.database.function.FunctionService;
 import at.uibk.dps.rm.service.rxjava3.database.function.RuntimeService;
 import at.uibk.dps.rm.service.rxjava3.database.log.LogService;

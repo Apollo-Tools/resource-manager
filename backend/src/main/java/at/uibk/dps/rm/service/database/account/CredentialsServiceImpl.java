@@ -25,6 +25,7 @@ import java.util.concurrent.CompletionStage;
  *
  * @author matthi-g
  */
+@Deprecated
 public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> implements  CredentialsService {
 
     private final CredentialsRepository repository;
