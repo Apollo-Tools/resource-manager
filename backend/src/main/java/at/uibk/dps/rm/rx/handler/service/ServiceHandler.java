@@ -13,21 +13,21 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
  */
 public class ServiceHandler extends ValidationHandler {
 
-    private final ServiceService service;
+    private final ServiceService serviceService;
     /**
-     * Create an instance from the service.
+     * Create an instance from the serviceService.
      *
-     * @param service the service
+     * @param serviceService the service
      */
-    public ServiceHandler(ServiceService service) {
-        super(service);
-        this.service = service;
+    public ServiceHandler(ServiceService serviceService) {
+        super(serviceService);
+        this.serviceService = serviceService;
     }
 
     @Override
     public Single<JsonArray> getAll(RoutingContext rc) {
         long accountId = rc.user().principal().getLong("account_id");
-        return service.findAllAccessibleServices(accountId);
+        return serviceService.findAllAccessibleServices(accountId);
     }
 
     @Override

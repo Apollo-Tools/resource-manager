@@ -13,6 +13,7 @@ import io.vertx.core.json.JsonObject;
  *
  * @author matthi-g
  */
+@Deprecated
 public class AccountNamespaceChecker extends EntityChecker {
 
     private final AccountNamespaceService service;

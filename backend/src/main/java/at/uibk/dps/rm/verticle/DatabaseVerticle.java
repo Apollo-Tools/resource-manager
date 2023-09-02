@@ -3,6 +3,7 @@ package at.uibk.dps.rm.verticle;
 import at.uibk.dps.rm.repository.DeploymentRepositoryProvider;
 import at.uibk.dps.rm.repository.EnsembleRepositoryProvider;
 import at.uibk.dps.rm.repository.account.*;
+import at.uibk.dps.rm.rx.repository.account.AccountNamespaceRepository;
 import at.uibk.dps.rm.repository.artifact.FunctionTypeRepository;
 import at.uibk.dps.rm.repository.artifact.ServiceTypeRepository;
 import at.uibk.dps.rm.repository.ensemble.EnsembleRepository;
@@ -27,6 +28,8 @@ import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
 import at.uibk.dps.rm.rx.repository.service.ServiceRepository;
 import at.uibk.dps.rm.rx.repository.service.K8sServiceTypeRepository;
 import at.uibk.dps.rm.service.database.account.*;
+import at.uibk.dps.rm.rx.service.database.account.AccountNamespaceService;
+import at.uibk.dps.rm.rx.service.database.account.AccountNamespaceServiceImpl;
 import at.uibk.dps.rm.service.database.artifact.FunctionTypeService;
 import at.uibk.dps.rm.service.database.artifact.FunctionTypeServiceImpl;
 import at.uibk.dps.rm.service.database.artifact.ServiceTypeService;
@@ -111,7 +114,7 @@ public class DatabaseVerticle extends AbstractVerticle {
             ServiceProxyBinder serviceProxyBinder = new ServiceProxyBinder(serviceBinder);
             at.uibk.dps.rm.rx.service.ServiceProxyBinder rxServiceProxyBinder = new at.uibk.dps.rm.rx.service.ServiceProxyBinder(serviceBinder);
 
-            serviceProxyBinder.bind(AccountNamespaceService.class,
+            rxServiceProxyBinder.bind(AccountNamespaceService.class,
                 new AccountNamespaceServiceImpl(new AccountNamespaceRepository(), sessionFactory));
             serviceProxyBinder.bind(AccountService.class,
                 new AccountServiceImpl(new AccountRepository(), new RoleRepository(), sessionFactory));
