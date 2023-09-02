@@ -10,6 +10,7 @@ import at.uibk.dps.rm.service.rxjava3.database.artifact.ServiceTypeService;
  *
  * @author matthi-g
  */
+@Deprecated
 public class ServiceTypeChecker extends EntityChecker {
     /**
      * Create an instance from the service.

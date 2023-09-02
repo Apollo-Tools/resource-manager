@@ -10,6 +10,7 @@ import at.uibk.dps.rm.service.rxjava3.database.artifact.FunctionTypeService;
  *
  * @author matthi-g
  */
+@Deprecated
 public class FunctionTypeChecker extends EntityChecker {
     /**
      * Create an instance from the service.

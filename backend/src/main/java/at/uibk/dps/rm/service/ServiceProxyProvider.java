@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.service;
 
-import at.uibk.dps.rm.service.rxjava3.database.artifact.FunctionTypeService;
-import at.uibk.dps.rm.service.rxjava3.database.artifact.ServiceTypeService;
+import at.uibk.dps.rm.rx.service.rxjava3.database.artifact.FunctionTypeService;
+import at.uibk.dps.rm.rx.service.rxjava3.database.artifact.ServiceTypeService;
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.EnsembleService;
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.ResourceEnsembleService;
 import at.uibk.dps.rm.service.rxjava3.database.log.DeploymentLogService;

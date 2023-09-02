@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.handler.artifact;
+package at.uibk.dps.rm.rx.handler.artifact;
 
 import at.uibk.dps.rm.rx.handler.ValidationHandler;
 import at.uibk.dps.rm.rx.service.rxjava3.database.artifact.ServiceTypeService;
@@ -8,7 +8,6 @@ import at.uibk.dps.rm.rx.service.rxjava3.database.artifact.ServiceTypeService;
  *
  * @author matthi-g
  */
-@Deprecated
 public class ServiceTypeHandler extends ValidationHandler {
     /**
      * Create an instance from the serviceTypeChecker.

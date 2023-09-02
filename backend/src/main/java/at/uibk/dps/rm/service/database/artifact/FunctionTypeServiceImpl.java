@@ -15,6 +15,7 @@ import java.util.concurrent.CompletionStage;
  *
  * @author matthi-g
  */
+@Deprecated
 public class FunctionTypeServiceImpl extends DatabaseServiceProxy<FunctionType> implements FunctionTypeService {
 
     private final FunctionTypeRepository repository;
