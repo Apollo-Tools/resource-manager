@@ -11,6 +11,7 @@ import java.util.concurrent.CompletionStage;
  *
  * @author matthi-g
  */
+@Deprecated
 public class AccountRepository extends Repository<Account> {
 
     /**

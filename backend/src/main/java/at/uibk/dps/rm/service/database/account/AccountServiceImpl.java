@@ -23,6 +23,7 @@ import java.util.concurrent.CompletionStage;
  *
  * @author matthi-g
  */
+@Deprecated
 public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements  AccountService {
 
     private final AccountRepository repository;

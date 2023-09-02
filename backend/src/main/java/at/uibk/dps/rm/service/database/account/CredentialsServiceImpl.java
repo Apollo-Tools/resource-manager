@@ -1,11 +1,11 @@
 package at.uibk.dps.rm.service.database.account;
 
+import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.entity.model.AccountCredentials;
 import at.uibk.dps.rm.entity.model.Credentials;
 import at.uibk.dps.rm.entity.model.ResourceProvider;
 import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.repository.account.AccountCredentialsRepository;
-import at.uibk.dps.rm.repository.account.AccountRepository;
 import at.uibk.dps.rm.repository.account.CredentialsRepository;
 import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
@@ -29,8 +29,6 @@ public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> im
 
     private final CredentialsRepository repository;
 
-    private final AccountRepository accountRepository;
-
     private final AccountCredentialsRepository accountCredentialsRepository;
 
     private final ResourceProviderRepository resourceProviderRepository;
@@ -40,12 +38,11 @@ public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> im
      *
      * @param repository the credentials repository
      */
-    public CredentialsServiceImpl(CredentialsRepository repository, AccountRepository accountRepository,
+    public CredentialsServiceImpl(CredentialsRepository repository,
             AccountCredentialsRepository accountCredentialsRepository,
             ResourceProviderRepository resourceProviderRepository, Stage.SessionFactory sessionFactory) {
         super(repository, Credentials.class, sessionFactory);
         this.repository = repository;
-        this.accountRepository = accountRepository;
         this.accountCredentialsRepository = accountCredentialsRepository;
         this.resourceProviderRepository = resourceProviderRepository;
     }
@@ -84,7 +81,7 @@ public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> im
                 .thenCompose(provider -> {
                     ServiceResultValidator.checkFound(provider, ResourceProvider.class);
                     newCredentials.setResourceProvider(provider);
-                    return accountRepository.findById(session, accountId);
+                    return session.find(Account.class, accountId);
                 })
                 .thenCompose(account -> {
                     if (account == null) {

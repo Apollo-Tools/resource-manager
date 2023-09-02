@@ -4,6 +4,8 @@ import at.uibk.dps.rm.repository.DeploymentRepositoryProvider;
 import at.uibk.dps.rm.repository.EnsembleRepositoryProvider;
 import at.uibk.dps.rm.repository.account.*;
 import at.uibk.dps.rm.rx.repository.account.AccountNamespaceRepository;
+import at.uibk.dps.rm.rx.repository.account.AccountRepository;
+import at.uibk.dps.rm.rx.repository.account.RoleRepository;
 import at.uibk.dps.rm.repository.artifact.FunctionTypeRepository;
 import at.uibk.dps.rm.repository.artifact.ServiceTypeRepository;
 import at.uibk.dps.rm.repository.ensemble.EnsembleRepository;
@@ -30,6 +32,8 @@ import at.uibk.dps.rm.rx.repository.service.K8sServiceTypeRepository;
 import at.uibk.dps.rm.service.database.account.*;
 import at.uibk.dps.rm.rx.service.database.account.AccountNamespaceService;
 import at.uibk.dps.rm.rx.service.database.account.AccountNamespaceServiceImpl;
+import at.uibk.dps.rm.rx.service.database.account.AccountService;
+import at.uibk.dps.rm.rx.service.database.account.AccountServiceImpl;
 import at.uibk.dps.rm.service.database.artifact.FunctionTypeService;
 import at.uibk.dps.rm.service.database.artifact.FunctionTypeServiceImpl;
 import at.uibk.dps.rm.service.database.artifact.ServiceTypeService;
@@ -116,10 +120,10 @@ public class DatabaseVerticle extends AbstractVerticle {
 
             rxServiceProxyBinder.bind(AccountNamespaceService.class,
                 new AccountNamespaceServiceImpl(new AccountNamespaceRepository(), sessionFactory));
-            serviceProxyBinder.bind(AccountService.class,
+            rxServiceProxyBinder.bind(AccountService.class,
                 new AccountServiceImpl(new AccountRepository(), new RoleRepository(), sessionFactory));
             serviceProxyBinder.bind(CredentialsService.class, new CredentialsServiceImpl(new CredentialsRepository(),
-                new AccountRepository(), new AccountCredentialsRepository(), new ResourceProviderRepository(),
+                new AccountCredentialsRepository(), new ResourceProviderRepository(),
                 sessionFactory));
             serviceProxyBinder.bind(EnsembleService.class, new EnsembleServiceImpl(new EnsembleRepositoryProvider(),
                 sessionFactory));

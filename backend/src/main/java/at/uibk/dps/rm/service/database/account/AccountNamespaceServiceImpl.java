@@ -16,6 +16,7 @@ import java.util.concurrent.CompletionStage;
  *
  * @author matthi-g
  */
+@Deprecated
 public class AccountNamespaceServiceImpl extends DatabaseServiceProxy<AccountNamespace> implements
         AccountNamespaceService {
 

@@ -3,7 +3,6 @@ package at.uibk.dps.rm.service.database.account;
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.Credentials;
 import at.uibk.dps.rm.repository.account.AccountCredentialsRepository;
-import at.uibk.dps.rm.repository.account.AccountRepository;
 import at.uibk.dps.rm.repository.account.CredentialsRepository;
 import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
@@ -29,8 +28,8 @@ public interface CredentialsService extends DatabaseServiceInterface {
     @Generated
     @GenIgnore
     static CredentialsService create(Stage.SessionFactory sessionFactory) {
-        return new CredentialsServiceImpl(new CredentialsRepository(), new AccountRepository(),
-            new AccountCredentialsRepository(), new ResourceProviderRepository(), sessionFactory);
+        return new CredentialsServiceImpl(new CredentialsRepository(), new AccountCredentialsRepository(),
+            new ResourceProviderRepository(), sessionFactory);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

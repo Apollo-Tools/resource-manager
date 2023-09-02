@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.handler.account;
+package at.uibk.dps.rm.rx.handler.account;
 
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -9,11 +9,11 @@ import lombok.experimental.UtilityClass;
 import java.util.regex.Pattern;
 
 /**
- * Used to validate the inputs of the account endpoint and fails the context if violations are found.
+ * Used to validate the inputs of the account endpoint and fails the context if violations are
+ * found.
  *
  * @author matthi-g
  */
-@Deprecated
 @UtilityClass
 public class AccountInputHandler {
 
