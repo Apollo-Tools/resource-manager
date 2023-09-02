@@ -1,6 +1,7 @@
-package at.uibk.dps.rm.handler.account;
+package at.uibk.dps.rm.rx.handler.account;
 
-import at.uibk.dps.rm.handler.ValidationHandler;
+import at.uibk.dps.rm.rx.handler.ValidationHandler;
+import at.uibk.dps.rm.rx.service.rxjava3.database.account.NamespaceService;
 import at.uibk.dps.rm.util.misc.HttpHelper;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
@@ -11,16 +12,18 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
  *
  * @author matthi-g
  */
-@Deprecated
 public class NamespaceHandler extends ValidationHandler {
 
+    private final NamespaceService namespaceService;
+
     /**
-     * Create an instance from the namespaceChecker.
+     * Create an instance from the namespaceService.
      *
-     * @param namespaceChecker the namespace checker
+     * @param namespaceService the service
      */
-    public NamespaceHandler(NamespaceChecker namespaceChecker) {
-        super(namespaceChecker);
+    public NamespaceHandler(NamespaceService namespaceService) {
+        super(namespaceService);
+        this.namespaceService = namespaceService;
     }
 
     /**
@@ -38,6 +41,6 @@ public class NamespaceHandler extends ValidationHandler {
         } else {
             getAccountId = HttpHelper.getLongPathParam(rc, "id");
         }
-        return getAccountId.flatMap(entityChecker::checkFindAll);
+        return getAccountId.flatMap(namespaceService::findAllByAccountId);
     }
 }

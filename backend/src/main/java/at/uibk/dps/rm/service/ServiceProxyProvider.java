@@ -1,6 +1,5 @@
 package at.uibk.dps.rm.service;
 
-import at.uibk.dps.rm.service.rxjava3.database.account.NamespaceService;
 import at.uibk.dps.rm.service.rxjava3.database.artifact.FunctionTypeService;
 import at.uibk.dps.rm.service.rxjava3.database.artifact.ServiceTypeService;
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.EnsembleService;
@@ -11,6 +10,7 @@ import at.uibk.dps.rm.service.rxjava3.database.deployment.*;
 import at.uibk.dps.rm.rx.service.rxjava3.database.account.AccountNamespaceService;
 import at.uibk.dps.rm.rx.service.rxjava3.database.account.AccountService;
 import at.uibk.dps.rm.rx.service.rxjava3.database.account.CredentialsService;
+import at.uibk.dps.rm.rx.service.rxjava3.database.account.NamespaceService;
 import at.uibk.dps.rm.service.rxjava3.database.function.FunctionService;
 import at.uibk.dps.rm.service.rxjava3.database.function.RuntimeService;
 import at.uibk.dps.rm.service.rxjava3.database.log.LogService;

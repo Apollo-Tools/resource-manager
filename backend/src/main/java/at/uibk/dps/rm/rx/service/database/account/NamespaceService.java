@@ -1,15 +1,16 @@
-package at.uibk.dps.rm.service.database.account;
+package at.uibk.dps.rm.rx.service.database.account;
 
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.K8sNamespace;
-import at.uibk.dps.rm.repository.account.NamespaceRepository;
-import at.uibk.dps.rm.repository.resource.ResourceRepository;
-import at.uibk.dps.rm.service.ServiceProxyAddress;
-import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
+import at.uibk.dps.rm.rx.repository.account.NamespaceRepository;
+import at.uibk.dps.rm.rx.repository.resource.ResourceRepository;
+import at.uibk.dps.rm.rx.service.ServiceProxyAddress;
+import at.uibk.dps.rm.rx.service.database.DatabaseServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Future;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import org.hibernate.reactive.stage.Stage;
 
@@ -20,7 +21,6 @@ import java.util.List;
  *
  * @author matthi-g
  */
-@Deprecated
 @ProxyGen
 @VertxGen
 public interface NamespaceService extends DatabaseServiceInterface {
@@ -43,7 +43,8 @@ public interface NamespaceService extends DatabaseServiceInterface {
      *
      * @param clusterName the name of the cluster resource
      * @param namespaces the list of namespaces
-     * @return an empty Future
+     * @param resultHandler receives nothing if the update was successful else an error
      */
-    Future<Void> updateAllClusterNamespaces(String clusterName, List<String> namespaces);
+    void updateAllClusterNamespaces(String clusterName, List<String> namespaces,
+        Handler<AsyncResult<Void>> resultHandler);
 }

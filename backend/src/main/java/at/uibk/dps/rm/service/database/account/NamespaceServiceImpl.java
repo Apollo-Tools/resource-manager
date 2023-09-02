@@ -18,6 +18,7 @@ import java.util.concurrent.CompletionStage;
  *
  * @author matthi-g
  */
+@Deprecated
 public class NamespaceServiceImpl extends DatabaseServiceProxy<K8sNamespace> implements NamespaceService {
 
     private final NamespaceRepository repository;
