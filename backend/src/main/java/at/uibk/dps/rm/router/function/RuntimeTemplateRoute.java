@@ -1,9 +1,7 @@
 package at.uibk.dps.rm.router.function;
 
-import at.uibk.dps.rm.handler.ResultHandler;
-import at.uibk.dps.rm.handler.function.RuntimeChecker;
-import at.uibk.dps.rm.handler.function.RuntimeTemplateHandler;
-import at.uibk.dps.rm.handler.util.FileSystemChecker;
+import at.uibk.dps.rm.rx.handler.ResultHandler;
+import at.uibk.dps.rm.rx.handler.function.RuntimeTemplateHandler;
 import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
@@ -16,10 +14,8 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 public class RuntimeTemplateRoute implements Route {
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
-        RuntimeChecker runtimeChecker = new RuntimeChecker(serviceProxyProvider.getRuntimeService());
-        FileSystemChecker fileSystemChecker = new FileSystemChecker(serviceProxyProvider.getFilePathService());
-        RuntimeTemplateHandler runtimeTemplateHandler =
-            new RuntimeTemplateHandler(runtimeChecker, fileSystemChecker);
+        RuntimeTemplateHandler runtimeTemplateHandler = new RuntimeTemplateHandler(serviceProxyProvider
+            .getRuntimeService());
         ResultHandler resultHandler = new ResultHandler(runtimeTemplateHandler);
 
         router

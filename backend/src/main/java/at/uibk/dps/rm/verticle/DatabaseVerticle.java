@@ -2,19 +2,14 @@ package at.uibk.dps.rm.verticle;
 
 import at.uibk.dps.rm.repository.DeploymentRepositoryProvider;
 import at.uibk.dps.rm.repository.EnsembleRepositoryProvider;
-import at.uibk.dps.rm.repository.account.*;
-import at.uibk.dps.rm.rx.repository.account.AccountCredentialsRepository;
-import at.uibk.dps.rm.rx.repository.account.AccountNamespaceRepository;
-import at.uibk.dps.rm.rx.repository.account.AccountRepository;
-import at.uibk.dps.rm.rx.repository.account.CredentialsRepository;
-import at.uibk.dps.rm.rx.repository.account.RoleRepository;
-import at.uibk.dps.rm.repository.artifact.FunctionTypeRepository;
-import at.uibk.dps.rm.repository.artifact.ServiceTypeRepository;
+import at.uibk.dps.rm.rx.repository.account.*;
+import at.uibk.dps.rm.rx.repository.artifact.FunctionTypeRepository;
+import at.uibk.dps.rm.rx.repository.artifact.ServiceTypeRepository;
 import at.uibk.dps.rm.repository.ensemble.EnsembleRepository;
 import at.uibk.dps.rm.repository.ensemble.EnsembleSLORepository;
 import at.uibk.dps.rm.repository.ensemble.ResourceEnsembleRepository;
-import at.uibk.dps.rm.repository.function.FunctionRepository;
-import at.uibk.dps.rm.repository.function.RuntimeRepository;
+import at.uibk.dps.rm.rx.repository.function.FunctionRepository;
+import at.uibk.dps.rm.rx.repository.function.RuntimeRepository;
 import at.uibk.dps.rm.repository.log.LogRepository;
 import at.uibk.dps.rm.repository.log.DeploymentLogRepository;
 import at.uibk.dps.rm.repository.metric.MetricRepository;
@@ -23,7 +18,6 @@ import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.repository.deployment.*;
 import at.uibk.dps.rm.repository.resource.PlatformRepository;
-import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resource.ResourceTypeRepository;
 import at.uibk.dps.rm.repository.resourceprovider.EnvironmentRepository;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
@@ -31,19 +25,17 @@ import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
 import at.uibk.dps.rm.rx.repository.service.ServiceRepository;
 import at.uibk.dps.rm.rx.repository.service.K8sServiceTypeRepository;
-import at.uibk.dps.rm.service.database.account.*;
-import at.uibk.dps.rm.rx.service.database.account.AccountNamespaceService;
-import at.uibk.dps.rm.rx.service.database.account.AccountNamespaceServiceImpl;
-import at.uibk.dps.rm.rx.service.database.account.AccountService;
-import at.uibk.dps.rm.rx.service.database.account.AccountServiceImpl;
-import at.uibk.dps.rm.rx.service.database.account.CredentialsService;
-import at.uibk.dps.rm.rx.service.database.account.CredentialsServiceImpl;
-import at.uibk.dps.rm.service.database.artifact.FunctionTypeService;
-import at.uibk.dps.rm.service.database.artifact.FunctionTypeServiceImpl;
-import at.uibk.dps.rm.service.database.artifact.ServiceTypeService;
-import at.uibk.dps.rm.service.database.artifact.ServiceTypeServiceImpl;
+import at.uibk.dps.rm.rx.service.database.account.*;
+import at.uibk.dps.rm.rx.service.database.artifact.FunctionTypeService;
+import at.uibk.dps.rm.rx.service.database.artifact.FunctionTypeServiceImpl;
+import at.uibk.dps.rm.rx.service.database.artifact.ServiceTypeService;
+import at.uibk.dps.rm.rx.service.database.artifact.ServiceTypeServiceImpl;
+import at.uibk.dps.rm.rx.service.database.account.NamespaceService;
 import at.uibk.dps.rm.service.database.ensemble.*;
-import at.uibk.dps.rm.service.database.function.*;
+import at.uibk.dps.rm.rx.service.database.function.FunctionService;
+import at.uibk.dps.rm.rx.service.database.function.FunctionServiceImpl;
+import at.uibk.dps.rm.rx.service.database.function.RuntimeService;
+import at.uibk.dps.rm.rx.service.database.function.RuntimeServiceImpl;
 import at.uibk.dps.rm.service.database.log.DeploymentLogService;
 import at.uibk.dps.rm.service.database.log.LogService;
 import at.uibk.dps.rm.service.database.log.LogServiceImpl;
@@ -132,9 +124,9 @@ public class DatabaseVerticle extends AbstractVerticle {
                 sessionFactory));
             serviceProxyBinder.bind(EnvironmentService.class,
                 new EnvironmentServiceImpl(new EnvironmentRepository(), sessionFactory));
-            serviceProxyBinder.bind(FunctionService.class,
+            rxServiceProxyBinder.bind(FunctionService.class,
                 new FunctionServiceImpl(new FunctionRepository(), sessionFactory));
-            serviceProxyBinder.bind(FunctionTypeService.class,
+            rxServiceProxyBinder.bind(FunctionTypeService.class,
                 new FunctionTypeServiceImpl(new FunctionTypeRepository(), sessionFactory));
             serviceProxyBinder.bind(LogService.class, new LogServiceImpl(new LogRepository(), sessionFactory));
             serviceProxyBinder.bind(MetricService.class, new MetricServiceImpl(new MetricRepository(), sessionFactory));
@@ -143,8 +135,8 @@ public class DatabaseVerticle extends AbstractVerticle {
             serviceProxyBinder.bind(MetricValueService.class,
                 new MetricValueServiceImpl(new MetricValueRepository(), new PlatformMetricRepository(), sessionFactory)
             );
-            serviceProxyBinder.bind(NamespaceService.class,
-                new NamespaceServiceImpl(new NamespaceRepository(), new ResourceRepository(), sessionFactory));
+            rxServiceProxyBinder.bind(NamespaceService.class,
+                new NamespaceServiceImpl(new NamespaceRepository(), new at.uibk.dps.rm.rx.repository.resource.ResourceRepository(), sessionFactory));
             serviceProxyBinder.bind(PlatformService.class,
                 new PlatformServiceImpl(new PlatformRepository(), sessionFactory));
             serviceProxyBinder.bind(RegionService.class, new RegionServiceImpl(new RegionRepository(),
@@ -157,9 +149,9 @@ public class DatabaseVerticle extends AbstractVerticle {
                     new K8sServiceTypeServiceImpl(new K8sServiceTypeRepository(), sessionFactory));
             serviceProxyBinder.bind(ResourceEnsembleService.class,
                 new ResourceEnsembleServiceImpl(new ResourceEnsembleRepository(), new EnsembleSLORepository(),
-                    new EnsembleRepository(), new ResourceRepository(), sessionFactory));
+                    new EnsembleRepository(), new at.uibk.dps.rm.repository.resource.ResourceRepository(), sessionFactory));
             serviceProxyBinder.bind(ResourceService.class,
-                new ResourceServiceImpl(new ResourceRepository(), new RegionRepository(), new MetricRepository(),
+                new ResourceServiceImpl(new at.uibk.dps.rm.repository.resource.ResourceRepository(), new RegionRepository(), new MetricRepository(),
                     sessionFactory));
             serviceProxyBinder.bind(ResourceProviderService.class,
                 new ResourceProviderServiceImpl(new ResourceProviderRepository(), sessionFactory));
@@ -169,13 +161,13 @@ public class DatabaseVerticle extends AbstractVerticle {
                 new ResourceTypeServiceImpl(new ResourceTypeRepository(), sessionFactory));
             serviceProxyBinder.bind(PlatformMetricService.class,
                 new PlatformMetricServiceImpl(new PlatformMetricRepository(), sessionFactory));
-            serviceProxyBinder.bind(RuntimeService.class,
+            rxServiceProxyBinder.bind(RuntimeService.class,
                 new RuntimeServiceImpl(new RuntimeRepository(), sessionFactory));
             rxServiceProxyBinder.bind(ServiceService.class,
                 new ServiceServiceImpl(new ServiceRepository(), sessionFactory));
             serviceProxyBinder.bind(ServiceDeploymentService.class,
                 new ServiceDeploymentServiceImpl(new ServiceDeploymentRepository(), sessionFactory));
-            serviceProxyBinder.bind(ServiceTypeService.class,
+            rxServiceProxyBinder.bind(ServiceTypeService.class,
                 new ServiceTypeServiceImpl(new ServiceTypeRepository(), sessionFactory));
             serviceProxyBinder.bind(VPCService.class, new VPCServiceImpl(new VPCRepository(), new RegionRepository(),
                 sessionFactory));

@@ -1,6 +1,7 @@
-package at.uibk.dps.rm.handler.function;
+package at.uibk.dps.rm.rx.handler.function;
 
-import at.uibk.dps.rm.handler.ValidationHandler;
+import at.uibk.dps.rm.rx.handler.ValidationHandler;
+import at.uibk.dps.rm.rx.service.rxjava3.database.function.FunctionService;
 import at.uibk.dps.rm.util.misc.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -15,19 +16,18 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
  *
  * @author matthi-g
  */
-@Deprecated
 public class FunctionHandler extends ValidationHandler {
 
-    private final FunctionChecker functionChecker;
+    private final FunctionService functionService;
 
     /**
-     * Create an instance from the functionChecker.
+     * Create an instance from the functionService.
      *
-     * @param functionChecker the function checker
+     * @param functionService the service
      */
-    public FunctionHandler(FunctionChecker functionChecker) {
-        super(functionChecker);
-        this.functionChecker = functionChecker;
+    public FunctionHandler(FunctionService functionService) {
+        super(functionService);
+        this.functionService = functionService;
     }
 
     @Override
@@ -55,7 +55,7 @@ public class FunctionHandler extends ValidationHandler {
         }
         requestBody.put("is_file", isFile);
         long accountId = rc.user().principal().getLong("account_id");
-        return entityChecker.submitCreate(accountId, requestBody);
+        return functionService.saveToAccount(accountId, requestBody);
     }
 
     @Override
@@ -77,13 +77,13 @@ public class FunctionHandler extends ValidationHandler {
         requestBody.put("is_file", isFile);
         long accountId = rc.user().principal().getLong("account_id");
         return HttpHelper.getLongPathParam(rc, "id")
-            .flatMapCompletable(id -> entityChecker.submitUpdate(id, accountId, requestBody));
+            .flatMapCompletable(id -> functionService.updateOwned(id, accountId, requestBody));
     }
 
     @Override
     public Single<JsonArray> getAll(RoutingContext rc) {
         long accountId = rc.user().principal().getLong("account_id");
-        return functionChecker.checkFindAllAccessible(accountId);
+        return functionService.findAllAccessibleFunctions(accountId);
     }
 
     @Override

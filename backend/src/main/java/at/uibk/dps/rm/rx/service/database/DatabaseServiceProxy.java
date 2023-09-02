@@ -131,9 +131,8 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
 
     @Override
     public void findOne(long id, Handler<AsyncResult<JsonObject>> resultHandler) {
-        Single<T> findOne = withTransactionSingle(sessionManager -> sessionManager.find(entityClass, id)
+        Maybe<T> findOne = withTransactionMaybe(sessionManager -> sessionManager.find(entityClass, id)
             .switchIfEmpty(Maybe.error(new NotFoundException(entityClass)))
-            .toSingle()
         );
         handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
     }

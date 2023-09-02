@@ -1,8 +1,8 @@
-package at.uibk.dps.rm.service.database.function;
+package at.uibk.dps.rm.rx.service.database.function;
 
 import at.uibk.dps.rm.entity.model.Runtime;
-import at.uibk.dps.rm.repository.function.RuntimeRepository;
-import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.rx.repository.function.RuntimeRepository;
+import at.uibk.dps.rm.rx.service.database.DatabaseServiceProxy;
 import org.hibernate.reactive.stage.Stage;
 
 /**
@@ -10,7 +10,6 @@ import org.hibernate.reactive.stage.Stage;
  *
  * @author matthi-g
  */
-@Deprecated
 public class RuntimeServiceImpl extends DatabaseServiceProxy<Runtime> implements RuntimeService {
 
     /**

@@ -1,14 +1,13 @@
-package at.uibk.dps.rm.repository.function;
+package at.uibk.dps.rm.rx.repository.function;
 
 import at.uibk.dps.rm.entity.model.Runtime;
-import at.uibk.dps.rm.repository.Repository;
+import at.uibk.dps.rm.rx.repository.Repository;
 
 /**
  * Implements database operations for the runtime entity.
  *
  * @author matthi-g
  */
-@Deprecated
 public class RuntimeRepository extends Repository<Runtime> {
 
     /**

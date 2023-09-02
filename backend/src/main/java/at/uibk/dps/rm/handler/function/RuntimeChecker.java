@@ -10,6 +10,7 @@ import at.uibk.dps.rm.service.rxjava3.database.function.RuntimeService;
  *
  * @author matthi-g
  */
+@Deprecated
 public class RuntimeChecker extends EntityChecker {
 
     /**
