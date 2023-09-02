@@ -10,6 +10,7 @@ import at.uibk.dps.rm.service.rxjava3.database.metric.MetricService;
  *
  * @author matthi-g
  */
+@Deprecated
 public class MetricChecker extends EntityChecker {
 
     /**

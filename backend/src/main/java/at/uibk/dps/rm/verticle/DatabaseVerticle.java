@@ -12,7 +12,7 @@ import at.uibk.dps.rm.rx.repository.function.FunctionRepository;
 import at.uibk.dps.rm.rx.repository.function.RuntimeRepository;
 import at.uibk.dps.rm.rx.repository.log.LogRepository;
 import at.uibk.dps.rm.rx.repository.log.DeploymentLogRepository;
-import at.uibk.dps.rm.repository.metric.MetricRepository;
+import at.uibk.dps.rm.rx.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.metric.MetricTypeRepository;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
@@ -44,6 +44,8 @@ import at.uibk.dps.rm.service.database.deployment.*;
 import at.uibk.dps.rm.service.database.resource.*;
 import at.uibk.dps.rm.service.database.resourceprovider.*;
 import at.uibk.dps.rm.service.database.metric.*;
+import at.uibk.dps.rm.rx.service.database.metric.MetricService;
+import at.uibk.dps.rm.rx.service.database.metric.MetricServiceImpl;
 import at.uibk.dps.rm.rx.service.database.service.ServiceService;
 import at.uibk.dps.rm.rx.service.database.service.ServiceServiceImpl;
 import at.uibk.dps.rm.rx.service.database.service.K8sServiceTypeService;
@@ -129,7 +131,8 @@ public class DatabaseVerticle extends AbstractVerticle {
             rxServiceProxyBinder.bind(FunctionTypeService.class,
                 new FunctionTypeServiceImpl(new FunctionTypeRepository(), sessionFactory));
             rxServiceProxyBinder.bind(LogService.class, new LogServiceImpl(new LogRepository(), sessionFactory));
-            serviceProxyBinder.bind(MetricService.class, new MetricServiceImpl(new MetricRepository(), sessionFactory));
+            rxServiceProxyBinder.bind(MetricService.class, new MetricServiceImpl(new MetricRepository(),
+                sessionFactory));
             serviceProxyBinder.bind(MetricTypeService.class,
                 new MetricTypeServiceImpl(new MetricTypeRepository(), sessionFactory));
             serviceProxyBinder.bind(MetricValueService.class,
@@ -151,7 +154,8 @@ public class DatabaseVerticle extends AbstractVerticle {
                 new ResourceEnsembleServiceImpl(new ResourceEnsembleRepository(), new EnsembleSLORepository(),
                     new EnsembleRepository(), new at.uibk.dps.rm.repository.resource.ResourceRepository(), sessionFactory));
             serviceProxyBinder.bind(ResourceService.class,
-                new ResourceServiceImpl(new at.uibk.dps.rm.repository.resource.ResourceRepository(), new RegionRepository(), new MetricRepository(),
+                new ResourceServiceImpl(new at.uibk.dps.rm.repository.resource.ResourceRepository(),
+                    new RegionRepository(), new at.uibk.dps.rm.repository.metric.MetricRepository(),
                     sessionFactory));
             serviceProxyBinder.bind(ResourceProviderService.class,
                 new ResourceProviderServiceImpl(new ResourceProviderRepository(), sessionFactory));
