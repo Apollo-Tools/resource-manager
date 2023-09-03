@@ -10,6 +10,7 @@ import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.EnvironmentServi
  *
  * @author matthi-g
  */
+@Deprecated
 public class EnvironmentChecker extends EntityChecker {
     /**
      * Create an instance from the environmentService.

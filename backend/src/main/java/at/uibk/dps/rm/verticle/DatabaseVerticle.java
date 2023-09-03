@@ -19,7 +19,7 @@ import at.uibk.dps.rm.repository.deployment.*;
 import at.uibk.dps.rm.rx.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.rx.repository.resource.PlatformRepository;
 import at.uibk.dps.rm.rx.repository.resource.ResourceTypeRepository;
-import at.uibk.dps.rm.repository.resourceprovider.EnvironmentRepository;
+import at.uibk.dps.rm.rx.repository.resourceprovider.EnvironmentRepository;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
@@ -48,6 +48,8 @@ import at.uibk.dps.rm.rx.service.database.resource.ResourceTypeServiceImpl;
 import at.uibk.dps.rm.rx.service.database.resource.PlatformService;
 import at.uibk.dps.rm.rx.service.database.resource.PlatformServiceImpl;
 import at.uibk.dps.rm.service.database.resourceprovider.*;
+import at.uibk.dps.rm.rx.service.database.resourceprovider.EnvironmentService;
+import at.uibk.dps.rm.rx.service.database.resourceprovider.EnvironmentServiceImpl;
 import at.uibk.dps.rm.rx.service.database.metric.MetricService;
 import at.uibk.dps.rm.rx.service.database.metric.MetricServiceImpl;
 import at.uibk.dps.rm.rx.service.database.metric.MetricValueService;
@@ -132,7 +134,7 @@ public class DatabaseVerticle extends AbstractVerticle {
                 new AccountCredentialsRepository(), sessionFactory));
             serviceProxyBinder.bind(EnsembleService.class, new EnsembleServiceImpl(new EnsembleRepositoryProvider(),
                 sessionFactory));
-            serviceProxyBinder.bind(EnvironmentService.class,
+            rxServiceProxyBinder.bind(EnvironmentService.class,
                 new EnvironmentServiceImpl(new EnvironmentRepository(), sessionFactory));
             rxServiceProxyBinder.bind(FunctionService.class,
                 new FunctionServiceImpl(new FunctionRepository(), sessionFactory));

@@ -1,8 +1,8 @@
-package at.uibk.dps.rm.service.database.resourceprovider;
+package at.uibk.dps.rm.rx.service.database.resourceprovider;
 
 import at.uibk.dps.rm.entity.model.Environment;
-import at.uibk.dps.rm.repository.resourceprovider.EnvironmentRepository;
-import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.rx.repository.resourceprovider.EnvironmentRepository;
+import at.uibk.dps.rm.rx.service.database.DatabaseServiceProxy;
 import org.hibernate.reactive.stage.Stage;
 
 /**
@@ -10,7 +10,6 @@ import org.hibernate.reactive.stage.Stage;
  *
  * @author matthi-g
  */
-@Deprecated
 public class EnvironmentServiceImpl extends DatabaseServiceProxy<Environment> implements EnvironmentService {
     /**
      * Create an instance from the repository.

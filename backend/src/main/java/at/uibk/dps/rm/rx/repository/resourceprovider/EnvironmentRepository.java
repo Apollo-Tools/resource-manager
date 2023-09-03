@@ -1,14 +1,13 @@
-package at.uibk.dps.rm.repository.resourceprovider;
+package at.uibk.dps.rm.rx.repository.resourceprovider;
 
 import at.uibk.dps.rm.entity.model.Environment;
-import at.uibk.dps.rm.repository.Repository;
+import at.uibk.dps.rm.rx.repository.Repository;
 
 /**
  * Implements database operations for the environment entity.
  *
  * @author matthi-g
  */
-@Deprecated
 public class EnvironmentRepository extends Repository<Environment> {
     /**
      * Create an instance.
