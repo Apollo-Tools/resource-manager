@@ -7,6 +7,7 @@ import at.uibk.dps.rm.handler.ValidationHandler;
  *
  * @author matthi-g
  */
+@Deprecated
 public class VPCHandler extends ValidationHandler {
     /**
      * Create an instance from the vpcChecker.

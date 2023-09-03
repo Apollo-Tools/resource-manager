@@ -19,6 +19,7 @@ import java.util.concurrent.CompletionStage;
  *
  * @author matthi-g
  */
+@Deprecated
 public class VPCServiceImpl extends DatabaseServiceProxy<VPC> implements VPCService {
     private final VPCRepository repository;
 
