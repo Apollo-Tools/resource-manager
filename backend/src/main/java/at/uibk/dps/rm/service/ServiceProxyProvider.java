@@ -14,7 +14,7 @@ import at.uibk.dps.rm.rx.service.rxjava3.database.account.NamespaceService;
 import at.uibk.dps.rm.rx.service.rxjava3.database.function.FunctionService;
 import at.uibk.dps.rm.rx.service.rxjava3.database.function.RuntimeService;
 import at.uibk.dps.rm.rx.service.rxjava3.database.log.LogService;
-import at.uibk.dps.rm.service.rxjava3.database.resource.PlatformService;
+import at.uibk.dps.rm.rx.service.rxjava3.database.resource.PlatformService;
 import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.EnvironmentService;
 import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.RegionService;
 import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.ResourceProviderService;

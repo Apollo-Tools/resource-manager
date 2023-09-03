@@ -1,10 +1,10 @@
-package at.uibk.dps.rm.service.database.resource;
+package at.uibk.dps.rm.rx.service.database.resource;
 
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.Platform;
-import at.uibk.dps.rm.repository.resource.PlatformRepository;
-import at.uibk.dps.rm.service.ServiceProxyAddress;
-import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
+import at.uibk.dps.rm.rx.repository.resource.PlatformRepository;
+import at.uibk.dps.rm.rx.service.ServiceProxyAddress;
+import at.uibk.dps.rm.rx.service.database.DatabaseServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
@@ -16,7 +16,6 @@ import org.hibernate.reactive.stage.Stage;
  *
  * @author matthi-g
  */
-@Deprecated
 @ProxyGen
 @VertxGen
 public interface PlatformService  extends DatabaseServiceInterface {

@@ -16,7 +16,7 @@ import at.uibk.dps.rm.rx.repository.metric.MetricRepository;
 import at.uibk.dps.rm.rx.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.rx.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.repository.deployment.*;
-import at.uibk.dps.rm.repository.resource.PlatformRepository;
+import at.uibk.dps.rm.rx.repository.resource.PlatformRepository;
 import at.uibk.dps.rm.repository.resource.ResourceTypeRepository;
 import at.uibk.dps.rm.repository.resourceprovider.EnvironmentRepository;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
@@ -41,6 +41,8 @@ import at.uibk.dps.rm.rx.service.database.log.LogServiceImpl;
 import at.uibk.dps.rm.rx.service.database.log.DeploymentLogServiceImpl;
 import at.uibk.dps.rm.service.database.deployment.*;
 import at.uibk.dps.rm.service.database.resource.*;
+import at.uibk.dps.rm.rx.service.database.resource.PlatformService;
+import at.uibk.dps.rm.rx.service.database.resource.PlatformServiceImpl;
 import at.uibk.dps.rm.service.database.resourceprovider.*;
 import at.uibk.dps.rm.rx.service.database.metric.MetricService;
 import at.uibk.dps.rm.rx.service.database.metric.MetricServiceImpl;
@@ -140,7 +142,7 @@ public class DatabaseVerticle extends AbstractVerticle {
             );
             rxServiceProxyBinder.bind(NamespaceService.class,
                 new NamespaceServiceImpl(new NamespaceRepository(), new at.uibk.dps.rm.rx.repository.resource.ResourceRepository(), sessionFactory));
-            serviceProxyBinder.bind(PlatformService.class,
+            rxServiceProxyBinder.bind(PlatformService.class,
                 new PlatformServiceImpl(new PlatformRepository(), sessionFactory));
             serviceProxyBinder.bind(RegionService.class, new RegionServiceImpl(new RegionRepository(),
                 new ResourceProviderRepository(), sessionFactory));

@@ -1,23 +1,23 @@
-package at.uibk.dps.rm.service.database.resource;
+package at.uibk.dps.rm.rx.service.database.resource;
 
 import at.uibk.dps.rm.entity.model.Platform;
-import at.uibk.dps.rm.repository.resource.PlatformRepository;
-import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
-import io.vertx.core.Future;
+import at.uibk.dps.rm.rx.repository.resource.PlatformRepository;
+import at.uibk.dps.rm.rx.service.database.DatabaseServiceProxy;
+import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletionStage;
 
 /**
- * This is the implementation of the #PlatformService.
+ * This is the implementation of the {@link PlatformService}.
  *
  * @author matthi-g
  */
-@Deprecated
 public class PlatformServiceImpl extends DatabaseServiceProxy<Platform> implements PlatformService {
 
     private final PlatformRepository repository;
@@ -32,27 +32,17 @@ public class PlatformServiceImpl extends DatabaseServiceProxy<Platform> implemen
     }
 
     @Override
-    public Future<JsonObject> findOne(long id) {
-        CompletionStage<Platform> findOne = withSession(session -> repository.findById(session, id));
-        return Future.fromCompletionStage(findOne)
-            .map(platform -> {
-                if (platform != null) {
-                    platform.setResourceType(null);
-                }
-                return JsonObject.mapFrom(platform);
-            });
-    }
-
-    @Override
-    public Future<JsonArray> findAll() {
-        CompletionStage<List<Platform>> findAll = withSession(repository::findAllAndFetch);
-        return Future.fromCompletionStage(findAll)
-            .map(platforms -> {
+    public void findAll(Handler<AsyncResult<JsonArray>> resultHandler) {
+        Single<List<Platform>> findAll = withTransactionSingle(repository::findAllAndFetch);
+        handleSession(
+            findAll.map(platforms -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Platform platform: platforms) {
                     objects.add(JsonObject.mapFrom(platform));
                 }
                 return new JsonArray(objects);
-            });
+            }),
+            resultHandler
+        );
     }
 }

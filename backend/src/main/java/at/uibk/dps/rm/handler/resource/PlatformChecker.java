@@ -10,6 +10,7 @@ import at.uibk.dps.rm.service.rxjava3.database.resource.PlatformService;
  *
  * @author matthi-g
  */
+@Deprecated
 public class PlatformChecker extends EntityChecker {
 
     /**
