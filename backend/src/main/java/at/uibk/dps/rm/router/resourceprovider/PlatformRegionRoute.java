@@ -1,9 +1,7 @@
-package at.uibk.dps.rm.router.resource;
+package at.uibk.dps.rm.router.resourceprovider;
 
-import at.uibk.dps.rm.handler.ResultHandler;
-import at.uibk.dps.rm.handler.resource.PlatformChecker;
-import at.uibk.dps.rm.handler.resource.PlatformRegionHandler;
-import at.uibk.dps.rm.handler.resourceprovider.RegionChecker;
+import at.uibk.dps.rm.rx.handler.ResultHandler;
+import at.uibk.dps.rm.rx.handler.resourceprovider.PlatformRegionHandler;
 import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
@@ -16,9 +14,8 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 public class PlatformRegionRoute  implements Route {
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
-        PlatformChecker platformChecker = new PlatformChecker(serviceProxyProvider.getPlatformService());
-        RegionChecker regionChecker = new RegionChecker(serviceProxyProvider.getRegionService());
-        PlatformRegionHandler platformRegionHandler = new PlatformRegionHandler(platformChecker, regionChecker);
+        PlatformRegionHandler platformRegionHandler = new PlatformRegionHandler(serviceProxyProvider
+            .getRegionService());
         ResultHandler resultHandler = new ResultHandler(platformRegionHandler);
 
         router

@@ -20,6 +20,7 @@ import java.util.concurrent.CompletionStage;
  *
  * @author matthi-g
  */
+@Deprecated
 public class RegionServiceImpl extends DatabaseServiceProxy<Region> implements RegionService {
     private final RegionRepository repository;
 

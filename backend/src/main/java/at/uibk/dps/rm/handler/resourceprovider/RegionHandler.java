@@ -7,6 +7,7 @@ import at.uibk.dps.rm.handler.ValidationHandler;
  *
  * @author matthi-g
  */
+@Deprecated
 public class RegionHandler extends ValidationHandler {
     /**
      * Create an instance from the regionChecker and providerChecker.
