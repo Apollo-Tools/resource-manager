@@ -14,8 +14,8 @@ import at.uibk.dps.rm.rx.repository.log.LogRepository;
 import at.uibk.dps.rm.rx.repository.log.DeploymentLogRepository;
 import at.uibk.dps.rm.rx.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.metric.MetricTypeRepository;
-import at.uibk.dps.rm.repository.metric.MetricValueRepository;
-import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
+import at.uibk.dps.rm.rx.repository.metric.MetricValueRepository;
+import at.uibk.dps.rm.rx.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.repository.deployment.*;
 import at.uibk.dps.rm.repository.resource.PlatformRepository;
 import at.uibk.dps.rm.repository.resource.ResourceTypeRepository;
@@ -46,6 +46,8 @@ import at.uibk.dps.rm.service.database.resourceprovider.*;
 import at.uibk.dps.rm.service.database.metric.*;
 import at.uibk.dps.rm.rx.service.database.metric.MetricService;
 import at.uibk.dps.rm.rx.service.database.metric.MetricServiceImpl;
+import at.uibk.dps.rm.rx.service.database.metric.MetricValueService;
+import at.uibk.dps.rm.rx.service.database.metric.MetricValueServiceImpl;
 import at.uibk.dps.rm.rx.service.database.service.ServiceService;
 import at.uibk.dps.rm.rx.service.database.service.ServiceServiceImpl;
 import at.uibk.dps.rm.rx.service.database.service.K8sServiceTypeService;
@@ -135,7 +137,7 @@ public class DatabaseVerticle extends AbstractVerticle {
                 sessionFactory));
             serviceProxyBinder.bind(MetricTypeService.class,
                 new MetricTypeServiceImpl(new MetricTypeRepository(), sessionFactory));
-            serviceProxyBinder.bind(MetricValueService.class,
+            rxServiceProxyBinder.bind(MetricValueService.class,
                 new MetricValueServiceImpl(new MetricValueRepository(), new PlatformMetricRepository(), sessionFactory)
             );
             rxServiceProxyBinder.bind(NamespaceService.class,
@@ -164,7 +166,7 @@ public class DatabaseVerticle extends AbstractVerticle {
             serviceProxyBinder.bind(ResourceTypeService.class,
                 new ResourceTypeServiceImpl(new ResourceTypeRepository(), sessionFactory));
             serviceProxyBinder.bind(PlatformMetricService.class,
-                new PlatformMetricServiceImpl(new PlatformMetricRepository(), sessionFactory));
+                new PlatformMetricServiceImpl(new at.uibk.dps.rm.repository.metric.PlatformMetricRepository(), sessionFactory));
             rxServiceProxyBinder.bind(RuntimeService.class,
                 new RuntimeServiceImpl(new RuntimeRepository(), sessionFactory));
             rxServiceProxyBinder.bind(ServiceService.class,

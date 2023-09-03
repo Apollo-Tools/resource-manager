@@ -16,6 +16,7 @@ import io.vertx.core.json.JsonObject;
  *
  * @author matthi-g
  */
+@Deprecated
 public class MetricValueChecker extends EntityChecker {
 
     private final MetricValueService metricValueService;

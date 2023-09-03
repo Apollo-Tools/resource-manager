@@ -25,6 +25,7 @@ import java.util.concurrent.CompletionStage;
  *
  * @author matthi-g
  */
+@Deprecated
 public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> implements MetricValueService{
 
     private final MetricValueRepository repository;

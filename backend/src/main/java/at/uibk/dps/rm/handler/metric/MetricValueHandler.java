@@ -13,6 +13,7 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
  *
  * @author matthi-g
  */
+@Deprecated
 public class MetricValueHandler extends ValidationHandler {
 
     private final MetricValueChecker metricValueChecker;
