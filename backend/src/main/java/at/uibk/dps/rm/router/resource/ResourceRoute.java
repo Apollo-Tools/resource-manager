@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.router.resource;
 
-import at.uibk.dps.rm.handler.resource.ResourceSLOInputHandler;
+import at.uibk.dps.rm.rx.handler.resource.ResourceSLOInputHandler;
 import at.uibk.dps.rm.rx.handler.ResultHandler;
 import at.uibk.dps.rm.rx.handler.resource.ResourceHandler;
 import at.uibk.dps.rm.rx.handler.resource.ResourceInputHandler;

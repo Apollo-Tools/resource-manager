@@ -21,7 +21,7 @@ import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.ResourceProvider
 import at.uibk.dps.rm.rx.service.rxjava3.database.metric.MetricService;
 import at.uibk.dps.rm.rx.service.rxjava3.database.metric.MetricValueService;
 import at.uibk.dps.rm.rx.service.rxjava3.database.resource.ResourceService;
-import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceTypeService;
+import at.uibk.dps.rm.rx.service.rxjava3.database.resource.ResourceTypeService;
 import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.VPCService;
 import at.uibk.dps.rm.rx.service.rxjava3.database.service.ServiceService;
 import at.uibk.dps.rm.rx.service.rxjava3.database.service.K8sServiceTypeService;

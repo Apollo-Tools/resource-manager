@@ -1,14 +1,13 @@
-package at.uibk.dps.rm.repository.resource;
+package at.uibk.dps.rm.rx.repository.resource;
 
 import at.uibk.dps.rm.entity.model.ResourceType;
-import at.uibk.dps.rm.repository.Repository;
+import at.uibk.dps.rm.rx.repository.Repository;
 
 /**
  * Implements database operations for the resource_type entity.
  *
  * @author matthi-g
  */
-@Deprecated
 public class ResourceTypeRepository extends Repository<ResourceType> {
 
     /**

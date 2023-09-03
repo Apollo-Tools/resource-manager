@@ -9,6 +9,7 @@ import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceTypeService;
  *
  * @author matthi-g
  */
+@Deprecated
 public class ResourceTypeChecker extends EntityChecker {
 
     /**

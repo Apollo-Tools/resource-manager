@@ -11,6 +11,7 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
  *
  * @author matthi-g
  */
+@Deprecated
 public class SubResourceHandler  extends ValidationHandler {
 
     private final ResourceChecker resourceChecker;

@@ -18,7 +18,7 @@ import at.uibk.dps.rm.rx.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.repository.deployment.*;
 import at.uibk.dps.rm.rx.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.rx.repository.resource.PlatformRepository;
-import at.uibk.dps.rm.repository.resource.ResourceTypeRepository;
+import at.uibk.dps.rm.rx.repository.resource.ResourceTypeRepository;
 import at.uibk.dps.rm.repository.resourceprovider.EnvironmentRepository;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
@@ -41,9 +41,10 @@ import at.uibk.dps.rm.rx.service.database.log.LogService;
 import at.uibk.dps.rm.rx.service.database.log.LogServiceImpl;
 import at.uibk.dps.rm.rx.service.database.log.DeploymentLogServiceImpl;
 import at.uibk.dps.rm.service.database.deployment.*;
-import at.uibk.dps.rm.service.database.resource.*;
 import at.uibk.dps.rm.rx.service.database.resource.ResourceService;
 import at.uibk.dps.rm.rx.service.database.resource.ResourceServiceImpl;
+import at.uibk.dps.rm.rx.service.database.resource.ResourceTypeService;
+import at.uibk.dps.rm.rx.service.database.resource.ResourceTypeServiceImpl;
 import at.uibk.dps.rm.rx.service.database.resource.PlatformService;
 import at.uibk.dps.rm.rx.service.database.resource.PlatformServiceImpl;
 import at.uibk.dps.rm.service.database.resourceprovider.*;
@@ -166,7 +167,7 @@ public class DatabaseVerticle extends AbstractVerticle {
                 new ResourceProviderServiceImpl(new ResourceProviderRepository(), sessionFactory));
             serviceProxyBinder.bind(ResourceDeploymentService.class,
                 new ResourceDeploymentServiceImpl(new ResourceDeploymentRepository(), sessionFactory));
-            serviceProxyBinder.bind(ResourceTypeService.class,
+            rxServiceProxyBinder.bind(ResourceTypeService.class,
                 new ResourceTypeServiceImpl(new ResourceTypeRepository(), sessionFactory));
             rxServiceProxyBinder.bind(PlatformMetricService.class,
                 new PlatformMetricServiceImpl(new PlatformMetricRepository(), sessionFactory));

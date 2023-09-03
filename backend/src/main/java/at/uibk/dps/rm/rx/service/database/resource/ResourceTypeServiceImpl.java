@@ -1,17 +1,16 @@
-package at.uibk.dps.rm.service.database.resource;
+package at.uibk.dps.rm.rx.service.database.resource;
 
-import at.uibk.dps.rm.repository.resource.ResourceTypeRepository;
 import at.uibk.dps.rm.entity.model.ResourceType;
-import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.rx.repository.resource.ResourceTypeRepository;
+import at.uibk.dps.rm.rx.service.database.DatabaseServiceProxy;
 import org.hibernate.reactive.stage.Stage;
 
 /**
- * This is the implementation of the #ResourceTypeService.
+ * This is the implementation of the {@link ResourceTypeService}.
  *
  * @author matthi-g
  */
-@Deprecated
-public class ResourceTypeServiceImpl extends DatabaseServiceProxy<ResourceType> implements ResourceTypeService  {
+public class ResourceTypeServiceImpl extends DatabaseServiceProxy<ResourceType> implements ResourceTypeService {
 
     /**
      * Create an instance from the resourceTypeRepository.
