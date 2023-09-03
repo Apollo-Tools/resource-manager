@@ -52,6 +52,8 @@ import at.uibk.dps.rm.rx.service.database.resourceprovider.EnvironmentService;
 import at.uibk.dps.rm.rx.service.database.resourceprovider.EnvironmentServiceImpl;
 import at.uibk.dps.rm.rx.service.database.resourceprovider.RegionService;
 import at.uibk.dps.rm.rx.service.database.resourceprovider.RegionServiceImpl;
+import at.uibk.dps.rm.rx.service.database.resourceprovider.ResourceProviderService;
+import at.uibk.dps.rm.rx.service.database.resourceprovider.ResourceProviderServiceImpl;
 import at.uibk.dps.rm.rx.service.database.metric.MetricService;
 import at.uibk.dps.rm.rx.service.database.metric.MetricServiceImpl;
 import at.uibk.dps.rm.rx.service.database.metric.MetricValueService;
@@ -167,8 +169,8 @@ public class DatabaseVerticle extends AbstractVerticle {
                 new ResourceServiceImpl(new ResourceRepository(),
                     new at.uibk.dps.rm.rx.repository.resourceprovider.RegionRepository(), new MetricRepository(),
                     sessionFactory));
-            serviceProxyBinder.bind(ResourceProviderService.class,
-                new ResourceProviderServiceImpl(new at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository(), sessionFactory));
+            rxServiceProxyBinder.bind(ResourceProviderService.class,
+                new ResourceProviderServiceImpl(new ResourceProviderRepository(), sessionFactory));
             serviceProxyBinder.bind(ResourceDeploymentService.class,
                 new ResourceDeploymentServiceImpl(new ResourceDeploymentRepository(), sessionFactory));
             rxServiceProxyBinder.bind(ResourceTypeService.class,

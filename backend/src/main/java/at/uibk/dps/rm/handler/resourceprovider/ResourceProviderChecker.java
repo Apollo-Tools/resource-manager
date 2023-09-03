@@ -10,6 +10,7 @@ import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.ResourceProvider
  *
  * @author matthi-g
  */
+@Deprecated
 public class ResourceProviderChecker extends EntityChecker {
 
     /**

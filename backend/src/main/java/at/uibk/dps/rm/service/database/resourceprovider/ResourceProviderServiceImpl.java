@@ -17,6 +17,7 @@ import java.util.concurrent.CompletionStage;
  *
  * @author matthi-g
  */
+@Deprecated
 public class ResourceProviderServiceImpl extends DatabaseServiceProxy<ResourceProvider> implements ResourceProviderService {
 
     private final ResourceProviderRepository repository;
