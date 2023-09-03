@@ -10,6 +10,7 @@ import org.hibernate.reactive.stage.Stage;
  *
  * @author matthi-g
  */
+@Deprecated
 public class MetricTypeServiceImpl extends DatabaseServiceProxy<MetricType> implements MetricTypeService{
     /**
      * Create an instance from the metricTypeRepository.

@@ -12,6 +12,7 @@ import io.vertx.core.json.JsonArray;
  *
  * @author matthi-g
  */
+@Deprecated
 public class PlatformMetricChecker extends EntityChecker {
 
     private final PlatformMetricService service;

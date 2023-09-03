@@ -16,6 +16,7 @@ import org.hibernate.reactive.stage.Stage;
  *
  * @author matthi-g
  */
+@Deprecated
 @ProxyGen
 @VertxGen
 public interface MetricTypeService extends DatabaseServiceInterface {
