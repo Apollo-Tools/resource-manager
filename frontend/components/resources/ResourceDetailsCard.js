@@ -23,7 +23,7 @@ const ResourceDetailsCard = ({resource}) => {
       <TextDataDisplay label="Region" value={resource.region.name} className="col-span-6" />
       <TextDataDisplay label="Created at" value={<DateFormatter dateTimestamp={resource.created_at} includeTime/>} className="col-span-6"/>
       {resource.main_resource_id &&
-        <Link href={`/resources/${resource.main_resource_id}`}>
+        <Link href={`/resources/${resource.main_resource_id}`} className="col-span-full">
           <Button type="primary" icon={<ClusterOutlined />}>Main Resource</Button>
         </Link>}
     </div>

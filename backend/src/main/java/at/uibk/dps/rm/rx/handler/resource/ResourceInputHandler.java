@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.handler.resource;
+package at.uibk.dps.rm.rx.handler.resource;
 
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.util.validation.EntityNameValidator;
@@ -14,7 +14,6 @@ import lombok.experimental.UtilityClass;
  *
  * @author matthi-g
  */
-@Deprecated
 @UtilityClass
 public class ResourceInputHandler {
 

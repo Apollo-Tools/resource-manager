@@ -30,6 +30,7 @@ import java.util.concurrent.CompletionStage;
  *
  * @author matthi-g
  */
+@Deprecated
 public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implements ResourceService {
 
     private final ResourceRepository repository;

@@ -7,6 +7,7 @@ import at.uibk.dps.rm.handler.*;
  *
  * @author matthi-g
  */
+@Deprecated
 public class ResourceHandler extends ValidationHandler {
 
     /**

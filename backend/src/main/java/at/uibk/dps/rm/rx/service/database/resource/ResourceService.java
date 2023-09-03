@@ -1,17 +1,18 @@
-package at.uibk.dps.rm.service.database.resource;
+package at.uibk.dps.rm.rx.service.database.resource;
 
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.monitoring.K8sMonitoringData;
-import at.uibk.dps.rm.repository.metric.MetricRepository;
-import at.uibk.dps.rm.repository.resource.ResourceRepository;
-import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
-import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
-import at.uibk.dps.rm.service.ServiceProxyAddress;
+import at.uibk.dps.rm.rx.repository.metric.MetricRepository;
+import at.uibk.dps.rm.rx.repository.resource.ResourceRepository;
+import at.uibk.dps.rm.rx.repository.resourceprovider.RegionRepository;
+import at.uibk.dps.rm.rx.service.ServiceProxyAddress;
+import at.uibk.dps.rm.rx.service.database.DatabaseServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Future;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -24,7 +25,6 @@ import java.util.List;
  *
  * @author matthi-g
  */
-@Deprecated
 @ProxyGen
 @VertxGen
 public interface ResourceService extends DatabaseServiceInterface {
@@ -47,32 +47,32 @@ public interface ResourceService extends DatabaseServiceInterface {
      * Find all resources by service level objectives.
      *
      * @param data the data containing all service level objectives
-     * @return a Future that emits all resources as JsonArray
+     * @param resultHandler receives the found resources as JsonArray
      */
-    Future<JsonArray> findAllBySLOs(JsonObject data);
+    void findAllBySLOs(JsonObject data, Handler<AsyncResult<JsonArray>> resultHandler);
 
     /**
      * Find all sub resources by their main resource.
      *
      * @param resourceId the id of the main resource
-     * @return a Future that emits all sub resources as JsonArray
+     * @param resultHandler receives the found sub entities as JsonArray
      */
-    Future<JsonArray> findAllSubResources(long resourceId);
+    void findAllSubResources(long resourceId, Handler<AsyncResult<JsonArray>> resultHandler);
 
     /**
      * Find all resources by resourceIds.
      *
      * @param resourceIds the list of resource ids
-     * @return a Future that emits all resources as JsonArray
+     * @param resultHandler receives the found resources as JsonArray
      */
-    Future<JsonArray> findAllByResourceIds(List<Long> resourceIds);
+    void findAllByResourceIds(List<Long> resourceIds, Handler<AsyncResult<JsonArray>> resultHandler);
 
     /**
      * Update a cluster resource using the contents of the data object.
      *
      * @param resourceName the name of the cluster resource
      * @param data the monitoring data
-     * @return an empty Future
+     * @param resultHandler receives nothing if the update was successful else an error
      */
-    Future<Void> updateClusterResource(String resourceName, K8sMonitoringData data);
+    void updateClusterResource(String resourceName, K8sMonitoringData data, Handler<AsyncResult<Void>> resultHandler);
 }

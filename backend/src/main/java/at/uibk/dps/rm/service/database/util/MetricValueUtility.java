@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
  *
  * @author matthi-g
  */
+@Deprecated
 @RequiredArgsConstructor
 public class MetricValueUtility {
 
