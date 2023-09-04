@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.handler.ensemble;
+package at.uibk.dps.rm.rx.handler.ensemble;
 
 import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
 import at.uibk.dps.rm.entity.model.Ensemble;
@@ -17,7 +17,6 @@ import lombok.experimental.UtilityClass;
  *
  * @author matthi-g
  */
-@Deprecated
 @UtilityClass
 public class EnsembleInputHandler {
 

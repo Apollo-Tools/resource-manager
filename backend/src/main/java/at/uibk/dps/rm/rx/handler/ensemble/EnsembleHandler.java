@@ -1,6 +1,7 @@
-package at.uibk.dps.rm.handler.ensemble;
+package at.uibk.dps.rm.rx.handler.ensemble;
 
-import at.uibk.dps.rm.handler.ValidationHandler;
+import at.uibk.dps.rm.rx.handler.ValidationHandler;
+import at.uibk.dps.rm.rx.service.rxjava3.database.ensemble.EnsembleService;
 import at.uibk.dps.rm.util.misc.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -13,18 +14,17 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
  *
  * @author matthi-g
  */
-@Deprecated
 public class EnsembleHandler extends ValidationHandler {
 
-    private final EnsembleChecker ensembleChecker;
+    private final EnsembleService ensembleService;
     /**
-     * Create an instance from the ensembleChecker.
+     * Create an instance from the ensembleService.
      *
-     * @param ensembleChecker the ensemble checker
+     * @param ensembleService the service
      */
-    public EnsembleHandler(EnsembleChecker ensembleChecker) {
-        super(ensembleChecker);
-        this.ensembleChecker = ensembleChecker;
+    public EnsembleHandler(EnsembleService ensembleService) {
+        super(ensembleService);
+        this.ensembleService = ensembleService;
     }
 
     @Override
@@ -39,7 +39,7 @@ public class EnsembleHandler extends ValidationHandler {
      */
     public Completable validateNewResourceEnsembleSLOs(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
-        return ensembleChecker.checkCreateEnsembleRequestFulfillsSLOs(requestBody);
+        return ensembleService.validateCreateEnsembleRequest(requestBody);
     }
 
     /**
@@ -51,14 +51,15 @@ public class EnsembleHandler extends ValidationHandler {
     public Single<JsonArray> validateExistingEnsemble(RoutingContext rc) {
         long accountId = rc.user().principal().getLong("account_id");
         return HttpHelper.getLongPathParam(rc, "id")
-        .flatMap(id -> ensembleChecker.checkValidateExistingEnsemble(accountId, id));
+        .flatMap(id -> ensembleService.validateExistingEnsemble(accountId, id));
     }
 
     /**
      * Validate all existing ensembles.
+     *
+     * @return A Completable
      */
-    public void validateAllExistingEnsembles() {
-        ensembleChecker.checkValidateAllExistingEnsembles()
-            .subscribe();
+    public Completable validateAllExistingEnsembles() {
+        return ensembleService.validateAllExistingEnsembles();
     }
 }

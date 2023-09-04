@@ -46,6 +46,10 @@ public class SessionManager {
         return Completable.fromCompletionStage(session.remove(entities));
     }
 
+    public Completable refresh(Object entity) {
+        return Completable.fromCompletionStage(session.refresh(entity));
+    }
+
 
 
 }

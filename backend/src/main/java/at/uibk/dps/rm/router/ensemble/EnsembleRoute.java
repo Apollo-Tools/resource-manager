@@ -1,8 +1,8 @@
 package at.uibk.dps.rm.router.ensemble;
 
-import at.uibk.dps.rm.handler.PrivateEntityResultHandler;
-import at.uibk.dps.rm.handler.ResultHandler;
-import at.uibk.dps.rm.handler.ensemble.*;
+import at.uibk.dps.rm.rx.handler.PrivateEntityResultHandler;
+import at.uibk.dps.rm.rx.handler.ResultHandler;
+import at.uibk.dps.rm.rx.handler.ensemble.*;
 import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
@@ -17,8 +17,7 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 public class EnsembleRoute implements Route {
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
-        EnsembleChecker ensembleChecker = new EnsembleChecker(serviceProxyProvider.getEnsembleService());
-        EnsembleHandler ensembleHandler = new EnsembleHandler(ensembleChecker);
+        EnsembleHandler ensembleHandler = new EnsembleHandler(serviceProxyProvider.getEnsembleService());
         PrivateEntityResultHandler resultHandler = new PrivateEntityResultHandler(ensembleHandler);
 
         router
@@ -51,7 +50,7 @@ public class EnsembleRoute implements Route {
         new ConfigUtility(vertx).getConfigDTO()
             .map(config -> {
                 long period = Double.valueOf(config.getEnsembleValidationPeriod() * 60 * 1000).longValue();
-                return vertx.setPeriodic(period, id -> ensembleHandler.validateAllExistingEnsembles());
+                return vertx.setPeriodic(period, id -> ensembleHandler.validateAllExistingEnsembles().subscribe());
             })
             .subscribe();
     }

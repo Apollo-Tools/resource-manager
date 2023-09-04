@@ -14,6 +14,7 @@ import io.vertx.core.json.JsonObject;
  *
  * @author matthi-g
  */
+@Deprecated
 public class EnsembleChecker extends EntityChecker {
 
     private final EnsembleService ensembleService;
