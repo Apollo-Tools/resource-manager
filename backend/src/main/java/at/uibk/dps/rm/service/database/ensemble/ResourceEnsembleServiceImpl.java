@@ -11,7 +11,7 @@ import at.uibk.dps.rm.repository.ensemble.EnsembleSLORepository;
 import at.uibk.dps.rm.repository.ensemble.ResourceEnsembleRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
-import at.uibk.dps.rm.service.util.RxVertxHandler;
+import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import at.uibk.dps.rm.util.misc.ServiceLevelObjectiveMapper;
 import at.uibk.dps.rm.util.validation.SLOCompareUtility;
 import io.reactivex.rxjava3.core.Completable;

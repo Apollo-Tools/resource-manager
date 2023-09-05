@@ -11,7 +11,7 @@ import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.repository.DeploymentRepositoryProvider;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import at.uibk.dps.rm.service.database.util.*;
-import at.uibk.dps.rm.service.util.RxVertxHandler;
+import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Observable;

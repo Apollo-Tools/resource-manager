@@ -11,7 +11,7 @@ import at.uibk.dps.rm.service.deployment.terraform.FunctionPrepareService;
 import at.uibk.dps.rm.service.deployment.terraform.MainFileService;
 import at.uibk.dps.rm.service.deployment.terraform.TerraformSetupService;
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
-import at.uibk.dps.rm.service.util.RxVertxHandler;
+import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;

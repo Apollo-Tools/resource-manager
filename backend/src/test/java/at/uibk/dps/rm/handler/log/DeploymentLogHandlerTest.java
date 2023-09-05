@@ -3,7 +3,6 @@ package at.uibk.dps.rm.handler.log;
 import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.entity.model.DeploymentLog;
-import at.uibk.dps.rm.handler.deployment.DeploymentChecker;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestLogProvider;

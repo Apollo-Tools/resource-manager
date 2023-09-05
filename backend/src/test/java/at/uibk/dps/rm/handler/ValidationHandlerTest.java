@@ -2,7 +2,6 @@ package at.uibk.dps.rm.handler;
 
 import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.entity.model.ResourceType;
-import at.uibk.dps.rm.handler.resource.ResourceTypeChecker;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;

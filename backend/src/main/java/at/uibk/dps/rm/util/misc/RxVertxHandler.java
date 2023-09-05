@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.service.util;
+package at.uibk.dps.rm.util.misc;
 
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
