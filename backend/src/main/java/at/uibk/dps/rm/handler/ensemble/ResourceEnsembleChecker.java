@@ -13,6 +13,7 @@ import io.vertx.core.json.JsonObject;
  *
  * @author matthi-g
  */
+@Deprecated
 public class ResourceEnsembleChecker extends EntityChecker {
 
     private final ResourceEnsembleService service;

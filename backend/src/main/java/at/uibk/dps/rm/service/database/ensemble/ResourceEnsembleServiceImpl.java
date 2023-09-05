@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
  *
  * @author matthi-g
  */
+@Deprecated
 public class ResourceEnsembleServiceImpl  extends DatabaseServiceProxy<ResourceEnsemble> implements
     ResourceEnsembleService {
 

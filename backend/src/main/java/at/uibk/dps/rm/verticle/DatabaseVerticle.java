@@ -5,7 +5,9 @@ import at.uibk.dps.rm.rx.repository.EnsembleRepositoryProvider;
 import at.uibk.dps.rm.rx.repository.account.*;
 import at.uibk.dps.rm.rx.repository.artifact.FunctionTypeRepository;
 import at.uibk.dps.rm.rx.repository.artifact.ServiceTypeRepository;
-import at.uibk.dps.rm.repository.ensemble.ResourceEnsembleRepository;
+import at.uibk.dps.rm.rx.repository.ensemble.EnsembleRepository;
+import at.uibk.dps.rm.rx.repository.ensemble.EnsembleSLORepository;
+import at.uibk.dps.rm.rx.repository.ensemble.ResourceEnsembleRepository;
 import at.uibk.dps.rm.rx.repository.function.FunctionRepository;
 import at.uibk.dps.rm.rx.repository.function.RuntimeRepository;
 import at.uibk.dps.rm.rx.repository.log.LogRepository;
@@ -29,9 +31,7 @@ import at.uibk.dps.rm.rx.service.database.artifact.FunctionTypeServiceImpl;
 import at.uibk.dps.rm.rx.service.database.artifact.ServiceTypeService;
 import at.uibk.dps.rm.rx.service.database.artifact.ServiceTypeServiceImpl;
 import at.uibk.dps.rm.rx.service.database.account.NamespaceService;
-import at.uibk.dps.rm.service.database.ensemble.*;
-import at.uibk.dps.rm.rx.service.database.ensemble.EnsembleService;
-import at.uibk.dps.rm.rx.service.database.ensemble.EnsembleServiceImpl;
+import at.uibk.dps.rm.rx.service.database.ensemble.*;
 import at.uibk.dps.rm.rx.service.database.function.FunctionService;
 import at.uibk.dps.rm.rx.service.database.function.FunctionServiceImpl;
 import at.uibk.dps.rm.rx.service.database.function.RuntimeService;
@@ -156,10 +156,9 @@ public class DatabaseVerticle extends AbstractVerticle {
                 new DeploymentLogServiceImpl(new DeploymentLogRepository(), sessionFactory));
             rxServiceProxyBinder.bind(K8sServiceTypeService.class,
                     new K8sServiceTypeServiceImpl(new K8sServiceTypeRepository(), sessionFactory));
-            serviceProxyBinder.bind(ResourceEnsembleService.class,
-                new ResourceEnsembleServiceImpl(new ResourceEnsembleRepository(),
-                    new at.uibk.dps.rm.repository.ensemble.EnsembleSLORepository(),
-                    new at.uibk.dps.rm.repository.ensemble.EnsembleRepository(), new at.uibk.dps.rm.repository.resource.ResourceRepository(), sessionFactory));
+            rxServiceProxyBinder.bind(ResourceEnsembleService.class,
+                new ResourceEnsembleServiceImpl(new ResourceEnsembleRepository(), new EnsembleSLORepository(),
+                    new EnsembleRepository(), new ResourceRepository(), sessionFactory));
             rxServiceProxyBinder.bind(ResourceService.class,
                 new ResourceServiceImpl(new ResourceRepository(),
                     new at.uibk.dps.rm.rx.repository.resourceprovider.RegionRepository(), new MetricRepository(),
