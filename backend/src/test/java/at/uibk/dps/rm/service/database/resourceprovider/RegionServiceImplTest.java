@@ -7,10 +7,12 @@ import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import org.hibernate.reactive.stage.Stage;
-import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,6 +46,8 @@ public class RegionServiceImplTest {
 
     @Mock
     private Stage.Session session;
+    
+    private final SessionManager sessionManager = new SessionManager(session);
 
     @BeforeEach
     void initTest() {
@@ -56,12 +60,11 @@ public class RegionServiceImplTest {
         long regionId = 1L;
         Region entity = TestResourceProviderProvider.createRegion(regionId, "us-east");
 
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(regionRepository.findByIdAndFetch(session, regionId))
-            .thenReturn(CompletionStages.completedFuture(entity));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(regionRepository.findByIdAndFetch(sessionManager, regionId))
+            .thenReturn(Maybe.just(entity));
 
-        regionService.findOne(regionId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        regionService.findOne(regionId, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("region_id")).isEqualTo(1L);
                 assertThat(result.getJsonObject("resource_provider")).isNotNull();
                 testContext.completeNow();
@@ -72,12 +75,11 @@ public class RegionServiceImplTest {
     void findEntityNotExists(VertxTestContext testContext) {
         long regionId = 1L;
 
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(regionRepository.findByIdAndFetch(session, regionId))
-            .thenReturn(CompletionStages.completedFuture(null));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(regionRepository.findByIdAndFetch(sessionManager, regionId))
+            .thenReturn(Maybe.empty());
 
-        regionService.findOne(regionId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        regionService.findOne(regionId, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
                 testContext.completeNow();
             })));
@@ -88,12 +90,11 @@ public class RegionServiceImplTest {
         Region r1 = TestResourceProviderProvider.createRegion(1L, "us-east");
         Region r2 = TestResourceProviderProvider.createRegion(2L, "us-west");
 
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(regionRepository.findAllAndFetch(session))
-            .thenReturn(CompletionStages.completedFuture(List.of(r1, r2)));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(regionRepository.findAllAndFetch(sessionManager))
+            .thenReturn(Single.just(List.of(r1, r2)));
 
-        regionService.findAll()
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        regionService.findAll(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
                 assertThat(result.getJsonObject(0).getLong("region_id")).isEqualTo(1L);
                 assertThat(result.getJsonObject(1).getLong("region_id")).isEqualTo(2L);
@@ -110,12 +111,11 @@ public class RegionServiceImplTest {
         Region r1 = TestResourceProviderProvider.createRegion(1L, "us-east", resourceProvider);
         Region r2 = TestResourceProviderProvider.createRegion(2L, "us-west", resourceProvider);
 
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(regionRepository.findAllByProviderId(session, providerId))
-            .thenReturn(CompletionStages.completedFuture(List.of(r1, r2)));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(regionRepository.findAllByProviderId(sessionManager, providerId))
+            .thenReturn(Single.just(List.of(r1, r2)));
 
-        regionService.findAllByProviderId(providerId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        regionService.findAllByProviderId(providerId, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
                 assertThat(result.getJsonObject(0).getLong("region_id")).isEqualTo(1L);
                 assertThat(result.getJsonObject(1).getLong("region_id")).isEqualTo(2L);

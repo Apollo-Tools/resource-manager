@@ -3,6 +3,8 @@ package at.uibk.dps.rm.handler.log;
 import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.entity.model.DeploymentLog;
+import at.uibk.dps.rm.service.rxjava3.database.log.DeploymentLogService;
+import at.uibk.dps.rm.service.rxjava3.database.log.LogService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestLogProvider;
@@ -39,13 +41,10 @@ public class DeploymentLogHandlerTest {
     private DeploymentLogHandler handler;
 
     @Mock
-    private DeploymentLogChecker deploymentLogChecker;
+    private DeploymentLogService deploymentLogService;
 
     @Mock
-    private LogChecker logChecker;
-
-    @Mock
-    private DeploymentChecker deploymentChecker;
+    private LogService logService;
 
     @Mock
     private RoutingContext rc;
@@ -53,7 +52,7 @@ public class DeploymentLogHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        handler = new DeploymentLogHandler(deploymentLogChecker, logChecker, deploymentChecker);
+        handler = new DeploymentLogHandler(deploymentLogService, logService);
     }
 
     @ParameterizedTest
@@ -70,8 +69,7 @@ public class DeploymentLogHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(deployment.getDeploymentId()));
-        when(deploymentChecker.checkFindOne(11L, 22L)).thenReturn(Single.just(JsonObject.mapFrom(deployment)));
-        when(logChecker.checkFindAllByDeploymentId(11L, 22L))
+        when(logService.findAllByDeploymentIdAndAccountId(11L, 22L))
             .thenReturn(Single.just(deploymentLogs));
 
         handler.getAll(rc)

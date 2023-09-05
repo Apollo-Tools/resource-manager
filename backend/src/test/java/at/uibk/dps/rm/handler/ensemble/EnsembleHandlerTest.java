@@ -2,6 +2,7 @@ package at.uibk.dps.rm.handler.ensemble;
 
 import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.entity.model.Ensemble;
+import at.uibk.dps.rm.service.rxjava3.database.ensemble.EnsembleService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestEnsembleProvider;
@@ -33,7 +34,7 @@ public class EnsembleHandlerTest {
     private EnsembleHandler ensembleHandler;
 
     @Mock
-    private EnsembleChecker ensembleChecker;
+    private EnsembleService ensembleService;
 
     @Mock
     private RoutingContext rc;
@@ -41,7 +42,7 @@ public class EnsembleHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        ensembleHandler = new EnsembleHandler(ensembleChecker);
+        ensembleHandler = new EnsembleHandler(ensembleService);
     }
 
     @Test
@@ -53,7 +54,7 @@ public class EnsembleHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(ensembleId));
-        when(ensembleChecker.checkFindOne(ensembleId,account.getAccountId()))
+        when(ensembleService.findOneByIdAndAccountId(ensembleId,account.getAccountId()))
             .thenReturn(Single.just(JsonObject.mapFrom(ensemble)));
 
         ensembleHandler.getOneFromAccount(rc)

@@ -5,11 +5,13 @@ import at.uibk.dps.rm.repository.function.FunctionRepository;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 import io.vertx.junit5.RunTestOnContext;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import org.hibernate.reactive.stage.Stage;
-import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,6 +43,8 @@ public class FunctionServiceImplTest {
 
     @Mock
     private Stage.Session session;
+    
+    private final SessionManager sessionManager = new SessionManager(session);
 
     @RegisterExtension
     public static final RunTestOnContext rtoc = new RunTestOnContext();
@@ -57,12 +61,11 @@ public class FunctionServiceImplTest {
         long functionId = 1L;
         Function entity = TestFunctionProvider.createFunction(functionId, "func","true");
 
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(functionRepository.findByIdAndFetch(session, functionId))
-            .thenReturn(CompletionStages.completedFuture(entity));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(functionRepository.findByIdAndFetch(sessionManager, functionId))
+            .thenReturn(Maybe.just(entity));
 
-        functionService.findOne(functionId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        functionService.findOne(functionId, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("function_id")).isEqualTo(1L);
                 assertThat(result.getString("code")).isEqualTo("true");
                 testContext.completeNow();
@@ -73,12 +76,11 @@ public class FunctionServiceImplTest {
     void findEntityNotExists(VertxTestContext testContext) {
         long functionId = 1L;
 
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(functionRepository.findByIdAndFetch(session, functionId))
-            .thenReturn(CompletionStages.completedFuture(null));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(functionRepository.findByIdAndFetch(sessionManager, functionId))
+            .thenReturn(Maybe.empty());
 
-        functionService.findOne(functionId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        functionService.findOne(functionId, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
                 testContext.completeNow();
             })));
@@ -89,12 +91,11 @@ public class FunctionServiceImplTest {
         Function f1 = TestFunctionProvider.createFunction(1L, "func1", "true");
         Function f2 = TestFunctionProvider.createFunction(2L, "func2", "false");
 
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(functionRepository.findAllAndFetch(session))
-            .thenReturn(CompletionStages.completedFuture(List.of(f1, f2)));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(functionRepository.findAllAndFetch(sessionManager))
+            .thenReturn(Single.just(List.of(f1, f2)));
 
-        functionService.findAll()
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        functionService.findAll(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
                 assertThat(result.getJsonObject(0).getLong("function_id")).isEqualTo(1L);
                 assertThat(result.getJsonObject(1).getLong("function_id")).isEqualTo(2L);

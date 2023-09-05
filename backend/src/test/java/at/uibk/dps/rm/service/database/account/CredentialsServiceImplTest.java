@@ -15,9 +15,12 @@ import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import org.hibernate.reactive.stage.Stage;
 import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +30,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-import java.util.concurrent.CompletionStage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -60,12 +62,14 @@ public class CredentialsServiceImplTest {
 
     @Mock
     private Stage.Session session;
+    
+    private final SessionManager sessionManager = new SessionManager(session);
 
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        credentialsService = new CredentialsServiceImpl(credentialsRepository, accountRepository,
-            accountCredentialsRepository, resourceProviderRepository, sessionFactory);
+        credentialsService = new CredentialsServiceImpl(credentialsRepository, accountCredentialsRepository,
+            sessionFactory);
     }
 
     @Test
@@ -74,13 +78,12 @@ public class CredentialsServiceImplTest {
         Credentials entity1 = TestAccountProvider.createCredentials(1L, new ResourceProvider());
         Credentials entity2 = TestAccountProvider.createCredentials(2L, new ResourceProvider());
         List<Credentials> resultList = List.of(entity1, entity2);
-        CompletionStage<List<Credentials>> completionStage = CompletionStages.completedFuture(resultList);
+        Single<List<Credentials>> single = Single.just(resultList);
 
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(credentialsRepository.findAllByAccountId(session, accountId)).thenReturn(completionStage);
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(credentialsRepository.findAllByAccountId(sessionManager, accountId)).thenReturn(single);
 
-        credentialsService.findAllByAccountId(accountId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        credentialsService.findAllByAccountId(accountId, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
                 assertThat(result.getJsonObject(0).getLong("credentials_id")).isEqualTo(1L);
                 assertThat(result.getJsonObject(1).getLong("credentials_id")).isEqualTo(2L);
@@ -95,18 +98,17 @@ public class CredentialsServiceImplTest {
         ResourceProvider rp = TestResourceProviderProvider.createResourceProvider(providerId);
         Credentials entity = TestAccountProvider.createCredentials(accountId, rp);
 
-        SessionMockHelper.mockTransaction(sessionFactory, session);
-        when(accountCredentialsRepository.findByAccountAndProvider(session, accountId, providerId))
-            .thenReturn(CompletionStages.completedFuture(null));
-        when(resourceProviderRepository.findById(session, providerId))
-            .thenReturn(CompletionStages.completedFuture(rp));
-        when(accountRepository.findById(session, accountId))
-            .thenReturn(CompletionStages.completedFuture(account));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(accountCredentialsRepository.findByAccountAndProvider(sessionManager, accountId, providerId))
+            .thenReturn(Maybe.empty());
+        when(resourceProviderRepository.findById(sessionManager, providerId))
+            .thenReturn(Maybe.just(rp));
+        when(accountRepository.findById(sessionManager, accountId))
+            .thenReturn(Maybe.just(account));
         when(session.persist(entity)).thenReturn(CompletionStages.voidFuture());
         when(session.persist(any(AccountCredentials.class))).thenReturn(CompletionStages.voidFuture());
 
-        credentialsService.saveToAccount(accountId, JsonObject.mapFrom(entity))
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        credentialsService.saveToAccount(accountId, JsonObject.mapFrom(entity), testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getString("access_key")).isEqualTo("accesskey");
                 assertThat(result.getString("secret_access_key")).isEqualTo("secretaccesskey");
                 assertThat(result.getString("session_token")).isEqualTo("sessiontoken");
@@ -124,16 +126,15 @@ public class CredentialsServiceImplTest {
         ResourceProvider rp = TestResourceProviderProvider.createResourceProvider(providerId);
         Credentials entity = TestAccountProvider.createCredentials(accountId, rp);
 
-        SessionMockHelper.mockTransaction(sessionFactory, session);
-        when(accountCredentialsRepository.findByAccountAndProvider(session, accountId, providerId))
-            .thenReturn(CompletionStages.completedFuture(null));
-        when(resourceProviderRepository.findById(session, providerId))
-            .thenReturn(CompletionStages.completedFuture(rp));
-        when(accountRepository.findById(session, accountId))
-            .thenReturn(CompletionStages.completedFuture(null));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(accountCredentialsRepository.findByAccountAndProvider(sessionManager, accountId, providerId))
+            .thenReturn(Maybe.empty());
+        when(resourceProviderRepository.findById(sessionManager, providerId))
+            .thenReturn(Maybe.just(rp));
+        when(accountRepository.findById(sessionManager, accountId))
+            .thenReturn(Maybe.empty());
 
-        credentialsService.saveToAccount(accountId, JsonObject.mapFrom(entity))
-            .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
+        credentialsService.saveToAccount(accountId, JsonObject.mapFrom(entity), testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(UnauthorizedException.class);
                 assertThat(throwable.getMessage()).isEqualTo("unauthorized");
                 testContext.completeNow();
@@ -146,14 +147,13 @@ public class CredentialsServiceImplTest {
         ResourceProvider rp = TestResourceProviderProvider.createResourceProvider(providerId);
         Credentials entity = TestAccountProvider.createCredentials(accountId, rp);
 
-        SessionMockHelper.mockTransaction(sessionFactory, session);
-        when(accountCredentialsRepository.findByAccountAndProvider(session, accountId, providerId))
-            .thenReturn(CompletionStages.completedFuture(null));
-        when(resourceProviderRepository.findById(session, providerId))
-            .thenReturn(CompletionStages.completedFuture(null));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(accountCredentialsRepository.findByAccountAndProvider(sessionManager, accountId, providerId))
+            .thenReturn(Maybe.empty());
+        when(resourceProviderRepository.findById(sessionManager, providerId))
+            .thenReturn(Maybe.empty());
 
-        credentialsService.saveToAccount(accountId, JsonObject.mapFrom(entity))
-            .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
+        credentialsService.saveToAccount(accountId, JsonObject.mapFrom(entity), testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(NotFoundException.class);
                 assertThat(throwable.getMessage()).isEqualTo("ResourceProvider not found");
                 testContext.completeNow();
@@ -166,12 +166,11 @@ public class CredentialsServiceImplTest {
         ResourceProvider rp = TestResourceProviderProvider.createResourceProvider(providerId);
         Credentials entity = TestAccountProvider.createCredentials(accountId, rp);
 
-        SessionMockHelper.mockTransaction(sessionFactory, session);
-        when(accountCredentialsRepository.findByAccountAndProvider(session, accountId, providerId))
-            .thenReturn(CompletionStages.completedFuture(new AccountCredentials()));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(accountCredentialsRepository.findByAccountAndProvider(sessionManager, accountId, providerId))
+            .thenReturn(Maybe.just(new AccountCredentials()));
 
-        credentialsService.saveToAccount(accountId, JsonObject.mapFrom(entity))
-            .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
+        credentialsService.saveToAccount(accountId, JsonObject.mapFrom(entity), testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
                 assertThat(throwable.getMessage()).isEqualTo("Credentials already exists");
                 testContext.completeNow();

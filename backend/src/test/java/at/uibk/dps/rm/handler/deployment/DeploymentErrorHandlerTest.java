@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
 import at.uibk.dps.rm.handler.deploymentexecution.DeploymentExecutionChecker;
+import at.uibk.dps.rm.service.rxjava3.database.deployment.DeploymentService;
 import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.*;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
@@ -42,7 +43,7 @@ public class DeploymentErrorHandlerTest {
     private DeploymentErrorHandler errorHandler;
 
     @Mock
-    private DeploymentChecker deploymentChecker;
+    private DeploymentService deploymentService;
 
     @Mock
     private DeploymentExecutionChecker deploymentExecutionChecker;
@@ -51,7 +52,7 @@ public class DeploymentErrorHandlerTest {
     void initTest() {
         rtoc.vertx();
         JsonMapperConfig.configJsonMapper();
-        errorHandler = new DeploymentErrorHandler(deploymentChecker, deploymentExecutionChecker);
+        errorHandler = new DeploymentErrorHandler(deploymentService, deploymentExecutionChecker);
     }
 
     @Test
@@ -70,7 +71,7 @@ public class DeploymentErrorHandlerTest {
         Completable completable = Completable.error(throwable);
         DeployResourcesDTO deployResourcesDTO = TestRequestProvider.createDeployRequest();
 
-        when(deploymentChecker.handleDeploymentError(deployResourcesDTO.getDeployment().getDeploymentId(),
+        when(deploymentService.handleDeploymentError(deployResourcesDTO.getDeployment().getDeploymentId(),
             throwable.getMessage())).thenReturn(Completable.complete());
         when(deploymentExecutionChecker.tfLockFileExists(anyString())).thenReturn(Single.just(lockFileExists));
         if (lockFileExists) {
@@ -101,7 +102,7 @@ public class DeploymentErrorHandlerTest {
         Completable completable = Completable.error(throwable);
         long deploymentId = 1L;
 
-        when(deploymentChecker.handleDeploymentError(deploymentId, throwable.getMessage()))
+        when(deploymentService.handleDeploymentError(deploymentId, throwable.getMessage()))
             .thenReturn(Completable.complete());
 
         errorHandler.handleTerminateResources(completable, deploymentId);

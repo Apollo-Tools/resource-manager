@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
 import at.uibk.dps.rm.exception.NotFoundException;
+import at.uibk.dps.rm.service.rxjava3.database.deployment.ServiceDeploymentService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
@@ -41,7 +42,7 @@ public class ContainerStartupHandlerTest {
     private DeploymentExecutionChecker deploymentChecker;
 
     @Mock
-    private ServiceDeploymentChecker serviceDeploymentChecker;
+    private ServiceDeploymentService serviceDeploymentService;
 
     @Mock
     private RoutingContext rc;
@@ -52,7 +53,7 @@ public class ContainerStartupHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        handler = new ContainerStartupHandler(deploymentChecker, serviceDeploymentChecker);
+        handler = new ContainerStartupHandler(deploymentChecker, serviceDeploymentService);
     }
 
     @ParameterizedTest
@@ -72,8 +73,9 @@ public class ContainerStartupHandlerTest {
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("deploymentId")).thenReturn(String.valueOf(deploymentId));
         when(rc.pathParam("resourceDeploymentId")).thenReturn(String.valueOf(resourceDeploymentId));
-        when(serviceDeploymentChecker.checkReadyForStartup(deploymentId, resourceDeploymentId, account.getAccountId()))
-            .thenReturn(readyForStartup ? Completable.complete() : Completable.error(NotFoundException::new));
+        when(serviceDeploymentService.existsReadyForContainerStartupAndTermination(deploymentId, resourceDeploymentId,
+                account.getAccountId()))
+            .thenReturn(Single.just(readyForStartup));
         if (isValid) {
             when(rc.response()).thenReturn(response);
             when(response.setStatusCode(204)).thenReturn(response);

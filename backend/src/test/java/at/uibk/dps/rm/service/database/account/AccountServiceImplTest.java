@@ -9,10 +9,12 @@ import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.repository.account.AccountRepository;
 import at.uibk.dps.rm.repository.account.RoleRepository;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.util.misc.PasswordUtility;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
+import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -50,6 +52,8 @@ public class AccountServiceImplTest {
 
     @Mock
     private Stage.Session session;
+    
+    private final SessionManager sessionManager = new SessionManager(session);
 
     @BeforeEach
     void initTest() {
@@ -64,17 +68,16 @@ public class AccountServiceImplTest {
         String hashedPw = new PasswordUtility().hashPassword(password.toCharArray());
         Account user = TestAccountProvider.createAccount(accountId, username, hashedPw);
 
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(accountRepository.findByUsername(session, username))
-            .thenReturn(CompletionStages.completedFuture(user));
-
-        accountService.loginAccount(username, password)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result.getLong("account_id")).isEqualTo(1L);
-                assertThat(result.getString("username")).isEqualTo("user1");
-                assertThat(result.getString("password")).isNull();
-                testContext.completeNow();
-            })));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(accountRepository.findByUsername(sessionManager, username))
+            .thenReturn(Maybe.just(user));
+        
+        accountService.loginAccount(username, password, testContext.succeeding(result -> testContext.verify(() -> {
+            assertThat(result.getLong("account_id")).isEqualTo(1L);
+            assertThat(result.getString("username")).isEqualTo("user1");
+            assertThat(result.getString("password")).isNull();
+            testContext.completeNow();
+        })));
     }
 
     @Test
@@ -84,12 +87,11 @@ public class AccountServiceImplTest {
         String hashedPw = new PasswordUtility().hashPassword(password.toCharArray()) + 2;
         Account user = TestAccountProvider.createAccount(accountId, username, hashedPw);
 
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(accountRepository.findByUsername(session, username))
-            .thenReturn(CompletionStages.completedFuture(user));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(accountRepository.findByUsername(sessionManager, username))
+            .thenReturn(Maybe.just(user));
 
-        accountService.loginAccount(username, password)
-            .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
+        accountService.loginAccount(username, password, testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(UnauthorizedException.class);
                 assertThat(throwable.getMessage()).isEqualTo("invalid credentials");
                 testContext.completeNow();
@@ -100,12 +102,11 @@ public class AccountServiceImplTest {
     void loginAccountNotFound(VertxTestContext testContext) {
         String username = "user1", password = "pw1";
 
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(accountRepository.findByUsername(session, username))
-            .thenReturn(CompletionStages.completedFuture(null));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(accountRepository.findByUsername(sessionManager, username))
+            .thenReturn(Maybe.empty());
 
-        accountService.loginAccount(username, password)
-            .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
+        accountService.loginAccount(username, password, testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(UnauthorizedException.class);
                 assertThat(throwable.getMessage()).isEqualTo("invalid credentials");
                 testContext.completeNow();
@@ -119,15 +120,15 @@ public class AccountServiceImplTest {
         accountDTO.setUsername(username);
         accountDTO.setPassword(password);
         Role role = TestAccountProvider.createRoleDefault();
-        SessionMockHelper.mockTransaction(sessionFactory, session);
-        when(accountRepository.findByUsername(session, username))
-            .thenReturn(CompletionStages.completedFuture(null));
-        when(roleRepository.findByRoleName(session, RoleEnum.DEFAULT.getValue()))
-            .thenReturn(CompletionStages.completedFuture(role));
+
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(accountRepository.findByUsername(sessionManager, username))
+            .thenReturn(Maybe.empty());
+        when(roleRepository.findByRoleName(sessionManager, RoleEnum.DEFAULT.getValue()))
+            .thenReturn(Maybe.just(role));
         when(session.persist(any(Account.class))).thenReturn(CompletionStages.voidFuture());
 
-        accountService.save(JsonObject.mapFrom(accountDTO))
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        accountService.save(JsonObject.mapFrom(accountDTO), testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("account_id")).isNull();
                 assertThat(result.getString("username")).isEqualTo("user1");
                 assertThat(result.containsKey("password")).isFalse();
@@ -143,11 +144,12 @@ public class AccountServiceImplTest {
         accountDTO.setUsername(username);
         accountDTO.setPassword(password);
         Account entity = TestAccountProvider.createAccount(1L, username, password);
-        SessionMockHelper.mockTransaction(sessionFactory, session);
-        when(accountRepository.findByUsername(session, username)).thenReturn(CompletionStages.completedFuture(entity));
 
-        accountService.save(JsonObject.mapFrom(accountDTO))
-            .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(accountRepository.findByUsername(sessionManager, username))
+            .thenReturn(Maybe.just(entity));
+
+        accountService.save(JsonObject.mapFrom(accountDTO), testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
                 assertThat(throwable.getMessage()).isEqualTo("Account already exists");
                 testContext.completeNow();
@@ -163,11 +165,11 @@ public class AccountServiceImplTest {
         Account entity = TestAccountProvider.createAccount(accountId, username, hashedPw);
         JsonObject fields = new JsonObject("{\"old_password\": \"pw1\", \"new_password\": \"pw2\"}");
 
-        SessionMockHelper.mockTransaction(sessionFactory, session);
-        when(accountRepository.findById(session, accountId)).thenReturn(CompletionStages.completedFuture(entity));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(accountRepository.findById(sessionManager, accountId))
+            .thenReturn(Maybe.just(entity));
 
-        accountService.update(accountId, fields)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        accountService.update(accountId, fields, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
                 assertThat(pwUtility.verifyPassword(entity.getPassword(), "pw2".toCharArray()))
                     .isEqualTo(true);
@@ -182,11 +184,10 @@ public class AccountServiceImplTest {
         Account entity = TestAccountProvider.createAccount(accountId, username, password);
         JsonObject fields = new JsonObject("{\"old_password\": \"pw2\", \"new_password\": \"pw2\"}");
 
-        SessionMockHelper.mockTransaction(sessionFactory, session);
-        when(accountRepository.findById(session, accountId)).thenReturn(CompletionStages.completedFuture(entity));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(accountRepository.findById(sessionManager, accountId)).thenReturn(Maybe.just(entity));
 
-        accountService.update(accountId, fields)
-            .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
+        accountService.update(accountId, fields, testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(UnauthorizedException.class);
                 assertThat(throwable.getMessage()).isEqualTo("old password is invalid");
                 testContext.completeNow();
@@ -198,11 +199,10 @@ public class AccountServiceImplTest {
         long accountId = 1L;
         JsonObject fields = new JsonObject("{\"old_password\": \"pw1\", \"new_password\": \"pw2\"}");
 
-        SessionMockHelper.mockTransaction(sessionFactory, session);
-        when(accountRepository.findById(session, accountId)).thenReturn(CompletionStages.completedFuture(null));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(accountRepository.findById(sessionManager, accountId)).thenReturn(Maybe.empty());
 
-        accountService.update(accountId, fields)
-            .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
+        accountService.update(accountId, fields, testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(NotFoundException.class);
                 assertThat(throwable.getMessage()).isEqualTo("Account not found");
                 testContext.completeNow();

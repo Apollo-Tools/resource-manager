@@ -10,10 +10,12 @@ import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import org.hibernate.reactive.stage.Stage;
-import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,6 +49,8 @@ public class VPCServiceImplTest {
 
     @Mock
     private Stage.Session session;
+    
+    private final SessionManager sessionManager = new SessionManager(session);
 
     @BeforeEach
     void initTest() {
@@ -63,11 +67,10 @@ public class VPCServiceImplTest {
         Account account = TestAccountProvider.createAccount(accountId);
         VPC vpc = TestResourceProviderProvider.createVPC(1L, region, account);
 
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(vpcRepository.findByIdAndFetch(session, vpcId)).thenReturn(CompletionStages.completedFuture(vpc));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(vpcRepository.findByIdAndFetch(sessionManager, vpcId)).thenReturn(Maybe.just(vpc));
 
-        vpcService.findOne(vpcId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        vpcService.findOne(vpcId, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("vpc_id")).isEqualTo(1L);
                 assertThat(result.getJsonObject("region").getLong("region_id")).isEqualTo(1L);
                 assertThat(result.getJsonObject("created_by")).isNull();
@@ -79,11 +82,10 @@ public class VPCServiceImplTest {
     void findOneNotExists(VertxTestContext testContext) {
         long vpcId = 1L;
 
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(vpcRepository.findByIdAndFetch(session, vpcId)).thenReturn(CompletionStages.completedFuture(null));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(vpcRepository.findByIdAndFetch(sessionManager, vpcId)).thenReturn(Maybe.empty());
 
-        vpcService.findOne(vpcId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        vpcService.findOne(vpcId, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
                 testContext.completeNow();
             })));
@@ -97,12 +99,11 @@ public class VPCServiceImplTest {
         VPC vpc1 = TestResourceProviderProvider.createVPC(1L, r1);
         VPC vpc2 = TestResourceProviderProvider.createVPC(2L, r2);
 
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(vpcRepository.findAllByAccountIdAndFetch(session, accountId))
-            .thenReturn(CompletionStages.completedFuture(List.of(vpc1, vpc2)));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(vpcRepository.findAllByAccountIdAndFetch(sessionManager, accountId))
+            .thenReturn(Single.just(List.of(vpc1, vpc2)));
 
-        vpcService.findAllByAccountId(accountId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        vpcService.findAllByAccountId(accountId, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
                 assertThat(result.getJsonObject(0).getLong("vpc_id")).isEqualTo(1L);
                 assertThat(result.getJsonObject(1).getLong("vpc_id")).isEqualTo(2L);

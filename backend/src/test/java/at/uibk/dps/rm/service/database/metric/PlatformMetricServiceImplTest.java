@@ -8,8 +8,10 @@ import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestMetricProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestPlatformProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
+import io.reactivex.rxjava3.core.Single;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import org.hibernate.reactive.stage.Stage;
 import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,6 +44,8 @@ public class PlatformMetricServiceImplTest {
 
     @Mock
     private Stage.Session session;
+    
+    private final SessionManager sessionManager = new SessionManager(session);
 
     @BeforeEach
     void initTest() {
@@ -57,13 +61,12 @@ public class PlatformMetricServiceImplTest {
         PlatformMetric pm3 = TestMetricProvider.createPlatformMetric(3L, 12L);
         Platform platform = TestPlatformProvider.createPlatformFaas(platformId, "openfaas");
 
-        SessionMockHelper.mockSession(sessionFactory, session);
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
         when(session.find(Platform.class, platformId)).thenReturn(CompletionStages.completedFuture(platform));
-        when(repository.findAllByPlatform(session, platformId))
-            .thenReturn(CompletionStages.completedFuture(List.of(pm1, pm2, pm3)));
+        when(repository.findAllByPlatform(sessionManager, platformId))
+            .thenReturn(Single.just(List.of(pm1, pm2, pm3)));
 
-        service.findAllByPlatformId(platformId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        service.findAllByPlatformId(platformId, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(3);
                 assertThat(result.getJsonObject(0).getLong("platform_metric_id")).isEqualTo(1L);
                 assertThat(result.getJsonObject(1).getLong("platform_metric_id")).isEqualTo(2L);
@@ -76,11 +79,10 @@ public class PlatformMetricServiceImplTest {
     void findAllByPlatformIdNotFound(VertxTestContext testContext) {
         long platformId = 1L;
 
-        SessionMockHelper.mockSession(sessionFactory, session);
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
         when(session.find(Platform.class, platformId)).thenReturn(CompletionStages.nullFuture());
 
-        service.findAllByPlatformId(platformId)
-            .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
+        service.findAllByPlatformId(platformId, testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(NotFoundException.class);
                 assertThat(throwable.getMessage()).isEqualTo("Platform not found");
                 testContext.completeNow();

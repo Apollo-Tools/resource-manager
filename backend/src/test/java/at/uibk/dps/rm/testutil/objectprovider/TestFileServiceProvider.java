@@ -35,10 +35,10 @@ public class TestFileServiceProvider {
         List<FunctionDeployment> functionDeployments = List.of(fr1, fr2, fr3, fr4);
         long deploymentId = 1L;
         FaasModule module = new FaasModule(ResourceProviderEnum.AWS, region);
-        String dockerUserName = "dockerUser";
+        DockerCredentials dockerCredentials = TestDTOProvider.createDockerCredentials();
         VPC vpc = TestResourceProviderProvider.createVPC(1L, region);
         return new RegionFaasFileService(fileSystem, path, region, functionDeployments, deploymentId, module,
-            dockerUserName, vpc);
+            dockerCredentials, vpc);
     }
 
     public static RegionFaasFileService createRegionFaasFileServiceAllFaas(FileSystem fileSystem, Runtime runtime) {

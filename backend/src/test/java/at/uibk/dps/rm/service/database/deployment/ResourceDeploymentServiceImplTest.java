@@ -4,10 +4,11 @@ import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.repository.deployment.ResourceDeploymentRepository;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
+import io.reactivex.rxjava3.core.Completable;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import org.hibernate.reactive.stage.Stage;
-import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +37,8 @@ public class ResourceDeploymentServiceImplTest {
 
     @Mock
     private Stage.Session session;
+    
+    private final SessionManager sessionManager = new SessionManager(session);
 
     @BeforeEach
     void initTest() {
@@ -48,12 +51,12 @@ public class ResourceDeploymentServiceImplTest {
         long deploymentId = 1L;
         DeploymentStatusValue statusValue = DeploymentStatusValue.NEW;
 
-        SessionMockHelper.mockTransaction(sessionFactory, session);
-        when(repository.updateDeploymentStatusByDeploymentId(session, deploymentId, statusValue))
-            .thenReturn(CompletionStages.completedFuture(1));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(repository.updateDeploymentStatusByDeploymentId(sessionManager, deploymentId, statusValue))
+            .thenReturn(Completable.complete());
 
-        service.updateSetStatusByDeploymentId(deploymentId, statusValue)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        service.updateStatusByDeploymentId(deploymentId, statusValue,
+            testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
                 testContext.completeNow();
             })));

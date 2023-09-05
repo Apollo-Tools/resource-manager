@@ -1,10 +1,9 @@
 package at.uibk.dps.rm.handler.function;
 
 import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.handler.util.FileSystemChecker;
+import at.uibk.dps.rm.service.rxjava3.database.function.RuntimeService;
 import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
-import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -32,18 +31,15 @@ public class RuntimeTemplateHandlerTest {
     private RuntimeTemplateHandler runtimeTemplateHandler;
 
     @Mock
-    RuntimeChecker runtimeChecker;
+    private RuntimeService runtimeService;
 
     @Mock
-    FileSystemChecker fileSystemChecker;
-
-    @Mock
-    RoutingContext rc;
+    private RoutingContext rc;
 
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        runtimeTemplateHandler = new RuntimeTemplateHandler(runtimeChecker, fileSystemChecker);
+        runtimeTemplateHandler = new RuntimeTemplateHandler(runtimeService);
     }
 
     @Test
@@ -55,10 +51,7 @@ public class RuntimeTemplateHandlerTest {
             templatePath));
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(runtimeId));
-        when(runtimeChecker.checkFindOne(runtimeId)).thenReturn(Single.just(runtime));
-        when(fileSystemChecker.checkTemplatePathExists(templatePath)).thenReturn(Completable.complete());
-        when(fileSystemChecker.checkGetFileTemplate(templatePath))
-            .thenReturn(Single.just(templateContent));
+        when(runtimeService.findOne(runtimeId)).thenReturn(Single.just(runtime));
 
         runtimeTemplateHandler.getOne(rc)
             .subscribe(result -> testContext.verify(() -> {
@@ -75,7 +68,7 @@ public class RuntimeTemplateHandlerTest {
         long runtimeId = 1L;
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(runtimeId));
-        when(runtimeChecker.checkFindOne(runtimeId)).thenReturn(Single.error(NotFoundException::new));
+        when(runtimeService.findOne(runtimeId)).thenReturn(Single.error(NotFoundException::new));
 
         runtimeTemplateHandler.getOne(rc)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
@@ -94,9 +87,7 @@ public class RuntimeTemplateHandlerTest {
             templatePath));
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(runtimeId));
-        when(runtimeChecker.checkFindOne(runtimeId)).thenReturn(Single.just(runtime));
-        when(fileSystemChecker.checkTemplatePathExists(templatePath))
-            .thenReturn(Completable.error(NotFoundException::new));
+        when(runtimeService.findOne(runtimeId)).thenReturn(Single.just(runtime));
 
         runtimeTemplateHandler.getOne(rc)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
@@ -115,10 +106,7 @@ public class RuntimeTemplateHandlerTest {
             templatePath));
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(runtimeId));
-        when(runtimeChecker.checkFindOne(runtimeId)).thenReturn(Single.just(runtime));
-        when(fileSystemChecker.checkTemplatePathExists(templatePath)).thenReturn(Completable.complete());
-        when(fileSystemChecker.checkGetFileTemplate(templatePath))
-            .thenReturn(Single.error(NotFoundException::new));
+        when(runtimeService.findOne(runtimeId)).thenReturn(Single.just(runtime));
 
         runtimeTemplateHandler.getOne(rc)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),

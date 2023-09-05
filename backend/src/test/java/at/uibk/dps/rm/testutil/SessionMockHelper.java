@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.testutil;
 
 import at.uibk.dps.rm.entity.model.ResourceType;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import lombok.experimental.UtilityClass;
 import org.hibernate.reactive.stage.Stage.SessionFactory;
 import org.hibernate.reactive.stage.Stage.Session;
@@ -20,19 +21,12 @@ import static org.mockito.Mockito.when;
 @UtilityClass
 public class SessionMockHelper {
 
-    public static void mockTransaction(SessionFactory sessionFactory, Session session) {
-        when(sessionFactory.withTransaction(any(Function.class)))
-            .thenAnswer(invocation -> {
-                Function<Session, CompletionStage<ResourceType>> function = invocation.getArgument(0);
-                return function.apply(session);
-            });
-    }
-
-    public static void mockSession(SessionFactory sessionFactory, Session session) {
+    public static SessionManager mockTransaction(SessionFactory sessionFactory, SessionManager sessionManager) {
         when(sessionFactory.withSession(any(Function.class)))
             .thenAnswer(invocation -> {
                 Function<Session, CompletionStage<ResourceType>> function = invocation.getArgument(0);
-                return function.apply(session);
+                return function.apply(sessionManager.getSession());
             });
+        return new SessionManager(sessionManager.getSession());
     }
 }

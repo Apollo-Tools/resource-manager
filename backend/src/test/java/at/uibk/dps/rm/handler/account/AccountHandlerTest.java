@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler.account;
 
 import at.uibk.dps.rm.entity.model.Account;
+import at.uibk.dps.rm.service.rxjava3.database.account.AccountService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.util.configuration.JWTAuthProvider;
@@ -42,7 +43,7 @@ public class AccountHandlerTest {
     private JWTAuthProvider jwtAuthProvider;
 
     @Mock
-    private AccountChecker accountChecker;
+    private AccountService accountService;
 
     @Mock
     private RoutingContext rc;
@@ -59,7 +60,7 @@ public class AccountHandlerTest {
         JsonObject config = retriever.getConfig().blockingGet();
         jwtAuthProvider = new JWTAuthProvider(vertx, config.getString("jwt_algorithm"),
             config.getString("jwt_secret"), config.getInteger("token_minutes_valid"));
-        accountHandler = new AccountHandler(accountChecker, jwtAuthProvider.getJwtAuth());
+        accountHandler = new AccountHandler(accountService, jwtAuthProvider.getJwtAuth());
     }
 
     @Test
@@ -76,7 +77,7 @@ public class AccountHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, entity);
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountChecker.submitUpdate(entityId, requestBody)).thenReturn(Completable.complete());
+        when(accountService.update(entityId, requestBody)).thenReturn(Completable.complete());
 
         accountHandler.updateOne(rc)
             .blockingSubscribe(() -> {},
@@ -98,7 +99,7 @@ public class AccountHandlerTest {
             "}");
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(accountChecker.checkLoginAccount(entity.getUsername(), entity.getPassword()))
+        when(accountService.loginAccount(entity.getUsername(), entity.getPassword()))
             .thenReturn(Single.just(entityJson));
 
         accountHandler.login(rc)

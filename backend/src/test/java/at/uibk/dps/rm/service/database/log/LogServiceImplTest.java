@@ -5,10 +5,11 @@ import at.uibk.dps.rm.repository.log.LogRepository;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestLogProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
+import io.reactivex.rxjava3.core.Single;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import org.hibernate.reactive.stage.Stage;
-import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,6 +40,8 @@ public class LogServiceImplTest {
 
     @Mock
     private Stage.Session session;
+    
+    private final SessionManager sessionManager = new SessionManager(session);
 
 
     @BeforeEach
@@ -53,12 +56,12 @@ public class LogServiceImplTest {
         Log log1 = TestLogProvider.createLog(1L);
         Log log2 = TestLogProvider.createLog(2L);
 
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(logRepository.findAllByDeploymentIdAndAccountId(session, deploymentId, accountId))
-            .thenReturn(CompletionStages.completedFuture(List.of(log1, log2)));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(logRepository.findAllByDeploymentIdAndAccountId(sessionManager, deploymentId, accountId))
+            .thenReturn(Single.just(List.of(log1, log2)));
 
-        logService.findAllByDeploymentIdAndAccountId(deploymentId, accountId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        logService.findAllByDeploymentIdAndAccountId(deploymentId, accountId,
+            testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
                 assertThat(result.getJsonObject(0).getLong("log_id")).isEqualTo(1L);
                 assertThat(result.getJsonObject(1).getLong("log_id")).isEqualTo(2L);

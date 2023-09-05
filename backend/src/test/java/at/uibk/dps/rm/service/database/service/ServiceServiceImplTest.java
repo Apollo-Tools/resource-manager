@@ -6,8 +6,11 @@ import at.uibk.dps.rm.repository.service.ServiceRepository;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestServiceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import org.hibernate.reactive.stage.Stage;
 import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,6 +43,8 @@ public class ServiceServiceImplTest {
 
     @Mock
     private Stage.Session session;
+    
+    private final SessionManager sessionManager = new SessionManager(session);
 
     @BeforeEach
     void initTest() {
@@ -52,16 +57,14 @@ public class ServiceServiceImplTest {
         long serviceId = 1L;
         Service entity = TestServiceProvider.createService(1L);
 
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(serviceRepository.findByIdAndFetch(session, serviceId))
-            .thenReturn(CompletionStages.completedFuture(entity));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(serviceRepository.findByIdAndFetch(sessionManager, serviceId))
+            .thenReturn(Maybe.just(entity));
         when(session.fetch(entity.getVolumeMounts()))
-                .thenReturn(CompletionStages.completedFuture(entity.getVolumeMounts()));
-        when(session.fetch(entity.getEnvVars()))
-                .thenReturn(CompletionStages.completedFuture(entity.getEnvVars()));
+            .thenReturn(CompletionStages.completedFuture(entity.getVolumeMounts()));
+        when(session.fetch(entity.getEnvVars())).thenReturn(CompletionStages.completedFuture(entity.getEnvVars()));
 
-        service.findOne(serviceId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        service.findOne(serviceId, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("service_id")).isEqualTo(1L);
                 testContext.completeNow();
             })));
@@ -71,12 +74,10 @@ public class ServiceServiceImplTest {
     void findEntityNotExists(VertxTestContext testContext) {
         long serviceId = 1L;
 
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(serviceRepository.findByIdAndFetch(session, serviceId))
-            .thenReturn(CompletionStages.completedFuture(null));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(serviceRepository.findByIdAndFetch(sessionManager, serviceId)).thenReturn(Maybe.empty());
 
-        service.findOne(serviceId)
-            .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
+        service.findOne(serviceId, testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(NotFoundException.class);
                 assertThat(throwable.getMessage()).isEqualTo("Service not found");
                 testContext.completeNow();
@@ -88,12 +89,10 @@ public class ServiceServiceImplTest {
         Service s1 = TestServiceProvider.createService(1L);
         Service s2 = TestServiceProvider.createService(2L);
 
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(serviceRepository.findAllAndFetch(session))
-            .thenReturn(CompletionStages.completedFuture(List.of(s1, s2)));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(serviceRepository.findAllAndFetch(sessionManager)).thenReturn(Single.just(List.of(s1, s2)));
 
-        service.findAll()
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        service.findAll(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
                 assertThat(result.getJsonObject(0).getLong("service_id")).isEqualTo(1L);
                 assertThat(result.getJsonObject(1).getLong("service_id")).isEqualTo(2L);

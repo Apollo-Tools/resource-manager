@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler.function;
 
 import at.uibk.dps.rm.entity.model.Account;
+import at.uibk.dps.rm.service.rxjava3.database.function.FunctionService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
@@ -38,7 +39,7 @@ public class FunctionHandlerTest {
     private FunctionHandler functionHandler;
 
     @Mock
-    private FunctionChecker functionChecker;
+    private FunctionService functionService;
 
     @Mock
     private RoutingContext rc;
@@ -49,7 +50,7 @@ public class FunctionHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        functionHandler = new FunctionHandler(functionChecker);
+        functionHandler = new FunctionHandler(functionService);
     }
 
     private static Stream<Arguments> providePostBody() {
@@ -90,7 +91,7 @@ public class FunctionHandlerTest {
         }
         RoutingContextMockHelper.mockHeaders(rc, request, multiMap);
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
-        when(functionChecker.submitCreate(account.getAccountId(), requestBody)).thenReturn(Single.just(requestBody));
+        when(functionService.saveToAccount(account.getAccountId(), requestBody)).thenReturn(Single.just(requestBody));
 
         functionHandler.postOneToAccount(rc)
             .subscribe(result -> testContext.verify(() -> {
@@ -132,7 +133,7 @@ public class FunctionHandlerTest {
         RoutingContextMockHelper.mockHeaders(rc, request, multiMap);
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(functionId));
-        when(functionChecker.submitUpdate(functionId, account.getAccountId(), transferData))
+        when(functionService.updateOwned(functionId, account.getAccountId(), transferData))
             .thenReturn(Completable.complete());
 
         functionHandler.updateOneOwned(rc)

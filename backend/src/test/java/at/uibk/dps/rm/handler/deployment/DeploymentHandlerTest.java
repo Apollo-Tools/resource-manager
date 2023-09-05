@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler.deployment;
 
 import at.uibk.dps.rm.entity.model.*;
+import at.uibk.dps.rm.service.rxjava3.database.deployment.DeploymentService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.*;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
@@ -30,7 +31,7 @@ public class DeploymentHandlerTest {
     private DeploymentHandler deploymentHandler;
 
     @Mock
-    private DeploymentChecker deploymentChecker;
+    private DeploymentService deploymentService;
 
     @Mock
     private RoutingContext rc;
@@ -38,7 +39,7 @@ public class DeploymentHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        deploymentHandler = new DeploymentHandler(deploymentChecker);
+        deploymentHandler = new DeploymentHandler(deploymentService);
     }
 
     @Test
@@ -48,7 +49,7 @@ public class DeploymentHandlerTest {
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         RoutingContextMockHelper.mockBody(rc, requestBody);
 
-        when(deploymentChecker.submitCreate(10L, requestBody))
+        when(deploymentService.saveToAccount(10L, requestBody))
             .thenReturn(Single.just(JsonObject.mapFrom(TestDeploymentProvider.createDeployment(1L))));
 
         deploymentHandler.postOneToAccount(rc)
@@ -64,7 +65,7 @@ public class DeploymentHandlerTest {
         long deploymentId = 1L;
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(deploymentId));
-        when(deploymentChecker.submitCancelDeployment(1L, 10L))
+        when(deploymentService.cancelDeployment(1L, 10L))
             .thenReturn(Single.just(JsonObject.mapFrom(TestRequestProvider.createTerminateRequest())));
 
         deploymentHandler.cancelDeployment(rc)

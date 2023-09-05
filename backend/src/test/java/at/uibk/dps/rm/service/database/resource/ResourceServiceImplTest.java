@@ -13,11 +13,13 @@ import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestMetricProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import org.hibernate.reactive.stage.Stage;
-import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,6 +56,8 @@ public class ResourceServiceImplTest {
 
     @Mock
     private Stage.Session session;
+    
+    private final SessionManager sessionManager = new SessionManager(session);
 
     @BeforeEach
     void initTest() {
@@ -67,12 +71,11 @@ public class ResourceServiceImplTest {
         long resourceId = 1L;
         Resource entity = TestResourceProvider.createResource(resourceId);
 
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(resourceRepository.findByIdAndFetch(session, resourceId))
-            .thenReturn(CompletionStages.completedFuture(entity));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(resourceRepository.findByIdAndFetch(sessionManager, resourceId))
+            .thenReturn(Maybe.just(entity));
 
-        resourceService.findOne(resourceId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        resourceService.findOne(resourceId, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("resource_id")).isEqualTo(1L);
                 assertThat(result.getJsonArray("metric_values")).isNull();
                 testContext.completeNow();
@@ -83,12 +86,11 @@ public class ResourceServiceImplTest {
     void findEntityNotExists(VertxTestContext testContext) {
         long resourceId = 1L;
 
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(resourceRepository.findByIdAndFetch(session, resourceId))
-            .thenReturn(CompletionStages.completedFuture(null));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(resourceRepository.findByIdAndFetch(sessionManager, resourceId))
+            .thenReturn(Maybe.empty());
 
-        resourceService.findOne(resourceId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        resourceService.findOne(resourceId, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
                 testContext.completeNow();
         })));
@@ -99,12 +101,11 @@ public class ResourceServiceImplTest {
         Resource r1 = TestResourceProvider.createResource(1L);
         Resource r2 = TestResourceProvider.createResource(2L);
 
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(resourceRepository.findAllAndFetch(session))
-            .thenReturn(CompletionStages.completedFuture(List.of(r1, r2)));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(resourceRepository.findAllAndFetch(sessionManager))
+            .thenReturn(Single.just(List.of(r1, r2)));
 
-        resourceService.findAll()
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        resourceService.findAll(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
                 assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
                 assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
@@ -128,14 +129,13 @@ public class ResourceServiceImplTest {
         List<Long> environments = List.of();
         SLORequest sloRequest = TestDTOProvider.createSLORequest(List.of(slo1));
 
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(resourceRepository.findAllBySLOs(session, metrics, environments, resourceTypes, platforms, regions,
-            resourceProviders)).thenReturn(CompletionStages.completedFuture(List.of(r1, r2)));
-        when(metricRepository.findByMetricAndIsSLO(eq(session), any(String.class)))
-            .thenReturn(CompletionStages.completedFuture(availability));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(resourceRepository.findAllBySLOs(sessionManager, metrics, environments, resourceTypes, platforms, regions,
+            resourceProviders)).thenReturn(Single.just(List.of(r1, r2)));
+        when(metricRepository.findByMetricAndIsSLO(eq(sessionManager), any(String.class)))
+            .thenReturn(Maybe.just(availability));
 
-        resourceService.findAllBySLOs(JsonObject.mapFrom(sloRequest))
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        resourceService.findAllBySLOs(JsonObject.mapFrom(sloRequest), testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(1);
                 assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
                 testContext.completeNow();
@@ -148,12 +148,11 @@ public class ResourceServiceImplTest {
         Resource r1 = TestResourceProvider.createResource(1L);
         Resource r2 = TestResourceProvider.createResource(2L);
 
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(resourceRepository.findAllByResourceIdsAndFetch(session, resourceIds))
-            .thenReturn(CompletionStages.completedFuture(List.of(r1, r2)));
+        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        when(resourceRepository.findAllByResourceIdsAndFetch(sessionManager, resourceIds))
+            .thenReturn(Single.just(List.of(r1, r2)));
 
-        resourceService.findAllByResourceIds(resourceIds)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        resourceService.findAllByResourceIds(resourceIds, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
                 assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
                 assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);

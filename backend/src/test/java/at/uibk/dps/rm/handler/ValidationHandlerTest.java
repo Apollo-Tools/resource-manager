@@ -2,6 +2,8 @@ package at.uibk.dps.rm.handler;
 
 import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.entity.model.ResourceType;
+import at.uibk.dps.rm.service.rxjava3.database.DatabaseServiceInterface;
+import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceTypeService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
@@ -40,19 +42,19 @@ public class ValidationHandlerTest {
      */
     static class ConcreteValidationHandler extends ValidationHandler {
         /**
-         * Create an instance from the entityChecker.
+         * Create an instance from the service.
          *
-         * @param entityChecker the entity checker
+         * @param service the service
          */
-        protected ConcreteValidationHandler(EntityChecker entityChecker) {
-            super(entityChecker);
+        protected ConcreteValidationHandler(DatabaseServiceInterface service) {
+            super(service);
         }
     }
 
     private ConcreteValidationHandler testClass;
 
     @Mock
-    private ResourceTypeChecker resourceTypeChecker;
+    private ResourceTypeService resourceTypeService;
 
     @Mock
     RoutingContext rc;
@@ -60,7 +62,7 @@ public class ValidationHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        testClass = new ConcreteValidationHandler(resourceTypeChecker);
+        testClass = new ConcreteValidationHandler(resourceTypeService);
     }
 
     @Test
@@ -68,7 +70,7 @@ public class ValidationHandlerTest {
         long entityId = 1L;
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
-        when(resourceTypeChecker.submitDelete(entityId)).thenReturn(Completable.complete());
+        when(resourceTypeService.delete(entityId)).thenReturn(Completable.complete());
 
         testClass.deleteOne(rc)
             .blockingSubscribe(() -> {},
@@ -84,7 +86,7 @@ public class ValidationHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
-        when(resourceTypeChecker.submitDelete(10L, entityId)).thenReturn(Completable.complete());
+        when(resourceTypeService.deleteFromAccount(10L, entityId)).thenReturn(Completable.complete());
 
         testClass.deleteOneFromAccount(rc)
             .blockingSubscribe(() -> {},
@@ -99,7 +101,7 @@ public class ValidationHandlerTest {
         ResourceType entity = TestResourceProvider.createResourceType(entityId, "cloud");
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
-        when(resourceTypeChecker.checkFindOne(entityId)).thenReturn(Single.just(JsonObject.mapFrom(entity)));
+        when(resourceTypeService.findOne(entityId)).thenReturn(Single.just(JsonObject.mapFrom(entity)));
 
         testClass.getOne(rc)
             .subscribe(result -> testContext.verify(() -> {
@@ -119,7 +121,7 @@ public class ValidationHandlerTest {
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
-        when(resourceTypeChecker.checkFindOne(entityId, 10L))
+        when(resourceTypeService.findOneByIdAndAccountId(entityId, 10L))
             .thenReturn(Single.just(JsonObject.mapFrom(entity)));
 
         testClass.getOneFromAccount(rc)
@@ -138,7 +140,7 @@ public class ValidationHandlerTest {
         ResourceType entity2 = TestResourceProvider.createResourceType(2L, "vm");
         JsonArray resultJson = new JsonArray(List.of(JsonObject.mapFrom(entity1), JsonObject.mapFrom(entity2)));
 
-        when(resourceTypeChecker.checkFindAll()).thenReturn(Single.just(resultJson));
+        when(resourceTypeService.findAll()).thenReturn(Single.just(resultJson));
 
         testClass.getAll(rc)
             .subscribe(result -> testContext.verify(() -> {
@@ -159,7 +161,7 @@ public class ValidationHandlerTest {
         Account account = TestAccountProvider.createAccount(10L);
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
-        when(resourceTypeChecker.checkFindAll(10L)).thenReturn(Single.just(resultJson));
+        when(resourceTypeService.findAllByAccountId(10L)).thenReturn(Single.just(resultJson));
 
         testClass.getAllFromAccount(rc)
             .subscribe(result -> testContext.verify(() -> {
@@ -178,7 +180,7 @@ public class ValidationHandlerTest {
             .createResourceType(1L, "vm"));
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
-        when(resourceTypeChecker.submitCreate(requestBody)).thenReturn(Single.just(requestBody));
+        when(resourceTypeService.save(requestBody)).thenReturn(Single.just(requestBody));
 
         testClass.postOne(rc)
             .subscribe(result -> testContext.verify(() -> {
@@ -198,7 +200,7 @@ public class ValidationHandlerTest {
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
-        when(resourceTypeChecker.submitCreate(10L, requestBody)).thenReturn(Single.just(requestBody));
+        when(resourceTypeService.saveToAccount(10L, requestBody)).thenReturn(Single.just(requestBody));
 
         testClass.postOneToAccount(rc)
             .subscribe(result -> testContext.verify(() -> {
@@ -220,7 +222,7 @@ public class ValidationHandlerTest {
         JsonArray resultJson = new JsonArray(entities);
 
         RoutingContextMockHelper.mockBody(rc, resultJson);
-        when(resourceTypeChecker.submitCreateAll(resultJson)).thenReturn(Completable.complete());
+        when(resourceTypeService.saveAll(resultJson)).thenReturn(Completable.complete());
 
         testClass.postAll(rc)
             .blockingSubscribe(() -> {},
@@ -237,7 +239,7 @@ public class ValidationHandlerTest {
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
-        when(resourceTypeChecker.submitUpdate(entityId, requestBody)).thenReturn(Completable.complete());
+        when(resourceTypeService.update(entityId, requestBody)).thenReturn(Completable.complete());
 
         testClass.updateOne(rc)
             .blockingSubscribe(() -> {},

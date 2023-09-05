@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler.metric;
 
 import at.uibk.dps.rm.entity.model.MetricValue;
+import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestMetricProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
@@ -35,7 +36,7 @@ public class MetricValueHandlerTest {
     private MetricValueHandler metricValueHandler;
 
     @Mock
-    private MetricValueChecker metricValueChecker;
+    private MetricValueService metricValueService;
 
     @Mock
     private RoutingContext rc;
@@ -43,7 +44,7 @@ public class MetricValueHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        metricValueHandler = new MetricValueHandler(metricValueChecker);
+        metricValueHandler = new MetricValueHandler(metricValueService);
     }
 
     @Test
@@ -56,7 +57,7 @@ public class MetricValueHandlerTest {
             JsonObject.mapFrom(mv2), JsonObject.mapFrom(mv3)));
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(resourceId));
-        when(metricValueChecker.checkFindAllByResource(resourceId, true))
+        when(metricValueService.findAllByResource(resourceId, true))
             .thenReturn(Single.just(metricValues));
 
         metricValueHandler.getAll(rc)
@@ -79,7 +80,7 @@ public class MetricValueHandlerTest {
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
         when(rc.pathParam("id")).thenReturn(String.valueOf(resourceId));
-        when(metricValueChecker.submitCreateAll(resourceId, requestBody)).thenReturn(Completable.complete());
+        when(metricValueService.saveAll(requestBody)).thenReturn(Completable.complete());
 
         metricValueHandler.postAll(rc)
             .blockingSubscribe(() -> testContext.verify(() -> {}),
@@ -97,7 +98,8 @@ public class MetricValueHandlerTest {
         RoutingContextMockHelper.mockBody(rc, requestBody);
         when(rc.pathParam("resourceId")).thenReturn(String.valueOf(resourceId));
         when(rc.pathParam("metricId")).thenReturn(String.valueOf(metricId));
-        when(metricValueChecker.updateOneByValue(1L, 2L, requestBody))
+        when(metricValueService.updateByResourceAndMetric(1L, 2L, null, 8.0,
+            null, true))
             .thenReturn(Completable.complete());
 
         metricValueHandler.updateOne(rc)
@@ -114,7 +116,7 @@ public class MetricValueHandlerTest {
 
         when(rc.pathParam("resourceId")).thenReturn(String.valueOf(resourceId));
         when(rc.pathParam("metricId")).thenReturn(String.valueOf(resourceId));
-        when(metricValueChecker.submitDeleteMetricValue(resourceId, metricId)).thenReturn(Completable.complete());
+        when(metricValueService.deleteByResourceAndMetric(resourceId, metricId)).thenReturn(Completable.complete());
 
         metricValueHandler.deleteOne(rc)
             .blockingSubscribe(() -> testContext.verify(() -> {}),

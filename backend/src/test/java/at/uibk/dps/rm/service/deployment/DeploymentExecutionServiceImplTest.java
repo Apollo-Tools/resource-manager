@@ -76,8 +76,8 @@ public class DeploymentExecutionServiceImplTest {
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
              MockedConstruction<FunctionPrepareService> ignoredFPS = Mockprovider
                 .mockFunctionPrepareService(functionsToDeploy)) {
-            deploymentExecutionService.packageFunctionsCode(deployRequest)
-                .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+            deploymentExecutionService.packageFunctionsCode(deployRequest,
+                testContext.succeeding(result -> testContext.verify(() -> {
                     assertThat(result.getFunctionIdentifiers().size()).isEqualTo(2);
                     assertThat(result.getFunctionIdentifiers().get(0)).isEqualTo("foo1_python38");
                     assertThat(result.getFunctionIdentifiers().get(1)).isEqualTo("foo2_python38");
@@ -102,8 +102,8 @@ public class DeploymentExecutionServiceImplTest {
             MockedConstruction<TerraformSetupService> ignoredTFS =
                 Mockprovider.mockTFSetupServiceSetupModuleDirs(config, Single.just(List.of(m1, m2)));
             MockedConstruction<MainFileService> ignoredMFS = Mockprovider.mockMainFileService(Completable.complete())) {
-                deploymentExecutionService.setUpTFModules(deployRequest)
-                    .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+                deploymentExecutionService.setUpTFModules(deployRequest,
+                    testContext.succeeding(result -> testContext.verify(() -> {
                         assertThat(result.getEdgeLoginCredentials()).isEqualTo("");
                         assertThat(result.getCloudCredentials().size()).isEqualTo(0);
                         testContext.completeNow();
@@ -124,8 +124,8 @@ public class DeploymentExecutionServiceImplTest {
                 Mockprovider.mockTFSetupServiceSetupModuleDirs(config, Single.just(List.of(m1, m2)));
             MockedConstruction<MainFileService> ignoredMFS = Mockprovider
                 .mockMainFileService(Completable.error(RuntimeException::new))) {
-                deploymentExecutionService.setUpTFModules(deployRequest)
-                    .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
+                deploymentExecutionService.setUpTFModules(deployRequest,
+                    testContext.failing(throwable -> testContext.verify(() -> {
                         assertThat(throwable).isInstanceOf(RuntimeException.class);
                         testContext.completeNow();
                     })));
@@ -139,8 +139,8 @@ public class DeploymentExecutionServiceImplTest {
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
              MockedConstruction<TerraformSetupService> ignoredTFS = Mockprovider
                  .mockTFSetupServiceSetupModuleDirs(config, Single.error(RuntimeException::new))) {
-                deploymentExecutionService.setUpTFModules(deployRequest)
-                    .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
+                deploymentExecutionService.setUpTFModules(deployRequest,
+                    testContext.failing(throwable -> testContext.verify(() -> {
                         assertThat(throwable).isInstanceOf(RuntimeException.class);
                         testContext.completeNow();
                     })));
@@ -155,8 +155,8 @@ public class DeploymentExecutionServiceImplTest {
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
              MockedConstruction<TerraformSetupService> ignoredTFS =
                  Mockprovider.mockTFSetupServiceGetTerminationCreds(Single.just(deploymentCredentials))) {
-                deploymentExecutionService.getNecessaryCredentials(terminateRequest)
-                    .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+                deploymentExecutionService.getNecessaryCredentials(terminateRequest,
+                    testContext.succeeding(result -> testContext.verify(() -> {
                         assertThat(result.getOpenFaasCredentialsString())
                             .isEqualTo("openfaas_login_data={r1={auth_user=\"user\", auth_pw=\"pw\"}}");
                         assertThat(result.getCloudCredentials().size()).isEqualTo(1);
@@ -173,8 +173,8 @@ public class DeploymentExecutionServiceImplTest {
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
              MockedConstruction<TerraformSetupService> ignoredTFS =
                      Mockprovider.mockTFSetupServiceGetTerminationCreds(Single.error(IllegalStateException::new))) {
-            deploymentExecutionService.getNecessaryCredentials(terminateRequest)
-                .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
+            deploymentExecutionService.getNecessaryCredentials(terminateRequest,
+                testContext.failing(throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(IllegalStateException.class);
                     testContext.completeNow();
                 })));
