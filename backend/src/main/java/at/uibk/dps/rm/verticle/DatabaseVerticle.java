@@ -60,9 +60,7 @@ import at.uibk.dps.rm.rx.service.database.service.ServiceService;
 import at.uibk.dps.rm.rx.service.database.service.ServiceServiceImpl;
 import at.uibk.dps.rm.rx.service.database.service.K8sServiceTypeService;
 import at.uibk.dps.rm.rx.service.database.service.K8sServiceTypeServiceImpl;
-import at.uibk.dps.rm.service.util.FilePathService;
-import at.uibk.dps.rm.service.util.FilePathServiceImpl;
-import at.uibk.dps.rm.service.ServiceProxyBinder;
+import at.uibk.dps.rm.rx.service.ServiceProxyBinder;
 import io.reactivex.rxjava3.core.*;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
@@ -124,66 +122,64 @@ public class DatabaseVerticle extends AbstractVerticle {
         Maybe<Void> setupEventBus = Maybe.create(emitter -> {
             ServiceBinder serviceBinder = new ServiceBinder(vertx.getDelegate());
             ServiceProxyBinder serviceProxyBinder = new ServiceProxyBinder(serviceBinder);
-            at.uibk.dps.rm.rx.service.ServiceProxyBinder rxServiceProxyBinder = new at.uibk.dps.rm.rx.service.ServiceProxyBinder(serviceBinder);
 
-            rxServiceProxyBinder.bind(AccountNamespaceService.class,
+            serviceProxyBinder.bind(AccountNamespaceService.class,
                 new AccountNamespaceServiceImpl(new AccountNamespaceRepository(), sessionFactory));
-            rxServiceProxyBinder.bind(AccountService.class,
+            serviceProxyBinder.bind(AccountService.class,
                 new AccountServiceImpl(new AccountRepository(), new RoleRepository(), sessionFactory));
-            rxServiceProxyBinder.bind(CredentialsService.class, new CredentialsServiceImpl(new CredentialsRepository(),
+            serviceProxyBinder.bind(CredentialsService.class, new CredentialsServiceImpl(new CredentialsRepository(),
                 new AccountCredentialsRepository(), sessionFactory));
-            rxServiceProxyBinder.bind(EnsembleService.class, new EnsembleServiceImpl(new EnsembleRepositoryProvider(),
+            serviceProxyBinder.bind(EnsembleService.class, new EnsembleServiceImpl(new EnsembleRepositoryProvider(),
                 sessionFactory));
-            rxServiceProxyBinder.bind(EnvironmentService.class,
+            serviceProxyBinder.bind(EnvironmentService.class,
                 new EnvironmentServiceImpl(new EnvironmentRepository(), sessionFactory));
-            rxServiceProxyBinder.bind(FunctionService.class,
+            serviceProxyBinder.bind(FunctionService.class,
                 new FunctionServiceImpl(new FunctionRepository(), sessionFactory));
-            rxServiceProxyBinder.bind(FunctionTypeService.class,
+            serviceProxyBinder.bind(FunctionTypeService.class,
                 new FunctionTypeServiceImpl(new FunctionTypeRepository(), sessionFactory));
-            rxServiceProxyBinder.bind(LogService.class, new LogServiceImpl(new LogRepository(), sessionFactory));
-            rxServiceProxyBinder.bind(MetricService.class, new MetricServiceImpl(new MetricRepository(),
+            serviceProxyBinder.bind(LogService.class, new LogServiceImpl(new LogRepository(), sessionFactory));
+            serviceProxyBinder.bind(MetricService.class, new MetricServiceImpl(new MetricRepository(),
                 sessionFactory));
-            rxServiceProxyBinder.bind(MetricValueService.class,
+            serviceProxyBinder.bind(MetricValueService.class,
                 new MetricValueServiceImpl(new MetricValueRepository(), new PlatformMetricRepository(), sessionFactory)
             );
-            rxServiceProxyBinder.bind(NamespaceService.class,
+            serviceProxyBinder.bind(NamespaceService.class,
                 new NamespaceServiceImpl(new NamespaceRepository(), new ResourceRepository(), sessionFactory));
-            rxServiceProxyBinder.bind(PlatformService.class,
+            serviceProxyBinder.bind(PlatformService.class,
                 new PlatformServiceImpl(new PlatformRepository(), sessionFactory));
-            rxServiceProxyBinder.bind(RegionService.class, new RegionServiceImpl(new RegionRepository(),
+            serviceProxyBinder.bind(RegionService.class, new RegionServiceImpl(new RegionRepository(),
                 new ResourceProviderRepository(), sessionFactory));
-            rxServiceProxyBinder.bind(DeploymentService.class,
+            serviceProxyBinder.bind(DeploymentService.class,
                 new DeploymentServiceImpl(new DeploymentRepositoryProvider(), sessionFactory));
-            rxServiceProxyBinder.bind(DeploymentLogService.class,
+            serviceProxyBinder.bind(DeploymentLogService.class,
                 new DeploymentLogServiceImpl(new DeploymentLogRepository(), sessionFactory));
-            rxServiceProxyBinder.bind(K8sServiceTypeService.class,
+            serviceProxyBinder.bind(K8sServiceTypeService.class,
                     new K8sServiceTypeServiceImpl(new K8sServiceTypeRepository(), sessionFactory));
-            rxServiceProxyBinder.bind(ResourceEnsembleService.class,
+            serviceProxyBinder.bind(ResourceEnsembleService.class,
                 new ResourceEnsembleServiceImpl(new ResourceEnsembleRepository(), new EnsembleSLORepository(),
                     new EnsembleRepository(), new ResourceRepository(), sessionFactory));
-            rxServiceProxyBinder.bind(ResourceService.class,
+            serviceProxyBinder.bind(ResourceService.class,
                 new ResourceServiceImpl(new ResourceRepository(),
                     new at.uibk.dps.rm.rx.repository.resourceprovider.RegionRepository(), new MetricRepository(),
                     sessionFactory));
-            rxServiceProxyBinder.bind(ResourceProviderService.class,
+            serviceProxyBinder.bind(ResourceProviderService.class,
                 new ResourceProviderServiceImpl(new ResourceProviderRepository(), sessionFactory));
-            rxServiceProxyBinder.bind(ResourceDeploymentService.class,
+            serviceProxyBinder.bind(ResourceDeploymentService.class,
                 new ResourceDeploymentServiceImpl(new ResourceDeploymentRepository(), sessionFactory));
-            rxServiceProxyBinder.bind(ResourceTypeService.class,
+            serviceProxyBinder.bind(ResourceTypeService.class,
                 new ResourceTypeServiceImpl(new ResourceTypeRepository(), sessionFactory));
-            rxServiceProxyBinder.bind(PlatformMetricService.class,
+            serviceProxyBinder.bind(PlatformMetricService.class,
                 new PlatformMetricServiceImpl(new PlatformMetricRepository(), sessionFactory));
-            rxServiceProxyBinder.bind(RuntimeService.class,
+            serviceProxyBinder.bind(RuntimeService.class,
                 new RuntimeServiceImpl(new RuntimeRepository(), sessionFactory));
-            rxServiceProxyBinder.bind(ServiceService.class,
+            serviceProxyBinder.bind(ServiceService.class,
                 new ServiceServiceImpl(new ServiceRepository(), sessionFactory));
-            rxServiceProxyBinder.bind(ServiceDeploymentService.class,
+            serviceProxyBinder.bind(ServiceDeploymentService.class,
                 new ServiceDeploymentServiceImpl(new ServiceDeploymentRepository(), sessionFactory));
-            rxServiceProxyBinder.bind(ServiceTypeService.class,
+            serviceProxyBinder.bind(ServiceTypeService.class,
                 new ServiceTypeServiceImpl(new ServiceTypeRepository(), sessionFactory));
-            rxServiceProxyBinder.bind(VPCService.class, new VPCServiceImpl(new VPCRepository(), new RegionRepository(),
+            serviceProxyBinder.bind(VPCService.class, new VPCServiceImpl(new VPCRepository(), new RegionRepository(),
                 sessionFactory));
-            serviceProxyBinder.bind(FilePathService.class, new FilePathServiceImpl(vertx.getDelegate()));
             emitter.onComplete();
         });
         return Completable.fromMaybe(setupEventBus);

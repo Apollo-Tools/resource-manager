@@ -27,7 +27,6 @@ import at.uibk.dps.rm.rx.service.rxjava3.database.resourceprovider.VPCService;
 import at.uibk.dps.rm.rx.service.rxjava3.database.service.ServiceService;
 import at.uibk.dps.rm.rx.service.rxjava3.database.service.K8sServiceTypeService;
 import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentExecutionService;
-import at.uibk.dps.rm.service.rxjava3.util.FilePathService;
 import at.uibk.dps.rm.verticle.DatabaseVerticle;
 import io.vertx.rxjava3.core.Vertx;
 import lombok.Getter;
@@ -69,7 +68,6 @@ public class ServiceProxyProvider {
     private final ServiceTypeService serviceTypeService;
     private final VPCService vpcService;
     private final DeploymentExecutionService deploymentExecutionService;
-    private final FilePathService filePathService;
 
     /**
      * Create an instance from vertx. All client proxies get setup in this method.
@@ -105,6 +103,5 @@ public class ServiceProxyProvider {
         serviceTypeService = ServiceTypeService.createProxy(vertx);
         vpcService = VPCService.createProxy(vertx);
         deploymentExecutionService = DeploymentExecutionService.createProxy(vertx);
-        filePathService = FilePathService.createProxy(vertx);
     }
 }
