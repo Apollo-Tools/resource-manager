@@ -3,12 +3,13 @@ package at.uibk.dps.rm.service.database.function;
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.repository.function.FunctionRepository;
-import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
+import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Future;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import org.hibernate.reactive.stage.Stage;
@@ -18,7 +19,6 @@ import org.hibernate.reactive.stage.Stage;
  *
  * @author matthi-g
  */
-@Deprecated
 @ProxyGen
 @VertxGen
 public interface FunctionService extends DatabaseServiceInterface {
@@ -40,7 +40,7 @@ public interface FunctionService extends DatabaseServiceInterface {
      * Find all functions accessible by the account.
      *
      * @param accountId the id of the account
-     * @return a Future that emits all found functions as JsonArray
+     * @param resultHandler receives the found entities as JsonArray
      */
-    Future<JsonArray> findAllAccessibleFunctions(long accountId);
+    void findAllAccessibleFunctions(long accountId, Handler<AsyncResult<JsonArray>> resultHandler);
 }

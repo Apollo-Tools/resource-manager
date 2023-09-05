@@ -1,20 +1,20 @@
 package at.uibk.dps.rm.handler.resourceprovider;
 
 import at.uibk.dps.rm.handler.ValidationHandler;
+import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.RegionService;
 
 /**
  * Processes the http requests that concern the region entity.
  *
  * @author matthi-g
  */
-@Deprecated
 public class RegionHandler extends ValidationHandler {
     /**
-     * Create an instance from the regionChecker and providerChecker.
+     * Create an instance from the regionService.
      *
-     * @param regionChecker the region checker
+     * @param regionService the service
      */
-    public RegionHandler(RegionChecker regionChecker) {
-        super(regionChecker);
+    public RegionHandler(RegionService regionService) {
+        super(regionService);
     }
 }

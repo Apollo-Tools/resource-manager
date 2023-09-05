@@ -9,11 +9,11 @@ import lombok.experimental.UtilityClass;
 import java.util.regex.Pattern;
 
 /**
- * Used to validate the inputs of the account endpoint and fails the context if violations are found.
+ * Used to validate the inputs of the account endpoint and fails the context if violations are
+ * found.
  *
  * @author matthi-g
  */
-@Deprecated
 @UtilityClass
 public class AccountInputHandler {
 

@@ -3,8 +3,8 @@ package at.uibk.dps.rm.service.database.log;
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.DeploymentLog;
 import at.uibk.dps.rm.repository.log.DeploymentLogRepository;
-import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
+import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
@@ -16,7 +16,6 @@ import org.hibernate.reactive.stage.Stage;
  *
  * @author matthi-g
  */
-@Deprecated
 @ProxyGen
 @VertxGen
 public interface DeploymentLogService extends DatabaseServiceInterface {

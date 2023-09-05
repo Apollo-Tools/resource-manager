@@ -2,17 +2,16 @@ package at.uibk.dps.rm.repository.log;
 
 import at.uibk.dps.rm.entity.model.Log;
 import at.uibk.dps.rm.repository.Repository;
-import org.hibernate.reactive.stage.Stage.Session;
+import at.uibk.dps.rm.service.database.util.SessionManager;
+import io.reactivex.rxjava3.core.Single;
 
 import java.util.List;
-import java.util.concurrent.CompletionStage;
 
 /**
  * Implements database operations for the log entity.
  *
  * @author matthi-g
  */
-@Deprecated
 public class LogRepository extends Repository<Log> {
 
     /**
@@ -25,19 +24,21 @@ public class LogRepository extends Repository<Log> {
     /**
      * Find all logs by their deployment and account.
      *
-     * @param session the database session
+     * @param sessionManager the database session manager
      * @param deploymentId the id of the deployment
      * @param accountId the id of the creator account
-     * @return a CompletionStage that emits a list of all logs
+     * @return a Single that emits a list of all logs
      */
-    public CompletionStage<List<Log>> findAllByDeploymentIdAndAccountId(Session session, long deploymentId,
+    public Single<List<Log>> findAllByDeploymentIdAndAccountId(SessionManager sessionManager, long deploymentId,
             long accountId) {
-        return session.createQuery("select distinct l from DeploymentLog dl " +
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery("select distinct l from DeploymentLog dl " +
                 "left join dl.log l " +
                 "where dl.deployment.deploymentId=:deploymentId " +
                 "and dl.deployment.createdBy.accountId=:accountId", entityClass)
             .setParameter("deploymentId", deploymentId)
             .setParameter("accountId", accountId)
-            .getResultList();
+            .getResultList()
+        );
     }
 }

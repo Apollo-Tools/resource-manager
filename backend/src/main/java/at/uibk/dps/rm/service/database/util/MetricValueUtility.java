@@ -5,25 +5,26 @@ import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.entity.model.PlatformMetric;
 import at.uibk.dps.rm.entity.model.Resource;
+import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.BadInputException;
+import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
-import at.uibk.dps.rm.util.validation.ServiceResultValidator;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.reactive.stage.Stage.Session;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 /**
  * A utility class that provides different methods to validate metric values.
  *
  * @author matthi-g
  */
-@Deprecated
 @RequiredArgsConstructor
 public class MetricValueUtility {
 
@@ -39,26 +40,26 @@ public class MetricValueUtility {
      * @param values the values to add to the resource
      * @return a List of completable futures that emit nothing
      */
-    public List<CompletableFuture<Void>> checkAddMetricList(Session session, Resource resource, JsonArray values) {
-        return values.stream().map(jsonObject -> {
+    public Single<List<Completable>> checkAddMetricList(SessionManager sessionManager, Resource resource,
+            JsonArray values) {
+        return Observable.fromIterable(values)
+            .map(jsonObject -> {
                 JsonObject jsonMetric = (JsonObject) jsonObject;
                 long metricId = jsonMetric.getLong("metric_id");
                 MetricValue metricValue = new MetricValue();
-                return repository.findByResourceAndMetric(session, resource.getResourceId(), metricId)
-                    .thenCompose(existingMetric -> {
-                        ServiceResultValidator.checkExists(existingMetric, MetricValue.class);
-                        return platformMetricRepository.findByPlatformAndMetric(session,
-                            resource.getMain().getPlatform().getPlatformId(), metricId);
-                    })
-                    .thenCompose(platformMetric -> {
+                return repository.findByResourceAndMetric(sessionManager, resource.getResourceId(), metricId)
+                    .flatMap(existingValue -> Maybe.<PlatformMetric>error(new AlreadyExistsException(MetricValue.class)))
+                    .switchIfEmpty(platformMetricRepository.findByPlatformAndMetric(sessionManager,
+                        resource.getMain().getPlatform().getPlatformId(), metricId))
+                    .switchIfEmpty(Maybe.error(new NotFoundException(PlatformMetric.class)))
+                    .flatMapCompletable(platformMetric -> {
                         metricValue.setMetric(platformMetric.getMetric());
                         metricValue.setResource(resource);
                         checkAddMetricValueSetCorrectly(platformMetric, jsonMetric, metricValue);
-                        return session.persist(metricValue);
-                    })
-                    .toCompletableFuture();
+                        return sessionManager.persist(metricValue).ignoreElement();
+                    });
             })
-            .collect(Collectors.toList());
+            .toList();
     }
 
 
@@ -74,7 +75,9 @@ public class MetricValueUtility {
         Object value = jsonValue.getValue("value");
         boolean valueHasCorrectType = true;
         Metric metric = platformMetric.getMetric();
-        if (platformMetric.getIsMonitored()) {
+        if (platformMetric.getIsMonitored() && value != null) {
+            throw new BadInputException("monitored metrics can't be set manually");
+        } else if (platformMetric.getIsMonitored()) {
             setDefaultMonitoredMetricValue(metricValue, metric);
         }
         else if (stringMetricHasStringValue(metric, value)) {

@@ -1,6 +1,5 @@
 package at.uibk.dps.rm.repository;
 
-import at.uibk.dps.rm.repository.account.AccountRepository;
 import at.uibk.dps.rm.repository.account.CredentialsRepository;
 import at.uibk.dps.rm.repository.account.NamespaceRepository;
 import at.uibk.dps.rm.repository.deployment.*;
@@ -9,6 +8,7 @@ import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
 import at.uibk.dps.rm.repository.service.ServiceRepository;
+import at.uibk.dps.rm.repository.account.AccountRepository;
 import lombok.Getter;
 
 /**
@@ -16,7 +16,6 @@ import lombok.Getter;
  *
  * @author matthi-g
  */
-@Deprecated
 @Getter
 public class DeploymentRepositoryProvider {
 

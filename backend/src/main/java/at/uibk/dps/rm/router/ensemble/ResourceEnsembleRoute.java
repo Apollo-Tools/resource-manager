@@ -1,8 +1,8 @@
 package at.uibk.dps.rm.router.ensemble;
 
-import at.uibk.dps.rm.rx.handler.ResultHandler;
+import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.router.Route;
-import at.uibk.dps.rm.rx.handler.ensemble.ResourceEnsembleHandler;
+import at.uibk.dps.rm.handler.ensemble.ResourceEnsembleHandler;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 

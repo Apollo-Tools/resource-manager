@@ -2,17 +2,17 @@ package at.uibk.dps.rm.repository.metric;
 
 import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.repository.Repository;
-import org.hibernate.reactive.stage.Stage.Session;
+import at.uibk.dps.rm.service.database.util.SessionManager;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 
 import java.util.List;
-import java.util.concurrent.CompletionStage;
 
 /**
  * Implements database operations for the metric_value entity.
  *
  * @author matthi-g
  */
-@Deprecated
 public class MetricValueRepository extends Repository<MetricValue> {
 
     /**
@@ -25,88 +25,76 @@ public class MetricValueRepository extends Repository<MetricValue> {
     /**
      * Find a metric value by its id and fetch the metric.
      *
-     * @param session the database session
+     * @param sessionManager the database session manager
      * @param metricValueId the id of the metric value
-     * @return a CompletionStage that emits the metric value if it exists, else null
+     * @return a Maybe that emits the metric value if it exists, else null
      */
-    public CompletionStage<MetricValue> findByIdAndFetch(Session session, long metricValueId) {
-        return session.createQuery("from MetricValue  mv left join fetch mv.metric " +
+    public Maybe<MetricValue> findByIdAndFetch(SessionManager sessionManager, long metricValueId) {
+        return Maybe.fromCompletionStage(sessionManager.getSession()
+            .createQuery("from MetricValue  mv left join fetch mv" +
+                ".metric " +
                 "where mv.metricValueId =:metricValueId", entityClass)
             .setParameter("metricValueId", metricValueId)
-            .getSingleResultOrNull();
+            .getSingleResultOrNull()
+        );
     }
 
     /**
      * Find all metric values by their resource.
      *
-     * @param session the database session
+     * @param sessionManager the database session manager
      * @param resourceId the id of the resource
-     * @return a CompletionStage that emits a list of all metric values
+     * @return a Single that emits a list of all metric values
      */
-    public CompletionStage<List<MetricValue>> findByResourceAndFetch(Session session, long resourceId) {
-        return session.createQuery("select mv from Resource r " +
+    public Single<List<MetricValue>> findAllByResourceAndFetch(SessionManager sessionManager, long resourceId) {
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery("select mv from Resource r " +
                 "left join r.metricValues mv " +
                 "left join fetch mv.metric " +
                 "where r.resourceId=:resourceId", entityClass)
             .setParameter("resourceId", resourceId)
-            .getResultList();
+            .getResultList()
+        );
     }
 
     /**
      * Find a metric value by its resource and metric.
      *
-     * @param session the database session
+     * @param sessionManager the database session manager
      * @param resourceId the id of the resource
      * @param metricId the id of the metric
-     * @return a CompletionStage that emits the metric value if it exists, else null
+     * @return a Maybe that emits the metric value if it exists, else null
      */
-    public CompletionStage<MetricValue> findByResourceAndMetric(Session session, long resourceId, long metricId) {
-        return session.createQuery("select mv from Resource r " +
+    public Maybe<MetricValue> findByResourceAndMetric(SessionManager sessionManager, long resourceId, long metricId) {
+        return Maybe.fromCompletionStage(sessionManager.getSession()
+            .createQuery("select mv from Resource r " +
                 "left join r.metricValues mv " +
                 "where r.resourceId=:resourceId and mv.metric.metricId=:metricId", entityClass)
             .setParameter("resourceId", resourceId)
             .setParameter("metricId", metricId)
-            .getSingleResultOrNull();
+            .getSingleResultOrNull()
+        );
     }
 
     /**
      * Find a metric value by its resource and metric.
      *
-     * @param session the database session
+     * @param sessionManager the database session manager
      * @param resourceId the id of the resource
      * @param metricId the id of the metric
-     * @return a CompletionStage that emits the metric value if it exists, else null
+     * @return a Maybe that emits the metric value if it exists, else null
      */
-    public CompletionStage<MetricValue> findByResourceAndMetricAndFetch(Session session, long resourceId,
+    public Maybe<MetricValue> findByResourceAndMetricAndFetch(SessionManager sessionManager, long resourceId,
             long metricId) {
-        return session.createQuery("select mv from Resource r " +
+        return Maybe.fromCompletionStage(sessionManager.getSession()
+            .createQuery("select mv from Resource r " +
                 "left join r.metricValues mv " +
                 "left join fetch mv.metric m " +
                 "left join fetch m.metricType mt " +
                 "where r.resourceId=:resourceId and mv.metric.metricId=:metricId", entityClass)
             .setParameter("resourceId", resourceId)
             .setParameter("metricId", metricId)
-            .getSingleResultOrNull();
-    }
-
-    /**
-     * Delete a metric value by its resource and metric
-     *
-     * @param resourceId the id of the resource
-     * @param metricId the id of the metric
-     * @return a CompletionStage that emits the row count
-     */
-    // TODO: maybe rework (add cascading delete to relationship)
-    public CompletionStage<Integer> deleteByResourceAndMetric(Session session, long resourceId, long metricId) {
-        return session.createQuery("select mv.metricValueId from Resource r " +
-                "left join r.metricValues mv " +
-                "where r.resourceId=:resourceId and mv.metric.metricId=:metricId", Long.class)
-            .setParameter("resourceId", resourceId)
-            .setParameter("metricId", metricId)
-            .getSingleResult()
-            .thenCompose(result -> session.createQuery("delete from MetricValue mv " +
-                "where mv.metricValueId=:metricValue")
-                .setParameter("metricValue", result)
-                .executeUpdate());
+            .getSingleResultOrNull()
+        );
     }
 }

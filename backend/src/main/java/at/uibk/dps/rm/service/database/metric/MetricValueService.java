@@ -4,12 +4,13 @@ import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
-import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
+import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Future;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import org.hibernate.reactive.stage.Stage.SessionFactory;
@@ -19,7 +20,6 @@ import org.hibernate.reactive.stage.Stage.SessionFactory;
  *
  * @author matthi-g
  */
-@Deprecated
 @ProxyGen
 @VertxGen
 public interface MetricValueService extends DatabaseServiceInterface {
@@ -43,18 +43,18 @@ public interface MetricValueService extends DatabaseServiceInterface {
      *
      * @param resourceId the id of the resource
      * @param data the metric value data to set
-     * @return an empty Future
+     * @param resultHandler receives nothing if the saving was successful else an error
      */
-    Future<Void> saveAllToResource(long resourceId, JsonArray data);
+    void saveAllToResource(long resourceId, JsonArray data, Handler<AsyncResult<Void>> resultHandler);
 
     /**
      * Find all metric values by their resource and add the values based on includeValue.
      *
      * @param resourceId the id of the resource
      * @param includeValue whether to include the values
-     * @return a Future that emits all metric values as JsonArray
+     * @param resultHandler receives the found metric values as JsonArray
      */
-    Future<JsonArray> findAllByResource(long resourceId, boolean includeValue);
+    void findAllByResource(long resourceId, boolean includeValue, Handler<AsyncResult<JsonArray>> resultHandler);
 
     /**
      * Update a metric value based on its resource and metric. Set the new value using the
@@ -65,17 +65,17 @@ public interface MetricValueService extends DatabaseServiceInterface {
      * @param valueString the new string value
      * @param valueNumber the new number value
      * @param valueBool the new boolean value
-     * @return an empty Future
+     * @param resultHandler receives nothing if the update was successful else an error
      */
-    Future<Void> updateByResourceAndMetric(long resourceId, long metricId, String valueString, Double valueNumber,
-        Boolean valueBool, boolean isExternalSource);
+    void updateByResourceAndMetric(long resourceId, long metricId, String valueString, Double valueNumber,
+        Boolean valueBool, boolean isExternalSource, Handler<AsyncResult<Void>> resultHandler);
 
     /**
      * Delete a metric value by its resource and metric.
      *
      * @param resourceId the id of the resource
      * @param metricId the id of the metric
-     * @return an empty Future
+     * @param resultHandler receives nothing if the deletíon was successful else an error
      */
-    Future<Void> deleteByResourceAndMetric(long resourceId, long metricId);
+    void deleteByResourceAndMetric(long resourceId, long metricId, Handler<AsyncResult<Void>> resultHandler);
 }

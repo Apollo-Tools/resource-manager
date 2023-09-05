@@ -1,25 +1,25 @@
 package at.uibk.dps.rm.handler.deploymentexecution;
 
+import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
-import at.uibk.dps.rm.entity.model.FunctionDeployment;
-import at.uibk.dps.rm.entity.model.Log;
 import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.entity.model.DeploymentLog;
+import at.uibk.dps.rm.entity.model.FunctionDeployment;
+import at.uibk.dps.rm.entity.model.Log;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
+import at.uibk.dps.rm.service.rxjava3.database.log.DeploymentLogService;
+import at.uibk.dps.rm.service.rxjava3.database.log.LogService;
 import at.uibk.dps.rm.service.deployment.docker.LambdaJavaBuildService;
 import at.uibk.dps.rm.service.deployment.docker.LambdaLayerService;
 import at.uibk.dps.rm.service.deployment.docker.OpenFaasImageService;
 import at.uibk.dps.rm.service.deployment.executor.MainTerraformExecutor;
 import at.uibk.dps.rm.service.deployment.executor.TerraformExecutor;
 import at.uibk.dps.rm.service.deployment.terraform.TerraformFileService;
-import at.uibk.dps.rm.rx.service.rxjava3.database.log.LogService;
-import at.uibk.dps.rm.rx.service.rxjava3.database.log.DeploymentLogService;
 import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentExecutionService;
-import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import at.uibk.dps.rm.util.misc.ConsoleOutputUtility;
 import io.reactivex.rxjava3.core.Completable;
@@ -36,7 +36,6 @@ import java.util.List;
  *
  * @author matthi-g
  */
-@Deprecated
 public class DeploymentExecutionChecker {
 
     private final DeploymentExecutionService deploymentService;

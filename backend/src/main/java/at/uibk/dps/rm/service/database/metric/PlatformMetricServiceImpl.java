@@ -1,25 +1,24 @@
 package at.uibk.dps.rm.service.database.metric;
 
-import at.uibk.dps.rm.entity.model.Platform;
 import at.uibk.dps.rm.entity.model.PlatformMetric;
 import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
-import at.uibk.dps.rm.util.validation.ServiceResultValidator;
-import io.vertx.core.Future;
+import at.uibk.dps.rm.service.util.RxVertxHandler;
+import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.List;
-import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
 /**
- * This is the implementation of the #PlatformMetricService.
+ * This is the implementation of the {@link PlatformMetricService}.
  *
  * @author matthi-g
  */
-@Deprecated
 public class PlatformMetricServiceImpl extends DatabaseServiceProxy<PlatformMetric> implements PlatformMetricService {
 
     private final PlatformMetricRepository repository;
@@ -35,21 +34,18 @@ public class PlatformMetricServiceImpl extends DatabaseServiceProxy<PlatformMetr
     }
 
     @Override
-    public Future<JsonArray> findAllByPlatformId(long platformId) {
-        CompletionStage<List<PlatformMetric>> getAll = withSession(session ->
-            session.find(Platform.class, platformId)
-                .thenCompose(platform -> {
-                    ServiceResultValidator.checkFound(platform, Platform.class);
-                    return repository.findAllByPlatform(session, platformId);
-                })
+    public void findAllByPlatformId(long platformId, Handler<AsyncResult<JsonArray>> resultHandler) {
+        Single<List<PlatformMetric>> getAll = withTransactionSingle(sessionManager -> repository
+            .findAllByPlatform(sessionManager, platformId)
         );
-        return sessionToFuture(getAll)
-            .map(platformMetrics -> {
+        RxVertxHandler.handleSession(
+            getAll.map(platformMetrics -> {
                 List<JsonObject> result = platformMetrics.stream()
-                    .peek(platformMetric -> platformMetric.setPlatform(null))
                     .map(JsonObject::mapFrom)
                     .collect(Collectors.toList());
                 return new JsonArray(result);
-            });
+            }),
+            resultHandler
+        );
     }
 }

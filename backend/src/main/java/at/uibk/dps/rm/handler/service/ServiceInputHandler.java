@@ -16,7 +16,6 @@ import java.util.List;
  *
  * @author matthi-g
  */
-@Deprecated
 @UtilityClass
 public class ServiceInputHandler {
     /**

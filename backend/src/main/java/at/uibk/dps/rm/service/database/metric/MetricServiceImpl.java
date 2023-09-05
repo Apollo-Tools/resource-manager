@@ -1,16 +1,15 @@
 package at.uibk.dps.rm.service.database.metric;
 
-import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.entity.model.Metric;
+import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import org.hibernate.reactive.stage.Stage;
 
 /**
- * This is the implementation of the #MetricService.
+ * This is the implementation of the {@link MetricService}.
  *
  * @author matthi-g
  */
-@Deprecated
 public class MetricServiceImpl extends DatabaseServiceProxy<Metric> implements MetricService {
 
     /**

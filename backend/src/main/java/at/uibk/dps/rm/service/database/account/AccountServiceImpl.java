@@ -3,28 +3,33 @@ package at.uibk.dps.rm.service.database.account;
 import at.uibk.dps.rm.entity.dto.account.NewAccountDTO;
 import at.uibk.dps.rm.entity.dto.account.RoleEnum;
 import at.uibk.dps.rm.entity.model.Account;
+import at.uibk.dps.rm.entity.model.Role;
+import at.uibk.dps.rm.exception.AlreadyExistsException;
+import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.repository.account.AccountRepository;
 import at.uibk.dps.rm.repository.account.RoleRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.service.util.RxVertxHandler;
 import at.uibk.dps.rm.util.misc.PasswordUtility;
-import at.uibk.dps.rm.util.validation.ServiceResultValidator;
-import io.vertx.core.Future;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletionStage;
 
 /**
- * This is the implementation of the #AccountService.
+ * This is the implementation of the {@link AccountService}.
  *
  * @author matthi-g
  */
-@Deprecated
-public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements  AccountService {
+public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements AccountService {
 
     private final AccountRepository repository;
 
@@ -44,10 +49,12 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
     }
 
     @Override
-    public Future<JsonObject> loginAccount(String username, String password) {
-        CompletionStage<Account> login = withSession(session -> repository.findByUsername(session, username)
-            .thenApply(account -> {
-                if (account == null || !account.getIsActive()) {
+    public void loginAccount(String username, String password, Handler<AsyncResult<JsonObject>> resultHandler) {
+        Maybe<Account> login = withTransactionMaybe(sessionManager -> repository
+            .findByUsername(sessionManager, username)
+            .switchIfEmpty(Maybe.error(new UnauthorizedException("invalid credentials")))
+            .map(account -> {
+                if (!account.getIsActive()) {
                     throw new UnauthorizedException("invalid credentials");
                 }
                 PasswordUtility passwordUtility = new PasswordUtility();
@@ -59,73 +66,74 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
                 return account;
             })
         );
-        return sessionToFuture(login).map(JsonObject::mapFrom);
+        RxVertxHandler.handleSession(login.map(JsonObject::mapFrom), resultHandler);
     }
 
     @Override
-    public Future<JsonObject> save(JsonObject data) {
+    public void save(JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
         NewAccountDTO accountDTO = data.mapTo(NewAccountDTO.class);
         Account newAccount = new Account();
-        CompletionStage<Account> save = withTransaction(session ->
-            repository.findByUsername(session, accountDTO.getUsername())
-                .thenCompose(existingAccount -> {
-                    ServiceResultValidator.checkExists(existingAccount, Account.class);
-                    return roleRepository.findByRoleName(session, RoleEnum.DEFAULT.getValue());
-                })
-                .thenCompose(role -> {
-                    ServiceResultValidator.checkFound(role, "default role not found");
-                    newAccount.setUsername(accountDTO.getUsername());
-                    newAccount.setRole(role);
-                    PasswordUtility passwordUtility = new PasswordUtility();
-                    char[] password = accountDTO.getPassword().toCharArray();
-                    String hash = passwordUtility.hashPassword(password);
-                    newAccount.setPassword(hash);
-                    return session.persist(newAccount)
-                        .thenApply(res -> newAccount);
-                })
+        Maybe<Account> save = withTransactionMaybe(sessionManager -> repository
+            .findByUsername(sessionManager, accountDTO.getUsername())
+            .flatMap(existingAccount -> Maybe.<Role>error(new AlreadyExistsException(Account.class)))
+            .switchIfEmpty(roleRepository.findByRoleName(sessionManager, RoleEnum.DEFAULT.getValue()))
+            .switchIfEmpty(Maybe.error(new NotFoundException("default role not found")))
+            .flatMapSingle(role -> {
+                newAccount.setUsername(accountDTO.getUsername());
+                newAccount.setRole(role);
+                PasswordUtility passwordUtility = new PasswordUtility();
+                char[] password = accountDTO.getPassword().toCharArray();
+                String hash = passwordUtility.hashPassword(password);
+                newAccount.setPassword(hash);
+                return sessionManager.persist(newAccount);
+            })
         );
-        return sessionToFuture(save).map(JsonObject::mapFrom);
+        RxVertxHandler.handleSession(save.map(JsonObject::mapFrom), resultHandler);
     }
 
     @Override
-    public Future<Void> update(long id, JsonObject fields) {
-        CompletionStage<Account> update = withTransaction(session -> repository.findById(session, id)
-            .thenApply(account -> {
-                ServiceResultValidator.checkFound(account, Account.class);
+    public void update(long id, JsonObject fields, Handler<AsyncResult<Void>> resultHandler) {
+        Completable update = withTransactionCompletable(sessionManager -> repository
+            .findById(sessionManager, id)
+            .switchIfEmpty(Maybe.error(new NotFoundException(Account.class)))
+            .flatMapCompletable(account -> {
                 PasswordUtility passwordUtility = new PasswordUtility();
                 char[] oldPassword = fields.getString("old_password").toCharArray();
                 char[] newPassword = fields.getString("new_password").toCharArray();
                 boolean oldPasswordIsValid = passwordUtility.verifyPassword(account.getPassword(), oldPassword);
                 if (!oldPasswordIsValid) {
-                    throw new UnauthorizedException("old password is invalid");
+                    return Completable.error(new UnauthorizedException("old password is invalid"));
                 }
                 account.setPassword(passwordUtility.hashPassword(newPassword));
-                return account;
+                return Completable.complete();
             }));
-        return sessionToFuture(update).mapEmpty();
+        RxVertxHandler.handleSession(update, resultHandler);
     }
 
     @Override
-    public Future<JsonArray> findAll() {
-        CompletionStage<List<Account>> findAll = withSession(repository::findAll);
-        return sessionToFuture(findAll)
-            .map(result -> {
+    public void findAll(Handler<AsyncResult<JsonArray>> resultHandler) {
+        Single<List<Account>> findAll = withTransactionSingle(repository::findAll);
+        RxVertxHandler.handleSession(
+            findAll.map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Account account: result) {
                     account.setPassword(null);
                     objects.add(JsonObject.mapFrom(account));
                 }
                 return new JsonArray(objects);
-            });
+            })
+        , resultHandler);
     }
 
     @Override
-    public Future<Void> setAccountActive(long accountId, boolean activityLevel) {
-        CompletionStage<Void> lockAccount = withTransaction(session -> session.find(Account.class, accountId)
-            .thenAccept(account -> {
-                ServiceResultValidator.checkFound(account, Account.class);
+    public void setAccountActive(long accountId, boolean activityLevel, Handler<AsyncResult<Void>> resultHandler) {
+        Completable lockAccount = withTransactionCompletable(sessionManager -> sessionManager
+            .find(Account.class, accountId)
+            .switchIfEmpty(Maybe.error(new NotFoundException(Account.class)))
+            .flatMapCompletable(account -> {
                 account.setIsActive(activityLevel);
+                return Completable.complete();
             }));
-        return sessionToFuture(lockAccount);
+        RxVertxHandler.handleSession(lockAccount, resultHandler);
     }
 }

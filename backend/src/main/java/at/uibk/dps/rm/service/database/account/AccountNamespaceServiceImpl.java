@@ -2,23 +2,24 @@ package at.uibk.dps.rm.service.database.account;
 
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
+import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.account.AccountNamespaceRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
-import at.uibk.dps.rm.util.validation.ServiceResultValidator;
-import io.vertx.core.Future;
+import at.uibk.dps.rm.service.util.RxVertxHandler;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage.SessionFactory;
 
-import java.util.concurrent.CompletionStage;
-
 /**
- * This is the implementation of the #AccountNamespaceService.
+ * This is the implementation of the {@link AccountNamespaceService}.
  *
  * @author matthi-g
  */
-@Deprecated
 public class AccountNamespaceServiceImpl extends DatabaseServiceProxy<AccountNamespace> implements
-        AccountNamespaceService {
+    AccountNamespaceService {
 
     private final AccountNamespaceRepository repository;
 
@@ -33,52 +34,49 @@ public class AccountNamespaceServiceImpl extends DatabaseServiceProxy<AccountNam
     }
 
     @Override
-    public Future<JsonObject> saveByAccountIdAndNamespaceId(long accountId, long namespaceId) {
+    public void saveByAccountIdAndNamespaceId(long accountId, long namespaceId,
+            Handler<AsyncResult<JsonObject>> resultHandler) {
         AccountNamespace accountNamespace = new AccountNamespace();
-        CompletionStage<AccountNamespace> create = withTransaction(session ->
-            repository.findByAccountIdAndNamespaceId(session, accountId, namespaceId)
-                .thenCompose(existing -> {
-                    ServiceResultValidator.checkExists(existing, AccountNamespace.class);
-                    return session.find(K8sNamespace.class, namespaceId);
-                })
-                .thenCompose(namespace -> {
-                    ServiceResultValidator.checkFound(namespace, K8sNamespace.class);
+        Maybe<AccountNamespace> create = withTransactionMaybe(sessionManager ->
+            repository.findByAccountIdAndNamespaceId(sessionManager, accountId, namespaceId)
+                .flatMap(existingService -> Maybe.<K8sNamespace>error(new AlreadyExistsException(AccountNamespace.class)))
+                .switchIfEmpty(sessionManager.find(K8sNamespace.class, namespaceId))
+                .switchIfEmpty(Maybe.error(new NotFoundException(K8sNamespace.class)))
+                .flatMapSingle(namespace -> {
                     long resourceId = namespace.getResource().getResourceId();
                     accountNamespace.setNamespace(namespace);
-                    return repository.findByAccountIdAndResourceId(session, accountId, resourceId);
+                    return repository.findByAccountIdAndResourceId(sessionManager, accountId, resourceId);
                 })
-                .thenCompose(existing -> {
+                .flatMap(existing -> {
                     if (!existing.isEmpty()) {
-                        throw new AlreadyExistsException("only one namespace per resource allowed");
+                        return Maybe.error(new AlreadyExistsException("only one namespace per resource allowed"));
                     }
-                    return session.find(Account.class, accountId);
+                    return sessionManager.find(Account.class, accountId);
                 })
-                .thenCompose(account -> {
-                    ServiceResultValidator.checkFound(account, Account.class);
+                .switchIfEmpty(Maybe.error(new NotFoundException(Account.class)))
+                .flatMapSingle(account -> {
                     accountNamespace.setAccount(account);
-                    return session.persist(accountNamespace);
+                    return sessionManager.persist(accountNamespace);
                 })
-                .thenApply(res -> accountNamespace)
         );
-        return sessionToFuture(create)
+        RxVertxHandler.handleSession(create
             .map(result -> {
                 JsonObject response = new JsonObject();
                 response.put("account_id", result.getAccount().getAccountId());
                 response.put("namespace_id", result.getNamespace().getNamespaceId());
                 return response;
-            });
+            }),
+            resultHandler);
     }
 
     @Override
-    public Future<Void> deleteByAccountIdAndNamespaceId(long accountId, long namespaceId) {
-        CompletionStage<Void> delete = withTransaction(session ->
-            repository.findByAccountIdAndNamespaceId(session, accountId, namespaceId)
-                .thenCompose(accountNamespace -> {
-                    ServiceResultValidator.checkFound(accountNamespace, AccountNamespace.class);
-                    return session.remove(accountNamespace);
-                })
+    public void deleteByAccountIdAndNamespaceId(long accountId, long namespaceId,
+            Handler<AsyncResult<Void>> resultHandler) {
+        Completable delete = withTransactionCompletable(sessionManager -> repository
+            .findByAccountIdAndNamespaceId(sessionManager, accountId, namespaceId)
+            .switchIfEmpty(Maybe.error(new NotFoundException(AccountNamespace.class)))
+            .flatMapCompletable(sessionManager::remove)
         );
-        return Future.fromCompletionStage(delete)
-            .recover(this::recoverFailure);
+        RxVertxHandler.handleSession(delete, resultHandler);
     }
 }

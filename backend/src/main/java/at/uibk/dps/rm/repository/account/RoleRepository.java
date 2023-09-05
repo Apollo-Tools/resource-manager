@@ -2,16 +2,14 @@ package at.uibk.dps.rm.repository.account;
 
 import at.uibk.dps.rm.entity.model.Role;
 import at.uibk.dps.rm.repository.Repository;
-import org.hibernate.reactive.stage.Stage;
-
-import java.util.concurrent.CompletionStage;
+import at.uibk.dps.rm.service.database.util.SessionManager;
+import io.reactivex.rxjava3.core.Maybe;
 
 /**
  * Implements database operations for the role entity.
  *
  * @author matthi-g
  */
-@Deprecated
 public class RoleRepository extends Repository<Role> {
 
     /**
@@ -24,13 +22,15 @@ public class RoleRepository extends Repository<Role> {
     /**
      * Find a role by its name
      *
-     * @param session the db session
+     * @param sessionManager the database session manager
      * @param name the name of the role
-     * @return a CompletionStage that emits the account if it exists, else null
+     * @return a Maybe that emits the account if it exists, else null
      */
-    public CompletionStage<Role> findByRoleName(Stage.Session session, String name) {
-        return session.createQuery("from Role r where r.role=:name", entityClass)
-                .setParameter("name", name)
-                .getSingleResultOrNull();
+    public Maybe<Role> findByRoleName(SessionManager sessionManager, String name) {
+        return Maybe.fromCompletionStage(sessionManager.getSession()
+            .createQuery("from Role r where r.role=:name", entityClass)
+            .setParameter("name", name)
+            .getSingleResultOrNull()
+        );
     }
 }

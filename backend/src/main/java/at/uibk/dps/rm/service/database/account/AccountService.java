@@ -4,12 +4,13 @@ import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.repository.account.AccountRepository;
 import at.uibk.dps.rm.repository.account.RoleRepository;
-import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
+import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Future;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage.SessionFactory;
@@ -19,7 +20,6 @@ import org.hibernate.reactive.stage.Stage.SessionFactory;
  *
  * @author matthi-g
  */
-@Deprecated
 @ProxyGen
 @VertxGen
 public interface AccountService extends DatabaseServiceInterface {
@@ -43,16 +43,16 @@ public interface AccountService extends DatabaseServiceInterface {
      *
      * @param username the username of the account
      * @param password the password of the account
-     * @return a Future that emits the logged in account
+     * @param resultHandler receives the account if the login was successful else an error
      */
-    Future<JsonObject> loginAccount(String username, String password);
+    void loginAccount(String username, String password, Handler<AsyncResult<JsonObject>> resultHandler);
 
     /**
      * Lock or unlock an account.
      *
      * @param accountId the id of the account
      * @param activityLevel whether to lock or unlock the account
-     * @return a Future that emits nothing
+     * @param resultHandler receives nothing if the update was successful else an error
      */
-    Future<Void> setAccountActive(long accountId, boolean activityLevel);
+    void setAccountActive(long accountId, boolean activityLevel, Handler<AsyncResult<Void>> resultHandler);
 }

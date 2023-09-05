@@ -1,9 +1,9 @@
 package at.uibk.dps.rm.repository;
 
 import at.uibk.dps.rm.repository.ensemble.EnsembleRepository;
+import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.ensemble.EnsembleSLORepository;
 import at.uibk.dps.rm.repository.metric.MetricRepository;
-import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import lombok.Getter;
 
 /**
@@ -11,7 +11,6 @@ import lombok.Getter;
  *
  * @author matthi-g
  */
-@Deprecated
 @Getter
 public class EnsembleRepositoryProvider {
     private final EnsembleRepository ensembleRepository;

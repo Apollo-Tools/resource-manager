@@ -16,7 +16,6 @@ import org.hibernate.reactive.stage.Stage.SessionFactory;
  *
  * @author matthi-g
  */
-@Deprecated
 @ProxyGen
 @VertxGen
 public interface ServiceTypeService extends DatabaseServiceInterface {

@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.router.log;
 
-import at.uibk.dps.rm.rx.handler.ResultHandler;
-import at.uibk.dps.rm.rx.handler.log.DeploymentLogHandler;
+import at.uibk.dps.rm.handler.ResultHandler;
+import at.uibk.dps.rm.handler.log.DeploymentLogHandler;
 import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;

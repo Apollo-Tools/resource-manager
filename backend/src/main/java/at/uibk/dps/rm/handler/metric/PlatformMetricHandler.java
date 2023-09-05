@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler.metric;
 
 import at.uibk.dps.rm.handler.ValidationHandler;
+import at.uibk.dps.rm.service.rxjava3.database.metric.PlatformMetricService;
 import at.uibk.dps.rm.util.misc.HttpHelper;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
@@ -11,24 +12,23 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
  *
  * @author matthi-g
  */
-@Deprecated
 public class PlatformMetricHandler extends ValidationHandler {
 
-    private final PlatformMetricChecker platformMetricChecker;
+    private final PlatformMetricService platformMetricService;
 
     /**
-     * Create an instance from the metricChecker and resourceTypeChecker.
+     * Create an instance from the platformMetricService.
      *
-     * @param platformMetricChecker the platform metric checker
+     * @param platformMetricService the service
      */
-    public PlatformMetricHandler(PlatformMetricChecker platformMetricChecker) {
-        super(platformMetricChecker);
-        this.platformMetricChecker = platformMetricChecker;
+    public PlatformMetricHandler(PlatformMetricService platformMetricService) {
+        super(platformMetricService);
+        this.platformMetricService = platformMetricService;
     }
 
     @Override
     protected Single<JsonArray> getAll(RoutingContext rc) {
         return HttpHelper.getLongPathParam(rc, "id")
-            .flatMap(platformMetricChecker::checkFindAllByPlatformId);
+            .flatMap(platformMetricService::findAllByPlatformId);
     }
 }

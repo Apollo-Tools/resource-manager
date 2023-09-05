@@ -21,7 +21,6 @@ import java.util.Set;
  *
  * @author matthi-g
  */
-@Deprecated
 @UtilityClass
 public class DeploymentInputHandler {
 

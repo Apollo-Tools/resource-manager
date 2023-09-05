@@ -12,6 +12,7 @@ import io.vertx.core.json.JsonObject;
  *
  * @author matthi-g
  */
+@Deprecated
 public abstract class EntityChecker {
 
     private final DatabaseServiceInterface service;
@@ -66,17 +67,6 @@ public abstract class EntityChecker {
      */
     public Single<JsonArray> checkFindAll(long accountId) {
         return ErrorHandler.handleFindAll(service.findAllByAccountId(accountId));
-    }
-
-    /**
-     * Check if an entity exists by its id.
-     *
-     * @param id the id of the entity
-     * @return a Completable if it exists, else a NotFoundException gets thrown
-     */
-    public Completable checkExistsOne(long id) {
-        Single<Boolean> existsOneById = service.existsOneById(id);
-        return ErrorHandler.handleExistsOne(existsOneById).ignoreElement();
     }
 
     /**

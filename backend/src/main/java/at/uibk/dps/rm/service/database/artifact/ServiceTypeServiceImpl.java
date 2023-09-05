@@ -1,21 +1,22 @@
 package at.uibk.dps.rm.service.database.artifact;
 
 import at.uibk.dps.rm.entity.model.ServiceType;
+import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.repository.artifact.ServiceTypeRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
-import at.uibk.dps.rm.util.validation.ServiceResultValidator;
-import io.vertx.core.Future;
+import at.uibk.dps.rm.service.util.RxVertxHandler;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage.SessionFactory;
 
-import java.util.concurrent.CompletionStage;
-
 /**
- * This is the implementation of the #ServiceTypeService.
+ * This is the implementation of the {@link ServiceTypeService}.
  *
  * @author matthi-g
  */
-@Deprecated
 public class ServiceTypeServiceImpl extends DatabaseServiceProxy<ServiceType> implements ServiceTypeService {
 
     private final ServiceTypeRepository repository;
@@ -30,15 +31,13 @@ public class ServiceTypeServiceImpl extends DatabaseServiceProxy<ServiceType> im
     }
 
     @Override
-    public Future<JsonObject> save(JsonObject data) {
+    public void save(JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
         ServiceType serviceType = data.mapTo(ServiceType.class);
-        CompletionStage<ServiceType> save = withTransaction(session ->
-            repository.findByName(session, serviceType.getName())
-                .thenCompose(existing -> {
-                    ServiceResultValidator.checkExists(existing, ServiceType.class);
-                    return session.persist(serviceType);
-                })
-                .thenApply(res -> serviceType));
-        return sessionToFuture(save).map(JsonObject::mapFrom);
+        Single<ServiceType> save = withTransactionSingle(sessionManager -> repository
+            .findByName(sessionManager, serviceType.getName())
+            .flatMap(existingType -> Maybe.<ServiceType>error(new AlreadyExistsException(ServiceType.class)))
+            .switchIfEmpty(sessionManager.persist(serviceType))
+        );
+        RxVertxHandler.handleSession(save.map(JsonObject::mapFrom), resultHandler);
     }
 }

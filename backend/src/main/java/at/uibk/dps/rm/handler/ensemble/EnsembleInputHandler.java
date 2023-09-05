@@ -17,7 +17,6 @@ import lombok.experimental.UtilityClass;
  *
  * @author matthi-g
  */
-@Deprecated
 @UtilityClass
 public class EnsembleInputHandler {
 

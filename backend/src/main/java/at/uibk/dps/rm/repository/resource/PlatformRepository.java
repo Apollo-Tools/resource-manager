@@ -2,17 +2,16 @@ package at.uibk.dps.rm.repository.resource;
 
 import at.uibk.dps.rm.entity.model.Platform;
 import at.uibk.dps.rm.repository.Repository;
-import org.hibernate.reactive.stage.Stage.Session;
+import at.uibk.dps.rm.service.database.util.SessionManager;
+import io.reactivex.rxjava3.core.Single;
 
 import java.util.List;
-import java.util.concurrent.CompletionStage;
 
 /**
  * Implements database operations for the platform entity.
  *
  * @author matthi-g
  */
-@Deprecated
 public class PlatformRepository extends Repository<Platform> {
 
     /**
@@ -25,12 +24,14 @@ public class PlatformRepository extends Repository<Platform> {
     /**
      * Find all platforms and fetch the resource types.
      *
-     * @param session the database session
-     * @return a CompletionStage that emits a list of all platforms
+     * @param sessionManager the database session manager
+     * @return a Single that emits a list of all platforms
      */
-    public CompletionStage<List<Platform>> findAllAndFetch(Session session) {
-        return session.createQuery("select distinct p from Platform p " +
+    public Single<List<Platform>> findAllAndFetch(SessionManager sessionManager) {
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery("select distinct p from Platform p " +
                 "left join fetch p.resourceType", entityClass)
-            .getResultList();
+            .getResultList()
+        );
     }
 }

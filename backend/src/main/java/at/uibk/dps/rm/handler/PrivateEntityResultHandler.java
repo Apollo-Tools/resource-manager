@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.handler;
 
+import io.reactivex.rxjava3.core.Completable;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
 /**
@@ -52,6 +53,12 @@ public class PrivateEntityResultHandler extends ResultHandler {
     @Override
     public void handleDeleteRequest(final RoutingContext rc) {
         validationHandler.deleteOneFromAccount(rc)
+            .subscribe(() -> getSaveAllUpdateDeleteResponse(rc),
+                throwable -> handleRequestError(rc, throwable));
+    }
+
+    public void handleDeleteRequest(final RoutingContext rc, final Completable handler) {
+        handler
             .subscribe(() -> getSaveAllUpdateDeleteResponse(rc),
                 throwable -> handleRequestError(rc, throwable));
     }

@@ -5,13 +5,13 @@ import at.uibk.dps.rm.entity.model.MainResource;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.model.SubResource;
 import at.uibk.dps.rm.repository.Repository;
-import org.hibernate.reactive.stage.Stage.Session;
-import org.hibernate.reactive.util.impl.CompletionStages;
+import at.uibk.dps.rm.service.database.util.SessionManager;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
 /**
@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
  *
  * @author matthi-g
  */
-@Deprecated
 public class ResourceRepository extends Repository<Resource> {
 
     /**
@@ -30,31 +29,32 @@ public class ResourceRepository extends Repository<Resource> {
     }
 
     /**
-     * Find a resource by its name and region.
+     * Find a resource by its name.
      *
-     * @param session the database session
+     * @param sessionManager the database session manager
      * @param name the name of the resource
-     * @param regionId the id of the region
-     * @return a CompletionStage that emits the resource, else null
+     * @return a Maybe that emits the resource, else null
      */
-    public CompletionStage<Resource> findByNameAndRegionId(Session session, String name, long regionId) {
-        return session.createQuery("from MainResource r " +
-                "where r.name=:name and r.region.regionId=:regionId", entityClass)
+    public Maybe<Resource> findByName(SessionManager sessionManager, String name) {
+        return Maybe.fromCompletionStage(sessionManager.getSession()
+            .createQuery("from MainResource r " +
+                "where r.name=:name", entityClass)
             .setParameter("name", name)
-            .setParameter("regionId", regionId)
-            .getSingleResultOrNull();
+            .getSingleResultOrNull()
+        );
     }
 
     /**
      * Find a resource by its id and fetch the resource type, platform, environment, region, metric
      * values and resource provider.
      *
-     * @param session the database session
+     * @param sessionManager the database session manager
      * @param id the id of the resource
      * @return a CompletionStage that emits the resource if it exists, else null
      */
-    public CompletionStage<Resource> findByIdAndFetch(Session session, long id) {
-        CompletionStage<Resource> getMainResource = session.createQuery(
+    public Maybe<Resource> findByIdAndFetch(SessionManager sessionManager, long id) {
+        Maybe<Resource> getMainResource = Maybe.fromCompletionStage(sessionManager.getSession()
+            .createQuery(
                 "from MainResource r " +
                 "left join fetch r.metricValues mv " +
                 "left join fetch mv.metric " +
@@ -65,9 +65,11 @@ public class ResourceRepository extends Repository<Resource> {
                 "left join fetch p.resourceType " +
                 "where r.resourceId =:id", entityClass)
             .setParameter("id", id)
-            .getSingleResultOrNull();
+            .getSingleResultOrNull()
+        );
 
-        CompletionStage<Resource> getSubResource = session.createQuery(
+        Maybe<Resource> getSubResource = Maybe.fromCompletionStage(sessionManager.getSession()
+            .createQuery(
                 "from SubResource r " +
                 "left join fetch r.mainResource mr " +
                 "left join fetch mr.metricValues mmv " +
@@ -81,45 +83,42 @@ public class ResourceRepository extends Repository<Resource> {
                 "left join fetch mv.metric " +
                 "where r.resourceId =:id", entityClass)
             .setParameter("id", id)
-            .getSingleResultOrNull();
-        return getMainResource.thenCombine(getSubResource, (mainResource, subResource) -> {
-            if (mainResource != null) {
-                return mainResource;
-            } else {
-                return subResource;
-            }
-        });
+            .getSingleResultOrNull()
+        );
+        return getMainResource.switchIfEmpty(getSubResource);
     }
 
     /**
      * Find all resources and fetch the resource type, platform, environment, region, metric values and
      * resource provider.
      *
-     * @param session the database session
-     * @return a CompletionStage that emits a list of all resources
+     * @param sessionManager the database session manager
+     * @return a Single that emits a list of all resources
      */
-    public CompletionStage<List<Resource>> findAllAndFetch(Session session) {
-        return session.createQuery("select distinct r from MainResource r " +
+    public Single<List<Resource>> findAllAndFetch(SessionManager sessionManager) {
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery("select distinct r from MainResource r " +
                 "left join fetch r.region reg " +
                 "left join fetch reg.resourceProvider rp " +
                 "left join fetch rp.environment " +
                 "left join fetch r.platform p " +
                 "left join fetch p.resourceType " +
                 "left join fetch r.subResources sr ", entityClass)
-            .getResultList();
+            .getResultList()
+        );
     }
 
     /**
      * Find all resources by their metrics, resource types, regions and resource providers.
      *
-     * @param session the database session
+     * @param sessionManager the database session manager
      * @param metrics the ids of the metrics
      * @param regionIds the ids of the regions
      * @param providerIds the ids of the resource providers
      * @param resourceTypeIds the ids of the resource types
-     * @return a CompletionStage that emits a list of all resources
+     * @return a Single that emits a list of all resources
      */
-    public CompletionStage<List<Resource>> findAllBySLOs(Session session, List<String> metrics,
+    public Single<List<Resource>> findAllBySLOs(SessionManager sessionManager, List<String> metrics,
         List<Long> environmentIds, List<Long> resourceTypeIds, List<Long> platformIds, List<Long> regionIds,
             List<Long> providerIds) {
         List<String> conditions = new ArrayList<>();
@@ -173,42 +172,31 @@ public class ResourceRepository extends Repository<Resource> {
             "left join fetch p.resourceType rt " +
             conditionString;
 
-        CompletionStage<List<Resource>> getMainResources = session.createQuery(mainQuery, entityClass)
-            .getResultList();
-        CompletionStage<List<Resource>> getSubResources = session.createQuery(subQuery, entityClass)
-            .getResultList();
-        return getMainResources.thenCombine(getSubResources, (mainResources, subResource) -> {
-            ArrayList<Resource> resources = new ArrayList<>();
-            resources.addAll(mainResources);
-            resources.addAll(subResource);
-            return resources;
-        });
-    }
-
-    /**
-     * Find all resources by their resource type.
-     *
-     * @param session the database session
-     * @param typeId the id of the resource type
-     * @return a CompletionStage that emits a list of resources
-     */
-    public CompletionStage<List<Resource>> findByResourceType(Session session, long typeId) {
-        return session.createQuery("from Resource r " +
-                "where r.platform.resourceType.typeId=:typeId", entityClass)
-            .setParameter("typeId", typeId)
-            .getResultList();
+        Single<List<Resource>> getMainResources = Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery(mainQuery, entityClass).getResultList()
+        );
+        Single<List<Resource>> getSubResources = Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery(subQuery, entityClass).getResultList());
+        return Single.zip(getMainResources, getSubResources, (mainResources, subResources) -> {
+                ArrayList<Resource> resources = new ArrayList<>();
+                resources.addAll(mainResources);
+                resources.addAll(subResources);
+                return resources;
+            }
+        );
     }
 
     /**
      * Find all resources by an ensemble and fetch the resource, resourceType, region,
      * resourceProvider, platform, environment, metricValues and metric.
      *
-     * @param session the database session
+     * @param sessionManager the database session manager
      * @param ensembleId the id of the ensemble
-     * @return a CompletionStage that emits a list of resources
+     * @return a Single that emits a list of resources
      */
-    public CompletionStage<List<Resource>> findAllByEnsembleId(Session session, long ensembleId) {
-        return session.createQuery(
+    public Single<List<Resource>> findAllByEnsembleId(SessionManager sessionManager, long ensembleId) {
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery(
             "select distinct r from ResourceEnsemble re " +
                 "left join re.resource r " +
                 "left join fetch r.metricValues mv " +
@@ -228,55 +216,61 @@ public class ResourceRepository extends Repository<Resource> {
                 "left join fetch mp.resourceType " +
                 "where re.ensemble.ensembleId=:ensembleId", Resource.class)
             .setParameter("ensembleId", ensembleId)
-            .getResultList();
+            .getResultList()
+        );
     }
 
     /**
      * Find all resources by the resourceIds and resourceTypes.
      *
-     * @param session the database session
+     * @param sessionManager the database session manager
      * @param resourceIds the list of resource ids
      * @param resourceTypes the list resource types
-     * @return a CompletionStage that emits a list of resources
+     * @return a Single that emits a list of resources
      */
-    public CompletionStage<List<Resource>> findAllByResourceIdsAndResourceTypes(Session session, Set<Long> resourceIds,
-        List<String> resourceTypes) {
+    public Single<List<Resource>> findAllByResourceIdsAndResourceTypes(SessionManager sessionManager,
+            Set<Long> resourceIds, List<String> resourceTypes) {
         if (resourceIds.isEmpty()) {
-            return CompletionStages.completedFuture(new ArrayList<>());
+            return Single.just(new ArrayList<>());
         }
         String resourceIdsConcat = resourceIds.stream().map(Object::toString).collect(Collectors.joining(","));
         String resourceTypesConcat = resourceTypes.stream().map(Object::toString).collect(Collectors.joining("','"));
 
-        CompletionStage<List<Resource>> getMainResources = session.createQuery(
+        Single<List<Resource>> getMainResources = Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery(
                 "select distinct mr from MainResource mr " +
                     "where mr.resourceId in (" + resourceIdsConcat + ") and " +
                     "mr.platform.resourceType.resourceType in ('" + resourceTypesConcat + "')", entityClass)
-            .getResultList();
-        CompletionStage<List<Resource>> getSubResources = session.createQuery(
+            .getResultList()
+        );
+        Single<List<Resource>> getSubResources = Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery(
                 "select distinct sr from SubResource sr " +
                     "where sr.resourceId in (" + resourceIdsConcat + ") and " +
                     "sr.mainResource.platform.resourceType.resourceType in ('" + resourceTypesConcat + "')", entityClass)
-            .getResultList();
-        return getMainResources.thenCombine(getSubResources, (mainResources, subResource) -> {
-            ArrayList<Resource> resources = new ArrayList<>();
-            resources.addAll(mainResources);
-            resources.addAll(subResource);
-            return resources;
-        });
+            .getResultList()
+        );
+        return Single.zip(getMainResources, getSubResources, (mainResources, subResources) -> {
+                ArrayList<Resource> resources = new ArrayList<>();
+                resources.addAll(mainResources);
+                resources.addAll(subResources);
+                return resources;
+            }
+        );
     }
 
     /**
      * Find all resources by the resourceIds and fetch the region, resourceProvider, resourceType,
      * platform, environment, metricValues and metric.
      *
-     * @param session the datbase session
+     * @param sessionManager the database session manager
      * @param resourceIds the list of resource ids
-     * @return a CompletionStage that emits a list of resources
+     * @return a Single that emits a list of resources
      */
-    public CompletionStage<List<Resource>> findAllByResourceIdsAndFetch(Session session, List<Long> resourceIds) {
+    public Single<List<Resource>> findAllByResourceIdsAndFetch(SessionManager sessionManager, List<Long> resourceIds) {
         String resourceIdsConcat = resourceIds.stream().map(Object::toString).collect(Collectors.joining(","));
-
-        CompletionStage<List<Resource>> getMainResources = session.createQuery(
+        Single<List<Resource>> getMainResources = Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery(
                 "select distinct mr from MainResource mr " +
                     "left join fetch mr.metricValues mv " +
                     "left join fetch mv.metric " +
@@ -286,8 +280,10 @@ public class ResourceRepository extends Repository<Resource> {
                     "left join fetch mr.platform p " +
                     "left join fetch p.resourceType " +
                     "where mr.resourceId in (" + resourceIdsConcat + ")", Resource.class)
-            .getResultList();
-        CompletionStage<List<Resource>> getSubResources = session.createQuery(
+            .getResultList()
+        );
+        Single<List<Resource>> getSubResources = Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery(
                 "select distinct sr from SubResource sr " +
                     "left join fetch sr.metricValues mv " +
                     "left join fetch mv.metric " +
@@ -300,40 +296,45 @@ public class ResourceRepository extends Repository<Resource> {
                     "left join fetch mr.metricValues mmv " +
                     "left join fetch mmv.metric " +
                     "where sr.resourceId in (" + resourceIdsConcat + ")", Resource.class)
-            .getResultList();
-        return getMainResources.thenCombine(getSubResources, (mainResources, subResource) -> {
-            ArrayList<Resource> resources = new ArrayList<>();
-            resources.addAll(mainResources);
-            resources.addAll(subResource);
-            return resources;
-        });
+            .getResultList()
+        );
+        return Single.zip(getMainResources, getSubResources, (mainResources, subResources) -> {
+                ArrayList<Resource> resources = new ArrayList<>();
+                resources.addAll(mainResources);
+                resources.addAll(subResources);
+                return resources;
+            }
+        );
     }
 
     /**
      * Find all sub resources for a resource.
      *
-     * @param session the database session
+     * @param sessionManager the database session manager
      * @param resourceId the id of the resource
-     * @return a CompletionStage that emits a list of all found sub resources
+     * @return a Single that emits a list of all found sub resources
      */
-    public CompletionStage<List<SubResource>> findAllSubresources(Session session, long resourceId) {
-        return session.createQuery("select distinct sr from SubResource  sr " +
+    public Single<List<SubResource>> findAllSubresources(SessionManager sessionManager, long resourceId) {
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery("select distinct sr from SubResource  sr " +
                 "left join fetch sr.metricValues mv " +
                 "left join fetch mv.metric m " +
                 "where sr.mainResource.resourceId=:resourceId", SubResource.class)
             .setParameter("resourceId", resourceId)
-            .getResultList();
+            .getResultList()
+        );
     }
 
     /**
      * Find a main resource with the platform k8s and name.
      *
-     * @param session the database session
+     * @param sessionManager the database session
      * @param name the name of the resource
-     * @return a CompletionStage that emits the resource if it exists, else null
+     * @return a Maybe that emits the resource if it exists, else null
      */
-    public CompletionStage<MainResource> findClusterByName(Session session, String name) {
-        return session.createQuery("select distinct mr from MainResource mr " +
+    public Maybe<MainResource> findClusterByName(SessionManager sessionManager, String name) {
+        return Maybe.fromCompletionStage(sessionManager.getSession()
+            .createQuery("select distinct mr from MainResource mr " +
                 "left join fetch mr.metricValues mmv " +
                 "left join fetch mmv.metric " +
                 "left join fetch mr.subResources sr " +
@@ -342,6 +343,7 @@ public class ResourceRepository extends Repository<Resource> {
                 "where mr.name=:name and mr.platform.platform=:platform", MainResource.class)
             .setParameter("name", name)
             .setParameter("platform", PlatformEnum.K8S.getValue())
-            .getSingleResultOrNull();
+            .getSingleResultOrNull()
+        );
     }
 }

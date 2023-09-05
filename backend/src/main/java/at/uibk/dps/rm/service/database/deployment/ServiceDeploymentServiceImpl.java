@@ -4,18 +4,17 @@ import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.repository.deployment.ServiceDeploymentRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
-import io.vertx.core.Future;
+import at.uibk.dps.rm.service.util.RxVertxHandler;
+import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import org.hibernate.reactive.stage.Stage;
 
-import java.util.Objects;
-import java.util.concurrent.CompletionStage;
-
 /**
- * This is the implementation of the #ServiceDeploymentService.
+ * This is the implementation of the {@link ServiceDeploymentService}.
  *
  * @author matthi-g
  */
-@Deprecated
 public class ServiceDeploymentServiceImpl extends DatabaseServiceProxy<ServiceDeployment>
     implements ServiceDeploymentService {
 
@@ -32,11 +31,13 @@ public class ServiceDeploymentServiceImpl extends DatabaseServiceProxy<ServiceDe
     }
 
     @Override
-    public Future<Boolean> existsReadyForContainerStartupAndTermination(long deploymentId,
-            long resourceDeploymentId, long accountId) {
-        CompletionStage<ServiceDeployment> findOne = withSession(session -> repository.findOneByDeploymentStatus(
-            session, deploymentId, resourceDeploymentId, accountId, DeploymentStatusValue.DEPLOYED));
-        return Future.fromCompletionStage(findOne)
-            .map(Objects::nonNull);
+    public void existsReadyForContainerStartupAndTermination(long deploymentId, long resourceDeploymentId,
+            long accountId, Handler<AsyncResult<Boolean>> resultHandler) {
+        Single<Boolean> existsOne = withTransactionSingle(sessionManager -> repository
+            .countByDeploymentStatus(sessionManager, deploymentId, resourceDeploymentId, accountId,
+                DeploymentStatusValue.DEPLOYED)
+            .map(count -> count == 1)
+        );
+        RxVertxHandler.handleSession(existsOne, resultHandler);
     }
 }

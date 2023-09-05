@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler.account;
 
 import at.uibk.dps.rm.handler.ValidationHandler;
+import at.uibk.dps.rm.service.rxjava3.database.account.AccountNamespaceService;
 import at.uibk.dps.rm.util.misc.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -12,26 +13,25 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
  *
  * @author matthi-g
  */
-@Deprecated
 public class AccountNamespaceHandler extends ValidationHandler {
 
-    private final AccountNamespaceChecker checker;
+    private final AccountNamespaceService accountNamespaceService;
 
     /**
-     * Create an instance from the accountNamespaceChecker.
+     * Create an instance from the service.
      *
-     * @param accountNamespaceChecker the account namespace checker
+     * @param accountNamespaceService the service
      */
-    public AccountNamespaceHandler(AccountNamespaceChecker accountNamespaceChecker) {
-        super(accountNamespaceChecker);
-        this.checker = accountNamespaceChecker;
+    public AccountNamespaceHandler(AccountNamespaceService accountNamespaceService) {
+        super(accountNamespaceService);
+        this.accountNamespaceService = accountNamespaceService;
     }
 
     @Override
     public Single<JsonObject> postOne(RoutingContext rc) {
         return HttpHelper.getLongPathParam(rc, "accountId")
             .flatMap(accountId -> HttpHelper.getLongPathParam(rc, "namespaceId")
-                .flatMap(namespaceId -> checker.submitCreate(accountId, namespaceId))
+                .flatMap(namespaceId -> accountNamespaceService.saveByAccountIdAndNamespaceId(accountId, namespaceId))
             );
     }
 
@@ -39,7 +39,8 @@ public class AccountNamespaceHandler extends ValidationHandler {
     protected Completable deleteOne(RoutingContext rc) {
         return HttpHelper.getLongPathParam(rc, "accountId")
             .flatMapCompletable(accountId -> HttpHelper.getLongPathParam(rc, "namespaceId")
-                .flatMapCompletable(namespaceId -> checker.submitDelete(accountId, namespaceId))
+                .flatMapCompletable(namespaceId -> accountNamespaceService
+                    .deleteByAccountIdAndNamespaceId(accountId, namespaceId))
             );
     }
 }

@@ -10,7 +10,6 @@ import org.hibernate.reactive.stage.Stage;
  *
  * @author matthi-g
  */
-@Deprecated
 public class RuntimeServiceImpl extends DatabaseServiceProxy<Runtime> implements RuntimeService {
 
     /**

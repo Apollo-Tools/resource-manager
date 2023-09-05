@@ -1,32 +1,34 @@
 package at.uibk.dps.rm.service.database.metric;
 
 import at.uibk.dps.rm.entity.dto.metric.MetricTypeEnum;
+import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.entity.model.PlatformMetric;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.exception.BadInputException;
+import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
-import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import at.uibk.dps.rm.service.database.util.MetricValueUtility;
-import at.uibk.dps.rm.util.validation.ServiceResultValidator;
-import io.vertx.core.Future;
+import at.uibk.dps.rm.service.util.RxVertxHandler;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage.SessionFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 
 /**
- * This is the implementation of the #MetricValueService.
+ * This is the implementation of the {@link MetricValueService}.
  *
  * @author matthi-g
  */
-@Deprecated
-public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> implements MetricValueService{
+public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> implements MetricValueService {
 
     private final MetricValueRepository repository;
 
@@ -48,95 +50,88 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
     }
 
     @Override
-    public Future<Void> saveAllToResource(long resourceId, JsonArray data) {
-        CompletionStage<Void> createAll = withTransaction(session ->
-            session.find(Resource.class, resourceId)
-                .thenCompose(resource -> {
-                    ServiceResultValidator.checkFound(resource, Resource.class);
-                    return CompletableFuture.allOf(metricValueUtility.checkAddMetricList(session, resource, data)
-                        .toArray(CompletableFuture[]::new));
-                })
+    public void saveAllToResource(long resourceId, JsonArray data, Handler<AsyncResult<Void>> resultHandler) {
+        Completable createAll = withTransactionCompletable(sessionManager -> sessionManager
+            .find(Resource.class, resourceId)
+            .switchIfEmpty(Maybe.error(new NotFoundException(Resource.class)))
+            .flatMapCompletable(resource -> metricValueUtility.checkAddMetricList(sessionManager, resource, data)
+                .flatMapCompletable(Completable::merge)
+            )
         );
-        return sessionToFuture(createAll);
+        RxVertxHandler.handleSession(createAll, resultHandler);
     }
 
     @Override
-    public Future<JsonObject> findOne(long id) {
-        CompletionStage<MetricValue> findOne = withSession(session -> repository.findByIdAndFetch(session, id));
-        return Future.fromCompletionStage(findOne)
-                .map(JsonObject::mapFrom);
+    public void findOne(long id, Handler<AsyncResult<JsonObject>> resultHandler) {
+        Maybe<MetricValue> findOne = withTransactionMaybe(session -> repository.findByIdAndFetch(session, id)
+            .switchIfEmpty(Maybe.error(new NotFoundException(MetricValue.class))));
+        RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
     }
 
     @Override
-    public Future<JsonArray> findAllByResource(long resourceId, boolean includeValue) {
-        CompletionStage<List<MetricValue>> findAll = withSession(session ->
-            session.find(Resource.class, resourceId)
-                .thenCompose(resource -> {
-                    ServiceResultValidator.checkFound(resource, Resource.class);
-                    return repository.findByResourceAndFetch(session, resourceId);
-                })
-        );
-        return sessionToFuture(findAll).map(result -> {
-            ArrayList<JsonObject> objects = new ArrayList<>();
-            for (MetricValue metricValue: result) {
-                // necessary check because when no metric values are present the result list contains one null value
-                if (metricValue == null) {
-                    continue;
+    public void findAllByResource(long resourceId, boolean includeValue, Handler<AsyncResult<JsonArray>> resultHandler) {
+        Single<List<MetricValue>> findAll = withTransactionSingle(sessionManager -> repository
+            .findAllByResourceAndFetch(sessionManager, resourceId));
+        RxVertxHandler.handleSession(
+            findAll.map(result -> {
+                ArrayList<JsonObject> objects = new ArrayList<>();
+                for (MetricValue metricValue: result) {
+                    // necessary check because when no metric values are present the result list contains one null value
+                    if (metricValue == null) {
+                        continue;
+                    }
+                    JsonObject entity;
+                    if (includeValue) {
+                        entity = JsonObject.mapFrom(metricValue);
+                    } else {
+                        entity = JsonObject.mapFrom(metricValue.getMetric());
+                    }
+                    objects.add(entity);
                 }
-                JsonObject entity;
-                if (includeValue) {
-                    entity = JsonObject.mapFrom(metricValue);
-                } else {
-                    entity = JsonObject.mapFrom(metricValue.getMetric());
-                }
-                objects.add(entity);
-            }
-            return new JsonArray(objects);
-        });
+                return new JsonArray(objects);
+            }),
+            resultHandler
+        );
     }
 
     @Override
-    public Future<Void> updateByResourceAndMetric(long resourceId, long metricId, String valueString,
-            Double valueNumber, Boolean valueBool, boolean isExternalSource) {
-        CompletionStage<MetricValue> update = withTransaction(session ->
-            repository.findByResourceAndMetricAndFetch(session, resourceId, metricId)
-                .thenCompose(metricValue -> {
-                    ServiceResultValidator.checkFound(metricValue, MetricValue.class);
-                    return platformMetricRepository.findByResourceAndMetric(session, resourceId, metricId)
-                        .thenApply(platformMetric -> {
-                            ServiceResultValidator.checkFound(platformMetric, PlatformMetric.class);
-                            if (platformMetric.getIsMonitored() && isExternalSource) {
-                                throw new BadInputException("monitored metrics can't be updated manually");
-                            }
-                            MetricTypeEnum metricType = MetricTypeEnum
-                                .fromMetricType(metricValue.getMetric().getMetricType());
-                            if (!metricValueUtility.metricTypeMatchesValue(metricType, valueString) &&
-                                !metricValueUtility.metricTypeMatchesValue(metricType, valueNumber) &&
-                                !metricValueUtility.metricTypeMatchesValue(metricType, valueBool)) {
-                                throw new BadInputException("invalid metric type");
-                            }
-
-                            metricValue.setValueString(valueString);
-                            if (valueNumber!= null) {
-                                metricValue.setValueNumber(valueNumber);
-                            }
-                            metricValue.setValueBool(valueBool);
-                            return metricValue;
-                    });
-                })
+    public void updateByResourceAndMetric(long resourceId, long metricId, String valueString,
+            Double valueNumber, Boolean valueBool, boolean isExternalSource, Handler<AsyncResult<Void>> resultHandler) {
+        Completable update = withTransactionCompletable(sessionManager -> repository
+            .findByResourceAndMetricAndFetch(sessionManager, resourceId, metricId)
+            .switchIfEmpty(Maybe.error(new NotFoundException(MetricValue.class)))
+            .flatMapCompletable(metricValue -> platformMetricRepository
+                .findByResourceAndMetric(sessionManager, resourceId, metricId)
+                .switchIfEmpty(Maybe.error(new NotFoundException(PlatformMetric.class)))
+                .flatMapCompletable(platformMetric -> {
+                    if (platformMetric.getIsMonitored() && isExternalSource) {
+                        return Completable.error(new BadInputException("monitored metrics can't be updated manually"));
+                    }
+                    MetricTypeEnum metricType = MetricTypeEnum
+                        .fromMetricType(metricValue.getMetric().getMetricType());
+                    if (!metricValueUtility.metricTypeMatchesValue(metricType, valueString) &&
+                        !metricValueUtility.metricTypeMatchesValue(metricType, valueNumber) &&
+                        !metricValueUtility.metricTypeMatchesValue(metricType, valueBool)) {
+                        return Completable.error(new BadInputException("invalid metric type"));
+                    }
+                    metricValue.setValueString(valueString);
+                    if (valueNumber!= null) {
+                        metricValue.setValueNumber(valueNumber);
+                    }
+                    metricValue.setValueBool(valueBool);
+                    return Completable.complete();
+            }))
         );
-        return sessionToFuture(update).mapEmpty();
+        RxVertxHandler.handleSession(update, resultHandler);
     }
 
     @Override
-    public Future<Void> deleteByResourceAndMetric(long resourceId, long metricId) {
-        CompletionStage<Integer> delete = withTransaction(session ->
-            repository.findByResourceAndMetric(session, resourceId, metricId)
-                .thenCompose(metricValue -> {
-                    ServiceResultValidator.checkFound(metricValue, MetricValue.class);
-                    return repository.deleteByResourceAndMetric(session, resourceId, metricId);
-                })
+    public void deleteByResourceAndMetric(long resourceId, long metricId, Handler<AsyncResult<Void>> resultHandler) {
+        Completable delete = withTransactionCompletable(sessionManager -> repository
+            .findByResourceAndMetric(sessionManager, resourceId, metricId)
+            .switchIfEmpty(Maybe.error(new NotFoundException(MetricValue.class)))
+            .flatMapCompletable(sessionManager::remove)
         );
-        return sessionToFuture(delete).mapEmpty();
+        RxVertxHandler.handleSession(delete, resultHandler);
     }
 }

@@ -10,7 +10,6 @@ import org.hibernate.reactive.stage.Stage;
  *
  * @author matthi-g
  */
-@Deprecated
 public class EnvironmentServiceImpl extends DatabaseServiceProxy<Environment> implements EnvironmentService {
     /**
      * Create an instance from the repository.

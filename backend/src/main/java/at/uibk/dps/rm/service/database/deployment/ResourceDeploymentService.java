@@ -4,12 +4,13 @@ import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.model.ResourceDeployment;
 import at.uibk.dps.rm.repository.deployment.ResourceDeploymentRepository;
-import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
+import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Future;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import org.hibernate.reactive.stage.Stage;
 
@@ -18,7 +19,6 @@ import org.hibernate.reactive.stage.Stage;
  *
  * @author matthi-g
  */
-@Deprecated
 @ProxyGen
 @VertxGen
 public interface ResourceDeploymentService extends DatabaseServiceInterface {
@@ -42,7 +42,8 @@ public interface ResourceDeploymentService extends DatabaseServiceInterface {
      *
      * @param deploymentId the id of the deployment
      * @param deploymentStatusValue the new status
-     * @return an empty Future
+     * @param resultHandler receives nothing if the update was successful else an error
      */
-    Future<Void> updateSetStatusByDeploymentId(long deploymentId, DeploymentStatusValue deploymentStatusValue);
+    void updateStatusByDeploymentId(long deploymentId, DeploymentStatusValue deploymentStatusValue,
+        Handler<AsyncResult<Void>> resultHandler);
 }

@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.router.account;
 
-import at.uibk.dps.rm.rx.handler.ResultHandler;
-import at.uibk.dps.rm.rx.handler.account.NamespaceHandler;
+import at.uibk.dps.rm.handler.ResultHandler;
+import at.uibk.dps.rm.handler.account.NamespaceHandler;
 import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.util.configuration.JWTAuthProvider;

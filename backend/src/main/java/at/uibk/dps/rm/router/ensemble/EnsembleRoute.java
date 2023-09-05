@@ -1,8 +1,8 @@
 package at.uibk.dps.rm.router.ensemble;
 
-import at.uibk.dps.rm.rx.handler.PrivateEntityResultHandler;
-import at.uibk.dps.rm.rx.handler.ResultHandler;
-import at.uibk.dps.rm.rx.handler.ensemble.*;
+import at.uibk.dps.rm.handler.PrivateEntityResultHandler;
+import at.uibk.dps.rm.handler.ResultHandler;
+import at.uibk.dps.rm.handler.ensemble.*;
 import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;

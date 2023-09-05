@@ -1,8 +1,8 @@
 package at.uibk.dps.rm.router.service;
 
-import at.uibk.dps.rm.rx.handler.PrivateEntityResultHandler;
-import at.uibk.dps.rm.rx.handler.service.ServiceHandler;
-import at.uibk.dps.rm.rx.handler.service.ServiceInputHandler;
+import at.uibk.dps.rm.handler.PrivateEntityResultHandler;
+import at.uibk.dps.rm.handler.service.ServiceHandler;
+import at.uibk.dps.rm.handler.service.ServiceInputHandler;
 import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;

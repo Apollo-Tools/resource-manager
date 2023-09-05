@@ -3,12 +3,13 @@ package at.uibk.dps.rm.service.database.metric;
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.PlatformMetric;
 import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
-import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
+import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Future;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import org.hibernate.reactive.stage.Stage;
@@ -18,7 +19,6 @@ import org.hibernate.reactive.stage.Stage;
  *
  * @author matthi-g
  */
-@Deprecated
 @ProxyGen
 @VertxGen
 public interface PlatformMetricService extends DatabaseServiceInterface {
@@ -41,7 +41,7 @@ public interface PlatformMetricService extends DatabaseServiceInterface {
      * Find all platform metrics by a platform.
      *
      * @param platformId the id of the platform
-     * @return a Future that emits all platform metrics as JsonArray
+     * @param resultHandler receives the found platform metrics as JsonArray
      */
-    Future<JsonArray> findAllByPlatformId(long platformId);
+    void findAllByPlatformId(long platformId, Handler<AsyncResult<JsonArray>> resultHandler);
 }

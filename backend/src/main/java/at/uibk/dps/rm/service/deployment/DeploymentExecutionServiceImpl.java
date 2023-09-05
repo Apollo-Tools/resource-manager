@@ -11,10 +11,11 @@ import at.uibk.dps.rm.service.deployment.terraform.FunctionPrepareService;
 import at.uibk.dps.rm.service.deployment.terraform.MainFileService;
 import at.uibk.dps.rm.service.deployment.terraform.TerraformSetupService;
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
+import at.uibk.dps.rm.service.util.RxVertxHandler;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.Future;
-import io.vertx.rxjava3.SingleHelper;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.rxjava3.core.Vertx;
 
 /**
@@ -32,7 +33,8 @@ public class DeploymentExecutionServiceImpl extends ServiceProxy implements Depl
     }
 
     @Override
-    public Future<FunctionsToDeploy> packageFunctionsCode(DeployResourcesDTO deployRequest) {
+    public void packageFunctionsCode(DeployResourcesDTO deployRequest,
+            Handler<AsyncResult<FunctionsToDeploy>> resultHandler) {
         Single<FunctionsToDeploy> packageFunctions = new ConfigUtility(vertx).getConfigDTO().flatMap(config -> {
             DockerImageChecker dockerImageChecker = new DockerHubImageChecker(vertx, deployRequest
                 .getDeploymentCredentials().getDockerCredentials());
@@ -46,11 +48,12 @@ public class DeploymentExecutionServiceImpl extends ServiceProxy implements Depl
                     return functionFileService.packageCode();
                 });
         });
-        return SingleHelper.toFuture(packageFunctions);
+        RxVertxHandler.handleSession(packageFunctions, resultHandler);
     }
 
     @Override
-    public Future<DeploymentCredentials> setUpTFModules(DeployResourcesDTO deployRequest) {
+    public void setUpTFModules(DeployResourcesDTO deployRequest,
+            Handler<AsyncResult<DeploymentCredentials>> resultHandler) {
         DeploymentCredentials credentials = new DeploymentCredentials();
         Single<DeploymentCredentials> createTFDirs = new ConfigUtility(vertx).getConfigDTO().flatMap(config -> {
             DeploymentPath deploymentPath = new DeploymentPath(deployRequest.getDeployment().getDeploymentId(),
@@ -67,11 +70,12 @@ public class DeploymentExecutionServiceImpl extends ServiceProxy implements Depl
             })
             .andThen(Single.fromCallable(() -> credentials));
         });
-        return SingleHelper.toFuture(createTFDirs);
+        RxVertxHandler.handleSession(createTFDirs, resultHandler);
     }
 
     @Override
-    public Future<DeploymentCredentials> getNecessaryCredentials(TerminateResourcesDTO terminateRequest) {
+    public void getNecessaryCredentials(TerminateResourcesDTO terminateRequest,
+            Handler<AsyncResult<DeploymentCredentials>> resultHandler) {
         DeploymentCredentials credentials = new DeploymentCredentials();
         long deploymentId = terminateRequest.getDeployment().getDeploymentId();
         Single<DeploymentCredentials> getNecessaryCredentials = new ConfigUtility(vertx).getConfigDTO()
@@ -81,6 +85,6 @@ public class DeploymentExecutionServiceImpl extends ServiceProxy implements Depl
                     credentials);
                 return tfSetupService.getTerminationCredentials();
             });
-        return SingleHelper.toFuture(getNecessaryCredentials);
+        RxVertxHandler.handleSession(getNecessaryCredentials, resultHandler);
     }
 }

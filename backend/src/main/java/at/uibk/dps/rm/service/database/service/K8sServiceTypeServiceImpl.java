@@ -1,16 +1,15 @@
 package at.uibk.dps.rm.service.database.service;
 
 import at.uibk.dps.rm.entity.model.K8sServiceType;
-import at.uibk.dps.rm.repository.service.K8sServiceTypeRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.repository.service.K8sServiceTypeRepository;
 import org.hibernate.reactive.stage.Stage.SessionFactory;
 
 /**
- * This is the implementation of the #ServiceTypeService.
+ * This is the implementation of the {@link K8sServiceTypeService}.
  *
  * @author matthi-g
  */
-@Deprecated
 public class K8sServiceTypeServiceImpl extends DatabaseServiceProxy<K8sServiceType> implements K8sServiceTypeService {
     /**
      * Create an instance from the repository.

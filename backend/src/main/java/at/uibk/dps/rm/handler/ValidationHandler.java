@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.handler;
 
+import at.uibk.dps.rm.service.rxjava3.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.util.misc.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -8,24 +9,23 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
 /**
- * Classes that inherit the ValidationHandler compose methods of different
- * {@link EntityChecker}s to execute the different types of requests, that the API of the Resource
- * Manager provides. The major methods are executed using the entity checker which determines
- * which type of entity is getting created, read, updated or deleted.
+ * Classes that inherit the ValidationHandler compose handle the request body and path parameters
+ * of API requests and forward them to the service layer for further processing. The main methods
+ * are create, read, update or delete.
  *
  * @author matthi-g
  */
 public abstract class ValidationHandler {
 
-    protected final EntityChecker entityChecker;
+    private final DatabaseServiceInterface service;
 
     /**
-     * Create an instance from a entityChecker that determines the type of entity.
+     * Create an instance from a service.
      *
-     * @param entityChecker the main entityChecker
+     * @param service the database service
      */
-    protected ValidationHandler(EntityChecker entityChecker) {
-        this.entityChecker = entityChecker;
+    protected ValidationHandler(DatabaseServiceInterface service) {
+        this.service = service;
     }
 
     /**
@@ -36,11 +36,11 @@ public abstract class ValidationHandler {
      */
     protected Completable deleteOne(RoutingContext rc) {
         return HttpHelper.getLongPathParam(rc, "id")
-            .flatMapCompletable(entityChecker::submitDelete);
+            .flatMapCompletable(service::delete);
     }
 
     /**
-     * Delete an entity by its id.
+     * Delete an entity by its id from the logged-in account.
      *
      * @param rc the RoutingContext of the request
      * @return a Completable
@@ -48,7 +48,7 @@ public abstract class ValidationHandler {
     protected Completable deleteOneFromAccount(RoutingContext rc) {
         long accountId = rc.user().principal().getLong("account_id");
         return HttpHelper.getLongPathParam(rc, "id")
-            .flatMapCompletable(id -> entityChecker.submitDelete(accountId, id));
+            .flatMapCompletable(id -> service.deleteFromAccount(accountId, id));
     }
 
     /**
@@ -59,7 +59,7 @@ public abstract class ValidationHandler {
      */
     protected Single<JsonObject> getOne(RoutingContext rc) {
         return HttpHelper.getLongPathParam(rc, "id")
-            .flatMap(entityChecker::checkFindOne);
+            .flatMap(service::findOne);
     }
 
     /**
@@ -71,7 +71,7 @@ public abstract class ValidationHandler {
     protected Single<JsonObject> getOneFromAccount(RoutingContext rc) {
         long accountId = rc.user().principal().getLong("account_id");
         return HttpHelper.getLongPathParam(rc, "id")
-            .flatMap(id -> entityChecker.checkFindOne(id, accountId));
+            .flatMap(id -> service.findOneByIdAndAccountId(id, accountId));
     }
 
     /**
@@ -81,7 +81,7 @@ public abstract class ValidationHandler {
      * @return a Single that emits the found entity as JsonObject
      */
     protected Single<JsonArray> getAll(RoutingContext rc) {
-        return entityChecker.checkFindAll();
+        return service.findAll();
     }
 
     /**
@@ -92,7 +92,7 @@ public abstract class ValidationHandler {
      */
     protected Single<JsonArray> getAllFromAccount(RoutingContext rc) {
         long accountId = rc.user().principal().getLong("account_id");
-        return entityChecker.checkFindAll(accountId);
+        return service.findAllByAccountId(accountId);
     }
 
     /**
@@ -103,7 +103,7 @@ public abstract class ValidationHandler {
      */
     protected Single<JsonObject> postOne(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
-        return entityChecker.submitCreate(requestBody);
+        return service.save(requestBody);
     }
 
     /**
@@ -115,7 +115,7 @@ public abstract class ValidationHandler {
     protected Single<JsonObject> postOneToAccount(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
         long accountId = rc.user().principal().getLong("account_id");
-        return entityChecker.submitCreate(accountId, requestBody);
+        return service.saveToAccount(accountId, requestBody);
     }
 
     /**
@@ -126,7 +126,7 @@ public abstract class ValidationHandler {
      */
     protected Completable postAll(RoutingContext rc) {
         JsonArray requestBody = rc.body().asJsonArray();
-        return entityChecker.submitCreateAll(requestBody);
+        return service.saveAll(requestBody);
     }
 
     /**
@@ -138,7 +138,7 @@ public abstract class ValidationHandler {
     protected Completable updateOne(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
         return HttpHelper.getLongPathParam(rc, "id")
-            .flatMapCompletable(id -> entityChecker.submitUpdate(id, requestBody));
+            .flatMapCompletable(id -> service.update(id, requestBody));
     }
 
     /**
@@ -151,6 +151,6 @@ public abstract class ValidationHandler {
         JsonObject requestBody = rc.body().asJsonObject();
         long accountId = rc.user().principal().getLong("account_id");
         return HttpHelper.getLongPathParam(rc, "id")
-            .flatMapCompletable(id -> entityChecker.submitUpdate(id, accountId, requestBody));
+            .flatMapCompletable(id -> service.updateOwned(id, accountId, requestBody));
     }
 }

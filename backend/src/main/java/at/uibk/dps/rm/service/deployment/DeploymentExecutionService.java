@@ -9,7 +9,8 @@ import at.uibk.dps.rm.service.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Future;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 
 /**
@@ -39,24 +40,27 @@ public interface DeploymentExecutionService {
      * Setup and package the code of all functions to deploy.
      *
      * @param deployRequest the data that is necessary for the deployment
-     * @return a Future that emits the functions to deploy
+     * @param resultHandler receives the functions to deploy if the packaging was successful else it
+     *                      receives an error
      */
-    Future<FunctionsToDeploy> packageFunctionsCode(DeployResourcesDTO deployRequest);
+    void packageFunctionsCode(DeployResourcesDTO deployRequest, Handler<AsyncResult<FunctionsToDeploy>> resultHandler);
 
     /**
-     * Setup the terraform modules that are necessary for the deployment. The modules are
+     * Set up the terraform modules that are necessary for the deployment. The modules are
      * grouped by region and resource provider.
      *
      * @param deployRequest the data that is necessary for the deployment
-     * @return a Future that emits the credentials that are necessary for the terraform deployment
+     * @param resultHandler receives the credentials necessary for the deployment if the
+     *                      setup was successful else it receives an error
      */
-    Future<DeploymentCredentials> setUpTFModules(DeployResourcesDTO deployRequest);
+    void setUpTFModules(DeployResourcesDTO deployRequest, Handler<AsyncResult<DeploymentCredentials>> resultHandler);
 
     /**
      * Get the necessary credentials for termination.
      *
      * @param terminateRequest the data that is necessary for termination
-     * @return the credentials that are necessary for termination
+     * @param resultHandler receives the credentials necessary for termination
      */
-    Future<DeploymentCredentials> getNecessaryCredentials(TerminateResourcesDTO terminateRequest);
+    void getNecessaryCredentials(TerminateResourcesDTO terminateRequest,
+        Handler<AsyncResult<DeploymentCredentials>> resultHandler);
 }

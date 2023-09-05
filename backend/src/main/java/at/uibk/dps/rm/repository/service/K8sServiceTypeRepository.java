@@ -8,7 +8,6 @@ import at.uibk.dps.rm.repository.Repository;
  *
  * @author matthi-g
  */
-@Deprecated
 public class K8sServiceTypeRepository extends Repository<K8sServiceType> {
     /**
      * Create an instance.

@@ -83,6 +83,15 @@ public class ResultHandler {
     }
 
     /**
+     * Handle the POST ONE request of the validation handler.
+     *
+     * @param rc the RoutingContext of the request
+     */
+    public void handleSaveOneRequest(final RoutingContext rc, final Single<JsonObject> handler) {
+        handler.subscribe(result -> getSaveResponse(rc, result), throwable -> handleRequestError(rc, throwable));
+    }
+
+    /**
      * Handle the POST ALL request of the validation handler.
      *
      * @param rc the RoutingContext of the request

@@ -20,7 +20,6 @@ import java.util.List;
  *
  * @author matthi-g
  */
-@Deprecated
 @UtilityClass
 public class FunctionInputHandler {
 
@@ -44,7 +43,7 @@ public class FunctionInputHandler {
         }
         checks.add(EntityNameValidator.checkName(functionName, Function.class));
         Completable.merge(checks)
-            .doOnError(handleError(rc, isJsonInput))
+            .doOnError(handleError(rc, !isJsonInput))
             .subscribe(rc::next, throwable -> rc.fail(400, throwable));
     }
 
@@ -61,10 +60,17 @@ public class FunctionInputHandler {
             checkFileType = checkFileType(file);
         }
         checkFileType
-            .doOnError(handleError(rc, isJsonInput))
+            .doOnError(handleError(rc, !isJsonInput))
             .subscribe(rc::next, throwable -> rc.fail(400, throwable));
     }
 
+    /**
+     * Check if a file hast the correct file type. The only supported file type are .zip files.
+     *
+     * @param file the file
+     * @return a Completable if the file type is correct, else a {@link WrongFileTypeException} is
+     * thrown
+     */
     private Completable checkFileType(FileUpload file) {
         if (file.fileName().endsWith(".zip")) {
             return Completable.complete();
@@ -72,9 +78,17 @@ public class FunctionInputHandler {
         return Completable.error(new WrongFileTypeException());
     }
 
-    private static Consumer<Throwable> handleError(RoutingContext rc, boolean isJsonInput) {
+    /**
+     * Handle any errors that occur during validation. This is necessary to delete any unwanted
+     * files.
+     *
+     * @param rc the routing context
+     * @param isFileUpload indicates if the request contains a file upload
+     * @return a consumer that expects a throwable as input
+     */
+    private static Consumer<Throwable> handleError(RoutingContext rc, boolean isFileUpload) {
         return throwable -> {
-            if (!isJsonInput) {
+            if (!isFileUpload) {
                 Vertx.currentContext().owner()
                     .fileSystem().deleteBlocking(rc.fileUploads().get(0).uploadedFileName());
             }
