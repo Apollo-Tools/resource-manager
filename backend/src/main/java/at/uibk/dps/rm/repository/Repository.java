@@ -12,6 +12,7 @@ import java.util.concurrent.CompletionStage;
  * @param <E> the class of the database entity
  * @author matthi-g
  */
+@Deprecated
 public abstract class Repository<E> {
 
     protected final Class<E> entityClass;

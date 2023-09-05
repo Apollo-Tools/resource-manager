@@ -5,6 +5,7 @@ import at.uibk.dps.rm.entity.deployment.EC2DeploymentData;
 import at.uibk.dps.rm.entity.deployment.LambdaDeploymentData;
 import at.uibk.dps.rm.entity.deployment.OpenFaasDeploymentData;
 import at.uibk.dps.rm.entity.deployment.module.FaasModule;
+import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
 import at.uibk.dps.rm.entity.model.*;
@@ -47,12 +48,12 @@ public class RegionFaasFileService extends TerraformFileService {
      * @param functionDeployments the list of function deployments
      * @param deploymentId the id of the deployment
      * @param module the terraform module
-     * @param dockerUserName the docker username
+     * @param dockerCredentials the docker credentials
      * @param vpc the virtual private cloud to use for the deployment
      */
     public RegionFaasFileService(FileSystem fileSystem, DeploymentPath deploymentPath, Region region,
-                          List<FunctionDeployment> functionDeployments, long deploymentId, FaasModule module,
-                          String dockerUserName, VPC vpc) {
+            List<FunctionDeployment> functionDeployments, long deploymentId, FaasModule module,
+            DockerCredentials dockerCredentials, VPC vpc) {
         super(fileSystem, deploymentPath.getModuleFolder(module));
         this.module = module;
         this.deploymentPath = deploymentPath;
@@ -60,8 +61,8 @@ public class RegionFaasFileService extends TerraformFileService {
         this.functionDeployments = functionDeployments;
         this.deploymentId = deploymentId;
         this.lambdaDeploymentData = new LambdaDeploymentData(deploymentId, deploymentPath.getLayersFolder());
-        this.ec2DeploymentData = new EC2DeploymentData(deploymentId, vpc, dockerUserName);
-        this.openFaasDeploymentData = new OpenFaasDeploymentData(deploymentId, dockerUserName);
+        this.ec2DeploymentData = new EC2DeploymentData(deploymentId, vpc, dockerCredentials);
+        this.openFaasDeploymentData = new OpenFaasDeploymentData(deploymentId, dockerCredentials);
     }
 
 

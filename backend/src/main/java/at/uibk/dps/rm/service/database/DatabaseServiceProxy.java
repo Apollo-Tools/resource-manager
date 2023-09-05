@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
  *
  * @param <T> the type of entity
  */
+@Deprecated
 public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements DatabaseServiceInterface {
 
     private final SessionFactory sessionFactory;

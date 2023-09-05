@@ -1,8 +1,7 @@
 package at.uibk.dps.rm.router.deployment;
 
-import at.uibk.dps.rm.handler.deploymentexecution.DeploymentExecutionChecker;
-import at.uibk.dps.rm.handler.deploymentexecution.ContainerStartupHandler;
-import at.uibk.dps.rm.handler.deployment.*;
+import at.uibk.dps.rm.rx.handler.deploymentexecution.DeploymentExecutionChecker;
+import at.uibk.dps.rm.rx.handler.deploymentexecution.ContainerStartupHandler;
 import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
@@ -18,10 +17,8 @@ public class ResourceDeploymentRoute implements Route {
         DeploymentExecutionChecker deploymentChecker = new DeploymentExecutionChecker(serviceProxyProvider
             .getDeploymentExecutionService(), serviceProxyProvider.getLogService(), serviceProxyProvider
             .getDeploymentLogService());
-        ServiceDeploymentChecker serviceDeploymentChecker =
-            new ServiceDeploymentChecker(serviceProxyProvider.getServiceDeploymentService());
         ContainerStartupHandler startupHandler = new ContainerStartupHandler(deploymentChecker,
-            serviceDeploymentChecker);
+            serviceProxyProvider.getServiceDeploymentService());
 
         router
             .operation("startResourceDeployment")

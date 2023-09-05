@@ -11,6 +11,7 @@ import lombok.Getter;
  *
  * @author matthi-g
  */
+@Deprecated
 @Getter
 public class EnsembleRepositoryProvider {
     private final EnsembleRepository ensembleRepository;

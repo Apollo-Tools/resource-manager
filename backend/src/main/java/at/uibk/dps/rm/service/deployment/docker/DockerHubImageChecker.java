@@ -32,7 +32,7 @@ public class DockerHubImageChecker implements DockerImageChecker {
     public Single<Set<Function>> getNecessaryFunctionBuilds(List<FunctionDeployment> functionDeployments) {
         List<Single<Pair<Function, Boolean>>> singles = new ArrayList<>();
         Set<Function> checkedFunctions = new HashSet<>();
-        if (!dockerCredentials.getRegistry().equals("docker.io".toLowerCase())) {
+        if (dockerCredentials == null || !dockerCredentials.getRegistry().equals("docker.io".toLowerCase())) {
             return Observable.fromIterable(functionDeployments)
                 .map(FunctionDeployment::getFunction)
                 .toList()

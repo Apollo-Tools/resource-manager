@@ -15,6 +15,7 @@ import io.vertx.core.json.JsonObject;
  *
  * @author matthi-g
  */
+@Deprecated
 public class DeploymentChecker extends EntityChecker {
 
     private final DeploymentService deploymentService;

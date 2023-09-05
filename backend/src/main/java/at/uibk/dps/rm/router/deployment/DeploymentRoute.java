@@ -3,13 +3,14 @@ package at.uibk.dps.rm.router.deployment;
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
-import at.uibk.dps.rm.handler.PrivateEntityResultHandler;
-import at.uibk.dps.rm.handler.ResultHandler;
-import at.uibk.dps.rm.handler.deploymentexecution.DeploymentExecutionChecker;
-import at.uibk.dps.rm.handler.deployment.*;
+import at.uibk.dps.rm.rx.handler.PrivateEntityResultHandler;
+import at.uibk.dps.rm.rx.handler.ResultHandler;
+import at.uibk.dps.rm.rx.handler.deploymentexecution.DeploymentExecutionChecker;
+import at.uibk.dps.rm.rx.handler.deployment.*;
 import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.reactivex.rxjava3.core.Completable;
+import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
 /**
@@ -25,13 +26,10 @@ public class DeploymentRoute implements Route {
         DeploymentExecutionChecker deploymentExecutionChecker =
             new DeploymentExecutionChecker(serviceProxyProvider.getDeploymentExecutionService(),
             serviceProxyProvider.getLogService(), serviceProxyProvider.getDeploymentLogService());
-        ResourceDeploymentChecker resourceDeploymentChecker =
-            new ResourceDeploymentChecker(serviceProxyProvider.getResourceDeploymentService());
-        DeploymentChecker deploymentChecker = new DeploymentChecker(serviceProxyProvider.getDeploymentService());
         /* Handler initialization */
-        DeploymentErrorHandler deploymentErrorHandler = new DeploymentErrorHandler(deploymentChecker,
-            deploymentExecutionChecker);
-        DeploymentHandler deploymentHandler = new DeploymentHandler(deploymentChecker);
+        DeploymentErrorHandler deploymentErrorHandler = new DeploymentErrorHandler(
+            serviceProxyProvider.getDeploymentService(), deploymentExecutionChecker);
+        DeploymentHandler deploymentHandler = new DeploymentHandler(serviceProxyProvider.getDeploymentService());
         ResultHandler resultHandler = new PrivateEntityResultHandler(deploymentHandler);
 
         router
@@ -49,8 +47,8 @@ public class DeploymentRoute implements Route {
                 .map(result -> {
                     DeployResourcesDTO deployResources = result.mapTo(DeployResourcesDTO.class);
                     Completable completable = deploymentExecutionChecker.applyResourceDeployment(deployResources)
-                        .flatMapCompletable(tfOutput ->
-                            deploymentChecker.handleDeploymentSuccessful(tfOutput, deployResources));
+                        .flatMapCompletable(tfOutput -> serviceProxyProvider.getDeploymentService()
+                                .handleDeploymentSuccessful(new JsonObject(tfOutput.getOutput()), deployResources));
                     deploymentErrorHandler.handleDeployResources(completable, deployResources);
                     return result.getJsonObject("deployment");
                 })
@@ -66,8 +64,8 @@ public class DeploymentRoute implements Route {
                     long deploymentId = terminateResources.getDeployment().getDeploymentId();
                     Completable completable = deploymentExecutionChecker.terminateResources(terminateResources)
                         .andThen(Completable.defer(() -> deploymentExecutionChecker.deleteTFDirs(deploymentId)))
-                        .andThen(Completable.defer(() -> resourceDeploymentChecker.submitUpdateStatus(deploymentId,
-                            DeploymentStatusValue.TERMINATED)));
+                        .andThen(Completable.defer(() -> serviceProxyProvider.getResourceDeploymentService()
+                            .updateStatusByDeploymentId(deploymentId, DeploymentStatusValue.TERMINATED)));
                     deploymentErrorHandler.handleTerminateResources(completable, deploymentId);
                     return Completable.complete();
                 })

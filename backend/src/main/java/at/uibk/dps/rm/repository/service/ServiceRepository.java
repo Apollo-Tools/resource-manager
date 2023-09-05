@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
  *
  * @author matthi-g
  */
+@Deprecated
 public class ServiceRepository extends Repository<Service> {
 
     /**

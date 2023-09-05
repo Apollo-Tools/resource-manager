@@ -1,6 +1,7 @@
-package at.uibk.dps.rm.handler.deployment;
+package at.uibk.dps.rm.rx.handler.deployment;
 
-import at.uibk.dps.rm.handler.ValidationHandler;
+import at.uibk.dps.rm.rx.handler.ValidationHandler;
+import at.uibk.dps.rm.rx.service.rxjava3.database.deployment.DeploymentService;
 import at.uibk.dps.rm.util.misc.HttpHelper;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
@@ -11,19 +12,18 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
  *
  * @author matthi-g
  */
-@Deprecated
 public class DeploymentHandler extends ValidationHandler {
 
-    private final DeploymentChecker deploymentChecker;
+    private final DeploymentService deploymentService;
 
     /**
-     * Create an instance from the deploymentChecker
+     * Create an instance from the deploymentService
      *
-     * @param deploymentChecker the deployment checker
+     * @param deploymentService the service
      */
-    public DeploymentHandler(DeploymentChecker deploymentChecker) {
-        super(deploymentChecker);
-        this.deploymentChecker = deploymentChecker;
+    public DeploymentHandler(DeploymentService deploymentService) {
+        super(deploymentService);
+        this.deploymentService = deploymentService;
     }
 
     @Override
@@ -40,6 +40,6 @@ public class DeploymentHandler extends ValidationHandler {
     public Single<JsonObject> cancelDeployment(RoutingContext rc) {
         long accountId = rc.user().principal().getLong("account_id");
         return HttpHelper.getLongPathParam(rc, "id")
-            .flatMap(id -> deploymentChecker.submitCancelDeployment(id, accountId));
+            .flatMap(id -> deploymentService.cancelDeployment(id, accountId));
     }
 }

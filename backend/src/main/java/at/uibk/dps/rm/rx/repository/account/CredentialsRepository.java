@@ -77,4 +77,25 @@ public class CredentialsRepository  extends Repository<Credentials> {
             .getResultList()
         );
     }
+
+    /**
+     * Find credentials by their account and resource provider.
+     *
+     * @param sessionManager the database session manager
+     * @param accountId the id of the account
+     * @param providerId the id of the provider
+     * @return a Maybe that emits the credentials if they exist, ele null
+     */
+    public Maybe<Credentials> findByAccountIdAndProviderId(SessionManager sessionManager, long accountId,
+            long providerId) {
+        return Maybe.fromCompletionStage(sessionManager.getSession()
+            .createQuery("select ac.credentials from " +
+                    "AccountCredentials ac " +
+                    "where ac.account.accountId=:accountId and ac.credentials.resourceProvider.providerId=:providerId",
+                entityClass)
+            .setParameter("accountId", accountId)
+            .setParameter("providerId", providerId)
+            .getSingleResultOrNull()
+        );
+    }
 }

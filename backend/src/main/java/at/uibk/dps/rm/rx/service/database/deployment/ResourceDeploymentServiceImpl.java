@@ -1,20 +1,19 @@
-package at.uibk.dps.rm.service.database.deployment;
+package at.uibk.dps.rm.rx.service.database.deployment;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.model.ResourceDeployment;
-import at.uibk.dps.rm.repository.deployment.ResourceDeploymentRepository;
-import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
-import io.vertx.core.Future;
+import at.uibk.dps.rm.rx.repository.deployment.ResourceDeploymentRepository;
+import at.uibk.dps.rm.rx.service.database.DatabaseServiceProxy;
+import io.reactivex.rxjava3.core.Completable;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import org.hibernate.reactive.stage.Stage;
-
-import java.util.concurrent.CompletionStage;
 
 /**
  * This is the implementation of the #ResourceDeploymentService.
  *
  * @author matthi-g
  */
-@Deprecated
 public class ResourceDeploymentServiceImpl extends DatabaseServiceProxy<ResourceDeployment> implements ResourceDeploymentService {
 
     private final ResourceDeploymentRepository repository;
@@ -30,10 +29,10 @@ public class ResourceDeploymentServiceImpl extends DatabaseServiceProxy<Resource
     }
 
     @Override
-    public Future<Void> updateSetStatusByDeploymentId(long deploymentId, DeploymentStatusValue deploymentStatusValue) {
-        CompletionStage<Integer> updateStatus = withTransaction(session ->
-            repository.updateDeploymentStatusByDeploymentId(session, deploymentId, deploymentStatusValue));
-        return Future.fromCompletionStage(updateStatus)
-            .mapEmpty();
+    public void updateStatusByDeploymentId(long deploymentId, DeploymentStatusValue deploymentStatusValue,
+            Handler<AsyncResult<Void>> resultHandler) {
+        Completable updateStatus = withTransactionCompletable(sessionManager ->
+            repository.updateDeploymentStatusByDeploymentId(sessionManager, deploymentId, deploymentStatusValue));
+        handleSession(updateStatus, resultHandler);
     }
 }

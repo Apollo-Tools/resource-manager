@@ -13,6 +13,7 @@ import io.reactivex.rxjava3.core.Single;
  *
  * @author matthi-g
  */
+@Deprecated
 public class ServiceDeploymentChecker extends EntityChecker {
 
     private final ServiceDeploymentService service;

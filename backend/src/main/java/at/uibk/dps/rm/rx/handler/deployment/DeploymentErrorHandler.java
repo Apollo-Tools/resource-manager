@@ -1,10 +1,11 @@
-package at.uibk.dps.rm.handler.deployment;
+package at.uibk.dps.rm.rx.handler.deployment;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
-import at.uibk.dps.rm.handler.deploymentexecution.DeploymentExecutionChecker;
+import at.uibk.dps.rm.rx.handler.deploymentexecution.DeploymentExecutionChecker;
 import at.uibk.dps.rm.router.deployment.DeploymentRoute;
+import at.uibk.dps.rm.rx.service.rxjava3.database.deployment.DeploymentService;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.impl.logging.Logger;
@@ -16,24 +17,23 @@ import io.vertx.rxjava3.core.Vertx;
  *
  * @author matthi-g
  */
-@Deprecated
 public class DeploymentErrorHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(DeploymentRoute.class);
 
-    private final DeploymentChecker deploymentChecker;
+    private final DeploymentService deploymentService;
 
     private final DeploymentExecutionChecker deploymentExecutionChecker;
 
     /**
-     * Create an instance from the deploymentChecker and deploymentExecutionChecker.
+     * Create an instance from the deploymentService and deploymentExecutionChecker.
      *
-     * @param deploymentChecker the deployment checker
+     * @param deploymentService the deployment service
      * @param deploymentExecutionChecker the deployment execution checker
      */
-    public DeploymentErrorHandler(DeploymentChecker deploymentChecker,
+    public DeploymentErrorHandler(DeploymentService deploymentService,
             DeploymentExecutionChecker deploymentExecutionChecker) {
-        this.deploymentChecker = deploymentChecker;
+        this.deploymentService = deploymentService;
         this.deploymentExecutionChecker = deploymentExecutionChecker;
     }
 
@@ -46,7 +46,7 @@ public class DeploymentErrorHandler {
     public void handleDeployResources(Completable deployment, DeployResourcesDTO deployResources) {
         deployment.doOnError(throwable -> logger.error(throwable.getMessage()))
             .onErrorResumeNext(throwable ->
-                deploymentChecker.handleDeploymentError(deployResources.getDeployment().getDeploymentId(),
+                deploymentService.handleDeploymentError(deployResources.getDeployment().getDeploymentId(),
                         throwable.getMessage())
                     .andThen(this.terminateFailedDeployment(deployResources)))
             .subscribe();
@@ -61,7 +61,7 @@ public class DeploymentErrorHandler {
     public void handleTerminateResources(Completable termination, long deploymentId) {
         termination.doOnError(throwable -> logger.error(throwable.getMessage()))
             .onErrorResumeNext(throwable ->
-                deploymentChecker.handleDeploymentError(deploymentId, throwable.getMessage()))
+                deploymentService.handleDeploymentError(deploymentId, throwable.getMessage()))
             .subscribe();
     }
 

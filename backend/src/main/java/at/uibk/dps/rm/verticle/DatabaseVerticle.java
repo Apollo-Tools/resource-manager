@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.verticle;
 
-import at.uibk.dps.rm.repository.DeploymentRepositoryProvider;
+import at.uibk.dps.rm.rx.repository.DeploymentRepositoryProvider;
 import at.uibk.dps.rm.rx.repository.EnsembleRepositoryProvider;
 import at.uibk.dps.rm.rx.repository.account.*;
 import at.uibk.dps.rm.rx.repository.artifact.FunctionTypeRepository;
@@ -15,7 +15,7 @@ import at.uibk.dps.rm.rx.repository.log.DeploymentLogRepository;
 import at.uibk.dps.rm.rx.repository.metric.MetricRepository;
 import at.uibk.dps.rm.rx.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.rx.repository.metric.PlatformMetricRepository;
-import at.uibk.dps.rm.repository.deployment.*;
+import at.uibk.dps.rm.rx.repository.deployment.*;
 import at.uibk.dps.rm.rx.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.rx.repository.resource.PlatformRepository;
 import at.uibk.dps.rm.rx.repository.resource.ResourceTypeRepository;
@@ -40,7 +40,9 @@ import at.uibk.dps.rm.rx.service.database.log.DeploymentLogService;
 import at.uibk.dps.rm.rx.service.database.log.LogService;
 import at.uibk.dps.rm.rx.service.database.log.LogServiceImpl;
 import at.uibk.dps.rm.rx.service.database.log.DeploymentLogServiceImpl;
-import at.uibk.dps.rm.service.database.deployment.*;
+import at.uibk.dps.rm.rx.service.database.deployment.*;
+import at.uibk.dps.rm.rx.service.database.deployment.DeploymentService;
+import at.uibk.dps.rm.rx.service.database.deployment.DeploymentServiceImpl;
 import at.uibk.dps.rm.rx.service.database.resource.ResourceService;
 import at.uibk.dps.rm.rx.service.database.resource.ResourceServiceImpl;
 import at.uibk.dps.rm.rx.service.database.resource.ResourceTypeService;
@@ -150,7 +152,7 @@ public class DatabaseVerticle extends AbstractVerticle {
                 new PlatformServiceImpl(new PlatformRepository(), sessionFactory));
             rxServiceProxyBinder.bind(RegionService.class, new RegionServiceImpl(new RegionRepository(),
                 new ResourceProviderRepository(), sessionFactory));
-            serviceProxyBinder.bind(DeploymentService.class,
+            rxServiceProxyBinder.bind(DeploymentService.class,
                 new DeploymentServiceImpl(new DeploymentRepositoryProvider(), sessionFactory));
             rxServiceProxyBinder.bind(DeploymentLogService.class,
                 new DeploymentLogServiceImpl(new DeploymentLogRepository(), sessionFactory));
@@ -165,7 +167,7 @@ public class DatabaseVerticle extends AbstractVerticle {
                     sessionFactory));
             rxServiceProxyBinder.bind(ResourceProviderService.class,
                 new ResourceProviderServiceImpl(new ResourceProviderRepository(), sessionFactory));
-            serviceProxyBinder.bind(ResourceDeploymentService.class,
+            rxServiceProxyBinder.bind(ResourceDeploymentService.class,
                 new ResourceDeploymentServiceImpl(new ResourceDeploymentRepository(), sessionFactory));
             rxServiceProxyBinder.bind(ResourceTypeService.class,
                 new ResourceTypeServiceImpl(new ResourceTypeRepository(), sessionFactory));
@@ -175,7 +177,7 @@ public class DatabaseVerticle extends AbstractVerticle {
                 new RuntimeServiceImpl(new RuntimeRepository(), sessionFactory));
             rxServiceProxyBinder.bind(ServiceService.class,
                 new ServiceServiceImpl(new ServiceRepository(), sessionFactory));
-            serviceProxyBinder.bind(ServiceDeploymentService.class,
+            rxServiceProxyBinder.bind(ServiceDeploymentService.class,
                 new ServiceDeploymentServiceImpl(new ServiceDeploymentRepository(), sessionFactory));
             rxServiceProxyBinder.bind(ServiceTypeService.class,
                 new ServiceTypeServiceImpl(new ServiceTypeRepository(), sessionFactory));

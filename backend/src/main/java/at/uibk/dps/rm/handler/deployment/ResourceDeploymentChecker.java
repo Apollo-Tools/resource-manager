@@ -12,6 +12,7 @@ import io.reactivex.rxjava3.core.Completable;
  *
  * @author matthi-g
  */
+@Deprecated
 public class ResourceDeploymentChecker extends EntityChecker {
 
     private final ResourceDeploymentService resourceDeploymentService;

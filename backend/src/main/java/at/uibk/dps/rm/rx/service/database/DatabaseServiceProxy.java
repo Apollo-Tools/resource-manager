@@ -53,54 +53,6 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
         this.sessionFactory = sessionFactory;
     }
 
-    /**
-     * Perform work using a reactive session. The executions contained in function are not
-     * transactional. Use this method for read operations.
-     *
-     * @param function the function that contains all database operations
-     * @return a CompletionStage that emits an item of type E
-     * @param <E> any datatype that can be returned by the reactive session
-     */
-    protected <E> CompletionStage<E> withSession(Function<Session, CompletionStage<E>> function) {
-        return sessionFactory.withSession(function);
-    }
-
-    /**
-     * Perform work using a reactive session. The executions contained in function are
-     * transactional. Use this method for write operations.
-     *
-     * @param function the function that contains all database operations
-     * @return a CompletionStage that emits an item of type E
-     * @param <E> any datatype that can be returned by the reactive session
-     */
-    protected <E> CompletionStage<E> withTransaction(Function<Session, CompletionStage<E>> function) {
-        return sessionFactory.withTransaction(function);
-    }
-
-    protected <E> Single<E> withTransactionSingle(Function<SessionManager, Single<E>> function) {
-        CompletionStage<E> transaction = sessionFactory.withTransaction(session -> {
-            SessionManager sessionManager = new SessionManager(session);
-            return function.apply(sessionManager).toCompletionStage();
-        });
-        return Single.fromCompletionStage(transaction);
-    }
-
-    protected <E> Maybe<E> withTransactionMaybe(Function<SessionManager, Maybe<E>> function) {
-        CompletionStage<E> transaction = sessionFactory.withTransaction(session -> {
-            SessionManager sessionManager = new SessionManager(session);
-            return function.apply(sessionManager).toCompletionStage();
-        });
-        return Maybe.fromCompletionStage(transaction);
-    }
-
-    protected Completable withTransactionCompletable(Function<SessionManager, Completable> function) {
-        CompletionStage<Void> transaction = sessionFactory.withTransaction(session -> {
-            SessionManager sessionManager = new SessionManager(session);
-            return function.apply(sessionManager).toCompletionStage(null);
-        });
-        return Completable.fromCompletionStage(transaction);
-    }
-
     @Override
     public String getServiceProxyAddress() {
         return entityClass.getSimpleName().toLowerCase() + super.getServiceProxyAddress();
@@ -221,18 +173,87 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
         return newValue == null ? oldValue : newValue;
     }
 
-    protected <E> void handleSession(Maybe<E> maybe, Handler<AsyncResult<E>> resultHandler) {
-        maybe.doOnError(throwable -> resultHandler.handle(Future.failedFuture(throwable.getCause())))
+
+
+    /**
+     * Perform work using a reactive session. The executions contained in function are
+     * transactional.
+     *
+     * @param function the function that contains all database operations
+     * @return a Single that emits an item of type E
+     * @param <E> any datatype that can be returned by the reactive session
+     */
+    protected <E> Single<E> withTransactionSingle(Function<SessionManager, Single<E>> function) {
+        CompletionStage<E> transaction = sessionFactory.withTransaction(session -> {
+            SessionManager sessionManager = new SessionManager(session);
+            return function.apply(sessionManager).toCompletionStage();
+        });
+        return Single.fromCompletionStage(transaction);
+    }
+
+    /**
+     * Perform work using a reactive session. The executions contained in function are
+     * transactional.
+     *
+     * @param function the function that contains all database operations
+     * @return a Maybe that emits an item of type E
+     * @param <E> any datatype that can be returned by the reactive session
+     */
+    protected <E> Maybe<E> withTransactionMaybe(Function<SessionManager, Maybe<E>> function) {
+        CompletionStage<E> transaction = sessionFactory.withTransaction(session -> {
+            SessionManager sessionManager = new SessionManager(session);
+            return function.apply(sessionManager).toCompletionStage();
+        });
+        return Maybe.fromCompletionStage(transaction);
+    }
+
+    /**
+     * Perform work using a reactive session. The executions contained in function are
+     * transactional.
+     *
+     * @param function the function that contains all database operations
+     * @return a Completable
+     */
+    protected Completable withTransactionCompletable(Function<SessionManager, Completable> function) {
+        CompletionStage<Void> transaction = sessionFactory.withTransaction(session -> {
+            SessionManager sessionManager = new SessionManager(session);
+            return function.apply(sessionManager).toCompletionStage(null);
+        });
+        return Completable.fromCompletionStage(transaction);
+    }
+
+    /**
+     * Handle a Maybe session operation.
+     *
+     * @param operation the operation
+     * @param resultHandler the result handler
+     * @param <E> any datatype that can be returned by the reactive session
+     */
+    protected <E> void handleSession(Maybe<E> operation, Handler<AsyncResult<E>> resultHandler) {
+        operation.doOnError(throwable -> resultHandler.handle(Future.failedFuture(throwable.getCause())))
             .subscribe(MaybeHelper.toObserver(resultHandler));
     }
 
-    protected <E> void handleSession(Single<E> maybe, Handler<AsyncResult<E>> resultHandler) {
-        maybe.doOnError(throwable -> resultHandler.handle(Future.failedFuture(throwable.getCause())))
+    /**
+     * Handle a Single session operation.
+     *
+     * @param operation the operation
+     * @param resultHandler the result handler
+     * @param <E> any datatype that can be returned by the reactive session
+     */
+    protected <E> void handleSession(Single<E> operation, Handler<AsyncResult<E>> resultHandler) {
+        operation.doOnError(throwable -> resultHandler.handle(Future.failedFuture(throwable.getCause())))
             .subscribe(SingleHelper.toObserver(resultHandler));
     }
 
-    protected void handleSession(Completable maybe, Handler<AsyncResult<Void>> resultHandler) {
-        maybe.doOnError(throwable -> resultHandler.handle(Future.failedFuture(throwable.getCause())))
+    /**
+     * Handle a Completable session operation.
+     *
+     * @param operation the operation
+     * @param resultHandler the result handler
+     */
+    protected void handleSession(Completable operation, Handler<AsyncResult<Void>> resultHandler) {
+        operation.doOnError(throwable -> resultHandler.handle(Future.failedFuture(throwable.getCause())))
             .subscribe(CompletableHelper.toObserver(resultHandler));
     }
 }

@@ -1,19 +1,19 @@
-package at.uibk.dps.rm.repository.deployment;
+package at.uibk.dps.rm.rx.repository.deployment;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.model.ResourceDeployment;
-import at.uibk.dps.rm.repository.Repository;
-import org.hibernate.reactive.stage.Stage.Session;
+import at.uibk.dps.rm.rx.repository.Repository;
+import at.uibk.dps.rm.rx.service.database.util.SessionManager;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Single;
 
 import java.util.List;
-import java.util.concurrent.CompletionStage;
 
 /**
  * Implements database operations for the resource_deployment entity.
  *
  * @author matthi-g
  */
-@Deprecated
 public class ResourceDeploymentRepository extends Repository<ResourceDeployment> {
     /**
      * Create an instance.
@@ -25,51 +25,60 @@ public class ResourceDeploymentRepository extends Repository<ResourceDeployment>
     /**
      * Find all resource deployments by their deployment
      *
-     * @param session the database session
+     * @param sessionManager the database session manager
      * @param deploymentId the id of the deployment
-     * @return a CompletionStage that emits a list of all resource deployments
+     * @return a Single that emits a list of all resource deployments
      */
-    public CompletionStage<List<ResourceDeployment>> findAllByDeploymentIdAndFetch(Session session, long deploymentId) {
-        return session.createQuery("select distinct rd from ResourceDeployment rd " +
+    public Single<List<ResourceDeployment>> findAllByDeploymentIdAndFetch(SessionManager sessionManager,
+            long deploymentId) {
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery("select distinct rd from " +
+                "ResourceDeployment " +
+                "rd " +
                 "left join fetch rd.status " +
                 "where rd.deployment.deploymentId=:deploymentId", entityClass)
             .setParameter("deploymentId", deploymentId)
-            .getResultList();
+            .getResultList()
+        );
     }
 
     /**
      * Update the trigger url of a resource deployment by its id.
      *
-     * @param session the database session
+     * @param sessionManager the database session manager
      * @param id the id of the resource deployment
      * @param triggerUrl the new trigger url
-     * @return a CompletionStage that emits the row count
+     * @return a Completable
      */
-    public CompletionStage<Integer> updateTriggerUrl(Session session, long id, String triggerUrl) {
-        return session.createQuery("update ResourceDeployment rd " +
+    public Completable updateTriggerUrl(SessionManager sessionManager, long id, String triggerUrl) {
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery("update ResourceDeployment rd " +
                 "set triggerUrl=:triggerUrl, isDeployed=true " +
                 "where rd.resourceDeploymentId=:id")
             .setParameter("triggerUrl", triggerUrl)
             .setParameter("id", id)
-            .executeUpdate();
+            .executeUpdate()
+        ).ignoreElement();
     }
 
     /**
      * Update the resource deployment status to the status value by its deployment.
      *
-     * @param session the database session
+     * @param sessionManager the database session manager
      * @param deploymentId the id of the deployment
      * @param statusValue the new status value
-     * @return a CompletionStage that emits the row count
+     * @return a Completable
      */
-    public CompletionStage<Integer> updateDeploymentStatusByDeploymentId(Session session, long deploymentId,
+    public Completable updateDeploymentStatusByDeploymentId(SessionManager sessionManager, long deploymentId,
             DeploymentStatusValue statusValue) {
-        return session.createQuery("update ResourceDeployment rd " +
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery("update ResourceDeployment rd " +
                 "set status.statusId=" +
                 "(select rds.statusId from ResourceDeploymentStatus rds where rds.statusValue=:statusValue)" +
                 "where rd.deployment.deploymentId=:deploymentId")
             .setParameter("deploymentId", deploymentId)
             .setParameter("statusValue", statusValue.name())
-            .executeUpdate();
+            .executeUpdate()
+        ).ignoreElement();
     }
 }

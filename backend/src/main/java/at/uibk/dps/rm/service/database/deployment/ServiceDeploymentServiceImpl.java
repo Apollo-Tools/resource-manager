@@ -15,6 +15,7 @@ import java.util.concurrent.CompletionStage;
  *
  * @author matthi-g
  */
+@Deprecated
 public class ServiceDeploymentServiceImpl extends DatabaseServiceProxy<ServiceDeployment>
     implements ServiceDeploymentService {
 

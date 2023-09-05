@@ -1,18 +1,17 @@
-package at.uibk.dps.rm.repository.deployment;
+package at.uibk.dps.rm.rx.repository.deployment;
 
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
-import at.uibk.dps.rm.repository.Repository;
-import org.hibernate.reactive.stage.Stage.Session;
+import at.uibk.dps.rm.rx.repository.Repository;
+import at.uibk.dps.rm.rx.service.database.util.SessionManager;
+import io.reactivex.rxjava3.core.Single;
 
 import java.util.List;
-import java.util.concurrent.CompletionStage;
 
 /**
  * Implements database operations for the function_deployment entity.
  *
  * @author matthi-g
  */
-@Deprecated
 public class FunctionDeploymentRepository extends Repository<FunctionDeployment> {
     /**
      * Create an instance.
@@ -24,12 +23,14 @@ public class FunctionDeploymentRepository extends Repository<FunctionDeployment>
     /**
      * Find all function deployments by their deployment
      *
-     * @param session the database session
+     * @param sessionManager the database session manager
      * @param deploymentId the id of the deployment
-     * @return a CompletionStage that emits a list of all function deployments
+     * @return a Single that emits a list of all function deployments
      */
-    public CompletionStage<List<FunctionDeployment>> findAllByDeploymentId(Session session, long deploymentId) {
-        return session.createQuery("select distinct fd from FunctionDeployment fd " +
+    public Single<List<FunctionDeployment>> findAllByDeploymentId(SessionManager sessionManager, long deploymentId) {
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery("select distinct fd from FunctionDeployment " +
+                "fd " +
                 "left join fetch fd.function f " +
                 "left join fetch f.runtime " +
                 "left join fetch fd.resource r " +
@@ -43,6 +44,7 @@ public class FunctionDeploymentRepository extends Repository<FunctionDeployment>
                 "left join fetch fd.status " +
                 "where fd.deployment.deploymentId=:deploymentId", entityClass)
             .setParameter("deploymentId", deploymentId)
-            .getResultList();
+            .getResultList()
+        );
     }
 }

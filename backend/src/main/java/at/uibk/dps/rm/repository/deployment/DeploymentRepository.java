@@ -12,6 +12,7 @@ import java.util.concurrent.CompletionStage;
  *
  * @author matthi-g
  */
+@Deprecated
 public class DeploymentRepository extends Repository<Deployment> {
 
     /**

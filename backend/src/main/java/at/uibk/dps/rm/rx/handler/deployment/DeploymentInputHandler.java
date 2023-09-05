@@ -1,10 +1,10 @@
-package at.uibk.dps.rm.handler.deployment;
+package at.uibk.dps.rm.rx.handler.deployment;
 
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.dto.deployment.FunctionResourceIds;
 import at.uibk.dps.rm.entity.dto.deployment.ServiceResourceIds;
 import at.uibk.dps.rm.exception.BadInputException;
-import at.uibk.dps.rm.handler.ResultHandler;
+import at.uibk.dps.rm.rx.handler.ResultHandler;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
@@ -21,7 +21,6 @@ import java.util.Set;
  *
  * @author matthi-g
  */
-@Deprecated
 @UtilityClass
 public class DeploymentInputHandler {
 

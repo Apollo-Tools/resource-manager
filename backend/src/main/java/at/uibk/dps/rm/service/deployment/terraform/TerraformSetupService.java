@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.module.ContainerModule;
 import at.uibk.dps.rm.entity.deployment.module.FaasModule;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
+import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
@@ -176,9 +177,9 @@ public class TerraformSetupService {
         ResourceProviderEnum resourceProvider = ResourceProviderEnum.fromString(provider);
         FaasModule module = new FaasModule(resourceProvider, region);
         long deploymentId = deployRequest.getDeployment().getDeploymentId();
-        String dockerUsername = deployRequest.getDeploymentCredentials().getDockerCredentials().getUsername();
+        DockerCredentials dockerCredentials = deployRequest.getDeploymentCredentials().getDockerCredentials();
         RegionFaasFileService fileService = new RegionFaasFileService(vertx.fileSystem(), deploymentPath, region,
-            regionFunctionDeployments, deploymentId, module, dockerUsername, regionVPCMap.get(region));
+            regionFunctionDeployments, deploymentId, module, dockerCredentials, regionVPCMap.get(region));
         return fileService.setUpDirectory()
             .toSingle(() -> module);
     }

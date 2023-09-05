@@ -12,6 +12,7 @@ import io.vertx.core.json.JsonObject;
  *
  * @author matthi-g
  */
+@Deprecated
 @VertxGen(concrete = false)
 public interface DatabaseServiceInterface extends ServiceInterface {
 

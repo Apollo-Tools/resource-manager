@@ -32,6 +32,7 @@ import java.util.stream.Stream;
  *
  * @author matthi-g
  */
+@Deprecated
 public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> implements DeploymentService {
 
     private final DeploymentRepositoryProvider repositoryProvider;
