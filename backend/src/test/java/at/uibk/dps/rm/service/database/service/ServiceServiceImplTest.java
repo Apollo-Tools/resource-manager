@@ -44,7 +44,7 @@ public class ServiceServiceImplTest {
     @Mock
     private Stage.Session session;
     
-    private final SessionManager sessionManager = new SessionManager(session);
+    private SessionManager sessionManager;
 
     @BeforeEach
     void initTest() {
@@ -57,7 +57,7 @@ public class ServiceServiceImplTest {
         long serviceId = 1L;
         Service entity = TestServiceProvider.createService(1L);
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(serviceRepository.findByIdAndFetch(sessionManager, serviceId))
             .thenReturn(Maybe.just(entity));
         when(session.fetch(entity.getVolumeMounts()))
@@ -74,7 +74,7 @@ public class ServiceServiceImplTest {
     void findEntityNotExists(VertxTestContext testContext) {
         long serviceId = 1L;
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(serviceRepository.findByIdAndFetch(sessionManager, serviceId)).thenReturn(Maybe.empty());
 
         service.findOne(serviceId, testContext.failing(throwable -> testContext.verify(() -> {
@@ -89,7 +89,7 @@ public class ServiceServiceImplTest {
         Service s1 = TestServiceProvider.createService(1L);
         Service s2 = TestServiceProvider.createService(2L);
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(serviceRepository.findAllAndFetch(sessionManager)).thenReturn(Single.just(List.of(s1, s2)));
 
         service.findAll(testContext.succeeding(result -> testContext.verify(() -> {

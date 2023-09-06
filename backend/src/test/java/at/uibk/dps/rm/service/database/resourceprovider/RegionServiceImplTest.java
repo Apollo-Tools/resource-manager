@@ -47,7 +47,7 @@ public class RegionServiceImplTest {
     @Mock
     private Stage.Session session;
     
-    private final SessionManager sessionManager = new SessionManager(session);
+    private SessionManager sessionManager;
 
     @BeforeEach
     void initTest() {
@@ -60,7 +60,7 @@ public class RegionServiceImplTest {
         long regionId = 1L;
         Region entity = TestResourceProviderProvider.createRegion(regionId, "us-east");
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(regionRepository.findByIdAndFetch(sessionManager, regionId))
             .thenReturn(Maybe.just(entity));
 
@@ -75,7 +75,7 @@ public class RegionServiceImplTest {
     void findEntityNotExists(VertxTestContext testContext) {
         long regionId = 1L;
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(regionRepository.findByIdAndFetch(sessionManager, regionId))
             .thenReturn(Maybe.empty());
 
@@ -90,7 +90,7 @@ public class RegionServiceImplTest {
         Region r1 = TestResourceProviderProvider.createRegion(1L, "us-east");
         Region r2 = TestResourceProviderProvider.createRegion(2L, "us-west");
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(regionRepository.findAllAndFetch(sessionManager))
             .thenReturn(Single.just(List.of(r1, r2)));
 
@@ -111,7 +111,7 @@ public class RegionServiceImplTest {
         Region r1 = TestResourceProviderProvider.createRegion(1L, "us-east", resourceProvider);
         Region r2 = TestResourceProviderProvider.createRegion(2L, "us-west", resourceProvider);
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(regionRepository.findAllByProviderId(sessionManager, providerId))
             .thenReturn(Single.just(List.of(r1, r2)));
 

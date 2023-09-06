@@ -50,6 +50,18 @@ public class SessionManager {
         return Completable.fromCompletionStage(session.flush());
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
+        SessionManager that = (SessionManager) o;
 
+        return session.equals(that.session);
+    }
+
+    @Override
+    public int hashCode() {
+        return session.hashCode();
+    }
 }

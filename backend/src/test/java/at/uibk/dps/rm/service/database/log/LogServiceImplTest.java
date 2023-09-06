@@ -41,7 +41,7 @@ public class LogServiceImplTest {
     @Mock
     private Stage.Session session;
     
-    private final SessionManager sessionManager = new SessionManager(session);
+    private SessionManager sessionManager;
 
 
     @BeforeEach
@@ -56,7 +56,7 @@ public class LogServiceImplTest {
         Log log1 = TestLogProvider.createLog(1L);
         Log log2 = TestLogProvider.createLog(2L);
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(logRepository.findAllByDeploymentIdAndAccountId(sessionManager, deploymentId, accountId))
             .thenReturn(Single.just(List.of(log1, log2)));
 

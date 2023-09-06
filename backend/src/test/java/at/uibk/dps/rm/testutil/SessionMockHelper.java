@@ -21,12 +21,12 @@ import static org.mockito.Mockito.when;
 @UtilityClass
 public class SessionMockHelper {
 
-    public static SessionManager mockTransaction(SessionFactory sessionFactory, SessionManager sessionManager) {
-        when(sessionFactory.withSession(any(Function.class)))
+    public static SessionManager mockTransaction(SessionFactory sessionFactory, Session session) {
+        when(sessionFactory.withTransaction(any(Function.class)))
             .thenAnswer(invocation -> {
                 Function<Session, CompletionStage<ResourceType>> function = invocation.getArgument(0);
-                return function.apply(sessionManager.getSession());
+                return function.apply(session);
             });
-        return new SessionManager(sessionManager.getSession());
+        return new SessionManager(session);
     }
 }

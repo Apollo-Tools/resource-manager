@@ -68,7 +68,7 @@ public class DatabaseServiceProxyTest {
     @Mock
     private Session session;
 
-    private final SessionManager sessionManager = new SessionManager(session);
+    private SessionManager sessionManager;
 
     @BeforeEach
     void initTest() {
@@ -90,7 +90,7 @@ public class DatabaseServiceProxyTest {
         ResourceType entity = TestResourceProvider.createResourceTypeContainer(1L);
         when(session.persist(entity)).thenReturn(CompletionStages.voidFuture());
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         testClass.save(JsonObject.mapFrom(entity), testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("type_id")).isEqualTo(1L);
                 testContext.completeNow();
@@ -106,7 +106,7 @@ public class DatabaseServiceProxyTest {
     @Test
     void saveAllEntities(VertxTestContext testContext) {
         when(testRepository.createAll(eq(sessionManager), anyList())).thenReturn(Completable.complete());
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         JsonArray data = new JsonArray("[{\"resource_type\": \"container\"}, {\"resource_type\": \"vm\"}, " +
                 "{\"resource_type\": \"faas\"}]");
 
@@ -130,7 +130,7 @@ public class DatabaseServiceProxyTest {
     void findEntity(ResourceType entity, boolean resultIsNonNull, VertxTestContext testContext) {
         long typeId = 1L;
         when(testRepository.findById(sessionManager, typeId)).thenReturn(Maybe.just(entity));
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
 
         testClass.findOne(typeId, testContext.succeeding(result -> testContext.verify(() -> {
                 if (resultIsNonNull) {
@@ -148,7 +148,7 @@ public class DatabaseServiceProxyTest {
         ResourceType entity1 = TestResourceProvider.createResourceTypeContainer(1L);
         ResourceType entity2 = TestResourceProvider.createResourceTypeFaas(2L);
         when(testRepository.findAll(sessionManager)).thenReturn(Single.just(List.of(entity1, entity2)));
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
 
         testClass.findAll(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
@@ -163,9 +163,10 @@ public class DatabaseServiceProxyTest {
         long accountId = 1L;
         ResourceType entity1 = TestResourceProvider.createResourceTypeContainer(1L);
         ResourceType entity2 = TestResourceProvider.createResourceTypeFaas(2L);
+
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(testRepository.findAllByAccountId(sessionManager, accountId))
             .thenReturn(Single.just(List.of(entity1, entity2)));
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
 
         testClass.findAllByAccountId(accountId, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
@@ -184,7 +185,7 @@ public class DatabaseServiceProxyTest {
 
         when(testRepository.findById(sessionManager, id)).thenReturn(Maybe.just(existing));
         when(session.merge(updated)).thenReturn(CompletionStages.completedFuture(updated));
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
 
         testClass.update(id, fields, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
@@ -198,7 +199,7 @@ public class DatabaseServiceProxyTest {
         JsonObject fields = new JsonObject("{\"resource_type\": \"faas\"}");
 
         when(testRepository.findById(sessionManager, id)).thenReturn(Maybe.empty());
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
 
         testClass.update(id, fields, testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(NotFoundException.class);
@@ -214,7 +215,7 @@ public class DatabaseServiceProxyTest {
 
         when(testRepository.findById(sessionManager, id)).thenReturn(Maybe.just(existing));
         when(session.remove(existing)).thenReturn(CompletionStages.voidFuture());
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
 
         testClass.delete(id, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
@@ -227,7 +228,7 @@ public class DatabaseServiceProxyTest {
         long id = 1L;
 
         when(testRepository.findById(sessionManager, id)).thenReturn(Maybe.empty());
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
 
         testClass.delete(id, testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(NotFoundException.class);
@@ -244,7 +245,7 @@ public class DatabaseServiceProxyTest {
         when(testRepository.findByIdAndAccountId(sessionManager, id, accountId))
             .thenReturn(Maybe.just(existing));
         when(session.remove(existing)).thenReturn(CompletionStages.voidFuture());
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
 
         testClass.deleteFromAccount(accountId, id, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
@@ -258,7 +259,7 @@ public class DatabaseServiceProxyTest {
 
         when(testRepository.findByIdAndAccountId(sessionManager, id, accountId))
             .thenReturn(Maybe.empty());
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
 
         testClass.deleteFromAccount(accountId, id, testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(NotFoundException.class);

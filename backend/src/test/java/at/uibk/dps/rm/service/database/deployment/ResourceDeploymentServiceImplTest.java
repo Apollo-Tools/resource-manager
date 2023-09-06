@@ -38,7 +38,7 @@ public class ResourceDeploymentServiceImplTest {
     @Mock
     private Stage.Session session;
     
-    private final SessionManager sessionManager = new SessionManager(session);
+    private SessionManager sessionManager;
 
     @BeforeEach
     void initTest() {
@@ -51,7 +51,7 @@ public class ResourceDeploymentServiceImplTest {
         long deploymentId = 1L;
         DeploymentStatusValue statusValue = DeploymentStatusValue.NEW;
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(repository.updateDeploymentStatusByDeploymentId(sessionManager, deploymentId, statusValue))
             .thenReturn(Completable.complete());
 

@@ -57,7 +57,7 @@ public class ResourceServiceImplTest {
     @Mock
     private Stage.Session session;
     
-    private final SessionManager sessionManager = new SessionManager(session);
+    private SessionManager sessionManager;
 
     @BeforeEach
     void initTest() {
@@ -71,7 +71,7 @@ public class ResourceServiceImplTest {
         long resourceId = 1L;
         Resource entity = TestResourceProvider.createResource(resourceId);
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(resourceRepository.findByIdAndFetch(sessionManager, resourceId))
             .thenReturn(Maybe.just(entity));
 
@@ -86,7 +86,7 @@ public class ResourceServiceImplTest {
     void findEntityNotExists(VertxTestContext testContext) {
         long resourceId = 1L;
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(resourceRepository.findByIdAndFetch(sessionManager, resourceId))
             .thenReturn(Maybe.empty());
 
@@ -101,7 +101,7 @@ public class ResourceServiceImplTest {
         Resource r1 = TestResourceProvider.createResource(1L);
         Resource r2 = TestResourceProvider.createResource(2L);
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(resourceRepository.findAllAndFetch(sessionManager))
             .thenReturn(Single.just(List.of(r1, r2)));
 
@@ -129,7 +129,7 @@ public class ResourceServiceImplTest {
         List<Long> environments = List.of();
         SLORequest sloRequest = TestDTOProvider.createSLORequest(List.of(slo1));
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(resourceRepository.findAllBySLOs(sessionManager, metrics, environments, resourceTypes, platforms, regions,
             resourceProviders)).thenReturn(Single.just(List.of(r1, r2)));
         when(metricRepository.findByMetricAndIsSLO(eq(sessionManager), any(String.class)))
@@ -148,7 +148,7 @@ public class ResourceServiceImplTest {
         Resource r1 = TestResourceProvider.createResource(1L);
         Resource r2 = TestResourceProvider.createResource(2L);
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(resourceRepository.findAllByResourceIdsAndFetch(sessionManager, resourceIds))
             .thenReturn(Single.just(List.of(r1, r2)));
 

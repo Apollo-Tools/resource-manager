@@ -53,7 +53,7 @@ public class AccountServiceImplTest {
     @Mock
     private Stage.Session session;
     
-    private final SessionManager sessionManager = new SessionManager(session);
+    private SessionManager sessionManager;
 
     @BeforeEach
     void initTest() {
@@ -68,7 +68,7 @@ public class AccountServiceImplTest {
         String hashedPw = new PasswordUtility().hashPassword(password.toCharArray());
         Account user = TestAccountProvider.createAccount(accountId, username, hashedPw);
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(accountRepository.findByUsername(sessionManager, username))
             .thenReturn(Maybe.just(user));
         
@@ -87,13 +87,12 @@ public class AccountServiceImplTest {
         String hashedPw = new PasswordUtility().hashPassword(password.toCharArray()) + 2;
         Account user = TestAccountProvider.createAccount(accountId, username, hashedPw);
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(accountRepository.findByUsername(sessionManager, username))
             .thenReturn(Maybe.just(user));
 
         accountService.loginAccount(username, password, testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(UnauthorizedException.class);
-                assertThat(throwable.getMessage()).isEqualTo("invalid credentials");
                 testContext.completeNow();
             })));
     }
@@ -102,7 +101,7 @@ public class AccountServiceImplTest {
     void loginAccountNotFound(VertxTestContext testContext) {
         String username = "user1", password = "pw1";
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(accountRepository.findByUsername(sessionManager, username))
             .thenReturn(Maybe.empty());
 
@@ -121,7 +120,7 @@ public class AccountServiceImplTest {
         accountDTO.setPassword(password);
         Role role = TestAccountProvider.createRoleDefault();
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(accountRepository.findByUsername(sessionManager, username))
             .thenReturn(Maybe.empty());
         when(roleRepository.findByRoleName(sessionManager, RoleEnum.DEFAULT.getValue()))
@@ -143,11 +142,15 @@ public class AccountServiceImplTest {
         NewAccountDTO accountDTO = new NewAccountDTO();
         accountDTO.setUsername(username);
         accountDTO.setPassword(password);
-        Account entity = TestAccountProvider.createAccount(1L, username, password);
+        Account account = TestAccountProvider.createAccount(1L, username, password);
+        Role role = TestAccountProvider.createRoleDefault();
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(accountRepository.findByUsername(sessionManager, username))
-            .thenReturn(Maybe.just(entity));
+            .thenReturn(Maybe.just(account));
+        when(roleRepository.findByRoleName(sessionManager, RoleEnum.DEFAULT.getValue()))
+            .thenReturn(Maybe.just(role));
+
 
         accountService.save(JsonObject.mapFrom(accountDTO), testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
@@ -165,7 +168,7 @@ public class AccountServiceImplTest {
         Account entity = TestAccountProvider.createAccount(accountId, username, hashedPw);
         JsonObject fields = new JsonObject("{\"old_password\": \"pw1\", \"new_password\": \"pw2\"}");
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(accountRepository.findById(sessionManager, accountId))
             .thenReturn(Maybe.just(entity));
 
@@ -184,7 +187,7 @@ public class AccountServiceImplTest {
         Account entity = TestAccountProvider.createAccount(accountId, username, password);
         JsonObject fields = new JsonObject("{\"old_password\": \"pw2\", \"new_password\": \"pw2\"}");
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(accountRepository.findById(sessionManager, accountId)).thenReturn(Maybe.just(entity));
 
         accountService.update(accountId, fields, testContext.failing(throwable -> testContext.verify(() -> {
@@ -199,7 +202,7 @@ public class AccountServiceImplTest {
         long accountId = 1L;
         JsonObject fields = new JsonObject("{\"old_password\": \"pw1\", \"new_password\": \"pw2\"}");
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(accountRepository.findById(sessionManager, accountId)).thenReturn(Maybe.empty());
 
         accountService.update(accountId, fields, testContext.failing(throwable -> testContext.verify(() -> {

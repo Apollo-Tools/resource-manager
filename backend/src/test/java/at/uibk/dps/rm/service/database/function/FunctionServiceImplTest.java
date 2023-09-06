@@ -44,7 +44,7 @@ public class FunctionServiceImplTest {
     @Mock
     private Stage.Session session;
     
-    private final SessionManager sessionManager = new SessionManager(session);
+    private SessionManager sessionManager;
 
     @RegisterExtension
     public static final RunTestOnContext rtoc = new RunTestOnContext();
@@ -61,7 +61,7 @@ public class FunctionServiceImplTest {
         long functionId = 1L;
         Function entity = TestFunctionProvider.createFunction(functionId, "func","true");
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(functionRepository.findByIdAndFetch(sessionManager, functionId))
             .thenReturn(Maybe.just(entity));
 
@@ -76,7 +76,7 @@ public class FunctionServiceImplTest {
     void findEntityNotExists(VertxTestContext testContext) {
         long functionId = 1L;
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(functionRepository.findByIdAndFetch(sessionManager, functionId))
             .thenReturn(Maybe.empty());
 
@@ -91,7 +91,7 @@ public class FunctionServiceImplTest {
         Function f1 = TestFunctionProvider.createFunction(1L, "func1", "true");
         Function f2 = TestFunctionProvider.createFunction(2L, "func2", "false");
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(functionRepository.findAllAndFetch(sessionManager))
             .thenReturn(Single.just(List.of(f1, f2)));
 

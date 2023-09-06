@@ -50,7 +50,7 @@ public class VPCServiceImplTest {
     @Mock
     private Stage.Session session;
     
-    private final SessionManager sessionManager = new SessionManager(session);
+    private SessionManager sessionManager;
 
     @BeforeEach
     void initTest() {
@@ -67,7 +67,7 @@ public class VPCServiceImplTest {
         Account account = TestAccountProvider.createAccount(accountId);
         VPC vpc = TestResourceProviderProvider.createVPC(1L, region, account);
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(vpcRepository.findByIdAndFetch(sessionManager, vpcId)).thenReturn(Maybe.just(vpc));
 
         vpcService.findOne(vpcId, testContext.succeeding(result -> testContext.verify(() -> {
@@ -82,7 +82,7 @@ public class VPCServiceImplTest {
     void findOneNotExists(VertxTestContext testContext) {
         long vpcId = 1L;
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(vpcRepository.findByIdAndFetch(sessionManager, vpcId)).thenReturn(Maybe.empty());
 
         vpcService.findOne(vpcId, testContext.succeeding(result -> testContext.verify(() -> {
@@ -99,7 +99,7 @@ public class VPCServiceImplTest {
         VPC vpc1 = TestResourceProviderProvider.createVPC(1L, r1);
         VPC vpc2 = TestResourceProviderProvider.createVPC(2L, r2);
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(vpcRepository.findAllByAccountIdAndFetch(sessionManager, accountId))
             .thenReturn(Single.just(List.of(vpc1, vpc2)));
 

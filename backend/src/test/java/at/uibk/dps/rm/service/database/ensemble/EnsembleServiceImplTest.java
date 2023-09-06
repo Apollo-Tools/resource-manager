@@ -45,7 +45,7 @@ public class EnsembleServiceImplTest {
     @Mock
     private Stage.Session session;
     
-    private final SessionManager sessionManager = new SessionManager(session);
+    private SessionManager sessionManager;
 
     @BeforeEach
     void initTest() {
@@ -61,7 +61,7 @@ public class EnsembleServiceImplTest {
         Ensemble e2 = TestEnsembleProvider.createEnsemble(2L, accountId);
         Single<List<Ensemble>> single = Single.just(List.of(e1, e2));
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(repositoryMock.getEnsembleRepository().findAllByAccountId(sessionManager, accountId)).thenReturn(single);
 
         ensembleService.findAllByAccountId(accountId, testContext.succeeding(result -> testContext.verify(() -> {
@@ -89,7 +89,7 @@ public class EnsembleServiceImplTest {
         Single<List<EnsembleSLO>> singleSLOs = Single.just(List.of(slo1));
 
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(repositoryMock.getEnsembleRepository()
             .findByIdAndAccountId(sessionManager, ensembleId, accountId)).thenReturn(maybenEnsemble);
         when(repositoryMock.getResourceRepository().findAllByEnsembleId(sessionManager, ensembleId))
@@ -110,7 +110,7 @@ public class EnsembleServiceImplTest {
         long ensembleId = 1L, accountId = 2L;
         Maybe<Ensemble> maybe = Maybe.empty();
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(repositoryMock.getEnsembleRepository()
             .findByIdAndAccountId(sessionManager, ensembleId, accountId)).thenReturn(maybe);
 

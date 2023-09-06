@@ -39,7 +39,7 @@ public class ServiceDeploymentImplTest {
     @Mock
     private Stage.Session session;
     
-    private final SessionManager sessionManager = new SessionManager(session);
+    private SessionManager sessionManager;
 
     @BeforeEach
     void initTest() {
@@ -53,7 +53,7 @@ public class ServiceDeploymentImplTest {
         long deploymentId = 1L, resourceDeploymentId = 2L, accountId = 3L;
         Single<Long> single = Single.just(exists ? 1L : 0L);
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(repository.countByDeploymentStatus(sessionManager, deploymentId, resourceDeploymentId, accountId,
             DeploymentStatusValue.DEPLOYED)).thenReturn(single);
 

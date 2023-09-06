@@ -45,7 +45,7 @@ public class PlatformMetricServiceImplTest {
     @Mock
     private Stage.Session session;
     
-    private final SessionManager sessionManager = new SessionManager(session);
+    private SessionManager sessionManager;
 
     @BeforeEach
     void initTest() {
@@ -61,7 +61,7 @@ public class PlatformMetricServiceImplTest {
         PlatformMetric pm3 = TestMetricProvider.createPlatformMetric(3L, 12L);
         Platform platform = TestPlatformProvider.createPlatformFaas(platformId, "openfaas");
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(session.find(Platform.class, platformId)).thenReturn(CompletionStages.completedFuture(platform));
         when(repository.findAllByPlatform(sessionManager, platformId))
             .thenReturn(Single.just(List.of(pm1, pm2, pm3)));
@@ -79,7 +79,7 @@ public class PlatformMetricServiceImplTest {
     void findAllByPlatformIdNotFound(VertxTestContext testContext) {
         long platformId = 1L;
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(session.find(Platform.class, platformId)).thenReturn(CompletionStages.nullFuture());
 
         service.findAllByPlatformId(platformId, testContext.failing(throwable -> testContext.verify(() -> {

@@ -16,6 +16,7 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.hibernate.reactive.stage.Stage.Session;
 import org.hibernate.reactive.stage.Stage.SessionFactory;
+import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,7 +52,7 @@ public class DeploymentServiceImplTest {
     @Mock
     private SessionFactory sessionFactory;
 
-    private final SessionManager sessionManager = new SessionManager(session);
+    private SessionManager sessionManager;
 
     @BeforeEach
     void initTest() {
@@ -105,7 +106,7 @@ public class DeploymentServiceImplTest {
         resourceDeployments.addAll(fdList);
         resourceDeployments.addAll(sdList);
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(repositoryMock.getDeploymentRepository().findByIdAndAccountId(sessionManager, deploymentId, accountId))
             .thenReturn(Maybe.just(deployment));
         when(repositoryMock.getResourceDeploymentRepository().findAllByDeploymentIdAndFetch(sessionManager, deploymentId))
@@ -118,7 +119,7 @@ public class DeploymentServiceImplTest {
             .thenReturn(Single.just(fdList));
         when(repositoryMock.getServiceDeploymentRepository().findAllByDeploymentId(sessionManager, deploymentId))
             .thenReturn(Single.just(sdList));
-        when(sessionManager.fetch(anyList())).thenReturn(Single.just(List.of()));
+        when(session.fetch(anyList())).thenReturn(CompletionStages.completedFuture(List.of()));
 
         deploymentService.cancelDeployment(deploymentId, accountId, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getJsonObject("deployment").getLong("deployment_id")).isEqualTo(1L);
@@ -148,11 +149,13 @@ public class DeploymentServiceImplTest {
         resourceDeployments.addAll(fdList);
         resourceDeployments.addAll(sdList);
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(repositoryMock.getDeploymentRepository().findByIdAndAccountId(sessionManager, deploymentId, accountId))
             .thenReturn(Maybe.just(deployment));
         when(repositoryMock.getResourceDeploymentRepository().findAllByDeploymentIdAndFetch(sessionManager, deploymentId))
             .thenReturn(Single.just(resourceDeployments));
+        when(repositoryMock.getCredentialsRepository().findAllByAccountId(sessionManager, accountId))
+            .thenReturn(Single.just(List.of()));
 
         deploymentService.cancelDeployment(deploymentId, accountId, testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(BadInputException.class);
@@ -165,7 +168,7 @@ public class DeploymentServiceImplTest {
     void cancelDeploymentNotFound(VertxTestContext testContext) {
         long deploymentId = 1L, accountId = 2L;
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(repositoryMock.getDeploymentRepository().findByIdAndAccountId(sessionManager, deploymentId, accountId))
             .thenReturn(Maybe.empty());
 
@@ -186,7 +189,7 @@ public class DeploymentServiceImplTest {
         ResourceDeployment rd2 = TestDeploymentProvider.createResourceDeployment(2L, d1);
         ResourceDeployment rd3 = TestDeploymentProvider.createResourceDeployment(3L, d2);
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(repositoryMock.getDeploymentRepository().findAllByAccountId(sessionManager, accountId))
             .thenReturn(Single.just(List.of(d1, d2)));
         when(repositoryMock.getResourceDeploymentRepository().findAllByDeploymentIdAndFetch(sessionManager, 1L))
@@ -250,7 +253,7 @@ public class DeploymentServiceImplTest {
         ServiceDeployment sd1 = TestServiceProvider.createServiceDeployment(2L, deployment);
         ServiceDeployment sd2 = TestServiceProvider.createServiceDeployment(3L, deployment);
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(repositoryMock.getDeploymentRepository().findByIdAndAccountId(sessionManager, deploymentId, accountId))
             .thenReturn(Maybe.just(deployment));
         when(repositoryMock.getFunctionDeploymentRepository().findAllByDeploymentId(sessionManager, deploymentId))
@@ -271,7 +274,7 @@ public class DeploymentServiceImplTest {
         long deploymentId = 1L;
         long accountId = 2L;
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(repositoryMock.getDeploymentRepository().findByIdAndAccountId(sessionManager, deploymentId, accountId))
             .thenReturn(Maybe.empty());
 

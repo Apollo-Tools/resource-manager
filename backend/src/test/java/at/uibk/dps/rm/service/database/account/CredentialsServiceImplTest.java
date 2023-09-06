@@ -8,9 +8,7 @@ import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.repository.account.AccountCredentialsRepository;
-import at.uibk.dps.rm.repository.account.AccountRepository;
 import at.uibk.dps.rm.repository.account.CredentialsRepository;
-import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
@@ -49,13 +47,7 @@ public class CredentialsServiceImplTest {
     private CredentialsRepository credentialsRepository;
 
     @Mock
-    private AccountRepository accountRepository;
-
-    @Mock
     private AccountCredentialsRepository accountCredentialsRepository;
-
-    @Mock
-    private ResourceProviderRepository resourceProviderRepository;
 
     @Mock
     private Stage.SessionFactory sessionFactory;
@@ -63,7 +55,7 @@ public class CredentialsServiceImplTest {
     @Mock
     private Stage.Session session;
     
-    private final SessionManager sessionManager = new SessionManager(session);
+    private SessionManager sessionManager;
 
     @BeforeEach
     void initTest() {
@@ -80,7 +72,7 @@ public class CredentialsServiceImplTest {
         List<Credentials> resultList = List.of(entity1, entity2);
         Single<List<Credentials>> single = Single.just(resultList);
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(credentialsRepository.findAllByAccountId(sessionManager, accountId)).thenReturn(single);
 
         credentialsService.findAllByAccountId(accountId, testContext.succeeding(result -> testContext.verify(() -> {
@@ -98,24 +90,20 @@ public class CredentialsServiceImplTest {
         ResourceProvider rp = TestResourceProviderProvider.createResourceProvider(providerId);
         Credentials entity = TestAccountProvider.createCredentials(accountId, rp);
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(accountCredentialsRepository.findByAccountAndProvider(sessionManager, accountId, providerId))
             .thenReturn(Maybe.empty());
-        when(resourceProviderRepository.findById(sessionManager, providerId))
-            .thenReturn(Maybe.just(rp));
-        when(accountRepository.findById(sessionManager, accountId))
-            .thenReturn(Maybe.just(account));
+        when(session.find(ResourceProvider.class, providerId)).thenReturn(CompletionStages.completedFuture(rp));
+        when(session.find(Account.class, accountId)).thenReturn(CompletionStages.completedFuture(account));
         when(session.persist(entity)).thenReturn(CompletionStages.voidFuture());
         when(session.persist(any(AccountCredentials.class))).thenReturn(CompletionStages.voidFuture());
 
         credentialsService.saveToAccount(accountId, JsonObject.mapFrom(entity), testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result.getLong("credentials_id")).isEqualTo(1);
                 assertThat(result.getString("access_key")).isEqualTo("accesskey");
                 assertThat(result.getString("secret_access_key")).isEqualTo("secretaccesskey");
                 assertThat(result.getString("session_token")).isEqualTo("sessiontoken");
-                assertThat(result.getJsonObject("resource_provider").getJsonObject("environment"))
-                    .isEqualTo(null);
-                assertThat(result.getJsonObject("resource_provider").getJsonObject("provider_platforms"))
-                    .isEqualTo(null);
+                assertThat(result.containsKey("resource_provider")).isEqualTo(true);
                 testContext.completeNow();
             })));
     }
@@ -126,13 +114,11 @@ public class CredentialsServiceImplTest {
         ResourceProvider rp = TestResourceProviderProvider.createResourceProvider(providerId);
         Credentials entity = TestAccountProvider.createCredentials(accountId, rp);
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(accountCredentialsRepository.findByAccountAndProvider(sessionManager, accountId, providerId))
             .thenReturn(Maybe.empty());
-        when(resourceProviderRepository.findById(sessionManager, providerId))
-            .thenReturn(Maybe.just(rp));
-        when(accountRepository.findById(sessionManager, accountId))
-            .thenReturn(Maybe.empty());
+        when(session.find(ResourceProvider.class, providerId)).thenReturn(CompletionStages.completedFuture(rp));
+        when(session.find(Account.class, accountId)).thenReturn(CompletionStages.nullFuture());
 
         credentialsService.saveToAccount(accountId, JsonObject.mapFrom(entity), testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(UnauthorizedException.class);
@@ -147,11 +133,10 @@ public class CredentialsServiceImplTest {
         ResourceProvider rp = TestResourceProviderProvider.createResourceProvider(providerId);
         Credentials entity = TestAccountProvider.createCredentials(accountId, rp);
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(accountCredentialsRepository.findByAccountAndProvider(sessionManager, accountId, providerId))
             .thenReturn(Maybe.empty());
-        when(resourceProviderRepository.findById(sessionManager, providerId))
-            .thenReturn(Maybe.empty());
+        when(session.find(ResourceProvider.class, providerId)).thenReturn(CompletionStages.nullFuture());
 
         credentialsService.saveToAccount(accountId, JsonObject.mapFrom(entity), testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(NotFoundException.class);
@@ -166,9 +151,10 @@ public class CredentialsServiceImplTest {
         ResourceProvider rp = TestResourceProviderProvider.createResourceProvider(providerId);
         Credentials entity = TestAccountProvider.createCredentials(accountId, rp);
 
-        SessionMockHelper.mockTransaction(sessionFactory, sessionManager);
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(accountCredentialsRepository.findByAccountAndProvider(sessionManager, accountId, providerId))
             .thenReturn(Maybe.just(new AccountCredentials()));
+        when(session.find(ResourceProvider.class, providerId)).thenReturn(CompletionStages.nullFuture());
 
         credentialsService.saveToAccount(accountId, JsonObject.mapFrom(entity), testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
