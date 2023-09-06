@@ -34,7 +34,7 @@ public class K8sResourceUpdateUtility {
      * @return a Completable
      */
     public Completable updateClusterNodes(SessionManager sessionManager, MainResource cluster,
-                                           K8sMonitoringData data) {
+            K8sMonitoringData data) {
         Map<String, List<MetricValue>> mvToPersist = new HashMap<>();
         Set<SubResource> subResources =  Set.copyOf(cluster.getSubResources());
         List<SubResource> deleteNodes = new ArrayList<>();

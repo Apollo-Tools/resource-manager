@@ -10,6 +10,7 @@ import io.vertx.core.json.JsonObject;
 import lombok.experimental.UtilityClass;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -21,6 +22,41 @@ import java.util.stream.Collectors;
  */
 @UtilityClass
 public class TestResourceProvider {
+
+    public static MainResource createClusterWithNodes(long resourceId, String name, String node1, String node2,
+                                                      String node3) {
+        Platform platform = TestPlatformProvider.createPlatformContainer(1L, PlatformEnum.K8S.getValue());
+        Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1");
+        MainResource mainResource = createResource(resourceId, platform, region).getMain();
+        SubResource n1 = createSubResource(2L, node1, mainResource);
+        SubResource n2 = createSubResource(3L, node2, mainResource);
+        SubResource n3 = createSubResource(4L, node3, mainResource);
+        mainResource.setSubResources(List.of(n1, n2, n3));
+        mainResource.setName(name);
+        Set<MetricValue> metricValues = new HashSet<>();
+        metricValues.add(TestMetricProvider.createMetricValue(1L, 2L,"cpu", 1.0));
+        metricValues.add(TestMetricProvider.createMetricValue(2L, 3L,"memory-size", 100));
+        metricValues.add(TestMetricProvider.createMetricValue(3L, 4L,"storage-size", 100));
+        metricValues.add(TestMetricProvider.createMetricValue(4L, 5L,"availability", 99.5));
+        mainResource.setMetricValues(metricValues);
+        return mainResource;
+    }
+
+    public static SubResource createSubResource(long id, String name, MainResource mainResource) {
+        SubResource subResource = new SubResource();
+        subResource.setResourceId(id);
+        subResource.setName(name);
+        subResource.setMainResource(mainResource);
+        Set<MetricValue> metricValues = new HashSet<>();
+        metricValues.add(TestMetricProvider.createMetricValue(1L, 2L,"cpu", 1.0));
+        metricValues.add(TestMetricProvider.createMetricValue(2L, 3L,"memory-size", 100));
+        metricValues.add(TestMetricProvider.createMetricValue(3L, 4L,"storage-size", 100));
+        metricValues.add(TestMetricProvider.createMetricValue(4L, 5L,"availability", 99.5));
+        subResource.setMetricValues(metricValues);
+        return subResource;
+    }
+
+
     public static Resource createResource(long id, Platform platform, Region region) {
         MainResource resource = new MainResource();
         resource.setResourceId(id);
