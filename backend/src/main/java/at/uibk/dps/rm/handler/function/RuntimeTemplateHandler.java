@@ -26,6 +26,7 @@ public class RuntimeTemplateHandler extends ValidationHandler {
         this.runtimeService = runtimeService;
     }
 
+    @Override
     protected Single<JsonObject> getOne(RoutingContext rc) {
         return HttpHelper.getLongPathParam(rc, "id")
             .flatMap(runtimeService::findOne)

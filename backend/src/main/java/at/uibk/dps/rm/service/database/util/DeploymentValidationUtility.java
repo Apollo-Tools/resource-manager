@@ -26,7 +26,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-
+/**
+ * A utility class that provides various methods to validate a deployment.
+ *
+ * @author matthi-g
+ */
 @RequiredArgsConstructor
 public class DeploymentValidationUtility {
 

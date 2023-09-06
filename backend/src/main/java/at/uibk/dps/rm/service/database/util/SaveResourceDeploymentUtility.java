@@ -12,6 +12,11 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
+/**
+ * A utility class that provides various methods to compose and persist resource deployments.
+ *
+ * @author matthi-g
+ */
 @RequiredArgsConstructor
 public class SaveResourceDeploymentUtility {
 

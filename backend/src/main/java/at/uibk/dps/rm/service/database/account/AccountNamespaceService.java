@@ -41,8 +41,8 @@ public interface AccountNamespaceService extends DatabaseServiceInterface {
      *
      * @param accountId the id of the account
      * @param namespaceId the id of the namespace
-     * @param resultHandler receives the persisted entity as JsonObject if the saving was successful else an
-     *                      error
+     * @param resultHandler receives the persisted entity as JsonObject if the saving was
+     *                      successful else an error
      */
     void saveByAccountIdAndNamespaceId(long accountId, long namespaceId,
         Handler<AsyncResult<JsonObject>> resultHandler);

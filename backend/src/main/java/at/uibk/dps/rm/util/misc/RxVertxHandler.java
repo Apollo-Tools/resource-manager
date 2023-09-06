@@ -14,6 +14,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * A utility class that provides various methods to transform a {@link Handler} into a RxJava
+ * observer.
+ *
+ * @author matthi-g
+ */
 @UtilityClass
 public class RxVertxHandler {
 
@@ -62,7 +68,7 @@ public class RxVertxHandler {
         AtomicBoolean completed = new AtomicBoolean();
         return new MaybeObserver<>() {
             @Override
-            public void onSubscribe(@NonNull Disposable d) {
+            public void onSubscribe(@NonNull Disposable disposable) {
             }
             @Override
             public void onComplete() {
@@ -99,7 +105,7 @@ public class RxVertxHandler {
         AtomicBoolean completed = new AtomicBoolean();
         return new SingleObserver<>() {
             @Override
-            public void onSubscribe(@NonNull Disposable d) {
+            public void onSubscribe(@NonNull Disposable disposable) {
             }
             @Override
             public void onSuccess(@NonNull T item) {
@@ -130,7 +136,7 @@ public class RxVertxHandler {
         AtomicBoolean completed = new AtomicBoolean();
         return new CompletableObserver() {
             @Override
-            public void onSubscribe(@NonNull Disposable d) {
+            public void onSubscribe(@NonNull Disposable disposable) {
             }
             @Override
             public void onComplete() {
@@ -138,6 +144,12 @@ public class RxVertxHandler {
                     handler.handle(io.vertx.core.Future.succeededFuture());
                 }
             }
+
+            /**
+             * CompletableObserver Notifies the CompletableObserver with that the
+             * Completable has finished sending push-based notifications.
+             * The Completable will not call this method if it calls onError.
+             */
             public void onSuccess() {
                 if (completed.compareAndSet(false, true)) {
                     handler.handle(io.vertx.core.Future.succeededFuture());

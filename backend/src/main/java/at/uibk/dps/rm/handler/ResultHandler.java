@@ -86,6 +86,7 @@ public class ResultHandler {
      * Handle the POST ONE request of the validation handler.
      *
      * @param rc the RoutingContext of the request
+     * @param handler the handler of the get one request
      */
     public void handleSaveOneRequest(final RoutingContext rc, final Single<JsonObject> handler) {
         handler.subscribe(result -> getSaveResponse(rc, result), throwable -> handleRequestError(rc, throwable));
@@ -115,6 +116,7 @@ public class ResultHandler {
      * Handle the UPDATE ONE request of the validation handler.
      *
      * @param rc the RoutingContext of the request
+     * @param handler the handler of the get one request
      */
     public void handleUpdateRequest(final RoutingContext rc, final Completable handler) {
         handler.subscribe(() -> getSaveAllUpdateDeleteResponse(rc), throwable -> handleRequestError(rc, throwable));
@@ -128,6 +130,18 @@ public class ResultHandler {
     public void handleDeleteRequest(final RoutingContext rc) {
         validationHandler.deleteOne(rc)
             .subscribe(() -> getSaveAllUpdateDeleteResponse(rc), throwable -> handleRequestError(rc, throwable));
+    }
+
+    /**
+     * Handle the DELETE ONE request of the validation handler.
+     *
+     * @param rc the RoutingContext of the request
+     * @param handler the handler of the get one request
+     */
+    public void handleDeleteRequest(final RoutingContext rc, final Completable handler) {
+        handler
+            .subscribe(() -> getSaveAllUpdateDeleteResponse(rc),
+                throwable -> handleRequestError(rc, throwable));
     }
 
     /**

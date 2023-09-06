@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.*;
 
 /**
- * A utility class that provides different methods to update k8s cluster resources.
+ * A utility class that provides various methods to update k8s cluster resources.
  *
  * @author matthi-g
  */
@@ -126,8 +126,8 @@ public class K8sResourceUpdateUtility {
     }
 
     /**
-     * Create a new MetricValue object for a resource, using its metric, monitoring data and add it to the mvToPersist
-     * to later persist it.
+     * Create a new MetricValue object for a resource, using its metric, monitoring data and add it
+     * to the mvToPersist to later persist it.
      *
      * @param resource the resource
      * @param metric the metric

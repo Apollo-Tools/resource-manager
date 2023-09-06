@@ -6,6 +6,11 @@ import lombok.experimental.UtilityClass;
 
 import java.util.List;
 
+/**
+ * A utility class that provides various methods to validate the status of a deployment.
+ *
+ * @author matthi-g
+ */
 @UtilityClass
 public class DeploymentStatusUtility {
     /**

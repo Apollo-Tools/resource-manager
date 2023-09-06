@@ -10,6 +10,11 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * A utility class that provides various methods to update the trigger urls of resource deployments.
+ *
+ * @author matthi-g
+ */
 @RequiredArgsConstructor
 public class TriggerUrlUtility {
 
