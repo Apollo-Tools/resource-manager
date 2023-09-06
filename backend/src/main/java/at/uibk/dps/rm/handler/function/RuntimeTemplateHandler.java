@@ -27,10 +27,10 @@ public class RuntimeTemplateHandler extends ValidationHandler {
     }
 
     protected Single<JsonObject> getOne(RoutingContext rc) {
-        Vertx vertx = Vertx.currentContext().owner();
         return HttpHelper.getLongPathParam(rc, "id")
             .flatMap(runtimeService::findOne)
             .flatMap(jsonObject -> {
+                Vertx vertx = Vertx.currentContext().owner();
                 String templatePath = jsonObject.getString("template_path");
                 return vertx.fileSystem().exists(templatePath)
                     .flatMap(result -> {

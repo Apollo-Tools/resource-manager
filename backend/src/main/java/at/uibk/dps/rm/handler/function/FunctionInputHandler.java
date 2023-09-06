@@ -88,7 +88,7 @@ public class FunctionInputHandler {
      */
     private static Consumer<Throwable> handleError(RoutingContext rc, boolean isFileUpload) {
         return throwable -> {
-            if (!isFileUpload) {
+            if (isFileUpload) {
                 Vertx.currentContext().owner()
                     .fileSystem().deleteBlocking(rc.fileUploads().get(0).uploadedFileName());
             }

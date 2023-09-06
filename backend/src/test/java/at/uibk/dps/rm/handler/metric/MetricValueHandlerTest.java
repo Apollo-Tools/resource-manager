@@ -80,7 +80,7 @@ public class MetricValueHandlerTest {
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
         when(rc.pathParam("id")).thenReturn(String.valueOf(resourceId));
-        when(metricValueService.saveAll(requestBody)).thenReturn(Completable.complete());
+        when(metricValueService.saveAllToResource(resourceId, requestBody)).thenReturn(Completable.complete());
 
         metricValueHandler.postAll(rc)
             .blockingSubscribe(() -> testContext.verify(() -> {}),
