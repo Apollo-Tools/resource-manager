@@ -11,7 +11,6 @@ import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.repository.DeploymentRepositoryProvider;
-import at.uibk.dps.rm.util.validation.ServiceResultValidator;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Observable;
@@ -152,7 +151,7 @@ public class DeploymentValidationUtility {
             resourceProviderIds.add(providerId);
             return repositoryProvider.getCredentialsRepository()
                 .findByAccountIdAndProviderId(sessionManager, accountId, providerId)
-                .switchIfEmpty(Maybe.error(new UnauthorizedException("missing credentials for " + platform)))
+                .switchIfEmpty(Maybe.error(new UnauthorizedException("missing credentials for " + platform.getValue())))
                 .ignoreElement();
         }
         return Completable.complete();
@@ -172,7 +171,7 @@ public class DeploymentValidationUtility {
         if (!platformIds.contains(platformId) && (platform.equals(PlatformEnum.EC2)) ||
             platform.equals(PlatformEnum.OPENFAAS)) {
             if (dockerCredentials == null) {
-                throw new UnauthorizedException("missing docker credentials for " + platform);
+                throw new UnauthorizedException("missing docker credentials for " + platform.getValue());
             }
             platformIds.add(platformId);
         }
@@ -197,7 +196,6 @@ public class DeploymentValidationUtility {
                 .findByRegionIdAndAccountId(sessionManager, regionId, accountId)
                 .switchIfEmpty(Maybe.error(new NotFoundException(VPC.class)))
                 .flatMapCompletable(vpc -> {
-                    ServiceResultValidator.checkFound(vpc, VPC.class);
                     Region region = Hibernate.unproxy(vpc.getRegion(), Region.class);
                     vpc.setRegion(region);
                     deployResources.getVpcList().add(vpc);

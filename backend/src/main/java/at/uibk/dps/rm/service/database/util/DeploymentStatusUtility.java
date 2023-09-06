@@ -20,7 +20,8 @@ public class DeploymentStatusUtility {
      * @param resourceDeployments the resource deployments
      * @return the crucial deployment status
      */
-    public static DeploymentStatusValue checkCrucialResourceDeploymentStatus(List<ResourceDeployment> resourceDeployments) {
+    public static DeploymentStatusValue checkCrucialResourceDeploymentStatus(
+            List<ResourceDeployment> resourceDeployments) {
         if (matchAnyResourceDeploymentsStatus(resourceDeployments,
             DeploymentStatusValue.ERROR)) {
             return DeploymentStatusValue.ERROR;
@@ -49,7 +50,7 @@ public class DeploymentStatusUtility {
      * @return true if at least one match was found, else false
      */
     private static boolean matchAnyResourceDeploymentsStatus(List<ResourceDeployment> resourceDeployments,
-                                                      DeploymentStatusValue statusValue) {
+            DeploymentStatusValue statusValue) {
         return resourceDeployments.stream()
             .anyMatch(rd -> DeploymentStatusValue.fromDeploymentStatus(rd.getStatus()).equals(statusValue));
     }

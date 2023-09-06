@@ -12,6 +12,7 @@ import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.model.Runtime;
 import lombok.experimental.UtilityClass;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -73,6 +74,15 @@ public class TestRequestProvider {
         deployRequest.setServiceDeployments(serviceDeployments);
         Credentials c1 = TestAccountProvider.createCredentials(1L, region.getResourceProvider());
         deployRequest.setCredentialsList(List.of(c1));
+        return deployRequest;
+    }
+
+    public static DeployResourcesDTO createBlankDeployRequest(DockerCredentials dockerCredentials) {
+        DeployResourcesDTO deployRequest = new DeployResourcesDTO();
+        DeploymentCredentials deploymentCredentials = new DeploymentCredentials();
+        deploymentCredentials.setDockerCredentials(dockerCredentials);
+        deployRequest.setDeploymentCredentials(deploymentCredentials);
+        deployRequest.setVpcList(new ArrayList<>());
         return deployRequest;
     }
 
