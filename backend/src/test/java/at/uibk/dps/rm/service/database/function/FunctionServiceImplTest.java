@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.service.database.function;
 
 import at.uibk.dps.rm.entity.model.Function;
+import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.function.FunctionRepository;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
@@ -80,10 +81,10 @@ public class FunctionServiceImplTest {
         when(functionRepository.findByIdAndFetch(sessionManager, functionId))
             .thenReturn(Maybe.empty());
 
-        functionService.findOne(functionId, testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result).isNull();
-                testContext.completeNow();
-            })));
+        functionService.findOne(functionId, testContext.failing(throwable -> testContext.verify(() -> {
+            assertThat(throwable).isInstanceOf(NotFoundException.class);
+            testContext.completeNow();
+        })));
     }
 
     @Test

@@ -72,7 +72,7 @@ public class RegionFaasFileServiceTest {
             "  source = \"../../../terraform/openfaas\"\n" +
             "  name = \"r2_foo1_python38_1\"\n" +
             "  deployment_id = 1\n" +
-            "  image = \"dockerUser/foo1_python38\"\n" +
+            "  image = \"testuser/foo1_python38\"\n" +
             "  basic_auth_user = \"admin\"\n" +
             "  vm_props = module.ec2.vm_props[\"resource_2\"]\n" +
             "  timeout = 60\n" +
@@ -82,7 +82,7 @@ public class RegionFaasFileServiceTest {
             "  source = \"../../../terraform/openfaas\"\n" +
             "  name = \"r2_foo2_python38_1\"\n" +
             "  deployment_id = 1\n" +
-            "  image = \"dockerUser/foo2_python38\"\n" +
+            "  image = \"testuser/foo2_python38\"\n" +
             "  basic_auth_user = \"admin\"\n" +
             "  vm_props = module.ec2.vm_props[\"resource_2\"]\n" +
             "  timeout = 60\n" +
@@ -92,7 +92,7 @@ public class RegionFaasFileServiceTest {
             "  source = \"../../../terraform/openfaas\"\n" +
             "  deployment_id = 1\n" +
             "  name = \"r3_foo1_python38_1\"\n" +
-            "  image = \"dockerUser/foo1_python38\"\n" +
+            "  image = \"testuser/foo1_python38\"\n" +
             "  basic_auth_user = var.openfaas_login_data[\"r3\"].auth_user\n" +
             "  vm_props = {\n" +
             "    gateway_url = \"http://localhost:8080\"\n" +
@@ -192,7 +192,7 @@ public class RegionFaasFileServiceTest {
             "  source = \"../../../terraform/openfaas\"\n" +
             "  name = \"r2_foo1_python38_1\"\n" +
             "  deployment_id = 1\n" +
-            "  image = \"dockerUser/foo1_python38\"\n" +
+            "  image = \"testuser/foo1_python38\"\n" +
             "  basic_auth_user = \"admin\"\n" +
             "  vm_props = module.ec2.vm_props[\"resource_2\"]\n" +
             "  timeout = 60\n" +
@@ -202,7 +202,7 @@ public class RegionFaasFileServiceTest {
             "  source = \"../../../terraform/openfaas\"\n" +
             "  name = \"r2_foo2_python38_1\"\n" +
             "  deployment_id = 1\n" +
-            "  image = \"dockerUser/foo2_python38\"\n" +
+            "  image = \"testuser/foo2_python38\"\n" +
             "  basic_auth_user = \"admin\"\n" +
             "  vm_props = module.ec2.vm_props[\"resource_2\"]\n" +
             "  timeout = 60\n" +
@@ -212,7 +212,7 @@ public class RegionFaasFileServiceTest {
             "  source = \"../../../terraform/openfaas\"\n" +
             "  deployment_id = 1\n" +
             "  name = \"r3_foo1_python38_1\"\n" +
-            "  image = \"dockerUser/foo1_python38\"\n" +
+            "  image = \"testuser/foo1_python38\"\n" +
             "  basic_auth_user = var.openfaas_login_data[\"r3\"].auth_user\n" +
             "  vm_props = {\n" +
             "    gateway_url = \"http://localhost:8080\"\n" +

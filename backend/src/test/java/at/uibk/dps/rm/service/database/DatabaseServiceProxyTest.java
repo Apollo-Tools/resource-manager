@@ -21,14 +21,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
@@ -88,9 +85,10 @@ public class DatabaseServiceProxyTest {
     @Test
     void saveEntity(VertxTestContext testContext) {
         ResourceType entity = TestResourceProvider.createResourceTypeContainer(1L);
-        when(session.persist(entity)).thenReturn(CompletionStages.voidFuture());
 
         sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
+        when(session.persist(entity)).thenReturn(CompletionStages.voidFuture());
+
         testClass.save(JsonObject.mapFrom(entity), testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("type_id")).isEqualTo(1L);
                 testContext.completeNow();
@@ -100,15 +98,19 @@ public class DatabaseServiceProxyTest {
     @Test
     void saveEntityToAccount(VertxTestContext testContext) {
         testClass.saveToAccount(1L, new JsonObject(),
-            testContext.failing(throwable -> assertThat(throwable).isInstanceOf(UnsupportedOperationException.class)));
+            testContext.failing(throwable -> testContext.verify(() -> {
+                assertThat(throwable).isInstanceOf(UnsupportedOperationException.class);
+                testContext.completeNow();
+            })));
     }
 
     @Test
     void saveAllEntities(VertxTestContext testContext) {
-        when(testRepository.createAll(eq(sessionManager), anyList())).thenReturn(Completable.complete());
-        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         JsonArray data = new JsonArray("[{\"resource_type\": \"container\"}, {\"resource_type\": \"vm\"}, " +
-                "{\"resource_type\": \"faas\"}]");
+            "{\"resource_type\": \"faas\"}]");
+
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
+        when(testRepository.createAll(eq(sessionManager), anyList())).thenReturn(Completable.complete());
 
         testClass.saveAll(data, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
@@ -116,30 +118,31 @@ public class DatabaseServiceProxyTest {
         })));
     }
 
-    private static Stream<Arguments> provideFindExists() {
+    @Test
+    void findEntity(VertxTestContext testContext) {
         ResourceType entity = TestResourceProvider.createResourceTypeContainer(1L);
-        ResourceType nullEntity = null;
-        return Stream.of(
-            Arguments.of(entity, true),
-            Arguments.of(nullEntity, false)
-        );
-    }
-
-    @ParameterizedTest
-    @MethodSource("provideFindExists")
-    void findEntity(ResourceType entity, boolean resultIsNonNull, VertxTestContext testContext) {
         long typeId = 1L;
-        when(testRepository.findById(sessionManager, typeId)).thenReturn(Maybe.just(entity));
+
         sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
+        when(session.find(ResourceType.class, typeId)).thenReturn(CompletionStages.completedFuture(entity));
 
         testClass.findOne(typeId, testContext.succeeding(result -> testContext.verify(() -> {
-                if (resultIsNonNull) {
-                    assertThat(result.getLong("type_id")).isEqualTo(1L);
-                    assertThat(result.getString("resource_type")).isEqualTo("container");
-                } else {
-                    assertThat(result).isNull();
-                }
-                testContext.completeNow();
+            assertThat(result.getLong("type_id")).isEqualTo(1L);
+            assertThat(result.getString("resource_type")).isEqualTo("container");
+            testContext.completeNow();
+        })));
+    }
+
+    @Test
+    void findEntityNotFound(VertxTestContext testContext) {
+        long typeId = 1L;
+
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
+        when(session.find(ResourceType.class, typeId)).thenReturn(CompletionStages.nullFuture());
+
+        testClass.findOne(typeId, testContext.failing(throwable -> testContext.verify(() -> {
+            assertThat(throwable).isInstanceOf(NotFoundException.class);
+            testContext.completeNow();
         })));
     }
 
@@ -147,8 +150,9 @@ public class DatabaseServiceProxyTest {
     void findAll(VertxTestContext testContext) {
         ResourceType entity1 = TestResourceProvider.createResourceTypeContainer(1L);
         ResourceType entity2 = TestResourceProvider.createResourceTypeFaas(2L);
-        when(testRepository.findAll(sessionManager)).thenReturn(Single.just(List.of(entity1, entity2)));
+
         sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
+        when(testRepository.findAll(sessionManager)).thenReturn(Single.just(List.of(entity1, entity2)));
 
         testClass.findAll(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
@@ -183,9 +187,9 @@ public class DatabaseServiceProxyTest {
         ResourceType updated = TestResourceProvider.createResourceTypeFaas(id);
         JsonObject fields = new JsonObject("{\"resource_type\": \"faas\"}");
 
-        when(testRepository.findById(sessionManager, id)).thenReturn(Maybe.just(existing));
-        when(session.merge(updated)).thenReturn(CompletionStages.completedFuture(updated));
         sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
+        when(session.find(ResourceType.class, id)).thenReturn(CompletionStages.completedFuture(existing));
+        when(session.merge(updated)).thenReturn(CompletionStages.completedFuture(updated));
 
         testClass.update(id, fields, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
@@ -198,8 +202,8 @@ public class DatabaseServiceProxyTest {
         long id = 1L;
         JsonObject fields = new JsonObject("{\"resource_type\": \"faas\"}");
 
-        when(testRepository.findById(sessionManager, id)).thenReturn(Maybe.empty());
         sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
+        when(session.find(ResourceType.class, id)).thenReturn(CompletionStages.nullFuture());
 
         testClass.update(id, fields, testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(NotFoundException.class);
@@ -213,9 +217,9 @@ public class DatabaseServiceProxyTest {
         long id = 1L;
         ResourceType existing = TestResourceProvider.createResourceTypeContainer(id);
 
-        when(testRepository.findById(sessionManager, id)).thenReturn(Maybe.just(existing));
-        when(session.remove(existing)).thenReturn(CompletionStages.voidFuture());
         sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
+        when(session.find(ResourceType.class, id)).thenReturn(CompletionStages.completedFuture(existing));
+        when(session.remove(existing)).thenReturn(CompletionStages.voidFuture());
 
         testClass.delete(id, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
@@ -227,8 +231,8 @@ public class DatabaseServiceProxyTest {
     void deleteNotFound(VertxTestContext testContext) {
         long id = 1L;
 
-        when(testRepository.findById(sessionManager, id)).thenReturn(Maybe.empty());
         sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
+        when(session.find(ResourceType.class, id)).thenReturn(CompletionStages.nullFuture());
 
         testClass.delete(id, testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(NotFoundException.class);
@@ -242,10 +246,10 @@ public class DatabaseServiceProxyTest {
         long id = 1L, accountId = 2L;
         ResourceType existing = TestResourceProvider.createResourceTypeContainer(id);
 
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(testRepository.findByIdAndAccountId(sessionManager, id, accountId))
             .thenReturn(Maybe.just(existing));
         when(session.remove(existing)).thenReturn(CompletionStages.voidFuture());
-        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
 
         testClass.deleteFromAccount(accountId, id, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
@@ -257,9 +261,9 @@ public class DatabaseServiceProxyTest {
     void deleteFromAccountNotFound(VertxTestContext testContext) {
         long id = 1L, accountId = 2L;
 
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(testRepository.findByIdAndAccountId(sessionManager, id, accountId))
             .thenReturn(Maybe.empty());
-        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
 
         testClass.deleteFromAccount(accountId, id, testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(NotFoundException.class);

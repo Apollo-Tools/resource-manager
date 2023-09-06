@@ -69,7 +69,6 @@ public class EnsembleServiceImplTest {
                 for(int i=0; i<2; i++) {
                     assertThat(result.getJsonObject(i).getLong("ensemble_id")).isEqualTo(i+1);
                     assertThat(result.getJsonObject(i).getString("name")).isEqualTo("ensemble" + (i+1));
-                    assertThat(result.getJsonObject(i).getValue("created_by")).isNull();
                     assertThat(result.getJsonObject(i).getValue("resource_types")).isNull();
                     assertThat(result.getJsonObject(i).getValue("regions")).isNull();
                     assertThat(result.getJsonObject(i).getValue("providers")).isNull();

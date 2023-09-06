@@ -4,6 +4,7 @@ package at.uibk.dps.rm.service.database.resourceprovider;
 import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.entity.model.VPC;
+import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
@@ -73,7 +74,6 @@ public class VPCServiceImplTest {
         vpcService.findOne(vpcId, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("vpc_id")).isEqualTo(1L);
                 assertThat(result.getJsonObject("region").getLong("region_id")).isEqualTo(1L);
-                assertThat(result.getJsonObject("created_by")).isNull();
                 testContext.completeNow();
             })));
     }
@@ -85,10 +85,10 @@ public class VPCServiceImplTest {
         sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(vpcRepository.findByIdAndFetch(sessionManager, vpcId)).thenReturn(Maybe.empty());
 
-        vpcService.findOne(vpcId, testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result).isNull();
-                testContext.completeNow();
-            })));
+        vpcService.findOne(vpcId, testContext.failing(throwable -> testContext.verify(() -> {
+            assertThat(throwable).isInstanceOf(NotFoundException.class);
+            testContext.completeNow();
+        })));
     }
 
     @Test

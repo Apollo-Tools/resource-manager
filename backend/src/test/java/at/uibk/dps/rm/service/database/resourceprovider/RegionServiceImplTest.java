@@ -2,6 +2,7 @@ package at.uibk.dps.rm.service.database.resourceprovider;
 
 import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.entity.model.ResourceProvider;
+import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
@@ -79,10 +80,10 @@ public class RegionServiceImplTest {
         when(regionRepository.findByIdAndFetch(sessionManager, regionId))
             .thenReturn(Maybe.empty());
 
-        regionService.findOne(regionId, testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result).isNull();
-                testContext.completeNow();
-            })));
+        regionService.findOne(regionId, testContext.failing(throwable -> testContext.verify(() -> {
+            assertThat(throwable).isInstanceOf(NotFoundException.class);
+            testContext.completeNow();
+        })));
     }
 
     @Test
@@ -119,8 +120,6 @@ public class RegionServiceImplTest {
                 assertThat(result.size()).isEqualTo(2);
                 assertThat(result.getJsonObject(0).getLong("region_id")).isEqualTo(1L);
                 assertThat(result.getJsonObject(1).getLong("region_id")).isEqualTo(2L);
-                assertThat(result.getJsonObject(0).getJsonObject("resource_provider")).isNull();
-                assertThat(result.getJsonObject(1).getJsonObject("resource_provider")).isNull();
                 testContext.completeNow();
             })));
     }
