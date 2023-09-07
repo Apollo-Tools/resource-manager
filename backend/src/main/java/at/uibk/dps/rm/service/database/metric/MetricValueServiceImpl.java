@@ -54,9 +54,7 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
         Completable createAll = withTransactionCompletable(sessionManager -> sessionManager
             .find(Resource.class, resourceId)
             .switchIfEmpty(Maybe.error(new NotFoundException(Resource.class)))
-            .flatMapCompletable(resource -> metricValueUtility.checkAddMetricList(sessionManager, resource, data)
-                .flatMapCompletable(Completable::merge)
-            )
+            .flatMapCompletable(resource -> metricValueUtility.checkAddMetricList(sessionManager, resource, data))
         );
         RxVertxHandler.handleSession(createAll, resultHandler);
     }
@@ -109,9 +107,9 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
                     }
                     MetricTypeEnum metricType = MetricTypeEnum
                         .fromMetricType(metricValue.getMetric().getMetricType());
-                    if (!metricValueUtility.metricTypeMatchesValue(metricType, valueString) &&
-                        !metricValueUtility.metricTypeMatchesValue(metricType, valueNumber) &&
-                        !metricValueUtility.metricTypeMatchesValue(metricType, valueBool)) {
+                    if (!MetricValueUtility.metricTypeMatchesValue(metricType, valueString) &&
+                        !MetricValueUtility.metricTypeMatchesValue(metricType, valueNumber) &&
+                        !MetricValueUtility.metricTypeMatchesValue(metricType, valueBool)) {
                         return Completable.error(new BadInputException("invalid metric type"));
                     }
                     metricValue.setValueString(valueString);

@@ -1,9 +1,6 @@
 package at.uibk.dps.rm.testutil.objectprovider;
 
-import at.uibk.dps.rm.entity.model.Metric;
-import at.uibk.dps.rm.entity.model.MetricType;
-import at.uibk.dps.rm.entity.model.MetricValue;
-import at.uibk.dps.rm.entity.model.PlatformMetric;
+import at.uibk.dps.rm.entity.model.*;
 import lombok.experimental.UtilityClass;
 
 /**
@@ -104,16 +101,22 @@ public class TestMetricProvider {
         metricValue.setCount(10L);
     }
 
-    public static PlatformMetric createPlatformMetric(long platformMetricId, Metric metric) {
+    public static PlatformMetric createPlatformMetric(long platformMetricId, Metric metric, Platform platform,
+            boolean isMonitored) {
         PlatformMetric platformMetric = new PlatformMetric();
         platformMetric.setPlatformMetricId(platformMetricId);
-        platformMetric.setPlatform(TestPlatformProvider.createPlatformFaas(1L, "platform"));
+        platformMetric.setPlatform(platform);
         platformMetric.setMetric(metric);
         platformMetric.setIsMainResourceMetric(true);
         platformMetric.setIsSubResourceMetric(true);
         platformMetric.setRequired(true);
-        platformMetric.setIsMonitored(false);
+        platformMetric.setIsMonitored(isMonitored);
         return platformMetric;
+    }
+
+    public static PlatformMetric createPlatformMetric(long platformMetricId, Metric metric) {
+        Platform platform = TestPlatformProvider.createPlatformFaas(1L, "platform");
+        return createPlatformMetric(platformMetricId, metric, platform, true);
     }
 
     public static PlatformMetric createPlatformMetric(long platformMetricId, long metricId) {
