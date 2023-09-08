@@ -1,9 +1,6 @@
 package at.uibk.dps.rm.testutil.objectprovider;
 
-import at.uibk.dps.rm.entity.model.Account;
-import at.uibk.dps.rm.entity.model.Region;
-import at.uibk.dps.rm.entity.model.ResourceProvider;
-import at.uibk.dps.rm.entity.model.VPC;
+import at.uibk.dps.rm.entity.model.*;
 import lombok.experimental.UtilityClass;
 
 /**
@@ -56,5 +53,13 @@ public class TestResourceProviderProvider {
 
     public static VPC createVPC(long id, Region region, Account createdBy) {
         return createVPC(id, region, "vpc-id", "subnet-id", createdBy);
+    }
+
+    public static K8sNamespace createNamespace(long id, Resource resource) {
+        K8sNamespace namespace = new K8sNamespace();
+        namespace.setNamespaceId(id);
+        namespace.setResource(resource);
+        namespace.setNamespace("namespace");
+        return namespace;
     }
 }

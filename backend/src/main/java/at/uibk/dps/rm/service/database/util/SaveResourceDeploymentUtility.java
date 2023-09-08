@@ -34,6 +34,9 @@ public class SaveResourceDeploymentUtility {
      */
     public Completable saveFunctionDeployments(SessionManager sessionManager, Deployment deployment,
             DeployResourcesRequest request, ResourceDeploymentStatus status, List<Resource> resources) {
+        if (request.getFunctionResources().isEmpty()) {
+            return Completable.complete();
+        }
         return Observable.fromIterable(request.getFunctionResources())
             .map(functionResourceIds -> {
                 Resource resource = resources.stream()
