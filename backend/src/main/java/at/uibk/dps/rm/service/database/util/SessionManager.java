@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.database.util;
 
+import at.uibk.dps.rm.annotations.Generated;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
@@ -82,6 +83,8 @@ public class SessionManager {
         return Completable.fromCompletionStage(session.flush());
     }
 
+
+    @Generated
     @Override
     public boolean equals(Object object) {
         if (this == object) return true;
@@ -92,6 +95,8 @@ public class SessionManager {
         return session.equals(that.session);
     }
 
+
+    @Generated
     @Override
     public int hashCode() {
         return session.hashCode();

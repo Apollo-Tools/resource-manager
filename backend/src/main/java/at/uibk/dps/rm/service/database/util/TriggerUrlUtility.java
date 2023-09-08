@@ -28,7 +28,7 @@ public class TriggerUrlUtility {
      * @return a Completable
      */
     public Completable setTriggerUrlsForFunctions(SessionManager sessionManager,
-                                                   DeploymentOutput deploymentOutput, DeployResourcesDTO request) {
+            DeploymentOutput deploymentOutput, DeployResourcesDTO request) {
         return Observable.fromIterable(deploymentOutput.getFunctionUrls().getValue().entrySet())
             .flatMapCompletable(entry -> {
                 String[] entryInfo = entry.getKey().split("_");
@@ -64,15 +64,15 @@ public class TriggerUrlUtility {
     /**
      * Check if the given parameters match the values of the given function resource
      *
-     * @param deploymentId the id of the deployment
+     * @param resourceId the id of the resource
      * @param functionName the name of the function
      * @param runtimeName the name of the runtime
      * @param functionDeployment the function deployment
      * @return true if they match, else false
      */
-    private static boolean matchesFunctionDeployment(long deploymentId, String functionName, String runtimeName,
+    private static boolean matchesFunctionDeployment(long resourceId, String functionName, String runtimeName,
             FunctionDeployment functionDeployment) {
-        return functionDeployment.getResource().getResourceId() == deploymentId &&
+        return functionDeployment.getResource().getResourceId() == resourceId &&
             functionDeployment.getFunction().getName().equals(functionName) &&
             functionDeployment.getFunction().getRuntime().getName().replace(".", "").equals(runtimeName);
     }
