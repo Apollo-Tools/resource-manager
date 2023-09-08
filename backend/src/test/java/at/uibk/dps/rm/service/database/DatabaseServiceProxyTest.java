@@ -147,6 +147,39 @@ public class DatabaseServiceProxyTest {
     }
 
     @Test
+    void findOnyByIdAndAccountId(VertxTestContext testContext) {
+        long typeId = 1L;
+        long accountId = 2L;
+        ResourceType entity = TestResourceProvider.createResourceTypeContainer(1L);
+
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
+        when(testRepository.findByIdAndAccountId(sessionManager, typeId, accountId))
+            .thenReturn(Maybe.just(entity));
+
+        testClass.findOneByIdAndAccountId(typeId, accountId,
+            testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result.getLong("type_id")).isEqualTo(1L);
+                assertThat(result.getString("resource_type")).isEqualTo("container");
+                testContext.completeNow();
+        })));
+    }
+
+    @Test
+    void findOnyByIdAndAccountIdNotFound(VertxTestContext testContext) {
+        long typeId = 1L;
+        long accountId = 2L;
+
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
+        when(testRepository.findByIdAndAccountId(sessionManager, typeId, accountId))
+            .thenReturn(Maybe.empty());
+
+        testClass.findOneByIdAndAccountId(typeId, accountId, testContext.failing(throwable -> testContext.verify(() -> {
+            assertThat(throwable).isInstanceOf(NotFoundException.class);
+            testContext.completeNow();
+        })));
+    }
+
+    @Test
     void findAll(VertxTestContext testContext) {
         ResourceType entity1 = TestResourceProvider.createResourceTypeContainer(1L);
         ResourceType entity2 = TestResourceProvider.createResourceTypeFaas(2L);
@@ -208,6 +241,15 @@ public class DatabaseServiceProxyTest {
         testClass.update(id, fields, testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(NotFoundException.class);
                 assertThat(throwable.getMessage()).isEqualTo("ResourceType not found");
+                testContext.completeNow();
+            })));
+    }
+
+    @Test
+    void updateOwnedToAccount(VertxTestContext testContext) {
+        testClass.updateOwned(1L, 2L, new JsonObject(),
+            testContext.failing(throwable -> testContext.verify(() -> {
+                assertThat(throwable).isInstanceOf(UnsupportedOperationException.class);
                 testContext.completeNow();
             })));
     }
