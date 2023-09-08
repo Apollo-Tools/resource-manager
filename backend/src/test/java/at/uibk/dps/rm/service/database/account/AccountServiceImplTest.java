@@ -23,6 +23,8 @@ import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -55,20 +57,33 @@ public class AccountServiceImplTest {
     
     private SessionManager sessionManager;
 
+    private long accountId;
+    private String username, password;
+    private String hashedPw;
+    private Account user;
+    private final PasswordUtility pwUtility = new PasswordUtility();
+    private NewAccountDTO accountDTO;
+    private Role role;
+
+
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
         accountService = new AccountServiceImpl(accountRepository, roleRepository, sessionFactory);
+        accountId = 1L;
+        username = "user1";
+        password = "pw1";
+        hashedPw = pwUtility.hashPassword(password.toCharArray());
+        user = TestAccountProvider.createAccount(accountId, username, hashedPw);
+        accountDTO = new NewAccountDTO();
+        accountDTO.setUsername(username);
+        accountDTO.setPassword(password);
+        role = TestAccountProvider.createRoleDefault();
+        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
     }
 
     @Test
     void loginAccount(VertxTestContext testContext) {
-        long accountId = 1L;
-        String username = "user1", password = "pw1";
-        String hashedPw = new PasswordUtility().hashPassword(password.toCharArray());
-        Account user = TestAccountProvider.createAccount(accountId, username, hashedPw);
-
-        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(accountRepository.findByUsername(sessionManager, username))
             .thenReturn(Maybe.just(user));
         
@@ -82,26 +97,21 @@ public class AccountServiceImplTest {
 
     @Test
     void loginAccountInvalidPW(VertxTestContext testContext) {
-        long accountId = 1L;
-        String username = "user1", password = "pw1";
-        String hashedPw = new PasswordUtility().hashPassword(password.toCharArray()) + 2;
-        Account user = TestAccountProvider.createAccount(accountId, username, hashedPw);
+        String incorrectHashedPw = pwUtility.hashPassword(password.toCharArray()) + 2;
+        Account userInvalidPW = TestAccountProvider.createAccount(accountId, username, incorrectHashedPw);
 
-        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(accountRepository.findByUsername(sessionManager, username))
-            .thenReturn(Maybe.just(user));
+            .thenReturn(Maybe.just(userInvalidPW));
 
         accountService.loginAccount(username, password, testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(UnauthorizedException.class);
+            assertThat(throwable.getMessage()).isEqualTo("invalid credentials");
                 testContext.completeNow();
             })));
     }
 
     @Test
     void loginAccountNotFound(VertxTestContext testContext) {
-        String username = "user1", password = "pw1";
-
-        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(accountRepository.findByUsername(sessionManager, username))
             .thenReturn(Maybe.empty());
 
@@ -113,14 +123,21 @@ public class AccountServiceImplTest {
     }
 
     @Test
-    void save(VertxTestContext testContext) {
-        String username = "user1", password = "pw1";
-        NewAccountDTO accountDTO = new NewAccountDTO();
-        accountDTO.setUsername(username);
-        accountDTO.setPassword(password);
-        Role role = TestAccountProvider.createRoleDefault();
+    void loginAccountInactive(VertxTestContext testContext) {
+        user.setIsActive(false);
 
-        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
+        when(accountRepository.findByUsername(sessionManager, username))
+            .thenReturn(Maybe.just(user));
+
+        accountService.loginAccount(username, password, testContext.failing(throwable -> testContext.verify(() -> {
+                assertThat(throwable).isInstanceOf(UnauthorizedException.class);
+                assertThat(throwable.getMessage()).isEqualTo("invalid credentials");
+                testContext.completeNow();
+            })));
+    }
+
+    @Test
+    void save(VertxTestContext testContext) {
         when(accountRepository.findByUsername(sessionManager, username))
             .thenReturn(Maybe.empty());
         when(roleRepository.findByRoleName(sessionManager, RoleEnum.DEFAULT.getValue()))
@@ -138,16 +155,8 @@ public class AccountServiceImplTest {
 
     @Test
     void saveAlreadyExists(VertxTestContext testContext) {
-        String username = "user1", password = "pw1";
-        NewAccountDTO accountDTO = new NewAccountDTO();
-        accountDTO.setUsername(username);
-        accountDTO.setPassword(password);
-        Account account = TestAccountProvider.createAccount(1L, username, password);
-        Role role = TestAccountProvider.createRoleDefault();
-
-        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(accountRepository.findByUsername(sessionManager, username))
-            .thenReturn(Maybe.just(account));
+            .thenReturn(Maybe.just(user));
         when(roleRepository.findByRoleName(sessionManager, RoleEnum.DEFAULT.getValue()))
             .thenReturn(Maybe.just(role));
 
@@ -161,20 +170,14 @@ public class AccountServiceImplTest {
 
     @Test
     void update(VertxTestContext testContext) {
-        PasswordUtility pwUtility = new PasswordUtility();
-        long accountId = 1L;
-        String username = "user1", password = "pw1";
-        String hashedPw = pwUtility.hashPassword(password.toCharArray());
-        Account entity = TestAccountProvider.createAccount(accountId, username, hashedPw);
         JsonObject fields = new JsonObject("{\"old_password\": \"pw1\", \"new_password\": \"pw2\"}");
 
-        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(accountRepository.findById(sessionManager, accountId))
-            .thenReturn(Maybe.just(entity));
+            .thenReturn(Maybe.just(user));
 
         accountService.update(accountId, fields, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
-                assertThat(pwUtility.verifyPassword(entity.getPassword(), "pw2".toCharArray()))
+                assertThat(pwUtility.verifyPassword(user.getPassword(), "pw2".toCharArray()))
                     .isEqualTo(true);
                 testContext.completeNow();
             })));
@@ -182,12 +185,9 @@ public class AccountServiceImplTest {
 
     @Test
     void updateInvalidPassword(VertxTestContext testContext) {
-        long accountId = 1L;
-        String username = "user1", password = "pw1";
         Account entity = TestAccountProvider.createAccount(accountId, username, password);
         JsonObject fields = new JsonObject("{\"old_password\": \"pw2\", \"new_password\": \"pw2\"}");
 
-        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(accountRepository.findById(sessionManager, accountId)).thenReturn(Maybe.just(entity));
 
         accountService.update(accountId, fields, testContext.failing(throwable -> testContext.verify(() -> {
@@ -199,10 +199,8 @@ public class AccountServiceImplTest {
 
     @Test
     void updateNotFound(VertxTestContext testContext) {
-        long accountId = 1L;
         JsonObject fields = new JsonObject("{\"old_password\": \"pw1\", \"new_password\": \"pw2\"}");
 
-        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(accountRepository.findById(sessionManager, accountId)).thenReturn(Maybe.empty());
 
         accountService.update(accountId, fields, testContext.failing(throwable -> testContext.verify(() -> {
@@ -210,5 +208,30 @@ public class AccountServiceImplTest {
                 assertThat(throwable.getMessage()).isEqualTo("Account not found");
                 testContext.completeNow();
             })));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void setAccountActive(boolean setActive, VertxTestContext testContext) {
+        user.setIsActive(!setActive);
+
+        when(session.find(Account.class, accountId)).thenReturn(CompletionStages.completedFuture(user));
+
+        accountService.setAccountActive(accountId, setActive,
+            testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(user.getIsActive()).isEqualTo(setActive);
+                testContext.completeNow();
+        })));
+    }
+
+    @Test
+    void setAccountActiveNotFound(VertxTestContext testContext) {
+        when(session.find(Account.class, accountId)).thenReturn(CompletionStages.nullFuture());
+
+        accountService.setAccountActive(accountId, true,
+            testContext.failing(throwable -> testContext.verify(() -> {
+                assertThat(throwable).isInstanceOf(NotFoundException.class);
+                testContext.completeNow();
+        })));
     }
 }

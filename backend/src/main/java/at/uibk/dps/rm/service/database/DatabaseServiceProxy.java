@@ -110,8 +110,14 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
         RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }
 
+    /**
+     * Map a list of found entities to a JsonArray
+     *
+     * @param resultList the result list
+     * @return the mapped JsonArray
+     */
     @NotNull
-    private JsonArray mapResultListToJsonArray(List<T> resultList) {
+    protected JsonArray mapResultListToJsonArray(List<T> resultList) {
         ArrayList<JsonObject> objects = new ArrayList<>();
         for (T entity : resultList) {
             objects.add(JsonObject.mapFrom(entity));

@@ -8,6 +8,7 @@ import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
@@ -41,13 +42,13 @@ public class AccountNamespaceServiceImpl extends DatabaseServiceProxy<AccountNam
             repository.findByAccountIdAndNamespaceId(sessionManager, accountId, namespaceId)
                 .flatMap(existingService -> Maybe.<K8sNamespace>error(new AlreadyExistsException(AccountNamespace.class)))
                 .switchIfEmpty(sessionManager.find(K8sNamespace.class, namespaceId))
-                .switchIfEmpty(Maybe.error(new NotFoundException(K8sNamespace.class)))
-                .flatMapSingle(namespace -> {
+                .switchIfEmpty(Single.error(new NotFoundException(K8sNamespace.class)))
+                .flatMap(namespace -> {
                     long resourceId = namespace.getResource().getResourceId();
                     accountNamespace.setNamespace(namespace);
                     return repository.findByAccountIdAndResourceId(sessionManager, accountId, resourceId);
                 })
-                .flatMap(existing -> {
+                .flatMapMaybe(existing -> {
                     if (!existing.isEmpty()) {
                         return Maybe.error(new AlreadyExistsException("only one namespace per resource allowed"));
                     }

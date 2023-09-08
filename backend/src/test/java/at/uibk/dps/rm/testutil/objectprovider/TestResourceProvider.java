@@ -42,6 +42,20 @@ public class TestResourceProvider {
         return mainResource;
     }
 
+    public static MainResource createClusterWithoutNodes(long resourceId, String name) {
+        Platform platform = TestPlatformProvider.createPlatformContainer(1L, PlatformEnum.K8S.getValue());
+        Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1");
+        MainResource mainResource = createResource(resourceId, platform, region).getMain();
+        mainResource.setName(name);
+        Set<MetricValue> metricValues = new HashSet<>();
+        metricValues.add(TestMetricProvider.createMetricValue(1L, 2L,"cpu", 1.0));
+        metricValues.add(TestMetricProvider.createMetricValue(2L, 3L,"memory-size", 100));
+        metricValues.add(TestMetricProvider.createMetricValue(3L, 4L,"storage-size", 100));
+        metricValues.add(TestMetricProvider.createMetricValue(4L, 5L,"availability", 99.5));
+        mainResource.setMetricValues(metricValues);
+        return mainResource;
+    }
+
     public static SubResource createSubResource(long id, String name, MainResource mainResource) {
         SubResource subResource = new SubResource();
         subResource.setResourceId(id);

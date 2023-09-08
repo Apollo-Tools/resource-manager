@@ -14,15 +14,10 @@ import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import at.uibk.dps.rm.util.misc.PasswordUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
-import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * This is the implementation of the {@link AccountService}.
@@ -108,21 +103,6 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
                 return Completable.complete();
             }));
         RxVertxHandler.handleSession(update, resultHandler);
-    }
-
-    @Override
-    public void findAll(Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<Account>> findAll = withTransactionSingle(repository::findAll);
-        RxVertxHandler.handleSession(
-            findAll.map(result -> {
-                ArrayList<JsonObject> objects = new ArrayList<>();
-                for (Account account: result) {
-                    account.setPassword(null);
-                    objects.add(JsonObject.mapFrom(account));
-                }
-                return new JsonArray(objects);
-            })
-        , resultHandler);
     }
 
     @Override

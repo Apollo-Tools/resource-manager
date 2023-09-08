@@ -12,10 +12,8 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import org.hibernate.reactive.stage.Stage.SessionFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -44,34 +42,14 @@ public class NamespaceServiceImpl extends DatabaseServiceProxy<K8sNamespace> imp
     @Override
     public void findAll(Handler<AsyncResult<JsonArray>> resultHandler) {
         Single<List<K8sNamespace>> findAll = withTransactionSingle(repository::findAllAndFetch);
-        RxVertxHandler.handleSession(
-            findAll
-                .map(namespaces -> {
-                    ArrayList<JsonObject> objects = new ArrayList<>();
-                    for (K8sNamespace namespace: namespaces) {
-                        objects.add(JsonObject.mapFrom(namespace));
-                    }
-                    return new JsonArray(objects);
-                }),
-            resultHandler
-        );
+        RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }
 
     @Override
     public void findAllByAccountId(long accountId, Handler<AsyncResult<JsonArray>> resultHandler) {
         Single<List<K8sNamespace>> findAll = withTransactionSingle(sessionManager -> repository
             .findAllByAccountIdAndFetch(sessionManager, accountId));
-        RxVertxHandler.handleSession(
-            findAll
-                .map(namespaces -> {
-                    ArrayList<JsonObject> objects = new ArrayList<>();
-                    for (K8sNamespace namespace: namespaces) {
-                        objects.add(JsonObject.mapFrom(namespace));
-                    }
-                    return new JsonArray(objects);
-                }),
-            resultHandler
-        );
+        RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }
 
     @Override

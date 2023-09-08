@@ -62,12 +62,21 @@ public class TestResourceProviderProvider {
         return createVPC(id, region, "vpc-id", "subnet-id", createdBy);
     }
 
-    public static K8sNamespace createNamespace(long id, Resource resource) {
+    public static K8sNamespace createNamespace(long id, String name, Resource resource) {
         K8sNamespace namespace = new K8sNamespace();
         namespace.setNamespaceId(id);
         namespace.setResource(resource);
-        namespace.setNamespace("namespace");
+        namespace.setNamespace(name);
         return namespace;
+    }
+
+    public static K8sNamespace createNamespace(long id, Resource resource) {
+        return createNamespace(id, "namespace", resource);
+    }
+
+    public static K8sNamespace createNamespace(long id) {
+        Resource resource = TestResourceProvider.createResource(id + 1);
+        return createNamespace(id, resource);
     }
 
     public static Environment createEnvironment(long id, String name) {

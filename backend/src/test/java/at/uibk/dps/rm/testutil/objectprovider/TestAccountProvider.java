@@ -62,4 +62,12 @@ public class TestAccountProvider {
         role.setRole(RoleEnum.DEFAULT.getValue());
         return role;
     }
+
+    public static AccountNamespace createAccountNamespace(long id, Account account, K8sNamespace namespace) {
+        AccountNamespace accountNamespace = new AccountNamespace();
+        accountNamespace.setAccountNamespaceId(id);
+        accountNamespace.setAccount(account);
+        accountNamespace.setNamespace(namespace);
+        return accountNamespace;
+    }
 }
