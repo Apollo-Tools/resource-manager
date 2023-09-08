@@ -23,6 +23,13 @@ public class TestResourceProviderProvider {
         return resourceProvider;
     }
 
+    public static ResourceProvider createResourceProvider(long providerId, String provider, Environment environment) {
+        ResourceProvider resourceProvider = createResourceProvider(providerId);
+        resourceProvider.setEnvironment(environment);
+        resourceProvider.setProvider(provider);
+        return resourceProvider;
+    }
+
     public static Region createRegion(long id, String name) {
         ResourceProvider rp = createResourceProvider(1L, "aws");
         return createRegion(id, name, rp);
@@ -61,5 +68,12 @@ public class TestResourceProviderProvider {
         namespace.setResource(resource);
         namespace.setNamespace("namespace");
         return namespace;
+    }
+
+    public static Environment createEnvironment(long id, String name) {
+        Environment environment = new Environment();
+        environment.setEnvironmentId(id);
+        environment.setEnvironment(name);
+        return environment;
     }
 }

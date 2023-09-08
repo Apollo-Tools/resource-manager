@@ -37,7 +37,7 @@ public class SLOUtility {
      * @return a CompletableFuture that emits a list of the filtered and sorted resources
      */
     public Single<List<Resource>> findAndFilterResourcesBySLOs(SessionManager sessionManager,
-                                                               SLORequest sloRequest) {
+            SLORequest sloRequest) {
         Completable checkSLOs = Observable.fromIterable(sloRequest.getServiceLevelObjectives())
             .map(slo -> metricRepository.findByMetricAndIsSLO(sessionManager, slo.getName())
                 .switchIfEmpty(Maybe.error(new NotFoundException(ServiceLevelObjective.class)))

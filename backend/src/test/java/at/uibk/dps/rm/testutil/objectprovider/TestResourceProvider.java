@@ -63,6 +63,7 @@ public class TestResourceProvider {
         resource.setResourceId(id);
         resource.setRegion(region);
         resource.setPlatform(platform);
+        resource.setMetricValues(new HashSet<>());
         return resource;
     }
 
