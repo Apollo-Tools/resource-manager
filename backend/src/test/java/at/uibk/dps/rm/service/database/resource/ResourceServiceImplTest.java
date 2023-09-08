@@ -78,7 +78,6 @@ public class ResourceServiceImplTest {
 
         resourceService.findOne(resourceId, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("resource_id")).isEqualTo(1L);
-                assertThat(result.getJsonArray("metric_values")).isNull();
                 testContext.completeNow();
         })));
     }

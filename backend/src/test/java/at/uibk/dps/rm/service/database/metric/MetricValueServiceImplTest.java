@@ -2,6 +2,7 @@ package at.uibk.dps.rm.service.database.metric;
 
 import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.entity.model.MetricValue;
+import at.uibk.dps.rm.entity.model.Platform;
 import at.uibk.dps.rm.entity.model.PlatformMetric;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
@@ -9,6 +10,7 @@ import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestMetricProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestPlatformProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -178,7 +180,9 @@ public class MetricValueServiceImplTest {
             TestMetricProvider.createMetricTypeNumber());
         MetricValue metricValue = TestMetricProvider
             .createMetricValue(1L, metric, valueNumber);
-        PlatformMetric platformMetric = TestMetricProvider.createPlatformMetric(2L, metric);
+        Platform platform = TestPlatformProvider.createPlatformFaas(1L, "platform");
+        PlatformMetric platformMetric = TestMetricProvider.createPlatformMetric(2L, metric, platform,
+            false);
 
         sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         when(metricValueRepository.findByResourceAndMetricAndFetch(sessionManager, resourceId, metricId))
