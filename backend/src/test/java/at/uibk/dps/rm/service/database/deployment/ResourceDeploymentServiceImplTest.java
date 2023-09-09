@@ -2,6 +2,7 @@ package at.uibk.dps.rm.service.database.deployment;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.repository.deployment.ResourceDeploymentRepository;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
@@ -36,6 +37,9 @@ public class ResourceDeploymentServiceImplTest {
     private Stage.SessionFactory sessionFactory;
 
     @Mock
+    private SessionManagerProvider smProvider;
+
+    @Mock
     private Stage.Session session;
     
     private SessionManager sessionManager;
@@ -43,7 +47,7 @@ public class ResourceDeploymentServiceImplTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        service = new ResourceDeploymentServiceImpl(repository, sessionFactory);
+        service = new ResourceDeploymentServiceImpl(repository, smProvider);
     }
 
     @Test

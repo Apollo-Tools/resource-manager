@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.model.Ensemble;
 import at.uibk.dps.rm.entity.model.EnsembleSLO;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.exception.NotFoundException;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.mockprovider.EnsembleRepositoryProviderMock;
 import at.uibk.dps.rm.testutil.objectprovider.TestEnsembleProvider;
@@ -43,6 +44,9 @@ public class EnsembleServiceImplTest {
     private Stage.SessionFactory sessionFactory;
 
     @Mock
+    private SessionManagerProvider smProvider;
+
+    @Mock
     private Stage.Session session;
     
     private SessionManager sessionManager;
@@ -51,7 +55,7 @@ public class EnsembleServiceImplTest {
     void initTest() {
         JsonMapperConfig.configJsonMapper();
         repositoryMock.mock();
-        ensembleService = new EnsembleServiceImpl(repositoryMock.getRepositoryProvider(), sessionFactory);
+        ensembleService = new EnsembleServiceImpl(repositoryMock.getRepositoryProvider(), smProvider);
     }
 
     @Test

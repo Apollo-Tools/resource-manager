@@ -3,6 +3,7 @@ package at.uibk.dps.rm.service.database.service;
 import at.uibk.dps.rm.entity.model.Service;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.service.ServiceRepository;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestServiceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
@@ -42,6 +43,9 @@ public class ServiceServiceImplTest {
     private Stage.SessionFactory sessionFactory;
 
     @Mock
+    private SessionManagerProvider smProvider;
+
+    @Mock
     private Stage.Session session;
     
     private SessionManager sessionManager;
@@ -49,7 +53,7 @@ public class ServiceServiceImplTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        service = new ServiceServiceImpl(serviceRepository, sessionFactory);
+        service = new ServiceServiceImpl(serviceRepository, smProvider);
     }
 
     @Test

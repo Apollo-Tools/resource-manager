@@ -38,7 +38,7 @@ public class AccountNamespaceServiceImpl extends DatabaseServiceProxy<AccountNam
     public void saveByAccountIdAndNamespaceId(long accountId, long namespaceId,
             Handler<AsyncResult<JsonObject>> resultHandler) {
         AccountNamespace accountNamespace = new AccountNamespace();
-        Maybe<AccountNamespace> create = smProvider.withTransactionMaybe( sm ->
+        Single<AccountNamespace> create = smProvider.withTransactionSingle(sm ->
             repository.findByAccountIdAndNamespaceId(sm, accountId, namespaceId)
                 .flatMap(existingService -> Maybe.<K8sNamespace>error(new AlreadyExistsException(AccountNamespace.class)))
                 .switchIfEmpty(sm.find(K8sNamespace.class, namespaceId))
@@ -54,8 +54,8 @@ public class AccountNamespaceServiceImpl extends DatabaseServiceProxy<AccountNam
                     }
                     return sm.find(Account.class, accountId);
                 })
-                .switchIfEmpty(Maybe.error(new NotFoundException(Account.class)))
-                .flatMapSingle(account -> {
+                .switchIfEmpty(Single.error(new NotFoundException(Account.class)))
+                .flatMap(account -> {
                     accountNamespace.setAccount(account);
                     return sm.persist(accountNamespace);
                 })

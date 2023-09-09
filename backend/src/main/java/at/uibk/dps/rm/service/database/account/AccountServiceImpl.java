@@ -14,6 +14,7 @@ import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import at.uibk.dps.rm.util.misc.PasswordUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
@@ -45,9 +46,9 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
 
     @Override
     public void loginAccount(String username, String password, Handler<AsyncResult<JsonObject>> resultHandler) {
-        Maybe<Account> login = smProvider.withTransactionMaybe( sm -> repository
+        Single<Account> login = smProvider.withTransactionSingle( sm -> repository
             .findByUsername(sm, username)
-            .switchIfEmpty(Maybe.error(new UnauthorizedException("invalid credentials")))
+            .switchIfEmpty(Single.error(new UnauthorizedException("invalid credentials")))
             .map(account -> {
                 if (!account.getIsActive()) {
                     throw new UnauthorizedException("invalid credentials");
@@ -68,12 +69,12 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
     public void save(JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
         NewAccountDTO accountDTO = data.mapTo(NewAccountDTO.class);
         Account newAccount = new Account();
-        Maybe<Account> save = smProvider.withTransactionMaybe( sm -> repository
+        Single<Account> save = smProvider.withTransactionSingle( sm -> repository
             .findByUsername(sm, accountDTO.getUsername())
             .flatMap(existingAccount -> Maybe.<Role>error(new AlreadyExistsException(Account.class)))
             .switchIfEmpty(roleRepository.findByRoleName(sm, RoleEnum.DEFAULT.getValue()))
-            .switchIfEmpty(Maybe.error(new NotFoundException("default role not found")))
-            .flatMapSingle(role -> {
+            .switchIfEmpty(Single.error(new NotFoundException("default role not found")))
+            .flatMap(role -> {
                 newAccount.setUsername(accountDTO.getUsername());
                 newAccount.setRole(role);
                 PasswordUtility passwordUtility = new PasswordUtility();

@@ -5,6 +5,7 @@ import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.database.util.SessionManager;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.mockprovider.DeploymentRepositoryProviderMock;
 import at.uibk.dps.rm.testutil.objectprovider.*;
@@ -51,13 +52,16 @@ public class DeploymentServiceImplTest {
     @Mock
     private SessionFactory sessionFactory;
 
+    @Mock
+    private SessionManagerProvider smProvider;
+
     private SessionManager sessionManager;
 
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
         repositoryMock.mock();
-        deploymentService = new DeploymentServiceImpl(repositoryMock.getRepositoryProvider(), sessionFactory);
+        deploymentService = new DeploymentServiceImpl(repositoryMock.getRepositoryProvider(), smProvider);
     }
 
     private static Stream<Arguments> provideResourceDeployments(ResourceDeploymentStatus rds1,

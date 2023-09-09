@@ -7,16 +7,16 @@ import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.account.AccountNamespaceRepository;
 import at.uibk.dps.rm.service.database.util.SessionManager;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
-import org.hibernate.reactive.stage.Stage;
-import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,8 +26,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Implements tests for the {@link AccountNamespaceServiceImpl} class.
@@ -44,11 +43,9 @@ public class AccountNamespaceServiceTest {
     private AccountNamespaceRepository accountNamespaceRepository;
 
     @Mock
-    private Stage.SessionFactory sessionFactory;
+    private SessionManagerProvider smProvider;
 
     @Mock
-    private Stage.Session session;
-
     private SessionManager sessionManager;
 
     private long accountId, namespaceId;
@@ -58,23 +55,27 @@ public class AccountNamespaceServiceTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        accountNamespaceService = new AccountNamespaceServiceImpl(accountNamespaceRepository, sessionFactory);
+        accountNamespaceService = new AccountNamespaceServiceImpl(accountNamespaceRepository, smProvider);
         accountId = 1L;
         namespaceId = 2L;
         account = TestAccountProvider.createAccount(accountId);
         namespace = TestResourceProviderProvider.createNamespace(namespaceId);
-        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
     }
 
     @Test
     void saveByAccountIdAndNamespaceId(VertxTestContext testContext) {
+        AccountNamespace an = TestAccountProvider.createAccountNamespace(1L, accountId, namespaceId);
+
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(accountNamespaceRepository.findByAccountIdAndNamespaceId(sessionManager, accountId, namespaceId))
             .thenReturn(Maybe.empty());
-        when(session.find(K8sNamespace.class, namespaceId)).thenReturn(CompletionStages.completedFuture(namespace));
+        when(sessionManager.find(K8sNamespace.class, namespaceId)).thenReturn(Maybe.just(namespace));
         when(accountNamespaceRepository.findByAccountIdAndResourceId(sessionManager, accountId,
             namespace.getResource().getResourceId())).thenReturn(Single.just(List.of()));
-        when(session.find(Account.class, accountId)).thenReturn(CompletionStages.completedFuture(account));
-        when(session.persist(any(AccountNamespace.class))).thenReturn(CompletionStages.voidFuture());
+        when(sessionManager.find(Account.class, accountId)).thenReturn(Maybe.just(account));
+        when(sessionManager.persist(argThat((AccountNamespace persist) ->
+                persist.getNamespace().equals(namespace) && persist.getAccount().equals(account))))
+            .thenReturn(Single.just(an));
 
         accountNamespaceService.saveByAccountIdAndNamespaceId(accountId, namespaceId,
             testContext.succeeding(result -> testContext.verify(() -> {
@@ -86,12 +87,13 @@ public class AccountNamespaceServiceTest {
 
     @Test
     void saveByAccountIdAndNamespaceIdAccountNotFound(VertxTestContext testContext) {
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(accountNamespaceRepository.findByAccountIdAndNamespaceId(sessionManager, accountId, namespaceId))
             .thenReturn(Maybe.empty());
-        when(session.find(K8sNamespace.class, namespaceId)).thenReturn(CompletionStages.completedFuture(namespace));
+        when(sessionManager.find(K8sNamespace.class, namespaceId)).thenReturn(Maybe.just(namespace));
         when(accountNamespaceRepository.findByAccountIdAndResourceId(sessionManager, accountId,
             namespace.getResource().getResourceId())).thenReturn(Single.just(List.of()));
-        when(session.find(Account.class, accountId)).thenReturn(CompletionStages.nullFuture());
+        when(sessionManager.find(Account.class, accountId)).thenReturn(Maybe.empty());
 
         accountNamespaceService.saveByAccountIdAndNamespaceId(accountId, namespaceId,
             testContext.failing(throwable -> testContext.verify(() -> {
@@ -102,9 +104,10 @@ public class AccountNamespaceServiceTest {
 
     @Test
     void saveByAccountIdAndNamespaceIdAlreadyExistsForResource(VertxTestContext testContext) {
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(accountNamespaceRepository.findByAccountIdAndNamespaceId(sessionManager, accountId, namespaceId))
             .thenReturn(Maybe.empty());
-        when(session.find(K8sNamespace.class, namespaceId)).thenReturn(CompletionStages.completedFuture(namespace));
+        when(sessionManager.find(K8sNamespace.class, namespaceId)).thenReturn(Maybe.just(namespace));
         when(accountNamespaceRepository.findByAccountIdAndResourceId(sessionManager, accountId,
             namespace.getResource().getResourceId())).thenReturn(Single.just(List.of(new AccountNamespace())));
 
@@ -118,9 +121,10 @@ public class AccountNamespaceServiceTest {
 
     @Test
     void saveByAccountIdAndNamespaceIdNamespaceNotFound(VertxTestContext testContext) {
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(accountNamespaceRepository.findByAccountIdAndNamespaceId(sessionManager, accountId, namespaceId))
             .thenReturn(Maybe.empty());
-        when(session.find(K8sNamespace.class, namespaceId)).thenReturn(CompletionStages.nullFuture());
+        when(sessionManager.find(K8sNamespace.class, namespaceId)).thenReturn(Maybe.empty());
 
         accountNamespaceService.saveByAccountIdAndNamespaceId(accountId, namespaceId,
             testContext.failing(throwable -> testContext.verify(() -> {
@@ -131,9 +135,10 @@ public class AccountNamespaceServiceTest {
 
     @Test
     void saveByAccountIdAndNamespaceIdAlreadyExists(VertxTestContext testContext) {
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(accountNamespaceRepository.findByAccountIdAndNamespaceId(sessionManager, accountId, namespaceId))
             .thenReturn(Maybe.just(new AccountNamespace()));
-        when(session.find(K8sNamespace.class, namespaceId)).thenReturn(CompletionStages.nullFuture());
+        when(sessionManager.find(K8sNamespace.class, namespaceId)).thenReturn(Maybe.empty());
 
         accountNamespaceService.saveByAccountIdAndNamespaceId(accountId, namespaceId,
             testContext.failing(throwable -> testContext.verify(() -> {
@@ -144,10 +149,11 @@ public class AccountNamespaceServiceTest {
 
     @Test
     void deleteByAccountIdAndNamespaceId(VertxTestContext testContext) {
+        SessionMockHelper.mockCompletable(smProvider, sessionManager);
         AccountNamespace accountNamespace = TestAccountProvider.createAccountNamespace(1L, account, namespace);
         when(accountNamespaceRepository.findByAccountIdAndNamespaceId(sessionManager, accountId, namespaceId))
             .thenReturn(Maybe.just(accountNamespace));
-        when(session.remove(accountNamespace)).thenReturn(CompletionStages.voidFuture());
+        when(sessionManager.remove(accountNamespace)).thenReturn(Completable.complete());
 
         accountNamespaceService.deleteByAccountIdAndNamespaceId(accountId, namespaceId,
             testContext.succeeding(result -> testContext.verify(testContext::completeNow)));
@@ -155,6 +161,7 @@ public class AccountNamespaceServiceTest {
 
     @Test
     void deleteByAccountIdAndNamespaceIdNotFound(VertxTestContext testContext) {
+        SessionMockHelper.mockCompletable(smProvider, sessionManager);
         when(accountNamespaceRepository.findByAccountIdAndNamespaceId(sessionManager, accountId, namespaceId))
             .thenReturn(Maybe.empty());
 

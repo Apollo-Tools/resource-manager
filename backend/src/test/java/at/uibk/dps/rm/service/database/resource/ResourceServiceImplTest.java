@@ -9,6 +9,7 @@ import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestMetricProvider;
@@ -56,6 +57,9 @@ public class ResourceServiceImplTest {
     private Stage.SessionFactory sessionFactory;
 
     @Mock
+    private SessionManagerProvider smProvider;
+
+    @Mock
     private Stage.Session session;
     
     private SessionManager sessionManager;
@@ -64,7 +68,7 @@ public class ResourceServiceImplTest {
     void initTest() {
         JsonMapperConfig.configJsonMapper();
         resourceService = new ResourceServiceImpl(resourceRepository, regionRepository, metricRepository,
-            sessionFactory);
+            smProvider);
     }
 
     @Test

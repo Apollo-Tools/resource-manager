@@ -2,6 +2,7 @@ package at.uibk.dps.rm.service.database.log;
 
 import at.uibk.dps.rm.entity.model.Log;
 import at.uibk.dps.rm.repository.log.LogRepository;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestLogProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
@@ -39,6 +40,9 @@ public class LogServiceImplTest {
     private Stage.SessionFactory sessionFactory;
 
     @Mock
+    private SessionManagerProvider smProvider;
+
+    @Mock
     private Stage.Session session;
     
     private SessionManager sessionManager;
@@ -47,7 +51,7 @@ public class LogServiceImplTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        logService = new LogServiceImpl(logRepository, sessionFactory);
+        logService = new LogServiceImpl(logRepository, smProvider);
     }
 
     @Test

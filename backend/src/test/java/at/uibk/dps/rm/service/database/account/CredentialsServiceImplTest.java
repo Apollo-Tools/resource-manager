@@ -9,6 +9,7 @@ import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.repository.account.AccountCredentialsRepository;
 import at.uibk.dps.rm.repository.account.CredentialsRepository;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
@@ -55,6 +56,9 @@ public class CredentialsServiceImplTest {
     private Stage.SessionFactory sessionFactory;
 
     @Mock
+    private SessionManagerProvider smProvider;
+
+    @Mock
     private Stage.Session session;
     
     private SessionManager sessionManager;
@@ -67,7 +71,7 @@ public class CredentialsServiceImplTest {
     void initTest() {
         JsonMapperConfig.configJsonMapper();
         credentialsService = new CredentialsServiceImpl(credentialsRepository, accountCredentialsRepository,
-            sessionFactory);
+            smProvider);
         accountId = 1L;
         providerId = 2L;
         rp = TestResourceProviderProvider.createResourceProvider(providerId);

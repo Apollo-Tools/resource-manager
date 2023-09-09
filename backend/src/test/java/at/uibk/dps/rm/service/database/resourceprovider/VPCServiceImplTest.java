@@ -7,6 +7,7 @@ import at.uibk.dps.rm.entity.model.VPC;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
@@ -49,6 +50,9 @@ public class VPCServiceImplTest {
     private Stage.SessionFactory sessionFactory;
 
     @Mock
+    private SessionManagerProvider smProvider;
+
+    @Mock
     private Stage.Session session;
     
     private SessionManager sessionManager;
@@ -56,7 +60,7 @@ public class VPCServiceImplTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        vpcService = new VPCServiceImpl(vpcRepository, regionRepository, sessionFactory);
+        vpcService = new VPCServiceImpl(vpcRepository, regionRepository, smProvider);
     }
 
 

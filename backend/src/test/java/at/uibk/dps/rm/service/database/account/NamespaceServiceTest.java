@@ -5,6 +5,7 @@ import at.uibk.dps.rm.entity.model.MainResource;
 import at.uibk.dps.rm.repository.account.NamespaceRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.service.database.util.SessionManager;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
@@ -51,6 +52,9 @@ public class NamespaceServiceTest {
     private Stage.SessionFactory sessionFactory;
 
     @Mock
+    private SessionManagerProvider smProvider;
+
+    @Mock
     private Stage.Session session;
 
     private SessionManager sessionManager;
@@ -62,7 +66,7 @@ public class NamespaceServiceTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        namespaceService = new NamespaceServiceImpl(namespaceRepository, resourceRepository, sessionFactory);
+        namespaceService = new NamespaceServiceImpl(namespaceRepository, resourceRepository, smProvider);
         sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         accountId = 1L;
         clusterName = "cluster";
@@ -118,10 +122,14 @@ public class NamespaceServiceTest {
         when(resourceRepository.findClusterByName(sessionManager, clusterName)).thenReturn(Maybe.just(cluster));
         when(namespaceRepository.findAllByClusterName(sessionManager, clusterName))
             .thenReturn(Single.just(List.of(n1, n2)));
-        when(session.persist(argThat(array -> array.length == expectedPersistElements)))
-            .thenReturn(CompletionStages.nullFuture());
-        when(session.remove(argThat(array -> array.length == expectedRemoveElements)))
-            .thenReturn(CompletionStages.nullFuture());
+        if (expectedPersistElements > 0) {
+            when(session.persist(any()))
+                .thenReturn(CompletionStages.nullFuture());
+        }
+        if (expectedRemoveElements > 0) {
+            when(session.remove(any()))
+                .thenReturn(CompletionStages.nullFuture());
+        }
 
         namespaceService.updateAllClusterNamespaces(clusterName, namespaces,
             testContext.succeeding(result -> testContext.verify(testContext::completeNow))

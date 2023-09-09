@@ -70,4 +70,10 @@ public class TestAccountProvider {
         accountNamespace.setNamespace(namespace);
         return accountNamespace;
     }
+
+    public static AccountNamespace createAccountNamespace(long id, long accountId, long namespaceId) {
+        Account account = createAccount(accountId);
+        K8sNamespace namespace = TestResourceProviderProvider.createNamespace(namespaceId);
+        return createAccountNamespace(id, account, namespace);
+    }
 }

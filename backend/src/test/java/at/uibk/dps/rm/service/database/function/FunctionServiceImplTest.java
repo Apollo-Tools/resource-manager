@@ -3,6 +3,7 @@ package at.uibk.dps.rm.service.database.function;
 import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.function.FunctionRepository;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
@@ -43,6 +44,9 @@ public class FunctionServiceImplTest {
     private Stage.SessionFactory sessionFactory;
 
     @Mock
+    private SessionManagerProvider smProvider;
+
+    @Mock
     private Stage.Session session;
     
     private SessionManager sessionManager;
@@ -54,7 +58,7 @@ public class FunctionServiceImplTest {
     void initTest() {
         rtoc.vertx();
         JsonMapperConfig.configJsonMapper();
-        functionService = new FunctionServiceImpl(functionRepository, sessionFactory);
+        functionService = new FunctionServiceImpl(functionRepository, smProvider);
     }
 
     @Test

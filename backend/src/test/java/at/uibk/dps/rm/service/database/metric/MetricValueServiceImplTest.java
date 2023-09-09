@@ -8,6 +8,7 @@ import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.service.database.util.SessionManager;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestMetricProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestPlatformProvider;
@@ -55,6 +56,9 @@ public class MetricValueServiceImplTest {
     private SessionFactory sessionFactory;
 
     @Mock
+    private SessionManagerProvider smProvider;
+
+    @Mock
     private Session session;
 
     private SessionManager sessionManager;
@@ -63,7 +67,7 @@ public class MetricValueServiceImplTest {
     void initTest() {
         JsonMapperConfig.configJsonMapper();
         metricValueService = new MetricValueServiceImpl(metricValueRepository, platformMetricRepository,
-            sessionFactory);
+            smProvider);
     }
 
     @Test

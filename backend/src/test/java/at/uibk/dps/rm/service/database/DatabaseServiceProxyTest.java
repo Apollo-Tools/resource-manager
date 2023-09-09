@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.model.ResourceType;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.Repository;
 import at.uibk.dps.rm.service.database.util.SessionManager;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
@@ -49,8 +50,8 @@ public class DatabaseServiceProxyTest {
          *
          * @param repository the repository
          */
-        public ConcreteServiceProxy(Repository<ResourceType> repository, SessionFactory sessionFactory) {
-            super(repository, ResourceType.class, sessionFactory);
+        public ConcreteServiceProxy(Repository<ResourceType> repository, SessionManagerProvider smProvider) {
+            super(repository, ResourceType.class, smProvider);
         }
     }
 
@@ -63,6 +64,9 @@ public class DatabaseServiceProxyTest {
     private SessionFactory sessionFactory;
 
     @Mock
+    private SessionManagerProvider smProvider;
+
+    @Mock
     private Session session;
 
     private SessionManager sessionManager;
@@ -70,7 +74,7 @@ public class DatabaseServiceProxyTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        testClass = new ConcreteServiceProxy(testRepository, sessionFactory);
+        testClass = new ConcreteServiceProxy(testRepository, smProvider);
     }
 
     @Test

@@ -2,6 +2,7 @@ package at.uibk.dps.rm.service.database.metric;
 
 import at.uibk.dps.rm.entity.model.PlatformMetric;
 import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestMetricProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
@@ -39,6 +40,9 @@ public class PlatformMetricServiceImplTest {
     private Stage.SessionFactory sessionFactory;
 
     @Mock
+    private SessionManagerProvider smProvider;
+
+    @Mock
     private Stage.Session session;
     
     private SessionManager sessionManager;
@@ -46,7 +50,7 @@ public class PlatformMetricServiceImplTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        service = new PlatformMetricServiceImpl(repository, sessionFactory);
+        service = new PlatformMetricServiceImpl(repository, smProvider);
     }
 
     @Test

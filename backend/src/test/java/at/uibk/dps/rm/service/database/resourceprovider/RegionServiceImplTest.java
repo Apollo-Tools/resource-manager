@@ -5,6 +5,7 @@ import at.uibk.dps.rm.entity.model.ResourceProvider;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
@@ -46,6 +47,9 @@ public class RegionServiceImplTest {
     private Stage.SessionFactory sessionFactory;
 
     @Mock
+    private SessionManagerProvider smProvider;
+
+    @Mock
     private Stage.Session session;
     
     private SessionManager sessionManager;
@@ -53,7 +57,7 @@ public class RegionServiceImplTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        regionService = new RegionServiceImpl(regionRepository, providerRepository, sessionFactory);
+        regionService = new RegionServiceImpl(regionRepository, providerRepository, smProvider);
     }
 
     @Test
