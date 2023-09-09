@@ -12,7 +12,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
-import org.hibernate.reactive.stage.Stage;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 /**
  * The interface of the service proxy for the resource_type entity.
@@ -26,8 +26,8 @@ public interface PlatformMetricService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static PlatformMetricService create(PlatformMetricRepository repository, Stage.SessionFactory sessionFactory) {
-        return new PlatformMetricServiceImpl(repository, sessionFactory);
+    static PlatformMetricService create(PlatformMetricRepository repository, SessionManagerProvider smProvider) {
+        return new PlatformMetricServiceImpl(repository, smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

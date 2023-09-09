@@ -13,7 +13,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import org.hibernate.reactive.stage.Stage.SessionFactory;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 /**
  * The interface of the service proxy for the account entity.
@@ -28,8 +28,8 @@ public interface AccountService extends DatabaseServiceInterface {
     @Generated
     @GenIgnore
     static AccountService create(AccountRepository accountRepository, RoleRepository roleRepository,
-            SessionFactory sessionFactory) {
-        return new AccountServiceImpl(accountRepository, roleRepository, sessionFactory);
+            SessionManagerProvider smProvider) {
+        return new AccountServiceImpl(accountRepository, roleRepository, smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

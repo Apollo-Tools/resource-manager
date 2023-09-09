@@ -5,7 +5,7 @@ import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.account.AccountNamespaceRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
-import at.uibk.dps.rm.service.database.util.SessionManager;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -13,7 +13,6 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
-import org.hibernate.reactive.stage.Stage.SessionFactory;
 
 /**
  * This is the implementation of the {@link AccountNamespaceService}.
@@ -30,8 +29,8 @@ public class AccountNamespaceServiceImpl extends DatabaseServiceProxy<AccountNam
      *
      * @param repository the resource ensemble repository     *
      */
-    public AccountNamespaceServiceImpl(AccountNamespaceRepository repository, SessionFactory sessionFactory) {
-        super(repository, AccountNamespace.class, sessionFactory);
+    public AccountNamespaceServiceImpl(AccountNamespaceRepository repository, SessionManagerProvider smProvider) {
+        super(repository, AccountNamespace.class, smProvider);
         this.repository = repository;
     }
 
@@ -39,7 +38,7 @@ public class AccountNamespaceServiceImpl extends DatabaseServiceProxy<AccountNam
     public void saveByAccountIdAndNamespaceId(long accountId, long namespaceId,
             Handler<AsyncResult<JsonObject>> resultHandler) {
         AccountNamespace accountNamespace = new AccountNamespace();
-        Maybe<AccountNamespace> create = SessionManager.withTransactionMaybe(sessionFactory, sm ->
+        Maybe<AccountNamespace> create = smProvider.withTransactionMaybe( sm ->
             repository.findByAccountIdAndNamespaceId(sm, accountId, namespaceId)
                 .flatMap(existingService -> Maybe.<K8sNamespace>error(new AlreadyExistsException(AccountNamespace.class)))
                 .switchIfEmpty(sm.find(K8sNamespace.class, namespaceId))
@@ -74,7 +73,7 @@ public class AccountNamespaceServiceImpl extends DatabaseServiceProxy<AccountNam
     @Override
     public void deleteByAccountIdAndNamespaceId(long accountId, long namespaceId,
             Handler<AsyncResult<Void>> resultHandler) {
-        Completable delete = SessionManager.withTransactionCompletable(sessionFactory, sm -> repository
+        Completable delete = smProvider.withTransactionCompletable(sm -> repository
             .findByAccountIdAndNamespaceId(sm, accountId, namespaceId)
             .switchIfEmpty(Maybe.error(new NotFoundException(AccountNamespace.class)))
             .flatMapCompletable(sm::remove)

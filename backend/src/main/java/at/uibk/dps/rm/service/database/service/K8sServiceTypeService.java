@@ -9,7 +9,7 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
-import org.hibernate.reactive.stage.Stage.SessionFactory;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 /**
  * The interface of the service proxy for the service_type entity.
@@ -23,8 +23,8 @@ public interface K8sServiceTypeService extends DatabaseServiceInterface {
     @Generated
     @GenIgnore
     static K8sServiceTypeService create(K8sServiceTypeRepository k8sServiceTypeRepository,
-            SessionFactory sessionFactory) {
-        return new K8sServiceTypeServiceImpl(k8sServiceTypeRepository, sessionFactory);
+            SessionManagerProvider smProvider) {
+        return new K8sServiceTypeServiceImpl(k8sServiceTypeRepository, smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

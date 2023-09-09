@@ -10,7 +10,7 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
-import org.hibernate.reactive.stage.Stage;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 /**
  * The interface of the service proxy for the vpc entity.
@@ -24,8 +24,8 @@ public interface VPCService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static VPCService create(Stage.SessionFactory sessionFactory) {
-        return new VPCServiceImpl(new VPCRepository(), new RegionRepository(), sessionFactory);
+    static VPCService create(SessionManagerProvider smProvider) {
+        return new VPCServiceImpl(new VPCRepository(), new RegionRepository(), smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

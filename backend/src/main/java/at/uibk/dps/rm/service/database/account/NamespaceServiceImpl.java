@@ -5,7 +5,6 @@ import at.uibk.dps.rm.exception.MonitoringException;
 import at.uibk.dps.rm.repository.account.NamespaceRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
-import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -13,7 +12,7 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
-import org.hibernate.reactive.stage.Stage.SessionFactory;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 import java.util.List;
 
@@ -34,22 +33,21 @@ public class NamespaceServiceImpl extends DatabaseServiceProxy<K8sNamespace> imp
      * @param repository the platform repository
      */
     public NamespaceServiceImpl(NamespaceRepository repository, ResourceRepository resourceRepository,
-            SessionFactory sessionFactory) {
-        super(repository, K8sNamespace.class, sessionFactory);
+            SessionManagerProvider smProvider) {
+        super(repository, K8sNamespace.class, smProvider);
         this.repository = repository;
         this.resourceRepository = resourceRepository;
     }
 
     @Override
     public void findAll(Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<K8sNamespace>> findAll = SessionManager.withTransactionSingle(sessionFactory,
-            repository::findAllAndFetch);
+        Single<List<K8sNamespace>> findAll = smProvider.withTransactionSingle(repository::findAllAndFetch);
         RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }
 
     @Override
     public void findAllByAccountId(long accountId, Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<K8sNamespace>> findAll = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+        Single<List<K8sNamespace>> findAll = smProvider.withTransactionSingle(sm -> repository
             .findAllByAccountIdAndFetch(sm, accountId));
         RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }
@@ -57,7 +55,7 @@ public class NamespaceServiceImpl extends DatabaseServiceProxy<K8sNamespace> imp
     @Override
     public void updateAllClusterNamespaces(String clusterName, List<String> namespaces,
             Handler<AsyncResult<Void>> resultHandler) {
-        Completable updateAll = SessionManager.withTransactionCompletable(sessionFactory, sm -> resourceRepository
+        Completable updateAll = smProvider.withTransactionCompletable(sm -> resourceRepository
             .findClusterByName(sm, clusterName)
             // TODO: handle not found exception in Monitoring verticle and throw as monitoring exception
             .switchIfEmpty(Maybe.error(new MonitoringException("cluster " + clusterName + " is not registered")))

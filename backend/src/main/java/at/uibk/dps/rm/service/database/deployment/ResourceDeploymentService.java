@@ -12,7 +12,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import org.hibernate.reactive.stage.Stage;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 /**
  * The interface of the service proxy for the resource_deployment entity.
@@ -26,8 +26,8 @@ public interface ResourceDeploymentService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static ResourceDeploymentService create(ResourceDeploymentRepository repository, Stage.SessionFactory sessionFactory) {
-        return new ResourceDeploymentServiceImpl(repository, sessionFactory);
+    static ResourceDeploymentService create(ResourceDeploymentRepository repository, SessionManagerProvider smProvider) {
+        return new ResourceDeploymentServiceImpl(repository, smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

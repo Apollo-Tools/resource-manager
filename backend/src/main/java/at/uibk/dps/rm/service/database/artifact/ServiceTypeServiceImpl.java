@@ -4,14 +4,13 @@ import at.uibk.dps.rm.entity.model.ServiceType;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.repository.artifact.ServiceTypeRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
-import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
-import org.hibernate.reactive.stage.Stage.SessionFactory;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 /**
  * This is the implementation of the {@link ServiceTypeService}.
@@ -26,15 +25,15 @@ public class ServiceTypeServiceImpl extends DatabaseServiceProxy<ServiceType> im
      *
      * @param repository  the repository
      */
-    public ServiceTypeServiceImpl(ServiceTypeRepository repository, SessionFactory sessionFactory) {
-        super(repository, ServiceType.class, sessionFactory);
+    public ServiceTypeServiceImpl(ServiceTypeRepository repository, SessionManagerProvider smProvider) {
+        super(repository, ServiceType.class, smProvider);
         this.repository = repository;
     }
 
     @Override
     public void save(JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
         ServiceType serviceType = data.mapTo(ServiceType.class);
-        Single<ServiceType> save = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+        Single<ServiceType> save = smProvider.withTransactionSingle(sm -> repository
             .findByName(sm, serviceType.getName())
             .flatMap(existingType -> Maybe.<ServiceType>error(new AlreadyExistsException(ServiceType.class)))
             .switchIfEmpty(sm.persist(serviceType))

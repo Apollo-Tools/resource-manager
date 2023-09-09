@@ -5,6 +5,7 @@ import at.uibk.dps.rm.entity.model.AccountNamespace;
 import at.uibk.dps.rm.repository.account.AccountNamespaceRepository;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
 import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
@@ -12,7 +13,6 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import org.hibernate.reactive.stage.Stage;
 
 /**
  * The interface of the service proxy for the account_namespace entity.
@@ -25,8 +25,8 @@ public interface AccountNamespaceService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static AccountNamespaceService create(Stage.SessionFactory sessionFactory) {
-        return new AccountNamespaceServiceImpl(new AccountNamespaceRepository(), sessionFactory);
+    static AccountNamespaceService create(SessionManagerProvider smProvider) {
+        return new AccountNamespaceServiceImpl(new AccountNamespaceRepository(), smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

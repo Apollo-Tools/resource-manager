@@ -4,12 +4,11 @@ import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.repository.deployment.ServiceDeploymentRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
-import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
-import org.hibernate.reactive.stage.Stage;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 /**
  * This is the implementation of the {@link ServiceDeploymentService}.
@@ -26,15 +25,15 @@ public class ServiceDeploymentServiceImpl extends DatabaseServiceProxy<ServiceDe
      *
      * @param repository the service deployment repository
      */
-    public ServiceDeploymentServiceImpl(ServiceDeploymentRepository repository, Stage.SessionFactory sessionFactory) {
-        super(repository, ServiceDeployment.class, sessionFactory);
+    public ServiceDeploymentServiceImpl(ServiceDeploymentRepository repository, SessionManagerProvider smProvider) {
+        super(repository, ServiceDeployment.class, smProvider);
         this.repository = repository;
     }
 
     @Override
     public void existsReadyForContainerStartupAndTermination(long deploymentId, long resourceDeploymentId,
             long accountId, Handler<AsyncResult<Boolean>> resultHandler) {
-        Single<Boolean> existsOne = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+        Single<Boolean> existsOne = smProvider.withTransactionSingle(sm -> repository
             .countByDeploymentStatus(sm, deploymentId, resourceDeploymentId, accountId,
                 DeploymentStatusValue.DEPLOYED)
             .map(count -> count == 1)

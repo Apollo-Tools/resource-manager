@@ -16,7 +16,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import org.hibernate.reactive.stage.Stage.SessionFactory;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 import java.util.List;
 
@@ -32,9 +32,9 @@ public interface ResourceService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static ResourceService create(SessionFactory sessionFactory) {
+    static ResourceService create(SessionManagerProvider smProvider) {
         return new ResourceServiceImpl(new ResourceRepository(), new RegionRepository(), new MetricRepository(),
-            sessionFactory);
+            smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

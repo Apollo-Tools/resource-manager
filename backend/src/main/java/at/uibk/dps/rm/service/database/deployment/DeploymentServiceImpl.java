@@ -20,7 +20,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import org.hibernate.reactive.stage.Stage.SessionFactory;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 import java.util.*;
 
@@ -39,8 +39,8 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
      * @param repositoryProvider the necessary repositories
      */
     public DeploymentServiceImpl(DeploymentRepositoryProvider repositoryProvider,
-            SessionFactory sessionFactory) {
-        super(repositoryProvider.getDeploymentRepository(), Deployment.class, sessionFactory);
+            SessionManagerProvider smProvider) {
+        super(repositoryProvider.getDeploymentRepository(), Deployment.class, smProvider);
         this.repositoryProvider = repositoryProvider;
     }
 
@@ -49,7 +49,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
         TerminateResourcesDTO terminateResources = new TerminateResourcesDTO();
         terminateResources.setFunctionDeployments(new ArrayList<>());
         terminateResources.setServiceDeployments(new ArrayList<>());
-        Single<TerminateResourcesDTO> update = SessionManager.withTransactionSingle(sessionFactory, sm -> repositoryProvider
+        Single<TerminateResourcesDTO> update = smProvider.withTransactionSingle(sm -> repositoryProvider
             .getDeploymentRepository()
             .findByIdAndAccountId(sm, id, accountId)
             .switchIfEmpty(Single.error(new NotFoundException(Deployment.class)))
@@ -86,7 +86,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
     @Override
     public void findAllByAccountId(long accountId, Handler<AsyncResult<JsonArray>> resultHandler) {
         List<DeploymentResponse> deploymentResponses = new ArrayList<>();
-        Single<List<DeploymentResponse>> findAll = SessionManager.withTransactionSingle(sessionFactory, sm -> repositoryProvider
+        Single<List<DeploymentResponse>> findAll = smProvider.withTransactionSingle(sm -> repositoryProvider
             .getDeploymentRepository()
             .findAllByAccountId(sm, accountId)
             .flatMapObservable(Observable::fromIterable)
@@ -123,7 +123,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
     @Override
     public void findOneByIdAndAccountId(long id, long accountId, Handler<AsyncResult<JsonObject>> resultHandler) {
         DeploymentWithResourcesDTO result = new DeploymentWithResourcesDTO();
-        Single<DeploymentWithResourcesDTO> findOne = SessionManager.withTransactionSingle(sessionFactory, sm -> repositoryProvider
+        Single<DeploymentWithResourcesDTO> findOne = smProvider.withTransactionSingle(sm -> repositoryProvider
             .getDeploymentRepository()
             .findByIdAndAccountId(sm, id, accountId)
             .switchIfEmpty(Single.error(new NotFoundException(Deployment.class)))
@@ -164,7 +164,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
         deployResources.setDeployment(deployment);
         deployResources.setDeploymentCredentials(request.getCredentials());
         deployResources.setVpcList(new ArrayList<>());
-        Single<DeployResourcesDTO> save = SessionManager.withTransactionSingle(sessionFactory, sm -> repositoryProvider
+        Single<DeployResourcesDTO> save = smProvider.withTransactionSingle(sm -> repositoryProvider
             .getAccountRepository()
             .findById(sm, accountId)
             .switchIfEmpty(Maybe.error(new UnauthorizedException()))
@@ -197,7 +197,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                 })
             ))
         )
-        .flatMap(deployResourcesDTO -> SessionManager.withTransactionSingle(sessionFactory, sm ->
+        .flatMap(deployResourcesDTO -> smProvider.withTransactionSingle(sm ->
             mapResourceDeploymentsToDTO(sm, deployResourcesDTO)
                 .andThen(Single.defer(() -> Single.just(deployResources)))
             )
@@ -242,7 +242,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
 
     @Override
     public void handleDeploymentError(long id, String errorMessage, Handler<AsyncResult<Void>> resultHandler) {
-        Completable handleError = SessionManager.withTransactionCompletable(sessionFactory, sm -> {
+        Completable handleError = smProvider.withTransactionCompletable(sm -> {
             Completable updateStatus = repositoryProvider.getResourceDeploymentRepository()
                 .updateDeploymentStatusByDeploymentId(sm, id, DeploymentStatusValue.ERROR);
             Log log = new Log();
@@ -265,7 +265,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
             Handler<AsyncResult<Void>> resultHandler) {
         TriggerUrlUtility urlUtility = new TriggerUrlUtility(repositoryProvider);
         DeploymentOutput deploymentOutput = DeploymentOutput.fromJson(terraformOutput);
-        Completable updateDeployment = SessionManager.withTransactionCompletable(sessionFactory, sm -> {
+        Completable updateDeployment = smProvider.withTransactionCompletable(sm -> {
             Completable setFunctionUrls = urlUtility.setTriggerUrlsForFunctions(sm, deploymentOutput,
                 request);
             Completable setContainerUrls = urlUtility.setTriggerUrlForContainers(sm, request);

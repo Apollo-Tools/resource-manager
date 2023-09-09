@@ -12,7 +12,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
-import org.hibernate.reactive.stage.Stage;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 /**
  * The interface of the service proxy for the function entity.
@@ -26,8 +26,8 @@ public interface FunctionService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static FunctionService create(Stage.SessionFactory sessionFactory) {
-        return new FunctionServiceImpl(new FunctionRepository(), sessionFactory);
+    static FunctionService create(SessionManagerProvider smProvider) {
+        return new FunctionServiceImpl(new FunctionRepository(), smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

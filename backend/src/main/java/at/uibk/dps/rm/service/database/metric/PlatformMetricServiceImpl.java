@@ -3,14 +3,13 @@ package at.uibk.dps.rm.service.database.metric;
 import at.uibk.dps.rm.entity.model.PlatformMetric;
 import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
-import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import org.hibernate.reactive.stage.Stage;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,14 +28,14 @@ public class PlatformMetricServiceImpl extends DatabaseServiceProxy<PlatformMetr
      *
      * @param repository the platform metric repository
      */
-    public PlatformMetricServiceImpl(PlatformMetricRepository repository, Stage.SessionFactory sessionFactory) {
-        super(repository, PlatformMetric.class, sessionFactory);
+    public PlatformMetricServiceImpl(PlatformMetricRepository repository, SessionManagerProvider smProvider) {
+        super(repository, PlatformMetric.class, smProvider);
         this.repository = repository;
     }
 
     @Override
     public void findAllByPlatformId(long platformId, Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<PlatformMetric>> getAll = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+        Single<List<PlatformMetric>> getAll = smProvider.withTransactionSingle(sm -> repository
             .findAllByPlatform(sm, platformId)
         );
         RxVertxHandler.handleSession(

@@ -61,6 +61,7 @@ import at.uibk.dps.rm.service.database.service.ServiceServiceImpl;
 import at.uibk.dps.rm.service.database.service.K8sServiceTypeService;
 import at.uibk.dps.rm.service.database.service.K8sServiceTypeServiceImpl;
 import at.uibk.dps.rm.service.ServiceProxyBinder;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import io.reactivex.rxjava3.core.*;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
@@ -122,64 +123,65 @@ public class DatabaseVerticle extends AbstractVerticle {
         Maybe<Void> setupEventBus = Maybe.create(emitter -> {
             ServiceBinder serviceBinder = new ServiceBinder(vertx.getDelegate());
             ServiceProxyBinder serviceProxyBinder = new ServiceProxyBinder(serviceBinder);
+            SessionManagerProvider smProvider = new SessionManagerProvider(sessionFactory);
 
             serviceProxyBinder.bind(AccountNamespaceService.class,
-                new AccountNamespaceServiceImpl(new AccountNamespaceRepository(), sessionFactory));
+                new AccountNamespaceServiceImpl(new AccountNamespaceRepository(), smProvider));
             serviceProxyBinder.bind(AccountService.class,
-                new AccountServiceImpl(new AccountRepository(), new RoleRepository(), sessionFactory));
+                new AccountServiceImpl(new AccountRepository(), new RoleRepository(), smProvider));
             serviceProxyBinder.bind(CredentialsService.class, new CredentialsServiceImpl(new CredentialsRepository(),
-                new AccountCredentialsRepository(), sessionFactory));
+                new AccountCredentialsRepository(), smProvider));
             serviceProxyBinder.bind(EnsembleService.class, new EnsembleServiceImpl(new EnsembleRepositoryProvider(),
-                sessionFactory));
+                smProvider));
             serviceProxyBinder.bind(EnvironmentService.class,
-                new EnvironmentServiceImpl(new EnvironmentRepository(), sessionFactory));
+                new EnvironmentServiceImpl(new EnvironmentRepository(), smProvider));
             serviceProxyBinder.bind(FunctionService.class,
-                new FunctionServiceImpl(new FunctionRepository(), sessionFactory));
+                new FunctionServiceImpl(new FunctionRepository(), smProvider));
             serviceProxyBinder.bind(FunctionTypeService.class,
-                new FunctionTypeServiceImpl(new FunctionTypeRepository(), sessionFactory));
-            serviceProxyBinder.bind(LogService.class, new LogServiceImpl(new LogRepository(), sessionFactory));
+                new FunctionTypeServiceImpl(new FunctionTypeRepository(), smProvider));
+            serviceProxyBinder.bind(LogService.class, new LogServiceImpl(new LogRepository(), smProvider));
             serviceProxyBinder.bind(MetricService.class, new MetricServiceImpl(new MetricRepository(),
-                sessionFactory));
+                smProvider));
             serviceProxyBinder.bind(MetricValueService.class,
-                new MetricValueServiceImpl(new MetricValueRepository(), new PlatformMetricRepository(), sessionFactory)
+                new MetricValueServiceImpl(new MetricValueRepository(), new PlatformMetricRepository(), smProvider)
             );
             serviceProxyBinder.bind(NamespaceService.class,
-                new NamespaceServiceImpl(new NamespaceRepository(), new ResourceRepository(), sessionFactory));
+                new NamespaceServiceImpl(new NamespaceRepository(), new ResourceRepository(), smProvider));
             serviceProxyBinder.bind(PlatformService.class,
-                new PlatformServiceImpl(new PlatformRepository(), sessionFactory));
+                new PlatformServiceImpl(new PlatformRepository(), smProvider));
             serviceProxyBinder.bind(RegionService.class, new RegionServiceImpl(new RegionRepository(),
-                new ResourceProviderRepository(), sessionFactory));
+                new ResourceProviderRepository(), smProvider));
             serviceProxyBinder.bind(DeploymentService.class,
-                new DeploymentServiceImpl(new DeploymentRepositoryProvider(), sessionFactory));
+                new DeploymentServiceImpl(new DeploymentRepositoryProvider(), smProvider));
             serviceProxyBinder.bind(DeploymentLogService.class,
-                new DeploymentLogServiceImpl(new DeploymentLogRepository(), sessionFactory));
+                new DeploymentLogServiceImpl(new DeploymentLogRepository(), smProvider));
             serviceProxyBinder.bind(K8sServiceTypeService.class,
-                    new K8sServiceTypeServiceImpl(new K8sServiceTypeRepository(), sessionFactory));
+                    new K8sServiceTypeServiceImpl(new K8sServiceTypeRepository(), smProvider));
             serviceProxyBinder.bind(ResourceEnsembleService.class,
                 new ResourceEnsembleServiceImpl(new ResourceEnsembleRepository(), new EnsembleSLORepository(),
-                    new EnsembleRepository(), new ResourceRepository(), sessionFactory));
+                    new EnsembleRepository(), new ResourceRepository(), smProvider));
             serviceProxyBinder.bind(ResourceService.class,
                 new ResourceServiceImpl(new ResourceRepository(),
                     new RegionRepository(), new MetricRepository(),
-                    sessionFactory));
+                    smProvider));
             serviceProxyBinder.bind(ResourceProviderService.class,
-                new ResourceProviderServiceImpl(new ResourceProviderRepository(), sessionFactory));
+                new ResourceProviderServiceImpl(new ResourceProviderRepository(), smProvider));
             serviceProxyBinder.bind(ResourceDeploymentService.class,
-                new ResourceDeploymentServiceImpl(new ResourceDeploymentRepository(), sessionFactory));
+                new ResourceDeploymentServiceImpl(new ResourceDeploymentRepository(), smProvider));
             serviceProxyBinder.bind(ResourceTypeService.class,
-                new ResourceTypeServiceImpl(new ResourceTypeRepository(), sessionFactory));
+                new ResourceTypeServiceImpl(new ResourceTypeRepository(), smProvider));
             serviceProxyBinder.bind(PlatformMetricService.class,
-                new PlatformMetricServiceImpl(new PlatformMetricRepository(), sessionFactory));
+                new PlatformMetricServiceImpl(new PlatformMetricRepository(), smProvider));
             serviceProxyBinder.bind(RuntimeService.class,
-                new RuntimeServiceImpl(new RuntimeRepository(), sessionFactory));
+                new RuntimeServiceImpl(new RuntimeRepository(), smProvider));
             serviceProxyBinder.bind(ServiceService.class,
-                new ServiceServiceImpl(new ServiceRepository(), sessionFactory));
+                new ServiceServiceImpl(new ServiceRepository(), smProvider));
             serviceProxyBinder.bind(ServiceDeploymentService.class,
-                new ServiceDeploymentServiceImpl(new ServiceDeploymentRepository(), sessionFactory));
+                new ServiceDeploymentServiceImpl(new ServiceDeploymentRepository(), smProvider));
             serviceProxyBinder.bind(ServiceTypeService.class,
-                new ServiceTypeServiceImpl(new ServiceTypeRepository(), sessionFactory));
+                new ServiceTypeServiceImpl(new ServiceTypeRepository(), smProvider));
             serviceProxyBinder.bind(VPCService.class, new VPCServiceImpl(new VPCRepository(), new RegionRepository(),
-                sessionFactory));
+                smProvider));
             emitter.onComplete();
         });
         return Completable.fromMaybe(setupEventBus);

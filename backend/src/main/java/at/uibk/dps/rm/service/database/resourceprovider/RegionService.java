@@ -13,7 +13,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
-import org.hibernate.reactive.stage.Stage;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 /**
  * The interface of the service proxy for the region entity.
@@ -27,8 +27,8 @@ public interface RegionService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static RegionService create(Stage.SessionFactory sessionFactory) {
-        return new RegionServiceImpl(new RegionRepository(), new ResourceProviderRepository(), sessionFactory);
+    static RegionService create(SessionManagerProvider smProvider) {
+        return new RegionServiceImpl(new RegionRepository(), new ResourceProviderRepository(), smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

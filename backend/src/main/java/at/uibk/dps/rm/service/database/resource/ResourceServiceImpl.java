@@ -13,7 +13,6 @@ import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import at.uibk.dps.rm.service.database.util.K8sResourceUpdateUtility;
 import at.uibk.dps.rm.service.database.util.SLOUtility;
-import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -23,7 +22,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.hibernate.Hibernate;
-import org.hibernate.reactive.stage.Stage.SessionFactory;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 import java.util.*;
 
@@ -44,8 +43,8 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
      * @param repository the resource repository
      */
     public ResourceServiceImpl(ResourceRepository repository, RegionRepository regionRepository,
-            MetricRepository metricRepository, SessionFactory sessionFactory) {
-        super(repository, Resource.class, sessionFactory);
+            MetricRepository metricRepository, SessionManagerProvider smProvider) {
+        super(repository, Resource.class, smProvider);
         this.repository = repository;
         this.regionRepository = regionRepository;
         this.metricRepository = metricRepository;
@@ -57,7 +56,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
         long regionId = data.getJsonObject("region").getLong("region_id");
         long platformId = data.getJsonObject("platform").getLong("platform_id");
         MainResource resource = new MainResource();
-        Single<Resource> save = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+        Single<Resource> save = smProvider.withTransactionSingle(sm -> repository
             .findByName(sm, name)
             .flatMap(existingResource -> Maybe.<Region>error(new AlreadyExistsException(Resource.class)))
             .switchIfEmpty(regionRepository.findByRegionIdAndPlatformId(sm, regionId, platformId))
@@ -78,7 +77,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
 
     @Override
     public void findOne(long id, Handler<AsyncResult<JsonObject>> resultHandler) {
-        Maybe<Resource> findOne = SessionManager.withTransactionMaybe(sessionFactory, sm -> repository
+        Maybe<Resource> findOne = smProvider.withTransactionMaybe( sm -> repository
             .findByIdAndFetch(sm, id)
             .switchIfEmpty(Maybe.error(new NotFoundException(Resource.class))));
         RxVertxHandler.handleSession(
@@ -96,22 +95,21 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
 
     @Override
     public void findAll(Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<Resource>> findAll = SessionManager.withTransactionSingle(sessionFactory,
-            repository::findAllAndFetch);
+        Single<List<Resource>> findAll = smProvider.withTransactionSingle(repository::findAllAndFetch);
         RxVertxHandler.handleSession(findAll.map(this::encodeResourceList), resultHandler);
     }
 
     @Override
     public void findAllBySLOs(JsonObject data, Handler<AsyncResult<JsonArray>> resultHandler) {
         SLORequest sloRequest = data.mapTo(SLORequest.class);
-        Single<List<Resource>> findAll = SessionManager.withTransactionSingle(sessionFactory, sm ->
+        Single<List<Resource>> findAll = smProvider.withTransactionSingle(sm ->
             new SLOUtility(repository, metricRepository).findAndFilterResourcesBySLOs(sm, sloRequest));
         RxVertxHandler.handleSession(findAll.map(this::encodeResourceList), resultHandler);
     }
 
     @Override
     public void findAllSubResources(long resourceId, Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<SubResource>> findAll = SessionManager.withTransactionSingle(sessionFactory, sm -> 
+        Single<List<SubResource>> findAll = smProvider.withTransactionSingle(sm ->
             repository.findAllSubresources(sm, resourceId));
         RxVertxHandler.handleSession(
             findAll.map(resources -> {
@@ -127,14 +125,14 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
 
     @Override
     public void findAllByResourceIds(List<Long> resourceIds, Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<Resource>> findAll = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+        Single<List<Resource>> findAll = smProvider.withTransactionSingle(sm -> repository
             .findAllByResourceIdsAndFetch(sm, resourceIds));
         RxVertxHandler.handleSession(findAll.map(this::encodeResourceList), resultHandler);
     }
 
     @Override
     public void delete(long id, Handler<AsyncResult<Void>> resultHandler) {
-        Completable delete = SessionManager.withTransactionCompletable(sessionFactory, sm -> repository
+        Completable delete = smProvider.withTransactionCompletable(sm -> repository
             .findByIdAndFetch(sm, id)
             .switchIfEmpty(Maybe.error(new NotFoundException(Resource.class)))
             .flatMapCompletable(sm::remove)
@@ -146,7 +144,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     public void updateClusterResource(String clusterName, K8sMonitoringData data,
             Handler<AsyncResult<Void>> resultHandler) {
         K8sResourceUpdateUtility updateUtility = new K8sResourceUpdateUtility(metricRepository);
-        Completable updateClusterResource = SessionManager.withTransactionCompletable(sessionFactory, sm -> repository
+        Completable updateClusterResource = smProvider.withTransactionCompletable(sm -> repository
             .findClusterByName(sm, clusterName)
             // TODO: swap with NotFoundException and handle in Monitoring Verticle
             .switchIfEmpty(Maybe.error(new MonitoringException("cluster " + clusterName + " is not registered")))

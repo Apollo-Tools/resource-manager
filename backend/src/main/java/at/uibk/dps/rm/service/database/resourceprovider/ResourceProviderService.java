@@ -9,7 +9,7 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
-import org.hibernate.reactive.stage.Stage;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 /**
  * The interface of the service proxy for the resource_provider entity.
@@ -24,8 +24,8 @@ public interface ResourceProviderService extends DatabaseServiceInterface {
     @Generated
     @GenIgnore
     static ResourceProviderService create(ResourceProviderRepository resourceProviderRepository,
-            Stage.SessionFactory sessionFactory) {
-        return new ResourceProviderServiceImpl(resourceProviderRepository, sessionFactory);
+            SessionManagerProvider smProvider) {
+        return new ResourceProviderServiceImpl(resourceProviderRepository, smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

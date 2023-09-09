@@ -12,7 +12,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
-import org.hibernate.reactive.stage.Stage;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 /**
  * The interface of the service proxy for the service entity.
@@ -25,8 +25,8 @@ public interface ServiceService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static ServiceService create(Stage.SessionFactory sessionFactory) {
-        return new ServiceServiceImpl(new ServiceRepository(), sessionFactory);
+    static ServiceService create(SessionManagerProvider smProvider) {
+        return new ServiceServiceImpl(new ServiceRepository(), smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

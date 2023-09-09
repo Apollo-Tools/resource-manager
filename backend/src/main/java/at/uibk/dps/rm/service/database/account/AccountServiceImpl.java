@@ -10,7 +10,6 @@ import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.repository.account.AccountRepository;
 import at.uibk.dps.rm.repository.account.RoleRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
-import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import at.uibk.dps.rm.util.misc.PasswordUtility;
 import io.reactivex.rxjava3.core.Completable;
@@ -18,7 +17,7 @@ import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
-import org.hibernate.reactive.stage.Stage;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 /**
  * This is the implementation of the {@link AccountService}.
@@ -38,15 +37,15 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
      * @param roleRepository the role repository
      */
     public AccountServiceImpl(AccountRepository repository, RoleRepository roleRepository,
-            Stage.SessionFactory sessionFactory) {
-        super(repository, Account.class, sessionFactory);
+            SessionManagerProvider smProvider) {
+        super(repository, Account.class, smProvider);
         this.repository = repository;
         this.roleRepository = roleRepository;
     }
 
     @Override
     public void loginAccount(String username, String password, Handler<AsyncResult<JsonObject>> resultHandler) {
-        Maybe<Account> login = SessionManager.withTransactionMaybe(sessionFactory, sm -> repository
+        Maybe<Account> login = smProvider.withTransactionMaybe( sm -> repository
             .findByUsername(sm, username)
             .switchIfEmpty(Maybe.error(new UnauthorizedException("invalid credentials")))
             .map(account -> {
@@ -69,7 +68,7 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
     public void save(JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
         NewAccountDTO accountDTO = data.mapTo(NewAccountDTO.class);
         Account newAccount = new Account();
-        Maybe<Account> save = SessionManager.withTransactionMaybe(sessionFactory, sm -> repository
+        Maybe<Account> save = smProvider.withTransactionMaybe( sm -> repository
             .findByUsername(sm, accountDTO.getUsername())
             .flatMap(existingAccount -> Maybe.<Role>error(new AlreadyExistsException(Account.class)))
             .switchIfEmpty(roleRepository.findByRoleName(sm, RoleEnum.DEFAULT.getValue()))
@@ -89,7 +88,7 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
 
     @Override
     public void update(long id, JsonObject fields, Handler<AsyncResult<Void>> resultHandler) {
-        Completable update = SessionManager.withTransactionCompletable(sessionFactory, sm -> repository
+        Completable update = smProvider.withTransactionCompletable(sm -> repository
             .findById(sm, id)
             .switchIfEmpty(Maybe.error(new NotFoundException(Account.class)))
             .flatMapCompletable(account -> {
@@ -108,7 +107,7 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
 
     @Override
     public void setAccountActive(long accountId, boolean activityLevel, Handler<AsyncResult<Void>> resultHandler) {
-        Completable lockAccount = SessionManager.withTransactionCompletable(sessionFactory, sm -> sm
+        Completable lockAccount = smProvider.withTransactionCompletable(sm -> sm
             .find(Account.class, accountId)
             .switchIfEmpty(Maybe.error(new NotFoundException(Account.class)))
             .flatMapCompletable(account -> {

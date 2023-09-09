@@ -11,7 +11,6 @@ import at.uibk.dps.rm.repository.ensemble.EnsembleSLORepository;
 import at.uibk.dps.rm.repository.ensemble.ResourceEnsembleRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
-import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import at.uibk.dps.rm.util.misc.ServiceLevelObjectiveMapper;
 import at.uibk.dps.rm.util.validation.SLOCompareUtility;
@@ -22,7 +21,7 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
-import org.hibernate.reactive.stage.Stage;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 /**
  * This is the implementation of the {@link ResourceEnsembleService}.
@@ -51,8 +50,8 @@ public class ResourceEnsembleServiceImpl  extends DatabaseServiceProxy<ResourceE
      */
     public ResourceEnsembleServiceImpl(ResourceEnsembleRepository repository,
             EnsembleSLORepository ensembleSLORepository, EnsembleRepository ensembleRepository,
-            ResourceRepository resourceRepository, Stage.SessionFactory sessionFactory) {
-        super(repository, ResourceEnsemble.class, sessionFactory);
+            ResourceRepository resourceRepository, SessionManagerProvider smProvider) {
+        super(repository, ResourceEnsemble.class, smProvider);
         this.repository = repository;
         this.ensembleSLORepository = ensembleSLORepository;
         this.ensembleRepository = ensembleRepository;
@@ -63,7 +62,7 @@ public class ResourceEnsembleServiceImpl  extends DatabaseServiceProxy<ResourceE
     public void saveByEnsembleIdAndResourceId(long accountId, long ensembleId, long resourceId,
             Handler<AsyncResult<JsonObject>> resultHandler) {
         ResourceEnsemble resourceEnsemble = new ResourceEnsemble();
-        Single<ResourceEnsemble> create = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+        Single<ResourceEnsemble> create = smProvider.withTransactionSingle(sm -> repository
             .findByEnsembleIdAndResourceId(sm, accountId, ensembleId, resourceId)
             .flatMap(existingResourceEnsemble -> Maybe.<Ensemble>error(new AlreadyExistsException(ResourceEnsemble.class)))
             .switchIfEmpty(ensembleRepository.findByIdAndAccountId(sm, ensembleId, accountId))
@@ -105,7 +104,7 @@ public class ResourceEnsembleServiceImpl  extends DatabaseServiceProxy<ResourceE
     @Override
     public void deleteByEnsembleIdAndResourceId(long accountId, long ensembleId, long resourceId,
             Handler<AsyncResult<Void>> resultHandler) {
-        Completable delete = SessionManager.withTransactionCompletable(sessionFactory, sm -> repository
+        Completable delete = smProvider.withTransactionCompletable(sm -> repository
             .findByEnsembleIdAndResourceId(sm, accountId, ensembleId, resourceId)
             .switchIfEmpty(Maybe.error(new NotFoundException(ResourceEnsemble.class)))
             .flatMapCompletable(sm::remove)

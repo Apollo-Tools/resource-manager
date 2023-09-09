@@ -4,7 +4,6 @@ import at.uibk.dps.rm.entity.model.ResourceProvider;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
-import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
@@ -12,12 +11,10 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import org.hibernate.reactive.stage.Stage;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static at.uibk.dps.rm.service.database.util.SessionManager.withTransactionSingle;
 
 /**
  * This is the implementation of the {@link ResourceProviderService}.
@@ -33,14 +30,14 @@ public class ResourceProviderServiceImpl extends DatabaseServiceProxy<ResourcePr
      *
      * @param repository the resource provider repository
      */
-    public ResourceProviderServiceImpl(ResourceProviderRepository repository, Stage.SessionFactory sessionFactory) {
-        super(repository, ResourceProvider.class, sessionFactory);
+    public ResourceProviderServiceImpl(ResourceProviderRepository repository, SessionManagerProvider smProvider) {
+        super(repository, ResourceProvider.class, smProvider);
         this.repository = repository;
     }
 
     @Override
     public void findOne(long id, Handler<AsyncResult<JsonObject>> resultHandler) {
-        Maybe<ResourceProvider> findOne = SessionManager.withTransactionMaybe(sessionFactory, sm -> repository
+        Maybe<ResourceProvider> findOne = smProvider.withTransactionMaybe( sm -> repository
             .findByIdAndFetch(sm, id)
             .switchIfEmpty(Maybe.error(new NotFoundException(ResourceProvider.class)))
         );
@@ -49,7 +46,7 @@ public class ResourceProviderServiceImpl extends DatabaseServiceProxy<ResourcePr
 
     @Override
     public void findAll(Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<ResourceProvider>> findAll = withTransactionSingle(sessionFactory, repository::findAllAndFetch);
+        Single<List<ResourceProvider>> findAll = smProvider.withTransactionSingle(repository::findAllAndFetch);
         RxVertxHandler.handleSession(
             findAll.map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();

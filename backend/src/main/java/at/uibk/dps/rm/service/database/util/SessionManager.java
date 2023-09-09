@@ -6,11 +6,7 @@ import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.hibernate.reactive.stage.Stage.SessionFactory;
 import org.hibernate.reactive.stage.Stage.Session;
-
-import java.util.concurrent.CompletionStage;
-import java.util.function.Function;
 
 /**
  * A utility class that provides a RxJava wrapper for some methods of the {@link Session}.
@@ -86,57 +82,6 @@ public class SessionManager {
     public Completable flush() {
         return Completable.fromCompletionStage(session.flush());
     }
-
-    /**
-     * Perform work using a reactive session. The executions contained in function are
-     * transactional.
-     *
-     * @param function the function that contains all database operations
-     * @return a Single that emits an item of type E
-     * @param <E> any datatype that can be returned by the reactive session
-     */
-    public static <E> Single<E> withTransactionSingle(SessionFactory sessionFactory,
-            Function<SessionManager, Single<E>> function) {
-        CompletionStage<E> transaction = sessionFactory.withTransaction(session -> {
-            SessionManager sessionManager = new SessionManager(session);
-            return function.apply(sessionManager).toCompletionStage();
-        });
-        return Single.fromCompletionStage(transaction);
-    }
-
-    /**
-     * Perform work using a reactive session. The executions contained in function are
-     * transactional.
-     *
-     * @param function the function that contains all database operations
-     * @return a Maybe that emits an item of type E
-     * @param <E> any datatype that can be returned by the reactive session
-     */
-    public static <E> Maybe<E> withTransactionMaybe(SessionFactory sessionFactory,
-            Function<SessionManager, Maybe<E>> function) {
-        CompletionStage<E> transaction = sessionFactory.withTransaction(session -> {
-            SessionManager sessionManager = new SessionManager(session);
-            return function.apply(sessionManager).toCompletionStage();
-        });
-        return Maybe.fromCompletionStage(transaction);
-    }
-
-    /**
-     * Perform work using a reactive session. The executions contained in function are
-     * transactional.
-     *
-     * @param function the function that contains all database operations
-     * @return a Completable
-     */
-    public static Completable withTransactionCompletable(SessionFactory sessionFactory,
-            Function<SessionManager, Completable> function) {
-        CompletionStage<Void> transaction = sessionFactory.withTransaction(session -> {
-            SessionManager sessionManager = new SessionManager(session);
-            return function.apply(sessionManager).toCompletionStage(null);
-        });
-        return Completable.fromCompletionStage(transaction);
-    }
-
 
     @Generated
     @Override

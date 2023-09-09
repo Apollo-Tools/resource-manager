@@ -12,7 +12,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import org.hibernate.reactive.stage.Stage;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 import java.util.List;
 
@@ -28,8 +28,8 @@ public interface NamespaceService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static NamespaceService create(NamespaceRepository namespaceRepository, Stage.SessionFactory sessionFactory) {
-        return new NamespaceServiceImpl(namespaceRepository, new ResourceRepository(), sessionFactory);
+    static NamespaceService create(NamespaceRepository namespaceRepository, SessionManagerProvider smProvider) {
+        return new NamespaceServiceImpl(namespaceRepository, new ResourceRepository(), smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

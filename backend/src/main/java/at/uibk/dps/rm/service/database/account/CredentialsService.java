@@ -13,7 +13,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
-import org.hibernate.reactive.stage.Stage;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 /**
  * The interface of the service proxy for the credentials entity.
@@ -27,9 +27,8 @@ public interface CredentialsService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static CredentialsService create(Stage.SessionFactory sessionFactory) {
-        return new CredentialsServiceImpl(new CredentialsRepository(), new AccountCredentialsRepository(),
-            sessionFactory);
+    static CredentialsService create(SessionManagerProvider smProvider) {
+        return new CredentialsServiceImpl(new CredentialsRepository(), new AccountCredentialsRepository(), smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

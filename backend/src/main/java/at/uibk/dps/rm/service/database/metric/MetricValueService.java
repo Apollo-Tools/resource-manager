@@ -13,7 +13,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
-import org.hibernate.reactive.stage.Stage.SessionFactory;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 /**
  * The interface of the service proxy for the metric_value entity.
@@ -27,8 +27,8 @@ public interface MetricValueService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static MetricValueService create(SessionFactory sessionFactory) {
-        return new MetricValueServiceImpl(new MetricValueRepository(), new PlatformMetricRepository(), sessionFactory);
+    static MetricValueService create(SessionManagerProvider smProvider) {
+        return new MetricValueServiceImpl(new MetricValueRepository(), new PlatformMetricRepository(), smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

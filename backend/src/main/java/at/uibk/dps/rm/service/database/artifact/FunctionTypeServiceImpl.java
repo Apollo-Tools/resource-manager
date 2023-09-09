@@ -4,14 +4,13 @@ import at.uibk.dps.rm.entity.model.FunctionType;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.repository.artifact.FunctionTypeRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
-import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
-import org.hibernate.reactive.stage.Stage.SessionFactory;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 /**
  * This is the implementation of the {@link FunctionTypeService}.
@@ -26,15 +25,15 @@ public class FunctionTypeServiceImpl extends DatabaseServiceProxy<FunctionType> 
      *
      * @param repository  the repository
      */
-    public FunctionTypeServiceImpl(FunctionTypeRepository repository, SessionFactory sessionFactory) {
-        super(repository, FunctionType.class, sessionFactory);
+    public FunctionTypeServiceImpl(FunctionTypeRepository repository, SessionManagerProvider smProvider) {
+        super(repository, FunctionType.class, smProvider);
         this.repository = repository;
     }
 
     @Override
     public void save(JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
         FunctionType functionType = data.mapTo(FunctionType.class);
-        Single<FunctionType> save = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+        Single<FunctionType> save = smProvider.withTransactionSingle(sm -> repository
             .findByName(sm, functionType.getName())
             .flatMap(existingType -> Maybe.<FunctionType>error(new AlreadyExistsException(FunctionType.class)))
             .switchIfEmpty(sm.persist(functionType)));

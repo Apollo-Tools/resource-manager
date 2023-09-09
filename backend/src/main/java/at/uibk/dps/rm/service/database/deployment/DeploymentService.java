@@ -6,6 +6,7 @@ import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.repository.DeploymentRepositoryProvider;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
 import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
@@ -13,7 +14,6 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import org.hibernate.reactive.stage.Stage;
 
 /**
  * The interface of the service proxy for the deployment entity.
@@ -27,8 +27,8 @@ public interface DeploymentService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static DeploymentService create(Stage.SessionFactory sessionFactory) {
-        return new DeploymentServiceImpl(new DeploymentRepositoryProvider(), sessionFactory);
+    static DeploymentService create(SessionManagerProvider smProvider) {
+        return new DeploymentServiceImpl(new DeploymentRepositoryProvider(), smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

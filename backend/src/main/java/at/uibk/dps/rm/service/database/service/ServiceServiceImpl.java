@@ -11,7 +11,6 @@ import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.service.ServiceRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
-import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -20,7 +19,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import org.hibernate.reactive.stage.Stage.SessionFactory;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,14 +38,14 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
      *
      * @param repository  the repository
      */
-    public ServiceServiceImpl(ServiceRepository repository, SessionFactory sessionFactory) {
-        super(repository, Service.class, sessionFactory);
+    public ServiceServiceImpl(ServiceRepository repository, SessionManagerProvider smProvider) {
+        super(repository, Service.class, smProvider);
         this.repository = repository;
     }
 
     @Override
     public void findOne(long id, Handler<AsyncResult<JsonObject>> resultHandler) {
-        Maybe<Service> findOne = SessionManager.withTransactionMaybe(sessionFactory, sm -> repository.findByIdAndFetch(sm, id)
+        Maybe<Service> findOne = smProvider.withTransactionMaybe( sm -> repository.findByIdAndFetch(sm, id)
             .switchIfEmpty(Maybe.error(new NotFoundException(Service.class)))
             .flatMap(result -> sm.fetch(result.getEnvVars())
                 .flatMap(res -> sm.fetch(result.getVolumeMounts()))
@@ -57,7 +56,7 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
 
     @Override
     public void findOneByIdAndAccountId(long id, long accountId, Handler<AsyncResult<JsonObject>> resultHandler) {
-        Maybe<Service> findOne = SessionManager.withTransactionMaybe(sessionFactory, sm -> repository
+        Maybe<Service> findOne = smProvider.withTransactionMaybe( sm -> repository
             .findByIdAndAccountId(sm, id, accountId, true))
             .switchIfEmpty(Maybe.error(new NotFoundException(Service.class)));
         RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
@@ -65,21 +64,20 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
 
     @Override
     public void findAll(Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<Service>> findAll = SessionManager.withTransactionSingle(sessionFactory,
-            repository::findAllAndFetch);
+        Single<List<Service>> findAll = smProvider.withTransactionSingle(repository::findAllAndFetch);
         RxVertxHandler.handleSession(findAll.map(ServiceServiceImpl::mapServicesToJsonArray), resultHandler);
     }
 
     @Override
     public void findAllAccessibleServices(long accountId, Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<Service>> findAll = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+        Single<List<Service>> findAll = smProvider.withTransactionSingle(sm -> repository
             .findAllAccessibleAndFetch(sm, accountId));
         RxVertxHandler.handleSession(findAll.map(ServiceServiceImpl::mapServicesToJsonArray), resultHandler);
     }
 
     @Override
     public void findAllByAccountId(long accountId, Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<Service>> findAll = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+        Single<List<Service>> findAll = smProvider.withTransactionSingle(sm -> repository
             .findAllByAccountId(sm, accountId));
         RxVertxHandler.handleSession(findAll.map(ServiceServiceImpl::mapServicesToJsonArray), resultHandler);
     }
@@ -99,7 +97,7 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
     @Override
     public void saveToAccount(long accountId, JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
         Service service = data.mapTo(Service.class);
-        Maybe<Service> create = SessionManager.withTransactionMaybe(sessionFactory, sm -> sm
+        Maybe<Service> create = smProvider.withTransactionMaybe( sm -> sm
             .find(K8sServiceType.class, service.getK8sServiceType().getServiceTypeId())
             .switchIfEmpty(Maybe.error(new NotFoundException(K8sServiceType.class)))
             .flatMap(k8sServiceType -> {
@@ -127,7 +125,7 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
     @Override
     public void updateOwned(long id, long accountId, JsonObject fields, Handler<AsyncResult<Void>> resultHandler) {
         UpdateServiceDTO updateService = fields.mapTo(UpdateServiceDTO.class);
-        Completable update = SessionManager.withTransactionCompletable(sessionFactory, sm -> repository
+        Completable update = smProvider.withTransactionCompletable(sm -> repository
             .findByIdAndAccountId(sm, id, accountId, false)
             .switchIfEmpty(Maybe.error(new NotFoundException(Service.class)))
             .flatMapCompletable(service -> {
@@ -161,7 +159,7 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
 
     @Override
     public void deleteFromAccount(long accountId, long id, Handler<AsyncResult<Void>> resultHandler) {
-        Completable delete = SessionManager.withTransactionCompletable(sessionFactory, sm ->
+        Completable delete = smProvider.withTransactionCompletable(sm ->
             repository.findByIdAndAccountId(sm, id, accountId, false)
                 .switchIfEmpty(Maybe.error(new NotFoundException(Service.class)))
                 .flatMapCompletable(sm::remove)

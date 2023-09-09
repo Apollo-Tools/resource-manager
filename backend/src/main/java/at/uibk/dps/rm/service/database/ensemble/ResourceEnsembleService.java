@@ -15,7 +15,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import org.hibernate.reactive.stage.Stage;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 /**
  * The interface of the service proxy for the resource_ensemble entity.
@@ -28,9 +28,9 @@ public interface ResourceEnsembleService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static ResourceEnsembleService create(Stage.SessionFactory sessionFactory) {
+    static ResourceEnsembleService create(SessionManagerProvider smProvider) {
         return new ResourceEnsembleServiceImpl(new ResourceEnsembleRepository(), new EnsembleSLORepository(),
-            new EnsembleRepository(), new ResourceRepository(), sessionFactory);
+            new EnsembleRepository(), new ResourceRepository(), smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
