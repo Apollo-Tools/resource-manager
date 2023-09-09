@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.model.FunctionType;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.repository.artifact.FunctionTypeRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
@@ -33,10 +34,10 @@ public class FunctionTypeServiceImpl extends DatabaseServiceProxy<FunctionType> 
     @Override
     public void save(JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
         FunctionType functionType = data.mapTo(FunctionType.class);
-        Single<FunctionType> save = withTransactionSingle(sessionManager -> repository
-            .findByName(sessionManager, functionType.getName())
+        Single<FunctionType> save = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+            .findByName(sm, functionType.getName())
             .flatMap(existingType -> Maybe.<FunctionType>error(new AlreadyExistsException(FunctionType.class)))
-            .switchIfEmpty(sessionManager.persist(functionType)));
+            .switchIfEmpty(sm.persist(functionType)));
         RxVertxHandler.handleSession(save.map(JsonObject::mapFrom), resultHandler);
     }
 }

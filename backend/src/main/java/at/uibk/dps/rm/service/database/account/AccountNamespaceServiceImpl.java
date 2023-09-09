@@ -5,6 +5,7 @@ import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.account.AccountNamespaceRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -38,26 +39,26 @@ public class AccountNamespaceServiceImpl extends DatabaseServiceProxy<AccountNam
     public void saveByAccountIdAndNamespaceId(long accountId, long namespaceId,
             Handler<AsyncResult<JsonObject>> resultHandler) {
         AccountNamespace accountNamespace = new AccountNamespace();
-        Maybe<AccountNamespace> create = withTransactionMaybe(sessionManager ->
-            repository.findByAccountIdAndNamespaceId(sessionManager, accountId, namespaceId)
+        Maybe<AccountNamespace> create = SessionManager.withTransactionMaybe(sessionFactory, sm ->
+            repository.findByAccountIdAndNamespaceId(sm, accountId, namespaceId)
                 .flatMap(existingService -> Maybe.<K8sNamespace>error(new AlreadyExistsException(AccountNamespace.class)))
-                .switchIfEmpty(sessionManager.find(K8sNamespace.class, namespaceId))
+                .switchIfEmpty(sm.find(K8sNamespace.class, namespaceId))
                 .switchIfEmpty(Single.error(new NotFoundException(K8sNamespace.class)))
                 .flatMap(namespace -> {
                     long resourceId = namespace.getResource().getResourceId();
                     accountNamespace.setNamespace(namespace);
-                    return repository.findByAccountIdAndResourceId(sessionManager, accountId, resourceId);
+                    return repository.findByAccountIdAndResourceId(sm, accountId, resourceId);
                 })
                 .flatMapMaybe(existing -> {
                     if (!existing.isEmpty()) {
                         return Maybe.error(new AlreadyExistsException("only one namespace per resource allowed"));
                     }
-                    return sessionManager.find(Account.class, accountId);
+                    return sm.find(Account.class, accountId);
                 })
                 .switchIfEmpty(Maybe.error(new NotFoundException(Account.class)))
                 .flatMapSingle(account -> {
                     accountNamespace.setAccount(account);
-                    return sessionManager.persist(accountNamespace);
+                    return sm.persist(accountNamespace);
                 })
         );
         RxVertxHandler.handleSession(create
@@ -73,10 +74,10 @@ public class AccountNamespaceServiceImpl extends DatabaseServiceProxy<AccountNam
     @Override
     public void deleteByAccountIdAndNamespaceId(long accountId, long namespaceId,
             Handler<AsyncResult<Void>> resultHandler) {
-        Completable delete = withTransactionCompletable(sessionManager -> repository
-            .findByAccountIdAndNamespaceId(sessionManager, accountId, namespaceId)
+        Completable delete = SessionManager.withTransactionCompletable(sessionFactory, sm -> repository
+            .findByAccountIdAndNamespaceId(sm, accountId, namespaceId)
             .switchIfEmpty(Maybe.error(new NotFoundException(AccountNamespace.class)))
-            .flatMapCompletable(sessionManager::remove)
+            .flatMapCompletable(sm::remove)
         );
         RxVertxHandler.handleSession(delete, resultHandler);
     }

@@ -13,6 +13,7 @@ import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import at.uibk.dps.rm.service.database.util.K8sResourceUpdateUtility;
 import at.uibk.dps.rm.service.database.util.SLOUtility;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -56,20 +57,20 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
         long regionId = data.getJsonObject("region").getLong("region_id");
         long platformId = data.getJsonObject("platform").getLong("platform_id");
         MainResource resource = new MainResource();
-        Single<Resource> save = withTransactionSingle(sessionManager -> repository
-            .findByName(sessionManager, name)
+        Single<Resource> save = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+            .findByName(sm, name)
             .flatMap(existingResource -> Maybe.<Region>error(new AlreadyExistsException(Resource.class)))
-            .switchIfEmpty(regionRepository.findByRegionIdAndPlatformId(sessionManager, regionId, platformId))
+            .switchIfEmpty(regionRepository.findByRegionIdAndPlatformId(sm, regionId, platformId))
             .switchIfEmpty(Maybe.error(new NotFoundException("platform is not supported by the selected region")))
             .flatMap(region -> {
                 resource.setName(name);
                 resource.setRegion(region);
-                return sessionManager.find(Platform.class, platformId);
+                return sm.find(Platform.class, platformId);
             })
             .switchIfEmpty(Single.error(new NotFoundException(Platform.class)))
             .flatMap(platform -> {
                 resource.setPlatform(platform);
-                return sessionManager.persist(resource);
+                return sm.persist(resource);
             })
         );
         RxVertxHandler.handleSession(save.map(JsonObject::mapFrom), resultHandler);
@@ -77,8 +78,8 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
 
     @Override
     public void findOne(long id, Handler<AsyncResult<JsonObject>> resultHandler) {
-        Maybe<Resource> findOne = withTransactionMaybe(sessionManager -> repository
-            .findByIdAndFetch(sessionManager, id)
+        Maybe<Resource> findOne = SessionManager.withTransactionMaybe(sessionFactory, sm -> repository
+            .findByIdAndFetch(sm, id)
             .switchIfEmpty(Maybe.error(new NotFoundException(Resource.class))));
         RxVertxHandler.handleSession(
             findOne.map(resource -> {
@@ -95,22 +96,23 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
 
     @Override
     public void findAll(Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<Resource>> findAll = withTransactionSingle(repository::findAllAndFetch);
+        Single<List<Resource>> findAll = SessionManager.withTransactionSingle(sessionFactory,
+            repository::findAllAndFetch);
         RxVertxHandler.handleSession(findAll.map(this::encodeResourceList), resultHandler);
     }
 
     @Override
     public void findAllBySLOs(JsonObject data, Handler<AsyncResult<JsonArray>> resultHandler) {
         SLORequest sloRequest = data.mapTo(SLORequest.class);
-        Single<List<Resource>> findAll = withTransactionSingle(sessionManager ->
-            new SLOUtility(repository, metricRepository).findAndFilterResourcesBySLOs(sessionManager, sloRequest));
+        Single<List<Resource>> findAll = SessionManager.withTransactionSingle(sessionFactory, sm ->
+            new SLOUtility(repository, metricRepository).findAndFilterResourcesBySLOs(sm, sloRequest));
         RxVertxHandler.handleSession(findAll.map(this::encodeResourceList), resultHandler);
     }
 
     @Override
     public void findAllSubResources(long resourceId, Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<SubResource>> findAll = withTransactionSingle(session -> repository
-            .findAllSubresources(session, resourceId));
+        Single<List<SubResource>> findAll = SessionManager.withTransactionSingle(sessionFactory, sm -> 
+            repository.findAllSubresources(sm, resourceId));
         RxVertxHandler.handleSession(
             findAll.map(resources -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
@@ -125,17 +127,17 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
 
     @Override
     public void findAllByResourceIds(List<Long> resourceIds, Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<Resource>> findAll = withTransactionSingle(sessionManager -> repository
-            .findAllByResourceIdsAndFetch(sessionManager, resourceIds));
+        Single<List<Resource>> findAll = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+            .findAllByResourceIdsAndFetch(sm, resourceIds));
         RxVertxHandler.handleSession(findAll.map(this::encodeResourceList), resultHandler);
     }
 
     @Override
     public void delete(long id, Handler<AsyncResult<Void>> resultHandler) {
-        Completable delete = withTransactionCompletable(sessionManager -> repository
-            .findByIdAndFetch(sessionManager, id)
+        Completable delete = SessionManager.withTransactionCompletable(sessionFactory, sm -> repository
+            .findByIdAndFetch(sm, id)
             .switchIfEmpty(Maybe.error(new NotFoundException(Resource.class)))
-            .flatMapCompletable(sessionManager::remove)
+            .flatMapCompletable(sm::remove)
         );
         RxVertxHandler.handleSession(delete, resultHandler);
     }
@@ -144,12 +146,12 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     public void updateClusterResource(String clusterName, K8sMonitoringData data,
             Handler<AsyncResult<Void>> resultHandler) {
         K8sResourceUpdateUtility updateUtility = new K8sResourceUpdateUtility(metricRepository);
-        Completable updateClusterResource = withTransactionCompletable(sessionManager -> repository
-            .findClusterByName(sessionManager, clusterName)
+        Completable updateClusterResource = SessionManager.withTransactionCompletable(sessionFactory, sm -> repository
+            .findClusterByName(sm, clusterName)
             // TODO: swap with NotFoundException and handle in Monitoring Verticle
             .switchIfEmpty(Maybe.error(new MonitoringException("cluster " + clusterName + " is not registered")))
-            .flatMapCompletable(cluster -> updateUtility.updateClusterNodes(sessionManager, cluster, data)
-                .andThen(updateUtility.updateCluster(sessionManager, cluster, data)))
+            .flatMapCompletable(cluster -> updateUtility.updateClusterNodes(sm, cluster, data)
+                .andThen(updateUtility.updateCluster(sm, cluster, data)))
         );
         RxVertxHandler.handleSession(updateClusterResource, resultHandler);
     }

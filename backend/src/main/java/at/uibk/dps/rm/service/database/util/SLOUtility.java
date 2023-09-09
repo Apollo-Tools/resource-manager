@@ -32,14 +32,14 @@ public class SLOUtility {
     /**
      * Find, filter and sort resources by service level objectives from the sloRequest.
      *
-     * @param sessionManager the database session manager
+     * @param sm the database session manager
      * @param sloRequest the slo request
      * @return a CompletableFuture that emits a list of the filtered and sorted resources
      */
-    public Single<List<Resource>> findAndFilterResourcesBySLOs(SessionManager sessionManager,
+    public Single<List<Resource>> findAndFilterResourcesBySLOs(SessionManager sm,
             SLORequest sloRequest) {
         Completable checkSLOs = Observable.fromIterable(sloRequest.getServiceLevelObjectives())
-            .map(slo -> metricRepository.findByMetricAndIsSLO(sessionManager, slo.getName())
+            .map(slo -> metricRepository.findByMetricAndIsSLO(sm, slo.getName())
                 .switchIfEmpty(Maybe.error(new NotFoundException(ServiceLevelObjective.class)))
                 .flatMapCompletable(metric -> Completable.fromAction(() -> validateSLOType(slo, metric))))
             .toList()
@@ -48,7 +48,7 @@ public class SLOUtility {
             .map(ServiceLevelObjective::getName)
             .collect(Collectors.toList());
         return checkSLOs
-            .andThen(Single.defer(() -> resourceRepository.findAllBySLOs(sessionManager, sloNames,
+            .andThen(Single.defer(() -> resourceRepository.findAllBySLOs(sm, sloNames,
                 sloRequest.getEnvironments(), sloRequest.getResourceTypes(), sloRequest.getPlatforms(),
                 sloRequest.getRegions(), sloRequest.getProviders()))
             )

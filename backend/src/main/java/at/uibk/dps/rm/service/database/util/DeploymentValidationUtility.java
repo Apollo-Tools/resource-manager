@@ -42,13 +42,13 @@ public class DeploymentValidationUtility {
      * This includes checking for missing credentials, resource metrics for selected resources and
      * missing VPCs for EC2 deployments.
      *
-     * @param sessionManager the database session manager
+     * @param sm the database session manager
      * @param requestDTO the deploy resources request
      * @param deployResources the deployment data that is used for the actual deployment of
      *                        resources
      * @return a Single that emits a list of all resource that have to be deployed
      */
-    public Single<List<Resource>> checkDeploymentIsValid(SessionManager sessionManager,
+    public Single<List<Resource>> checkDeploymentIsValid(SessionManager sm,
             DeployResourcesRequest requestDTO, DeployResourcesDTO deployResources) {
         List<String> functionResourceTypes = List.of(ResourceTypeEnum.FAAS.getValue());
         List<String> serviceResourceTypes = List.of(ResourceTypeEnum.CONTAINER.getValue());
@@ -68,37 +68,37 @@ public class DeploymentValidationUtility {
             .flatMap(Set::stream)
             .collect(Collectors.toList());
 
-        return repositoryProvider.getFunctionRepository().findAllByIds(sessionManager, functionIds)
+        return repositoryProvider.getFunctionRepository().findAllByIds(sm, functionIds)
             .flatMap(functions -> {
                 if (functions.size() < functionIds.size()) {
                     return Single.error(new NotFoundException(Function.class));
                 }
-                return repositoryProvider.getServiceRepository().findAllByIds(sessionManager, serviceIds);
+                return repositoryProvider.getServiceRepository().findAllByIds(sm, serviceIds);
             })
             .flatMap(services -> {
                 if (services.size() < serviceIds.size()) {
                     return Single.error(new NotFoundException(Service.class));
                 }
                 return repositoryProvider.getResourceRepository()
-                    .findAllByResourceIdsAndResourceTypes(sessionManager, serviceResourceIds, serviceResourceTypes);
+                    .findAllByResourceIdsAndResourceTypes(sm, serviceResourceIds, serviceResourceTypes);
             })
             .flatMap(resources -> {
                 if (resources.size() < serviceResourceIds.size()) {
                     return Single.error(new NotFoundException(Resource.class));
                 }
                 return repositoryProvider.getResourceRepository()
-                    .findAllByResourceIdsAndResourceTypes(sessionManager, functionResourceIds, functionResourceTypes);
+                    .findAllByResourceIdsAndResourceTypes(sm, functionResourceIds, functionResourceTypes);
             })
             .flatMap(resources -> {
                 if (resources.size() < functionResourceIds.size()) {
                     return Single.error(new NotFoundException(Resource.class));
                 }
-                return repositoryProvider.getResourceRepository().findAllByResourceIdsAndFetch(sessionManager,
+                return repositoryProvider.getResourceRepository().findAllByResourceIdsAndFetch(sm,
                     allResourceIds);
             })
             .flatMap(resources -> {
-                Completable checkResources = checkResourcesForDeployment(sessionManager, resources, deployResources);
-                Completable checkMetrics = checkMissingRequiredMetrics(sessionManager, resources);
+                Completable checkResources = checkResourcesForDeployment(sm, resources, deployResources);
+                Completable checkMetrics = checkMissingRequiredMetrics(sm, resources);
                 return Completable.mergeArray(checkResources, checkMetrics)
                     .andThen(Single.defer(() -> Single.just(resources)));
             });
@@ -107,14 +107,14 @@ public class DeploymentValidationUtility {
     /**
      * Check resources if they are suited for the deployment.
      *
-     * @param sessionManager the database session manager
+     * @param sm the database session manager
      * @param resources the list of resources
      * @param deployResources the deployment data that is used for the actual deployment of
      *                        resources
      * @return a Completable that indicates an error if at least one resource is not suited for the
      *         deployment
      */
-    private Completable checkResourcesForDeployment(SessionManager sessionManager, List<Resource> resources,
+    private Completable checkResourcesForDeployment(SessionManager sm, List<Resource> resources,
             DeployResourcesDTO deployResources) {
         List<Completable> completables = new ArrayList<>();
         HashSet<Long> resourceProviderIds = new HashSet<>();
@@ -127,9 +127,9 @@ public class DeploymentValidationUtility {
             PlatformEnum platform = PlatformEnum.fromPlatform(mainResource.getPlatform());
             checkDockerCredentials(deployResources.getDeploymentCredentials().getDockerCredentials(),
                 mainResource.getPlatform().getPlatformId(), platform, platformIds);
-            completables.add(checkCloudCredentials(sessionManager, providerId, platform,
+            completables.add(checkCloudCredentials(sm, providerId, platform,
                 resourceProviderIds)
-                .andThen(checkMissingVPC(sessionManager, regionId, platform, regionIds, deployResources))
+                .andThen(checkMissingVPC(sm, regionId, platform, regionIds, deployResources))
             );
         }
         return Completable.merge(completables);
@@ -138,19 +138,19 @@ public class DeploymentValidationUtility {
     /**
      * Check if necessary cloud credentials are present.
      *
-     * @param sessionManager the database session manager
+     * @param sm the database session manager
      * @param providerId the id of the resource provider
      * @param platform the platform
      * @param resourceProviderIds the set of resource providers that have already been checked
      * @return a Completable that indicates an error if the credentials are missing
      */
-    private Completable checkCloudCredentials(SessionManager sessionManager, long providerId,
+    private Completable checkCloudCredentials(SessionManager sm, long providerId,
                                               PlatformEnum platform, Set<Long> resourceProviderIds) {
         if (!resourceProviderIds.contains(providerId) && (platform.equals(PlatformEnum.LAMBDA) ||
             platform.equals(PlatformEnum.EC2))) {
             resourceProviderIds.add(providerId);
             return repositoryProvider.getCredentialsRepository()
-                .findByAccountIdAndProviderId(sessionManager, accountId, providerId)
+                .findByAccountIdAndProviderId(sm, accountId, providerId)
                 .switchIfEmpty(Maybe.error(new UnauthorizedException("missing credentials for " + platform.getValue())))
                 .ignoreElement();
         }
@@ -180,7 +180,7 @@ public class DeploymentValidationUtility {
     /**
      * Check if a necessary VPC is present or not.
      *
-     * @param sessionManager the database session manager
+     * @param sm the database session manager
      * @param regionId the id of the region
      * @param platform the platform
      * @param regionIds the set of regions that have already been checked
@@ -188,12 +188,12 @@ public class DeploymentValidationUtility {
      *                        resources
      * @return a Completable that indicates an error if the VPC is missing
      */
-    private Completable checkMissingVPC(SessionManager sessionManager, long regionId, PlatformEnum platform,
+    private Completable checkMissingVPC(SessionManager sm, long regionId, PlatformEnum platform,
                                         Set<Long> regionIds, DeployResourcesDTO deployResources) {
         if (!regionIds.contains(regionId) && platform.equals(PlatformEnum.EC2)) {
             regionIds.add(regionId);
             return repositoryProvider.getVpcRepository()
-                .findByRegionIdAndAccountId(sessionManager, regionId, accountId)
+                .findByRegionIdAndAccountId(sm, regionId, accountId)
                 .switchIfEmpty(Maybe.error(new NotFoundException(VPC.class)))
                 .flatMapCompletable(vpc -> {
                     Region region = Hibernate.unproxy(vpc.getRegion(), Region.class);
@@ -208,17 +208,17 @@ public class DeploymentValidationUtility {
     /**
      * Check resources miss required metrics
      *
-     * @param sessionManager the database session manager
+     * @param sm the database session manager
      * @param resources the list of resources
      * @return a Completable that indicates an error if at least one resource has a missing
      *         required metric
      */
-    private Completable checkMissingRequiredMetrics(SessionManager sessionManager, List<Resource> resources) {
+    private Completable checkMissingRequiredMetrics(SessionManager sm, List<Resource> resources) {
         return Observable.fromIterable(resources)
             .flatMapCompletable(resource -> {
                 boolean isMainResource = resource.getMain().equals(resource);
                 return repositoryProvider.getPlatformMetricRepository()
-                    .countMissingRequiredMetricValuesByResourceId(sessionManager, resource.getResourceId(),
+                    .countMissingRequiredMetricValuesByResourceId(sm, resource.getResourceId(),
                         isMainResource)
                     .flatMapCompletable(missingRequiredMetrics -> {
                         if (missingRequiredMetrics > 0) {

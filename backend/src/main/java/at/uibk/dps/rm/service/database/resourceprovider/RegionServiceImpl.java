@@ -7,6 +7,7 @@ import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
@@ -43,14 +44,15 @@ public class RegionServiceImpl extends DatabaseServiceProxy<Region> implements R
 
     @Override
     public void findOne(long id, Handler<AsyncResult<JsonObject>> resultHandler) {
-        Maybe<Region> findOne = withTransactionMaybe(sessionManager -> repository.findByIdAndFetch(sessionManager, id)
+        Maybe<Region> findOne = SessionManager.withTransactionMaybe(sessionFactory, sm -> repository.findByIdAndFetch(sm, id)
             .switchIfEmpty(Maybe.error(new NotFoundException(Region.class))));
         RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
     }
 
     @Override
     public void findAll(Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<Region>> findAll = withTransactionSingle(repository::findAllAndFetch);
+        Single<List<Region>> findAll = SessionManager.withTransactionSingle(sessionFactory,
+            repository::findAllAndFetch);
         RxVertxHandler.handleSession(
             findAll.map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
@@ -67,14 +69,14 @@ public class RegionServiceImpl extends DatabaseServiceProxy<Region> implements R
     @Override
     public void save(JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
         Region region = data.mapTo(Region.class);
-        Single<Region> create = withTransactionSingle(sessionManager -> repository
-            .findOneByNameAndProviderId(sessionManager, region.getName(), region.getResourceProvider().getProviderId())
+        Single<Region> create = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+            .findOneByNameAndProviderId(sm, region.getName(), region.getResourceProvider().getProviderId())
             .flatMapSingle(existingRegion -> Single.<ResourceProvider>error(new AlreadyExistsException(Region.class)))
             .switchIfEmpty(providerRepository
-                .findByIdAndFetch(sessionManager, region.getResourceProvider().getProviderId())
+                .findByIdAndFetch(sm, region.getResourceProvider().getProviderId())
             )
             .switchIfEmpty(Single.error(new NotFoundException(ResourceProvider.class)))
-            .flatMap(provider -> sessionManager.persist(region))
+            .flatMap(provider -> sm.persist(region))
         );
         RxVertxHandler.handleSession(
             create.map(result -> {
@@ -87,8 +89,8 @@ public class RegionServiceImpl extends DatabaseServiceProxy<Region> implements R
 
     @Override
     public void findAllByProviderId(long providerId, Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<Region>> findAll = withTransactionSingle(sessionManager -> repository
-            .findAllByProviderId(sessionManager, providerId));
+        Single<List<Region>> findAll = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+            .findAllByProviderId(sm, providerId));
         RxVertxHandler.handleSession(
             findAll.map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
@@ -103,8 +105,8 @@ public class RegionServiceImpl extends DatabaseServiceProxy<Region> implements R
 
     @Override
     public void findAllByPlatformId(long platformId, Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<Region>> findAll = withTransactionSingle(sessionManager -> repository
-            .findAllByPlatformId(sessionManager, platformId));
+        Single<List<Region>> findAll = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+            .findAllByPlatformId(sm, platformId));
         RxVertxHandler.handleSession(
             findAll.map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();

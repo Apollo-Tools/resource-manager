@@ -8,6 +8,7 @@ import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
@@ -44,8 +45,8 @@ public class VPCServiceImpl extends DatabaseServiceProxy<VPC> implements VPCServ
 
     @Override
     public void findAllByAccountId(long accountId, Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<VPC>> findAll = withTransactionSingle(sessionManager -> repository
-            .findAllByAccountIdAndFetch(sessionManager, accountId));
+        Single<List<VPC>> findAll = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+            .findAllByAccountIdAndFetch(sm, accountId));
         RxVertxHandler.handleSession(
             findAll.map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
@@ -60,7 +61,7 @@ public class VPCServiceImpl extends DatabaseServiceProxy<VPC> implements VPCServ
 
     @Override
     public void findOne(long id, Handler<AsyncResult<JsonObject>> resultHandler) {
-        Maybe<VPC> findOne = withTransactionMaybe(sessionManager -> repository.findByIdAndFetch(sessionManager, id)
+        Maybe<VPC> findOne = SessionManager.withTransactionMaybe(sessionFactory, sm -> repository.findByIdAndFetch(sm, id)
             .switchIfEmpty(Maybe.error(new NotFoundException(VPC.class))));
         RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
     }
@@ -68,17 +69,17 @@ public class VPCServiceImpl extends DatabaseServiceProxy<VPC> implements VPCServ
     @Override
     public void saveToAccount(long accountId, JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
         VPC vpc = data.mapTo(VPC.class);
-        Single<VPC> create = withTransactionSingle(sessionManager -> repository
-            .findByRegionIdAndAccountId(sessionManager, vpc.getRegion().getRegionId(), accountId)
+        Single<VPC> create = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+            .findByRegionIdAndAccountId(sm, vpc.getRegion().getRegionId(), accountId)
             .flatMap(existingVPC -> Maybe.<Region>error(new AlreadyExistsException(VPC.class)))
-            .switchIfEmpty(regionRepository.findByIdAndFetch(sessionManager, vpc.getRegion().getRegionId()))
+            .switchIfEmpty(regionRepository.findByIdAndFetch(sm, vpc.getRegion().getRegionId()))
             .switchIfEmpty(Single.error(new NotFoundException(Region.class)))
             .flatMap(region -> {
                 vpc.setRegion(region);
                 Account account = new Account();
                 account.setAccountId(accountId);
                 vpc.setCreatedBy(account);
-                return sessionManager.persist(vpc);
+                return sm.persist(vpc);
             })
         );
         RxVertxHandler.handleSession(create.map(JsonObject::mapFrom), resultHandler);

@@ -11,6 +11,7 @@ import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.service.ServiceRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -45,10 +46,10 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
 
     @Override
     public void findOne(long id, Handler<AsyncResult<JsonObject>> resultHandler) {
-        Maybe<Service> findOne = withTransactionMaybe(sessionManager -> repository.findByIdAndFetch(sessionManager, id)
+        Maybe<Service> findOne = SessionManager.withTransactionMaybe(sessionFactory, sm -> repository.findByIdAndFetch(sm, id)
             .switchIfEmpty(Maybe.error(new NotFoundException(Service.class)))
-            .flatMap(result -> sessionManager.fetch(result.getEnvVars())
-                .flatMap(res -> sessionManager.fetch(result.getVolumeMounts()))
+            .flatMap(result -> sm.fetch(result.getEnvVars())
+                .flatMap(res -> sm.fetch(result.getVolumeMounts()))
                 .flatMapMaybe(res -> Maybe.just(result)))
         );
         RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
@@ -56,29 +57,30 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
 
     @Override
     public void findOneByIdAndAccountId(long id, long accountId, Handler<AsyncResult<JsonObject>> resultHandler) {
-        Maybe<Service> findOne = withTransactionMaybe(sessionManager -> repository
-            .findByIdAndAccountId(sessionManager, id, accountId, true))
+        Maybe<Service> findOne = SessionManager.withTransactionMaybe(sessionFactory, sm -> repository
+            .findByIdAndAccountId(sm, id, accountId, true))
             .switchIfEmpty(Maybe.error(new NotFoundException(Service.class)));
         RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
     }
 
     @Override
     public void findAll(Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<Service>> findAll = withTransactionSingle(repository::findAllAndFetch);
+        Single<List<Service>> findAll = SessionManager.withTransactionSingle(sessionFactory,
+            repository::findAllAndFetch);
         RxVertxHandler.handleSession(findAll.map(ServiceServiceImpl::mapServicesToJsonArray), resultHandler);
     }
 
     @Override
     public void findAllAccessibleServices(long accountId, Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<Service>> findAll = withTransactionSingle(sessionManager -> repository
-            .findAllAccessibleAndFetch(sessionManager, accountId));
+        Single<List<Service>> findAll = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+            .findAllAccessibleAndFetch(sm, accountId));
         RxVertxHandler.handleSession(findAll.map(ServiceServiceImpl::mapServicesToJsonArray), resultHandler);
     }
 
     @Override
     public void findAllByAccountId(long accountId, Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<Service>> findAll = withTransactionSingle(sessionManager -> repository
-            .findAllByAccountId(sessionManager, accountId));
+        Single<List<Service>> findAll = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+            .findAllByAccountId(sm, accountId));
         RxVertxHandler.handleSession(findAll.map(ServiceServiceImpl::mapServicesToJsonArray), resultHandler);
     }
 
@@ -97,26 +99,26 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
     @Override
     public void saveToAccount(long accountId, JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
         Service service = data.mapTo(Service.class);
-        Maybe<Service> create = withTransactionMaybe(sessionManager -> sessionManager
+        Maybe<Service> create = SessionManager.withTransactionMaybe(sessionFactory, sm -> sm
             .find(K8sServiceType.class, service.getK8sServiceType().getServiceTypeId())
             .switchIfEmpty(Maybe.error(new NotFoundException(K8sServiceType.class)))
             .flatMap(k8sServiceType -> {
                 service.setK8sServiceType(k8sServiceType);
                 checkServiceTypePorts(k8sServiceType, service.getPorts().size());
-                return repository.findOneByNameTypeAndCreator(sessionManager, service.getName(),
+                return repository.findOneByNameTypeAndCreator(sm, service.getName(),
                     service.getServiceType().getArtifactTypeId(), accountId);
             })
             .flatMap(existingService -> Maybe.<ServiceType>error(new AlreadyExistsException(Service.class)))
-            .switchIfEmpty(sessionManager.find(ServiceType.class, service.getServiceType().getArtifactTypeId()))
+            .switchIfEmpty(sm.find(ServiceType.class, service.getServiceType().getArtifactTypeId()))
             .switchIfEmpty(Maybe.error(new NotFoundException(ServiceType.class)))
             .flatMap(serviceType -> {
                 service.setServiceType(serviceType);
-                return sessionManager.find(Account.class, accountId);
+                return sm.find(Account.class, accountId);
             })
             .switchIfEmpty(Maybe.error(new NotFoundException(Account.class)))
             .flatMapSingle(account -> {
                 service.setCreatedBy(account);
-                return sessionManager.persist(service);
+                return sm.persist(service);
             })
         );
         RxVertxHandler.handleSession(create.map(JsonObject::mapFrom), resultHandler);
@@ -125,8 +127,8 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
     @Override
     public void updateOwned(long id, long accountId, JsonObject fields, Handler<AsyncResult<Void>> resultHandler) {
         UpdateServiceDTO updateService = fields.mapTo(UpdateServiceDTO.class);
-        Completable update = withTransactionCompletable(sessionManager -> repository
-            .findByIdAndAccountId(sessionManager, id, accountId, false)
+        Completable update = SessionManager.withTransactionCompletable(sessionFactory, sm -> repository
+            .findByIdAndAccountId(sm, id, accountId, false)
             .switchIfEmpty(Maybe.error(new NotFoundException(Service.class)))
             .flatMapCompletable(service -> {
                 long k8sServiceTypeId = updateService.getK8sServiceType() != null ?
@@ -134,7 +136,7 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
                     service.getK8sServiceType().getServiceTypeId();
                 int portAmount = updateService.getPorts() != null ?
                     updateService.getPorts().size() : service.getPorts().size();
-                return sessionManager.find(K8sServiceType.class, k8sServiceTypeId)
+                return sm.find(K8sServiceType.class, k8sServiceTypeId)
                     .switchIfEmpty(Maybe.error(new NotFoundException(K8sServiceType.class)))
                     .flatMapSingle(serviceType -> {
                         checkServiceTypePorts(serviceType, portAmount);
@@ -144,8 +146,8 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
                         service.setK8sServiceType(serviceType);
                         service.setPorts(updateNonNullValue(service.getPorts(), updateService.getPorts()));
                         service.setIsPublic(updateNonNullValue(service.getIsPublic(), updateService.getIsPublic()));
-                        return sessionManager.fetch(service.getEnvVars())
-                            .flatMap(res -> sessionManager.fetch(service.getVolumeMounts()));
+                        return sm.fetch(service.getEnvVars())
+                            .flatMap(res -> sm.fetch(service.getVolumeMounts()));
                     })
                     .flatMapCompletable(res -> {
                         service.setEnvVars(updateNonNullValue(service.getEnvVars(), updateService.getEnvVars()));
@@ -159,10 +161,10 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
 
     @Override
     public void deleteFromAccount(long accountId, long id, Handler<AsyncResult<Void>> resultHandler) {
-        Completable delete = withTransactionCompletable(sessionManager ->
-            repository.findByIdAndAccountId(sessionManager, id, accountId, false)
+        Completable delete = SessionManager.withTransactionCompletable(sessionFactory, sm ->
+            repository.findByIdAndAccountId(sm, id, accountId, false)
                 .switchIfEmpty(Maybe.error(new NotFoundException(Service.class)))
-                .flatMapCompletable(sessionManager::remove)
+                .flatMapCompletable(sm::remove)
         );
         RxVertxHandler.handleSession(delete, resultHandler);
     }

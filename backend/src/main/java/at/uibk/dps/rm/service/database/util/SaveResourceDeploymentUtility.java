@@ -25,14 +25,14 @@ public class SaveResourceDeploymentUtility {
     /**
      * Persist function deployments from the deployment.
      *
-     * @param sessionManager the database session manager
+     * @param sm the database session manager
      * @param deployment the deployment
      * @param request the deployment request
      * @param status the status of the function deployments
      * @param resources the list of resources of the deployment
      * @return a Completable
      */
-    public Completable saveFunctionDeployments(SessionManager sessionManager, Deployment deployment,
+    public Completable saveFunctionDeployments(SessionManager sm, Deployment deployment,
             DeployResourcesRequest request, ResourceDeploymentStatus status, List<Resource> resources) {
         if (request.getFunctionResources().isEmpty()) {
             return Completable.complete();
@@ -47,12 +47,12 @@ public class SaveResourceDeploymentUtility {
             })
             .toList()
             .flatMapCompletable(functionDeployments -> repositoryProvider.getFunctionDeploymentRepository()
-                .createAll(sessionManager, functionDeployments));
+                .createAll(sm, functionDeployments));
     }
 
     /** Persist service deployments from the deployment.
      *
-     * @param sessionManager the database session manager
+     * @param sm the database session manager
      * @param deployment the deployment
      * @param request the deployment request
      * @param status the status of the function deployments
@@ -60,7 +60,7 @@ public class SaveResourceDeploymentUtility {
      * @param resources the list of resources of the deployment
      * @return a Completable
      */
-    public Completable saveServiceDeployments(SessionManager sessionManager, Deployment deployment,
+    public Completable saveServiceDeployments(SessionManager sm, Deployment deployment,
             DeployResourcesRequest request, ResourceDeploymentStatus status, List<K8sNamespace> namespaces,
             List<Resource> resources) {
         if (request.getServiceResources().isEmpty()) {
@@ -76,7 +76,7 @@ public class SaveResourceDeploymentUtility {
             })
             .toList()
             .flatMapCompletable(serviceDeployments -> repositoryProvider.getServiceDeploymentRepository()
-                .createAll(sessionManager, serviceDeployments));
+                .createAll(sm, serviceDeployments));
     }
 
     /**

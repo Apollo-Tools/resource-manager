@@ -18,8 +18,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletionStage;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -32,7 +30,7 @@ import java.util.stream.Collectors;
  */
 public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements DatabaseServiceInterface {
 
-    private final SessionFactory sessionFactory;
+    protected final SessionFactory sessionFactory;
 
     private final Repository<T> repository;
 
@@ -58,7 +56,8 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
     @Override
     public void save(JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
         T entity = data.mapTo(entityClass);
-        Single<T> save = withTransactionSingle(sessionManager -> sessionManager.persist(entity));
+        Single<T> save = SessionManager.withTransactionSingle(sessionFactory, sm -> sm
+            .persist(entity));
         RxVertxHandler.handleSession(save.map(JsonObject::mapFrom), resultHandler);
     }
 
@@ -73,14 +72,15 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
             .stream()
             .map(object -> ((JsonObject) object).mapTo(entityClass))
             .collect(Collectors.toList());
-        Completable createAll = withTransactionCompletable(sessionManager ->
-            repository.createAll(sessionManager, entities));
+        Completable createAll = SessionManager.withTransactionCompletable(sessionFactory, sm ->
+            repository.createAll(sm, entities));
         RxVertxHandler.handleSession(createAll, resultHandler);
     }
 
     @Override
     public void findOne(long id, Handler<AsyncResult<JsonObject>> resultHandler) {
-        Maybe<T> findOne = withTransactionMaybe(sessionManager -> sessionManager.find(entityClass, id)
+        Maybe<T> findOne = SessionManager.withTransactionMaybe(sessionFactory, sm -> sm
+            .find(entityClass, id)
             .switchIfEmpty(Maybe.error(new NotFoundException(entityClass)))
         );
         RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
@@ -89,8 +89,8 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
 
     @Override
     public void findOneByIdAndAccountId(long id, long accountId, Handler<AsyncResult<JsonObject>> resultHandler) {
-        Single<T> findOne = withTransactionSingle(sessionManager -> repository
-            .findByIdAndAccountId(sessionManager, id, accountId)
+        Single<T> findOne = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+            .findByIdAndAccountId(sm, id, accountId)
             .switchIfEmpty(Maybe.error(new NotFoundException(entityClass)))
             .toSingle()
         );
@@ -99,14 +99,14 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
 
     @Override
     public void findAll(Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<T>> findAll = withTransactionSingle(repository::findAll);
+        Single<List<T>> findAll = SessionManager.withTransactionSingle(sessionFactory, repository::findAll);
         RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }
 
     @Override
     public void findAllByAccountId(long accountId, Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<T>> findAll = withTransactionSingle(sessionManager -> repository
-            .findAllByAccountId(sessionManager, accountId));
+        Single<List<T>> findAll = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+            .findAllByAccountId(sm, accountId));
         RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }
 
@@ -127,13 +127,13 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
 
     @Override
     public void update(long id, JsonObject fields, Handler<AsyncResult<Void>> resultHandler) {
-        Completable update = withTransactionCompletable(sessionManager -> sessionManager.find(entityClass, id)
+        Completable update = SessionManager.withTransactionCompletable(sessionFactory,sm -> sm.find(entityClass, id)
             .switchIfEmpty(Maybe.error(new NotFoundException(entityClass)))
             .map(entity -> {
                 JsonObject jsonObject = JsonObject.mapFrom(entity);
                 fields.stream().forEach(entry -> jsonObject.put(entry.getKey(), entry.getValue()));
                 T updatedEntity = jsonObject.mapTo(entityClass);
-                return sessionManager.merge(updatedEntity);
+                return sm.merge(updatedEntity);
             })
             .ignoreElement()
         );
@@ -147,19 +147,20 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
 
     @Override
     public void delete(long id, Handler<AsyncResult<Void>> resultHandler) {
-        Completable delete = withTransactionCompletable(sessionManager -> sessionManager.find(entityClass, id)
+        Completable delete = SessionManager.withTransactionCompletable(sessionFactory, sm -> sm
+            .find(entityClass, id)
             .switchIfEmpty(Maybe.error(new NotFoundException(entityClass)))
-            .flatMapCompletable(sessionManager::remove)
+            .flatMapCompletable(sm::remove)
         );
         RxVertxHandler.handleSession(delete, resultHandler);
     }
 
     @Override
     public void deleteFromAccount(long accountId, long id, Handler<AsyncResult<Void>> resultHandler) {
-        Completable delete = withTransactionCompletable(sessionManager -> repository
-            .findByIdAndAccountId(sessionManager, id, accountId)
+        Completable delete = SessionManager.withTransactionCompletable(sessionFactory, sm -> repository
+            .findByIdAndAccountId(sm, id, accountId)
             .switchIfEmpty(Maybe.error(new NotFoundException(entityClass)))
-            .flatMapCompletable(sessionManager::remove)
+            .flatMapCompletable(sm::remove)
         );
         RxVertxHandler.handleSession(delete, resultHandler);
     }
@@ -174,54 +175,5 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
      */
     protected <E> E updateNonNullValue(E oldValue, E newValue) {
         return newValue == null ? oldValue : newValue;
-    }
-
-
-
-    /**
-     * Perform work using a reactive session. The executions contained in function are
-     * transactional.
-     *
-     * @param function the function that contains all database operations
-     * @return a Single that emits an item of type E
-     * @param <E> any datatype that can be returned by the reactive session
-     */
-    protected <E> Single<E> withTransactionSingle(Function<SessionManager, Single<E>> function) {
-        CompletionStage<E> transaction = sessionFactory.withTransaction(session -> {
-            SessionManager sessionManager = new SessionManager(session);
-            return function.apply(sessionManager).toCompletionStage();
-        });
-        return Single.fromCompletionStage(transaction);
-    }
-
-    /**
-     * Perform work using a reactive session. The executions contained in function are
-     * transactional.
-     *
-     * @param function the function that contains all database operations
-     * @return a Maybe that emits an item of type E
-     * @param <E> any datatype that can be returned by the reactive session
-     */
-    protected <E> Maybe<E> withTransactionMaybe(Function<SessionManager, Maybe<E>> function) {
-        CompletionStage<E> transaction = sessionFactory.withTransaction(session -> {
-            SessionManager sessionManager = new SessionManager(session);
-            return function.apply(sessionManager).toCompletionStage();
-        });
-        return Maybe.fromCompletionStage(transaction);
-    }
-
-    /**
-     * Perform work using a reactive session. The executions contained in function are
-     * transactional.
-     *
-     * @param function the function that contains all database operations
-     * @return a Completable
-     */
-    protected Completable withTransactionCompletable(Function<SessionManager, Completable> function) {
-        CompletionStage<Void> transaction = sessionFactory.withTransaction(session -> {
-            SessionManager sessionManager = new SessionManager(session);
-            return function.apply(sessionManager).toCompletionStage(null);
-        });
-        return Completable.fromCompletionStage(transaction);
     }
 }

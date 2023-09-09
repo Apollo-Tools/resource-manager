@@ -10,6 +10,7 @@ import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.repository.account.AccountCredentialsRepository;
 import at.uibk.dps.rm.repository.account.CredentialsRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
@@ -49,8 +50,8 @@ public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> im
     @Override
     public void findAllByAccountIdAndIncludeExcludeSecrets(long accountId, boolean includeSecrets,
             Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<Credentials>> findAll = withTransactionSingle(sessionManager -> repository
-            .findAllByAccountId(sessionManager, accountId));
+        Single<List<Credentials>> findAll = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+            .findAllByAccountId(sm, accountId));
         RxVertxHandler.handleSession(
             findAll
                 .map(result -> {
@@ -73,24 +74,24 @@ public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> im
     public void saveToAccount(long accountId, JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
         Credentials newCredentials = data.mapTo(Credentials.class);
         long providerId = newCredentials.getResourceProvider().getProviderId();
-        Maybe<Credentials> save = withTransactionMaybe(sessionManager ->
-            accountCredentialsRepository.findByAccountAndProvider(sessionManager, accountId, providerId)
+        Maybe<Credentials> save = SessionManager.withTransactionMaybe(sessionFactory, sm ->
+            accountCredentialsRepository.findByAccountAndProvider(sm, accountId, providerId)
                 .flatMap(existingCredentials -> Maybe.<ResourceProvider>error(new AlreadyExistsException(Credentials.class)))
-                .switchIfEmpty(sessionManager.find(ResourceProvider.class, providerId))
+                .switchIfEmpty(sm.find(ResourceProvider.class, providerId))
                 .switchIfEmpty(Maybe.error(new NotFoundException(ResourceProvider.class)))
                 .flatMap(provider -> {
                     newCredentials.setResourceProvider(provider);
-                    return sessionManager.find(Account.class, accountId);
+                    return sm.find(Account.class, accountId);
                 })
                 .switchIfEmpty(Maybe.error(new UnauthorizedException()))
-                .flatMapSingle(account -> sessionManager.persist(newCredentials)
+                .flatMapSingle(account -> sm.persist(newCredentials)
                     .map(res -> {
                         AccountCredentials accountCredentials = new AccountCredentials();
                         accountCredentials.setCredentials(newCredentials);
                         accountCredentials.setAccount(account);
                         return accountCredentials;
                     }))
-                .flatMapSingle(sessionManager::persist)
+                .flatMapSingle(sm::persist)
                 .map(res -> newCredentials)
         );
         RxVertxHandler.handleSession(save.map(JsonObject::mapFrom), resultHandler);

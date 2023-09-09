@@ -5,6 +5,7 @@ import at.uibk.dps.rm.exception.MonitoringException;
 import at.uibk.dps.rm.repository.account.NamespaceRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -41,25 +42,26 @@ public class NamespaceServiceImpl extends DatabaseServiceProxy<K8sNamespace> imp
 
     @Override
     public void findAll(Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<K8sNamespace>> findAll = withTransactionSingle(repository::findAllAndFetch);
+        Single<List<K8sNamespace>> findAll = SessionManager.withTransactionSingle(sessionFactory,
+            repository::findAllAndFetch);
         RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }
 
     @Override
     public void findAllByAccountId(long accountId, Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<K8sNamespace>> findAll = withTransactionSingle(sessionManager -> repository
-            .findAllByAccountIdAndFetch(sessionManager, accountId));
+        Single<List<K8sNamespace>> findAll = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+            .findAllByAccountIdAndFetch(sm, accountId));
         RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }
 
     @Override
     public void updateAllClusterNamespaces(String clusterName, List<String> namespaces,
             Handler<AsyncResult<Void>> resultHandler) {
-        Completable updateAll = withTransactionCompletable(sessionManager -> resourceRepository
-            .findClusterByName(sessionManager, clusterName)
+        Completable updateAll = SessionManager.withTransactionCompletable(sessionFactory, sm -> resourceRepository
+            .findClusterByName(sm, clusterName)
             // TODO: handle not found exception in Monitoring verticle and throw as monitoring exception
             .switchIfEmpty(Maybe.error(new MonitoringException("cluster " + clusterName + " is not registered")))
-            .flatMapCompletable(resource -> repository.findAllByClusterName(sessionManager, clusterName)
+            .flatMapCompletable(resource -> repository.findAllByClusterName(sm, clusterName)
                 .flatMapCompletable(existingNamespaces -> {
                     Object[] newNamespaces = namespaces.stream()
                         .filter(namespace -> existingNamespaces.stream()
@@ -72,13 +74,16 @@ public class NamespaceServiceImpl extends DatabaseServiceProxy<K8sNamespace> imp
                             return newNamespace;
                         })
                         .toArray();
-                    Object[] deleteNamespaces = existingNamespaces.stream()
+                    Object[] removeNamespaces = existingNamespaces.stream()
                         .filter(existingNamespace -> namespaces.stream()
                             .noneMatch(namespace -> namespace.equals(existingNamespace.getNamespace()))
                         )
                         .toArray();
-                    return sessionManager.persist(newNamespaces)
-                        .andThen(sessionManager.remove(deleteNamespaces));
+                    Completable persist = newNamespaces.length > 0 ?
+                        sm.persist(newNamespaces) : Completable.complete();
+                    Completable remove = removeNamespaces.length > 0 ?
+                        sm.remove(removeNamespaces) : Completable.complete();
+                    return persist.andThen(remove);
                 }))
         );
         RxVertxHandler.handleSession(updateAll, resultHandler);

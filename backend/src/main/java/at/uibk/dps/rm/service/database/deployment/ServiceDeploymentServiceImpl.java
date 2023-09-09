@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.repository.deployment.ServiceDeploymentRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
@@ -33,8 +34,8 @@ public class ServiceDeploymentServiceImpl extends DatabaseServiceProxy<ServiceDe
     @Override
     public void existsReadyForContainerStartupAndTermination(long deploymentId, long resourceDeploymentId,
             long accountId, Handler<AsyncResult<Boolean>> resultHandler) {
-        Single<Boolean> existsOne = withTransactionSingle(sessionManager -> repository
-            .countByDeploymentStatus(sessionManager, deploymentId, resourceDeploymentId, accountId,
+        Single<Boolean> existsOne = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+            .countByDeploymentStatus(sm, deploymentId, resourceDeploymentId, accountId,
                 DeploymentStatusValue.DEPLOYED)
             .map(count -> count == 1)
         );

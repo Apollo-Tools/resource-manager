@@ -11,6 +11,7 @@ import at.uibk.dps.rm.repository.ensemble.EnsembleSLORepository;
 import at.uibk.dps.rm.repository.ensemble.ResourceEnsembleRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import at.uibk.dps.rm.util.misc.ServiceLevelObjectiveMapper;
 import at.uibk.dps.rm.util.validation.SLOCompareUtility;
@@ -62,19 +63,19 @@ public class ResourceEnsembleServiceImpl  extends DatabaseServiceProxy<ResourceE
     public void saveByEnsembleIdAndResourceId(long accountId, long ensembleId, long resourceId,
             Handler<AsyncResult<JsonObject>> resultHandler) {
         ResourceEnsemble resourceEnsemble = new ResourceEnsemble();
-        Single<ResourceEnsemble> create = withTransactionSingle(sessionManager -> repository
-            .findByEnsembleIdAndResourceId(sessionManager, accountId, ensembleId, resourceId)
+        Single<ResourceEnsemble> create = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+            .findByEnsembleIdAndResourceId(sm, accountId, ensembleId, resourceId)
             .flatMap(existingResourceEnsemble -> Maybe.<Ensemble>error(new AlreadyExistsException(ResourceEnsemble.class)))
-            .switchIfEmpty(ensembleRepository.findByIdAndAccountId(sessionManager, ensembleId, accountId))
+            .switchIfEmpty(ensembleRepository.findByIdAndAccountId(sm, ensembleId, accountId))
             .switchIfEmpty(Maybe.error(new NotFoundException(Ensemble.class)))
             .flatMap(ensemble -> {
                 resourceEnsemble.setEnsemble(ensemble);
-                return resourceRepository.findByIdAndFetch(sessionManager, resourceId);
+                return resourceRepository.findByIdAndFetch(sm, resourceId);
             })
             .switchIfEmpty(Single.error(new NotFoundException(Resource.class)))
             .flatMap(resource -> {
                 resourceEnsemble.setResource(resource);
-                return ensembleSLORepository.findAllByEnsembleId(sessionManager, ensembleId);
+                return ensembleSLORepository.findAllByEnsembleId(sm, ensembleId);
             })
             .flatMapObservable(Observable::fromIterable)
             .map(ServiceLevelObjectiveMapper::mapEnsembleSLO)
@@ -87,7 +88,7 @@ public class ResourceEnsembleServiceImpl  extends DatabaseServiceProxy<ResourceE
                 if (!isValidByMetrics || !isValidByNonMetrics) {
                     return Single.error(new BadInputException("resource does not fulfill service level objectives"));
                 }
-                return sessionManager.persist(resourceEnsemble);
+                return sm.persist(resourceEnsemble);
             })
         );
         RxVertxHandler.handleSession(
@@ -104,10 +105,10 @@ public class ResourceEnsembleServiceImpl  extends DatabaseServiceProxy<ResourceE
     @Override
     public void deleteByEnsembleIdAndResourceId(long accountId, long ensembleId, long resourceId,
             Handler<AsyncResult<Void>> resultHandler) {
-        Completable delete = withTransactionCompletable(sessionManager -> repository
-            .findByEnsembleIdAndResourceId(sessionManager, accountId, ensembleId, resourceId)
+        Completable delete = SessionManager.withTransactionCompletable(sessionFactory, sm -> repository
+            .findByEnsembleIdAndResourceId(sm, accountId, ensembleId, resourceId)
             .switchIfEmpty(Maybe.error(new NotFoundException(ResourceEnsemble.class)))
-            .flatMapCompletable(sessionManager::remove)
+            .flatMapCompletable(sm::remove)
         );
         RxVertxHandler.handleSession(delete, resultHandler);
     }

@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.model.ServiceType;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.repository.artifact.ServiceTypeRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
@@ -33,10 +34,10 @@ public class ServiceTypeServiceImpl extends DatabaseServiceProxy<ServiceType> im
     @Override
     public void save(JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
         ServiceType serviceType = data.mapTo(ServiceType.class);
-        Single<ServiceType> save = withTransactionSingle(sessionManager -> repository
-            .findByName(sessionManager, serviceType.getName())
+        Single<ServiceType> save = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+            .findByName(sm, serviceType.getName())
             .flatMap(existingType -> Maybe.<ServiceType>error(new AlreadyExistsException(ServiceType.class)))
-            .switchIfEmpty(sessionManager.persist(serviceType))
+            .switchIfEmpty(sm.persist(serviceType))
         );
         RxVertxHandler.handleSession(save.map(JsonObject::mapFrom), resultHandler);
     }

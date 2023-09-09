@@ -37,23 +37,23 @@ public class MetricValueUtility {
      * @param values the values to add to the resource
      * @return a List of completable futures that emit nothing
      */
-    public Completable checkAddMetricList(SessionManager sessionManager, Resource resource,
+    public Completable checkAddMetricList(SessionManager sm, Resource resource,
             JsonArray values) {
         return Observable.fromIterable(values)
             .flatMapCompletable(jsonObject -> {
                 JsonObject jsonMetric = (JsonObject) jsonObject;
                 long metricId = jsonMetric.getLong("metric_id");
                 MetricValue metricValue = new MetricValue();
-                return metricValueRepository.findByResourceAndMetric(sessionManager, resource.getResourceId(), metricId)
+                return metricValueRepository.findByResourceAndMetric(sm, resource.getResourceId(), metricId)
                     .flatMap(existingValue -> Maybe.<PlatformMetric>error(new AlreadyExistsException(MetricValue.class)))
-                    .switchIfEmpty(platformMetricRepository.findByPlatformAndMetric(sessionManager,
+                    .switchIfEmpty(platformMetricRepository.findByPlatformAndMetric(sm,
                         resource.getMain().getPlatform().getPlatformId(), metricId))
                     .switchIfEmpty(Maybe.error(new NotFoundException(PlatformMetric.class)))
                     .flatMapCompletable(platformMetric -> {
                         metricValue.setMetric(platformMetric.getMetric());
                         metricValue.setResource(resource);
                         checkAddMetricValueSetCorrectly(platformMetric, jsonMetric, metricValue);
-                        return sessionManager.persist(metricValue).ignoreElement();
+                        return sm.persist(metricValue).ignoreElement();
                     });
             });
     }

@@ -3,6 +3,7 @@ package at.uibk.dps.rm.service.database.resource;
 import at.uibk.dps.rm.entity.model.Platform;
 import at.uibk.dps.rm.repository.resource.PlatformRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
@@ -34,7 +35,8 @@ public class PlatformServiceImpl extends DatabaseServiceProxy<Platform> implemen
 
     @Override
     public void findAll(Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<Platform>> findAll = withTransactionSingle(repository::findAllAndFetch);
+        Single<List<Platform>> findAll = SessionManager.withTransactionSingle(sessionFactory,
+            repository::findAllAndFetch);
         RxVertxHandler.handleSession(
             findAll.map(platforms -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();

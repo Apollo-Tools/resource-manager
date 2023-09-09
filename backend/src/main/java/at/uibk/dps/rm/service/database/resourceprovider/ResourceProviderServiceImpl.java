@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.model.ResourceProvider;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
@@ -15,6 +16,8 @@ import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static at.uibk.dps.rm.service.database.util.SessionManager.withTransactionSingle;
 
 /**
  * This is the implementation of the {@link ResourceProviderService}.
@@ -37,8 +40,8 @@ public class ResourceProviderServiceImpl extends DatabaseServiceProxy<ResourcePr
 
     @Override
     public void findOne(long id, Handler<AsyncResult<JsonObject>> resultHandler) {
-        Maybe<ResourceProvider> findOne = withTransactionMaybe(sessionManager -> repository
-            .findByIdAndFetch(sessionManager, id)
+        Maybe<ResourceProvider> findOne = SessionManager.withTransactionMaybe(sessionFactory, sm -> repository
+            .findByIdAndFetch(sm, id)
             .switchIfEmpty(Maybe.error(new NotFoundException(ResourceProvider.class)))
         );
         RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
@@ -46,7 +49,7 @@ public class ResourceProviderServiceImpl extends DatabaseServiceProxy<ResourcePr
 
     @Override
     public void findAll(Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<ResourceProvider>> findAll = withTransactionSingle(repository::findAllAndFetch);
+        Single<List<ResourceProvider>> findAll = withTransactionSingle(sessionFactory, repository::findAllAndFetch);
         RxVertxHandler.handleSession(
             findAll.map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();

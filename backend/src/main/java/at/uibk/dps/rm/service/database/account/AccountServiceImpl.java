@@ -10,6 +10,7 @@ import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.repository.account.AccountRepository;
 import at.uibk.dps.rm.repository.account.RoleRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import at.uibk.dps.rm.util.misc.PasswordUtility;
 import io.reactivex.rxjava3.core.Completable;
@@ -45,8 +46,8 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
 
     @Override
     public void loginAccount(String username, String password, Handler<AsyncResult<JsonObject>> resultHandler) {
-        Maybe<Account> login = withTransactionMaybe(sessionManager -> repository
-            .findByUsername(sessionManager, username)
+        Maybe<Account> login = SessionManager.withTransactionMaybe(sessionFactory, sm -> repository
+            .findByUsername(sm, username)
             .switchIfEmpty(Maybe.error(new UnauthorizedException("invalid credentials")))
             .map(account -> {
                 if (!account.getIsActive()) {
@@ -68,10 +69,10 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
     public void save(JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
         NewAccountDTO accountDTO = data.mapTo(NewAccountDTO.class);
         Account newAccount = new Account();
-        Maybe<Account> save = withTransactionMaybe(sessionManager -> repository
-            .findByUsername(sessionManager, accountDTO.getUsername())
+        Maybe<Account> save = SessionManager.withTransactionMaybe(sessionFactory, sm -> repository
+            .findByUsername(sm, accountDTO.getUsername())
             .flatMap(existingAccount -> Maybe.<Role>error(new AlreadyExistsException(Account.class)))
-            .switchIfEmpty(roleRepository.findByRoleName(sessionManager, RoleEnum.DEFAULT.getValue()))
+            .switchIfEmpty(roleRepository.findByRoleName(sm, RoleEnum.DEFAULT.getValue()))
             .switchIfEmpty(Maybe.error(new NotFoundException("default role not found")))
             .flatMapSingle(role -> {
                 newAccount.setUsername(accountDTO.getUsername());
@@ -80,7 +81,7 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
                 char[] password = accountDTO.getPassword().toCharArray();
                 String hash = passwordUtility.hashPassword(password);
                 newAccount.setPassword(hash);
-                return sessionManager.persist(newAccount);
+                return sm.persist(newAccount);
             })
         );
         RxVertxHandler.handleSession(save.map(JsonObject::mapFrom), resultHandler);
@@ -88,8 +89,8 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
 
     @Override
     public void update(long id, JsonObject fields, Handler<AsyncResult<Void>> resultHandler) {
-        Completable update = withTransactionCompletable(sessionManager -> repository
-            .findById(sessionManager, id)
+        Completable update = SessionManager.withTransactionCompletable(sessionFactory, sm -> repository
+            .findById(sm, id)
             .switchIfEmpty(Maybe.error(new NotFoundException(Account.class)))
             .flatMapCompletable(account -> {
                 PasswordUtility passwordUtility = new PasswordUtility();
@@ -107,7 +108,7 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
 
     @Override
     public void setAccountActive(long accountId, boolean activityLevel, Handler<AsyncResult<Void>> resultHandler) {
-        Completable lockAccount = withTransactionCompletable(sessionManager -> sessionManager
+        Completable lockAccount = SessionManager.withTransactionCompletable(sessionFactory, sm -> sm
             .find(Account.class, accountId)
             .switchIfEmpty(Maybe.error(new NotFoundException(Account.class)))
             .flatMapCompletable(account -> {

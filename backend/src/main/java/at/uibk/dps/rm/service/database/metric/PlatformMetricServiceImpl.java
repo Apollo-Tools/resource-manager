@@ -3,6 +3,7 @@ package at.uibk.dps.rm.service.database.metric;
 import at.uibk.dps.rm.entity.model.PlatformMetric;
 import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
@@ -35,8 +36,8 @@ public class PlatformMetricServiceImpl extends DatabaseServiceProxy<PlatformMetr
 
     @Override
     public void findAllByPlatformId(long platformId, Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<PlatformMetric>> getAll = withTransactionSingle(sessionManager -> repository
-            .findAllByPlatform(sessionManager, platformId)
+        Single<List<PlatformMetric>> getAll = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+            .findAllByPlatform(sm, platformId)
         );
         RxVertxHandler.handleSession(
             getAll.map(platformMetrics -> {

@@ -11,6 +11,7 @@ import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.function.FunctionRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import at.uibk.dps.rm.util.misc.UploadFileHelper;
 import io.reactivex.rxjava3.core.Completable;
@@ -48,37 +49,38 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
 
     @Override
     public void findOne(long id, Handler<AsyncResult<JsonObject>> resultHandler) {
-        Maybe<Function> findOne = withTransactionMaybe(sessionManager -> repository
-            .findByIdAndFetch(sessionManager, id)
+        Maybe<Function> findOne = SessionManager.withTransactionMaybe(sessionFactory, sm -> repository
+            .findByIdAndFetch(sm, id)
             .switchIfEmpty(Maybe.error(new NotFoundException(Function.class))));
         RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
     }
 
     @Override
     public void findOneByIdAndAccountId(long id, long accountId, Handler<AsyncResult<JsonObject>> resultHandler) {
-        Maybe<Function> findOne = withTransactionMaybe(sessionManager -> repository
-            .findByIdAndAccountId(sessionManager, id, accountId, true)
+        Maybe<Function> findOne = SessionManager.withTransactionMaybe(sessionFactory, sm -> repository
+            .findByIdAndAccountId(sm, id, accountId, true)
             .switchIfEmpty(Maybe.error(new NotFoundException(Function.class))));
         RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
     }
 
     @Override
     public void findAll(Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<Function>> findAll = withTransactionSingle(repository::findAllAndFetch);
+        Single<List<Function>> findAll = SessionManager.withTransactionSingle(sessionFactory,
+            repository::findAllAndFetch);
         RxVertxHandler.handleSession(findAll.map(FunctionServiceImpl::mapFunctionsToJsonArray), resultHandler);
     }
 
     @Override
     public void findAllAccessibleFunctions(long accountId, Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<Function>> findAll = withTransactionSingle(sessionManager -> repository
-                .findAllAccessibleAndFetch(sessionManager, accountId));
+        Single<List<Function>> findAll = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+                .findAllAccessibleAndFetch(sm, accountId));
         RxVertxHandler.handleSession(findAll.map(FunctionServiceImpl::mapFunctionsToJsonArray), resultHandler);
     }
 
     @Override
     public void findAllByAccountId(long accountId, Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<Function>> findAll = withTransactionSingle(sessionManager -> repository
-            .findAllByAccountId(sessionManager, accountId));
+        Single<List<Function>> findAll = SessionManager.withTransactionSingle(sessionFactory, sm -> repository
+            .findAllByAccountId(sm, accountId));
         RxVertxHandler.handleSession(findAll.map(FunctionServiceImpl::mapFunctionsToJsonArray), resultHandler);
     }
 
@@ -93,7 +95,7 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
     @Override
     public void saveToAccount(long accountId, JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
         Function function = data.mapTo(Function.class);
-        Maybe<Function> create = withTransactionMaybe(sessionManager -> sessionManager
+        Maybe<Function> create = SessionManager.withTransactionMaybe(sessionFactory, sm -> sm
             .find(Runtime.class, function.getRuntime().getRuntimeId())
             .switchIfEmpty(Maybe.error(new NotFoundException(Runtime.class)))
             .flatMap(runtime -> {
@@ -101,20 +103,20 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
                 if (!function.getIsFile() && !selectedRuntime.equals(RuntimeEnum.PYTHON38)) {
                     return Maybe.error(new BadInputException("runtime only supports zip archives"));
                 }
-                return repository.findOneByNameTypeRuntimeAndCreator(sessionManager, function.getName(),
+                return repository.findOneByNameTypeRuntimeAndCreator(sm, function.getName(),
                     function.getFunctionType().getArtifactTypeId(), runtime.getRuntimeId(), accountId);
             })
             .flatMap(existingFunction -> Maybe.<FunctionType>error(new AlreadyExistsException(Function.class)))
-            .switchIfEmpty(sessionManager.find(FunctionType.class, function.getFunctionType().getArtifactTypeId()))
+            .switchIfEmpty(sm.find(FunctionType.class, function.getFunctionType().getArtifactTypeId()))
             .switchIfEmpty(Maybe.error(new NotFoundException(FunctionType.class)))
             .flatMap(functionType -> {
                 function.setFunctionType(functionType);
-                return sessionManager.find(Account.class, accountId);
+                return sm.find(Account.class, accountId);
             })
             .switchIfEmpty(Maybe.error(new NotFoundException(Account.class)))
             .flatMapSingle(account -> {
                 function.setCreatedBy(account);
-                return sessionManager.persist(function);
+                return sm.persist(function);
             })
             .flatMap(res -> {
                 if (function.getIsFile()) {
@@ -132,8 +134,8 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
     public void updateOwned(long id, long accountId, JsonObject fields,
             Handler<AsyncResult<Void>> resultHandler) {
         UpdateFunctionDTO updateFunction = fields.mapTo(UpdateFunctionDTO.class);
-        Completable update = withTransactionCompletable(sessionManager -> repository
-            .findByIdAndAccountId(sessionManager, id, accountId, false)
+        Completable update = SessionManager.withTransactionCompletable(sessionFactory, sm -> repository
+            .findByIdAndAccountId(sm, id, accountId, false)
             .switchIfEmpty(Maybe.error(new NotFoundException(Function.class)))
             .flatMap(function -> {
                 if (updateFunction.getCode() == null) {
@@ -174,11 +176,11 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
 
     @Override
     public void deleteFromAccount(long accountId, long id, Handler<AsyncResult<Void>> resultHandler) {
-        Completable delete = withTransactionCompletable(sessionManager -> repository
-            .findByIdAndAccountId(sessionManager, id, accountId, false)
+        Completable delete = SessionManager.withTransactionCompletable(sessionFactory, sm -> repository
+            .findByIdAndAccountId(sm, id, accountId, false)
             .switchIfEmpty(Maybe.error(new NotFoundException(Function.class)))
             .flatMapCompletable(function -> {
-                Completable deleteFunction = sessionManager.remove(function);
+                Completable deleteFunction = sm.remove(function);
                 if (function.getIsFile()) {
                     Vertx vertx = Vertx.currentContext().owner();
                     return UploadFileHelper.deleteFile(vertx, function.getCode())

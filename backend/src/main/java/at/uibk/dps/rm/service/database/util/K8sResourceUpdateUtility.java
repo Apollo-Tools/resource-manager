@@ -28,12 +28,12 @@ public class K8sResourceUpdateUtility {
      * Update all sub resources (nodes) of a k8s main resource. This includes deleting non existing
      * nodes, creating unregistered nodes and updating metric values for all nodes.
      *
-     * @param sessionManager the database session manager
+     * @param sm the database session manager
      * @param cluster the main resource
      * @param data the monitoring data that is used to update the metric values
      * @return a Completable
      */
-    public Completable updateClusterNodes(SessionManager sessionManager, MainResource cluster,
+    public Completable updateClusterNodes(SessionManager sm, MainResource cluster,
             K8sMonitoringData data) {
         Map<String, List<MetricValue>> mvToPersist = new HashMap<>();
         Set<SubResource> subResources =  Set.copyOf(cluster.getSubResources());
@@ -69,25 +69,25 @@ public class K8sResourceUpdateUtility {
                 return subResource;
             })
             .toArray();
-        return sessionManager.remove(deleteNodes.toArray())
-            .andThen(sessionManager.persist(newNodes))
-            .andThen(persistMetricValues(sessionManager, mvToPersist));
+        return sm.remove(deleteNodes.toArray())
+            .andThen(sm.persist(newNodes))
+            .andThen(persistMetricValues(sm, mvToPersist));
     }
 
     /**
      * Update the metric values of a cluster resource.
      *
-     * @param sessionManager the database session manager
+     * @param sm the database session manager
      * @param cluster the resource
      * @param data the monitoring data that is used to update the metric values
      * @return a Completable
      */
-    public Completable updateCluster(SessionManager sessionManager, MainResource cluster,
+    public Completable updateCluster(SessionManager sm, MainResource cluster,
             K8sMonitoringData data) {
         Map<String, List<MetricValue>> mvToPersist = new HashMap<>();
         updateExistingMetricValues(cluster.getMetricValues(), data);
         composeMissingMetricValues(cluster, data, mvToPersist);
-        return persistMetricValues(sessionManager, mvToPersist);
+        return persistMetricValues(sm, mvToPersist);
     }
 
     /**
@@ -183,19 +183,19 @@ public class K8sResourceUpdateUtility {
     /**
      * Persist a map of metric values.
      *
-     * @param sessionManager the database session manager
+     * @param sm the database session manager
      * @param mvToPersist the metric values
      * @return a Completable
      */
-    private Completable persistMetricValues(SessionManager sessionManager,
+    private Completable persistMetricValues(SessionManager sm,
                                             Map<String, List<MetricValue>> mvToPersist) {
         List<Completable> completables = new ArrayList<>();
         for (Map.Entry<String, List<MetricValue>> entry : mvToPersist.entrySet()) {
             Completable completable = metricRepository
-                .findByMetric(sessionManager, entry.getKey())
+                .findByMetric(sm, entry.getKey())
                 .flatMapCompletable(metric -> {
                     entry.getValue().forEach(mv -> mv.setMetric(metric));
-                    return sessionManager.persist(entry.getValue().toArray());
+                    return sm.persist(entry.getValue().toArray());
                 });
             completables.add(completable);
         }
