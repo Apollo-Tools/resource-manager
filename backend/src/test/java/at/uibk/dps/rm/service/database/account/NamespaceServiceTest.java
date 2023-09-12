@@ -10,18 +10,18 @@ import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
-import org.hibernate.reactive.stage.Stage;
-import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -49,14 +49,9 @@ public class NamespaceServiceTest {
     private ResourceRepository resourceRepository;
 
     @Mock
-    private Stage.SessionFactory sessionFactory;
-
-    @Mock
     private SessionManagerProvider smProvider;
 
     @Mock
-    private Stage.Session session;
-
     private SessionManager sessionManager;
     private long accountId;
     private K8sNamespace n1, n2;
@@ -67,7 +62,6 @@ public class NamespaceServiceTest {
     void initTest() {
         JsonMapperConfig.configJsonMapper();
         namespaceService = new NamespaceServiceImpl(namespaceRepository, resourceRepository, smProvider);
-        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
         accountId = 1L;
         clusterName = "cluster";
         cluster = TestResourceProvider.createClusterWithoutNodes(1L, clusterName);
@@ -77,6 +71,7 @@ public class NamespaceServiceTest {
 
     @Test
     void findAll(VertxTestContext testContext) {
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(namespaceRepository.findAllAndFetch(sessionManager)).thenReturn(Single.just(List.of(n1, n2)));
 
         namespaceService.findAll(testContext.succeeding(result -> testContext.verify(() -> {
@@ -91,6 +86,7 @@ public class NamespaceServiceTest {
 
     @Test
     void findAllByAccountId(VertxTestContext testContext) {
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(namespaceRepository.findAllByAccountIdAndFetch(sessionManager, accountId))
             .thenReturn(Single.just(List.of(n1, n2)));
 
@@ -113,26 +109,37 @@ public class NamespaceServiceTest {
         );
     }
 
-
     @ParameterizedTest
     @MethodSource("provideNamespaceList")
     void updateAllClusterNamespaces(List<String> namespaces, int expectedPersistElements,
             int expectedRemoveElements, VertxTestContext testContext) {
-
+        SessionMockHelper.mockCompletable(smProvider, sessionManager);
         when(resourceRepository.findClusterByName(sessionManager, clusterName)).thenReturn(Maybe.just(cluster));
         when(namespaceRepository.findAllByClusterName(sessionManager, clusterName))
             .thenReturn(Single.just(List.of(n1, n2)));
         if (expectedPersistElements > 0) {
-            when(session.persist(any()))
-                .thenReturn(CompletionStages.nullFuture());
+            when(sessionManager.persist(any())).thenReturn(Completable.complete());
         }
         if (expectedRemoveElements > 0) {
-            when(session.remove(any()))
-                .thenReturn(CompletionStages.nullFuture());
+            when(sessionManager.remove(any())).thenReturn(Completable.complete());
         }
 
         namespaceService.updateAllClusterNamespaces(clusterName, namespaces,
-            testContext.succeeding(result -> testContext.verify(testContext::completeNow))
+            testContext.succeeding(result -> testContext.verify(() -> {
+                if (expectedPersistElements > 0) {
+                    ArgumentCaptor<Object[]> persistArgs = ArgumentCaptor.forClass(Object[].class);
+                    verify(sessionManager).persist(persistArgs.capture());
+                    var persistCap = persistArgs.getAllValues();
+                    assertThat(persistCap.size()).isEqualTo(expectedPersistElements);
+                }
+                if (expectedRemoveElements > 0) {
+                    ArgumentCaptor<Object[]> deleteArgs = ArgumentCaptor.forClass(Object[].class);
+                    verify(sessionManager).remove(deleteArgs.capture());
+                    var deleteCap = deleteArgs.getAllValues();
+                    assertThat(deleteCap.size()).isEqualTo(expectedRemoveElements);
+                }
+                testContext.completeNow();
+            }))
         );
     }
 }

@@ -20,8 +20,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import at.uibk.dps.rm.service.database.util.SessionManager;
-import org.hibernate.reactive.stage.Stage;
-import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +31,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.when;
 
 /**
@@ -53,14 +51,9 @@ public class CredentialsServiceImplTest {
     private AccountCredentialsRepository accountCredentialsRepository;
 
     @Mock
-    private Stage.SessionFactory sessionFactory;
-
-    @Mock
     private SessionManagerProvider smProvider;
 
     @Mock
-    private Stage.Session session;
-    
     private SessionManager sessionManager;
 
     private Long accountId, providerId;
@@ -76,12 +69,12 @@ public class CredentialsServiceImplTest {
         providerId = 2L;
         rp = TestResourceProviderProvider.createResourceProvider(providerId);
         credentials1 = TestAccountProvider.createCredentials(accountId, rp);
-        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
     }
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void findAllByAccount(boolean includeSecrets, VertxTestContext testContext) {
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
         Credentials credentials2 = TestAccountProvider.createCredentials(2L, new ResourceProvider());
         List<Credentials> resultList = List.of(credentials1, credentials2);
         Single<List<Credentials>> single = Single.just(resultList);
@@ -119,13 +112,24 @@ public class CredentialsServiceImplTest {
     @Test
     void saveToAccount(VertxTestContext testContext) {
         Account account = TestAccountProvider.createAccount(accountId);
+        AccountCredentials accountCredentials = TestAccountProvider.createAccountCredentials(1L,
+            account, credentials1);
 
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(accountCredentialsRepository.findByAccountAndProvider(sessionManager, accountId, providerId))
             .thenReturn(Maybe.empty());
-        when(session.find(ResourceProvider.class, providerId)).thenReturn(CompletionStages.completedFuture(rp));
-        when(session.find(Account.class, accountId)).thenReturn(CompletionStages.completedFuture(account));
-        when(session.persist(credentials1)).thenReturn(CompletionStages.voidFuture());
-        when(session.persist(any(AccountCredentials.class))).thenReturn(CompletionStages.voidFuture());
+        when(sessionManager.find(ResourceProvider.class, providerId)).thenReturn(Maybe.just(rp));
+        when(sessionManager.find(Account.class, accountId)).thenReturn(Maybe.just(account));
+        when(sessionManager.persist(credentials1)).thenReturn(Single.just(credentials1));
+        when(sessionManager.persist(argThat((Object obj) -> {
+            if (obj instanceof AccountCredentials) {
+                AccountCredentials ac = (AccountCredentials) obj;
+                return ac.getAccount().equals(account) &&
+                    ac.getCredentials().equals(credentials1);
+            }
+            return false;
+        })))
+            .thenReturn(Single.just(accountCredentials));
 
         credentialsService.saveToAccount(accountId, JsonObject.mapFrom(credentials1),
             testContext.succeeding(result -> testContext.verify(() -> {
@@ -140,10 +144,11 @@ public class CredentialsServiceImplTest {
 
     @Test
     void saveToAccountAccountNotFound(VertxTestContext testContext) {
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(accountCredentialsRepository.findByAccountAndProvider(sessionManager, accountId, providerId))
             .thenReturn(Maybe.empty());
-        when(session.find(ResourceProvider.class, providerId)).thenReturn(CompletionStages.completedFuture(rp));
-        when(session.find(Account.class, accountId)).thenReturn(CompletionStages.nullFuture());
+        when(sessionManager.find(ResourceProvider.class, providerId)).thenReturn(Maybe.just(rp));
+        when(sessionManager.find(Account.class, accountId)).thenReturn(Maybe.empty());
 
         credentialsService.saveToAccount(accountId, JsonObject.mapFrom(credentials1),
             testContext.failing(throwable -> testContext.verify(() -> {
@@ -155,9 +160,10 @@ public class CredentialsServiceImplTest {
 
     @Test
     void saveToAccountProviderNotFound(VertxTestContext testContext) {
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(accountCredentialsRepository.findByAccountAndProvider(sessionManager, accountId, providerId))
             .thenReturn(Maybe.empty());
-        when(session.find(ResourceProvider.class, providerId)).thenReturn(CompletionStages.nullFuture());
+        when(sessionManager.find(ResourceProvider.class, providerId)).thenReturn(Maybe.empty());
 
         credentialsService.saveToAccount(accountId, JsonObject.mapFrom(credentials1),
             testContext.failing(throwable -> testContext.verify(() -> {
@@ -169,9 +175,10 @@ public class CredentialsServiceImplTest {
 
     @Test
     void saveToAccountAlreadyExists(VertxTestContext testContext) {
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(accountCredentialsRepository.findByAccountAndProvider(sessionManager, accountId, providerId))
             .thenReturn(Maybe.just(new AccountCredentials()));
-        when(session.find(ResourceProvider.class, providerId)).thenReturn(CompletionStages.nullFuture());
+        when(sessionManager.find(ResourceProvider.class, providerId)).thenReturn(Maybe.empty());
 
         credentialsService.saveToAccount(accountId, JsonObject.mapFrom(credentials1),
             testContext.failing(throwable -> testContext.verify(() -> {

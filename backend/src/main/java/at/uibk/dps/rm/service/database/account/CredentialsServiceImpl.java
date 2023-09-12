@@ -73,7 +73,7 @@ public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> im
     public void saveToAccount(long accountId, JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
         Credentials newCredentials = data.mapTo(Credentials.class);
         long providerId = newCredentials.getResourceProvider().getProviderId();
-        Maybe<Credentials> save = smProvider.withTransactionMaybe( sm ->
+        Single<Credentials> save = smProvider.withTransactionSingle( sm ->
             accountCredentialsRepository.findByAccountAndProvider(sm, accountId, providerId)
                 .flatMap(existingCredentials -> Maybe.<ResourceProvider>error(new AlreadyExistsException(Credentials.class)))
                 .switchIfEmpty(sm.find(ResourceProvider.class, providerId))
@@ -82,15 +82,15 @@ public class CredentialsServiceImpl extends DatabaseServiceProxy<Credentials> im
                     newCredentials.setResourceProvider(provider);
                     return sm.find(Account.class, accountId);
                 })
-                .switchIfEmpty(Maybe.error(new UnauthorizedException()))
-                .flatMapSingle(account -> sm.persist(newCredentials)
+                .switchIfEmpty(Single.error(new UnauthorizedException()))
+                .flatMap(account -> sm.persist(newCredentials)
                     .map(res -> {
                         AccountCredentials accountCredentials = new AccountCredentials();
                         accountCredentials.setCredentials(newCredentials);
                         accountCredentials.setAccount(account);
                         return accountCredentials;
                     }))
-                .flatMapSingle(sm::persist)
+                .flatMap(sm::persist)
                 .map(res -> newCredentials)
         );
         RxVertxHandler.handleSession(save.map(JsonObject::mapFrom), resultHandler);
