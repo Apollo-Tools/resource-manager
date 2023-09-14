@@ -79,6 +79,9 @@ spec:
             # The k8s secrets that contain the kubeconfigs for all monitored k8s resources
             - name: kube_config_secrets_name
               value: "rm_kubeconfigs"
+            # The path of  the directory where the kube configs to access registered k8s resources are stored
+            - name: kube_config_directory
+              value: "build/kubeconfig"
             # The namespace where the kube config secrets are stored
             - name: kube_config_secrets_namespace
               value: "default"
