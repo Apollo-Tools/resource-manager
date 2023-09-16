@@ -10,7 +10,6 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import at.uibk.dps.rm.service.database.util.SessionManager;
-import org.hibernate.reactive.stage.Stage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,14 +36,9 @@ public class LogServiceImplTest {
     private LogRepository logRepository;
 
     @Mock
-    private Stage.SessionFactory sessionFactory;
-
-    @Mock
     private SessionManagerProvider smProvider;
 
     @Mock
-    private Stage.Session session;
-    
     private SessionManager sessionManager;
 
 
@@ -60,7 +54,7 @@ public class LogServiceImplTest {
         Log log1 = TestLogProvider.createLog(1L);
         Log log2 = TestLogProvider.createLog(2L);
 
-        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(logRepository.findAllByDeploymentIdAndAccountId(sessionManager, deploymentId, accountId))
             .thenReturn(Single.just(List.of(log1, log2)));
 

@@ -45,21 +45,33 @@ public class TestFunctionProvider {
         return createRuntime(runtimeId, "python3.9");
     }
 
-    public static Function createFunction(long functionId, String name, String code, Runtime runtime, boolean isFile,
-            int timeout, int memory) {
+    public static FunctionType createFunctionType(long functionTypeId, String name) {
+        FunctionType functionType = new FunctionType();
+        functionType.setArtifactTypeId(functionTypeId);
+        functionType.setName(name);
+        return functionType;
+    }
+
+    public static Function createFunction(long functionId, FunctionType functionType, String name, String code,
+            Runtime runtime, boolean isFile, int timeout, int memory, Account account) {
         Function function = new Function();
         function.setFunctionId(functionId);
+        function.setFunctionType(functionType);
         function.setName(name);
         function.setRuntime(runtime);
         function.setCode(code);
         function.setIsFile(isFile);
         function.setTimeoutSeconds((short) timeout);
         function.setMemoryMegabytes((short) memory);
+        function.setCreatedBy(account);
         return function;
     }
 
     public static Function createFunction(long functionId, String name, String code, Runtime runtime, boolean isFile) {
-        return createFunction(functionId, name, code, runtime, isFile, 60, 128);
+        Account account = TestAccountProvider.createAccount(1L);
+        FunctionType functionType = createFunctionType(1L, name + "type");
+        return createFunction(functionId, functionType, name, code, runtime, isFile, 60,
+            128, account);
     }
 
     public static Function createFunction(long functionId, String name, String code, long runtimeId) {

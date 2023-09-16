@@ -10,6 +10,7 @@ import at.uibk.dps.rm.entity.dto.ListResourcesBySLOsRequest;
 import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
+import at.uibk.dps.rm.entity.dto.function.UpdateFunctionDTO;
 import at.uibk.dps.rm.entity.dto.resource.ResourceId;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.SLOValue;
@@ -318,5 +319,16 @@ public class TestDTOProvider {
         Resource r2 = TestResourceProvider.createResourceEC2(2L, region2, "t1.micro");
         getOneEnsemble.setResources(List.of(r1, r2));
         return getOneEnsemble;
+    }
+
+    public static UpdateFunctionDTO createUpdateFunctionDTO(String code, boolean isFile, boolean isPublic,
+            short timeout, short memory) {
+        UpdateFunctionDTO dto = new UpdateFunctionDTO();
+        dto.setCode(code);
+        dto.setIsFile(isFile);
+        dto.setIsPublic(isPublic);
+        dto.setTimeoutSeconds(timeout);
+        dto.setMemoryMegabytes(memory);
+        return dto;
     }
 }

@@ -23,7 +23,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
 import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,8 +32,6 @@ import java.util.List;
  */
 public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implements FunctionService {
     private final FunctionRepository repository;
-
-    private final Vertx vertx = Vertx.currentContext().owner();
 
     /**
      * Create an instance from the repository.
@@ -65,35 +62,27 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
     @Override
     public void findAll(Handler<AsyncResult<JsonArray>> resultHandler) {
         Single<List<Function>> findAll = smProvider.withTransactionSingle(repository::findAllAndFetch);
-        RxVertxHandler.handleSession(findAll.map(FunctionServiceImpl::mapFunctionsToJsonArray), resultHandler);
+        RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }
 
     @Override
     public void findAllAccessibleFunctions(long accountId, Handler<AsyncResult<JsonArray>> resultHandler) {
         Single<List<Function>> findAll = smProvider.withTransactionSingle(sm -> repository
                 .findAllAccessibleAndFetch(sm, accountId));
-        RxVertxHandler.handleSession(findAll.map(FunctionServiceImpl::mapFunctionsToJsonArray), resultHandler);
+        RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }
 
     @Override
     public void findAllByAccountId(long accountId, Handler<AsyncResult<JsonArray>> resultHandler) {
         Single<List<Function>> findAll = smProvider.withTransactionSingle(sm -> repository
             .findAllByAccountId(sm, accountId));
-        RxVertxHandler.handleSession(findAll.map(FunctionServiceImpl::mapFunctionsToJsonArray), resultHandler);
-    }
-
-    private static JsonArray mapFunctionsToJsonArray(List<Function> result) {
-        ArrayList<JsonObject> objects = new ArrayList<>();
-        for (Function entity: result) {
-            objects.add(JsonObject.mapFrom(entity));
-        }
-        return new JsonArray(objects);
+        RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }
 
     @Override
     public void saveToAccount(long accountId, JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
         Function function = data.mapTo(Function.class);
-        Maybe<Function> create = smProvider.withTransactionMaybe( sm -> sm
+        Single<Function> create = smProvider.withTransactionSingle( sm -> sm
             .find(Runtime.class, function.getRuntime().getRuntimeId())
             .switchIfEmpty(Maybe.error(new NotFoundException(Runtime.class)))
             .flatMap(runtime -> {
@@ -111,8 +100,8 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
                 function.setFunctionType(functionType);
                 return sm.find(Account.class, accountId);
             })
-            .switchIfEmpty(Maybe.error(new NotFoundException(Account.class)))
-            .flatMapSingle(account -> {
+            .switchIfEmpty(Single.error(new NotFoundException(Account.class)))
+            .flatMap(account -> {
                 function.setCreatedBy(account);
                 return sm.persist(function);
             })
@@ -120,9 +109,9 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
                 if (function.getIsFile()) {
                     Vertx vertx = Vertx.currentContext().owner();
                     return UploadFileHelper.persistUploadedFile(vertx, function.getCode())
-                        .andThen(Maybe.defer(() -> Maybe.just(function)));
+                        .andThen(Single.defer(() -> Single.just(function)));
                 }
-                return Maybe.just(function);
+                return Single.just(function);
             })
         );
         RxVertxHandler.handleSession(create.map(JsonObject::mapFrom), resultHandler);
@@ -150,6 +139,7 @@ public class FunctionServiceImpl extends DatabaseServiceProxy<Function> implemen
                     return Maybe.error(new BadInputException(message));
                 }
                 if (function.getIsFile()) {
+                    Vertx vertx = Vertx.currentContext().owner();
                     return UploadFileHelper.updateFile(vertx, function.getCode(), updateFunction.getCode())
                         .andThen(Maybe.defer(() -> {
                             function.setCode(updateNonNullValue(function.getCode(), updateFunction.getCode()));

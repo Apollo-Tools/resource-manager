@@ -3,6 +3,7 @@ package at.uibk.dps.rm.testutil;
 import at.uibk.dps.rm.entity.model.ResourceType;
 import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import lombok.experimental.UtilityClass;
@@ -52,7 +53,7 @@ public class SessionMockHelper {
     public static void mockCompletable(SessionManagerProvider smProvider, SessionManager sessionManager) {
         when(smProvider.withTransactionCompletable(any(Function.class)))
             .thenAnswer(invocation -> {
-                Function<SessionManager, Single<?>> function = invocation.getArgument(0);
+                Function<SessionManager, Completable> function = invocation.getArgument(0);
                 return function.apply(sessionManager);
             });
     }
