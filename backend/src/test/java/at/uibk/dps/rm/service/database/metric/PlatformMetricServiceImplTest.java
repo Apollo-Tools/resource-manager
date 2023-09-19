@@ -10,7 +10,6 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import at.uibk.dps.rm.service.database.util.SessionManager;
-import org.hibernate.reactive.stage.Stage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,14 +36,9 @@ public class PlatformMetricServiceImplTest {
     private PlatformMetricRepository repository;
 
     @Mock
-    private Stage.SessionFactory sessionFactory;
-
-    @Mock
     private SessionManagerProvider smProvider;
 
     @Mock
-    private Stage.Session session;
-    
     private SessionManager sessionManager;
 
     @BeforeEach
@@ -60,7 +54,7 @@ public class PlatformMetricServiceImplTest {
         PlatformMetric pm2 = TestMetricProvider.createPlatformMetric(2L, 11L);
         PlatformMetric pm3 = TestMetricProvider.createPlatformMetric(3L, 12L);
 
-        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(repository.findAllByPlatform(sessionManager, platformId)).thenReturn(Single.just(List.of(pm1, pm2, pm3)));
 
         service.findAllByPlatformId(platformId, testContext.succeeding(result -> testContext.verify(() -> {

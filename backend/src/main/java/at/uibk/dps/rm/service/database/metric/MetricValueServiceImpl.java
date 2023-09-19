@@ -34,8 +34,6 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
 
     private final PlatformMetricRepository platformMetricRepository;
 
-    private final MetricValueUtility metricValueUtility;
-
     /**
      * Create an instance from the metricValueRepository.
      *
@@ -46,11 +44,11 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
         super(repository, MetricValue.class, smProvider);
         this.repository = repository;
         this.platformMetricRepository = platformMetricRepository;
-        this.metricValueUtility = new MetricValueUtility(repository, platformMetricRepository);
     }
 
     @Override
     public void saveAllToResource(long resourceId, JsonArray data, Handler<AsyncResult<Void>> resultHandler) {
+        MetricValueUtility metricValueUtility = new MetricValueUtility(repository, platformMetricRepository);
         Completable createAll = smProvider.withTransactionCompletable(sm -> sm
             .find(Resource.class, resourceId)
             .switchIfEmpty(Maybe.error(new NotFoundException(Resource.class)))
@@ -105,15 +103,14 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
                     if (platformMetric.getIsMonitored() && isExternalSource) {
                         return Completable.error(new BadInputException("monitored metrics can't be updated manually"));
                     }
-                    MetricTypeEnum metricType = MetricTypeEnum
-                        .fromMetricType(metricValue.getMetric().getMetricType());
+                    MetricTypeEnum metricType = MetricTypeEnum.fromMetricType(metricValue.getMetric().getMetricType());
                     if (!MetricValueUtility.metricTypeMatchesValue(metricType, valueString) &&
                         !MetricValueUtility.metricTypeMatchesValue(metricType, valueNumber) &&
                         !MetricValueUtility.metricTypeMatchesValue(metricType, valueBool)) {
                         return Completable.error(new BadInputException("invalid metric type"));
                     }
                     metricValue.setValueString(valueString);
-                    if (valueNumber!= null) {
+                    if (valueNumber != null) {
                         metricValue.setValueNumber(valueNumber);
                     }
                     metricValue.setValueBool(valueBool);

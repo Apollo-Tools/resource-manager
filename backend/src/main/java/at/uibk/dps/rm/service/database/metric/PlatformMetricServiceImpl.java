@@ -8,11 +8,9 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * This is the implementation of the {@link PlatformMetricService}.
@@ -38,14 +36,6 @@ public class PlatformMetricServiceImpl extends DatabaseServiceProxy<PlatformMetr
         Single<List<PlatformMetric>> getAll = smProvider.withTransactionSingle(sm -> repository
             .findAllByPlatform(sm, platformId)
         );
-        RxVertxHandler.handleSession(
-            getAll.map(platformMetrics -> {
-                List<JsonObject> result = platformMetrics.stream()
-                    .map(JsonObject::mapFrom)
-                    .collect(Collectors.toList());
-                return new JsonArray(result);
-            }),
-            resultHandler
-        );
+        RxVertxHandler.handleSession(getAll.map(this::mapResultListToJsonArray), resultHandler);
     }
 }

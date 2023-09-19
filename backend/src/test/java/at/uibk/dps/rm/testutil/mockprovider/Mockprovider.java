@@ -7,7 +7,10 @@ import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.deployment.module.TerraformModule;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateDTO;
+import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
+import at.uibk.dps.rm.service.database.util.MetricValueUtility;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.service.deployment.docker.LambdaJavaBuildService;
 import at.uibk.dps.rm.service.deployment.docker.LambdaLayerService;
 import at.uibk.dps.rm.service.deployment.docker.OpenFaasImageService;
@@ -19,6 +22,7 @@ import at.uibk.dps.rm.service.deployment.terraform.*;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonArray;
 import io.vertx.rxjava3.core.Vertx;
 import lombok.experimental.UtilityClass;
 import org.mockito.MockedConstruction;
@@ -178,6 +182,12 @@ public class Mockprovider {
     public static MockedConstruction<RegionFaasFileService> mockRegionFaasFileService(Completable result) {
         return Mockito.mockConstruction(RegionFaasFileService.class,
             (mock, context) -> given(mock.setUpDirectory()).willReturn(result));
+    }
+
+    public static MockedConstruction<MetricValueUtility> mockMetricValueUtilitySave(SessionManager sm,
+            Resource resource, JsonArray data) {
+        return Mockito.mockConstruction(MetricValueUtility.class,
+            (mock, context) -> given(mock.checkAddMetricList(sm, resource, data)).willReturn(Completable.complete()));
     }
 
     public static MockedStatic<Vertx> mockVertx() {
