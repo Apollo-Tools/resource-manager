@@ -86,9 +86,8 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
 
     @Override
     public void findOneByIdAndAccountId(long id, long accountId, Handler<AsyncResult<JsonObject>> resultHandler) {
-        Single<T> findOne = smProvider.withTransactionSingle(sm -> repository.findByIdAndAccountId(sm, id, accountId)
+        Maybe<T> findOne = smProvider.withTransactionMaybe(sm -> repository.findByIdAndAccountId(sm, id, accountId)
             .switchIfEmpty(Maybe.error(new NotFoundException(entityClass)))
-            .toSingle()
         );
         RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
     }
@@ -124,8 +123,8 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
     @Override
     public void update(long id, JsonObject fields, Handler<AsyncResult<Void>> resultHandler) {
         Completable update = smProvider.withTransactionCompletable(sm -> sm.find(entityClass, id)
-            .switchIfEmpty(Maybe.error(new NotFoundException(entityClass)))
-            .map(entity -> {
+            .switchIfEmpty(Single.error(new NotFoundException(entityClass)))
+            .flatMap(entity -> {
                 JsonObject jsonObject = JsonObject.mapFrom(entity);
                 fields.stream().forEach(entry -> jsonObject.put(entry.getKey(), entry.getValue()));
                 T updatedEntity = jsonObject.mapTo(entityClass);
