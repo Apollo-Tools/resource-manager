@@ -13,7 +13,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -37,8 +36,7 @@ public class ResourceProviderServiceImpl extends DatabaseServiceProxy<ResourcePr
 
     @Override
     public void findOne(long id, Handler<AsyncResult<JsonObject>> resultHandler) {
-        Maybe<ResourceProvider> findOne = smProvider.withTransactionMaybe( sm -> repository
-            .findByIdAndFetch(sm, id)
+        Maybe<ResourceProvider> findOne = smProvider.withTransactionMaybe( sm -> repository.findByIdAndFetch(sm, id)
             .switchIfEmpty(Maybe.error(new NotFoundException(ResourceProvider.class)))
         );
         RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
@@ -47,16 +45,6 @@ public class ResourceProviderServiceImpl extends DatabaseServiceProxy<ResourcePr
     @Override
     public void findAll(Handler<AsyncResult<JsonArray>> resultHandler) {
         Single<List<ResourceProvider>> findAll = smProvider.withTransactionSingle(repository::findAllAndFetch);
-        RxVertxHandler.handleSession(
-            findAll.map(result -> {
-                ArrayList<JsonObject> objects = new ArrayList<>();
-                for (ResourceProvider entity: result) {
-                    entity.setProviderPlatforms(null);
-                    objects.add(JsonObject.mapFrom(entity));
-                }
-                return new JsonArray(objects);
-            }),
-            resultHandler
-        );
+        RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }
 }

@@ -2,7 +2,6 @@ package at.uibk.dps.rm.service.database.resourceprovider;
 
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.VPC;
-import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
 import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
@@ -25,7 +24,7 @@ public interface VPCService extends DatabaseServiceInterface {
     @Generated
     @GenIgnore
     static VPCService create(SessionManagerProvider smProvider) {
-        return new VPCServiceImpl(new VPCRepository(), new RegionRepository(), smProvider);
+        return new VPCServiceImpl(new VPCRepository(), smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

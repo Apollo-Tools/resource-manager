@@ -3,7 +3,6 @@ package at.uibk.dps.rm.service.database.resourceprovider;
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
-import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
 import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -28,7 +27,7 @@ public interface RegionService extends DatabaseServiceInterface {
     @Generated
     @GenIgnore
     static RegionService create(SessionManagerProvider smProvider) {
-        return new RegionServiceImpl(new RegionRepository(), new ResourceProviderRepository(), smProvider);
+        return new RegionServiceImpl(new RegionRepository(), smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

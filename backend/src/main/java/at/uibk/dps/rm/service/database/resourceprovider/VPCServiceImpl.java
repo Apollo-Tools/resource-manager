@@ -5,7 +5,6 @@ import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.entity.model.VPC;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
@@ -28,18 +27,14 @@ import java.util.List;
 public class VPCServiceImpl extends DatabaseServiceProxy<VPC> implements VPCService {
     private final VPCRepository repository;
 
-    private final RegionRepository regionRepository;
-
     /**
      * Create an instance from the vpcRepository.
      *
      * @param repository the vpc repository
      */
-    public VPCServiceImpl(VPCRepository repository, RegionRepository regionRepository,
-            SessionManagerProvider smProvider) {
+    public VPCServiceImpl(VPCRepository repository, SessionManagerProvider smProvider) {
         super(repository, VPC.class, smProvider);
         this.repository = repository;
-        this.regionRepository = regionRepository;
     }
 
     @Override
@@ -70,14 +65,16 @@ public class VPCServiceImpl extends DatabaseServiceProxy<VPC> implements VPCServ
         VPC vpc = data.mapTo(VPC.class);
         Single<VPC> create = smProvider.withTransactionSingle(sm -> repository
             .findByRegionIdAndAccountId(sm, vpc.getRegion().getRegionId(), accountId)
-            .flatMap(existingVPC -> Maybe.<Region>error(new AlreadyExistsException(VPC.class)))
-            .switchIfEmpty(regionRepository.findByIdAndFetch(sm, vpc.getRegion().getRegionId()))
+            .flatMap(existingVPC -> Maybe.<Account>error(new AlreadyExistsException(VPC.class)))
+            .switchIfEmpty(sm.find(Account.class, accountId))
+            .switchIfEmpty(Maybe.error(new NotFoundException()))
+            .flatMap(account -> {
+                vpc.setCreatedBy(account);
+                return sm.find(Region.class, vpc.getRegion().getRegionId());
+            })
             .switchIfEmpty(Single.error(new NotFoundException(Region.class)))
             .flatMap(region -> {
                 vpc.setRegion(region);
-                Account account = new Account();
-                account.setAccountId(accountId);
-                vpc.setCreatedBy(account);
                 return sm.persist(vpc);
             })
         );

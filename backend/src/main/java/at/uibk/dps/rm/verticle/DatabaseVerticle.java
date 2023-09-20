@@ -149,8 +149,7 @@ public class DatabaseVerticle extends AbstractVerticle {
                 new NamespaceServiceImpl(new NamespaceRepository(), new ResourceRepository(), smProvider));
             serviceProxyBinder.bind(PlatformService.class,
                 new PlatformServiceImpl(new PlatformRepository(), smProvider));
-            serviceProxyBinder.bind(RegionService.class, new RegionServiceImpl(new RegionRepository(),
-                new ResourceProviderRepository(), smProvider));
+            serviceProxyBinder.bind(RegionService.class, new RegionServiceImpl(new RegionRepository(), smProvider));
             serviceProxyBinder.bind(DeploymentService.class,
                 new DeploymentServiceImpl(new DeploymentRepositoryProvider(), smProvider));
             serviceProxyBinder.bind(DeploymentLogService.class,
@@ -180,8 +179,7 @@ public class DatabaseVerticle extends AbstractVerticle {
                 new ServiceDeploymentServiceImpl(new ServiceDeploymentRepository(), smProvider));
             serviceProxyBinder.bind(ServiceTypeService.class,
                 new ServiceTypeServiceImpl(new ServiceTypeRepository(), smProvider));
-            serviceProxyBinder.bind(VPCService.class, new VPCServiceImpl(new VPCRepository(), new RegionRepository(),
-                smProvider));
+            serviceProxyBinder.bind(VPCService.class, new VPCServiceImpl(new VPCRepository(), smProvider));
             emitter.onComplete();
         });
         return Completable.fromMaybe(setupEventBus);
