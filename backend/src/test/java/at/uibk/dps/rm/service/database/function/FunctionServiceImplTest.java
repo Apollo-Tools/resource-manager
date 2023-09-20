@@ -425,7 +425,7 @@ public class FunctionServiceImplTest {
     }
 
     @Test
-    void deleteFromNotFound(VertxTestContext testContext) {
+    void deleteFromAccountNotFound(VertxTestContext testContext) {
         SessionMockHelper.mockCompletable(smProvider, sessionManager);
         when(functionRepository.findByIdAndAccountId(sessionManager, f1Code.getFunctionId(), accountId, false))
             .thenReturn(Maybe.empty());

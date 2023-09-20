@@ -20,6 +20,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,11 +46,11 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
 
     @Override
     public void findOne(long id, Handler<AsyncResult<JsonObject>> resultHandler) {
-        Maybe<Service> findOne = smProvider.withTransactionMaybe( sm -> repository.findByIdAndFetch(sm, id)
-            .switchIfEmpty(Maybe.error(new NotFoundException(Service.class)))
+        Single<Service> findOne = smProvider.withTransactionSingle( sm -> repository.findByIdAndFetch(sm, id)
+            .switchIfEmpty(Single.error(new NotFoundException(Service.class)))
             .flatMap(result -> sm.fetch(result.getEnvVars())
                 .flatMap(res -> sm.fetch(result.getVolumeMounts()))
-                .flatMapMaybe(res -> Maybe.just(result)))
+                .flatMap(res -> Single.just(result)))
         );
         RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
     }
@@ -65,24 +66,26 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
     @Override
     public void findAll(Handler<AsyncResult<JsonArray>> resultHandler) {
         Single<List<Service>> findAll = smProvider.withTransactionSingle(repository::findAllAndFetch);
-        RxVertxHandler.handleSession(findAll.map(ServiceServiceImpl::mapServicesToJsonArray), resultHandler);
+        RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }
 
     @Override
     public void findAllAccessibleServices(long accountId, Handler<AsyncResult<JsonArray>> resultHandler) {
         Single<List<Service>> findAll = smProvider.withTransactionSingle(sm -> repository
             .findAllAccessibleAndFetch(sm, accountId));
-        RxVertxHandler.handleSession(findAll.map(ServiceServiceImpl::mapServicesToJsonArray), resultHandler);
+        RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }
 
     @Override
     public void findAllByAccountId(long accountId, Handler<AsyncResult<JsonArray>> resultHandler) {
         Single<List<Service>> findAll = smProvider.withTransactionSingle(sm -> repository
             .findAllByAccountId(sm, accountId));
-        RxVertxHandler.handleSession(findAll.map(ServiceServiceImpl::mapServicesToJsonArray), resultHandler);
+        RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }
 
-    private static JsonArray mapServicesToJsonArray(List<Service> result) {
+    @NotNull
+    @Override
+    protected JsonArray mapResultListToJsonArray(List<Service> result) {
         ArrayList<JsonObject> objects = new ArrayList<>();
         for (Service entity: result) {
             entity.setReplicas(null);
@@ -97,7 +100,7 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
     @Override
     public void saveToAccount(long accountId, JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
         Service service = data.mapTo(Service.class);
-        Maybe<Service> create = smProvider.withTransactionMaybe( sm -> sm
+        Single<Service> create = smProvider.withTransactionSingle( sm -> sm
             .find(K8sServiceType.class, service.getK8sServiceType().getServiceTypeId())
             .switchIfEmpty(Maybe.error(new NotFoundException(K8sServiceType.class)))
             .flatMap(k8sServiceType -> {
@@ -113,8 +116,8 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
                 service.setServiceType(serviceType);
                 return sm.find(Account.class, accountId);
             })
-            .switchIfEmpty(Maybe.error(new NotFoundException(Account.class)))
-            .flatMapSingle(account -> {
+            .switchIfEmpty(Single.error(new NotFoundException(Account.class)))
+            .flatMap(account -> {
                 service.setCreatedBy(account);
                 return sm.persist(service);
             })

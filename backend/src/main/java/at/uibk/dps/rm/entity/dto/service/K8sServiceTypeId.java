@@ -5,13 +5,13 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Represents the service type id that is part of update service request.
+ * Represents the k8s service type id that is part of update service request.
  *
  * @author matthi-g
  */
 @NoArgsConstructor
 @Setter
 @Getter
-public class ServiceTypeId {
+public class K8sServiceTypeId {
     private long serviceTypeId;
 }

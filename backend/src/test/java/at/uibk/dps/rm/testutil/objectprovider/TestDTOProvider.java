@@ -12,15 +12,16 @@ import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
 import at.uibk.dps.rm.entity.dto.function.UpdateFunctionDTO;
 import at.uibk.dps.rm.entity.dto.resource.ResourceId;
+import at.uibk.dps.rm.entity.dto.service.K8sServiceTypeId;
+import at.uibk.dps.rm.entity.dto.service.UpdateServiceDTO;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.SLOValue;
 import at.uibk.dps.rm.entity.dto.slo.SLOValueType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
-import at.uibk.dps.rm.entity.model.Region;
-import at.uibk.dps.rm.entity.model.Resource;
-import at.uibk.dps.rm.entity.model.ResourceProvider;
+import at.uibk.dps.rm.entity.model.*;
 import lombok.experimental.UtilityClass;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -329,6 +330,20 @@ public class TestDTOProvider {
         dto.setIsPublic(isPublic);
         dto.setTimeoutSeconds(timeout);
         dto.setMemoryMegabytes(memory);
+        return dto;
+    }
+
+    public static UpdateServiceDTO createUpdateServiceDTO(int replicas, List<String> ports, BigDecimal cpu, int memory,
+            K8sServiceTypeId k8sServiceType, List<EnvVar> envVars, List<VolumeMount> volumeMounts, boolean isPublic) {
+        UpdateServiceDTO dto = new UpdateServiceDTO();
+        dto.setReplicas(replicas);
+        dto.setPorts(ports);
+        dto.setCpu(cpu);
+        dto.setMemory(memory);
+        dto.setK8sServiceType(k8sServiceType);
+        dto.setEnvVars(envVars);
+        dto.setVolumeMounts(volumeMounts);
+        dto.setIsPublic(isPublic);
         return dto;
     }
 }

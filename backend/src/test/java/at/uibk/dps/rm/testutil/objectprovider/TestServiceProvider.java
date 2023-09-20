@@ -28,30 +28,44 @@ public class TestServiceProvider {
         return List.of(ids1, ids2);
     }
 
-    public static K8sServiceType createServiceType(long id, String name) {
+    public static K8sServiceType createK8sServiceType(long id, String name) {
         K8sServiceType serviceType = new K8sServiceType();
         serviceType.setServiceTypeId(id);
         serviceType.setName(name);
         return serviceType;
     }
 
-    public static K8sServiceType createServiceType(long id) {
-        return createServiceType(id, "NodePort");
+    public static K8sServiceType createK8sServiceType(long id) {
+        return createK8sServiceType(id, "NodePort");
     }
 
-    public static Service createService(long id, String name) {
+    public static Service createService(long id, ServiceType serviceType, String name, String image,
+            K8sServiceType k8sServiceType, List<String> ports, Account account, int replicas, BigDecimal cpu,
+            int memory, List<EnvVar> envVars, List<VolumeMount> volumeMounts, boolean isPublic) {
         Service service = new Service();
         service.setServiceId(id);
         service.setName(name);
-        service.setImage(name + ":latest");
-        service.setK8sServiceType(createServiceType(1L));
-        service.setCpu(new BigDecimal("0.1"));
-        service.setMemory(1024);
-        service.setPorts(List.of("80:8000"));
-        service.setReplicas(1);
-        service.setVolumeMounts(List.of(createVolumeMount(11L)));
-        service.setEnvVars(List.of(createEnvVar(22L)));
+        service.setImage(image);
+        service.setServiceType(serviceType);
+        service.setK8sServiceType(k8sServiceType);
+        service.setCpu(cpu);
+        service.setMemory(memory);
+        service.setPorts(ports);
+        service.setReplicas(replicas);
+        service.setVolumeMounts(volumeMounts);
+        service.setEnvVars(envVars);
+        service.setIsPublic(true);
+        service.setCreatedBy(account);
         return service;
+    }
+
+
+    public static Service createService(long id, String name) {
+        ServiceType serviceType = createServiceTyp(id, name + "-type");
+        K8sServiceType k8sServiceType = createK8sServiceType(1L);
+        Account account = TestAccountProvider.createAccount(1L);
+        return createService(id, serviceType, name, name + ":latest", k8sServiceType, List.of("80:8000"),
+            account, 1 , BigDecimal.valueOf(13.37), 128, List.of(), List.of(), true);
     }
 
     public static Service createService(long id) {
@@ -125,5 +139,12 @@ public class TestServiceProvider {
         envVar.setName("env_var");
         envVar.setValue("value");
         return envVar;
+    }
+
+    public static ServiceType createServiceTyp(long id, String name) {
+        ServiceType serviceType = new ServiceType();
+        serviceType.setArtifactTypeId(id);
+        serviceType.setName(name);
+        return serviceType;
     }
 }
