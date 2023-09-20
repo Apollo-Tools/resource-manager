@@ -5,11 +5,16 @@ import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.deployment.module.TerraformModule;
+import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateDTO;
+import at.uibk.dps.rm.entity.model.MainResource;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
+import at.uibk.dps.rm.entity.monitoring.K8sMonitoringData;
+import at.uibk.dps.rm.service.database.util.K8sResourceUpdateUtility;
 import at.uibk.dps.rm.service.database.util.MetricValueUtility;
+import at.uibk.dps.rm.service.database.util.SLOUtility;
 import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.service.deployment.docker.LambdaJavaBuildService;
 import at.uibk.dps.rm.service.deployment.docker.LambdaLayerService;
@@ -34,6 +39,8 @@ import java.nio.file.Path;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mockStatic;
 
@@ -188,6 +195,20 @@ public class Mockprovider {
             Resource resource, JsonArray data) {
         return Mockito.mockConstruction(MetricValueUtility.class,
             (mock, context) -> given(mock.checkAddMetricList(sm, resource, data)).willReturn(Completable.complete()));
+    }
+
+    public static MockedConstruction<K8sResourceUpdateUtility> mockK8sResourceUpdateUtility(SessionManager sm,
+            MainResource cluster, K8sMonitoringData data) {
+        return Mockito.mockConstruction(K8sResourceUpdateUtility.class,
+            (mock, context) -> {
+                given(mock.updateClusterNodes(sm, cluster, data)).willReturn(Completable.complete());
+                given(mock.updateCluster(sm, cluster, data)).willReturn(Completable.complete());
+            });
+    }
+
+    public static MockedConstruction<SLOUtility> mockSLOUtility(SessionManager sm, List<Resource> result) {
+        return Mockito.mockConstruction(SLOUtility.class, (mock, context) ->
+            given(mock.findAndFilterResourcesBySLOs(eq(sm), any(SLORequest.class))).willReturn(Single.just(result)));
     }
 
     public static MockedStatic<Vertx> mockVertx() {

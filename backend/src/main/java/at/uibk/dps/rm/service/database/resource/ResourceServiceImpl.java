@@ -51,31 +51,6 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     }
 
     @Override
-    public void save(JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
-        String name = data.getString("name");
-        long regionId = data.getJsonObject("region").getLong("region_id");
-        long platformId = data.getJsonObject("platform").getLong("platform_id");
-        MainResource resource = new MainResource();
-        Single<Resource> save = smProvider.withTransactionSingle(sm -> repository
-            .findByName(sm, name)
-            .flatMap(existingResource -> Maybe.<Region>error(new AlreadyExistsException(Resource.class)))
-            .switchIfEmpty(regionRepository.findByRegionIdAndPlatformId(sm, regionId, platformId))
-            .switchIfEmpty(Maybe.error(new NotFoundException("platform is not supported by the selected region")))
-            .flatMap(region -> {
-                resource.setName(name);
-                resource.setRegion(region);
-                return sm.find(Platform.class, platformId);
-            })
-            .switchIfEmpty(Single.error(new NotFoundException(Platform.class)))
-            .flatMap(platform -> {
-                resource.setPlatform(platform);
-                return sm.persist(resource);
-            })
-        );
-        RxVertxHandler.handleSession(save.map(JsonObject::mapFrom), resultHandler);
-    }
-
-    @Override
     public void findOne(long id, Handler<AsyncResult<JsonObject>> resultHandler) {
         Maybe<Resource> findOne = smProvider.withTransactionMaybe( sm -> repository
             .findByIdAndFetch(sm, id)
@@ -131,9 +106,32 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     }
 
     @Override
+    public void save(JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
+        String name = data.getString("name");
+        long regionId = data.getJsonObject("region").getLong("region_id");
+        long platformId = data.getJsonObject("platform").getLong("platform_id");
+        MainResource resource = new MainResource();
+        Single<Resource> save = smProvider.withTransactionSingle(sm -> repository.findByName(sm, name)
+            .flatMap(existingResource -> Maybe.<Region>error(new AlreadyExistsException(Resource.class)))
+            .switchIfEmpty(regionRepository.findByRegionIdAndPlatformId(sm, regionId, platformId))
+            .switchIfEmpty(Maybe.error(new NotFoundException("platform is not supported by the selected region")))
+            .flatMap(region -> {
+                resource.setName(name);
+                resource.setRegion(region);
+                return sm.find(Platform.class, platformId);
+            })
+            .switchIfEmpty(Single.error(new NotFoundException(Platform.class)))
+            .flatMap(platform -> {
+                resource.setPlatform(platform);
+                return sm.persist(resource);
+            })
+        );
+        RxVertxHandler.handleSession(save.map(JsonObject::mapFrom), resultHandler);
+    }
+
+    @Override
     public void delete(long id, Handler<AsyncResult<Void>> resultHandler) {
-        Completable delete = smProvider.withTransactionCompletable(sm -> repository
-            .findByIdAndFetch(sm, id)
+        Completable delete = smProvider.withTransactionCompletable(sm -> repository.findByIdAndFetch(sm, id)
             .switchIfEmpty(Maybe.error(new NotFoundException(Resource.class)))
             .flatMapCompletable(sm::remove)
         );
@@ -154,7 +152,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
         RxVertxHandler.handleSession(updateClusterResource, resultHandler);
     }
 
-    private JsonArray encodeResourceList(List<Resource> resourceList) {
+    protected JsonArray encodeResourceList(List<Resource> resourceList) {
         ArrayList<JsonObject> objects = new ArrayList<>();
         for (Resource resource: resourceList) {
             if (resource instanceof SubResource) {
