@@ -5,9 +5,6 @@ import at.uibk.dps.rm.repository.EnsembleRepositoryProvider;
 import at.uibk.dps.rm.repository.account.*;
 import at.uibk.dps.rm.repository.artifact.FunctionTypeRepository;
 import at.uibk.dps.rm.repository.artifact.ServiceTypeRepository;
-import at.uibk.dps.rm.repository.ensemble.EnsembleRepository;
-import at.uibk.dps.rm.repository.ensemble.EnsembleSLORepository;
-import at.uibk.dps.rm.repository.ensemble.ResourceEnsembleRepository;
 import at.uibk.dps.rm.repository.function.FunctionRepository;
 import at.uibk.dps.rm.repository.function.RuntimeRepository;
 import at.uibk.dps.rm.repository.log.LogRepository;
@@ -157,8 +154,7 @@ public class DatabaseVerticle extends AbstractVerticle {
             serviceProxyBinder.bind(K8sServiceTypeService.class,
                     new K8sServiceTypeServiceImpl(new K8sServiceTypeRepository(), smProvider));
             serviceProxyBinder.bind(ResourceEnsembleService.class,
-                new ResourceEnsembleServiceImpl(new ResourceEnsembleRepository(), new EnsembleSLORepository(),
-                    new EnsembleRepository(), new ResourceRepository(), smProvider));
+                new ResourceEnsembleServiceImpl(new EnsembleRepositoryProvider(), smProvider));
             serviceProxyBinder.bind(ResourceService.class,
                 new ResourceServiceImpl(new ResourceRepository(),
                     new RegionRepository(), new MetricRepository(),

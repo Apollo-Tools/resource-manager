@@ -2,10 +2,7 @@ package at.uibk.dps.rm.service.database.ensemble;
 
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.ResourceEnsemble;
-import at.uibk.dps.rm.repository.ensemble.EnsembleRepository;
-import at.uibk.dps.rm.repository.ensemble.EnsembleSLORepository;
-import at.uibk.dps.rm.repository.ensemble.ResourceEnsembleRepository;
-import at.uibk.dps.rm.repository.resource.ResourceRepository;
+import at.uibk.dps.rm.repository.EnsembleRepositoryProvider;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
 import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -29,8 +26,7 @@ public interface ResourceEnsembleService extends DatabaseServiceInterface {
     @Generated
     @GenIgnore
     static ResourceEnsembleService create(SessionManagerProvider smProvider) {
-        return new ResourceEnsembleServiceImpl(new ResourceEnsembleRepository(), new EnsembleSLORepository(),
-            new EnsembleRepository(), new ResourceRepository(), smProvider);
+        return new ResourceEnsembleServiceImpl(new EnsembleRepositoryProvider(), smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

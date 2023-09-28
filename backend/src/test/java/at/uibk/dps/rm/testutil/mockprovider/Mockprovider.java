@@ -8,14 +8,14 @@ import at.uibk.dps.rm.entity.deployment.module.TerraformModule;
 import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateDTO;
+import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
+import at.uibk.dps.rm.entity.dto.ensemble.ResourceEnsembleStatus;
+import at.uibk.dps.rm.entity.model.Ensemble;
 import at.uibk.dps.rm.entity.model.MainResource;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.entity.monitoring.K8sMonitoringData;
-import at.uibk.dps.rm.service.database.util.K8sResourceUpdateUtility;
-import at.uibk.dps.rm.service.database.util.MetricValueUtility;
-import at.uibk.dps.rm.service.database.util.SLOUtility;
-import at.uibk.dps.rm.service.database.util.SessionManager;
+import at.uibk.dps.rm.service.database.util.*;
 import at.uibk.dps.rm.service.deployment.docker.LambdaJavaBuildService;
 import at.uibk.dps.rm.service.deployment.docker.LambdaLayerService;
 import at.uibk.dps.rm.service.deployment.docker.OpenFaasImageService;
@@ -37,6 +37,7 @@ import org.mockito.Mockito;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -206,9 +207,29 @@ public class Mockprovider {
             });
     }
 
-    public static MockedConstruction<SLOUtility> mockSLOUtility(SessionManager sm, List<Resource> result) {
+    public static MockedConstruction<EnsembleUtility> mockEnsembleUtilityFetch(SessionManager sm, long ensembleId,
+            long accountId, GetOneEnsemble result) {
+        return Mockito.mockConstruction(EnsembleUtility.class, (mock, context) ->
+            given(mock.fetchAndPopulateEnsemble(sm, ensembleId, accountId)).willReturn(Single.just(result)));
+    }
+
+    public static MockedConstruction<SLOUtility> mockSLOUtilityFindAndFilterResources(SessionManager sm,
+            List<Resource> result) {
         return Mockito.mockConstruction(SLOUtility.class, (mock, context) ->
             given(mock.findAndFilterResourcesBySLOs(eq(sm), any(SLORequest.class))).willReturn(Single.just(result)));
+    }
+
+    public static MockedConstruction<EnsembleValidationUtility> mockEnsembleValidationUtility(SessionManager sm,
+            long ensembleId, long accountId, List<ResourceEnsembleStatus> result) {
+        return Mockito.mockConstruction(EnsembleValidationUtility.class, (mock, context) ->
+            given(mock.validateAndUpdateEnsemble(sm, ensembleId, accountId)).willReturn(Single.just(result)));
+    }
+
+    public static MockedConstruction<EnsembleValidationUtility> mockEnsembleValidationUtilityList(SessionManager sm,
+            long accountId, Map<Ensemble, List<ResourceEnsembleStatus>> result) {
+        return Mockito.mockConstruction(EnsembleValidationUtility.class, (mock, context) ->
+            result.forEach((key, value) -> given(mock.validateAndUpdateEnsemble(sm, key.getEnsembleId(), accountId))
+                .willReturn(Single.just(value))));
     }
 
     public static MockedStatic<Vertx> mockVertx() {

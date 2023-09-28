@@ -112,9 +112,9 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
      * @return the mapped JsonArray
      */
     @NotNull
-    protected JsonArray mapResultListToJsonArray(List<T> resultList) {
+    protected <E> JsonArray mapResultListToJsonArray(List<E> resultList) {
         ArrayList<JsonObject> objects = new ArrayList<>();
-        for (T entity : resultList) {
+        for (E entity : resultList) {
             objects.add(JsonObject.mapFrom(entity));
         }
         return new JsonArray(objects);

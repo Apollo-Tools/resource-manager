@@ -3,9 +3,13 @@ package at.uibk.dps.rm.testutil.objectprovider;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.model.Ensemble;
 import at.uibk.dps.rm.entity.model.EnsembleSLO;
+import at.uibk.dps.rm.entity.model.Resource;
+import at.uibk.dps.rm.entity.model.ResourceEnsemble;
 import lombok.experimental.UtilityClass;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Utility class to instantiate objects that are linked to the ensemble entity.
@@ -56,14 +60,34 @@ public class TestEnsembleProvider {
         return ensembleSLO;
     }
 
+    public static EnsembleSLO createEnsembleSLOGT(long ensembleSLOId, String name, long ensembleId, double value) {
+        EnsembleSLO ensembleSLO = new EnsembleSLO();
+        ensembleSLO.setEnsembleSLOId(ensembleSLOId);
+        ensembleSLO.setName(name);
+        ensembleSLO.setExpression(ExpressionType.GT);
+        ensembleSLO.setValueNumbers(List.of(value));
+        Ensemble ensemble = createEnsemble(ensembleId, 1L);
+        ensembleSLO.setEnsemble(ensemble);
+        return ensembleSLO;
+    }
+
     public static EnsembleSLO createEnsembleSLO(long ensembleSLOId, String name, long ensembleId, Boolean... values) {
         EnsembleSLO ensembleSLO = new EnsembleSLO();
         ensembleSLO.setEnsembleSLOId(ensembleSLOId);
         ensembleSLO.setName(name);
         ensembleSLO.setExpression(ExpressionType.EQ);
-        ensembleSLO.setValueBools(List.of(values));
+        ensembleSLO.setValueBools(Arrays.stream(values).collect(Collectors.toList()));
         Ensemble ensemble = createEnsemble(ensembleId, 1L);
         ensembleSLO.setEnsemble(ensemble);
         return ensembleSLO;
+    }
+
+    public static ResourceEnsemble createResourceEnsemble(long resourceEnsembleId, Ensemble ensemble,
+            Resource resource) {
+        ResourceEnsemble resourceEnsemble = new ResourceEnsemble();
+        resourceEnsemble.setResourceEnsembleId(resourceEnsembleId);
+        resourceEnsemble.setEnsemble(ensemble);
+        resourceEnsemble.setResource(resource);
+        return resourceEnsemble;
     }
 }

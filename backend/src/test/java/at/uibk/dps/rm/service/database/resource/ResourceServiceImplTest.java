@@ -142,7 +142,7 @@ public class ResourceServiceImplTest {
         SLORequest sloRequest = TestDTOProvider.createSLORequest(List.of(slo1));
 
         SessionMockHelper.mockSingle(smProvider, sessionManager);
-        try (MockedConstruction<SLOUtility> ignored = Mockprovider.mockSLOUtility(sessionManager, List.of(r1, r2))) {
+        try (MockedConstruction<SLOUtility> ignored = Mockprovider.mockSLOUtilityFindAndFilterResources(sessionManager, List.of(r1, r2))) {
             resourceService.findAllBySLOs(JsonObject.mapFrom(sloRequest), testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
                 assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);

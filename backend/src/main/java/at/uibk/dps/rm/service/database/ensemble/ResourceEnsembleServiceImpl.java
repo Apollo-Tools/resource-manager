@@ -6,10 +6,7 @@ import at.uibk.dps.rm.entity.model.ResourceEnsemble;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.repository.ensemble.EnsembleRepository;
-import at.uibk.dps.rm.repository.ensemble.EnsembleSLORepository;
-import at.uibk.dps.rm.repository.ensemble.ResourceEnsembleRepository;
-import at.uibk.dps.rm.repository.resource.ResourceRepository;
+import at.uibk.dps.rm.repository.EnsembleRepositoryProvider;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import at.uibk.dps.rm.util.misc.ServiceLevelObjectiveMapper;
@@ -31,50 +28,37 @@ import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 public class ResourceEnsembleServiceImpl  extends DatabaseServiceProxy<ResourceEnsemble> implements
     ResourceEnsembleService {
 
-    private final ResourceEnsembleRepository repository;
-
-    private final EnsembleSLORepository ensembleSLORepository;
-
-    private final EnsembleRepository ensembleRepository;
-
-    private final ResourceRepository resourceRepository;
+    private final EnsembleRepositoryProvider repositoryProvider;
 
     /**
-     * Create an instance from the resourceEnsembleRepository, ensembleSLORepository,
-     * ensembleRepository, resourceRepository.
+     * Create an instance from the repositoryProvider.
      *
-     * @param repository the resource ensemble repository
-     * @param ensembleSLORepository the ensemble slo repository
-     * @param ensembleRepository  the ensemble repository
-     * @param resourceRepository  the resource repository
+     * @param repositoryProvider the repository provider
      */
-    public ResourceEnsembleServiceImpl(ResourceEnsembleRepository repository,
-            EnsembleSLORepository ensembleSLORepository, EnsembleRepository ensembleRepository,
-            ResourceRepository resourceRepository, SessionManagerProvider smProvider) {
-        super(repository, ResourceEnsemble.class, smProvider);
-        this.repository = repository;
-        this.ensembleSLORepository = ensembleSLORepository;
-        this.ensembleRepository = ensembleRepository;
-        this.resourceRepository = resourceRepository;
+    public ResourceEnsembleServiceImpl(EnsembleRepositoryProvider repositoryProvider,
+            SessionManagerProvider smProvider) {
+        super(repositoryProvider.getResourceEnsembleRepository(), ResourceEnsemble.class, smProvider);
+        this.repositoryProvider = repositoryProvider;
     }
 
     @Override
     public void saveByEnsembleIdAndResourceId(long accountId, long ensembleId, long resourceId,
             Handler<AsyncResult<JsonObject>> resultHandler) {
         ResourceEnsemble resourceEnsemble = new ResourceEnsemble();
-        Single<ResourceEnsemble> create = smProvider.withTransactionSingle(sm -> repository
+        Single<ResourceEnsemble> create = smProvider.withTransactionSingle(sm -> repositoryProvider
+            .getResourceEnsembleRepository()
             .findByEnsembleIdAndResourceId(sm, accountId, ensembleId, resourceId)
             .flatMap(existingResourceEnsemble -> Maybe.<Ensemble>error(new AlreadyExistsException(ResourceEnsemble.class)))
-            .switchIfEmpty(ensembleRepository.findByIdAndAccountId(sm, ensembleId, accountId))
+            .switchIfEmpty(repositoryProvider.getEnsembleRepository().findByIdAndAccountId(sm, ensembleId, accountId))
             .switchIfEmpty(Maybe.error(new NotFoundException(Ensemble.class)))
             .flatMap(ensemble -> {
                 resourceEnsemble.setEnsemble(ensemble);
-                return resourceRepository.findByIdAndFetch(sm, resourceId);
+                return repositoryProvider.getResourceRepository().findByIdAndFetch(sm, resourceId);
             })
             .switchIfEmpty(Single.error(new NotFoundException(Resource.class)))
             .flatMap(resource -> {
                 resourceEnsemble.setResource(resource);
-                return ensembleSLORepository.findAllByEnsembleId(sm, ensembleId);
+                return repositoryProvider.getEnsembleSLORepository().findAllByEnsembleId(sm, ensembleId);
             })
             .flatMapObservable(Observable::fromIterable)
             .map(ServiceLevelObjectiveMapper::mapEnsembleSLO)
@@ -104,7 +88,8 @@ public class ResourceEnsembleServiceImpl  extends DatabaseServiceProxy<ResourceE
     @Override
     public void deleteByEnsembleIdAndResourceId(long accountId, long ensembleId, long resourceId,
             Handler<AsyncResult<Void>> resultHandler) {
-        Completable delete = smProvider.withTransactionCompletable(sm -> repository
+        Completable delete = smProvider.withTransactionCompletable(sm -> repositoryProvider
+            .getResourceEnsembleRepository()
             .findByEnsembleIdAndResourceId(sm, accountId, ensembleId, resourceId)
             .switchIfEmpty(Maybe.error(new NotFoundException(ResourceEnsemble.class)))
             .flatMapCompletable(sm::remove)

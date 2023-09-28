@@ -4,18 +4,13 @@ import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
 import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
 import at.uibk.dps.rm.entity.dto.ensemble.ResourceEnsembleStatus;
 import at.uibk.dps.rm.entity.dto.resource.ResourceId;
-import at.uibk.dps.rm.entity.dto.resource.SubResourceDTO;
-import at.uibk.dps.rm.entity.dto.slo.SLOValue;
-import at.uibk.dps.rm.entity.dto.slo.SLOValueType;
-import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.EnsembleRepositoryProvider;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
-import at.uibk.dps.rm.service.database.util.SLOUtility;
-import at.uibk.dps.rm.service.database.util.SessionManager;
+import at.uibk.dps.rm.service.database.util.*;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -25,12 +20,10 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * This is the implementation of the {@link EnsembleService}.
@@ -41,8 +34,6 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
 
     private final EnsembleRepositoryProvider repositoryProvider;
 
-    private final SLOUtility sloUtility;
-
     /**
      * Create an instance from the ensembleRepository.
      *
@@ -51,56 +42,6 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
     public EnsembleServiceImpl(EnsembleRepositoryProvider repositoryProvider, SessionManagerProvider smProvider) {
         super(repositoryProvider.getEnsembleRepository(), Ensemble.class, smProvider);
         this.repositoryProvider = repositoryProvider;
-        this.sloUtility = new SLOUtility(repositoryProvider.getResourceRepository(),
-            repositoryProvider.getMetricRepository());
-    }
-
-    // TODO: fix return values
-    @Override
-    public void saveToAccount(long accountId, JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
-        CreateEnsembleRequest request = data.mapTo(CreateEnsembleRequest.class);
-        Single<Ensemble> create = smProvider.withTransactionSingle(sm -> repositoryProvider
-            .getEnsembleRepository().findByNameAndAccountId(sm, request.getName(), accountId)
-            .flatMap(existingEnsemble -> Maybe.<Ensemble>error(new AlreadyExistsException(Ensemble.class)))
-            .switchIfEmpty(sm.persist(request.getEnsemble(accountId)))
-            .flatMap(ensemble -> {
-                Completable createResourceEnsembles = Observable.fromIterable(request.getResources())
-                    .map(resourceId -> repositoryProvider.getResourceRepository()
-                        .findById(sm, resourceId.getResourceId())
-                        .switchIfEmpty(Maybe.error(new NotFoundException(Resource.class)))
-                        .flatMapSingle(resource -> {
-                            ResourceEnsemble resourceEnsemble = new ResourceEnsemble();
-                            resourceEnsemble.setEnsemble(ensemble);
-                            resourceEnsemble.setResource(resource);
-                            return sm.persist(resourceEnsemble);
-                        })
-                        .ignoreElement()
-                    )
-                    .toList()
-                    .flatMapCompletable(Completable::merge);
-                Completable createEnsembleSLOs = Observable.fromIterable(request.getServiceLevelObjectives())
-                    .map(slo -> {
-                        EnsembleSLO ensembleSLO = createEnsembleSLO(slo, ensemble);
-                        return sm.persist(ensembleSLO).ignoreElement();
-                    })
-                    .toList()
-                    .flatMapCompletable(Completable::merge);
-                return Completable.mergeArray(createResourceEnsembles, createEnsembleSLOs)
-                    .andThen(Single.defer(() -> Single.just(ensemble)));
-            })
-        );
-        RxVertxHandler.handleSession(
-            create.map(entity -> {
-                entity.setResource_types(null);
-                entity.setRegions(null);
-                entity.setProviders(null);
-                entity.setEnvironments(null);
-                entity.setPlatforms(null);
-                entity.setCreatedBy(null);
-                return JsonObject.mapFrom(entity);
-            }),
-            resultHandler
-        );
     }
 
     @Override
@@ -108,16 +49,7 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
         Single<List<Ensemble>> findAll = smProvider.withTransactionSingle(sm -> repositoryProvider
             .getEnsembleRepository()
             .findAll(sm));
-        RxVertxHandler.handleSession(
-            findAll.map(result -> {
-                ArrayList<JsonObject> objects = new ArrayList<>();
-                for (Ensemble entity: result) {
-                    objects.add(JsonObject.mapFrom(entity));
-                }
-                return new JsonArray(objects);
-            }),
-            resultHandler
-        );
+        RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }
 
     @Override
@@ -144,47 +76,11 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
 
     @Override
     public void findOneByIdAndAccountId(long id, long accountId, Handler<AsyncResult<JsonObject>> resultHandler) {
+        EnsembleUtility ensembleUtility = new EnsembleUtility(repositoryProvider);
         Single<GetOneEnsemble> findOne = smProvider.withTransactionSingle(sm ->
-            fetchAndPopulateEnsemble(sm, id, accountId)
+            ensembleUtility.fetchAndPopulateEnsemble(sm, id, accountId)
         );
         RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
-    }
-
-    private Single<GetOneEnsemble> fetchAndPopulateEnsemble(SessionManager sm, long id, long accountId) {
-        GetOneEnsemble response = new GetOneEnsemble();
-        return repositoryProvider.getEnsembleRepository()
-            .findByIdAndAccountId(sm, id, accountId)
-            .switchIfEmpty(Single.error(new NotFoundException(Ensemble.class)))
-            .flatMap(ensemble -> {
-                response.setEnsembleId(ensemble.getEnsembleId());
-                response.setName(ensemble.getName());
-                response.setRegions(ensemble.getRegions());
-                response.setProviders(ensemble.getProviders());
-                response.setResourceTypes(ensemble.getResource_types());
-                response.setPlatforms(ensemble.getPlatforms());
-                response.setEnvironments(ensemble.getEnvironments());
-                response.setCreatedAt(ensemble.getCreatedAt());
-                response.setUpdatedAt(ensemble.getUpdatedAt());
-                return repositoryProvider.getResourceRepository()
-                    .findAllByEnsembleId(sm, ensemble.getEnsembleId());
-            })
-            .flatMapObservable(Observable::fromIterable)
-            .map(resource -> {
-                if (resource instanceof SubResource) {
-                    return new SubResourceDTO((SubResource) resource);
-                }
-                return resource;
-            })
-            .toList()
-            .flatMap(mappedResources -> {
-                response.setResources(mappedResources);
-                return repositoryProvider.getEnsembleSLORepository()
-                    .findAllByEnsembleId(sm, response.getEnsembleId());
-            })
-            .map(slos -> {
-                response.setServiceLevelObjectives(mapEnsembleSLOstoDTO(slos));
-                return response;
-            });
     }
 
     // TODO: check if valid
@@ -196,70 +92,59 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
         RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
     }
 
-    /**
-     * Map the ensembleSLOs model entity to the ServiceLevelObjective DTO.
-     *
-     * @param ensembleSLOs the list of ensembleSLOs
-     * @return a List of mapped ServiceLevelObjectives
-     */
-    private List<ServiceLevelObjective> mapEnsembleSLOstoDTO(List<EnsembleSLO> ensembleSLOs) {
-        return ensembleSLOs.stream()
-            .map(ensembleSLO -> {
-                List<SLOValue> sloValues;
-                if (ensembleSLO.getValueNumbers() != null) {
-                    sloValues = ensembleSLO.getValueNumbers().stream().map(value -> {
-                        SLOValue sloValue = new SLOValue();
-                        sloValue.setValueNumber(value);
-                        sloValue.setSloValueType(SLOValueType.NUMBER);
-                        return sloValue;
-                    }).collect(Collectors.toList());
-                } else if (ensembleSLO.getValueStrings() != null) {
-                    sloValues = ensembleSLO.getValueStrings().stream().map(value -> {
-                        SLOValue sloValue = new SLOValue();
-                        sloValue.setValueString(value);
-                        sloValue.setSloValueType(SLOValueType.STRING);
-                        return sloValue;
-                    }).collect(Collectors.toList());
-                } else {
-                    sloValues = ensembleSLO.getValueBools().stream().map(value -> {
-                        SLOValue sloValue = new SLOValue();
-                        sloValue.setValueBool(value);
-                        sloValue.setSloValueType(SLOValueType.BOOLEAN);
-                        return sloValue;
-                    }).collect(Collectors.toList());
-                }
-                return new ServiceLevelObjective(ensembleSLO.getName(),
-                    ensembleSLO.getExpression(), sloValues);
-            }).collect(Collectors.toList());
-    }
-
-    private EnsembleSLO createEnsembleSLO(ServiceLevelObjective slo, Ensemble ensemble) {
-        EnsembleSLO ensembleSLO = new EnsembleSLO();
-        ensembleSLO.setName(slo.getName());
-        ensembleSLO.setExpression(slo.getExpression());
-        switch (slo.getValue().get(0).getSloValueType()) {
-            case NUMBER:
-                List<Double> numberValues = slo.getValue().stream()
-                    .map(value -> (Double) value.getValueNumber()).collect(Collectors.toList());
-                ensembleSLO.setValueNumbers(numberValues);
-                break;
-            case STRING:
-                List<String> stringValues = slo.getValue().stream()
-                    .map(SLOValue::getValueString).collect(Collectors.toList());
-                ensembleSLO.setValueStrings(stringValues);
-                break;
-            case BOOLEAN:
-                List<Boolean> boolValues = slo.getValue().stream()
-                    .map(SLOValue::getValueBool).collect(Collectors.toList());
-                ensembleSLO.setValueBools(boolValues);
-                break;
-        }
-        ensembleSLO.setEnsemble(ensemble);
-        return ensembleSLO;
+    // TODO: fix return values
+    @Override
+    public void saveToAccount(long accountId, JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
+        CreateEnsembleRequest request = data.mapTo(CreateEnsembleRequest.class);
+        Single<Ensemble> create = smProvider.withTransactionSingle(sm -> repositoryProvider
+            .getEnsembleRepository().findByNameAndAccountId(sm, request.getName(), accountId)
+            .flatMap(existingEnsemble -> Maybe.error(new AlreadyExistsException(Ensemble.class)))
+            .switchIfEmpty(sm.find(Account.class, accountId))
+            .switchIfEmpty(Single.error(new NotFoundException(Account.class)))
+            .flatMap(account -> sm.persist(request.getEnsemble(accountId)))
+            .flatMap(ensemble -> {
+                Completable createResourceEnsembles = Observable.fromIterable(request.getResources())
+                    .map(resourceId -> sm.find(Resource.class, resourceId.getResourceId())
+                        .switchIfEmpty(Maybe.error(new NotFoundException(Resource.class)))
+                        .flatMapSingle(resource -> {
+                            ResourceEnsemble resourceEnsemble = new ResourceEnsemble();
+                            resourceEnsemble.setEnsemble(ensemble);
+                            resourceEnsemble.setResource(resource);
+                            return sm.persist(resourceEnsemble);
+                        })
+                        .ignoreElement()
+                    )
+                    .toList()
+                    .flatMapCompletable(Completable::merge);
+                Completable createEnsembleSLOs = Observable.fromIterable(request.getServiceLevelObjectives())
+                    .map(slo -> {
+                        EnsembleSLO ensembleSLO = EnsembleUtility.createEnsembleSLO(slo, ensemble);
+                        return sm.persist(ensembleSLO).ignoreElement();
+                    })
+                    .toList()
+                    .flatMapCompletable(Completable::merge);
+                return Completable.mergeArray(createResourceEnsembles, createEnsembleSLOs)
+                    .andThen(Single.defer(() -> Single.just(ensemble)));
+            })
+        );
+        RxVertxHandler.handleSession(
+            create.map(entity -> {
+                entity.setResource_types(null);
+                entity.setRegions(null);
+                entity.setProviders(null);
+                entity.setEnvironments(null);
+                entity.setPlatforms(null);
+                entity.setCreatedBy(null);
+                return JsonObject.mapFrom(entity);
+            }),
+            resultHandler
+        );
     }
 
     @Override
     public void validateCreateEnsembleRequest(JsonObject data, Handler<AsyncResult<Void>> resultHandler) {
+        SLOUtility sloUtility = new SLOUtility(repositoryProvider.getResourceRepository(),
+            repositoryProvider.getMetricRepository());
         CreateEnsembleRequest requestDTO = data.mapTo(CreateEnsembleRequest.class);
         List<ResourceId> resourceIds = requestDTO.getResources();
         Completable validateRequest = smProvider.withTransactionCompletable(sm -> sloUtility
@@ -282,24 +167,16 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
     @Override
     public void validateExistingEnsemble(long accountId, long ensembleId,
             Handler<AsyncResult<JsonArray>> resultHandler) {
+        EnsembleValidationUtility validationUtility = new EnsembleValidationUtility(repositoryProvider);
         Single<List<ResourceEnsembleStatus>> validateRequest = smProvider.withTransactionSingle(sm ->
-            validateAndUpdateEnsemble(sm, ensembleId, accountId));
-        RxVertxHandler.handleSession(
-            validateRequest.map(result -> {
-                ArrayList<JsonObject> objects = new ArrayList<>();
-                for (ResourceEnsembleStatus status: result) {
-                    objects.add(JsonObject.mapFrom(status));
-                }
-                return new JsonArray(objects);
-            }),
-            resultHandler
-        );
+            validationUtility.validateAndUpdateEnsemble(sm, ensembleId, accountId));
+        RxVertxHandler.handleSession(validateRequest.map(this::mapResultListToJsonArray), resultHandler);
     }
 
     @Override
     public void validateAllExistingEnsembles(Handler<AsyncResult<Void>> resultHandler) {
-        Completable validateAll = smProvider.withTransactionSingle(sm -> repositoryProvider
-            .getEnsembleRepository()
+        EnsembleValidationUtility validationUtility = new EnsembleValidationUtility(repositoryProvider);
+        Completable validateAll = smProvider.withTransactionSingle(sm -> repositoryProvider.getEnsembleRepository()
             .findAll(sm))
             .flatMapCompletable(ensembles -> {
                 Single<List<ResourceEnsembleStatus>> prevSingle = Single.just(List.of());
@@ -307,47 +184,10 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
                     long accountId = ensemble.getCreatedBy().getAccountId();
                     long ensembleId = ensemble.getEnsembleId();
                     prevSingle = prevSingle.flatMap(prev -> smProvider.withTransactionSingle(sm ->
-                        validateAndUpdateEnsemble(sm, ensembleId, accountId)));
+                        validationUtility.validateAndUpdateEnsemble(sm, ensembleId, accountId)));
                 }
                 return prevSingle.ignoreElement();
             });
         RxVertxHandler.handleSession(validateAll, resultHandler);
-    }
-
-    private Single<List<ResourceEnsembleStatus>> validateAndUpdateEnsemble(SessionManager sm,
-            long ensembleId, long accountId) {
-        return repositoryProvider.getEnsembleRepository().findByIdAndAccountId(sm, ensembleId, accountId)
-            .switchIfEmpty(Single.error(new NotFoundException(Ensemble.class)))
-            .flatMap(ensemble -> fetchAndPopulateEnsemble(sm, ensembleId, accountId))
-            .flatMap(getOneEnsemble -> sloUtility.findAndFilterResourcesBySLOs(sm, getOneEnsemble)
-                .map(validResources -> getResourceEnsembleStatus(validResources, getOneEnsemble.getResources()))
-            )
-            .flatMap(statusValues -> Observable.fromIterable(statusValues)
-                .map(ResourceEnsembleStatus::getIsValid)
-                .reduce((status1, status2) -> status1 && status2)
-                .flatMapCompletable(status -> repositoryProvider.getEnsembleRepository()
-                    .updateValidity(sm, ensembleId, status))
-                .andThen(Single.defer(() -> Single.just(statusValues)))
-            );
-    }
-
-    /**
-     * Get the slo status of all resources
-     *
-     * @param validResources all valid resources
-     * @param ensembleResources the resources to validate
-     * @return the List of pairs of resource_ids and their validation status being true for valid
-     * and false for invalid
-     */
-    private List<ResourceEnsembleStatus> getResourceEnsembleStatus(List<Resource> validResources,
-        List<Resource> ensembleResources) {
-        return ensembleResources.stream()
-            .map(Resource::getResourceId)
-            .map(resourceId -> {
-                boolean isValid = validResources.stream()
-                    .anyMatch(resource -> Objects.equals(resource.getResourceId(), resourceId));
-                return new ResourceEnsembleStatus(resourceId, isValid);
-            })
-            .collect(Collectors.toList());
     }
 }

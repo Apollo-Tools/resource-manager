@@ -3,6 +3,7 @@ package at.uibk.dps.rm.testutil.mockprovider;
 import at.uibk.dps.rm.repository.EnsembleRepositoryProvider;
 import at.uibk.dps.rm.repository.ensemble.EnsembleRepository;
 import at.uibk.dps.rm.repository.ensemble.EnsembleSLORepository;
+import at.uibk.dps.rm.repository.ensemble.ResourceEnsembleRepository;
 import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import lombok.Getter;
@@ -26,6 +27,9 @@ public class EnsembleRepositoryProviderMock {
 
     private final MetricRepository metricRepository = Mockito.mock(MetricRepository.class);
 
+    private final ResourceEnsembleRepository resourceEnsembleRepository =
+        Mockito.mock(ResourceEnsembleRepository.class);
+
     public void mock() {
         Mockito.lenient().when(repositoryProvider.getEnsembleRepository()).thenReturn(ensembleRepository);
         Mockito.lenient().when(repositoryProvider.getEnsembleSLORepository())
@@ -34,5 +38,7 @@ public class EnsembleRepositoryProviderMock {
             .thenReturn(resourceRepository);
         Mockito.lenient().when(repositoryProvider.getMetricRepository())
             .thenReturn(metricRepository);
+        Mockito.lenient().when(repositoryProvider.getResourceEnsembleRepository())
+            .thenReturn(resourceEnsembleRepository);
     }
 }

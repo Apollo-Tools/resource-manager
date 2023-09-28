@@ -20,7 +20,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,26 +65,24 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
     @Override
     public void findAll(Handler<AsyncResult<JsonArray>> resultHandler) {
         Single<List<Service>> findAll = smProvider.withTransactionSingle(repository::findAllAndFetch);
-        RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
+        RxVertxHandler.handleSession(findAll.map(this::mapServiceListToJsonArray), resultHandler);
     }
 
     @Override
     public void findAllAccessibleServices(long accountId, Handler<AsyncResult<JsonArray>> resultHandler) {
         Single<List<Service>> findAll = smProvider.withTransactionSingle(sm -> repository
             .findAllAccessibleAndFetch(sm, accountId));
-        RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
+        RxVertxHandler.handleSession(findAll.map(this::mapServiceListToJsonArray), resultHandler);
     }
 
     @Override
     public void findAllByAccountId(long accountId, Handler<AsyncResult<JsonArray>> resultHandler) {
         Single<List<Service>> findAll = smProvider.withTransactionSingle(sm -> repository
             .findAllByAccountId(sm, accountId));
-        RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
+        RxVertxHandler.handleSession(findAll.map(this::mapServiceListToJsonArray), resultHandler);
     }
 
-    @NotNull
-    @Override
-    protected JsonArray mapResultListToJsonArray(List<Service> result) {
+    protected JsonArray mapServiceListToJsonArray(List<Service> result) {
         ArrayList<JsonObject> objects = new ArrayList<>();
         for (Service entity: result) {
             entity.setReplicas(null);
