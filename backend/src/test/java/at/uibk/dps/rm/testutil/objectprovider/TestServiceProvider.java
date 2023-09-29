@@ -54,7 +54,7 @@ public class TestServiceProvider {
         service.setReplicas(replicas);
         service.setVolumeMounts(volumeMounts);
         service.setEnvVars(envVars);
-        service.setIsPublic(true);
+        service.setIsPublic(isPublic);
         service.setCreatedBy(account);
         return service;
     }
@@ -64,8 +64,10 @@ public class TestServiceProvider {
         ServiceType serviceType = createServiceTyp(id, name + "-type");
         K8sServiceType k8sServiceType = createK8sServiceType(1L);
         Account account = TestAccountProvider.createAccount(1L);
+        EnvVar envVar = createEnvVar(1L);
+        VolumeMount volumeMount = createVolumeMount(1L);
         return createService(id, serviceType, name, name + ":latest", k8sServiceType, List.of("80:8000"),
-            account, 1 , BigDecimal.valueOf(13.37), 128, List.of(), List.of(), true);
+            account, 1 , BigDecimal.valueOf(13.37), 128, List.of(envVar), List.of(volumeMount), true);
     }
 
     public static Service createService(long id) {
