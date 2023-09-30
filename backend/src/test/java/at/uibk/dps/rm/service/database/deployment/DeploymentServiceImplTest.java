@@ -85,7 +85,6 @@ public class DeploymentServiceImplTest {
         sd1 = TestServiceProvider.createServiceDeployment(3L, r2, deployment, rdsDeployed);
         sd2 = TestServiceProvider.createServiceDeployment(4L, r2, deployment, rdsTerminating);
         n1 = TestResourceProviderProvider.createNamespace(1L);
-
     }
 
     @Test
