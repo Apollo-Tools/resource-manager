@@ -46,6 +46,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
 
     @Override
     public void cancelDeployment(long id, long accountId, Handler<AsyncResult<JsonObject>> resultHandler) {
+        DeploymentUtility deploymentUtility = new DeploymentUtility(repositoryProvider);
         TerminateResourcesDTO terminateResources = new TerminateResourcesDTO();
         terminateResources.setFunctionDeployments(new ArrayList<>());
         terminateResources.setServiceDeployments(new ArrayList<>());
@@ -71,11 +72,10 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                                 .forEach(resourceDeployment -> resourceDeployment.setStatus(status)))
                             );
                     })
-                    .andThen(repositoryProvider.getCredentialsRepository()
-                        .findAllByAccountId(sm, accountId))
+                    .andThen(repositoryProvider.getCredentialsRepository().findAllByAccountId(sm, accountId))
                     .flatMapCompletable(credentials -> {
                         terminateResources.setCredentialsList(credentials);
-                        return mapResourceDeploymentsToDTO(sm, terminateResources);
+                        return deploymentUtility.mapResourceDeploymentsToDTO(sm, terminateResources);
                     })
                     .andThen(Single.defer(() -> Single.just(terminateResources)));
             })
@@ -85,39 +85,17 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
 
     @Override
     public void findAllByAccountId(long accountId, Handler<AsyncResult<JsonArray>> resultHandler) {
+        DeploymentUtility deploymentUtility = new DeploymentUtility(repositoryProvider);
         List<DeploymentResponse> deploymentResponses = new ArrayList<>();
         Single<List<DeploymentResponse>> findAll = smProvider.withTransactionSingle(sm -> repositoryProvider
             .getDeploymentRepository()
             .findAllByAccountId(sm, accountId)
             .flatMapObservable(Observable::fromIterable)
-            .flatMapCompletable(deployment -> composeDeploymentResponse(sm, deployment, deploymentResponses))
+            .flatMapCompletable(deployment -> deploymentUtility.composeDeploymentResponse(sm, deployment,
+                deploymentResponses))
             .andThen(Single.defer(() -> Single.just(deploymentResponses)))
         );
-        RxVertxHandler.handleSession(
-            findAll.map(result -> {
-                ArrayList<JsonObject> objects = new ArrayList<>();
-                for (DeploymentResponse entity: result) {
-                    objects.add(JsonObject.mapFrom(entity));
-                }
-                return new JsonArray(objects);
-            }),
-            resultHandler
-        );
-    }
-
-    private Completable composeDeploymentResponse(SessionManager sm, Deployment deployment,
-            List<DeploymentResponse> deploymentResponses) {
-        DeploymentResponse deploymentResponse = new DeploymentResponse();
-        deploymentResponse.setDeploymentId(deployment.getDeploymentId());
-        deploymentResponse.setCreatedAt(deployment.getCreatedAt());
-        deploymentResponses.add(deploymentResponse);
-        return repositoryProvider.getResourceDeploymentRepository()
-            .findAllByDeploymentIdAndFetch(sm, deployment.getDeploymentId())
-            .flatMapCompletable(resourceDeployments -> Completable.fromAction(() -> {
-                DeploymentStatusValue crucialDeploymentStatus = DeploymentStatusUtility
-                    .checkCrucialResourceDeploymentStatus(resourceDeployments);
-                deploymentResponse.setStatusValue(crucialDeploymentStatus);
-            }));
+        RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }
 
     @Override
@@ -156,7 +134,8 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
 
     @Override
     public void saveToAccount(long accountId, JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
-        DeploymentValidationUtility validator = new DeploymentValidationUtility(accountId, repositoryProvider);
+        DeploymentValidationUtility validationUtility = new DeploymentValidationUtility(accountId, repositoryProvider);
+        DeploymentUtility deploymentUtility = new DeploymentUtility(repositoryProvider);
         DeployResourcesRequest request = data.mapTo(DeployResourcesRequest.class);
         SaveResourceDeploymentUtility resourceDeploymentUtility = new SaveResourceDeploymentUtility(repositoryProvider);
         DeployResourcesDTO deployResources = new DeployResourcesDTO();
@@ -164,9 +143,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
         deployResources.setDeployment(deployment);
         deployResources.setDeploymentCredentials(request.getCredentials());
         deployResources.setVpcList(new ArrayList<>());
-        Single<DeployResourcesDTO> save = smProvider.withTransactionSingle(sm -> repositoryProvider
-            .getAccountRepository()
-            .findById(sm, accountId)
+        Single<DeployResourcesDTO> save = smProvider.withTransactionSingle(sm -> sm.find(Account.class, accountId)
             .switchIfEmpty(Maybe.error(new UnauthorizedException()))
             .flatMapCompletable(account -> {
                 deployment.setIsActive(true);
@@ -174,7 +151,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                 return sm.persist(deployment)
                     .flatMapCompletable(res -> sm.flush());
             })
-            .andThen(Single.defer(() -> validator.checkDeploymentIsValid(sm, request, deployResources)))
+            .andThen(Single.defer(() -> validationUtility.checkDeploymentIsValid(sm, request, deployResources)))
             .flatMapCompletable(resources -> repositoryProvider.getStatusRepository()
                 .findOneByStatusValue(sm, DeploymentStatusValue.NEW.name())
                 .switchIfEmpty(Maybe.error(new NotFoundException(ResourceDeploymentStatus.class)))
@@ -197,8 +174,8 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                 })
             ))
         )
-        .flatMap(deployResourcesDTO -> smProvider.withTransactionSingle(sm ->
-            mapResourceDeploymentsToDTO(sm, deployResourcesDTO)
+        .flatMap(deployResourcesDTO -> smProvider.withTransactionSingle(sm -> deploymentUtility
+            .mapResourceDeploymentsToDTO(sm, deployResourcesDTO)
                 .andThen(Single.defer(() -> Single.just(deployResources)))
             )
         );
@@ -212,45 +189,18 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
         );
     }
 
-    /**
-     * Map resource deployments to a deploy/terminate dto.
-     *
-     * @param sm the database session manager
-     * @param deployTerminateDTO the request
-     */
-    private Completable mapResourceDeploymentsToDTO(SessionManager sm,
-            DeployTerminateDTO deployTerminateDTO) {
-        long deploymentId = deployTerminateDTO.getDeployment().getDeploymentId();
-        return repositoryProvider.getFunctionDeploymentRepository()
-            .findAllByDeploymentId(sm, deploymentId)
-            .flatMap(functionDeployments -> {
-                deployTerminateDTO.setFunctionDeployments(functionDeployments);
-                return repositoryProvider.getServiceDeploymentRepository().findAllByDeploymentId(sm,
-                    deploymentId);
-            })
-            .flatMapObservable(Observable::fromIterable)
-            .flatMapSingle(serviceDeployment -> sm.fetch(serviceDeployment.getService().getEnvVars())
-                .flatMap(envVars -> sm.fetch(serviceDeployment.getService().getVolumeMounts()))
-                .map(result -> serviceDeployment)
-            )
-            .toList()
-            .flatMapCompletable(serviceDeployments -> {
-                deployTerminateDTO.setServiceDeployments(serviceDeployments);
-                return Completable.complete();
-            });
-    }
-
     @Override
-    public void handleDeploymentError(long id, String errorMessage, Handler<AsyncResult<Void>> resultHandler) {
+    public void handleDeploymentError(long deploymentId, String errorMessage,
+            Handler<AsyncResult<Void>> resultHandler) {
         Completable handleError = smProvider.withTransactionCompletable(sm -> {
             Completable updateStatus = repositoryProvider.getResourceDeploymentRepository()
-                .updateDeploymentStatusByDeploymentId(sm, id, DeploymentStatusValue.ERROR);
+                .updateDeploymentStatusByDeploymentId(sm, deploymentId, DeploymentStatusValue.ERROR);
             Log log = new Log();
             log.setLogValue(errorMessage);
             DeploymentLog deploymentLog = new DeploymentLog();
             deploymentLog.setLog(log);
             Deployment deployment = new Deployment();
-            deployment.setDeploymentId(id);
+            deployment.setDeploymentId(deploymentId);
             deploymentLog.setDeployment(deployment);
             Completable createLog = sm.persist(log)
                 .flatMap(res -> sm.persist(deploymentLog))
@@ -266,8 +216,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
         TriggerUrlUtility urlUtility = new TriggerUrlUtility(repositoryProvider);
         DeploymentOutput deploymentOutput = DeploymentOutput.fromJson(terraformOutput);
         Completable updateDeployment = smProvider.withTransactionCompletable(sm -> {
-            Completable setFunctionUrls = urlUtility.setTriggerUrlsForFunctions(sm, deploymentOutput,
-                request);
+            Completable setFunctionUrls = urlUtility.setTriggerUrlsForFunctions(sm, deploymentOutput, request);
             Completable setContainerUrls = urlUtility.setTriggerUrlForContainers(sm, request);
             Completable updateDeploymentStatus = repositoryProvider.getResourceDeploymentRepository()
                 .updateDeploymentStatusByDeploymentId(sm, request.getDeployment().getDeploymentId(),

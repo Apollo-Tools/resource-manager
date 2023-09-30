@@ -5,15 +5,15 @@ import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.deployment.module.TerraformModule;
+import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
+import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
+import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateDTO;
 import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
 import at.uibk.dps.rm.entity.dto.ensemble.ResourceEnsembleStatus;
-import at.uibk.dps.rm.entity.model.Ensemble;
-import at.uibk.dps.rm.entity.model.MainResource;
-import at.uibk.dps.rm.entity.model.Resource;
-import at.uibk.dps.rm.entity.model.ServiceDeployment;
+import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.monitoring.K8sMonitoringData;
 import at.uibk.dps.rm.service.database.util.*;
 import at.uibk.dps.rm.service.deployment.docker.LambdaJavaBuildService;
@@ -230,6 +230,39 @@ public class Mockprovider {
         return Mockito.mockConstruction(EnsembleValidationUtility.class, (mock, context) ->
             result.forEach((key, value) -> given(mock.validateAndUpdateEnsemble(sm, key.getEnsembleId(), accountId))
                 .willReturn(Single.just(value))));
+    }
+
+    public static MockedConstruction<DeploymentUtility> mockDeploymentUtility(SessionManager sm) {
+        return Mockito.mockConstruction(DeploymentUtility.class, (mock, context) ->
+            given(mock.mapResourceDeploymentsToDTO(eq(sm), any(DeployTerminateDTO.class)))
+                .willReturn(Completable.complete()));
+    }
+
+    public static MockedConstruction<DeploymentValidationUtility> mockDeploymentValidationUtilityValid(
+            SessionManager sm, List<Resource> result) {
+        return Mockito.mockConstruction(DeploymentValidationUtility.class, (mock, context) ->
+            given(mock.checkDeploymentIsValid(eq(sm), any(DeployResourcesRequest.class), any(DeployResourcesDTO.class)))
+                .willReturn(Single.just(result)));
+    }
+
+    public static MockedConstruction<SaveResourceDeploymentUtility> mockSaveResourceDeploymentUtility(
+            SessionManager sm, ResourceDeploymentStatus status, List<K8sNamespace> namespaces,
+            List<Resource> resources) {
+        return Mockito.mockConstruction(SaveResourceDeploymentUtility.class, (mock, context) -> {
+            given(mock.saveFunctionDeployments(eq(sm), any(Deployment.class), any(DeployResourcesRequest.class),
+                eq(status), eq(resources))).willReturn(Completable.complete());
+            given(mock.saveServiceDeployments(eq(sm), any(Deployment.class), any(DeployResourcesRequest.class),
+                eq(status), eq(namespaces), eq(resources))).willReturn(Completable.complete());
+        });
+    }
+
+    public static MockedConstruction<TriggerUrlUtility> mockTriggerUrlUtility(SessionManager sm) {
+        return Mockito.mockConstruction(TriggerUrlUtility.class, (mock, context) -> {
+            given(mock.setTriggerUrlsForFunctions(eq(sm), any(DeploymentOutput.class), any(DeployResourcesDTO.class)))
+                .willReturn(Completable.complete());
+            given(mock.setTriggerUrlForContainers(eq(sm), any(DeployResourcesDTO.class)))
+                .willReturn(Completable.complete());
+        });
     }
 
     public static MockedStatic<Vertx> mockVertx() {

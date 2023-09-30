@@ -42,6 +42,10 @@ public class TestRequestProvider {
             TestDTOProvider.createDockerCredentials());
     }
 
+    public static DeployResourcesRequest createDeployResourcesRequest() {
+        return createDeployResourcesRequest(List.of(), List.of(), List.of());
+    }
+
     public static DeployResourcesDTO createDeployRequest() {
         DeployResourcesDTO deployRequest = new DeployResourcesDTO();
         deployRequest.setDeployment(TestDeploymentProvider.createDeployment(1L));

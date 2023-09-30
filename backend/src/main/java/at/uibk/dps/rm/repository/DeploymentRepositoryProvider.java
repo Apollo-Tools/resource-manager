@@ -8,7 +8,6 @@ import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
 import at.uibk.dps.rm.repository.service.ServiceRepository;
-import at.uibk.dps.rm.repository.account.AccountRepository;
 import lombok.Getter;
 
 /**
@@ -30,7 +29,6 @@ public class DeploymentRepositoryProvider {
     private final PlatformMetricRepository platformMetricRepository;
     private final VPCRepository vpcRepository;
     private final CredentialsRepository credentialsRepository;
-    private final AccountRepository accountRepository;
     private final NamespaceRepository namespaceRepository;
 
     /**
@@ -48,7 +46,6 @@ public class DeploymentRepositoryProvider {
         platformMetricRepository = new PlatformMetricRepository();
         vpcRepository = new VPCRepository();
         credentialsRepository = new CredentialsRepository();
-        accountRepository = new AccountRepository();
         namespaceRepository = new NamespaceRepository();
     }
 }

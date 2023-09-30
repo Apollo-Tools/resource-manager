@@ -9,7 +9,6 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import at.uibk.dps.rm.service.database.util.SessionManager;
-import org.hibernate.reactive.stage.Stage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -35,14 +34,9 @@ public class ServiceDeploymentImplTest {
     ServiceDeploymentRepository repository;
 
     @Mock
-    private Stage.SessionFactory sessionFactory;
-
-    @Mock
     private SessionManagerProvider smProvider;
 
     @Mock
-    private Stage.Session session;
-    
     private SessionManager sessionManager;
 
     @BeforeEach
@@ -57,7 +51,7 @@ public class ServiceDeploymentImplTest {
         long deploymentId = 1L, resourceDeploymentId = 2L, accountId = 3L;
         Single<Long> single = Single.just(exists ? 1L : 0L);
 
-        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(repository.countByDeploymentStatus(sessionManager, deploymentId, resourceDeploymentId, accountId,
             DeploymentStatusValue.DEPLOYED)).thenReturn(single);
 

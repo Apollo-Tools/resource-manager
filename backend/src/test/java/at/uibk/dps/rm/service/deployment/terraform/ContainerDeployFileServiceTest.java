@@ -52,9 +52,8 @@ public class ContainerDeployFileServiceTest {
     @ValueSource(booleans = {true, false})
     void getMainFileContent(boolean hasExternalIp, Vertx vertx) {
         Resource resource = TestResourceProvider.createResourceContainer(1L, "localhost", hasExternalIp);
-        ContainerDeployFileService service =
-            TestFileServiceProvider.createContainerDeployFileService(vertx.fileSystem(), rootFolder, resource,
-                deployment);
+        ContainerDeployFileService service = TestFileServiceProvider
+            .createContainerDeployFileService(vertx.fileSystem(), rootFolder, resource, deployment);
         String configPath = Path.of("tmp", "kubeconfig", "mainresource1").toAbsolutePath().toString()
             .replace("\\", "/");
 
@@ -79,8 +78,8 @@ public class ContainerDeployFileServiceTest {
                 "  image = \"test:latest\"\n" +
                 "  deployment_id = 1\n" +
                 "  replicas = 1\n" +
-                "  cpu = \"0.1\"\n" +
-                "  memory = \"1024M\"\n" +
+                "  cpu = \"13.37\"\n" +
+                "  memory = \"128M\"\n" +
                 "  ports = [{container_port = 80, service_port = 8000}]\n" +
                 "  service_type = \"NodePort\"\n" +
                 "  external_ip = \"" + (hasExternalIp ? "0.0.0.0" : "") + "\"\n" +

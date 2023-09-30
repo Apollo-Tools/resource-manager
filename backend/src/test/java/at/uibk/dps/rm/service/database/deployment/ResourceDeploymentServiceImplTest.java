@@ -9,7 +9,6 @@ import io.reactivex.rxjava3.core.Completable;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import at.uibk.dps.rm.service.database.util.SessionManager;
-import org.hibernate.reactive.stage.Stage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,14 +33,9 @@ public class ResourceDeploymentServiceImplTest {
     ResourceDeploymentRepository repository;
 
     @Mock
-    private Stage.SessionFactory sessionFactory;
-
-    @Mock
     private SessionManagerProvider smProvider;
 
     @Mock
-    private Stage.Session session;
-    
     private SessionManager sessionManager;
 
     @BeforeEach
@@ -55,7 +49,7 @@ public class ResourceDeploymentServiceImplTest {
         long deploymentId = 1L;
         DeploymentStatusValue statusValue = DeploymentStatusValue.NEW;
 
-        sessionManager = SessionMockHelper.mockTransaction(sessionFactory, session);
+        SessionMockHelper.mockCompletable(smProvider, sessionManager);
         when(repository.updateDeploymentStatusByDeploymentId(sessionManager, deploymentId, statusValue))
             .thenReturn(Completable.complete());
 
