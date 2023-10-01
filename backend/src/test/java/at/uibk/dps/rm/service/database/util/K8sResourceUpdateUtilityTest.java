@@ -12,7 +12,7 @@ import io.kubernetes.client.openapi.models.V1Namespace;
 import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
-import org.hibernate.reactive.stage.Stage;
+import org.hibernate.reactive.stage.Stage.Session;
 import org.hibernate.reactive.util.impl.CompletionStages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,16 +37,16 @@ import static org.mockito.Mockito.*;
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
 public class K8sResourceUpdateUtilityTest {
+    private K8sResourceUpdateUtility utility;
 
     @Mock
     private MetricRepository metricRepository;
 
     @Mock
-    private Stage.Session session;
+    private Session session;
 
     private SessionManager sessionManager;
 
-    private K8sResourceUpdateUtility utility;
 
     private MainResource mr;
 

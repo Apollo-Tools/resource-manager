@@ -45,12 +45,7 @@ public class K8sResourceUpdateUtility {
             if (matchingNode.isPresent()) {
                 K8sNode node = matchingNode.get();
                 updateExistingMetricValues(subResource.getMetricValues(), node);
-                Arrays.stream(K8sMonitoringMetricEnum.values())
-                    .filter(metric -> subResource.getMetricValues().stream()
-                        .noneMatch(mv -> metric.getName().equals(mv.getMetric().getMetric())))
-                    .filter(K8sMonitoringMetricEnum::getIsSubResourceMetric)
-                    .forEach(missingMetric -> createNewMetricValue(subResource, missingMetric, node,
-                        mvToPersist));
+                composeMissingMetricValues(subResource, node, mvToPersist);
             } else {
                 deleteNodes.add(subResource);
             }

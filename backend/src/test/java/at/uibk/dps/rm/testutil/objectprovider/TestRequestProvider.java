@@ -1,12 +1,9 @@
 package at.uibk.dps.rm.testutil.objectprovider;
 
 import at.uibk.dps.rm.entity.dto.credentials.DeploymentCredentials;
-import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
+import at.uibk.dps.rm.entity.dto.deployment.*;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
-import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
-import at.uibk.dps.rm.entity.dto.deployment.FunctionResourceIds;
-import at.uibk.dps.rm.entity.dto.deployment.ServiceResourceIds;
 import at.uibk.dps.rm.entity.dto.resource.ResourceId;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.model.Runtime;
@@ -117,5 +114,14 @@ public class TestRequestProvider {
         Credentials c1 = TestAccountProvider.createCredentials(1L, region.getResourceProvider());
         terminateRequest.setCredentialsList(List.of(c1));
         return terminateRequest;
+    }
+
+    public static DeployTerminateDTO createDeployTerminateDTOWithoutResourceDeployments(Deployment deployment) {
+        DeployTerminateDTO deployTerminateDTO = new DeployResourcesDTO();
+        deployTerminateDTO.setDeployment(deployment);
+        deployTerminateDTO.setCredentialsList(List.of());
+        deployTerminateDTO.setFunctionDeployments(List.of());
+        deployTerminateDTO.setServiceDeployments(List.of());
+        return deployTerminateDTO;
     }
 }

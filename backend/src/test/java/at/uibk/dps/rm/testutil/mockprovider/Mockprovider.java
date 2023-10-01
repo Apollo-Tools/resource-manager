@@ -213,6 +213,16 @@ public class Mockprovider {
             given(mock.fetchAndPopulateEnsemble(sm, ensembleId, accountId)).willReturn(Single.just(result)));
     }
 
+    public static MockedConstruction<EnsembleUtility> mockEnsembleUtilityFetchAndValidate(SessionManager sm,
+            long ensembleId, long accountId, GetOneEnsemble fetchResult, List<Resource> validResources,
+            List<ResourceEnsembleStatus> validateResult) {
+        return Mockito.mockConstruction(EnsembleUtility.class, (mock, context) -> {
+            given(mock.fetchAndPopulateEnsemble(sm, ensembleId, accountId)).willReturn(Single.just(fetchResult));
+            given(mock.getResourceEnsembleStatus(validResources, fetchResult.getResources()))
+                .willReturn(validateResult);
+        });
+    }
+
     public static MockedConstruction<SLOUtility> mockSLOUtilityFindAndFilterResources(SessionManager sm,
             List<Resource> result) {
         return Mockito.mockConstruction(SLOUtility.class, (mock, context) ->

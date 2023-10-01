@@ -25,10 +25,18 @@ public class EnsembleUtility {
 
     private final EnsembleRepositoryProvider repositoryProvider;
 
-    public Single<GetOneEnsemble> fetchAndPopulateEnsemble(SessionManager sm, long id, long accountId) {
+    /**
+     * Fetch all data related to an ensemble and compose a {@link GetOneEnsemble} DTO.
+     *
+     * @param sm an active session manager
+     * @param ensembleId the id of the ensemble
+     * @param accountId the id of the account
+     * @return a Single that emits the populated GetOneEnsemble DTO
+     */
+    public Single<GetOneEnsemble> fetchAndPopulateEnsemble(SessionManager sm, long ensembleId, long accountId) {
         GetOneEnsemble response = new GetOneEnsemble();
         return repositoryProvider.getEnsembleRepository()
-            .findByIdAndAccountId(sm, id, accountId)
+            .findByIdAndAccountId(sm, ensembleId, accountId)
             .switchIfEmpty(Single.error(new NotFoundException(Ensemble.class)))
             .flatMap(ensemble -> {
                 response.setEnsembleId(ensemble.getEnsembleId());
@@ -55,7 +63,7 @@ public class EnsembleUtility {
                 return repositoryProvider.getEnsembleSLORepository().findAllByEnsembleId(sm, response.getEnsembleId());
             })
             .map(slos -> {
-                response.setServiceLevelObjectives(mapEnsembleSLOstoDTO(slos));
+                response.setServiceLevelObjectives(mapEnsembleSLOsToDTO(slos));
                 return response;
             });
     }
@@ -67,7 +75,7 @@ public class EnsembleUtility {
      * @param ensembleSLOs the list of ensembleSLOs
      * @return a List of mapped ServiceLevelObjectives
      */
-    private List<ServiceLevelObjective> mapEnsembleSLOstoDTO(List<EnsembleSLO> ensembleSLOs) {
+    private List<ServiceLevelObjective> mapEnsembleSLOsToDTO(List<EnsembleSLO> ensembleSLOs) {
         return ensembleSLOs.stream()
             .map(ensembleSLO -> {
                 List<SLOValue> sloValues;
@@ -98,6 +106,13 @@ public class EnsembleUtility {
             }).collect(Collectors.toList());
     }
 
+    /**
+     * Create an EnsembleSLO from a service level objective and ensemble.
+     *
+     * @param slo the service level objective
+     * @param ensemble the ensemble
+     * @return the created EnsembleSLO
+     */
     public static EnsembleSLO createEnsembleSLO(ServiceLevelObjective slo, Ensemble ensemble) {
         EnsembleSLO ensembleSLO = new EnsembleSLO();
         ensembleSLO.setName(slo.getName());

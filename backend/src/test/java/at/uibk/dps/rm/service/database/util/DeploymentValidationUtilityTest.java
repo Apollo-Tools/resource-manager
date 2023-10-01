@@ -17,7 +17,6 @@ import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
-import org.hibernate.reactive.stage.Stage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,13 +42,13 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class DeploymentValidationUtilityTest {
 
+    private DeploymentValidationUtility utility;
+
     private final DeploymentRepositoryProviderMock repositoryMock = new DeploymentRepositoryProviderMock();
 
     private final long accountId = 10L;
 
     @Mock
-    private Stage.Session session;
-
     private SessionManager sessionManager;
 
     private Platform lambda, ec2, openFaas;
@@ -65,6 +64,8 @@ public class DeploymentValidationUtilityTest {
     @BeforeEach
     void initTest() {
         repositoryMock.mock();
+        utility = new DeploymentValidationUtility(accountId,
+            repositoryMock.getRepositoryProvider());
         lambda = TestPlatformProvider.createPlatformFaas(1L, PlatformEnum.LAMBDA.getValue());
         ec2 = TestPlatformProvider.createPlatformFaas(2L, PlatformEnum.EC2.getValue());
         openFaas = TestPlatformProvider.createPlatformFaas(2L, PlatformEnum.OPENFAAS.getValue());
@@ -95,7 +96,6 @@ public class DeploymentValidationUtilityTest {
             fri3), List.of(sri1, sri2, sri3), List.of(), dockerCredentials);
         deployResourcesDTO = TestRequestProvider
             .createBlankDeployRequest(dockerCredentials);
-        sessionManager = new SessionManager(session);
     }
 
     private void setupMocks(String testCase) {
@@ -136,9 +136,6 @@ public class DeploymentValidationUtilityTest {
     @Test
     void checkDeploymentIsValidTrue(VertxTestContext testContext) {
         setupMocks("valid");
-
-        DeploymentValidationUtility utility = new DeploymentValidationUtility(accountId,
-            repositoryMock.getRepositoryProvider());
         utility.checkDeploymentIsValid(sessionManager, requestDTO, deployResourcesDTO)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.size()).isEqualTo(4);
@@ -153,8 +150,6 @@ public class DeploymentValidationUtilityTest {
     void checkDeploymentMissingMetrics(VertxTestContext testContext) {
         setupMocks("missingMetrics");
 
-        DeploymentValidationUtility utility = new DeploymentValidationUtility(accountId,
-            repositoryMock.getRepositoryProvider());
         utility.checkDeploymentIsValid(sessionManager, requestDTO, deployResourcesDTO)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
@@ -169,8 +164,6 @@ public class DeploymentValidationUtilityTest {
     void checkDeploymentMissingVPC(VertxTestContext testContext) {
         setupMocks("missingVPC");
 
-        DeploymentValidationUtility utility = new DeploymentValidationUtility(accountId,
-            repositoryMock.getRepositoryProvider());
         utility.checkDeploymentIsValid(sessionManager, requestDTO, deployResourcesDTO)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
@@ -191,8 +184,6 @@ public class DeploymentValidationUtilityTest {
         }
         setupMocks("missingDockerCreds");
 
-        DeploymentValidationUtility utility = new DeploymentValidationUtility(accountId,
-            repositoryMock.getRepositoryProvider());
         utility.checkDeploymentIsValid(sessionManager, requestDTO, deployResourcesDTO)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
@@ -213,8 +204,6 @@ public class DeploymentValidationUtilityTest {
         }
         setupMocks("missingCloudCreds");
 
-        DeploymentValidationUtility utility = new DeploymentValidationUtility(accountId,
-            repositoryMock.getRepositoryProvider());
         utility.checkDeploymentIsValid(sessionManager, requestDTO, deployResourcesDTO)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
@@ -230,8 +219,6 @@ public class DeploymentValidationUtilityTest {
     void checkDeploymentEntityNotFound(String testCase, VertxTestContext testContext) {
         setupMocks(testCase);
 
-        DeploymentValidationUtility utility = new DeploymentValidationUtility(accountId,
-            repositoryMock.getRepositoryProvider());
         utility.checkDeploymentIsValid(sessionManager, requestDTO, deployResourcesDTO)
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {

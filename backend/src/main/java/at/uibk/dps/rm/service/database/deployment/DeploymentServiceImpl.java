@@ -86,14 +86,12 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
     @Override
     public void findAllByAccountId(long accountId, Handler<AsyncResult<JsonArray>> resultHandler) {
         DeploymentUtility deploymentUtility = new DeploymentUtility(repositoryProvider);
-        List<DeploymentResponse> deploymentResponses = new ArrayList<>();
         Single<List<DeploymentResponse>> findAll = smProvider.withTransactionSingle(sm -> repositoryProvider
             .getDeploymentRepository()
             .findAllByAccountId(sm, accountId)
             .flatMapObservable(Observable::fromIterable)
-            .flatMapCompletable(deployment -> deploymentUtility.composeDeploymentResponse(sm, deployment,
-                deploymentResponses))
-            .andThen(Single.defer(() -> Single.just(deploymentResponses)))
+            .flatMapSingle(deployment -> deploymentUtility.composeDeploymentResponse(sm, deployment))
+            .toList()
         );
         RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }

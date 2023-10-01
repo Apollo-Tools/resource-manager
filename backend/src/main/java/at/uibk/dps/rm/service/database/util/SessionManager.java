@@ -51,8 +51,8 @@ public class SessionManager {
     /**
      * See {@link Session#merge(Object[])}
      */
-    public Single<Void> merge(Object... entity) {
-        return Single.fromCompletionStage(session.merge(entity));
+    public Completable merge(Object... entity) {
+        return Completable.fromCompletionStage(session.merge(entity));
     }
 
     /**

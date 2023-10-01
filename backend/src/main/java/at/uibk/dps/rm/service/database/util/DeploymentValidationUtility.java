@@ -48,8 +48,8 @@ public class DeploymentValidationUtility {
      *                        resources
      * @return a Single that emits a list of all resource that have to be deployed
      */
-    public Single<List<Resource>> checkDeploymentIsValid(SessionManager sm,
-            DeployResourcesRequest requestDTO, DeployResourcesDTO deployResources) {
+    public Single<List<Resource>> checkDeploymentIsValid(SessionManager sm, DeployResourcesRequest requestDTO,
+            DeployResourcesDTO deployResources) {
         List<String> functionResourceTypes = List.of(ResourceTypeEnum.FAAS.getValue());
         List<String> serviceResourceTypes = List.of(ResourceTypeEnum.CONTAINER.getValue());
         Set<Long> functionIds = requestDTO.getFunctionResources().stream()
