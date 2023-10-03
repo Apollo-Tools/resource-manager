@@ -147,10 +147,10 @@ public abstract class PackageSourceCode {
     protected void unzipAllFiles(Path filePath) {
         File destDir = sourceCodePath.getParent().toFile();
         try {
-            ZipInputStream zis = new ZipInputStream(new FileInputStream(filePath.toString()));
+            ZipInputStream zis = new ZipInputStream(new FileInputStream(filePath.toAbsolutePath().toString()));
             ZipEntry zipEntry = zis.getNextEntry();
             while (zipEntry != null) {
-                List<File> newFiles = getUnzippedFileDest(zipEntry, destDir);
+                List<File> newFiles = getUnzippedFilesDest(zipEntry, destDir);
                 readAndSaveUnzippedFile(zipEntry, newFiles, zis);
                 zipEntry = zis.getNextEntry();
             }
@@ -169,7 +169,7 @@ public abstract class PackageSourceCode {
      * @return a List of files that point to the destinations of the zip entry
      * @throws IOException if the destDir is invalid
      */
-    protected List<File> getUnzippedFileDest(ZipEntry zipEntry, File destDir) throws IOException {
+    protected List<File> getUnzippedFilesDest(ZipEntry zipEntry, File destDir) throws IOException {
         List<File> newFiles = new ArrayList<>();
         newFiles.add(newFile(destDir, zipEntry));
         return newFiles;
@@ -217,9 +217,9 @@ public abstract class PackageSourceCode {
     /**
      * Create a new file from a destination directory and zip entry.
      *
-     * @param destinationDir the destination directore
+     * @param destinationDir the destination directory
      * @param zipEntry the zip entry
-     * @return the newly file
+     * @return the new file
      * @throws IOException if a bad destination directory is passed to the method
      */
     public static File newFile(File destinationDir, ZipEntry zipEntry) throws IOException {
