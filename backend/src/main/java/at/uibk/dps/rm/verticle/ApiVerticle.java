@@ -55,10 +55,10 @@ public class ApiVerticle extends AbstractVerticle {
                     Router router = initRouter(routerBuilder, config);
                     return vertx.createHttpServer()
                         .requestHandler(router)
-                        .rxListen(config().getInteger("api_port"));
+                        .rxListen(config.getApiPort());
                 })
                 .doOnSuccess(
-                    http -> logger.info("HTTP server started on port " + config().getInteger("api_port")))
+                    http -> logger.info("HTTP server started on port " + config.getApiPort()))
                 .doOnError(
                     throwable -> logger.error("Error", throwable))
                 .ignoreElement()
@@ -76,7 +76,7 @@ public class ApiVerticle extends AbstractVerticle {
         Router globalRouter = Router.router(vertx);
         setupBodyHandler(globalRouter, config);
         setupFailureHandler(globalRouter);
-        setupSecurityHandler(routerBuilder);
+        setupSecurityHandler(routerBuilder, config);
         setupRoutes(routerBuilder);
         Router apiRouter = routerBuilder
             .createRouter();
@@ -129,9 +129,9 @@ public class ApiVerticle extends AbstractVerticle {
      *
      * @param routerBuilder the router builder
      */
-    private void setupSecurityHandler(RouterBuilder routerBuilder) {
-        jwtAuthProvider = new JWTAuthProvider(vertx,config().getString("jwt_algorithm"),
-            config().getString("jwt_secret"), config().getInteger("token_minutes_valid"));
+    private void setupSecurityHandler(RouterBuilder routerBuilder, ConfigDTO configDTO) {
+        jwtAuthProvider = new JWTAuthProvider(vertx, configDTO.getJwtAlgorithm(), configDTO.getJwtSecret(),
+            configDTO.getTokenMinutesValid());
         routerBuilder
             .securityHandler("bearerAuth")
             .bindBlocking(config -> JWTAuthHandler.create(jwtAuthProvider.getJwtAuth()));
