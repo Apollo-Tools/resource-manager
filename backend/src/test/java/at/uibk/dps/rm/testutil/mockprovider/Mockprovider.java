@@ -34,16 +34,18 @@ import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.*;
 
 /**
  * Utility class to mock (mocked construction) objects for tests.
@@ -272,6 +274,32 @@ public class Mockprovider {
                 .willReturn(Completable.complete());
             given(mock.setTriggerUrlForContainers(eq(sm), any(DeployResourcesDTO.class)))
                 .willReturn(Completable.complete());
+        });
+    }
+
+
+    public static MockedConstruction<FileOutputStream> mockFileOutputStream(File file) {
+        return Mockito.mockConstruction(FileOutputStream.class, (mock, context) -> {
+            assertThat(context.arguments().get(0)).isEqualTo(file);
+            doNothing().when(mock).close();
+        });
+    }
+
+
+    public static MockedConstruction<FileInputStream> mockFileInputStream(File file, byte[] bytes) {
+        return Mockito.mockConstruction(FileInputStream.class, (mock, context) -> {
+            assertThat(context.arguments().get(0)).isEqualTo(file);
+            doAnswer(invocation -> {
+                Object[] args = invocation.getArguments();
+                byte[] arg = ((byte[]) args[0]);
+                for (int i = 0; i < arg.length && i < bytes.length; i++) {
+                    arg[i] = bytes[i];
+                }
+                return bytes.length;
+            })
+                .doAnswer(invocation -> -1)
+                .when(mock).read(any());
+            doNothing().when(mock).close();
         });
     }
 

@@ -183,11 +183,12 @@ public abstract class PackageSourceCode {
      * @param zis the zip input stream
      * @throws IOException if a bad destination directory is passed to the method
      */
-    private void readAndSaveUnzippedFile(ZipEntry zipEntry, List<File> newFiles, ZipInputStream zis) throws IOException {
+    protected void readAndSaveUnzippedFile(ZipEntry zipEntry, List<File> newFiles, ZipInputStream zis)
+            throws IOException {
         byte[] buffer = new byte[1024];
         if (zipEntry.isDirectory()) {
             for (File file : newFiles) {
-                if (!file.isDirectory() && !file.mkdirs() && !file.exists()) {
+                if (!file.mkdirs() && !file.exists()) {
                     throw new IOException("Failed to create directory " + file);
                 }
             }
@@ -222,12 +223,13 @@ public abstract class PackageSourceCode {
      * @return the new file
      * @throws IOException if a bad destination directory is passed to the method
      */
-    public static File newFile(File destinationDir, ZipEntry zipEntry) throws IOException {
+    protected static File newFile(File destinationDir, ZipEntry zipEntry) throws IOException {
         File destFile = new File(destinationDir, zipEntry.getName());
 
         String destDirPath = destinationDir.getCanonicalPath();
         String destFilePath = destFile.getCanonicalPath();
 
+        // Guard against zip slip (https://security.snyk.io/research/zip-slip-vulnerability)
         if (!destFilePath.startsWith(destDirPath + File.separator)) {
             throw new IOException("Entry is outside of the target dir: " + zipEntry.getName());
         }
