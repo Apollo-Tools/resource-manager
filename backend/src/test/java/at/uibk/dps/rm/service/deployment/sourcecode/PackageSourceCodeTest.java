@@ -88,25 +88,25 @@ public class PackageSourceCodeTest {
 
     private final ConfigDTO config = TestConfigProvider.getConfigDTO();
 
-    private Function fCode, fFile;
+    private Function fInline, fFile;
     private Path sourceCodeInlinePath;
 
     @BeforeEach
     void initTest() {
-        fCode = TestFunctionProvider.createFunction(1L, "code", "def main():\nprint()\n");
+        fInline = TestFunctionProvider.createFunction(1L, "code", "def main():\nprint()\n");
         Runtime r1 = TestFunctionProvider.createRuntime(1L);
         fFile = TestFunctionProvider.createFunction(2L, "file", "testfiles.zip", r1, true);
         String fileName = "main.py";
-        sourceCodeInlinePath = Path.of(root.toString(), fCode.getFunctionDeploymentId(), fileName);
+        sourceCodeInlinePath = Path.of(root.toString(), fInline.getFunctionDeploymentId(), fileName);
     }
 
     @Test
     void composeSourceCode(Vertx vertx, VertxTestContext testContext) {
-        packageSourceCode = new ConcretePackageSourceCode(vertx, fileSystem, root, fCode);
+        packageSourceCode = new ConcretePackageSourceCode(vertx, fileSystem, root, fInline);
 
         when(fileSystem.mkdirs(sourceCodeInlinePath.getParent().toString()))
             .thenReturn(Completable.complete());
-        when(fileSystem.writeFile(sourceCodeInlinePath.toString(), Buffer.buffer(fCode.getCode())))
+        when(fileSystem.writeFile(sourceCodeInlinePath.toString(), Buffer.buffer(fInline.getCode())))
             .thenReturn(Completable.complete());
 
         packageSourceCode.composeSourceCode()
@@ -118,11 +118,11 @@ public class PackageSourceCodeTest {
 
     @Test
     void composeSourceCodeWriteFileFailed(Vertx vertx, VertxTestContext testContext) {
-        packageSourceCode = new ConcretePackageSourceCode(vertx, fileSystem, root, fCode);
+        packageSourceCode = new ConcretePackageSourceCode(vertx, fileSystem, root, fInline);
 
         when(fileSystem.mkdirs(sourceCodeInlinePath.getParent().toString()))
             .thenReturn(Completable.complete());
-        when(fileSystem.writeFile(sourceCodeInlinePath.toString(), Buffer.buffer(fCode.getCode())))
+        when(fileSystem.writeFile(sourceCodeInlinePath.toString(), Buffer.buffer(fInline.getCode())))
             .thenReturn(Completable.error(IOException::new));
 
         packageSourceCode.composeSourceCode()
@@ -136,7 +136,7 @@ public class PackageSourceCodeTest {
 
     @Test
     void composeSourceCodeMkdirsFailed(Vertx vertx, VertxTestContext testContext) {
-        packageSourceCode = new ConcretePackageSourceCode(vertx, fileSystem, root, fCode);
+        packageSourceCode = new ConcretePackageSourceCode(vertx, fileSystem, root, fInline);
 
         when(fileSystem.mkdirs(sourceCodeInlinePath.getParent().toString()))
             .thenReturn(Completable.error(IOException::new));
