@@ -21,7 +21,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -59,16 +58,22 @@ public class ValidationHandlerTest {
     @Mock
     RoutingContext rc;
 
+    private long entityId;
+    private Account account;
+    private ResourceType entity1, entity2;
+
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
         testClass = new ConcreteValidationHandler(resourceTypeService);
+        entityId = 1L;
+        account = TestAccountProvider.createAccount(10L);
+        entity1 = TestResourceProvider.createResourceType(entityId, "cloud");
+        entity2 = TestResourceProvider.createResourceType(2L, "vm");
     }
 
     @Test
     void deleteOne(VertxTestContext testContext) {
-        long entityId = 1L;
-
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
         when(resourceTypeService.delete(entityId)).thenReturn(Completable.complete());
 
@@ -81,9 +86,6 @@ public class ValidationHandlerTest {
 
     @Test
     void deleteOneFromAccount(VertxTestContext testContext) {
-        long entityId = 1L;
-        Account account = TestAccountProvider.createAccount(10L);
-
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
         when(resourceTypeService.deleteFromAccount(10L, entityId)).thenReturn(Completable.complete());
@@ -97,11 +99,8 @@ public class ValidationHandlerTest {
 
     @Test
     void getOne(VertxTestContext testContext) {
-        long entityId = 1L;
-        ResourceType entity = TestResourceProvider.createResourceType(entityId, "cloud");
-
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
-        when(resourceTypeService.findOne(entityId)).thenReturn(Single.just(JsonObject.mapFrom(entity)));
+        when(resourceTypeService.findOne(entityId)).thenReturn(Single.just(JsonObject.mapFrom(entity1)));
 
         testClass.getOne(rc)
             .subscribe(result -> testContext.verify(() -> {
@@ -115,14 +114,10 @@ public class ValidationHandlerTest {
 
     @Test
     void getOneFromAccount(VertxTestContext testContext) {
-        long entityId = 1L;
-        ResourceType entity = TestResourceProvider.createResourceType(entityId, "cloud");
-        Account account = TestAccountProvider.createAccount(10L);
-
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
         when(resourceTypeService.findOneByIdAndAccountId(entityId, 10L))
-            .thenReturn(Single.just(JsonObject.mapFrom(entity)));
+            .thenReturn(Single.just(JsonObject.mapFrom(entity1)));
 
         testClass.getOneFromAccount(rc)
             .subscribe(result -> testContext.verify(() -> {
@@ -136,8 +131,6 @@ public class ValidationHandlerTest {
 
     @Test
     void getAll(VertxTestContext testContext) {
-        ResourceType entity1 = TestResourceProvider.createResourceType(1L, "faas");
-        ResourceType entity2 = TestResourceProvider.createResourceType(2L, "vm");
         JsonArray resultJson = new JsonArray(List.of(JsonObject.mapFrom(entity1), JsonObject.mapFrom(entity2)));
 
         when(resourceTypeService.findAll()).thenReturn(Single.just(resultJson));
@@ -155,10 +148,7 @@ public class ValidationHandlerTest {
 
     @Test
     void getAllFromAccount(VertxTestContext testContext) {
-        ResourceType entity1 = TestResourceProvider.createResourceType(1L, "faas");
-        ResourceType entity2 = TestResourceProvider.createResourceType(2L, "vm");
         JsonArray resultJson = new JsonArray(List.of(JsonObject.mapFrom(entity1), JsonObject.mapFrom(entity2)));
-        Account account = TestAccountProvider.createAccount(10L);
 
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(resourceTypeService.findAllByAccountId(10L)).thenReturn(Single.just(resultJson));
@@ -176,8 +166,7 @@ public class ValidationHandlerTest {
 
     @Test
     void postOne(VertxTestContext testContext) {
-        JsonObject requestBody = JsonObject.mapFrom(TestResourceProvider
-            .createResourceType(1L, "vm"));
+        JsonObject requestBody = JsonObject.mapFrom(entity1);
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
         when(resourceTypeService.save(requestBody)).thenReturn(Single.just(requestBody));
@@ -185,7 +174,7 @@ public class ValidationHandlerTest {
         testClass.postOne(rc)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.getLong("type_id")).isEqualTo(1L);
-                    assertThat(result.getString("resource_type")).isEqualTo("vm");
+                    assertThat(result.getString("resource_type")).isEqualTo("cloud");
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
@@ -194,9 +183,7 @@ public class ValidationHandlerTest {
 
     @Test
     void postOneToAccount(VertxTestContext testContext) {
-        JsonObject requestBody = JsonObject.mapFrom(TestResourceProvider
-            .createResourceType(1L, "vm"));
-        Account account = TestAccountProvider.createAccount(10L);
+        JsonObject requestBody = JsonObject.mapFrom(entity1);
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
@@ -205,7 +192,7 @@ public class ValidationHandlerTest {
         testClass.postOneToAccount(rc)
             .subscribe(result -> testContext.verify(() -> {
                     assertThat(result.getLong("type_id")).isEqualTo(1L);
-                    assertThat(result.getString("resource_type")).isEqualTo("vm");
+                    assertThat(result.getString("resource_type")).isEqualTo("cloud");
                     testContext.completeNow();
                 }),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
@@ -214,12 +201,7 @@ public class ValidationHandlerTest {
 
     @Test
     void postAll(VertxTestContext testContext) {
-        ResourceType entity1 = new ResourceType();
-        ResourceType entity2 = new ResourceType();
-        List<JsonObject> entities = new ArrayList<>();
-        entities.add(JsonObject.mapFrom(entity1));
-        entities.add(JsonObject.mapFrom(entity2));
-        JsonArray resultJson = new JsonArray(entities);
+        JsonArray resultJson = new JsonArray(List.of(JsonObject.mapFrom(entity1), JsonObject.mapFrom(entity2)));
 
         RoutingContextMockHelper.mockBody(rc, resultJson);
         when(resourceTypeService.saveAll(resultJson)).thenReturn(Completable.complete());
@@ -233,15 +215,30 @@ public class ValidationHandlerTest {
 
     @Test
     void updateOne(VertxTestContext testContext) {
-        long entityId = 1L;
-        JsonObject requestBody = JsonObject.mapFrom(TestResourceProvider
-            .createResourceType(1L, "vm"));
+        JsonObject requestBody = JsonObject.mapFrom(entity1);
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
         when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
         when(resourceTypeService.update(entityId, requestBody)).thenReturn(Completable.complete());
 
         testClass.updateOne(rc)
+            .blockingSubscribe(() -> {},
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
+            );
+        testContext.completeNow();
+    }
+
+    @Test
+    void updateOneOwned(VertxTestContext testContext) {
+        JsonObject requestBody = JsonObject.mapFrom(entity1);
+
+        RoutingContextMockHelper.mockBody(rc, requestBody);
+        RoutingContextMockHelper.mockUserPrincipal(rc, account);
+        when(rc.pathParam("id")).thenReturn(String.valueOf(entityId));
+        when(resourceTypeService.updateOwned(entityId, account.getAccountId(), requestBody))
+            .thenReturn(Completable.complete());
+
+        testClass.updateOneOwned(rc)
             .blockingSubscribe(() -> {},
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
