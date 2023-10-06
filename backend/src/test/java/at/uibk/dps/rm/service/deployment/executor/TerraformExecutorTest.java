@@ -60,8 +60,8 @@ public class TerraformExecutorTest {
         TerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutor();
         ProcessOutput processOutput = TestDTOProvider.createProcessOutput(process, "output");
 
-        try (MockedConstruction<ProcessExecutor> ignored = Mockprovider.mockProcessExecutor(deploymentPath,
-            processOutput, commands)) {
+        try (MockedConstruction<ProcessExecutor> ignored = Mockprovider
+                .mockProcessExecutor(deploymentPath.getRootFolder(), processOutput, commands)) {
             Single<ProcessOutput> single = Single.just(new ProcessOutput());
             switch (commands.get(1)) {
                 case "init":

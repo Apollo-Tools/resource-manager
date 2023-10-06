@@ -143,13 +143,13 @@ public class Mockprovider {
                 .willReturn(Single.just(processOutput)));
     }
 
-    public static MockedConstruction<ProcessExecutor> mockProcessExecutor(DeploymentPath deploymentPath,
-            ProcessOutput processOutput, List<String> commands) {
+    public static MockedConstruction<ProcessExecutor> mockProcessExecutor(Path path, ProcessOutput processOutput,
+            List<String> commands) {
         return Mockito.mockConstruction(ProcessExecutor .class,
             (mock, context) -> {
                 given(mock.executeCli()).willReturn(Single.just(processOutput));
                 assertThat(context.arguments().get(1)).isEqualTo(commands);
-                assertThat(context.arguments().get(0)).isEqualTo(deploymentPath.getRootFolder());
+                assertThat(context.arguments().get(0)).isEqualTo(path);
             });
     }
 

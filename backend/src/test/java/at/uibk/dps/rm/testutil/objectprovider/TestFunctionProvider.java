@@ -79,6 +79,10 @@ public class TestFunctionProvider {
         return createFunction(functionId, name, code, runtime, false);
     }
 
+    public static Function createFunction(long id, String name, String code, Runtime runtime) {
+        return createFunction(id, name, code, runtime, false);
+    }
+
     public static Function createFunction(long id, String name, String code) {
         Runtime runtime = createRuntime(1L);
         return createFunction(id, name, code, runtime, false);

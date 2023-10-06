@@ -48,8 +48,8 @@ public class MainTerraformExecutorTest {
         ProcessOutput processOutput = TestDTOProvider.createProcessOutput(process, "output");
         List<String> commands = TestExecutorProvider.tfCommandsWithCredsAWSOpenFaas("apply");
 
-        try (MockedConstruction<ProcessExecutor> ignored = Mockprovider.mockProcessExecutor(deploymentPath,
-                processOutput, commands)) {
+        try (MockedConstruction<ProcessExecutor> ignored = Mockprovider
+                .mockProcessExecutor(deploymentPath.getRootFolder(), processOutput, commands)) {
             terraformExecutor.apply(deploymentPath.getRootFolder())
                 .subscribe(result -> testContext.verify(() -> {
                         assertThat(result.getOutput()).isEqualTo("output");
@@ -67,8 +67,8 @@ public class MainTerraformExecutorTest {
         ProcessOutput processOutput = TestDTOProvider.createProcessOutput(process, "output");
         List<String> commands = List.of("terraform", "output", "--json");
 
-        try (MockedConstruction<ProcessExecutor> ignored = Mockprovider.mockProcessExecutor(deploymentPath,
-                processOutput, commands)) {
+        try (MockedConstruction<ProcessExecutor> ignored = Mockprovider
+                .mockProcessExecutor(deploymentPath.getRootFolder(), processOutput, commands)) {
             terraformExecutor.getOutput(deploymentPath.getRootFolder())
                 .subscribe(result -> testContext.verify(() -> {
                         assertThat(result.getOutput()).isEqualTo("output");
@@ -86,8 +86,8 @@ public class MainTerraformExecutorTest {
         ProcessOutput processOutput = TestDTOProvider.createProcessOutput(process, "output");
         List<String> commands = TestExecutorProvider.tfCommandsWithCredsAWSOpenFaas("destroy");
 
-        try (MockedConstruction<ProcessExecutor> ignored = Mockprovider.mockProcessExecutor(deploymentPath,
-                processOutput, commands)) {
+        try (MockedConstruction<ProcessExecutor> ignored = Mockprovider
+                .mockProcessExecutor(deploymentPath.getRootFolder(), processOutput, commands)) {
             terraformExecutor.destroy(deploymentPath.getRootFolder())
                 .subscribe(result -> testContext.verify(() -> {
                         assertThat(result.getOutput()).isEqualTo("output");
@@ -105,8 +105,8 @@ public class MainTerraformExecutorTest {
         ProcessOutput processOutput = TestDTOProvider.createProcessOutput(process, "output");
         List<String> commands = TestExecutorProvider.tfCommandsWithCredsAWS("destroy");
 
-        try (MockedConstruction<ProcessExecutor> ignored = Mockprovider.mockProcessExecutor(deploymentPath,
-                processOutput, commands)) {
+        try (MockedConstruction<ProcessExecutor> ignored = Mockprovider
+                .mockProcessExecutor(deploymentPath.getRootFolder(), processOutput, commands)) {
             terraformExecutor.destroy(deploymentPath.getRootFolder())
                 .subscribe(result -> testContext.verify(() -> {
                         assertThat(result.getOutput()).isEqualTo("output");
