@@ -29,7 +29,10 @@ import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
+import io.vertx.rxjava3.ext.web.client.WebClient;
 import io.vertx.rxjava3.core.Vertx;
+import io.vertx.rxjava3.core.buffer.Buffer;
+import io.vertx.rxjava3.ext.web.client.HttpRequest;
 import lombok.experimental.UtilityClass;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
@@ -349,6 +352,17 @@ public class Mockprovider {
             List<FunctionDeployment> functionDeployments, Set<Function> result) {
         return Mockito.mockConstruction(DockerHubImageChecker.class, (mock, context) ->
             given(mock.getNecessaryFunctionBuilds(functionDeployments)).willReturn(Single.just(result)));
+    }
+
+
+    public static MockedConstruction<WebClient> mockWebClientDockerHubCheck(List<String> imageNames, List<String> tags,
+            HttpRequest<Buffer> requestMock) {
+        return Mockito.mockConstruction(WebClient.class, (mock, context) -> {
+            for(int i = 0; i < imageNames.size(); i++) {
+                given(mock.get("hub.docker.com", "/v2/repositories/" + imageNames.get(i) + "/tags/" +
+                    tags.get(i))).willReturn(requestMock);
+            }
+        });
     }
 
     public static MockedStatic<Vertx> mockVertx() {

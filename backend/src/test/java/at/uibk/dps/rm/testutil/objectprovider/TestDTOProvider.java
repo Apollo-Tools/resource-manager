@@ -84,12 +84,16 @@ public class TestDTOProvider {
         return new ServiceLevelObjective(metricName, expressionType, sloValues);
     }
 
-    public static DockerCredentials createDockerCredentials() {
+    public static DockerCredentials createDockerCredentials(String registry) {
         DockerCredentials dockerCredentials = new DockerCredentials();
         dockerCredentials.setUsername("testuser");
         dockerCredentials.setAccessToken("abcdef12234");
-        dockerCredentials.setRegistry("docker.io");
+        dockerCredentials.setRegistry(registry);
         return dockerCredentials;
+    }
+
+    public static DockerCredentials createDockerCredentials() {
+        return createDockerCredentials("docker.io");
     }
 
     public static String createKubeConfigValue() {
