@@ -60,6 +60,15 @@ public class TestServiceProvider {
     }
 
 
+    public static Service createService(long id, String name, List<String> ports, List<EnvVar> envVars,
+            List<VolumeMount> volumeMounts) {
+        ServiceType serviceType = createServiceTyp(id, name + "-type");
+        K8sServiceType k8sServiceType = createK8sServiceType(1L);
+        Account account = TestAccountProvider.createAccount(1L);
+        return createService(id,  serviceType, name, name + ":latest", k8sServiceType, ports, account, 1,
+            BigDecimal.valueOf(13.37), 128, envVars, volumeMounts, true);
+    }
+
     public static Service createService(long id, String name) {
         ServiceType serviceType = createServiceTyp(id, name + "-type");
         K8sServiceType k8sServiceType = createK8sServiceType(1L);

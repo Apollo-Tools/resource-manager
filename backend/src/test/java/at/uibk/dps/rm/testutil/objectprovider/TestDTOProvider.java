@@ -346,4 +346,12 @@ public class TestDTOProvider {
         dto.setIsPublic(isPublic);
         return dto;
     }
+
+    public static UpdateServiceDTO createUpdateServiceDTO(List<String> ports, List<EnvVar> envVars,
+            List<VolumeMount> volumeMounts) {
+        K8sServiceTypeId k8sServiceTypeId = new K8sServiceTypeId();
+        k8sServiceTypeId.setServiceTypeId(1L);
+        return createUpdateServiceDTO(1, ports, BigDecimal.valueOf(13.37), 128, k8sServiceTypeId,
+            envVars, volumeMounts, true);
+    }
 }

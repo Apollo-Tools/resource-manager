@@ -13,7 +13,6 @@ import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.file.FileSystem;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import io.vertx.rxjava3.ext.web.RoutingContext;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -51,10 +50,6 @@ public class FunctionInputHandlerTest {
 
     @Mock
     private FileSystem fileSystem;
-
-    @BeforeEach
-    void initTest() {
-    }
 
     @ParameterizedTest
     @CsvSource({
