@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler.metric;
 
 import at.uibk.dps.rm.entity.model.MetricValue;
+import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestMetricProvider;
@@ -15,6 +16,8 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -89,22 +92,44 @@ public class MetricValueHandlerTest {
         testContext.completeNow();
     }
 
-    @Test
-    void updateOne(VertxTestContext testContext) {
+    @ParameterizedTest
+    @ValueSource(strings = {"8", "\"eight\"", "true"})
+    void updateOne(String value, VertxTestContext testContext) {
         long resourceId = 1L;
         long metricId = 2L;
-        JsonObject requestBody = new JsonObject("{\"value\": 8}");
+        JsonObject requestBody = new JsonObject("{\"value\": " + value + "}");
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
         when(rc.pathParam("resourceId")).thenReturn(String.valueOf(resourceId));
         when(rc.pathParam("metricId")).thenReturn(String.valueOf(metricId));
-        when(metricValueService.updateByResourceAndMetric(1L, 2L, null, 8.0,
-            null, true))
+        when(metricValueService.updateByResourceAndMetric(1L, 2L,
+            value.equals("\"eight\"") ? "eight" : null, value.equals("8") ? 8.0 : null,
+            value.equals("true") ? true : null, true))
             .thenReturn(Completable.complete());
 
         metricValueHandler.updateOne(rc)
             .blockingSubscribe(() -> {},
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
+            );
+        testContext.completeNow();
+    }
+
+    @Test
+    void updateOneBadInput(VertxTestContext testContext) {
+        long resourceId = 1L;
+        long metricId = 2L;
+        JsonObject requestBody = new JsonObject("{\"value\": []}");
+
+        RoutingContextMockHelper.mockBody(rc, requestBody);
+        when(rc.pathParam("resourceId")).thenReturn(String.valueOf(resourceId));
+        when(rc.pathParam("metricId")).thenReturn(String.valueOf(metricId));
+
+        metricValueHandler.updateOne(rc)
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(BadInputException.class);
+                    testContext.completeNow();
+                })
             );
         testContext.completeNow();
     }
