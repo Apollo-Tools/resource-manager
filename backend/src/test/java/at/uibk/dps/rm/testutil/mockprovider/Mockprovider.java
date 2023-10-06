@@ -16,6 +16,7 @@ import at.uibk.dps.rm.entity.dto.ensemble.ResourceEnsembleStatus;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.monitoring.K8sMonitoringData;
 import at.uibk.dps.rm.service.database.util.*;
+import at.uibk.dps.rm.service.deployment.docker.DockerHubImageChecker;
 import at.uibk.dps.rm.service.deployment.docker.LambdaJavaBuildService;
 import at.uibk.dps.rm.service.deployment.docker.LambdaLayerService;
 import at.uibk.dps.rm.service.deployment.docker.OpenFaasImageService;
@@ -41,6 +42,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.zip.ZipOutputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -340,6 +342,13 @@ public class Mockprovider {
                 .when(mock).read(any());
             Mockito.lenient().doNothing().when(mock).close();
         });
+    }
+
+
+    public static MockedConstruction<DockerHubImageChecker> mockDockerHubImageChecker(
+            List<FunctionDeployment> functionDeployments, Set<Function> result) {
+        return Mockito.mockConstruction(DockerHubImageChecker.class, (mock, context) ->
+            given(mock.getNecessaryFunctionBuilds(functionDeployments)).willReturn(Single.just(result)));
     }
 
     public static MockedStatic<Vertx> mockVertx() {

@@ -7,8 +7,10 @@ import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
+import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.service.ServiceProxy;
+import at.uibk.dps.rm.service.deployment.docker.DockerHubImageChecker;
 import at.uibk.dps.rm.service.deployment.terraform.FunctionPrepareService;
 import at.uibk.dps.rm.service.deployment.terraform.MainFileService;
 import at.uibk.dps.rm.service.deployment.terraform.TerraformSetupService;
@@ -25,13 +27,13 @@ import io.vertx.junit5.RunTestOnContext;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedConstruction;
 import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -68,21 +70,24 @@ public class DeploymentExecutionServiceImplTest {
         assertThat(result).isEqualTo(expected);
     }
 
-    // TODO: fix mocking
-    @Disabled
+    @Test
     void packageFunctionsCode(VertxTestContext testContext) {
         DeployResourcesDTO deployRequest = TestRequestProvider.createDeployRequest();
         FunctionsToDeploy functionsToDeploy = TestDTOProvider.createFunctionsToDeploy();
+        Function f1 = deployRequest.getFunctionDeployments().get(0).getFunction();
+        Function f2 = deployRequest.getFunctionDeployments().get(2).getFunction();
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
              MockedConstruction<FunctionPrepareService> ignoredFPS = Mockprovider
-                .mockFunctionPrepareService(functionsToDeploy)) {
+                .mockFunctionPrepareService(functionsToDeploy);
+             MockedConstruction<DockerHubImageChecker> ignoredImageChecker =
+                 Mockprovider.mockDockerHubImageChecker(deployRequest.getFunctionDeployments(), Set.of(f1, f2))) {
             deploymentExecutionService.packageFunctionsCode(deployRequest,
                 testContext.succeeding(result -> testContext.verify(() -> {
                     assertThat(result.getFunctionIdentifiers().size()).isEqualTo(2);
                     assertThat(result.getFunctionIdentifiers().get(0)).isEqualTo("foo1_python38");
                     assertThat(result.getFunctionIdentifiers().get(1)).isEqualTo("foo2_python38");
                     assertThat(result.getDockerFunctionsString()).isEqualTo("\"  foo1_python38:\\n    " +
-                        "lang: python3-flask-debian\\n    handler: ./foo1_python39\\n    " +
+                        "lang: python3-flask-debian\\n    handler: ./foo1_python38\\n    " +
                         "image: user/foo1_python38:latest\\n  foo2_python38:\\n    lang: python3-flask-debian\\n    " +
                         "handler: ./foo2_python38\\n    image: user/foo2_python38:latest\\n\"");
                     testContext.completeNow();
