@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 /**
@@ -51,7 +52,7 @@ public class AccountNamespaceHandlerTest {
             namespaceId + "}");
 
         when(rc.pathParam("accountId")).thenReturn(String.valueOf(accountId));
-        when(rc.pathParam("namespaceId")).thenReturn(String.valueOf(namespaceId));
+        doReturn(String.valueOf(namespaceId)).when(rc).pathParam("namespaceId");
         when(accountNamespaceService.saveByAccountIdAndNamespaceId(accountId, namespaceId))
             .thenReturn(Single.just(persistedEntity));
 
@@ -68,7 +69,7 @@ public class AccountNamespaceHandlerTest {
     @Test
     void deleteOne(VertxTestContext testContext) {
         when(rc.pathParam("accountId")).thenReturn(String.valueOf(accountId));
-        when(rc.pathParam("namespaceId")).thenReturn(String.valueOf(namespaceId));
+        doReturn(String.valueOf(namespaceId)).when(rc).pathParam("namespaceId");
         when(accountNamespaceService.deleteByAccountIdAndNamespaceId(accountId, namespaceId))
             .thenReturn(Completable.complete());
 
