@@ -164,13 +164,13 @@ public class FunctionPrepareService {
                     Path.of(destinationPath, "entrypoint").toAbsolutePath().toString();
                 String destinationModelPath =
                     Path.of(destinationPath, "model").toAbsolutePath().toString();
-                return fileSystem.mkdirs(wrapperPath)
-                    .andThen(fileSystem.mkdirs(destinationEntrypointPath))
+                return fileSystem.mkdirs(destinationEntrypointPath)
                     .andThen(fileSystem.mkdirs(destinationModelPath))
                     .andThen(fileSystem.copyRecursive(wrapperPath, destinationPath, true))
                     .andThen(fileSystem.copyRecursive(entryPointPath, destinationEntrypointPath, true))
                     .andThen(fileSystem.copyRecursive(modelPath, destinationModelPath, true));
+            default:
+                return Completable.error(RuntimeNotSupportedException::new);
         }
-        return Completable.error(RuntimeNotSupportedException::new);
     }
 }

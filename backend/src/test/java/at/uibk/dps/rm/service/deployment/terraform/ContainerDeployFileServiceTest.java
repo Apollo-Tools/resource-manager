@@ -1,19 +1,24 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
 import at.uibk.dps.rm.entity.model.Deployment;
+import at.uibk.dps.rm.entity.model.Metric;
+import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.testutil.objectprovider.TestFileServiceProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestDeploymentProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestMetricProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.rxjava3.core.Vertx;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -49,9 +54,20 @@ public class ContainerDeployFileServiceTest {
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = {true, false})
-    void getMainFileContent(boolean hasExternalIp, Vertx vertx) {
+    @CsvSource({
+        "true, true",
+        "false, true",
+        "true, false"
+    })
+    void getMainFileContent(boolean hasExternalIp, boolean hasHostname, Vertx vertx) {
         Resource resource = TestResourceProvider.createResourceContainer(1L, "localhost", hasExternalIp);
+        if (hasHostname) {
+            Metric mHostname = TestMetricProvider.createMetric(11L, "hostname");
+            MetricValue mvHostname = TestMetricProvider.createMetricValue(11L, mHostname, "node1");
+            Set<MetricValue> metricValues = new HashSet<>(resource.getMetricValues());
+            metricValues.add(mvHostname);
+            resource.setMetricValues(metricValues);
+        }
         ContainerDeployFileService service = TestFileServiceProvider
             .createContainerDeployFileService(vertx.fileSystem(), rootFolder, resource, deployment);
         String configPath = Path.of("tmp", "kubeconfig", "mainresource1").toAbsolutePath().toString()
@@ -83,7 +99,7 @@ public class ContainerDeployFileServiceTest {
                 "  ports = [{container_port = 80, service_port = 8000}]\n" +
                 "  service_type = \"NodePort\"\n" +
                 "  external_ip = \"" + (hasExternalIp ? "0.0.0.0" : "") + "\"\n" +
-                "  hostname = null\n" +
+                "  hostname = " + (hasHostname ? "\"node1\"" : null) + "\n" +
                 "  image_pull_secrets = [\"regcred\"]\n" +
                 "  volume_mounts = [{name:\"vm\",mountPath:\"/build\",sizeMegaBytes:100}]\n" +
                 "  env_vars = [{name:\"env_var\",value:\"value\"}]\n" +

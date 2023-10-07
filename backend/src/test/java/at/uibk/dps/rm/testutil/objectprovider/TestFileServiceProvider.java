@@ -13,7 +13,6 @@ import io.vertx.rxjava3.core.file.FileSystem;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -57,7 +56,7 @@ public class TestFileServiceProvider {
     }
 
     public static FunctionPrepareService createFunctionFileService(Vertx vertx, Resource r1, Resource r2, Function f1,
-                                                                Function f2) {
+            Function f2, Set<Function> functionsToBuild) {
         FunctionDeployment fr1 = TestFunctionProvider.createFunctionDeployment(1L, f1, r1);
         FunctionDeployment fr2 = TestFunctionProvider.createFunctionDeployment(2L, f2, r2);
         List<FunctionDeployment> functionDeployments = List.of(fr1, fr2);
@@ -66,10 +65,7 @@ public class TestFileServiceProvider {
         credentials.setAccessToken("access-token");
         credentials.setRegistry("docker.io");
         DeploymentPath path = new DeploymentPath(1L, TestConfigProvider.getConfigDTO());
-        Set<Function> functions = new HashSet<>();
-        functions.add(f1);
-        functions.add(f2);
-        return new FunctionPrepareService(vertx, functionDeployments, path, functions, credentials);
+        return new FunctionPrepareService(vertx, functionDeployments, path, functionsToBuild, credentials);
     }
 
     public static FunctionPrepareService createFunctionFileServiceNoFunctions(Vertx vertx) {
@@ -90,10 +86,21 @@ public class TestFileServiceProvider {
         Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime, false);
         Resource r1 = TestResourceProvider.createResourceLambda(1L, region);
         Resource r2 = TestResourceProvider.createResourceEC2(2L, region,"t2.micro");
-        return createFunctionFileService(vertx, r1, r2, f1, f2);
+        return createFunctionFileService(vertx, r1, r2, f1, f2, Set.of(f1, f2));
     }
 
-    public static FunctionPrepareService createFunctionFileServiceEC2OpenFaasPython(Vertx vertx) {
+    public static FunctionPrepareService createFunctionFileServiceLambdaEc2(Vertx vertx, Runtime runtime) {
+        ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
+        Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
+        Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime, false);
+        Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime, false);
+        Resource r1 = TestResourceProvider.createResourceLambda(1L, region);
+        Resource r2 = TestResourceProvider.createResourceEC2(2L, region,"t2.micro");
+        return createFunctionFileService(vertx, r1, r2, f1, f2, Set.of(f1, f2));
+    }
+
+    public static FunctionPrepareService createFunctionFileServiceEC2OpenFaasPython(Vertx vertx,
+            boolean needsOpenFaasBuild) {
         ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "python3.8");
@@ -102,7 +109,7 @@ public class TestFileServiceProvider {
         Resource r1 = TestResourceProvider.createResourceOpenFaas(1L,  region, "http://localhost:8081",
             "user1", "pw1");
         Resource r2 = TestResourceProvider.createResourceEC2(2L, region, "t2.micro");
-        return createFunctionFileService(vertx, r1, r2, f1, f2);
+        return createFunctionFileService(vertx, r1, r2, f1, f2,  needsOpenFaasBuild ? Set.of(f1, f2) : Set.of());
     }
 
     public static FunctionPrepareService createFunctionFileServiceEC2OpenFaasInvalidRuntime(Vertx vertx) {
@@ -114,7 +121,7 @@ public class TestFileServiceProvider {
         Resource r1 = TestResourceProvider.createResourceOpenFaas(1L,  region, "http://localhost:8081",
             "user1", "pw1");
         Resource r2 = TestResourceProvider.createResourceEC2(2L, region, "t2.micro");
-        return createFunctionFileService(vertx, r1, r2, f1, f2);
+        return createFunctionFileService(vertx, r1, r2, f1, f2, Set.of(f1, f2));
     }
 
     public static FunctionPrepareService createFunctionFileServiceFunctionTwicePython(Vertx vertx) {
@@ -125,7 +132,7 @@ public class TestFileServiceProvider {
         Resource r1 = TestResourceProvider.createResourceOpenFaas(1L,  region, "http://localhost:8081",
             "user1", "pw1");
         Resource r2 = TestResourceProvider.createResourceEC2(2L, region, "t2.micro");
-        return createFunctionFileService(vertx, r1, r2, f1, f1);
+        return createFunctionFileService(vertx, r1, r2, f1, f1, Set.of(f1));
     }
 
     public static MainFileService createMainFileService(FileSystem fileSystem, List<TerraformModule> terraformModules) {

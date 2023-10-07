@@ -23,6 +23,7 @@ import at.uibk.dps.rm.service.deployment.docker.OpenFaasImageService;
 import at.uibk.dps.rm.service.deployment.executor.MainTerraformExecutor;
 import at.uibk.dps.rm.service.deployment.executor.ProcessExecutor;
 import at.uibk.dps.rm.service.deployment.executor.TerraformExecutor;
+import at.uibk.dps.rm.service.deployment.sourcecode.PackageJavaCode;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackagePythonCode;
 import at.uibk.dps.rm.service.deployment.terraform.*;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
@@ -160,6 +161,12 @@ public class Mockprovider {
 
     public static MockedConstruction<PackagePythonCode> mockPackagePythonCode() {
         return Mockito.mockConstruction(PackagePythonCode.class,
+            (mock, context) -> given(mock.composeSourceCode())
+                .willReturn(Completable.complete()));
+    }
+
+    public static MockedConstruction<PackageJavaCode> mockPackageJavaCode() {
+        return Mockito.mockConstruction(PackageJavaCode.class,
             (mock, context) -> given(mock.composeSourceCode())
                 .willReturn(Completable.complete()));
     }
