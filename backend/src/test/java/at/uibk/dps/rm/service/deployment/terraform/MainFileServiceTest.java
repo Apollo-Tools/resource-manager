@@ -127,7 +127,9 @@ public class MainFileServiceTest {
         TerraformModule m1 = new FaasModule(ResourceProviderEnum.AWS, r1);
         TerraformModule m2 = new FaasModule(ResourceProviderEnum.AWS, r2);
         TerraformModule m3 = new FaasModule(ResourceProviderEnum.CUSTOM_EDGE, r3);
-        MainFileService service = TestFileServiceProvider.createMainFileService(vertx.fileSystem(), List.of(m1, m2, m3));
+        TerraformModule m4 = new ContainerModule();
+        MainFileService service = TestFileServiceProvider.createMainFileService(vertx.fileSystem(), List.of(m1, m2,
+            m3, m4));
         String result = service.getVariablesFileContent();
 
         assertThat(result).isEqualTo(

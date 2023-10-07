@@ -1,13 +1,7 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
-import at.uibk.dps.rm.entity.model.Deployment;
-import at.uibk.dps.rm.entity.model.Resource;
-import at.uibk.dps.rm.entity.model.Service;
-import at.uibk.dps.rm.entity.model.ServiceDeployment;
-import at.uibk.dps.rm.testutil.objectprovider.TestFileServiceProvider;
-import at.uibk.dps.rm.testutil.objectprovider.TestDeploymentProvider;
-import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
-import at.uibk.dps.rm.testutil.objectprovider.TestServiceProvider;
+import at.uibk.dps.rm.entity.model.*;
+import at.uibk.dps.rm.testutil.objectprovider.*;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.rxjava3.core.Vertx;
 import org.junit.jupiter.api.Test;
@@ -16,7 +10,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -47,6 +43,11 @@ public class ContainerPullFileServiceTest {
     void getMainFileContent(Vertx vertx) {
         Resource r1 = TestResourceProvider.createResourceContainer(1L, "localhost", true);
         Resource r2 = TestResourceProvider.createResourceContainer(2L, "10.0.0.1", true);
+        Metric metric = TestMetricProvider.createMetric(11L, "hostname");
+        MetricValue metricValue = TestMetricProvider.createMetricValue(11L, metric, "node1");
+        Set<MetricValue> metricValues = new HashSet<>(r1.getMetricValues());
+        metricValues.add(metricValue);
+        r1.setMetricValues(metricValues);
         Service s1 = TestServiceProvider.createService(1L, "test1");
         Service s2 = TestServiceProvider.createService(1L, "test2");
         ServiceDeployment sr1 = TestServiceProvider.createServiceDeployment(1L, s1, r1);
@@ -60,7 +61,6 @@ public class ContainerPullFileServiceTest {
 
         String result = service.getMainFileContent();
 
-
         assertThat(result).isEqualTo(
             "module \"pre_pull_1\" {\n" +
                 "  source = \"../../../terraform/k8s/prepull\"\n" +
@@ -70,7 +70,7 @@ public class ContainerPullFileServiceTest {
                 "  config_context = \"k8s-context\"\n" +
                 "  images = [\"test2:latest\",\"test1:latest\"]\n" +
                 "  timeout = \"2m\"\n" +
-                "  hostname = null\n" +
+                "  hostname = \"node1\"\n" +
                 "  image_pull_secrets = [\"regcred\"]\n" +
                 "}\n" +
                 "module \"pre_pull_2\" {\n" +

@@ -204,7 +204,17 @@ public class Mockprovider {
 
     public static MockedConstruction<RegionFaasFileService> mockRegionFaasFileService(Completable result) {
         return Mockito.mockConstruction(RegionFaasFileService.class,
-            (mock, context) -> given(mock.setUpDirectory()).willReturn(result));
+            (mock, context) -> when(mock.setUpDirectory()).thenReturn(result));
+    }
+
+    public static MockedConstruction<ContainerPullFileService> mockContainerPullFileService(Completable result) {
+        return Mockito.mockConstruction(ContainerPullFileService.class, (mock, context) ->
+            when(mock.setUpDirectory()).thenReturn(result));
+    }
+
+    public static MockedConstruction<ContainerDeployFileService> mockContainerDeployFileService(Completable result) {
+        return Mockito.mockConstruction(ContainerDeployFileService.class, (mock, context) ->
+            when(mock.setUpDirectory()).thenReturn(result));
     }
 
     public static MockedConstruction<MetricValueUtility> mockMetricValueUtilitySave(SessionManager sm,

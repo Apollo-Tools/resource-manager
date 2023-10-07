@@ -63,8 +63,8 @@ public class TestRequestProvider {
         Resource r4 = TestResourceProvider.createResourceContainer(3L, "https://localhost", true);
         FunctionDeployment fd1 = TestFunctionProvider.createFunctionDeployment(1L, f1, r1);
         FunctionDeployment fd2 = TestFunctionProvider.createFunctionDeployment(2L, f1, r2);
-        FunctionDeployment fd3 = TestFunctionProvider.createFunctionDeployment(3L, f2, r2);
-        FunctionDeployment fd4 = TestFunctionProvider.createFunctionDeployment(4L, f1, r3);
+        FunctionDeployment fd3 = TestFunctionProvider.createFunctionDeployment(3L, f1, r3);
+        FunctionDeployment fd4 = TestFunctionProvider.createFunctionDeployment(4L, f2, r3);
         List<FunctionDeployment> functionDeployments = List.of(fd1, fd2, fd3, fd4);
         deployRequest.setFunctionDeployments(functionDeployments);
         Service s1 = TestServiceProvider.createService(1L, "s1");

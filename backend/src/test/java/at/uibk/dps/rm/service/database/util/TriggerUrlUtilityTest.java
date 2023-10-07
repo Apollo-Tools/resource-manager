@@ -57,13 +57,12 @@ public class TriggerUrlUtilityTest {
             .updateTriggerUrl(sessionManager, 1L, "http://host:port/foo1"))
             .thenReturn(Completable.complete());
         when(repositoryMock.getResourceDeploymentRepository()
-            .updateTriggerUrl(sessionManager, 3L, "http://host:port/foo2"))
+            .updateTriggerUrl(sessionManager, 4L, "http://host:port/foo2"))
             .thenReturn(Completable.complete());
 
         utility.setTriggerUrlsForFunctions(sessionManager, output, deployResourcesDTO)
             .blockingSubscribe(() -> testContext.verify(testContext::completeNow),
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
+                throwable -> testContext.failNow("method has thrown exception"));
     }
 
     @Test

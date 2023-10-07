@@ -19,6 +19,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedConstruction;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
@@ -41,13 +43,56 @@ public class TerraformSetupServiceTest {
         TerraformSetupService service = new TerraformSetupService(vertx, deployRequest, deploymentPath,
             deploymentCredentials);
         System.setProperty("os.name", "Linux");
-        try (MockedConstruction<RegionFaasFileService> ignored = Mockprovider
-            .mockRegionFaasFileService(Completable.complete())) {
+        try (MockedConstruction<RegionFaasFileService> ignoredRFFS =
+                 Mockprovider.mockRegionFaasFileService(Completable.complete());
+             MockedConstruction<ContainerPullFileService> ignoredCPFS =
+                 Mockprovider.mockContainerPullFileService(Completable.complete());
+             MockedConstruction<ContainerDeployFileService> ignoredCDFS =
+                 Mockprovider.mockContainerDeployFileService(Completable.complete())
+            ) {
                 service.setUpTFModuleDirs(config)
                     .subscribe(result -> testContext.verify(() -> {
+                            assertThat(ignoredRFFS.constructed().size()).isEqualTo(1);
+                            assertThat(ignoredCPFS.constructed().size()).isEqualTo(1);
+                            assertThat(ignoredCDFS.constructed().size()).isEqualTo(2);
                             assertThat(result.size()).isEqualTo(2);
                             assertThat(result.get(0).getModuleName()).isEqualTo("aws_us_east_1");
                             assertThat(result.get(1).getModuleName()).isEqualTo("container");
+                            assertThat(deploymentCredentials.getCloudCredentials().size()).isEqualTo(1);
+                            assertThat(deploymentCredentials.getCloudCredentials().get(0).getResourceProvider()
+                                .getProvider()).isEqualTo("aws");
+                            assertThat(deploymentCredentials.getOpenFaasCredentialsString())
+                                .isEqualTo("openfaas_login_data={r3={auth_user=\"user\",auth_pw=\"pw\"}}");
+                            testContext.completeNow();
+                        }),
+                        throwable -> testContext.verify(() -> fail("method has thrown exception"))
+                    );
+        }
+    }
+
+    @Test
+    void setupTFModuleDirsNoContainer(Vertx vertx, VertxTestContext testContext) {
+        DeployResourcesDTO deployRequest = TestRequestProvider.createDeployRequest();
+        deployRequest.setServiceDeployments(List.of());
+        DeploymentPath deploymentPath = new DeploymentPath(1L, config);
+        DeploymentCredentials deploymentCredentials = new DeploymentCredentials();
+        TerraformSetupService service = new TerraformSetupService(vertx, deployRequest, deploymentPath,
+            deploymentCredentials);
+        System.setProperty("os.name", "Linux");
+        try (MockedConstruction<RegionFaasFileService> ignoredRFFS =
+                 Mockprovider.mockRegionFaasFileService(Completable.complete());
+             MockedConstruction<ContainerPullFileService> ignoredCPFS =
+                 Mockprovider.mockContainerPullFileService(Completable.complete());
+             MockedConstruction<ContainerDeployFileService> ignoredCDFS =
+                 Mockprovider.mockContainerDeployFileService(Completable.complete())
+        ) {
+                service.setUpTFModuleDirs(config)
+                    .subscribe(result -> testContext.verify(() -> {
+                            assertThat(ignoredRFFS.constructed().size()).isEqualTo(1);
+                            assertThat(ignoredCPFS.constructed().size()).isEqualTo(0);
+                            assertThat(ignoredCDFS.constructed().size()).isEqualTo(0);
+                            assertThat(result.size()).isEqualTo(1);
+                            assertThat(result.get(0).getModuleName()).isEqualTo("aws_us_east_1");
                             assertThat(deploymentCredentials.getCloudCredentials().size()).isEqualTo(1);
                             assertThat(deploymentCredentials.getCloudCredentials().get(0).getResourceProvider()
                                 .getProvider()).isEqualTo("aws");

@@ -75,7 +75,7 @@ public class DeploymentExecutionServiceImplTest {
         DeployResourcesDTO deployRequest = TestRequestProvider.createDeployRequest();
         FunctionsToDeploy functionsToDeploy = TestDTOProvider.createFunctionsToDeploy();
         Function f1 = deployRequest.getFunctionDeployments().get(0).getFunction();
-        Function f2 = deployRequest.getFunctionDeployments().get(2).getFunction();
+        Function f2 = deployRequest.getFunctionDeployments().get(3).getFunction();
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
              MockedConstruction<FunctionPrepareService> ignoredFPS = Mockprovider
                 .mockFunctionPrepareService(functionsToDeploy);
