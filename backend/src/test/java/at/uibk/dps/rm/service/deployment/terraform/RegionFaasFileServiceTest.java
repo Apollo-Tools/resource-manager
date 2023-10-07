@@ -1,13 +1,21 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
+import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
+import at.uibk.dps.rm.entity.model.Region;
+import at.uibk.dps.rm.entity.model.Resource;
+import at.uibk.dps.rm.entity.model.ResourceProvider;
 import at.uibk.dps.rm.entity.model.Runtime;
 import at.uibk.dps.rm.exception.RuntimeNotSupportedException;
 import at.uibk.dps.rm.testutil.objectprovider.TestFileServiceProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.rxjava3.core.Vertx;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.file.Paths;
@@ -35,6 +43,15 @@ public class RegionFaasFileServiceTest {
             "  token = var.session_token == \"\" ? null : var.session_token\n" +
             "  region = \"us-east-1\"\n" +
             "}\n");
+    }
+
+    @Test
+    void getProviderStringNonAWS(Vertx vertx) {
+        RegionFaasFileService service = TestFileServiceProvider.createRegionFaasFileServiceAllFaas(vertx.fileSystem(),
+            ResourceProviderEnum.CUSTOM_EDGE);
+        String result = service.getProviderString();
+
+        assertThat(result).isEqualTo("");
     }
 
     @Test
@@ -105,7 +122,8 @@ public class RegionFaasFileServiceTest {
     @Test
     void getFunctionsModuleStringUnsupportedRuntime(Vertx vertx) {
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "unknown");
-        RegionFaasFileService service = TestFileServiceProvider.createRegionFaasFileServiceAllFaas(vertx.fileSystem(),runtime);
+        RegionFaasFileService service = TestFileServiceProvider.createRegionFaasFileServiceAllFaas(vertx.fileSystem(),
+            runtime, ResourceProviderEnum.AWS);
         assertThrows(RuntimeNotSupportedException.class, service::getFunctionsModuleString);
     }
 
@@ -150,6 +168,81 @@ public class RegionFaasFileServiceTest {
                 "module.r3_foo1_python38.function_url,]))\n" +
             "}\n"
         );
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "true, true, true",
+        "true, false, false",
+        "false, true, false",
+        "false, false, true"
+    })
+    void getOutputsFileContentBlank(boolean blankLambda, boolean blankOpenFaas, boolean blankEc2, Vertx vertx) {
+        ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L,
+            ResourceProviderEnum.AWS.getValue());
+        Runtime runtime = TestFunctionProvider.createRuntime(1L, "python3.8");
+        Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
+        Resource r1, r2, r3;
+        if (blankLambda && !blankOpenFaas && !blankEc2) {
+            r1 = TestResourceProvider.createResourceEC2(1L, region, "t2.micro");
+            r2 = TestResourceProvider.createResourceEC2(2L, region, "t2.micro");
+            r3 = TestResourceProvider.createResourceOpenFaas(3L, region, "http://localhost:8080",
+                "user", "pw");
+        } else if (!blankLambda && blankOpenFaas && !blankEc2) {
+            r1 = TestResourceProvider.createResourceLambda(1L, region);
+            r2 = TestResourceProvider.createResourceEC2(2L, region, "t2.micro");
+            r3 = TestResourceProvider.createResourceLambda(3L, region);
+        } else if (!blankLambda && !blankOpenFaas && blankEc2) {
+            r1 = TestResourceProvider.createResourceLambda(1L, region);
+            r2 = TestResourceProvider.createResourceOpenFaas(2L, region, "http://localhost:8080",
+                "user", "pw");
+            r3 = TestResourceProvider.createResourceOpenFaas(3L, region, "http://localhost:8080",
+                "user", "pw");
+        } else {
+            r1 = TestResourceProvider.createResourceLambda(1L, region);
+            r2 = TestResourceProvider.createResourceEC2(2L, region, "t2.micro");
+            r3 = TestResourceProvider.createResourceOpenFaas(3L, region, "http://localhost:8080",
+                "user", "pw");
+        }
+        RegionFaasFileService service = TestFileServiceProvider.createRegionFaasFileService(vertx.fileSystem(), r1, r2,
+            r3, runtime, region, ResourceProviderEnum.AWS);
+        if (!blankLambda || !blankEc2 || !blankOpenFaas) {
+            service.getMainFileContent();
+        }
+        String result = service.getOutputsFileContent();
+
+        if (blankLambda && !blankOpenFaas && !blankEc2) {
+            assertThat(result).isEqualTo(
+                "output \"function_urls\" {\n" +
+                    "  value = merge({}, zipmap([\"r1_foo1_python38_1\",\"r2_foo1_python38_1\"," +
+                    "\"r2_foo2_python38_1\",\"r3_foo1_python38_1\",], [module.r1_foo1_python38.function_url," +
+                    "module.r2_foo1_python38.function_url,module.r2_foo2_python38.function_url," +
+                    "module.r3_foo1_python38.function_url,]))\n" +
+                    "}\n"
+            );
+        } else if (!blankLambda && blankOpenFaas && !blankEc2) {
+            assertThat(result).isEqualTo(
+                "output \"function_urls\" {\n" +
+                    "  value = merge(module.lambda.function_urls, zipmap([\"r2_foo1_python38_1\"," +
+                    "\"r2_foo2_python38_1\",], [module.r2_foo1_python38.function_url," +
+                    "module.r2_foo2_python38.function_url,]))\n" +
+                    "}\n"
+            );
+        } else if (!blankLambda && !blankOpenFaas && blankEc2) {
+            assertThat(result).isEqualTo(
+                "output \"function_urls\" {\n" +
+                    "  value = merge(module.lambda.function_urls, zipmap([\"r2_foo1_python38_1\"," +
+                    "\"r2_foo2_python38_1\",\"r3_foo1_python38_1\",], [module.r2_foo1_python38.function_url," +
+                    "module.r2_foo2_python38.function_url,module.r3_foo1_python38.function_url,]))\n" +
+                    "}\n"
+            );
+        } else {
+            assertThat(result).isEqualTo(
+                "output \"function_urls\" {\n" +
+                    "  value = merge({}, {})\n" +
+                    "}\n"
+            );
+        }
     }
 
     @Test

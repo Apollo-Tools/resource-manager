@@ -23,7 +23,7 @@ import java.util.Set;
  */
 public class TestFileServiceProvider {
     public static RegionFaasFileService createRegionFaasFileService(FileSystem fileSystem, Resource r1, Resource r2,
-            Resource r3, Runtime runtime, Region region) {
+            Resource r3, Runtime runtime, Region region, ResourceProviderEnum resourceProvider) {
         DeploymentPath path = new DeploymentPath(1L, TestConfigProvider.getConfigDTO());
         Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime, false);
         Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime, false);
@@ -33,26 +33,34 @@ public class TestFileServiceProvider {
         FunctionDeployment fr4 = TestFunctionProvider.createFunctionDeployment(4L, f1, r3);
         List<FunctionDeployment> functionDeployments = List.of(fr1, fr2, fr3, fr4);
         long deploymentId = 1L;
-        FaasModule module = new FaasModule(ResourceProviderEnum.AWS, region);
+        FaasModule module = new FaasModule(resourceProvider, region);
         DockerCredentials dockerCredentials = TestDTOProvider.createDockerCredentials();
         VPC vpc = TestResourceProviderProvider.createVPC(1L, region);
         return new RegionFaasFileService(fileSystem, path, region, functionDeployments, deploymentId, module,
             dockerCredentials, vpc);
     }
 
-    public static RegionFaasFileService createRegionFaasFileServiceAllFaas(FileSystem fileSystem, Runtime runtime) {
-        ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
+    public static RegionFaasFileService createRegionFaasFileServiceAllFaas(FileSystem fileSystem, Runtime runtime,
+            ResourceProviderEnum resourceProviderEnum) {
+        ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L,
+            resourceProviderEnum.getValue());
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
         Resource r1 = TestResourceProvider.createResourceLambda(1L, region);
         Resource r2 = TestResourceProvider.createResourceEC2(2L, region, "t2.micro");
         Resource r3 = TestResourceProvider.createResourceOpenFaas(3L, region, "http://localhost:8080",
             "user", "pw");
-        return createRegionFaasFileService(fileSystem, r1, r2, r3, runtime, region);
+        return createRegionFaasFileService(fileSystem, r1, r2, r3, runtime, region, resourceProviderEnum);
     }
 
     public static RegionFaasFileService createRegionFaasFileServiceAllFaas(FileSystem fileSystem) {
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "python3.8");
-        return createRegionFaasFileServiceAllFaas(fileSystem, runtime);
+        return createRegionFaasFileServiceAllFaas(fileSystem, runtime, ResourceProviderEnum.AWS);
+    }
+
+    public static RegionFaasFileService createRegionFaasFileServiceAllFaas(FileSystem fileSystem,
+            ResourceProviderEnum resourceProviderEnum) {
+        Runtime runtime = TestFunctionProvider.createRuntime(1L, "python3.8");
+        return createRegionFaasFileServiceAllFaas(fileSystem, runtime, resourceProviderEnum);
     }
 
     public static FunctionPrepareService createFunctionFileService(Vertx vertx, Resource r1, Resource r2, Function f1,
