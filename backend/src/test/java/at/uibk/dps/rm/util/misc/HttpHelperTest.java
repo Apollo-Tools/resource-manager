@@ -32,7 +32,7 @@ public class HttpHelperTest {
                 .subscribe(result -> testContext.verify(() -> {
                     assertThat(result).isEqualTo(10L);
                     testContext.completeNow();
-                }));
+                }), throwable -> testContext.failNow("method has thrown exception"));
     }
 
     @Test
@@ -40,10 +40,23 @@ public class HttpHelperTest {
         when(rc.pathParam("id")).thenReturn("test");
 
         HttpHelper.getLongPathParam(rc, "id")
-            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+            .subscribe(result -> testContext.failNow("method did not throw exception"),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(BadInputException.class);
                     assertThat(throwable.getMessage()).isEqualTo("path parameter is not a number");
+                    testContext.completeNow();
+            }));
+    }
+
+    @Test
+    void getLongPathParamNull(VertxTestContext testContext) {
+        when(rc.pathParam("id")).thenReturn(null);
+
+        HttpHelper.getLongPathParam(rc, "id")
+            .subscribe(result -> testContext.failNow("method did not throw exception"),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(BadInputException.class);
+                    assertThat(throwable.getMessage()).isEqualTo("path parameter not found");
                     testContext.completeNow();
             }));
     }

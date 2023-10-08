@@ -83,6 +83,7 @@ dependencies {
 java {
   sourceCompatibility = JavaVersion.VERSION_11
   targetCompatibility = JavaVersion.VERSION_11
+
 }
 
 jacoco {
@@ -94,6 +95,10 @@ pmd {
   isConsoleOutput=true
   ruleSets = emptyList()
   ruleSetFiles = files("./ruleset.xml", "./ruleset_test.xml")
+}
+
+tasks.withType<JavaCompile> {
+  options.encoding = "UTF-8"
 }
 
 tasks.withType<ShadowJar> {
