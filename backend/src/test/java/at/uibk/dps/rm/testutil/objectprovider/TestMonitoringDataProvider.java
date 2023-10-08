@@ -19,6 +19,11 @@ import java.util.Objects;
 @UtilityClass
 public class TestMonitoringDataProvider {
 
+    public static K8sNode createK8sNode(String name) {
+        return createK8sNode(name, 0.0, 0.0, 0L, 0L, 0L,
+            0L);
+    }
+
     public static K8sNode createK8sNode(String name, double totalCPU, double cpuLoad, long totalMemory, long memoryLoad,
             long totalStorage, long storageLoad) {
         K8sNode k8sNode = new K8sNode();
