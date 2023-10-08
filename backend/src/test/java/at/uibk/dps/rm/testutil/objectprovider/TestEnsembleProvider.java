@@ -38,6 +38,18 @@ public class TestEnsembleProvider {
         return createEnsemble(ensembleId, accountId, name);
     }
 
+    public static Ensemble createEnsembleNoSLOs(long ensembleId) {
+        Ensemble ensemble = new Ensemble();
+        ensemble.setEnsembleId(ensembleId);
+        ensemble.setName("ensemble" + ensembleId);
+        ensemble.setRegions(List.of());
+        ensemble.setProviders(List.of());
+        ensemble.setResource_types(List.of());
+        ensemble.setPlatforms(List.of());
+        ensemble.setEnvironments(List.of());
+        return ensemble;
+    }
+
     public static EnsembleSLO createEnsembleSLO(long ensembleSLOId, String name, long ensembleId) {
         EnsembleSLO ensembleSLO = new EnsembleSLO();
         ensembleSLO.setEnsembleSLOId(ensembleSLOId);
