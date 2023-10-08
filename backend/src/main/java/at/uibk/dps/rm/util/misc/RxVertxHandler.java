@@ -64,7 +64,7 @@ public class RxVertxHandler {
      * @param handler the handler to adapt
      * @return the observer
      */
-    public static <T> MaybeObserver<T> toMaybeObserver(Handler<AsyncResult<T>> handler) {
+    private static <T> MaybeObserver<T> toMaybeObserver(Handler<AsyncResult<T>> handler) {
         AtomicBoolean completed = new AtomicBoolean();
         return new MaybeObserver<>() {
             @Override
@@ -101,7 +101,7 @@ public class RxVertxHandler {
      * @param handler the handler to adapt
      * @return the observer
      */
-    public static <T> SingleObserver<T> toSingleObserver(Handler<AsyncResult<T>> handler) {
+    private static <T> SingleObserver<T> toSingleObserver(Handler<AsyncResult<T>> handler) {
         AtomicBoolean completed = new AtomicBoolean();
         return new SingleObserver<>() {
             @Override
@@ -132,7 +132,7 @@ public class RxVertxHandler {
      * @param handler the handler to adapt
      * @return the observer
      */
-    public static <T> CompletableObserver toCompletableObserver(Handler<AsyncResult<T>> handler) {
+    private static <T> CompletableObserver toCompletableObserver(Handler<AsyncResult<T>> handler) {
         AtomicBoolean completed = new AtomicBoolean();
         return new CompletableObserver() {
             @Override
