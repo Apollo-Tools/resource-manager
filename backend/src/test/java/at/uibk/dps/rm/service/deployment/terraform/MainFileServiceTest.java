@@ -169,7 +169,7 @@ public class MainFileServiceTest {
 
 
     @Test
-    public void getOutputsFileContentAllTypes(Vertx vertx) {
+    void getOutputsFileContentAllTypes(Vertx vertx) {
         Region r1 = TestResourceProviderProvider.createRegion(1L, "r1");
         Region r2 = TestResourceProviderProvider.createRegion(2L, "r2");
         Region r3 = TestResourceProviderProvider.createRegion(3L, "r3");
@@ -186,7 +186,7 @@ public class MainFileServiceTest {
     }
 
     @Test
-    public void getOutputsFileContentNone(Vertx vertx) {
+    void getOutputsFileContentNone(Vertx vertx) {
         TerraformModule m1 = new ContainerModule();
         MainFileService service = TestFileServiceProvider.createMainFileService(vertx.fileSystem(), List.of(m1));
         String result = service.getOutputsFileContent();

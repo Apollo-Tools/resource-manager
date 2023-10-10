@@ -25,7 +25,7 @@ public class GetOneEnsembleSerializerTest {
     }
 
     @Test
-    public void serialize() {
+    void serialize() {
         GetOneEnsemble ensemble = TestDTOProvider.createGetOneEnsemble();
         // Necessary because ordering of set changes between different runs
         ensemble.getResources().forEach(resource -> {

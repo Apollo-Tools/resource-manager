@@ -78,7 +78,7 @@ public class SLORequestDeserializerTest {
 
     @ParameterizedTest
     @MethodSource("provideValidJsonObject")
-    public void deserialize(JsonObject jsonObject, Class<SLORequest> requestClass) {
+    void deserialize(JsonObject jsonObject, Class<SLORequest> requestClass) {
         SLORequest result = jsonObject.mapTo(SLORequest.class);
 
         assertThat(result.getRegions()).isEqualTo(List.of(1L, 2L));
@@ -104,7 +104,7 @@ public class SLORequestDeserializerTest {
 
     @ParameterizedTest
     @MethodSource("provideInvalidJsonObject")
-    public void deserializeInvalidNonMetrics(JsonObject jsonObject) {
+    void deserializeInvalidNonMetrics(JsonObject jsonObject) {
         assertThrows(BadInputException.class, () -> jsonObject.mapTo(SLORequest.class));
     }
 }
