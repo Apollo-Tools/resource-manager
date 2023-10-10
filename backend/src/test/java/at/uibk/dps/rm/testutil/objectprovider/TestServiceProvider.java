@@ -125,11 +125,6 @@ public class TestServiceProvider {
         return createServiceDeployment(id, service, resource, false, deployment, status);
     }
 
-    public static ServiceDeployment createServiceDeployment(long id, Resource resource) {
-        Deployment deployment = TestDeploymentProvider.createDeployment(1L);
-        return createServiceDeployment(id, resource, deployment);
-    }
-
     public static ServiceDeployment createServiceDeployment(long id, Service service, Resource resource) {
         Deployment deployment = TestDeploymentProvider.createDeployment(1L);
         return createServiceDeployment(id, service, resource, false, deployment);

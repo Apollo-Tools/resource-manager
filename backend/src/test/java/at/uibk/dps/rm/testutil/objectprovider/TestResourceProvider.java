@@ -5,8 +5,6 @@ import at.uibk.dps.rm.entity.dto.resource.ResourceDTO;
 import at.uibk.dps.rm.entity.dto.resource.ResourceId;
 import at.uibk.dps.rm.entity.dto.resource.ResourceTypeEnum;
 import at.uibk.dps.rm.entity.model.*;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import lombok.experimental.UtilityClass;
 
 import java.util.Arrays;
@@ -139,11 +137,6 @@ public class TestResourceProvider {
         return resource;
     }
 
-    public static Resource createResourceEC2(long id, String instanceType) {
-        Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1");
-        return createResourceEC2(id, region, instanceType);
-    }
-
     public static Resource createResourceOpenFaas(long id, Region region, String gatewayUrl, String openfaasUser,
             String openfaasPw) {
         MainResource resource = new MainResource();
@@ -180,34 +173,6 @@ public class TestResourceProvider {
         MetricValue mv1 = TestMetricProvider.createMetricValue(1L, m1, timeout);
         MetricValue mv2 = TestMetricProvider.createMetricValue(2L, m2, memorySize);
         resource.setMetricValues(Set.of(mv1, mv2));
-        return resource;
-    }
-
-    public static Resource createResourceVM(long id, Region region, String instanceType) {
-        MainResource resource = new MainResource();
-        resource.setResourceId(id);
-        resource.setRegion(region);
-        MetricType mt = TestMetricProvider.createMetricType(1L, "string");
-        Metric m1 = TestMetricProvider.createMetric(1L, "instance-type", mt);
-        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, m1, instanceType);
-        resource.setMetricValues(Set.of(mv1));
-        return resource;
-    }
-
-    public static Resource createResourceEdge(long id, String gatewayUrl, String openFaasUser, String openfaasPw) {
-        MainResource resource = new MainResource();
-        resource.setResourceId(id);
-        ResourceProvider provider = TestResourceProviderProvider.createResourceProvider(1L, "edge");
-        Region region = TestResourceProviderProvider.createRegion(2L, "edge", provider);
-        resource.setRegion(region);
-        MetricType mt = TestMetricProvider.createMetricType(1L, "string");
-        Metric m1 = TestMetricProvider.createMetric(1L, "gateway-url", mt);
-        Metric m2 = TestMetricProvider.createMetric(2L, "openfaas-user", mt);
-        Metric m3 = TestMetricProvider.createMetric(3L, "openfaas-pw", mt);
-        MetricValue mv1 = TestMetricProvider.createMetricValue(1L, m1, gatewayUrl);
-        MetricValue mv2 = TestMetricProvider.createMetricValue(2L, m2, openFaasUser);
-        MetricValue mv3 = TestMetricProvider.createMetricValue(3L, m3, openfaasPw);
-        resource.setMetricValues(Set.of(mv1, mv2, mv3));
         return resource;
     }
 
@@ -253,14 +218,6 @@ public class TestResourceProvider {
 
     public static ResourceType createResourceTypeContainer(long resourceTypeId) {
         return createResourceType(resourceTypeId, ResourceTypeEnum.CONTAINER.getValue());
-    }
-
-    public static JsonArray createGetAllResourcesArray() {
-        Resource resource1 = TestResourceProvider.createResource(1L);
-        Resource resource2 = TestResourceProvider.createResource(2L);
-        Resource resource3 = TestResourceProvider.createResource(3L);
-        return new JsonArray(List.of(JsonObject.mapFrom(resource1), JsonObject.mapFrom(resource2),
-                JsonObject.mapFrom(resource3)));
     }
 
     public static List<ResourceId> createResourceIdsList(long... resourceIds) {

@@ -86,17 +86,6 @@ public class TestFileServiceProvider {
         return new FunctionPrepareService(vertx, functionDeployments, path, Set.of(), credentials);
     }
 
-    public static FunctionPrepareService createFunctionFileServiceLambdaEc2Python(Vertx vertx) {
-        ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
-        Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
-        Runtime runtime = TestFunctionProvider.createRuntime(1L, "python3.8");
-        Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime, false);
-        Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime, false);
-        Resource r1 = TestResourceProvider.createResourceLambda(1L, region);
-        Resource r2 = TestResourceProvider.createResourceEC2(2L, region,"t2.micro");
-        return createFunctionFileService(vertx, r1, r2, f1, f2, Set.of(f1, f2));
-    }
-
     public static FunctionPrepareService createFunctionFileServiceLambdaEc2(Vertx vertx, Runtime runtime) {
         ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L, "aws");
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);

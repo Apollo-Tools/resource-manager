@@ -29,15 +29,6 @@ public class TestMetricProvider {
         return createMetricType(3L, "boolean");
     }
 
-    public static Metric createMetric(long metricId, String metricName, long metricTypeId, String metricType) {
-        Metric metric = new Metric();
-        metric.setMetricId(metricId);
-        metric.setMetric(metricName);
-        metric.setMetricType(createMetricType(metricTypeId, metricType));
-        metric.setDescription("Blah");
-        return metric;
-    }
-
     public static Metric createMetric(long metricId, String metricName, MetricType metricType) {
         Metric metric = new Metric();
         metric.setMetricId(metricId);

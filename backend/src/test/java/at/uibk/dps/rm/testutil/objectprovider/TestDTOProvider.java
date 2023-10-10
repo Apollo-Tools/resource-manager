@@ -3,8 +3,6 @@ package at.uibk.dps.rm.testutil.objectprovider;
 import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
-import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
-import at.uibk.dps.rm.entity.deployment.output.TFOutput;
 import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
 import at.uibk.dps.rm.entity.dto.ListResourcesBySLOsRequest;
 import at.uibk.dps.rm.entity.dto.SLORequest;
@@ -101,97 +99,6 @@ public class TestDTOProvider {
         return createDockerCredentials("docker.io");
     }
 
-    public static String createKubeConfigValue() {
-        return "apiVersion: v1\n" +
-            "clusters:\n" +
-            "- cluster:\n" +
-            "    certificate-authority-data: cert-data\n" +
-            "    server: https://localhost\n" +
-            "  name: cluster\n" +
-            "contexts:\n" +
-            "- context:\n" +
-            "    cluster:  cluster\n" +
-            "    user:  user\n" +
-            "    namespace: default\n" +
-            "  name:  context\n" +
-            "current-context:  context\n" +
-            "kind: Config\n" +
-            "preferences: {}\n" +
-            "users:\n" +
-            "- name:  user\n" +
-            "  user:\n" +
-            "    client-certificate-data: cert-data\n" +
-            "    client-key-data: key-data\n";
-    }
-
-    public static String createKubeConfigValue(String url) {
-        return "apiVersion: v1\n" +
-            "clusters:\n" +
-            "- cluster:\n" +
-            "    certificate-authority-data: cert-data\n" +
-            "    server: " + url + "\n" +
-            "  name: cluster\n" +
-            "contexts:\n" +
-            "- context:\n" +
-            "    cluster:  cluster\n" +
-            "    user:  user\n" +
-            "    namespace: default\n" +
-            "  name:  context\n" +
-            "current-context:  context\n" +
-            "kind: Config\n" +
-            "preferences: {}\n" +
-            "users:\n" +
-            "- name:  user\n" +
-            "  user:\n" +
-            "    client-certificate-data: cert-data\n" +
-            "    client-key-data: key-data\n";
-    }
-
-    public static String createKubeConfigValueNoMatchingKubeContext() {
-        return "apiVersion: v1\n" +
-            "clusters:\n" +
-            "- cluster:\n" +
-            "    certificate-authority-data: cert-data\n" +
-            "    server: https://localhost\n" +
-            "  name: cluster\n" +
-            "contexts:\n" +
-            "- context:\n" +
-            "    cluster:  server\n" +
-            "    user:  user\n" +
-            "    namespace: default\n" +
-            "  name:  context\n" +
-            "current-context:  context\n" +
-            "kind: Config\n" +
-            "preferences: {}\n" +
-            "users:\n" +
-            "- name:  user\n" +
-            "  user:\n" +
-            "    client-certificate-data: cert-data\n" +
-            "    client-key-data: key-data\n";
-    }
-
-    public static String createKubeConfigValueNoNamespace() {
-        return "apiVersion: v1\n" +
-            "clusters:\n" +
-            "- cluster:\n" +
-            "    certificate-authority-data: cert-data\n" +
-            "    server: https://localhost\n" +
-            "  name: cluster\n" +
-            "contexts:\n" +
-            "- context:\n" +
-            "    cluster:  cluster\n" +
-            "    user:  user\n" +
-            "  name:  context\n" +
-            "current-context:  context\n" +
-            "kind: Config\n" +
-            "preferences: {}\n" +
-            "users:\n" +
-            "- name:  user\n" +
-            "  user:\n" +
-            "    client-certificate-data: cert-data\n" +
-            "    client-key-data: key-data\n";
-    }
-
     public static FunctionsToDeploy createFunctionsToDeploy() {
         FunctionsToDeploy functionsToDeploy = new FunctionsToDeploy();
         functionsToDeploy.getFunctionIdentifiers().add("foo1_python38");
@@ -231,37 +138,6 @@ public class TestDTOProvider {
         processOutput.setProcess(process);
         processOutput.setOutput(output);
         return processOutput;
-    }
-
-    public static TFOutput createTFOutputFaas(String runtime) {
-        TFOutput tfOutput = new TFOutput();
-        Map<String, String> valueMap = new HashMap<>();
-        valueMap.put("r1_foo1_" + runtime, "http://localhostfaas1");
-        tfOutput.setValue(valueMap);
-        return tfOutput;
-    }
-
-    public static TFOutput createTFOutput() {
-        TFOutput tfOutput = new TFOutput();
-        Map<String, String> valueMap = new HashMap<>();
-        valueMap.put("r1_foo1_python39", "http://localhostlambda/foo1");
-        valueMap.put("r2_foo1_python39", "http://localhostec2/foo1");
-        valueMap.put("r2_foo2_python39", "http://localhostec2/foo2");
-        valueMap.put("r3_foo1_python39", "http://localhostopenfaas/foo1");
-        tfOutput.setValue(valueMap);
-        return tfOutput;
-    }
-
-    public static DeploymentOutput createDeploymentOutput() {
-        DeploymentOutput deploymentOutput = new DeploymentOutput();
-        deploymentOutput.setFunctionUrls(createTFOutput());
-        return deploymentOutput;
-    }
-
-    public static DeploymentOutput createDeploymentOutputUnknownFunction() {
-        DeploymentOutput deploymentOutput = new DeploymentOutput();
-        deploymentOutput.setFunctionUrls(createTFOutputFaas("supershell"));
-        return deploymentOutput;
     }
 
     public static List<SLOValue> createSLOValueList(Number... values) {

@@ -112,16 +112,6 @@ public class TestFunctionProvider {
         return createFunctionDeployment(id, function, resource, isDeployed, deployment, status);
     }
 
-    public static FunctionDeployment createFunctionDeployment(long id, long resourceId, Deployment deployment) {
-        Function function = createFunction(22L, "func-test", "false");
-        Resource resource = TestResourceProvider.createResource(resourceId);
-        return createFunctionDeployment(id, function, resource, true, deployment);
-    }
-
-    public static FunctionDeployment createFunctionDeployment(long id, Deployment deployment) {
-        return createFunctionDeployment(id, 33L, deployment);
-    }
-
     public static FunctionDeployment createFunctionDeployment(long id, Resource resource, Deployment deployment) {
         Function function = createFunction(22L, "func-test", "false");
         return createFunctionDeployment(id, function, resource, true, deployment);

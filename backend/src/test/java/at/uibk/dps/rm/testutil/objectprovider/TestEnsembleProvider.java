@@ -50,17 +50,6 @@ public class TestEnsembleProvider {
         return ensemble;
     }
 
-    public static EnsembleSLO createEnsembleSLO(long ensembleSLOId, String name, long ensembleId) {
-        EnsembleSLO ensembleSLO = new EnsembleSLO();
-        ensembleSLO.setEnsembleSLOId(ensembleSLOId);
-        ensembleSLO.setName(name);
-        ensembleSLO.setExpression(ExpressionType.EQ);
-        ensembleSLO.setValueNumbers(List.of(0.5, 1.36));
-        Ensemble ensemble = createEnsemble(ensembleId, 1L);
-        ensembleSLO.setEnsemble(ensemble);
-        return ensembleSLO;
-    }
-
     public static EnsembleSLO createEnsembleSLO(long ensembleSLOId, String name, long ensembleId, String value) {
         EnsembleSLO ensembleSLO = new EnsembleSLO();
         ensembleSLO.setEnsembleSLOId(ensembleSLOId);
