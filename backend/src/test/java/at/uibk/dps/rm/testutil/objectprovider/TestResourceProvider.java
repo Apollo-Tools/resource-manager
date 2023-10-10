@@ -92,6 +92,15 @@ public class TestResourceProvider {
         return createResource(resourceId, platform);
     }
 
+    public static Resource createResource(long resourceId, MetricValue... metricValues) {
+        Platform platform = TestPlatformProvider.createPlatformFaas(1L, "lambda");
+        Resource resource = createResource(resourceId, platform);
+        for (MetricValue metricValue : metricValues) {
+            resource.getMetricValues().add(metricValue);
+        }
+        return resource;
+    }
+
     public static Resource createResource(long resourceId, Region region) {
         Platform platform = TestPlatformProvider.createPlatformFaas(1L, "lambda");
         return createResource(resourceId, platform, region);

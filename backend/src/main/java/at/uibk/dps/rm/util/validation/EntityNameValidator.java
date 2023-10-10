@@ -18,7 +18,7 @@ public class EntityNameValidator {
      * @param entityClass the class of the object with the name field
      * @return a successful Completable if the name is valid else a BadInputException is thrown
      */
-    public Completable checkName(String name, Class<?> entityClass) {
+    public static Completable checkName(String name, Class<?> entityClass) {
         if (name.matches("^[a-z0-9]+$")) {
             return Completable.complete();
         }

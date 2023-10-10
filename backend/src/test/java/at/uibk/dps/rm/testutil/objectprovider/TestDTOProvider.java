@@ -55,6 +55,11 @@ public class TestDTOProvider {
     }
 
     public static ServiceLevelObjective createServiceLevelObjective(String metricName, ExpressionType expressionType,
+            List<SLOValue> sloValues) {
+        return new ServiceLevelObjective(metricName, expressionType, sloValues);
+    }
+
+    public static ServiceLevelObjective createServiceLevelObjective(String metricName, ExpressionType expressionType,
                                                                     double... value) {
         List<SLOValue> sloValues = new ArrayList<>();
         for (double v : value) {
