@@ -5,7 +5,7 @@ import at.uibk.dps.rm.entity.model.Runtime;
 import at.uibk.dps.rm.exception.RuntimeNotSupportedException;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackageJavaCode;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackagePythonCode;
-import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
+import at.uibk.dps.rm.testutil.mockprovider.DeploymentPrepareMockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.TestFileServiceProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import io.reactivex.rxjava3.core.Completable;
@@ -89,8 +89,8 @@ public class FunctionPrepareServiceTest {
         }
 
         FunctionPrepareService service = TestFileServiceProvider.createFunctionFileServiceLambdaEc2(vertx, runtime);
-        try (MockedConstruction<PackagePythonCode> ignoredPPC = Mockprovider.mockPackagePythonCode();
-             MockedConstruction<PackageJavaCode> ignoredPJC = Mockprovider.mockPackageJavaCode()) {
+        try (MockedConstruction<PackagePythonCode> ignoredPPC = DeploymentPrepareMockprovider.mockPackagePythonCode();
+             MockedConstruction<PackageJavaCode> ignoredPJC = DeploymentPrepareMockprovider.mockPackageJavaCode()) {
             service.packageCode()
                 .subscribe(result -> testContext.verify(() -> {
                         assertThat(result.getFunctionIdentifiers().size()).isEqualTo(2);
@@ -121,7 +121,7 @@ public class FunctionPrepareServiceTest {
 
         FunctionPrepareService service = TestFileServiceProvider.createFunctionFileServiceEC2OpenFaasPython(vertx,
             true);
-        try (MockedConstruction<PackagePythonCode> ignoredPPC = Mockprovider.mockPackagePythonCode()) {
+        try (MockedConstruction<PackagePythonCode> ignoredPPC = DeploymentPrepareMockprovider.mockPackagePythonCode()) {
             service.packageCode()
                 .subscribe(result -> testContext.verify(() -> {
                         assertThat(result.getFunctionIdentifiers().size()).isEqualTo(2);
@@ -146,7 +146,7 @@ public class FunctionPrepareServiceTest {
     void packageCodeEC2OpenFaasNoBuildNecessary(VertxTestContext testContext) {
         FunctionPrepareService service = TestFileServiceProvider.createFunctionFileServiceEC2OpenFaasPython(vertx,
             false);
-        try (MockedConstruction<PackagePythonCode> ignoredPPC = Mockprovider.mockPackagePythonCode()) {
+        try (MockedConstruction<PackagePythonCode> ignoredPPC = DeploymentPrepareMockprovider.mockPackagePythonCode()) {
             service.packageCode()
                 .subscribe(result -> testContext.verify(() -> {
                         assertThat(result.getFunctionIdentifiers().size()).isEqualTo(2);
@@ -170,7 +170,7 @@ public class FunctionPrepareServiceTest {
         given(fileSystem.copyRecursive(templatePath, destinationPath, true)).willReturn(Completable.complete());
 
         FunctionPrepareService service = TestFileServiceProvider.createFunctionFileServiceFunctionTwicePython(vertx);
-        try (MockedConstruction<PackagePythonCode> ignored = Mockprovider.mockPackagePythonCode()) {
+        try (MockedConstruction<PackagePythonCode> ignored = DeploymentPrepareMockprovider.mockPackagePythonCode()) {
             service.packageCode()
                 .subscribe(result -> testContext.verify(() -> {
                         assertThat(result.getFunctionIdentifiers().size()).isEqualTo(1);
@@ -189,7 +189,7 @@ public class FunctionPrepareServiceTest {
     @Test
     void packageCodeNoFunctions(Vertx vertx, VertxTestContext testContext) {
         FunctionPrepareService service = TestFileServiceProvider.createFunctionFileServiceNoFunctions(vertx);
-        try (MockedConstruction<PackagePythonCode> ignored = Mockprovider.mockPackagePythonCode()) {
+        try (MockedConstruction<PackagePythonCode> ignored = DeploymentPrepareMockprovider.mockPackagePythonCode()) {
             service.packageCode()
                 .subscribe(result -> testContext.verify(() -> {
                         assertThat(result.getFunctionIdentifiers().size()).isEqualTo(0);
@@ -204,7 +204,7 @@ public class FunctionPrepareServiceTest {
     @Test
     void packageCodeFaasInvalidRuntime(VertxTestContext testContext) {
         FunctionPrepareService service = TestFileServiceProvider.createFunctionFileServiceEC2OpenFaasInvalidRuntime(vertx);
-        try (MockedConstruction<PackagePythonCode> ignored = Mockprovider.mockPackagePythonCode()) {
+        try (MockedConstruction<PackagePythonCode> ignored = DeploymentPrepareMockprovider.mockPackagePythonCode()) {
             service.packageCode()
                 .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                     throwable -> testContext.verify(() -> {

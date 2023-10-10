@@ -3,7 +3,7 @@ package at.uibk.dps.rm.service.deployment.executor;
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
-import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
+import at.uibk.dps.rm.testutil.mockprovider.ProcessExecutorMockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestExecutorProvider;
@@ -60,7 +60,7 @@ public class TerraformExecutorTest {
         TerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutor();
         ProcessOutput processOutput = TestDTOProvider.createProcessOutput(process, "output");
 
-        try (MockedConstruction<ProcessExecutor> ignored = Mockprovider
+        try (MockedConstruction<ProcessExecutor> ignored = ProcessExecutorMockprovider
                 .mockProcessExecutor(deploymentPath.getRootFolder(), processOutput, commands)) {
             Single<ProcessOutput> single = Single.just(new ProcessOutput());
             switch (commands.get(1)) {

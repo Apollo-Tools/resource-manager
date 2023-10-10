@@ -9,7 +9,7 @@ import at.uibk.dps.rm.service.database.util.MetricValueUtility;
 import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
-import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
+import at.uibk.dps.rm.testutil.mockprovider.DatabaseUtilMockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.TestMetricProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestPlatformProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
@@ -91,7 +91,7 @@ public class MetricValueServiceImplTest {
 
         SessionMockHelper.mockCompletable(smProvider, sessionManager);
         when(sessionManager.find(Resource.class, r1.getResourceId())).thenReturn(Maybe.just(r1));
-        try (MockedConstruction<MetricValueUtility> ignored = Mockprovider
+        try (MockedConstruction<MetricValueUtility> ignored = DatabaseUtilMockprovider
                 .mockMetricValueUtilitySave(sessionManager, r1, metricValues)) {
             metricValueService.saveAllToResource(r1.getResourceId(), metricValues,
                 testContext.succeeding(result -> testContext.verify(testContext::completeNow)));

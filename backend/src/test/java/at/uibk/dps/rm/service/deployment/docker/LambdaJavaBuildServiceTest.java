@@ -7,7 +7,7 @@ import at.uibk.dps.rm.entity.dto.resource.RuntimeEnum;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.model.Runtime;
 import at.uibk.dps.rm.service.deployment.executor.ProcessExecutor;
-import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
+import at.uibk.dps.rm.testutil.mockprovider.ProcessExecutorMockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.*;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.junit5.VertxExtension;
@@ -71,7 +71,7 @@ public class LambdaJavaBuildServiceTest {
             "/projects", "gradle:7-jdk11-jammy", "/bin/sh", "-c",
             "for dir in *_java11;do cd \"$dir\";gradle buildLambdaZip; cd ..;done; exit");
 
-        try(MockedConstruction<ProcessExecutor> ignore = Mockprovider
+        try(MockedConstruction<ProcessExecutor> ignore = ProcessExecutorMockprovider
                 .mockProcessExecutor(deploymentPath.getFunctionsFolder(), processOutput, commands)) {
             buildService.buildAndZipJavaFunctions("dindDir")
                 .subscribe(result -> testContext.verify(() -> {

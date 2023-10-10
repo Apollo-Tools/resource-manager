@@ -7,6 +7,11 @@ import io.kubernetes.client.openapi.models.V1Secret;
 
 import java.util.HashMap;
 
+/**
+ * Utility class to instantiate objects that are different instances of various kubernetes classes.
+ *
+ * @author matthi-g
+ */
 public class TestK8sProvider {
 
     public static V1Secret createSecret() {

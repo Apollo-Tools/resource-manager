@@ -3,7 +3,6 @@ package at.uibk.dps.rm.handler.function;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.WrongFileTypeException;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
-import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -24,8 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.AdditionalMatchers.or;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Implements tests for the {@link FunctionInputHandler} class.
@@ -92,7 +90,7 @@ public class FunctionInputHandlerTest {
         RoutingContextMockHelper.mockFormAttributes(rc, request, attributes);
         RoutingContextMockHelper.mockFileUpload(rc, fileName);
 
-        try (MockedStatic<Vertx> mockedVertx = Mockprovider.mockVertx()) {
+        try (MockedStatic<Vertx> mockedVertx = mockStatic(Vertx.class)) {
             if (!valid) {
                 when(context.owner()).thenReturn(vertx);
                 when(vertx.fileSystem()).thenReturn(fileSystem);
@@ -132,7 +130,7 @@ public class FunctionInputHandlerTest {
         RoutingContextMockHelper.mockHeaders(rc, request, multiMap);
         RoutingContextMockHelper.mockFileUpload(rc, fileName);
 
-        try (MockedStatic<Vertx> mockedVertx = Mockprovider.mockVertx()) {
+        try (MockedStatic<Vertx> mockedVertx = mockStatic(Vertx.class)) {
             if (!valid) {
                 when(context.owner()).thenReturn(vertx);
                 when(vertx.fileSystem()).thenReturn(fileSystem);

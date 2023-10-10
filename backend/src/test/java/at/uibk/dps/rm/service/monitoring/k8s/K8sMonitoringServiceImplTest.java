@@ -5,7 +5,9 @@ import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.monitoring.K8sNode;
 import at.uibk.dps.rm.exception.MonitoringException;
 import at.uibk.dps.rm.service.deployment.executor.ProcessExecutor;
+import at.uibk.dps.rm.testutil.mockprovider.K8sObjectMockprovider;
 import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
+import at.uibk.dps.rm.testutil.mockprovider.ProcessExecutorMockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestK8sProvider;
@@ -94,7 +96,7 @@ public class K8sMonitoringServiceImplTest {
         try(MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
                 MockedStatic<Config> k8sConfig = Mockito.mockStatic(Config.class);
                 MockedStatic<Configuration> k8sConfiguration = Mockito.mockStatic(Configuration.class);
-                MockedConstruction<CoreV1Api> ignore = Mockprovider
+                MockedConstruction<CoreV1Api> ignore = K8sObjectMockprovider
                     .mockCoreV1ApiListNamedSecrets(config, secretList)) {
             k8sConfig.when(Config::defaultClient).thenReturn(apiClient);
             k8sConfiguration.when(() -> Configuration.setDefaultApiClient(apiClient)).then(invocation -> null);
@@ -119,7 +121,7 @@ public class K8sMonitoringServiceImplTest {
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
                 MockedStatic<Config> k8sConfig = Mockito.mockStatic(Config.class);
                 MockedStatic<Configuration> k8sConfiguration = Mockito.mockStatic(Configuration.class);
-                MockedConstruction<CoreV1Api> ignore = Mockprovider
+                MockedConstruction<CoreV1Api> ignore = K8sObjectMockprovider
                     .mockCoreV1ApiListNamedSecrets(config, secretList)) {
             k8sConfig.when(Config::defaultClient).thenReturn(apiClient);
             k8sConfiguration.when(() -> Configuration.setDefaultApiClient(apiClient)).then(invocation -> null);
@@ -134,7 +136,7 @@ public class K8sMonitoringServiceImplTest {
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
                 MockedStatic<Config> k8sConfig = Mockito.mockStatic(Config.class);
                 MockedStatic<Configuration> k8sConfiguration = Mockito.mockStatic(Configuration.class);
-                MockedConstruction<CoreV1Api> ignore = Mockprovider.mockCoreV1ApiListNamedSecretsException(config)) {
+                MockedConstruction<CoreV1Api> ignore = K8sObjectMockprovider.mockCoreV1ApiListNamedSecretsException(config)) {
             k8sConfig.when(Config::defaultClient).thenReturn(apiClient);
             k8sConfiguration.when(() -> Configuration.setDefaultApiClient(apiClient)).then(invocation -> null);
 
@@ -151,7 +153,7 @@ public class K8sMonitoringServiceImplTest {
         try(MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
                 MockedStatic<Config> k8sConfig = Mockito.mockStatic(Config.class);
                 MockedStatic<Configuration> k8sConfiguration = Mockito.mockStatic(Configuration.class);
-                MockedConstruction<CoreV1Api> ignore = Mockprovider
+                MockedConstruction<CoreV1Api> ignore = K8sObjectMockprovider
                     .mockCoreV1ApiListNamespaces(config, namespaceList)) {
             k8sConfig.when(() -> Config.fromConfig(any(StringReader.class))).thenReturn(apiClient);
             k8sConfiguration.when(() -> Configuration.setDefaultApiClient(apiClient)).then(invocation -> null);
@@ -168,7 +170,7 @@ public class K8sMonitoringServiceImplTest {
         try(MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
             MockedStatic<Config> k8sConfig = Mockito.mockStatic(Config.class);
             MockedStatic<Configuration> k8sConfiguration = Mockito.mockStatic(Configuration.class);
-            MockedConstruction<CoreV1Api> ignore = Mockprovider.mockCoreV1ApiListNamespacesException(config)) {
+            MockedConstruction<CoreV1Api> ignore = K8sObjectMockprovider.mockCoreV1ApiListNamespacesException(config)) {
             k8sConfig.when(() -> Config.fromConfig(new StringReader(kubeConfig))).thenReturn(apiClient);
             k8sConfiguration.when(() -> Configuration.setDefaultApiClient(apiClient)).then(invocation -> null);
 
@@ -185,7 +187,7 @@ public class K8sMonitoringServiceImplTest {
         try(MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
                 MockedStatic<Config> k8sConfig = Mockito.mockStatic(Config.class);
                 MockedStatic<Configuration> k8sConfiguration = Mockito.mockStatic(Configuration.class);
-                MockedConstruction<CoreV1Api> ignore = Mockprovider.mockCoreV1ApiListNodes(config, nodeList)) {
+                MockedConstruction<CoreV1Api> ignore = K8sObjectMockprovider.mockCoreV1ApiListNodes(config, nodeList)) {
             k8sConfig.when(() -> Config.fromConfig(new StringReader(kubeConfig))).thenReturn(apiClient);
             k8sConfiguration.when(() -> Configuration.setDefaultApiClient(apiClient)).then(invocation -> null);
 
@@ -201,7 +203,7 @@ public class K8sMonitoringServiceImplTest {
         try(MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
             MockedStatic<Config> k8sConfig = Mockito.mockStatic(Config.class);
             MockedStatic<Configuration> k8sConfiguration = Mockito.mockStatic(Configuration.class);
-            MockedConstruction<CoreV1Api> ignore = Mockprovider.mockCoreV1ApiListNodesException(config)) {
+            MockedConstruction<CoreV1Api> ignore = K8sObjectMockprovider.mockCoreV1ApiListNodesException(config)) {
             k8sConfig.when(() -> Config.fromConfig(new StringReader(kubeConfig))).thenReturn(apiClient);
             k8sConfiguration.when(() -> Configuration.setDefaultApiClient(apiClient)).then(invocation -> null);
 
@@ -218,7 +220,7 @@ public class K8sMonitoringServiceImplTest {
             kubeConfig + "' | " + "Out-File -FilePath $tempfile -Encoding UTF8; kubectl describe node " +
             k8sNode.getName() + " --kubeconfig $tempfile");
 
-        try(MockedConstruction<ProcessExecutor> ignorePe = Mockprovider
+        try(MockedConstruction<ProcessExecutor> ignorePe = ProcessExecutorMockprovider
                     .mockProcessExecutor(Paths.get("").toAbsolutePath(), processOutput, commands);
                 MockedStatic<K8sDescribeParser> outputParser = Mockito.mockStatic(K8sDescribeParser.class)) {
             outputParser.when(() -> K8sDescribeParser.parseContent(processOutput.getOutput(), k8sNode))
@@ -234,7 +236,7 @@ public class K8sMonitoringServiceImplTest {
         List<String> commands = List.of("bash", "-c", "echo <(echo '" + kubeConfig + "') && kubectl describe node "
             + k8sNode.getName() + " --kubeconfig <(echo '" + kubeConfig + "')");
 
-        try(MockedConstruction<ProcessExecutor> ignorePe = Mockprovider
+        try(MockedConstruction<ProcessExecutor> ignorePe = ProcessExecutorMockprovider
             .mockProcessExecutor(Paths.get("").toAbsolutePath(), processOutput, commands);
             MockedStatic<K8sDescribeParser> outputParser = Mockito.mockStatic(K8sDescribeParser.class)) {
             outputParser.when(() -> K8sDescribeParser.parseContent(processOutput.getOutput(), k8sNode))
@@ -252,7 +254,7 @@ public class K8sMonitoringServiceImplTest {
         List<String> commands = List.of("bash", "-c", "echo <(echo '" + kubeConfig + "') && kubectl describe node "
             + k8sNode.getName() + " --kubeconfig <(echo '" + kubeConfig + "')");
 
-        try(MockedConstruction<ProcessExecutor> ignorePe = Mockprovider
+        try(MockedConstruction<ProcessExecutor> ignorePe = ProcessExecutorMockprovider
             .mockProcessExecutor(Paths.get("").toAbsolutePath(), processOutput, commands)) {
             when(process.exitValue()).thenReturn(-1);
 
@@ -276,7 +278,7 @@ public class K8sMonitoringServiceImplTest {
     void setupExternalClientIOException() {
         try(MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
                 MockedStatic<Config> k8sConfig = Mockito.mockStatic(Config.class);
-                MockedConstruction<CoreV1Api> ignore = Mockprovider
+                MockedConstruction<CoreV1Api> ignore = K8sObjectMockprovider
                     .mockCoreV1ApiListNamespaces(config, namespaceList)) {
             k8sConfig.when(() -> Config.fromConfig(any(StringReader.class))).thenThrow(IOException.class);
 

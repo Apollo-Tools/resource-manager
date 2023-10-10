@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.service.deployment.executor;
 
-import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
+import at.uibk.dps.rm.testutil.mockprovider.ProcessExecutorMockprovider;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.Test;
@@ -45,7 +45,7 @@ public class ProcessExecutorTest {
         String[] command = {"bash", "-c", "echo 'hello test'"};
         ProcessExecutor processExecutor = new ProcessExecutor(workingDir, command);
 
-        try (MockedConstruction<ProcessBuilder> ignored = Mockprovider.mockProcessBuilderIOException(workingDir)) {
+        try (MockedConstruction<ProcessBuilder> ignored = ProcessExecutorMockprovider.mockProcessBuilderIOException(workingDir)) {
             processExecutor.executeCli()
                 .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                     throwable -> testContext.verify(() -> {

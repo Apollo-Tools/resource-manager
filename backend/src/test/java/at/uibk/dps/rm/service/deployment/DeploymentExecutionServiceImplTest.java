@@ -15,6 +15,8 @@ import at.uibk.dps.rm.service.deployment.terraform.FunctionPrepareService;
 import at.uibk.dps.rm.service.deployment.terraform.MainFileService;
 import at.uibk.dps.rm.service.deployment.terraform.TerraformSetupService;
 import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
+import at.uibk.dps.rm.testutil.mockprovider.TerraformExecutorMockprovider;
+import at.uibk.dps.rm.testutil.mockprovider.TerraformFileServiceMockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestRequestProvider;
@@ -77,7 +79,7 @@ public class DeploymentExecutionServiceImplTest {
         Function f1 = deployRequest.getFunctionDeployments().get(0).getFunction();
         Function f2 = deployRequest.getFunctionDeployments().get(3).getFunction();
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
-             MockedConstruction<FunctionPrepareService> ignoredFPS = Mockprovider
+             MockedConstruction<FunctionPrepareService> ignoredFPS = TerraformFileServiceMockprovider
                 .mockFunctionPrepareService(functionsToDeploy);
              MockedConstruction<DockerHubImageChecker> ignoredImageChecker =
                  Mockprovider.mockDockerHubImageChecker(deployRequest.getFunctionDeployments(), Set.of(f1, f2))) {
@@ -104,9 +106,9 @@ public class DeploymentExecutionServiceImplTest {
         TerraformModule m2 = new FaasModule(ResourceProviderEnum.AWS, r2);
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
-            MockedConstruction<TerraformSetupService> ignoredTFS =
-                Mockprovider.mockTFSetupServiceSetupModuleDirs(config, Single.just(List.of(m1, m2)));
-            MockedConstruction<MainFileService> ignoredMFS = Mockprovider.mockMainFileService(Completable.complete())) {
+             MockedConstruction<TerraformSetupService> ignoredTFS =
+                TerraformExecutorMockprovider.mockTFSetupServiceSetupModuleDirs(config, Single.just(List.of(m1, m2)));
+             MockedConstruction<MainFileService> ignoredMFS = TerraformFileServiceMockprovider.mockMainFileService(Completable.complete())) {
                 deploymentExecutionService.setUpTFModules(deployRequest,
                     testContext.succeeding(result -> testContext.verify(() -> {
                         assertThat(result.getEdgeLoginCredentials()).isEqualTo("");
@@ -125,9 +127,9 @@ public class DeploymentExecutionServiceImplTest {
         TerraformModule m2 = new FaasModule(ResourceProviderEnum.AWS, r2);
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
-            MockedConstruction<TerraformSetupService> ignoredTFS =
-                Mockprovider.mockTFSetupServiceSetupModuleDirs(config, Single.just(List.of(m1, m2)));
-            MockedConstruction<MainFileService> ignoredMFS = Mockprovider
+             MockedConstruction<TerraformSetupService> ignoredTFS =
+                TerraformExecutorMockprovider.mockTFSetupServiceSetupModuleDirs(config, Single.just(List.of(m1, m2)));
+             MockedConstruction<MainFileService> ignoredMFS = TerraformFileServiceMockprovider
                 .mockMainFileService(Completable.error(RuntimeException::new))) {
                 deploymentExecutionService.setUpTFModules(deployRequest,
                     testContext.failing(throwable -> testContext.verify(() -> {
@@ -142,7 +144,7 @@ public class DeploymentExecutionServiceImplTest {
         DeployResourcesDTO deployRequest = TestRequestProvider.createDeployRequest();
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
-             MockedConstruction<TerraformSetupService> ignoredTFS = Mockprovider
+             MockedConstruction<TerraformSetupService> ignoredTFS = TerraformExecutorMockprovider
                  .mockTFSetupServiceSetupModuleDirs(config, Single.error(RuntimeException::new))) {
                 deploymentExecutionService.setUpTFModules(deployRequest,
                     testContext.failing(throwable -> testContext.verify(() -> {
@@ -159,7 +161,7 @@ public class DeploymentExecutionServiceImplTest {
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
              MockedConstruction<TerraformSetupService> ignoredTFS =
-                 Mockprovider.mockTFSetupServiceGetTerminationCreds(Single.just(deploymentCredentials))) {
+                 TerraformExecutorMockprovider.mockTFSetupServiceGetTerminationCreds(Single.just(deploymentCredentials))) {
                 deploymentExecutionService.getNecessaryCredentials(terminateRequest,
                     testContext.succeeding(result -> testContext.verify(() -> {
                         assertThat(result.getOpenFaasCredentialsString())
@@ -177,7 +179,7 @@ public class DeploymentExecutionServiceImplTest {
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
              MockedConstruction<TerraformSetupService> ignoredTFS =
-                     Mockprovider.mockTFSetupServiceGetTerminationCreds(Single.error(IllegalStateException::new))) {
+                     TerraformExecutorMockprovider.mockTFSetupServiceGetTerminationCreds(Single.error(IllegalStateException::new))) {
             deploymentExecutionService.getNecessaryCredentials(terminateRequest,
                 testContext.failing(throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(IllegalStateException.class);

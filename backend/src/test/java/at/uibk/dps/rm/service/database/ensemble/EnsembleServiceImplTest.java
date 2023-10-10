@@ -9,8 +9,8 @@ import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.database.util.*;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
+import at.uibk.dps.rm.testutil.mockprovider.DatabaseUtilMockprovider;
 import at.uibk.dps.rm.testutil.mockprovider.EnsembleRepositoryProviderMock;
-import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestEnsembleProvider;
@@ -117,7 +117,7 @@ public class EnsembleServiceImplTest {
 
         SessionMockHelper.mockSingle(smProvider, sessionManager);
 
-        try (MockedConstruction<EnsembleUtility> ignored = Mockprovider.mockEnsembleUtilityFetch(
+        try (MockedConstruction<EnsembleUtility> ignored = DatabaseUtilMockprovider.mockEnsembleUtilityFetch(
             sessionManager, e1.getEnsembleId(), accountId, getOneEnsemble)) {
             ensembleService.findOneByIdAndAccountId(e1.getEnsembleId(), accountId,
                 testContext.succeeding(result -> testContext.verify(() -> {
@@ -260,7 +260,7 @@ public class EnsembleServiceImplTest {
         CreateEnsembleRequest request = TestDTOProvider.createCreateEnsembleRequest(r1.getResourceId());
         SessionMockHelper.mockCompletable(smProvider, sessionManager);
 
-        try (MockedConstruction<SLOUtility> ignored = Mockprovider.mockSLOUtilityFindAndFilterResources(
+        try (MockedConstruction<SLOUtility> ignored = DatabaseUtilMockprovider.mockSLOUtilityFindAndFilterResources(
             sessionManager, List.of(r1, r2))) {
             ensembleService.validateCreateEnsembleRequest(JsonObject.mapFrom(request),
                 testContext.succeeding(result -> testContext.verify(testContext::completeNow)));
@@ -272,7 +272,7 @@ public class EnsembleServiceImplTest {
         CreateEnsembleRequest request = TestDTOProvider.createCreateEnsembleRequest(r1.getResourceId());
         SessionMockHelper.mockCompletable(smProvider, sessionManager);
 
-        try (MockedConstruction<SLOUtility> ignored = Mockprovider.mockSLOUtilityFindAndFilterResources(
+        try (MockedConstruction<SLOUtility> ignored = DatabaseUtilMockprovider.mockSLOUtilityFindAndFilterResources(
             sessionManager, List.of(r2))) {
             ensembleService.validateCreateEnsembleRequest(JsonObject.mapFrom(request),
                 testContext.failing(throwable -> testContext.verify(() -> {
@@ -286,7 +286,7 @@ public class EnsembleServiceImplTest {
     @Test
     void validateExistingEnsemble(VertxTestContext testContext) {
         SessionMockHelper.mockSingle(smProvider, sessionManager);
-        try (MockedConstruction<EnsembleValidationUtility> ignored = Mockprovider.mockEnsembleValidationUtility(
+        try (MockedConstruction<EnsembleValidationUtility> ignored = DatabaseUtilMockprovider.mockEnsembleValidationUtility(
             sessionManager, e1.getEnsembleId(), accountId, List.of(res1Valid, res2Invalid))) {
             ensembleService.validateExistingEnsemble(accountId, e1.getEnsembleId(),
                 testContext.succeeding(result -> testContext.verify(() -> {
@@ -304,7 +304,7 @@ public class EnsembleServiceImplTest {
         when(repositoryMock.getEnsembleRepository().findAll(sessionManager)).thenReturn(Single.just(List.of(e1, e2)));
         Map<Ensemble, List<ResourceEnsembleStatus>> ensembleMap = Map.of(e1, List.of(res1Valid), e2,
             List.of(res1Invalid, res2Invalid));
-        try (MockedConstruction<EnsembleValidationUtility> ignored = Mockprovider.mockEnsembleValidationUtilityList(
+        try (MockedConstruction<EnsembleValidationUtility> ignored = DatabaseUtilMockprovider.mockEnsembleValidationUtilityList(
             sessionManager, accountId, ensembleMap)) {
             ensembleService.validateAllExistingEnsembles(testContext.succeeding(result ->
                 testContext.verify(testContext::completeNow)));

@@ -4,8 +4,8 @@ import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
 import at.uibk.dps.rm.entity.dto.ensemble.ResourceEnsembleStatus;
 import at.uibk.dps.rm.entity.model.Ensemble;
 import at.uibk.dps.rm.entity.model.Resource;
+import at.uibk.dps.rm.testutil.mockprovider.DatabaseUtilMockprovider;
 import at.uibk.dps.rm.testutil.mockprovider.EnsembleRepositoryProviderMock;
-import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestEnsembleProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
@@ -70,10 +70,10 @@ public class EnsembleValidationUtilityTest {
             .thenReturn(Maybe.just(e1));
         when(repositoryMock.getEnsembleRepository().updateValidity(sessionManager, ensembleId, type.equals("valid")))
             .thenReturn(Completable.complete());
-        try(MockedConstruction<EnsembleUtility> ignoreEnsemble = Mockprovider
+        try(MockedConstruction<EnsembleUtility> ignoreEnsemble = DatabaseUtilMockprovider
                 .mockEnsembleUtilityFetchAndValidate(sessionManager, ensembleId, accountId, getOneEnsemble,
                     List.of(r1, r2), List.of(r1es, r2es));
-                MockedConstruction<SLOUtility> ignoreSLO = Mockprovider
+                MockedConstruction<SLOUtility> ignoreSLO = DatabaseUtilMockprovider
                     .mockSLOUtilityFindAndFilterResources(sessionManager, List.of(r1, r2))) {
             validationUtility.validateAndUpdateEnsemble(sessionManager, ensembleId, accountId)
                 .subscribe(result -> testContext.verify(() -> {

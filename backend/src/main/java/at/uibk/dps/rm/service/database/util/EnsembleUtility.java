@@ -20,6 +20,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * A utility class that provides various methods to process ensemble entities.
+ *
+ * @author matthi-g
+ */
 @AllArgsConstructor
 public class EnsembleUtility {
 

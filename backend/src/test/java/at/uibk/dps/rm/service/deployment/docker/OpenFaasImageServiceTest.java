@@ -6,6 +6,7 @@ import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.service.deployment.executor.ProcessExecutor;
 import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
+import at.uibk.dps.rm.testutil.mockprovider.ProcessExecutorMockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
@@ -84,7 +85,7 @@ public class OpenFaasImageServiceTest {
         when(process.exitValue()).thenReturn(0).thenReturn(exitValue);
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
-             MockedConstruction<ProcessExecutor> ignored = Mockprovider.mockProcessExecutor(processOutput)) {
+             MockedConstruction<ProcessExecutor> ignored = ProcessExecutorMockprovider.mockProcessExecutor(processOutput)) {
                 dockerImageService.buildOpenFaasImages()
                     .subscribe(result -> testContext.verify(() -> {
                             assertThat(result.getOutput()).isEqualTo("build output\npush output\n");
@@ -107,7 +108,7 @@ public class OpenFaasImageServiceTest {
         when(process.exitValue()).thenReturn(-1);
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
-             MockedConstruction<ProcessExecutor> ignored = Mockprovider.mockProcessExecutor(processOutput)) {
+             MockedConstruction<ProcessExecutor> ignored = ProcessExecutorMockprovider.mockProcessExecutor(processOutput)) {
                 dockerImageService.buildOpenFaasImages()
                     .subscribe(result -> testContext.verify(() -> {
                             assertThat(result.getOutput()).isEqualTo("build output\n");
@@ -125,7 +126,7 @@ public class OpenFaasImageServiceTest {
         when(fileSystem.writeFile(eq(Path.of(functionsDir.toString(), "stack.yml").toString()), any(Buffer.class)))
             .thenReturn(Completable.error(IOException::new));
 
-        try(MockedConstruction<ProcessExecutor> ignored = Mockprovider.mockProcessExecutor(processOutput)) {
+        try(MockedConstruction<ProcessExecutor> ignored = ProcessExecutorMockprovider.mockProcessExecutor(processOutput)) {
             dockerImageService.buildOpenFaasImages()
                 .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                     throwable -> testContext.verify(() -> {

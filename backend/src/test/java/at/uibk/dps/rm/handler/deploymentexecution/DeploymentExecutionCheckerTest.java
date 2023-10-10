@@ -18,7 +18,9 @@ import at.uibk.dps.rm.service.deployment.terraform.TerraformFileService;
 import at.uibk.dps.rm.service.rxjava3.database.log.DeploymentLogService;
 import at.uibk.dps.rm.service.rxjava3.database.log.LogService;
 import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentExecutionService;
+import at.uibk.dps.rm.testutil.mockprovider.DeploymentPrepareMockprovider;
 import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
+import at.uibk.dps.rm.testutil.mockprovider.TerraformExecutorMockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestLogProvider;
@@ -134,14 +136,14 @@ public class DeploymentExecutionCheckerTest {
         }
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
-             MockedConstruction<OpenFaasImageService> ignoredDocker = Mockprovider
+             MockedConstruction<OpenFaasImageService> ignoredDocker = DeploymentPrepareMockprovider
                  .mockDockerImageService(poDocker);
              MockedConstruction<MainTerraformExecutor> ignoredMTFE =
-                 Mockprovider.mockMainTerraformExecutor(deploymentPath, poInit, poApply, poOutput);
+                 TerraformExecutorMockprovider.mockMainTerraformExecutor(deploymentPath, poInit, poApply, poOutput);
              MockedConstruction<TerraformExecutor> ignoredTFE =
-                 Mockprovider.mockTerraformExecutor(deployRequest, deploymentPath, poContainer, "init");
-             MockedConstruction<LambdaJavaBuildService> ignoredLJBS = Mockprovider.mockLambdaJavaService(poBuildLambda);
-             MockedConstruction<LambdaLayerService> ignoredLLS = Mockprovider.mockLambdaLayerService(poBuildLambda)
+                 TerraformExecutorMockprovider.mockTerraformExecutor(deployRequest, deploymentPath, poContainer, "init");
+             MockedConstruction<LambdaJavaBuildService> ignoredLJBS = DeploymentPrepareMockprovider.mockLambdaJavaService(poBuildLambda);
+             MockedConstruction<LambdaLayerService> ignoredLLS = DeploymentPrepareMockprovider.mockLambdaLayerService(poBuildLambda)
         ) {
             deploymentChecker.applyResourceDeployment(deployRequest)
                 .subscribe(result -> testContext.verify(() -> {
@@ -195,9 +197,9 @@ public class DeploymentExecutionCheckerTest {
         }
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
-             MockedConstruction<MainTerraformExecutor> ignoredMTFE = Mockprovider
+             MockedConstruction<MainTerraformExecutor> ignoredMTFE = TerraformExecutorMockprovider
                  .mockMainTerraformExecutor(deploymentPath, poDestroy);
-             MockedConstruction<TerraformExecutor> ignoredTFE = Mockprovider
+             MockedConstruction<TerraformExecutor> ignoredTFE = TerraformExecutorMockprovider
                  .mockTerraformExecutor(terminateRequest, deploymentPath, poContainer, "destroy")
         ) {
             deploymentChecker.terminateResources(terminateRequest)
@@ -238,9 +240,9 @@ public class DeploymentExecutionCheckerTest {
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
              MockedConstruction<MainTerraformExecutor> ignoredMTFE =
-                 Mockprovider.mockMainTerraformExecutor(deploymentPath, poDestroy);
+                 TerraformExecutorMockprovider.mockMainTerraformExecutor(deploymentPath, poDestroy);
              MockedConstruction<TerraformExecutor> ignoredTFE =
-                 Mockprovider.mockTerraformExecutor(terminateRequest, deploymentPath, poDestroy, "destroy")
+                 TerraformExecutorMockprovider.mockTerraformExecutor(terminateRequest, deploymentPath, poDestroy, "destroy")
         ) {
             deploymentChecker.terminateResources(terminateRequest)
                 .blockingSubscribe(() -> {
@@ -272,7 +274,7 @@ public class DeploymentExecutionCheckerTest {
         when(deploymentLogService.save(any())).thenReturn(Single.just(new JsonObject()));
 
         try(MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
-            MockedConstruction<TerraformExecutor> ignoredTFE = Mockprovider.mockTerraformExecutor(deploymentPath,
+            MockedConstruction<TerraformExecutor> ignoredTFE = TerraformExecutorMockprovider.mockTerraformExecutor(deploymentPath,
                 resourceDeploymentId, processOutput, testCase, "output")
         ) {
             Single<JsonObject> single = deploymentChecker.startContainer(deploymentId, resourceDeploymentId);
@@ -283,7 +285,6 @@ public class DeploymentExecutionCheckerTest {
                 assertThat(result.getString("result")).isEqualTo("test");
                 testContext.completeNow();
             }), throwable -> testContext.verify(() -> {
-                throwable.printStackTrace();
                 if (isValid) {
                     fail("method has thrown exception");
                 } else {
@@ -314,7 +315,7 @@ public class DeploymentExecutionCheckerTest {
         when(deploymentLogService.save(any())).thenReturn(Single.just(new JsonObject()));
 
         try(MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
-            MockedConstruction<TerraformExecutor> ignoredTFE = Mockprovider.mockTerraformExecutor(deploymentPath,
+            MockedConstruction<TerraformExecutor> ignoredTFE = TerraformExecutorMockprovider.mockTerraformExecutor(deploymentPath,
                 resourceDeploymentId, processOutput, testCase)
         ) {
             Completable completable = deploymentChecker.stopContainer(deploymentId, resourceDeploymentId);

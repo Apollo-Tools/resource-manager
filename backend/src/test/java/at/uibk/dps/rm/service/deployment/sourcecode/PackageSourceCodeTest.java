@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.entity.model.Runtime;
 import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
+import at.uibk.dps.rm.testutil.mockprovider.StreamMockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
@@ -195,7 +196,7 @@ public class PackageSourceCodeTest {
         when(file1.isDirectory()).thenReturn(false);
         doNothing().when(zipOutputStream).write(expectedBytes, 0, bytes.length);
 
-        try (MockedConstruction<FileInputStream> ignore = Mockprovider.mockFileInputStream(file1, bytes)) {
+        try (MockedConstruction<FileInputStream> ignore = StreamMockprovider.mockFileInputStream(file1, bytes)) {
             packageSourceCode.zipFile(file1, "file1", zipOutputStream);
         }
     }
@@ -216,7 +217,7 @@ public class PackageSourceCodeTest {
         when(file2.getName()).thenReturn(file2Name);
         doNothing().when(zipOutputStream).write(expectedBytes, 0, bytes.length);
 
-        try (MockedConstruction<FileInputStream> ignore = Mockprovider.mockFileInputStream(file2, bytes)) {
+        try (MockedConstruction<FileInputStream> ignore = StreamMockprovider.mockFileInputStream(file2, bytes)) {
             packageSourceCode.zipFile(file1, "file1", zipOutputStream);
             verify(zipOutputStream).putNextEntry(argThat((ZipEntry entry) ->
                 entry.getName().equals("file1" + (file1Name.endsWith("/") ? "" : "/"))));
@@ -281,7 +282,7 @@ public class PackageSourceCodeTest {
         when(file2.mkdirs()).thenReturn(false);
         when(file2.exists()).thenReturn(true);
 
-        try (MockedConstruction<FileOutputStream> ignore = Mockprovider.mockFileOutputStream(file1)) {
+        try (MockedConstruction<FileOutputStream> ignore = StreamMockprovider.mockFileOutputStream(file1)) {
             packageSourceCode.readAndSaveUnzippedFile(zip, newFiles, new ZipInputStream(InputStream.nullInputStream()));
         }
     }

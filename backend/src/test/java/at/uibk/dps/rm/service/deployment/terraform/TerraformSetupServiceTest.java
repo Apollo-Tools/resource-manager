@@ -5,7 +5,7 @@ import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
-import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
+import at.uibk.dps.rm.testutil.mockprovider.TerraformFileServiceMockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestRequestProvider;
 import io.reactivex.rxjava3.core.Completable;
@@ -44,11 +44,11 @@ public class TerraformSetupServiceTest {
             deploymentCredentials);
         System.setProperty("os.name", "Linux");
         try (MockedConstruction<RegionFaasFileService> ignoredRFFS =
-                 Mockprovider.mockRegionFaasFileService(Completable.complete());
+                 TerraformFileServiceMockprovider.mockRegionFaasFileService(Completable.complete());
              MockedConstruction<ContainerPullFileService> ignoredCPFS =
-                 Mockprovider.mockContainerPullFileService(Completable.complete());
+                 TerraformFileServiceMockprovider.mockContainerPullFileService(Completable.complete());
              MockedConstruction<ContainerDeployFileService> ignoredCDFS =
-                 Mockprovider.mockContainerDeployFileService(Completable.complete())
+                 TerraformFileServiceMockprovider.mockContainerDeployFileService(Completable.complete())
             ) {
                 service.setUpTFModuleDirs(config)
                     .subscribe(result -> testContext.verify(() -> {
@@ -80,11 +80,11 @@ public class TerraformSetupServiceTest {
             deploymentCredentials);
         System.setProperty("os.name", "Linux");
         try (MockedConstruction<RegionFaasFileService> ignoredRFFS =
-                 Mockprovider.mockRegionFaasFileService(Completable.complete());
+                 TerraformFileServiceMockprovider.mockRegionFaasFileService(Completable.complete());
              MockedConstruction<ContainerPullFileService> ignoredCPFS =
-                 Mockprovider.mockContainerPullFileService(Completable.complete());
+                 TerraformFileServiceMockprovider.mockContainerPullFileService(Completable.complete());
              MockedConstruction<ContainerDeployFileService> ignoredCDFS =
-                 Mockprovider.mockContainerDeployFileService(Completable.complete())
+                 TerraformFileServiceMockprovider.mockContainerDeployFileService(Completable.complete())
         ) {
                 service.setUpTFModuleDirs(config)
                     .subscribe(result -> testContext.verify(() -> {

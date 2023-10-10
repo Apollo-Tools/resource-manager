@@ -10,6 +10,11 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import lombok.AllArgsConstructor;
 
+/**
+ * A utility class that provides various methods to process deployment entities.
+ *
+ * @author matthi-g
+ */
 @AllArgsConstructor
 public class DeploymentUtility {
 

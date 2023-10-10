@@ -9,6 +9,12 @@ import org.hibernate.reactive.stage.Stage.SessionFactory;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 
+/**
+ * This class provides methods to perform work using a reactive session inside a database
+ * transaction.
+ *
+ * @author matthi-g
+ */
 @RequiredArgsConstructor
 public class SessionManagerProvider {
 

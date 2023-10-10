@@ -10,13 +10,27 @@ import lombok.AllArgsConstructor;
 
 import java.util.List;
 
+/**
+ * A utility class that provides various methods to validate ensembles.
+ *
+ * @author matthi-g
+ */
 @AllArgsConstructor
 public class EnsembleValidationUtility {
 
     private final EnsembleRepositoryProvider repositoryProvider;
 
+    /**
+     * Validate an existing ensemble and update the validity of all resource deployments of the
+     * ensemble.
+     *
+     * @param sm a database session manager
+     * @param ensembleId the id of the ensemble
+     * @param accountId the id of the account
+     * @return a Single that emits all status values of the resource deployments of the ensemble
+     */
     public Single<List<ResourceEnsembleStatus>> validateAndUpdateEnsemble(SessionManager sm, long ensembleId,
-                                                                          long accountId) {
+            long accountId) {
         EnsembleUtility ensembleUtility = new EnsembleUtility(repositoryProvider);
         SLOUtility sloUtility = new SLOUtility(repositoryProvider.getResourceRepository(),
             repositoryProvider.getMetricRepository());

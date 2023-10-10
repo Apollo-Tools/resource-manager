@@ -82,9 +82,15 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
         RxVertxHandler.handleSession(findAll.map(this::mapServiceListToJsonArray), resultHandler);
     }
 
-    protected JsonArray mapServiceListToJsonArray(List<Service> result) {
+    /**
+     * Compose a JsonArray from the serviceList.
+     *
+     * @param serviceList the service list
+     * @return the new JsonArray
+     */
+    protected JsonArray mapServiceListToJsonArray(List<Service> serviceList) {
         ArrayList<JsonObject> objects = new ArrayList<>();
-        for (Service entity: result) {
+        for (Service entity: serviceList) {
             entity.setReplicas(null);
             entity.setPorts(null);
             entity.setCpu(null);

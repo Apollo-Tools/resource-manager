@@ -7,7 +7,7 @@ import at.uibk.dps.rm.entity.dto.resource.RuntimeEnum;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.model.Runtime;
 import at.uibk.dps.rm.service.deployment.executor.ProcessExecutor;
-import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
+import at.uibk.dps.rm.testutil.mockprovider.ProcessExecutorMockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestDeploymentProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
@@ -75,7 +75,7 @@ public class LambdaLayerServiceTest {
                 ">> python/placeholder.txt;for dir in ./*_python38;do pip install -r \"$dir\"/requirements.txt " +
                 "-t python/lib/python3.8/site-packages/; done;zip -qr ./python38.zip ./python;rm -r ./python; exit");
 
-        try(MockedConstruction<ProcessExecutor> ignore = Mockprovider
+        try(MockedConstruction<ProcessExecutor> ignore = ProcessExecutorMockprovider
             .mockProcessExecutor(deploymentPath.getFunctionsFolder(), processOutput, commands)) {
             layerService.buildLambdaLayers("dindDir")
                 .subscribe(result -> testContext.verify(() -> {

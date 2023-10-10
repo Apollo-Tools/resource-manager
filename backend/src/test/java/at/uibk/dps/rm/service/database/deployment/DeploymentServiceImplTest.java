@@ -10,8 +10,8 @@ import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.service.database.util.*;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
+import at.uibk.dps.rm.testutil.mockprovider.DatabaseUtilMockprovider;
 import at.uibk.dps.rm.testutil.mockprovider.DeploymentRepositoryProviderMock;
-import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.*;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
@@ -105,7 +105,7 @@ public class DeploymentServiceImplTest {
         when(repositoryMock.getCredentialsRepository().findAllByAccountId(sessionManager, accountId))
             .thenReturn(Single.just(List.of(c1)));
 
-        try(MockedConstruction<DeploymentUtility> ignored = Mockprovider.mockDeploymentUtility(sessionManager)) {
+        try(MockedConstruction<DeploymentUtility> ignored = DatabaseUtilMockprovider.mockDeploymentUtility(sessionManager)) {
             deploymentService.cancelDeployment(deploymentId, accountId, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getJsonObject("deployment").getLong("deployment_id")).isEqualTo(1L);
                 assertThat(result.getJsonArray("credentials_list").size()).isEqualTo(1);
@@ -224,10 +224,10 @@ public class DeploymentServiceImplTest {
             .thenReturn(Single.just(List.of(n1)));
 
         try(MockedConstruction<DeploymentValidationUtility> ignoreValidation =
-                    Mockprovider.mockDeploymentValidationUtilityValid(sessionManager, List.of(r1, r2));
-                MockedConstruction<SaveResourceDeploymentUtility> ignoreSave = Mockprovider
+                    DatabaseUtilMockprovider.mockDeploymentValidationUtilityValid(sessionManager, List.of(r1, r2));
+            MockedConstruction<SaveResourceDeploymentUtility> ignoreSave = DatabaseUtilMockprovider
                     .mockSaveResourceDeploymentUtility(sessionManager, rdsNew, List.of(n1), List.of(r1, r2));
-                MockedConstruction<DeploymentUtility> ignoreDeployment = Mockprovider
+            MockedConstruction<DeploymentUtility> ignoreDeployment = DatabaseUtilMockprovider
                     .mockDeploymentUtility(sessionManager)) {
             deploymentService.saveToAccount(accountId, JsonObject.mapFrom(request),
                 testContext.succeeding(result -> testContext.verify(() -> {
@@ -253,7 +253,7 @@ public class DeploymentServiceImplTest {
             DeploymentStatusValue.NEW.name())).thenReturn(Maybe.empty());
 
         try(MockedConstruction<DeploymentValidationUtility> ignoreValidation =
-                    Mockprovider.mockDeploymentValidationUtilityValid(sessionManager, List.of(r1, r2))) {
+                    DatabaseUtilMockprovider.mockDeploymentValidationUtilityValid(sessionManager, List.of(r1, r2))) {
             deploymentService.saveToAccount(accountId, JsonObject.mapFrom(request),
                 testContext.failing(throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
@@ -269,7 +269,7 @@ public class DeploymentServiceImplTest {
         when(sessionManager.find(Account.class, accountId)).thenReturn(Maybe.empty());
 
         try(MockedConstruction<DeploymentValidationUtility> ignoreValidation =
-                    Mockprovider.mockDeploymentValidationUtilityValid(sessionManager, List.of(r1, r2))) {
+                    DatabaseUtilMockprovider.mockDeploymentValidationUtilityValid(sessionManager, List.of(r1, r2))) {
             deploymentService.saveToAccount(accountId, JsonObject.mapFrom(request),
                 testContext.failing(throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(UnauthorizedException.class);
@@ -311,7 +311,7 @@ public class DeploymentServiceImplTest {
         SessionMockHelper.mockCompletable(smProvider, sessionManager);
         when(repositoryMock.getResourceDeploymentRepository().updateDeploymentStatusByDeploymentId(sessionManager,
             deploymentId, DeploymentStatusValue.DEPLOYED)).thenReturn(Completable.complete());
-        try(MockedConstruction<TriggerUrlUtility> ignored = Mockprovider.mockTriggerUrlUtility(sessionManager)) {
+        try(MockedConstruction<TriggerUrlUtility> ignored = DatabaseUtilMockprovider.mockTriggerUrlUtility(sessionManager)) {
             deploymentService.handleDeploymentSuccessful(JsonObject.mapFrom(deploymentOutput), deployResourcesDTO,
                 testContext.succeeding(result -> testContext.verify(testContext::completeNow)));
         }

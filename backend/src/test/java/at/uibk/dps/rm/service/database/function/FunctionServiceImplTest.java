@@ -12,7 +12,6 @@ import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.function.FunctionRepository;
 import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
-import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
@@ -200,7 +199,7 @@ public class FunctionServiceImplTest {
             .thenReturn(Maybe.just(account));
         when(sessionManager.persist(any(Function.class))).thenReturn(Single.just(func));
         try (MockedStatic<UploadFileHelper> mockedHelper = mockStatic(UploadFileHelper.class);
-             MockedStatic<Vertx> mockedVertx = Mockprovider.mockVertx()) {
+             MockedStatic<Vertx> mockedVertx = mockStatic(Vertx.class)) {
             if (func.getIsFile()) {
                 mockedHelper.when(() -> UploadFileHelper.persistUploadedFile(vertx, f1File.getCode()))
                     .thenReturn(Completable.complete());
@@ -335,7 +334,7 @@ public class FunctionServiceImplTest {
         when(functionRepository.findByIdAndAccountId(sessionManager, func.getFunctionId(), accountId, false))
             .thenReturn(Maybe.just(func));
         try (MockedStatic<UploadFileHelper> mockedHelper = mockStatic(UploadFileHelper.class);
-             MockedStatic<Vertx> mockedVertx = Mockprovider.mockVertx()) {
+             MockedStatic<Vertx> mockedVertx = mockStatic(Vertx.class)) {
             if (func.getIsFile() && updateFunction.getCode() != null) {
                 mockedHelper.when(() -> UploadFileHelper.updateFile(vertx, func.getCode(), updateFunction.getCode()))
                     .thenReturn(Completable.complete());
@@ -412,7 +411,7 @@ public class FunctionServiceImplTest {
             .thenReturn(Maybe.just(func));
         when(sessionManager.remove(func)).thenReturn(Completable.complete());
         try (MockedStatic<UploadFileHelper> mockedHelper = mockStatic(UploadFileHelper.class);
-             MockedStatic<Vertx> mockedVertx = Mockprovider.mockVertx()) {
+             MockedStatic<Vertx> mockedVertx = mockStatic(Vertx.class)) {
             if (func.getIsFile()) {
                 mockedHelper.when(() -> UploadFileHelper.deleteFile(vertx, func.getCode()))
                     .thenReturn(Completable.complete());

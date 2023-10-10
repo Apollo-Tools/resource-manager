@@ -3,7 +3,7 @@ package at.uibk.dps.rm.service.deployment.executor;
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
-import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
+import at.uibk.dps.rm.testutil.mockprovider.ProcessExecutorMockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestExecutorProvider;
@@ -48,7 +48,7 @@ public class MainTerraformExecutorTest {
         ProcessOutput processOutput = TestDTOProvider.createProcessOutput(process, "output");
         List<String> commands = TestExecutorProvider.tfCommandsWithCredsAWSOpenFaas("apply");
 
-        try (MockedConstruction<ProcessExecutor> ignored = Mockprovider
+        try (MockedConstruction<ProcessExecutor> ignored = ProcessExecutorMockprovider
                 .mockProcessExecutor(deploymentPath.getRootFolder(), processOutput, commands)) {
             terraformExecutor.apply(deploymentPath.getRootFolder())
                 .subscribe(result -> testContext.verify(() -> {
@@ -67,7 +67,7 @@ public class MainTerraformExecutorTest {
         ProcessOutput processOutput = TestDTOProvider.createProcessOutput(process, "output");
         List<String> commands = List.of("terraform", "output", "--json");
 
-        try (MockedConstruction<ProcessExecutor> ignored = Mockprovider
+        try (MockedConstruction<ProcessExecutor> ignored = ProcessExecutorMockprovider
                 .mockProcessExecutor(deploymentPath.getRootFolder(), processOutput, commands)) {
             terraformExecutor.getOutput(deploymentPath.getRootFolder())
                 .subscribe(result -> testContext.verify(() -> {
@@ -86,7 +86,7 @@ public class MainTerraformExecutorTest {
         ProcessOutput processOutput = TestDTOProvider.createProcessOutput(process, "output");
         List<String> commands = TestExecutorProvider.tfCommandsWithCredsAWSOpenFaas("destroy");
 
-        try (MockedConstruction<ProcessExecutor> ignored = Mockprovider
+        try (MockedConstruction<ProcessExecutor> ignored = ProcessExecutorMockprovider
                 .mockProcessExecutor(deploymentPath.getRootFolder(), processOutput, commands)) {
             terraformExecutor.destroy(deploymentPath.getRootFolder())
                 .subscribe(result -> testContext.verify(() -> {
@@ -105,7 +105,7 @@ public class MainTerraformExecutorTest {
         ProcessOutput processOutput = TestDTOProvider.createProcessOutput(process, "output");
         List<String> commands = TestExecutorProvider.tfCommandsWithCredsAWS("destroy");
 
-        try (MockedConstruction<ProcessExecutor> ignored = Mockprovider
+        try (MockedConstruction<ProcessExecutor> ignored = ProcessExecutorMockprovider
                 .mockProcessExecutor(deploymentPath.getRootFolder(), processOutput, commands)) {
             terraformExecutor.destroy(deploymentPath.getRootFolder())
                 .subscribe(result -> testContext.verify(() -> {

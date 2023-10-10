@@ -14,7 +14,7 @@ import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.service.database.util.*;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
-import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
+import at.uibk.dps.rm.testutil.mockprovider.DatabaseUtilMockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.*;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.kubernetes.client.openapi.models.V1Namespace;
@@ -142,7 +142,7 @@ public class ResourceServiceImplTest {
         SLORequest sloRequest = TestDTOProvider.createSLORequest(List.of(slo1));
 
         SessionMockHelper.mockSingle(smProvider, sessionManager);
-        try (MockedConstruction<SLOUtility> ignored = Mockprovider.mockSLOUtilityFindAndFilterResources(sessionManager, List.of(r1, r2))) {
+        try (MockedConstruction<SLOUtility> ignored = DatabaseUtilMockprovider.mockSLOUtilityFindAndFilterResources(sessionManager, List.of(r1, r2))) {
             resourceService.findAllBySLOs(JsonObject.mapFrom(sloRequest), testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
                 assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
@@ -262,7 +262,7 @@ public class ResourceServiceImplTest {
     void updateClusterResource(VertxTestContext testContext) {
         SessionMockHelper.mockCompletable(smProvider, sessionManager);
         when(resourceRepository.findClusterByName(sessionManager, cr1.getName())).thenReturn(Maybe.just(cr1));
-        try (MockedConstruction<K8sResourceUpdateUtility> ignored = Mockprovider.mockK8sResourceUpdateUtility(
+        try (MockedConstruction<K8sResourceUpdateUtility> ignored = DatabaseUtilMockprovider.mockK8sResourceUpdateUtility(
             sessionManager, cr1, monitoringData)) {
             resourceService.updateClusterResource(cr1.getName(), monitoringData,
                 testContext.succeeding(result -> testContext.verify(testContext::completeNow)));
@@ -284,7 +284,7 @@ public class ResourceServiceImplTest {
 
     @Test
     void encodeResourceListSubResource() {
-        JsonArray result = ((ResourceServiceImpl) resourceService).encodeResourceList(List.of(sr1));
+        JsonArray result = ((ResourceServiceImpl) resourceService).mapResourceListToJsonArray(List.of(sr1));
         JsonObject resultEntry = result.getJsonObject(0);
         assertThat(resultEntry.getLong("main_resource_id")).isEqualTo(cr1.getResourceId());
         assertThat(resultEntry.getJsonObject("region")).isNotNull();
@@ -300,7 +300,7 @@ public class ResourceServiceImplTest {
         try (MockedStatic<Hibernate> mocked = Mockito.mockStatic(Hibernate.class)) {
             mocked.when(() -> Hibernate.isInitialized(List.of(sr1))).thenReturn(type.equals("initialized"));
             cr1.setSubResources(type.equals("initialized") ? List.of(sr1) : List.of());
-            JsonArray result = ((ResourceServiceImpl) resourceService).encodeResourceList(List.of(cr1));
+            JsonArray result = ((ResourceServiceImpl) resourceService).mapResourceListToJsonArray(List.of(cr1));
             JsonObject resultEntry = result.getJsonObject(0);
             assertThat(resultEntry.getLong("resource_id")).isEqualTo(cr1.getResourceId());
             assertThat(resultEntry.getJsonObject("region")).isNotNull();

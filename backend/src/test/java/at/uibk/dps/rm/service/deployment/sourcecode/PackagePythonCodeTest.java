@@ -4,7 +4,7 @@ import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
-import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
+import at.uibk.dps.rm.testutil.mockprovider.StreamMockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import io.vertx.junit5.VertxExtension;
@@ -81,11 +81,11 @@ public class PackagePythonCodeTest {
         when(srcFile.isDirectory()).thenReturn(false);
         when(srcFile.getName()).thenReturn("main.py");
 
-        try(MockedConstruction<FileOutputStream> ignoreFos = Mockprovider.mockFileOutputStream(rootDir + "/" +
+        try(MockedConstruction<FileOutputStream> ignoreFos = StreamMockprovider.mockFileOutputStream(rootDir + "/" +
             function.getFunctionDeploymentId() + ".zip");
-                MockedConstruction<ZipOutputStream> ignoreZos = Mockprovider.mockZipOutputStream(expectedBytes,
+                MockedConstruction<ZipOutputStream> ignoreZos = StreamMockprovider.mockZipOutputStream(expectedBytes,
                     bytes.length);
-                MockedConstruction<FileInputStream> ignoreFis = Mockprovider.mockFileInputStream(bytes, srcFile,
+                MockedConstruction<FileInputStream> ignoreFis = StreamMockprovider.mockFileInputStream(bytes, srcFile,
                     Path.of("faas-templates", "python38", "lambda", "lambda.py").toFile())) {
             packagePythonCode.zipAllFiles(rootDir, srcPath, function.getFunctionDeploymentId());
         }
@@ -97,9 +97,9 @@ public class PackagePythonCodeTest {
         when(srcPath.toFile()).thenReturn(srcFile);
         when(srcFile.listFiles()).thenReturn(null);
 
-        try(MockedConstruction<FileOutputStream> ignoreFos = Mockprovider.mockFileOutputStream(rootDir + "/" +
+        try(MockedConstruction<FileOutputStream> ignoreFos = StreamMockprovider.mockFileOutputStream(rootDir + "/" +
             function.getFunctionDeploymentId() + ".zip");
-                MockedConstruction<ZipOutputStream> ignoreZos = Mockprovider.mockZipOutputStream()) {
+                MockedConstruction<ZipOutputStream> ignoreZos = StreamMockprovider.mockZipOutputStream()) {
             assertThrows(DeploymentTerminationFailedException.class, () -> packagePythonCode.zipAllFiles(rootDir,
                 srcPath, function.getFunctionDeploymentId()));
         }

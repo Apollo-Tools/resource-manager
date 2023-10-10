@@ -71,7 +71,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     @Override
     public void findAll(Handler<AsyncResult<JsonArray>> resultHandler) {
         Single<List<Resource>> findAll = smProvider.withTransactionSingle(repository::findAllAndFetch);
-        RxVertxHandler.handleSession(findAll.map(this::encodeResourceList), resultHandler);
+        RxVertxHandler.handleSession(findAll.map(this::mapResourceListToJsonArray), resultHandler);
     }
 
     @Override
@@ -79,7 +79,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
         SLORequest sloRequest = data.mapTo(SLORequest.class);
         Single<List<Resource>> findAll = smProvider.withTransactionSingle(sm ->
             new SLOUtility(repository, metricRepository).findAndFilterResourcesBySLOs(sm, sloRequest));
-        RxVertxHandler.handleSession(findAll.map(this::encodeResourceList), resultHandler);
+        RxVertxHandler.handleSession(findAll.map(this::mapResourceListToJsonArray), resultHandler);
     }
 
     @Override
@@ -102,7 +102,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     public void findAllByResourceIds(List<Long> resourceIds, Handler<AsyncResult<JsonArray>> resultHandler) {
         Single<List<Resource>> findAll = smProvider.withTransactionSingle(sm -> repository
             .findAllByResourceIdsAndFetch(sm, resourceIds));
-        RxVertxHandler.handleSession(findAll.map(this::encodeResourceList), resultHandler);
+        RxVertxHandler.handleSession(findAll.map(this::mapResourceListToJsonArray), resultHandler);
     }
 
     @Override
@@ -152,7 +152,13 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
         RxVertxHandler.handleSession(updateClusterResource, resultHandler);
     }
 
-    protected JsonArray encodeResourceList(List<Resource> resourceList) {
+    /**
+     * Compose a JsonArray from the resourceList.
+     *
+     * @param resourceList the resource list
+     * @return the new JsonArray
+     */
+    protected JsonArray mapResourceListToJsonArray(List<Resource> resourceList) {
         ArrayList<JsonObject> objects = new ArrayList<>();
         for (Resource resource: resourceList) {
             if (resource instanceof SubResource) {
