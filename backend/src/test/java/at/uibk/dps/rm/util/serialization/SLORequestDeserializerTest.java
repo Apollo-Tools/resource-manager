@@ -37,17 +37,22 @@ public class SLORequestDeserializerTest {
             .createServiceLevelObjective(SLOType.RESOURCE_PROVIDER.getValue(), ExpressionType.EQ, 3L, 4L));
         JsonObject resourceTypes = JsonObject.mapFrom(TestDTOProvider
             .createServiceLevelObjective(SLOType.RESOURCE_TYPE.getValue(), ExpressionType.EQ, 5L));
+        JsonObject platforms = JsonObject.mapFrom(TestDTOProvider
+            .createServiceLevelObjective(SLOType.PLATFORM.getValue(), ExpressionType.EQ, 6L));
+        JsonObject environments = JsonObject.mapFrom(TestDTOProvider
+            .createServiceLevelObjective(SLOType.ENVIRONMENT.getValue(), ExpressionType.EQ, 7L, 8L));
         JsonObject getOneEnsemble = new JsonObject()
-            .put("slos", List.of(sloAvailability, regions, providers, resourceTypes))
+            .put("slos", List.of(sloAvailability, regions, providers, resourceTypes, platforms, environments))
             .put("ensemble_id", 1L)
             .put("name", "ensemble")
-            .put("resources", List.of(JsonObject.mapFrom(TestResourceProvider.createResourceDTO(TestResourceProvider.createResource(1L)))));
+            .put("resources", List.of(JsonObject.mapFrom(TestResourceProvider
+                .createResourceDTO(TestResourceProvider.createResource(1L)))));
         JsonObject createEnsemble = new JsonObject()
-            .put("slos", List.of(sloAvailability, regions, providers, resourceTypes))
+            .put("slos", List.of(sloAvailability, regions, providers, resourceTypes, platforms, environments))
             .put("name", "ensemble")
             .put("resources", List.of(JsonObject.mapFrom(new ResourceId(){{setResourceId(1L);}})));
         JsonObject listResourcesBySLOs = new JsonObject()
-            .put("slos", List.of(sloAvailability, regions, providers, resourceTypes));
+            .put("slos", List.of(sloAvailability, regions, providers, resourceTypes, platforms, environments));
 
         return Stream.of(
                 Arguments.of(getOneEnsemble, GetOneEnsemble.class),
@@ -79,6 +84,8 @@ public class SLORequestDeserializerTest {
         assertThat(result.getRegions()).isEqualTo(List.of(1L, 2L));
         assertThat(result.getProviders()).isEqualTo(List.of(3L, 4L));
         assertThat(result.getResourceTypes()).isEqualTo(List.of(5L));
+        assertThat(result.getPlatforms()).isEqualTo(List.of(6L));
+        assertThat(result.getEnvironments()).isEqualTo(List.of(7L, 8L));
         assertThat(result.getServiceLevelObjectives().size()).isEqualTo(1);
         assertThat(result.getServiceLevelObjectives().get(0).getName()).isEqualTo("availability");
         if (requestClass.equals(GetOneEnsemble.class)) {

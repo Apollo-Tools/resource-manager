@@ -35,6 +35,7 @@ public class GetOneEnsembleSerializerTest {
             }
         });
         ensemble.setRegions(List.of());
+        ensemble.setEnvironments(null);
         JsonObject result = JsonObject.mapFrom(ensemble);
 
         assertThat(result.encode()).isEqualTo("{\"ensemble_id\":1,\"name\":\"ensemble\",\"resources\":" +
@@ -53,9 +54,8 @@ public class GetOneEnsembleSerializerTest {
             "\"provider_platforms\":[],\"environment\":null,\"created_at\":null},\"created_at\":null},\"platform\":" +
             "{\"platform_id\":1,\"platform\":\"ec2\",\"resource_type\":{\"type_id\":11,\"resource_type\":\"faas\"," +
             "\"created_at\":null},\"created_at\":null},\"sub_resources\":[]}],\"created_at\":null,\"updated_at\":" +
-            "null,\"slos\":[{\"name\":\"timeout\",\"expression\":\">\",\"value\":[150.0]},{\"name\":\"environment\"," +
-            "\"expression\":\"==\",\"value\":[1.0]},{\"name\":\"resource_type\",\"expression\":\"==\",\"value\":" +
-            "[5.0]},{\"name\":\"platform\",\"expression\":\"==\",\"value\":[3.0,4.0]},{\"name\":" +
-            "\"resource_provider\",\"expression\":\"==\",\"value\":[5.0]}]}");
+            "null,\"slos\":[{\"name\":\"timeout\",\"expression\":\">\",\"value\":[150.0]},{\"name\":" +
+            "\"resource_type\",\"expression\":\"==\",\"value\":[5.0]},{\"name\":\"platform\",\"expression\":\"==\"," +
+            "\"value\":[3.0,4.0]},{\"name\":\"resource_provider\",\"expression\":\"==\",\"value\":[5.0]}]}");
     }
 }

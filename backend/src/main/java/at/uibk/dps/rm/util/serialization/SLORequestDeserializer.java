@@ -118,29 +118,14 @@ public class SLORequestDeserializer extends StdDeserializer<SLORequest> {
      */
     private void mapServiceLevelObjectives(ServiceLevelObjective slo, SLORequest request) {
         if (sloMatchesSLOType(slo, SLOType.ENVIRONMENT)) {
-            if (nonMetricSLOisInvalid(slo)) {
-                throw new BadInputException();
-            }
             request.setEnvironments(mapSLONumberValuesToList(slo));
         } else if (sloMatchesSLOType(slo, SLOType.RESOURCE_TYPE)) {
-            if (nonMetricSLOisInvalid(slo)) {
-                throw new BadInputException();
-            }
             request.setResourceTypes(mapSLONumberValuesToList(slo));
         } else if (sloMatchesSLOType(slo, SLOType.PLATFORM)) {
-            if (nonMetricSLOisInvalid(slo)) {
-                throw new BadInputException();
-            }
             request.setPlatforms(mapSLONumberValuesToList(slo));
         } else if (sloMatchesSLOType(slo, SLOType.REGION)) {
-            if (nonMetricSLOisInvalid(slo)) {
-                throw new BadInputException();
-            }
             request.setRegions(mapSLONumberValuesToList(slo));
         }else if (sloMatchesSLOType(slo, SLOType.RESOURCE_PROVIDER)) {
-            if (nonMetricSLOisInvalid(slo)) {
-                throw new BadInputException();
-            }
             request.setProviders(mapSLONumberValuesToList(slo));
         } else {
             request.getServiceLevelObjectives().add(slo);
@@ -156,6 +141,9 @@ public class SLORequestDeserializer extends StdDeserializer<SLORequest> {
     }
 
     private List<Long> mapSLONumberValuesToList(ServiceLevelObjective slo) {
+        if (nonMetricSLOisInvalid(slo)) {
+            throw new BadInputException();
+        }
         return slo.getValue().stream()
                 .map(value -> value.getValueNumber()
                 .longValue()).collect(Collectors.toList());
