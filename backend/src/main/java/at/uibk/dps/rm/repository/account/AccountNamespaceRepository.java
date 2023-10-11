@@ -6,8 +6,6 @@ import at.uibk.dps.rm.service.database.util.SessionManager;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 
-import java.util.List;
-
 /**
  * Implements database operations for the account_namespace entity.
  *
@@ -48,14 +46,14 @@ public class AccountNamespaceRepository extends Repository<AccountNamespace> {
      * @param resourceId the id of the resource
      * @return a Single that emits a list of account namespaces
      */
-    public Single<List<AccountNamespace>> findByAccountIdAndResourceId(SessionManager sessionManager, long accountId,
+    public Single<AccountNamespace> findByAccountIdAndResourceId(SessionManager sessionManager, long accountId,
                                                                        long resourceId) {
         return Single.fromCompletionStage(sessionManager.getSession()
             .createQuery("from AccountNamespace an " +
                 "where an.account.accountId=:accountId and an.namespace.resource.resourceId=:resourceId", entityClass)
             .setParameter("accountId", accountId)
             .setParameter("resourceId", resourceId)
-            .getResultList()
+            .getSingleResultOrNull()
         );
     }
 }

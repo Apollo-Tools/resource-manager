@@ -49,7 +49,7 @@ public class AccountNamespaceServiceImpl extends DatabaseServiceProxy<AccountNam
                     return repository.findByAccountIdAndResourceId(sm, accountId, resourceId);
                 })
                 .flatMapMaybe(existing -> {
-                    if (!existing.isEmpty()) {
+                    if (existing != null) {
                         return Maybe.error(new AlreadyExistsException("only one namespace per resource allowed"));
                     }
                     return sm.find(Account.class, accountId);

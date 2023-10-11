@@ -69,7 +69,7 @@ public class TestResourceProvider {
     }
 
 
-    public static Resource createResource(long id, Platform platform, Region region) {
+    public static Resource createResource(Long id, Platform platform, Region region) {
         MainResource resource = new MainResource();
         resource.setName("r" + id);
         resource.setResourceId(id);

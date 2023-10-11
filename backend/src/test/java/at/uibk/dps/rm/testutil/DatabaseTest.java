@@ -8,6 +8,7 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.flywaydb.core.Flyway;
 import org.hibernate.reactive.stage.Stage;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -34,7 +35,7 @@ public abstract class DatabaseTest {
 
     public static boolean isInitialized = false;
 
-    public void initDB(VertxTestContext testContext) {
+    private void initDB(VertxTestContext testContext) {
         String address = postgres.getHost();
         Integer port = postgres.getFirstMappedPort();
 
@@ -55,9 +56,13 @@ public abstract class DatabaseTest {
             .createEntityManagerFactory("postgres-unit", props)
             .unwrap(Stage.SessionFactory.class);
         smProvider = new SessionManagerProvider(sessionFactory);
-        if (isInitialized) {
-            return;
+        if (!isInitialized) {
+            fillDB(testContext);
+            isInitialized = true;
         }
+    }
+
+    public void fillDB(VertxTestContext testContext) {
         smProvider.withTransactionCompletable(sessionManager -> {
             Role adminRole = TestAccountProvider.createRoleAdmin();
             Role defaultRole = TestAccountProvider.createRoleDefault();
@@ -78,12 +83,16 @@ public abstract class DatabaseTest {
                     return sessionManager.flush();
                 });
         }).blockingSubscribe(() -> {}, testContext::failNow);
-        isInitialized = true;
     }
 
     @BeforeEach
     void initTests(VertxTestContext testContext) {
         initDB(testContext);
         testContext.completeNow();
+    }
+
+    @AfterAll
+    static void cleanup() {
+        isInitialized = false;
     }
 }

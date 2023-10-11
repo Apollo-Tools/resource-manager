@@ -28,17 +28,23 @@ public class TestAccountProvider {
         return createAccount(accountId, username, password, "default");
     }
 
-    public static Credentials createCredentials(long credentialsId, ResourceProvider resourceProvider) {
+    public static Credentials createCredentials(Long credentialsId, ResourceProvider resourceProvider,
+            String accessKey, String secretAccessKey, String sessionToken) {
         Credentials credentials = new Credentials();
         credentials.setCredentialsId(credentialsId);
-        credentials.setAccessKey("accesskey");
-        credentials.setSecretAccessKey("secretaccesskey");
-        credentials.setSessionToken("sessiontoken");
+        credentials.setAccessKey(accessKey);
+        credentials.setSecretAccessKey(secretAccessKey);
+        credentials.setSessionToken(sessionToken);
         credentials.setResourceProvider(resourceProvider);
         return credentials;
     }
 
-    public static AccountCredentials createAccountCredentials(long accountCredentialsId, Account account,
+    public static Credentials createCredentials(Long credentialsId, ResourceProvider resourceProvider) {
+        return createCredentials(credentialsId, resourceProvider, "accesskey",
+            "secretaccesskey", "sessiontoken");
+    }
+
+    public static AccountCredentials createAccountCredentials(Long accountCredentialsId, Account account,
                                                               Credentials credentials) {
         AccountCredentials accountCredentials = new AccountCredentials();
         accountCredentials.setAccountCredentialsId(accountCredentialsId);
@@ -70,7 +76,7 @@ public class TestAccountProvider {
         return role;
     }
 
-    public static AccountNamespace createAccountNamespace(long id, Account account, K8sNamespace namespace) {
+    public static AccountNamespace createAccountNamespace(Long id, Account account, K8sNamespace namespace) {
         AccountNamespace accountNamespace = new AccountNamespace();
         accountNamespace.setAccountNamespaceId(id);
         accountNamespace.setAccount(account);
