@@ -20,7 +20,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -107,19 +106,19 @@ public class DatabaseServiceProxyTest {
             "{\"resource_type\": \"faas\"}]");
 
         SessionMockHelper.mockCompletable(smProvider, sessionManager);
-        when(testRepository.createAll(eq(sessionManager), anyList())).thenReturn(Completable.complete());
-
-        testClass.saveAll(data, testContext.succeeding(result -> testContext.verify(() -> {
-            ArgumentCaptor<List<ResourceType>> persistArgs = ArgumentCaptor.forClass(List.class);
-            verify(testRepository).createAll(eq(sessionManager), persistArgs.capture());
-            List<ResourceType> persistCap = persistArgs.getValue();
-            assertThat(persistCap.size()).isEqualTo(3);
+        when(sessionManager.persist(argThat((Object[] rt) -> {
+            boolean equals;
             for (int i = 0; i < 3; i++) {
-                assertThat(persistCap.get(i).getResourceType()).isEqualTo(data.getJsonObject(i).getString(
+                equals = ((ResourceType) rt[i]).getResourceType().equals(data.getJsonObject(i).getString(
                     "resource_type"));
+                if (!equals) {
+                    return false;
+                }
             }
-            testContext.completeNow();
-        })));
+            return true;
+        }))).thenReturn(Completable.complete());
+
+        testClass.saveAll(data, testContext.succeeding(result -> testContext.verify(testContext::completeNow)));
     }
 
     @Test

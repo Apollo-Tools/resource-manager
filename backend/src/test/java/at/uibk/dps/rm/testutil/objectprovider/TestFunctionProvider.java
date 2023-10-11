@@ -29,7 +29,7 @@ public class TestFunctionProvider {
         return List.of(ids1, ids2, ids3, ids4);
     }
 
-    public static Runtime createRuntime(long runtimeId, String name, String templatePath) {
+    public static Runtime createRuntime(Long runtimeId, String name, String templatePath) {
         Runtime runtime = new Runtime();
         runtime.setRuntimeId(runtimeId);
         runtime.setName(name);
@@ -37,7 +37,7 @@ public class TestFunctionProvider {
         return runtime;
     }
 
-    public static Runtime createRuntime(long runtimeId, String name) {
+    public static Runtime createRuntime(Long runtimeId, String name) {
         return createRuntime(runtimeId, name, "");
     }
 
@@ -45,15 +45,15 @@ public class TestFunctionProvider {
         return createRuntime(runtimeId, "python3.9");
     }
 
-    public static FunctionType createFunctionType(long functionTypeId, String name) {
+    public static FunctionType createFunctionType(Long functionTypeId, String name) {
         FunctionType functionType = new FunctionType();
         functionType.setArtifactTypeId(functionTypeId);
         functionType.setName(name);
         return functionType;
     }
 
-    public static Function createFunction(long functionId, FunctionType functionType, String name, String code,
-            Runtime runtime, boolean isFile, int timeout, int memory, Account account) {
+    public static Function createFunction(Long functionId, FunctionType functionType, String name, String code,
+            Runtime runtime, boolean isFile, int timeout, int memory, boolean isPublic, Account account) {
         Function function = new Function();
         function.setFunctionId(functionId);
         function.setFunctionType(functionType);
@@ -64,7 +64,14 @@ public class TestFunctionProvider {
         function.setTimeoutSeconds((short) timeout);
         function.setMemoryMegabytes((short) memory);
         function.setCreatedBy(account);
+        function.setIsPublic(isPublic);
         return function;
+    }
+
+    public static Function createFunction(Long functionId, FunctionType functionType, String name, String code,
+            Runtime runtime, boolean isFile, int timeout, int memory,Account account) {
+        return createFunction(functionId, functionType, name, code, runtime, isFile, timeout, memory, true,
+            account);
     }
 
     public static Function createFunction(long functionId, String name, String code, Runtime runtime, boolean isFile) {

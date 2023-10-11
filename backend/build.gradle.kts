@@ -75,6 +75,9 @@ dependencies {
   testImplementation("org.assertj:assertj-core:3.23.1")
   testImplementation("org.mockito:mockito-inline:4.8.0")
   testImplementation("org.mockito:mockito-junit-jupiter:4.8.0")
+  testImplementation("org.testcontainers:testcontainers:1.19.1")
+  testImplementation("org.testcontainers:postgresql:1.19.1")
+  testImplementation("org.testcontainers:junit-jupiter:1.19.1")
 
   // Commons
   implementation("org.apache.commons:commons-lang3:3.13.0")

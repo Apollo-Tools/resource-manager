@@ -19,8 +19,7 @@ public class AccountRepository extends Repository<Account> {
         super(Account.class);
     }
 
-    @Override
-    public Maybe<Account> findById(SessionManager sessionManager, long id) {
+    public Maybe<Account> findByIdAndActive(SessionManager sessionManager, long id) {
         return Maybe.fromCompletionStage(
             sessionManager.getSession()
                 .createQuery("from Account a where a.accountId=:id and a.isActive=true", entityClass)

@@ -129,8 +129,8 @@ public class NamespaceServiceTest {
                 if (expectedPersistElements > 0) {
                     ArgumentCaptor<Object[]> persistArgs = ArgumentCaptor.forClass(Object[].class);
                     verify(sessionManager).persist(persistArgs.capture());
-                    var persistCap = persistArgs.getAllValues();
-                    assertThat(persistCap.size()).isEqualTo(expectedPersistElements);
+                    List<Object[]> persistCap = persistArgs.getAllValues();
+                    assertThat(persistCap.get(0).length).isEqualTo(expectedPersistElements);
                 }
                 if (expectedRemoveElements > 0) {
                     ArgumentCaptor<Object[]> deleteArgs = ArgumentCaptor.forClass(Object[].class);

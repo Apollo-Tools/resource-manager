@@ -193,7 +193,7 @@ public class AccountServiceImplTest {
         SessionMockHelper.mockCompletable(smProvider, sessionManager);
         JsonObject fields = new JsonObject("{\"old_password\": \"pw1\", \"new_password\": \"pw2\"}");
 
-        when(accountRepository.findById(sessionManager, accountId))
+        when(accountRepository.findByIdAndActive(sessionManager, accountId))
             .thenReturn(Maybe.just(user));
 
         accountService.update(accountId, fields, testContext.succeeding(result -> testContext.verify(() -> {
@@ -210,7 +210,7 @@ public class AccountServiceImplTest {
         Account entity = TestAccountProvider.createAccount(accountId, username, password);
         JsonObject fields = new JsonObject("{\"old_password\": \"pw2\", \"new_password\": \"pw2\"}");
 
-        when(accountRepository.findById(sessionManager, accountId)).thenReturn(Maybe.just(entity));
+        when(accountRepository.findByIdAndActive(sessionManager, accountId)).thenReturn(Maybe.just(entity));
 
         accountService.update(accountId, fields, testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(UnauthorizedException.class);
@@ -224,7 +224,7 @@ public class AccountServiceImplTest {
         SessionMockHelper.mockCompletable(smProvider, sessionManager);
         JsonObject fields = new JsonObject("{\"old_password\": \"pw1\", \"new_password\": \"pw2\"}");
 
-        when(accountRepository.findById(sessionManager, accountId)).thenReturn(Maybe.empty());
+        when(accountRepository.findByIdAndActive(sessionManager, accountId)).thenReturn(Maybe.empty());
 
         accountService.update(accountId, fields, testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(NotFoundException.class);

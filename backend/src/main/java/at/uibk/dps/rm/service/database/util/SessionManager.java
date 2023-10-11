@@ -37,7 +37,7 @@ public class SessionManager {
     /**
      * See {@link Session#persist(Object...)}
      */
-    public Completable persist(Object... entities) {
+    public Completable persist(Object[] entities) {
         return Completable.fromCompletionStage(session.persist(entities));
     }
 

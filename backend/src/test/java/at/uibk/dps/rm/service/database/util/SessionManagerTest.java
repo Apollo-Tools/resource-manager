@@ -71,7 +71,7 @@ public class SessionManagerTest {
         Resource entity2 = TestResourceProvider.createResource(2L);
         when(session.persist(entity, entity2)).thenReturn(CompletionStages.voidFuture());
 
-        sessionManager.persist(entity, entity2)
+        sessionManager.persist(new Resource[]{entity, entity2})
             .subscribe(() -> testContext.verify(testContext::completeNow),
             throwable -> testContext.verify(() -> fail("method has thrown exception"))
         );

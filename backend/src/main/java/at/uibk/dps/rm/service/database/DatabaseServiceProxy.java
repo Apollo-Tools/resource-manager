@@ -70,7 +70,7 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
             .stream()
             .map(object -> ((JsonObject) object).mapTo(entityClass))
             .collect(Collectors.toList());
-        Completable createAll = smProvider.withTransactionCompletable(sm -> repository.createAll(sm, entities));
+        Completable createAll = smProvider.withTransactionCompletable(sm -> sm.persist(entities.toArray()));
         RxVertxHandler.handleSession(createAll, resultHandler);
     }
 

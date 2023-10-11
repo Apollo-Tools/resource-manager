@@ -8,12 +8,10 @@ import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.UnauthorizedException;
-import at.uibk.dps.rm.testutil.mockprovider.DeploymentRepositoryProviderMock;
 import at.uibk.dps.rm.testutil.objectprovider.*;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
-import org.hibernate.reactive.stage.Stage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,11 +36,7 @@ public class SaveResourceDeploymentUtilityTest {
 
     private SaveResourceDeploymentUtility utility;
 
-    private final DeploymentRepositoryProviderMock repositoryMock = new DeploymentRepositoryProviderMock();
-
     @Mock
-    private Stage.Session session;
-
     private SessionManager sessionManager;
 
     private Deployment deployment;
@@ -57,8 +51,7 @@ public class SaveResourceDeploymentUtilityTest {
 
     @BeforeEach
     void initTest() {
-        repositoryMock.mock();
-        utility = new SaveResourceDeploymentUtility(repositoryMock.getRepositoryProvider());
+        utility = new SaveResourceDeploymentUtility();
         deployment = TestDeploymentProvider.createDeployment(1L);
         Platform lambda = TestPlatformProvider.createPlatformFaas(1L, PlatformEnum.LAMBDA.getValue());
         Platform ec2 = TestPlatformProvider.createPlatformFaas(2L, PlatformEnum.EC2.getValue());
@@ -92,9 +85,7 @@ public class SaveResourceDeploymentUtilityTest {
 
     @Test
     void saveFunctionDeployments(VertxTestContext testContext) {
-        sessionManager = new SessionManager(session);
-        when(repositoryMock.getFunctionDeploymentRepository().createAll(eq(sessionManager), any()))
-            .thenReturn(Completable.complete());
+        when(sessionManager.persist(any())).thenReturn(Completable.complete());
 
         utility.saveFunctionDeployments(sessionManager, deployment, requestDTO, status, resources)
             .blockingSubscribe(() -> testContext.verify(testContext::completeNow),
@@ -104,7 +95,6 @@ public class SaveResourceDeploymentUtilityTest {
 
     @Test
     void saveFunctionDeploymentsEmpty(VertxTestContext testContext) {
-        sessionManager = new SessionManager(session);
         requestDTO.setFunctionResources(List.of());
 
         utility.saveFunctionDeployments(sessionManager, deployment, requestDTO, status, resources)
@@ -115,12 +105,10 @@ public class SaveResourceDeploymentUtilityTest {
 
     @Test
     void saveServiceDeployments(VertxTestContext testContext) {
-        sessionManager = new SessionManager(session);
         K8sNamespace n1 = TestResourceProviderProvider.createNamespace(1L, r3);
         K8sNamespace n2 = TestResourceProviderProvider.createNamespace(2L, r4);
 
-        when(repositoryMock.getServiceDeploymentRepository().createAll(eq(sessionManager), any()))
-            .thenReturn(Completable.complete());
+        when(sessionManager.persist(any())).thenReturn(Completable.complete());
 
         utility.saveServiceDeployments(sessionManager, deployment, requestDTO, status, List.of(n1, n2), resources)
             .blockingSubscribe(() -> testContext.verify(testContext::completeNow),
@@ -130,7 +118,6 @@ public class SaveResourceDeploymentUtilityTest {
 
     @Test
     void saveServiceDeploymentsEmpty(VertxTestContext testContext) {
-        sessionManager = new SessionManager(session);
         requestDTO.setServiceResources(List.of());
 
         utility.saveServiceDeployments(sessionManager, deployment, requestDTO, status, List.of(), resources)
@@ -141,11 +128,7 @@ public class SaveResourceDeploymentUtilityTest {
 
     @Test
     void saveServiceDeploymentsMissingNamespace(VertxTestContext testContext) {
-        sessionManager = new SessionManager(session);
         K8sNamespace n1 = TestResourceProviderProvider.createNamespace(1L, r3);
-
-        when(repositoryMock.getServiceRepository().createAll(eq(sessionManager), any()))
-            .thenReturn(Completable.complete());
 
         utility.saveServiceDeployments(sessionManager, deployment, requestDTO, status, List.of(n1), resources)
             .blockingSubscribe(() -> testContext.verify(() -> fail("method did not exception")),

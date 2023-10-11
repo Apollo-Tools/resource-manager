@@ -90,7 +90,7 @@ public class AccountServiceImpl extends DatabaseServiceProxy<Account> implements
     @Override
     public void update(long id, JsonObject fields, Handler<AsyncResult<Void>> resultHandler) {
         Completable update = smProvider.withTransactionCompletable(sm -> repository
-            .findById(sm, id)
+            .findByIdAndActive(sm, id)
             .switchIfEmpty(Maybe.error(new NotFoundException(Account.class)))
             .flatMapCompletable(account -> {
                 PasswordUtility passwordUtility = new PasswordUtility();

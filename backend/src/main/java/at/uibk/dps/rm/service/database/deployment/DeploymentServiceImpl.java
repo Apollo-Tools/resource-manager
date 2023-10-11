@@ -135,7 +135,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
         DeploymentValidationUtility validationUtility = new DeploymentValidationUtility(accountId, repositoryProvider);
         DeploymentUtility deploymentUtility = new DeploymentUtility(repositoryProvider);
         DeployResourcesRequest request = data.mapTo(DeployResourcesRequest.class);
-        SaveResourceDeploymentUtility resourceDeploymentUtility = new SaveResourceDeploymentUtility(repositoryProvider);
+        SaveResourceDeploymentUtility resourceDeploymentUtility = new SaveResourceDeploymentUtility();
         DeployResourcesDTO deployResources = new DeployResourcesDTO();
         Deployment deployment = new Deployment();
         deployResources.setDeployment(deployment);

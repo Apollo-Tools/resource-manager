@@ -56,6 +56,13 @@ public class TestAccountProvider {
         return account;
     }
 
+    public static Role createRoleAdmin() {
+        Role role = new Role();
+        role.setRoleId(1L);
+        role.setRole(RoleEnum.ADMIN.getValue());
+        return role;
+    }
+
     public static Role createRoleDefault() {
         Role role = new Role();
         role.setRoleId(2L);

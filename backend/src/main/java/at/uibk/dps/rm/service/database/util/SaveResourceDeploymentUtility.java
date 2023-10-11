@@ -5,7 +5,6 @@ import at.uibk.dps.rm.entity.dto.deployment.FunctionResourceIds;
 import at.uibk.dps.rm.entity.dto.deployment.ServiceResourceIds;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.UnauthorizedException;
-import at.uibk.dps.rm.repository.DeploymentRepositoryProvider;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +18,6 @@ import java.util.List;
  */
 @RequiredArgsConstructor
 public class SaveResourceDeploymentUtility {
-
-    private final DeploymentRepositoryProvider repositoryProvider;
 
     /**
      * Persist function deployments from the deployment.
@@ -46,8 +43,7 @@ public class SaveResourceDeploymentUtility {
                 return createNewResourceDeployment(deployment, functionResourceIds, status, resource);
             })
             .toList()
-            .flatMapCompletable(functionDeployments -> repositoryProvider.getFunctionDeploymentRepository()
-                .createAll(sm, functionDeployments));
+            .flatMapCompletable(functionDeployments -> sm.persist(functionDeployments.toArray()));
     }
 
     /** Persist service deployments from the deployment.
@@ -75,8 +71,7 @@ public class SaveResourceDeploymentUtility {
                 return createNewResourceDeployment(deployment, resource, serviceResourceIds, namespaces, status);
             })
             .toList()
-            .flatMapCompletable(serviceDeployments -> repositoryProvider.getServiceDeploymentRepository()
-                .createAll(sm, serviceDeployments));
+            .flatMapCompletable(serviceDeployments -> sm.persist(serviceDeployments.toArray()));
     }
 
     /**
