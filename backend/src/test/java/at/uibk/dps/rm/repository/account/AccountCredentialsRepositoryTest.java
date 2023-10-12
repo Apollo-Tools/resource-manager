@@ -37,6 +37,6 @@ public class AccountCredentialsRepositoryTest extends DatabaseTest {
                 assertThat(result.getAccount().getAccountId()).isEqualTo(1L);
                 assertThat(result.getCredentials().getCredentialsId()).isEqualTo(1L);
                 testContext.completeNow();
-            }));
+            }), throwable -> testContext.failNow("method has thrown exception"));
     }
 }

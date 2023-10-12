@@ -37,7 +37,7 @@ public class AccountNamespaceRepositoryTest extends DatabaseTest {
                 assertThat(result.getAccount().getAccountId()).isEqualTo(1L);
                 assertThat(result.getNamespace().getNamespaceId()).isEqualTo(1L);
                 testContext.completeNow();
-            }));
+            }), throwable -> testContext.failNow("method has thrown exception"));
     }
 
     @Test
@@ -49,6 +49,6 @@ public class AccountNamespaceRepositoryTest extends DatabaseTest {
                 assertThat(result.getAccount().getAccountId()).isEqualTo(1L);
                 assertThat(result.getNamespace().getNamespaceId()).isEqualTo(1L);
                 testContext.completeNow();
-            }));
+            }), throwable -> testContext.failNow("method has thrown exception"));
     }
 }

@@ -46,7 +46,7 @@ public class RepositoryTest extends DatabaseTest {
                 assertThat(result.get(0).getRole()).isEqualTo(RoleEnum.ADMIN.getValue());
                 assertThat(result.get(1).getRole()).isEqualTo(RoleEnum.DEFAULT.getValue());
                 testContext.completeNow();
-            }));
+            }), throwable -> testContext.failNow("method has thrown exception"));
     }
 
     @Test

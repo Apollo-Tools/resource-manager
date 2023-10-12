@@ -31,8 +31,8 @@ public class CredentialsRepository  extends Repository<Credentials> {
      */
     public Maybe<Credentials> findByIdAndFetch(SessionManager sessionManager, long id) {
         return Maybe.fromCompletionStage(sessionManager.getSession()
-            .createQuery(
-                "from Credentials c left join fetch c.resourceProvider where c.credentialsId =:id", entityClass)
+            .createQuery("from Credentials c left join fetch c.resourceProvider where c.credentialsId =: id",
+                entityClass)
             .setParameter("id", id)
             .getSingleResultOrNull()
         );
@@ -48,10 +48,8 @@ public class CredentialsRepository  extends Repository<Credentials> {
      */
     public Maybe<Credentials> findByIdAndAccountId(SessionManager sessionManager, long credentialsId, long accountId) {
         return Maybe.fromCompletionStage(sessionManager.getSession()
-            .createQuery("select distinct ac.credentials from " +
-                "AccountCredentials" +
-                " ac " +
-                "where ac.credentials.credentialsId=:credentialsId and ac.account.accountId=:accountId",entityClass)
+            .createQuery("select distinct ac.credentials from AccountCredentials ac " +
+                "where ac.credentials.credentialsId=:credentialsId and ac.account.accountId=:accountId", entityClass)
             .setParameter("credentialsId", credentialsId)
             .setParameter("accountId", accountId)
             .getSingleResultOrNull()
