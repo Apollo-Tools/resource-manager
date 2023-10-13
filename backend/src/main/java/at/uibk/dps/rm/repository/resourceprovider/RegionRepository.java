@@ -103,10 +103,10 @@ public class RegionRepository extends Repository<Region> {
      */
     public Single<List<Region>> findAllByPlatformId(SessionManager sessionManager, long platformId) {
         return Single.fromCompletionStage(sessionManager.getSession()
-            .createQuery("SELECT reg FROM Region reg " +
-                "LEFT JOIN fetch reg.resourceProvider rp " +
-                "LEFT JOIN rp.providerPlatforms pp " +
-                "WHERE pp.platform.platformId = :platformId", entityClass)
+            .createQuery("select reg from Region reg " +
+                "left join fetch reg.resourceProvider rp " +
+                "left join rp.providerPlatforms pp " +
+                "where pp.platform.platformId = :platformId", entityClass)
             .setParameter("platformId", platformId)
             .getResultList()
         );
@@ -122,10 +122,10 @@ public class RegionRepository extends Repository<Region> {
      */
     public Maybe<Region> findByRegionIdAndPlatformId(SessionManager sessionManager, long regionId, long platformId) {
         return Maybe.fromCompletionStage(sessionManager.getSession()
-            .createQuery("SELECT reg FROM Region reg " +
-                "LEFT JOIN reg.resourceProvider rp " +
-                "LEFT JOIN rp.providerPlatforms pp " +
-                "WHERE reg.regionId=:regionId and pp.platform.platformId=:platformId", entityClass)
+            .createQuery("select reg from Region reg " +
+                "left join reg.resourceProvider rp " +
+                "left join rp.providerPlatforms pp " +
+                "where reg.regionId=:regionId and pp.platform.platformId=:platformId", entityClass)
             .setParameter("regionId", regionId)
             .setParameter("platformId", platformId)
             .getSingleResultOrNull()

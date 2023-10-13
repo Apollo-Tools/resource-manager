@@ -29,7 +29,7 @@ public abstract class DatabaseTest {
         .withUsername("root")
         .withPassword("root");
 
-    public SessionManagerProvider smProvider;
+    public static SessionManagerProvider smProvider;
 
     public static Account accountAdmin, accountDefault;
 
@@ -38,25 +38,25 @@ public abstract class DatabaseTest {
     private void initDB(VertxTestContext testContext) {
         String address = postgres.getHost();
         Integer port = postgres.getFirstMappedPort();
-
         String dbUser = "root";
         String dbPassword = "root";
-        Flyway flyway = Flyway
-            .configure()
-            .dataSource("jdbc:postgresql://" + address + ":" + port + "/resource-manager",
-                "root",
-                "root")
-            .load();
-        flyway.migrate();
-        Map<String, String> props = Map.of(
-            "javax.persistence.jdbc.url", "jdbc:postgresql://" + address + ":" + port + "/resource-manager",
-            "javax.persistence.jdbc.user", dbUser,
-            "javax.persistence.jdbc.password", dbPassword);
-        Stage.SessionFactory sessionFactory = Persistence
-            .createEntityManagerFactory("postgres-unit", props)
-            .unwrap(Stage.SessionFactory.class);
-        smProvider = new SessionManagerProvider(sessionFactory);
+
         if (!isInitialized) {
+            Flyway flyway = Flyway
+                .configure()
+                .dataSource("jdbc:postgresql://" + address + ":" + port + "/resource-manager",
+                    "root",
+                    "root")
+                .load();
+            flyway.migrate();
+            Map<String, String> props = Map.of(
+                "javax.persistence.jdbc.url", "jdbc:postgresql://" + address + ":" + port + "/resource-manager",
+                "javax.persistence.jdbc.user", dbUser,
+                "javax.persistence.jdbc.password", dbPassword);
+            Stage.SessionFactory sessionFactory = Persistence
+                .createEntityManagerFactory("postgres-unit", props)
+                .unwrap(Stage.SessionFactory.class);
+            smProvider = new SessionManagerProvider(sessionFactory);
             fillDB(testContext);
             isInitialized = true;
         }
