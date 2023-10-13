@@ -113,8 +113,8 @@ public class FunctionRepositoryTest extends DatabaseTest {
         "foo1, 1, 2, 1, false, 1",
         "foo1, 1, 1, 2, false, 1",
     })
-    void findByIdAndAccountId(String name, long typeId, long runtimeId, long accountId, boolean exists, long id,
-            VertxTestContext testContext) {
+    void findOneByNameTypeRuntimeAndCreator(String name, long typeId, long runtimeId, long accountId, boolean exists,
+            long id, VertxTestContext testContext) {
         smProvider.withTransactionMaybe(sessionManager -> repository
                 .findOneByNameTypeRuntimeAndCreator(sessionManager, name, typeId, runtimeId, accountId))
             .subscribe(result -> testContext.verify(() -> {

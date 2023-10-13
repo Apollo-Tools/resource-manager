@@ -39,7 +39,7 @@ public class TestServiceProvider {
         return createK8sServiceType(id, "NodePort");
     }
 
-    public static Service createService(long id, ServiceType serviceType, String name, String image,
+    public static Service createService(Long id, ServiceType serviceType, String name, String image,
             K8sServiceType k8sServiceType, List<String> ports, Account account, int replicas, BigDecimal cpu,
             int memory, List<EnvVar> envVars, List<VolumeMount> volumeMounts, boolean isPublic) {
         Service service = new Service();
