@@ -71,7 +71,7 @@ public class FunctionRepository extends Repository<Function> {
     }
 
     /**
-     * Find a function by its name.
+     * Find a function by its name, function type and creator.
      *
      * @param sessionManager the database session manger
      * @param name the name of the function
@@ -84,10 +84,8 @@ public class FunctionRepository extends Repository<Function> {
             long runtimeId, long accountId) {
         return Maybe.fromCompletionStage(sessionManager.getSession()
             .createQuery("from Function f " +
-                    "left join fetch f.runtime r " +
-                    "left join fetch f.functionType " +
                     "where f.name=:name and f.functionType.artifactTypeId=:typeId and " +
-                    "r.runtimeId=:runtimeId and f.createdBy.accountId=:accountId", entityClass)
+                    "f.runtime.runtimeId=:runtimeId and f.createdBy.accountId=:accountId", entityClass)
             .setParameter("name", name)
             .setParameter("typeId", typeId)
             .setParameter("runtimeId", runtimeId)
@@ -104,7 +102,7 @@ public class FunctionRepository extends Repository<Function> {
      */
     public Single<List<Function>> findAllAndFetch(SessionManager sessionManager) {
         return Single.fromCompletionStage(sessionManager.getSession()
-            .createQuery("select distinct f from Function f " +
+            .createQuery("from Function f " +
                 "left join fetch f.runtime " +
                 "left join fetch f.functionType", entityClass)
             .getResultList()
