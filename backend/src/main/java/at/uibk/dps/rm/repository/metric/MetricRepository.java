@@ -65,9 +65,7 @@ public class MetricRepository extends Repository<Metric> {
      */
     public Maybe<Metric> findByMetricAndIsSLO(SessionManager sessionManager, String metric) {
         return Maybe.fromCompletionStage(sessionManager.getSession()
-            .createQuery("from Metric m where m.metric=:metric and m" +
-                    ".isSlo=true"
-                , entityClass)
+            .createQuery("from Metric m where m.metric=:metric and m.isSlo=true", entityClass)
             .setParameter("metric", metric)
             .getSingleResultOrNull()
         );

@@ -54,17 +54,23 @@ public class TestResourceProvider {
         return mainResource;
     }
 
-    public static SubResource createSubResource(long id, String name, MainResource mainResource) {
-        SubResource subResource = new SubResource();
-        subResource.setResourceId(id);
-        subResource.setName(name);
-        subResource.setMainResource(mainResource);
+    public static SubResource createSubResource(Long id, String name, MainResource mainResource) {
+        SubResource subResource = createSubResourceWithoutMVs(id, name, mainResource);
         Set<MetricValue> metricValues = new HashSet<>();
         metricValues.add(TestMetricProvider.createMetricValue(1L, 2L,"cpu", 1.0));
         metricValues.add(TestMetricProvider.createMetricValue(2L, 3L,"memory-size", 100));
         metricValues.add(TestMetricProvider.createMetricValue(3L, 4L,"storage-size", 100));
         metricValues.add(TestMetricProvider.createMetricValue(4L, 5L,"availability", 99.5));
         subResource.setMetricValues(metricValues);
+        return subResource;
+    }
+
+    public static SubResource createSubResourceWithoutMVs(Long id, String name, MainResource mainResource) {
+        SubResource subResource = new SubResource();
+        subResource.setResourceId(id);
+        subResource.setName(name);
+        subResource.setMainResource(mainResource);
+        subResource.setMetricValues(Set.of());
         return subResource;
     }
 

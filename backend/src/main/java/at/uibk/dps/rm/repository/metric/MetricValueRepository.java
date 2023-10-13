@@ -31,8 +31,8 @@ public class MetricValueRepository extends Repository<MetricValue> {
      */
     public Maybe<MetricValue> findByIdAndFetch(SessionManager sessionManager, long metricValueId) {
         return Maybe.fromCompletionStage(sessionManager.getSession()
-            .createQuery("from MetricValue  mv left join fetch mv" +
-                ".metric " +
+            .createQuery("from MetricValue  mv " +
+                "left join fetch mv.metric " +
                 "where mv.metricValueId =:metricValueId", entityClass)
             .setParameter("metricValueId", metricValueId)
             .getSingleResultOrNull()
@@ -40,7 +40,7 @@ public class MetricValueRepository extends Repository<MetricValue> {
     }
 
     /**
-     * Find all metric values by their resource.
+     * Find all metric values by their resource and fetch the metric.
      *
      * @param sessionManager the database session manager
      * @param resourceId the id of the resource
@@ -77,7 +77,7 @@ public class MetricValueRepository extends Repository<MetricValue> {
     }
 
     /**
-     * Find a metric value by its resource and metric.
+     * Find a metric value by its resource and metric and fetch the metric and metric type.
      *
      * @param sessionManager the database session manager
      * @param resourceId the id of the resource

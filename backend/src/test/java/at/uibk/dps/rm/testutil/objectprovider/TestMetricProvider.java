@@ -29,7 +29,7 @@ public class TestMetricProvider {
         return createMetricType(3L, "boolean");
     }
 
-    public static Metric createMetric(long metricId, String metricName, MetricType metricType) {
+    public static Metric createMetric(Long metricId, String metricName, MetricType metricType) {
         Metric metric = new Metric();
         metric.setMetricId(metricId);
         metric.setMetric(metricName);
@@ -39,12 +39,11 @@ public class TestMetricProvider {
     }
 
     public static Metric createMetric(long metricId, String metricName) {
-        Metric metric = new Metric();
-        metric.setMetricId(metricId);
-        metric.setMetric(metricName);
-        metric.setMetricType(createMetricTypeNumber());
-        metric.setDescription("Blah");
-        return metric;
+        return createMetric(metricId, metricName, createMetricTypeNumber());
+    }
+
+    public static Metric createMetric(Long metricId) {
+        return createMetric(metricId, "metric", createMetricTypeNumber());
     }
 
     public static MetricValue createMetricValue(long metricValueId, long metricId, String metric, double value) {
@@ -54,10 +53,23 @@ public class TestMetricProvider {
         return metricValue;
     }
 
-    public static MetricValue createMetricValue(long metricValueId, Metric metric, double value) {
+    public static MetricValue createMetricValue(Long metricValueId, Metric metric, Resource resource, double value) {
         MetricValue metricValue = new MetricValue();
         initMetricValue(metricValue, metricValueId, metric);
+        metricValue.setResource(resource);
         metricValue.setValueNumber(value);
+        return metricValue;
+    }
+
+    public static MetricValue createMetricValue(Long metricValueId, Metric metric, double value) {
+        return createMetricValue(metricValueId, metric, TestResourceProvider.createResource(1L), value);
+    }
+
+    public static MetricValue createMetricValue(Long metricValueId, Metric metric, Resource resource, String value) {
+        MetricValue metricValue = new MetricValue();
+        initMetricValue(metricValue, metricValueId, metric);
+        metricValue.setResource(resource);
+        metricValue.setValueString(value);
         return metricValue;
     }
 
@@ -82,11 +94,11 @@ public class TestMetricProvider {
         return metricValue;
     }
 
-    private static void initMetricValue(MetricValue metricValue, long metricValueId, long metricId, String metric) {
+    private static void initMetricValue(MetricValue metricValue, Long metricValueId, long metricId, String metric) {
         initMetricValue(metricValue, metricValueId, createMetric(metricId, metric));
     }
 
-    private static void initMetricValue(MetricValue metricValue, long metricValueId, Metric metric) {
+    private static void initMetricValue(MetricValue metricValue, Long metricValueId, Metric metric) {
         metricValue.setMetricValueId(metricValueId);
         metricValue.setMetric(metric);
         metricValue.setCount(10L);
