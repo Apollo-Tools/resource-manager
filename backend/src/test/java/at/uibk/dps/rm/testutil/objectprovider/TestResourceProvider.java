@@ -69,15 +69,20 @@ public class TestResourceProvider {
     }
 
 
-    public static Resource createResource(Long id, Platform platform, Region region) {
+    public static Resource createResource(Long id, String name, Platform platform, Region region) {
         MainResource resource = new MainResource();
-        resource.setName("r" + id);
+        resource.setName(name);
         resource.setResourceId(id);
         resource.setRegion(region);
         resource.setPlatform(platform);
         resource.setMetricValues(new HashSet<>());
         return resource;
     }
+
+    public static Resource createResource(Long id, Platform platform, Region region) {
+        return createResource(id, "r" + id, platform, region);
+    }
+
 
     public static Resource createResource(long id, Platform platform) {
         ResourceProvider resourceProvider = TestResourceProviderProvider.createResourceProvider(1L);

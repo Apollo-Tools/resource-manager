@@ -29,7 +29,7 @@ public class NamespaceRepository extends Repository<K8sNamespace> {
      */
     public Single<List<K8sNamespace>> findAllAndFetch(SessionManager sessionManager) {
         return Single.fromCompletionStage(sessionManager.getSession()
-            .createQuery("select distinct n from K8sNamespace n " +
+            .createQuery("from K8sNamespace n " +
                 "left join fetch n.resource", entityClass)
             .getResultList()
         );
