@@ -1,7 +1,6 @@
-package at.uibk.dps.rm.repository.recourceprovider;
+package at.uibk.dps.rm.repository.resourceprovider;
 
 import at.uibk.dps.rm.entity.model.*;
-import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.testutil.DatabaseTest;
 import at.uibk.dps.rm.testutil.objectprovider.TestMetricProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestPlatformProvider;
@@ -16,6 +15,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -157,7 +157,7 @@ public class RegionRepositoryTest extends DatabaseTest {
     void findAllByProviderId(long providerId, List<Long> expected, VertxTestContext testContext) {
         smProvider.withTransactionSingle(sessionManager -> repository.findAllByProviderId(sessionManager, providerId))
             .subscribe(result -> testContext.verify(() -> {
-                assertThat(result.stream().map(Region::getRegionId)).isEqualTo(expected);
+                assertThat(result.stream().map(Region::getRegionId).collect(Collectors.toList())).isEqualTo(expected);
                 testContext.completeNow();
             }), throwable -> testContext.failNow("method has thrown exception"));
     }
@@ -178,9 +178,9 @@ public class RegionRepositoryTest extends DatabaseTest {
             VertxTestContext testContext) {
         smProvider.withTransactionSingle(sessionManager -> repository.findAllByPlatformId(sessionManager, platformId))
             .subscribe(result -> testContext.verify(() -> {
-                assertThat(result.stream().map(Region::getRegionId)).isEqualTo(expected);
-                assertThat(result.stream().map(region -> region.getResourceProvider().getProvider()))
-                    .isEqualTo(providers);
+                assertThat(result.stream().map(Region::getRegionId).collect(Collectors.toList())).isEqualTo(expected);
+                assertThat(result.stream().map(region -> region.getResourceProvider().getProvider())
+                    .collect(Collectors.toList())).isEqualTo(providers);
                 testContext.completeNow();
             }), throwable -> testContext.failNow("method has thrown exception"));
     }

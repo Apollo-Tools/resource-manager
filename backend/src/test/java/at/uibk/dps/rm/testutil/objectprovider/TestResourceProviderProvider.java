@@ -43,7 +43,7 @@ public class TestResourceProviderProvider {
         return region;
     }
 
-    public static VPC createVPC(long id, Region region, String vpcIdValue, String subnetIdValue, Account createdBy) {
+    public static VPC createVPC(Long id, Region region, String vpcIdValue, String subnetIdValue, Account createdBy) {
         VPC vpc = new VPC();
         vpc.setVpcId(id);
         vpc.setRegion(region);
@@ -58,7 +58,7 @@ public class TestResourceProviderProvider {
         return createVPC(id, region, "vpc-id", "subnet-id", account);
     }
 
-    public static VPC createVPC(long id, Region region, Account createdBy) {
+    public static VPC createVPC(Long id, Region region, Account createdBy) {
         return createVPC(id, region, "vpc-id", "subnet-id", createdBy);
     }
 

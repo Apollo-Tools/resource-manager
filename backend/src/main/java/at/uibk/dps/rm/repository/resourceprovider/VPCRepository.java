@@ -41,7 +41,7 @@ public class VPCRepository extends Repository<VPC> {
     }
 
     /**
-     * Find a vpc by its region and creator account.
+     * Find a vpc by its region and creator account and fetch the region and resource provider.
      *
      * @param sessionManager the database session manager
      * @param regionId the id of the region
