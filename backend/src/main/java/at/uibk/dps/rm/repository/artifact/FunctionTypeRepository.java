@@ -27,9 +27,7 @@ public class FunctionTypeRepository extends Repository<FunctionType> {
      */
     public Maybe<FunctionType> findByName(SessionManager sessionManager, String name) {
         return Maybe.fromCompletionStage(sessionManager.getSession()
-            .createQuery(
-        "from FunctionType ft " +
-                "where ft.name =:name", entityClass)
+            .createQuery("from FunctionType ft where ft.name =:name", entityClass)
             .setParameter("name", name)
             .getSingleResultOrNull()
         );

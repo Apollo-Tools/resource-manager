@@ -27,9 +27,7 @@ public class ServiceTypeRepository extends Repository<ServiceType> {
      */
     public Maybe<ServiceType> findByName(SessionManager sessionManager, String name) {
         return Maybe.fromCompletionStage(sessionManager.getSession()
-            .createQuery(
-        "from ServiceType st " +
-                "where st.name =:name", entityClass)
+            .createQuery("from ServiceType st where st.name =:name", entityClass)
             .setParameter("name", name)
             .getSingleResultOrNull()
         );

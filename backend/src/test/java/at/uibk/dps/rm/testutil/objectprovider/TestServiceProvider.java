@@ -147,7 +147,7 @@ public class TestServiceProvider {
         return envVar;
     }
 
-    public static ServiceType createServiceTyp(long id, String name) {
+    public static ServiceType createServiceTyp(Long id, String name) {
         ServiceType serviceType = new ServiceType();
         serviceType.setArtifactTypeId(id);
         serviceType.setName(name);
