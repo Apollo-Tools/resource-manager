@@ -29,8 +29,7 @@ public class PlatformRepository extends Repository<Platform> {
      */
     public Single<List<Platform>> findAllAndFetch(SessionManager sessionManager) {
         return Single.fromCompletionStage(sessionManager.getSession()
-            .createQuery("select distinct p from Platform p " +
-                "left join fetch p.resourceType", entityClass)
+            .createQuery("from Platform p left join fetch p.resourceType", entityClass)
             .getResultList()
         );
     }

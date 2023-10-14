@@ -268,6 +268,9 @@ public class ResourceRepository extends Repository<Resource> {
      * @return a Single that emits a list of resources
      */
     public Single<List<Resource>> findAllByResourceIdsAndFetch(SessionManager sessionManager, List<Long> resourceIds) {
+        if (resourceIds.isEmpty()) {
+            return Single.just(new ArrayList<>());
+        }
         String resourceIdsConcat = resourceIds.stream().map(Object::toString).collect(Collectors.joining(","));
         Single<List<Resource>> getMainResources = Single.fromCompletionStage(sessionManager.getSession()
             .createQuery(
@@ -344,6 +347,13 @@ public class ResourceRepository extends Repository<Resource> {
             .setParameter("name", name)
             .setParameter("platform", PlatformEnum.K8S.getValue())
             .getSingleResultOrNull()
+            .thenApply(mainResource -> {
+                if (mainResource != null) {
+                    mainResource.setSubResources(mainResource.getSubResources().stream().distinct()
+                        .collect(Collectors.toList()));
+                }
+                return mainResource;
+            })
         );
     }
 }

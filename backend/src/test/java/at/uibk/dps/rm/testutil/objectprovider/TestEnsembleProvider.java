@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 @UtilityClass
 public class TestEnsembleProvider {
 
-    public static Ensemble createEnsemble(long ensembleId, long accountId, String name) {
+    public static Ensemble createEnsemble(Long ensembleId, long accountId, String name) {
         Ensemble ensemble = new Ensemble();
         ensemble.setEnsembleId(ensembleId);
         ensemble.setName(name);
@@ -83,7 +83,7 @@ public class TestEnsembleProvider {
         return ensembleSLO;
     }
 
-    public static ResourceEnsemble createResourceEnsemble(long resourceEnsembleId, Ensemble ensemble,
+    public static ResourceEnsemble createResourceEnsemble(Long resourceEnsembleId, Ensemble ensemble,
             Resource resource) {
         ResourceEnsemble resourceEnsemble = new ResourceEnsemble();
         resourceEnsemble.setResourceEnsembleId(resourceEnsembleId);
