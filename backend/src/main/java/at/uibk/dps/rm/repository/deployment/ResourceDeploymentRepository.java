@@ -23,7 +23,7 @@ public class ResourceDeploymentRepository extends Repository<ResourceDeployment>
     }
 
     /**
-     * Find all resource deployments by their deployment
+     * Find all resource deployments by their deployment and fetch the deployment status
      *
      * @param sessionManager the database session manager
      * @param deploymentId the id of the deployment
@@ -32,9 +32,7 @@ public class ResourceDeploymentRepository extends Repository<ResourceDeployment>
     public Single<List<ResourceDeployment>> findAllByDeploymentIdAndFetch(SessionManager sessionManager,
             long deploymentId) {
         return Single.fromCompletionStage(sessionManager.getSession()
-            .createQuery("select distinct rd from " +
-                "ResourceDeployment " +
-                "rd " +
+            .createQuery("select distinct rd from ResourceDeployment rd " +
                 "left join fetch rd.status " +
                 "where rd.deployment.deploymentId=:deploymentId", entityClass)
             .setParameter("deploymentId", deploymentId)

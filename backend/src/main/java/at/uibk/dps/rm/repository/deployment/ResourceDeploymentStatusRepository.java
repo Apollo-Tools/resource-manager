@@ -31,7 +31,7 @@ public class ResourceDeploymentStatusRepository extends Repository<ResourceDeplo
             .createQuery("from ResourceDeploymentStatus status " +
                 "where status.statusValue=:statusValue", entityClass)
             .setParameter("statusValue", statusValue)
-            .getSingleResult()
+            .getSingleResultOrNull()
         );
     }
 }

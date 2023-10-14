@@ -84,7 +84,7 @@ public class TestServiceProvider {
     }
 
 
-    public static ServiceDeployment createServiceDeployment(long id, Service service, Resource resource,
+    public static ServiceDeployment createServiceDeployment(Long id, Service service, Resource resource,
             boolean isDeployed, Deployment deployment, ResourceDeploymentStatus status) {
         ServiceDeployment serviceDeployment = new ServiceDeployment();
         serviceDeployment.setResourceDeploymentId(id);

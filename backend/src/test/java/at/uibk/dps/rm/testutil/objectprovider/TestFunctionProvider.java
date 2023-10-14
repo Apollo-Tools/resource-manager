@@ -100,7 +100,7 @@ public class TestFunctionProvider {
     }
 
 
-    public static FunctionDeployment createFunctionDeployment(long id, Function function, Resource resource,
+    public static FunctionDeployment createFunctionDeployment(Long id, Function function, Resource resource,
             boolean isDeployed, Deployment deployment, ResourceDeploymentStatus deploymentStatus) {
         FunctionDeployment functionDeployment = new FunctionDeployment();
         functionDeployment.setResourceDeploymentId(id);
@@ -113,7 +113,7 @@ public class TestFunctionProvider {
     }
 
 
-    public static FunctionDeployment createFunctionDeployment(long id, Function function, Resource resource,
+    public static FunctionDeployment createFunctionDeployment(Long id, Function function, Resource resource,
             boolean isDeployed, Deployment deployment) {
         ResourceDeploymentStatus status = TestDeploymentProvider.createResourceDeploymentStatusNew();
         return createFunctionDeployment(id, function, resource, isDeployed, deployment, status);

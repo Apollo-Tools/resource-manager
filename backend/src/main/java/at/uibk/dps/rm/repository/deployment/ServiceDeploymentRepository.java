@@ -30,8 +30,7 @@ public class ServiceDeploymentRepository extends Repository<ServiceDeployment> {
      */
     public Single<List<ServiceDeployment>> findAllByDeploymentId(SessionManager sessionManager, long deploymentId) {
         return Single.fromCompletionStage(sessionManager.getSession()
-            .createQuery("select distinct sd from ServiceDeployment " +
-                "sd " +
+            .createQuery("select distinct sd from ServiceDeployment sd " +
                 "left join fetch sd.service s " +
                 "left join fetch s.serviceType " +
                 "left join fetch s.k8sServiceType " +

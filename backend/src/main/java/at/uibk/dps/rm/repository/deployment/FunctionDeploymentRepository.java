@@ -29,9 +29,9 @@ public class FunctionDeploymentRepository extends Repository<FunctionDeployment>
      */
     public Single<List<FunctionDeployment>> findAllByDeploymentId(SessionManager sessionManager, long deploymentId) {
         return Single.fromCompletionStage(sessionManager.getSession()
-            .createQuery("select distinct fd from FunctionDeployment " +
-                "fd " +
+            .createQuery("select distinct fd from FunctionDeployment fd " +
                 "left join fetch fd.function f " +
+                "left join fetch f.functionType " +
                 "left join fetch f.runtime " +
                 "left join fetch fd.resource r " +
                 "left join fetch r.metricValues mv " +
