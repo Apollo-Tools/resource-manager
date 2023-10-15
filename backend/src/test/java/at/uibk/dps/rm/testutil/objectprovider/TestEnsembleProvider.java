@@ -19,18 +19,22 @@ import java.util.stream.Collectors;
 @UtilityClass
 public class TestEnsembleProvider {
 
-    public static Ensemble createEnsemble(Long ensembleId, long accountId, String name) {
+    public static Ensemble createEnsemble(Long ensembleId, long accountId, String name, boolean isValid) {
         Ensemble ensemble = new Ensemble();
         ensemble.setEnsembleId(ensembleId);
         ensemble.setName(name);
         ensemble.setCreatedBy(TestAccountProvider.createAccount(accountId));
-        ensemble.setIsValid(true);
+        ensemble.setIsValid(isValid);
         ensemble.setRegions(List.of(1L, 2L));
         ensemble.setProviders(List.of(3L, 4L));
         ensemble.setResource_types(List.of(3L, 4L));
         ensemble.setEnvironments(List.of(5L));
         ensemble.setPlatforms(List.of(1L, 5L));
         return ensemble;
+    }
+
+    public static Ensemble createEnsemble(Long ensembleId, long accountId, String name) {
+        return createEnsemble(ensembleId, accountId, name, true);
     }
 
     public static Ensemble createEnsemble(long ensembleId, long accountId) {
@@ -50,37 +54,46 @@ public class TestEnsembleProvider {
         return ensemble;
     }
 
-    public static EnsembleSLO createEnsembleSLO(long ensembleSLOId, String name, long ensembleId, String value) {
+    public static EnsembleSLO createEnsembleSLO(Long ensembleSLOId, String name, Ensemble ensemble, String value) {
         EnsembleSLO ensembleSLO = new EnsembleSLO();
         ensembleSLO.setEnsembleSLOId(ensembleSLOId);
         ensembleSLO.setName(name);
         ensembleSLO.setExpression(ExpressionType.EQ);
         ensembleSLO.setValueStrings(List.of(value));
-        Ensemble ensemble = createEnsemble(ensembleId, 1L);
         ensembleSLO.setEnsemble(ensemble);
         return ensembleSLO;
     }
 
-    public static EnsembleSLO createEnsembleSLOGT(long ensembleSLOId, String name, long ensembleId, double value) {
+    public static EnsembleSLO createEnsembleSLO(Long ensembleSLOId, String name, long ensembleId, String value) {
+        return createEnsembleSLO(ensembleSLOId, name, createEnsemble(ensembleId, 1L), value);
+    }
+
+    public static EnsembleSLO createEnsembleSLOGT(Long ensembleSLOId, String name, Ensemble ensemble, double value) {
         EnsembleSLO ensembleSLO = new EnsembleSLO();
         ensembleSLO.setEnsembleSLOId(ensembleSLOId);
         ensembleSLO.setName(name);
         ensembleSLO.setExpression(ExpressionType.GT);
         ensembleSLO.setValueNumbers(List.of(value));
-        Ensemble ensemble = createEnsemble(ensembleId, 1L);
         ensembleSLO.setEnsemble(ensemble);
         return ensembleSLO;
     }
 
-    public static EnsembleSLO createEnsembleSLO(long ensembleSLOId, String name, long ensembleId, Boolean... values) {
+    public static EnsembleSLO createEnsembleSLOGT(Long ensembleSLOId, String name, long ensembleId, double value) {
+        return createEnsembleSLOGT(ensembleSLOId, name, createEnsemble(ensembleId, 1L), value);
+    }
+
+    public static EnsembleSLO createEnsembleSLO(Long ensembleSLOId, String name, Ensemble ensemble, Boolean... values) {
         EnsembleSLO ensembleSLO = new EnsembleSLO();
         ensembleSLO.setEnsembleSLOId(ensembleSLOId);
         ensembleSLO.setName(name);
         ensembleSLO.setExpression(ExpressionType.EQ);
         ensembleSLO.setValueBools(Arrays.stream(values).collect(Collectors.toList()));
-        Ensemble ensemble = createEnsemble(ensembleId, 1L);
         ensembleSLO.setEnsemble(ensemble);
         return ensembleSLO;
+    }
+
+    public static EnsembleSLO createEnsembleSLO(Long ensembleSLOId, String name, long ensembleId, Boolean... values) {
+        return createEnsembleSLO(ensembleSLOId, name, createEnsemble(ensembleId, 1L), values);
     }
 
     public static ResourceEnsemble createResourceEnsemble(Long resourceEnsembleId, Ensemble ensemble,

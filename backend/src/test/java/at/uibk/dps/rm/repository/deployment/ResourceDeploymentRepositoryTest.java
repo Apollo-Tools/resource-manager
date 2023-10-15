@@ -90,8 +90,6 @@ public class ResourceDeploymentRepositoryTest extends DatabaseTest {
         }).blockingSubscribe(res -> {}, testContext::failNow);
     }
 
-
-
     private static Stream<Arguments> provideFindAllByDeploymentId() {
         return Stream.of(
             Arguments.of(1L, List.of(1L, 2L, 4L), List.of("NEW", "ERROR", "TERMINATING")),

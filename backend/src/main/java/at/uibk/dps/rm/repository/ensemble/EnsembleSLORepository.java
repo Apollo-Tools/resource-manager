@@ -21,20 +21,6 @@ public class EnsembleSLORepository extends Repository<EnsembleSLO> {
     }
 
     /**
-     * Find all ensembleSlos and fetch the ensemble.
-     *
-     * @param sessionManager the database session manager
-     * @return a Single that emits the list of all ensembleSLOs
-     */
-    public Single<List<EnsembleSLO>> findAllAndFetch(SessionManager sessionManager) {
-        return Single.fromCompletionStage(sessionManager.getSession()
-            .createQuery("select distinct slo from EnsembleSLO slo " +
-                "left join fetch slo.ensemble ensemble ", entityClass)
-            .getResultList()
-        );
-    }
-
-    /**
      * Find all ensembleSlos by their ensembleId.
      *
      * @param sessionManager the database session manager
