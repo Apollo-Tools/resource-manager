@@ -25,6 +25,11 @@ public class ResourceRoute implements Route {
             .handler(resultHandler::handleSaveOneRequest);
 
         router
+                .operation("createStandardizedResource")
+                .handler(ResourceInputHandler::validateAddStandardizedResourceRequest)
+                .handler(rc -> resultHandler.handleSaveOneRequest(rc, resourceHandler.saveStandardized(rc)));
+
+        router
             .operation("listResources")
             .handler(resultHandler::handleFindAllRequest);
 

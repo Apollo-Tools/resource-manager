@@ -75,4 +75,6 @@ public interface ResourceService extends DatabaseServiceInterface {
      * @param resultHandler receives nothing if the update was successful else an error
      */
     void updateClusterResource(String resourceName, K8sMonitoringData data, Handler<AsyncResult<Void>> resultHandler);
+
+    void saveStandardized(String requestBody, Handler<AsyncResult<JsonObject>> resultHandler);
 }

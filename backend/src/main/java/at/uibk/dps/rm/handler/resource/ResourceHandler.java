@@ -5,6 +5,7 @@ import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
 import at.uibk.dps.rm.util.misc.HttpHelper;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
 /**
@@ -45,5 +46,10 @@ public class ResourceHandler extends ValidationHandler {
      */
     public Single<JsonArray> getAllBySLOs(RoutingContext rc) {
         return resourceService.findAllBySLOs(rc.body().asJsonObject());
+    }
+
+
+    public Single<JsonObject> saveStandardized(RoutingContext rc) {
+        return resourceService.saveStandardized(rc.body().asString());
     }
 }

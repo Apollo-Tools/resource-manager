@@ -14,6 +14,9 @@ import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import at.uibk.dps.rm.service.database.util.K8sResourceUpdateUtility;
 import at.uibk.dps.rm.service.database.util.SLOUtility;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
+import at.uibk.dps.rm.util.toscamapping.TOSCAFile;
+import at.uibk.dps.rm.util.toscamapping.TOSCAMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
@@ -125,6 +128,37 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
                 resource.setPlatform(platform);
                 return sm.persist(resource);
             })
+        );
+        RxVertxHandler.handleSession(save.map(JsonObject::mapFrom), resultHandler);
+    }
+
+    public void saveStandardized(String data, Handler<AsyncResult<JsonObject>> resultHandler) {
+        TOSCAFile toscaFile = null;
+
+        try {
+            toscaFile = TOSCAMapper.readTOSCA(data);
+            System.out.println(toscaFile.getTopology_template().getNode_templates().get("resource_1").getCapabilities().get("resource").getProperties().get("name"));
+        } catch (JsonProcessingException e) {
+
+        }
+        String name = toscaFile.getTopology_template().getNode_templates().get("resource_1").getCapabilities().get("resource").getProperties().get("name").toString();
+        long regionId =  (int)toscaFile.getTopology_template().getNode_templates().get("resource_1").getCapabilities().get("resource").getProperties().get("region");
+        long platformId = (int) toscaFile.getTopology_template().getNode_templates().get("resource_1").getCapabilities().get("resource").getProperties().get("platform");
+        MainResource resource = new MainResource();
+        Single<Resource> save = smProvider.withTransactionSingle(sm -> repository.findByName(sm, name)
+                .flatMap(existingResource -> Maybe.<Region>error(new AlreadyExistsException(Resource.class)))
+                .switchIfEmpty(regionRepository.findByRegionIdAndPlatformId(sm, regionId, platformId))
+                .switchIfEmpty(Maybe.error(new NotFoundException("platform is not supported by the selected region")))
+                .flatMap(region -> {
+                    resource.setName(name);
+                    resource.setRegion(region);
+                    return sm.find(Platform.class, platformId);
+                })
+                .switchIfEmpty(Single.error(new NotFoundException(Platform.class)))
+                .flatMap(platform -> {
+                    resource.setPlatform(platform);
+                    return sm.persist(resource);
+                })
         );
         RxVertxHandler.handleSession(save.map(JsonObject::mapFrom), resultHandler);
     }
