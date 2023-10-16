@@ -5,6 +5,7 @@ import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.service.deployment.docker.DockerHubImageChecker;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.client.WebClient;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.ext.web.client.HttpRequest;
@@ -27,7 +28,10 @@ public class Mockprovider {
 
     public static MockedConstruction<ConfigUtility> mockConfig(ConfigDTO config) {
         return Mockito.mockConstruction(ConfigUtility.class,
-            (mock, context) -> given(mock.getConfigDTO()).willReturn(Single.just(config)));
+            (mock, context) -> {
+                given(mock.getConfigJson()).willReturn(Single.just(JsonObject.mapFrom(config)));
+                given(mock.getConfigDTO()).willReturn(Single.just(config));
+            });
     }
 
 

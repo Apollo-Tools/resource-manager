@@ -6,6 +6,7 @@ import at.uibk.dps.rm.entity.model.Runtime;
 import at.uibk.dps.rm.testutil.DatabaseTest;
 import at.uibk.dps.rm.testutil.objectprovider.*;
 import io.vertx.junit5.VertxTestContext;
+import io.vertx.rxjava3.core.Vertx;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -21,8 +22,8 @@ public class FunctionDeploymentRepositoryTest extends DatabaseTest {
     private final FunctionDeploymentRepository repository = new FunctionDeploymentRepository();
 
     @Override
-    public void fillDB(VertxTestContext testContext) {
-        super.fillDB(testContext);
+    public void fillDB(Vertx vertx, VertxTestContext testContext) {
+        super.fillDB(vertx, testContext);
 
         smProvider.withTransactionSingle(sessionManager -> {
             Deployment d1 = TestDeploymentProvider.createDeployment(null, true, accountAdmin);

@@ -5,6 +5,7 @@ import at.uibk.dps.rm.testutil.DatabaseTest;
 import at.uibk.dps.rm.testutil.objectprovider.TestEnsembleProvider;
 import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.junit5.VertxTestContext;
+import io.vertx.rxjava3.core.Vertx;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -22,8 +23,8 @@ public class EnsembleRepositoryTest extends DatabaseTest {
     private final EnsembleRepository repository = new EnsembleRepository();
 
     @Override
-    public void fillDB(VertxTestContext testContext) {
-        super.fillDB(testContext);
+    public void fillDB(Vertx vertx, VertxTestContext testContext) {
+        super.fillDB(vertx, testContext);
 
         smProvider.withTransactionSingle(sessionManager -> {
             Ensemble e1 = TestEnsembleProvider.createEnsemble(null, 1L, "e1", true);

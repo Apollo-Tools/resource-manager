@@ -7,6 +7,7 @@ import at.uibk.dps.rm.testutil.objectprovider.TestPlatformProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import io.vertx.junit5.VertxTestContext;
+import io.vertx.rxjava3.core.Vertx;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -16,8 +17,8 @@ public class NamespaceRepositoryTest extends DatabaseTest {
     private final NamespaceRepository repository = new NamespaceRepository();
 
     @Override
-    public void fillDB(VertxTestContext testContext) {
-        super.fillDB(testContext);
+    public void fillDB(Vertx vertx, VertxTestContext testContext) {
+        super.fillDB(vertx, testContext);
 
         smProvider.withTransactionSingle(sessionManager -> {
             Region reg1 = TestResourceProviderProvider.createRegion(1L, "us-east-1");

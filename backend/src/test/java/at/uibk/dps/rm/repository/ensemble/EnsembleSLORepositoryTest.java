@@ -5,6 +5,7 @@ import at.uibk.dps.rm.entity.model.EnsembleSLO;
 import at.uibk.dps.rm.testutil.DatabaseTest;
 import at.uibk.dps.rm.testutil.objectprovider.TestEnsembleProvider;
 import io.vertx.junit5.VertxTestContext;
+import io.vertx.rxjava3.core.Vertx;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -20,8 +21,8 @@ public class EnsembleSLORepositoryTest extends DatabaseTest {
     private final EnsembleSLORepository repository = new EnsembleSLORepository();
 
     @Override
-    public void fillDB(VertxTestContext testContext) {
-        super.fillDB(testContext);
+    public void fillDB(Vertx vertx, VertxTestContext testContext) {
+        super.fillDB(vertx, testContext);
 
         smProvider.withTransactionSingle(sessionManager -> {
             Ensemble e1 = TestEnsembleProvider.createEnsemble(null, 1L, "e1", true);

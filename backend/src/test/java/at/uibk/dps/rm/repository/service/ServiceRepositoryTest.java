@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.testutil.DatabaseTest;
 import at.uibk.dps.rm.testutil.objectprovider.TestServiceProvider;
 import io.vertx.junit5.VertxTestContext;
+import io.vertx.rxjava3.core.Vertx;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -21,8 +22,8 @@ public class ServiceRepositoryTest extends DatabaseTest {
     private final ServiceRepository repository = new ServiceRepository();
 
     @Override
-    public void fillDB(VertxTestContext testContext) {
-        super.fillDB(testContext);
+    public void fillDB(Vertx vertx, VertxTestContext testContext) {
+        super.fillDB(vertx, testContext);
 
         smProvider.withTransactionSingle(sessionManager -> {
             K8sServiceType k8sStNodePort = TestServiceProvider.createK8sServiceType(1L);

@@ -21,7 +21,6 @@ import at.uibk.dps.rm.router.resourceprovider.*;
 import at.uibk.dps.rm.router.service.ServiceRoute;
 import at.uibk.dps.rm.router.service.K8sServiceTypeRoute;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
-import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import at.uibk.dps.rm.util.configuration.JWTAuthProvider;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.http.HttpMethod;
@@ -48,21 +47,19 @@ public class ApiVerticle extends AbstractVerticle {
 
     @Override
     public Completable rxStart() {
-        return new ConfigUtility(vertx).getConfigDTO()
-            .flatMapCompletable(config ->
-                RouterBuilder.create(vertx, "openapi/resource-manager.yaml")
-                .flatMap(routerBuilder -> {
-                    Router router = initRouter(routerBuilder, config);
-                    return vertx.createHttpServer()
-                        .requestHandler(router)
-                        .rxListen(config.getApiPort());
-                })
-                .doOnSuccess(
-                    http -> logger.info("HTTP server started on port " + config.getApiPort()))
-                .doOnError(
-                    throwable -> logger.error("Error", throwable))
-                .ignoreElement()
-            );
+        ConfigDTO config = config().mapTo(ConfigDTO.class);
+        return RouterBuilder.create(vertx, "openapi/resource-manager.yaml")
+            .flatMap(routerBuilder -> {
+                Router router = initRouter(routerBuilder, config);
+                return vertx.createHttpServer()
+                    .requestHandler(router)
+                    .rxListen(config.getApiPort());
+            })
+            .doOnSuccess(
+                http -> logger.info("HTTP server started on port " + config.getApiPort()))
+            .doOnError(
+                throwable -> logger.error("Error", throwable))
+            .ignoreElement();
     }
 
     /**

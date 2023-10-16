@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.testutil.DatabaseTest;
 import at.uibk.dps.rm.testutil.objectprovider.*;
 import io.vertx.junit5.VertxTestContext;
+import io.vertx.rxjava3.core.Vertx;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
@@ -16,8 +17,8 @@ public class FunctionTypeRepositoryTest extends DatabaseTest {
     private final FunctionTypeRepository repository = new FunctionTypeRepository();
 
     @Override
-    public void fillDB(VertxTestContext testContext) {
-        super.fillDB(testContext);
+    public void fillDB(Vertx vertx, VertxTestContext testContext) {
+        super.fillDB(vertx, testContext);
 
         smProvider.withTransactionSingle(sessionManager -> {
             FunctionType ft1 = TestFunctionProvider.createFunctionType(null, "default");

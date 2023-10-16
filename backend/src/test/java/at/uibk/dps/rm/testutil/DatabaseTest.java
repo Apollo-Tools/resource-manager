@@ -6,6 +6,7 @@ import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import io.vertx.rxjava3.core.Vertx;
 import org.flywaydb.core.Flyway;
 import org.hibernate.reactive.stage.Stage;
 import org.junit.jupiter.api.AfterAll;
@@ -35,34 +36,42 @@ public abstract class DatabaseTest {
 
     public static boolean isInitialized = false;
 
-    private void initDB(VertxTestContext testContext) {
+    private void initDB(Vertx vertx, VertxTestContext testContext) {
         String address = postgres.getHost();
         Integer port = postgres.getFirstMappedPort();
         String dbUser = "root";
         String dbPassword = "root";
 
         if (!isInitialized) {
-            Flyway flyway = Flyway
-                .configure()
-                .dataSource("jdbc:postgresql://" + address + ":" + port + "/resource-manager",
-                    "root",
-                    "root")
-                .load();
-            flyway.migrate();
-            Map<String, String> props = Map.of(
-                "javax.persistence.jdbc.url", "jdbc:postgresql://" + address + ":" + port + "/resource-manager",
-                "javax.persistence.jdbc.user", dbUser,
-                "javax.persistence.jdbc.password", dbPassword);
-            Stage.SessionFactory sessionFactory = Persistence
-                .createEntityManagerFactory("postgres-unit", props)
-                .unwrap(Stage.SessionFactory.class);
-            smProvider = new SessionManagerProvider(sessionFactory);
-            fillDB(testContext);
+            flywayMigration(address, port);
+            setupSmProvider(address, port, dbUser, dbPassword);
+            fillDB(vertx, testContext);
             isInitialized = true;
         }
     }
 
-    public void fillDB(VertxTestContext testContext) {
+    private void flywayMigration(String address, int port) {
+        Flyway flyway = Flyway
+            .configure()
+            .dataSource("jdbc:postgresql://" + address + ":" + port + "/resource-manager",
+                "root",
+                "root")
+            .load();
+        flyway.migrate();
+    }
+
+    private static void setupSmProvider(String address, Integer port, String dbUser, String dbPassword) {
+        Map<String, String> props = Map.of(
+            "javax.persistence.jdbc.url", "jdbc:postgresql://" + address + ":" + port + "/resource-manager",
+            "javax.persistence.jdbc.user", dbUser,
+            "javax.persistence.jdbc.password", dbPassword);
+        Stage.SessionFactory sessionFactory = Persistence
+            .createEntityManagerFactory("postgres-unit", props)
+            .unwrap(Stage.SessionFactory.class);
+        smProvider = new SessionManagerProvider(sessionFactory);
+    }
+
+    public void fillDB(Vertx vertx, VertxTestContext testContext) {
         smProvider.withTransactionCompletable(sessionManager -> {
             Role adminRole = TestAccountProvider.createRoleAdmin();
             Role defaultRole = TestAccountProvider.createRoleDefault();
@@ -86,8 +95,8 @@ public abstract class DatabaseTest {
     }
 
     @BeforeEach
-    void initTests(VertxTestContext testContext) {
-        initDB(testContext);
+    void initTests(Vertx vertx, VertxTestContext testContext) {
+        initDB(vertx, testContext);
         testContext.completeNow();
     }
 

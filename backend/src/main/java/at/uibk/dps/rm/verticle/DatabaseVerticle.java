@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.verticle;
 
+import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.repository.DeploymentRepositoryProvider;
 import at.uibk.dps.rm.repository.EnsembleRepositoryProvider;
 import at.uibk.dps.rm.repository.account.*;
@@ -82,7 +83,8 @@ public class DatabaseVerticle extends AbstractVerticle {
 
     @Override
     public Completable rxStart() {
-        return setupDatabase()
+        ConfigDTO config = config().mapTo(ConfigDTO.class);
+        return setupDatabase(config)
             .andThen(Single.defer(() -> Single.just(1L)))
             .flatMapCompletable(res -> setupEventBus());
     }
@@ -92,18 +94,14 @@ public class DatabaseVerticle extends AbstractVerticle {
      *
      * @return a Completable
      */
-    private Completable setupDatabase() {
+    private Completable setupDatabase(ConfigDTO config) {
         Maybe<Void> startDB = vertx.rxExecuteBlocking(emitter -> {
-            int dbPort = config().getInteger("db_port");
-            String dbHost = config().getString("db_host");
-            String dbUser = config().getString("db_user");
-            String dbPassword = config().getString("db_password");
             Map<String, String> props = Map.of(
-                "javax.persistence.jdbc.url", "jdbc:postgresql://" + dbHost + ":" + dbPort + "/resource-manager",
-                "javax.persistence.jdbc.user", dbUser,
-                "javax.persistence.jdbc.password", dbPassword);
-            sessionFactory = Persistence
-                    .createEntityManagerFactory("postgres-unit", props)
+                "javax.persistence.jdbc.url", "jdbc:postgresql://" + config.getDbHost() + ":" +
+                    config.getDbPort() + "/resource-manager",
+                "javax.persistence.jdbc.user", config.getDbUser(),
+                "javax.persistence.jdbc.password", config.getDbPassword());
+            sessionFactory = Persistence.createEntityManagerFactory("postgres-unit", props)
                     .unwrap(SessionFactory.class);
             logger.info("Connection to database established");
             emitter.complete();
