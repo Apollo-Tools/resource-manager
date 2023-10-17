@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.repository.log;
 
 import at.uibk.dps.rm.entity.model.*;
-import at.uibk.dps.rm.testutil.DatabaseTest;
+import at.uibk.dps.rm.testutil.integration.DatabaseTest;
 import at.uibk.dps.rm.testutil.objectprovider.TestDeploymentProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestLogProvider;
 import io.vertx.junit5.VertxTestContext;

@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.repository.metric;
 
 import at.uibk.dps.rm.entity.model.Metric;
-import at.uibk.dps.rm.testutil.DatabaseTest;
+import at.uibk.dps.rm.testutil.integration.DatabaseTest;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;

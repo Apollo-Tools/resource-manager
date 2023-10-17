@@ -3,7 +3,7 @@ package at.uibk.dps.rm.repository;
 import at.uibk.dps.rm.entity.dto.account.RoleEnum;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.handler.ValidationHandler;
-import at.uibk.dps.rm.testutil.DatabaseTest;
+import at.uibk.dps.rm.testutil.integration.DatabaseTest;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.Test;
 

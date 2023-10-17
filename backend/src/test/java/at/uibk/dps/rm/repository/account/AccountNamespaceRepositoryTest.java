@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.repository.account;
 
 import at.uibk.dps.rm.entity.model.*;
-import at.uibk.dps.rm.testutil.DatabaseTest;
+import at.uibk.dps.rm.testutil.integration.DatabaseTest;
 import at.uibk.dps.rm.testutil.objectprovider.*;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
@@ -43,7 +43,7 @@ public class AccountNamespaceRepositoryTest extends DatabaseTest {
 
     @Test
     void findByAccountIdAndResourceId(VertxTestContext testContext) {
-        smProvider.withTransactionSingle(sessionManager -> repository
+        smProvider.withTransactionMaybe(sessionManager -> repository
                 .findByAccountIdAndResourceId(sessionManager, 1L, 1L))
             .subscribe(result -> testContext.verify(() -> {
                 assertThat(result.getAccountNamespaceId()).isEqualTo(1L);

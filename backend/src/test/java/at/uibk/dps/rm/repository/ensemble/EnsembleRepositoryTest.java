@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.repository.ensemble;
 
 import at.uibk.dps.rm.entity.model.Ensemble;
-import at.uibk.dps.rm.testutil.DatabaseTest;
+import at.uibk.dps.rm.testutil.integration.DatabaseTest;
 import at.uibk.dps.rm.testutil.objectprovider.TestEnsembleProvider;
 import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.junit5.VertxTestContext;

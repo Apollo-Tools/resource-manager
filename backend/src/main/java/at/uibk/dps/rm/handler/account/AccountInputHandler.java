@@ -91,7 +91,7 @@ public class AccountInputHandler {
                 Pattern pattern = Pattern.compile(regex);
 
                 if (!pattern.matcher(username).matches()) {
-                    throw new Throwable("password does not meet the minimum requirements");
+                    throw new Throwable("username does not meet the minimum requirements");
                 }
                 return username;
             })

@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.repository.resourceprovider;
 
 import at.uibk.dps.rm.entity.model.*;
-import at.uibk.dps.rm.testutil.DatabaseTest;
+import at.uibk.dps.rm.testutil.integration.DatabaseTest;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;

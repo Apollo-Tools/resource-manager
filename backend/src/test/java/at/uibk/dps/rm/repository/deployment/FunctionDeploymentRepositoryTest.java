@@ -3,7 +3,7 @@ package at.uibk.dps.rm.repository.deployment;
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.model.Runtime;
-import at.uibk.dps.rm.testutil.DatabaseTest;
+import at.uibk.dps.rm.testutil.integration.DatabaseTest;
 import at.uibk.dps.rm.testutil.objectprovider.*;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;

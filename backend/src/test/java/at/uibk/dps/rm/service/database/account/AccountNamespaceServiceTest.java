@@ -9,7 +9,6 @@ import at.uibk.dps.rm.repository.account.AccountNamespaceRepository;
 import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
-import at.uibk.dps.rm.testutil.SingleHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
@@ -70,7 +69,7 @@ public class AccountNamespaceServiceTest {
             .thenReturn(Maybe.empty());
         when(sessionManager.find(K8sNamespace.class, namespaceId)).thenReturn(Maybe.just(namespace));
         when(accountNamespaceRepository.findByAccountIdAndResourceId(sessionManager, accountId,
-            namespace.getResource().getResourceId())).thenReturn(SingleHelper.getEmptySingle());
+            namespace.getResource().getResourceId())).thenReturn(Maybe.empty());
         when(sessionManager.find(Account.class, accountId)).thenReturn(Maybe.just(account));
         when(sessionManager.persist(argThat((AccountNamespace persist) ->
                 persist.getNamespace().equals(namespace) && persist.getAccount().equals(account))))
@@ -91,7 +90,7 @@ public class AccountNamespaceServiceTest {
             .thenReturn(Maybe.empty());
         when(sessionManager.find(K8sNamespace.class, namespaceId)).thenReturn(Maybe.just(namespace));
         when(accountNamespaceRepository.findByAccountIdAndResourceId(sessionManager, accountId,
-            namespace.getResource().getResourceId())).thenReturn(SingleHelper.getEmptySingle());
+            namespace.getResource().getResourceId())).thenReturn(Maybe.empty());
         when(sessionManager.find(Account.class, accountId)).thenReturn(Maybe.empty());
 
         accountNamespaceService.saveByAccountIdAndNamespaceId(accountId, namespaceId,
@@ -108,7 +107,8 @@ public class AccountNamespaceServiceTest {
             .thenReturn(Maybe.empty());
         when(sessionManager.find(K8sNamespace.class, namespaceId)).thenReturn(Maybe.just(namespace));
         when(accountNamespaceRepository.findByAccountIdAndResourceId(sessionManager, accountId,
-            namespace.getResource().getResourceId())).thenReturn(Single.just(new AccountNamespace()));
+            namespace.getResource().getResourceId())).thenReturn(Maybe.just(new AccountNamespace()));
+        when(sessionManager.find(Account.class, accountId)).thenReturn(Maybe.just(account));
 
         accountNamespaceService.saveByAccountIdAndNamespaceId(accountId, namespaceId,
             testContext.failing(throwable -> testContext.verify(() -> {
@@ -124,6 +124,7 @@ public class AccountNamespaceServiceTest {
         when(accountNamespaceRepository.findByAccountIdAndNamespaceId(sessionManager, accountId, namespaceId))
             .thenReturn(Maybe.empty());
         when(sessionManager.find(K8sNamespace.class, namespaceId)).thenReturn(Maybe.empty());
+        doReturn(Maybe.just(account)).when(sessionManager).find(Account.class, accountId);
 
         accountNamespaceService.saveByAccountIdAndNamespaceId(accountId, namespaceId,
             testContext.failing(throwable -> testContext.verify(() -> {
@@ -138,6 +139,7 @@ public class AccountNamespaceServiceTest {
         when(accountNamespaceRepository.findByAccountIdAndNamespaceId(sessionManager, accountId, namespaceId))
             .thenReturn(Maybe.just(new AccountNamespace()));
         when(sessionManager.find(K8sNamespace.class, namespaceId)).thenReturn(Maybe.empty());
+        doReturn(Maybe.just(account)).when(sessionManager).find(Account.class, accountId);
 
         accountNamespaceService.saveByAccountIdAndNamespaceId(accountId, namespaceId,
             testContext.failing(throwable -> testContext.verify(() -> {

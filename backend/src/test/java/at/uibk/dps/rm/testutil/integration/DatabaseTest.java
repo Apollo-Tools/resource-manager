@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.testutil;
+package at.uibk.dps.rm.testutil.integration;
 
 import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.entity.model.Role;
@@ -36,7 +36,7 @@ public abstract class DatabaseTest {
 
     public static boolean isInitialized = false;
 
-    private void initDB(Vertx vertx, VertxTestContext testContext) {
+    protected void initDB(Vertx vertx, VertxTestContext testContext) {
         String address = postgres.getHost();
         Integer port = postgres.getFirstMappedPort();
         String dbUser = "root";
@@ -46,7 +46,6 @@ public abstract class DatabaseTest {
             flywayMigration(address, port);
             setupSmProvider(address, port, dbUser, dbPassword);
             fillDB(vertx, testContext);
-            isInitialized = true;
         }
     }
 
@@ -97,6 +96,7 @@ public abstract class DatabaseTest {
     @BeforeEach
     void initTests(Vertx vertx, VertxTestContext testContext) {
         initDB(vertx, testContext);
+        isInitialized = true;
         testContext.completeNow();
     }
 

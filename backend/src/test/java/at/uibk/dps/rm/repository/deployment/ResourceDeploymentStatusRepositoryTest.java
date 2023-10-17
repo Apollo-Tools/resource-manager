@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.repository.deployment;
 
-import at.uibk.dps.rm.testutil.DatabaseTest;
+import at.uibk.dps.rm.testutil.integration.DatabaseTest;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;

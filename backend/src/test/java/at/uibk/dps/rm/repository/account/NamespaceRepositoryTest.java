@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.repository.account;
 
 import at.uibk.dps.rm.entity.model.*;
-import at.uibk.dps.rm.testutil.DatabaseTest;
+import at.uibk.dps.rm.testutil.integration.DatabaseTest;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestPlatformProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;

@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.testutil;
+package at.uibk.dps.rm.testutil.integration;
 
 import at.uibk.dps.rm.Main;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
@@ -10,8 +10,11 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.web.client.WebClient;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -24,24 +27,27 @@ public abstract class RouterTest extends DatabaseTest {
 
     public final static String API_URL = "localhost";
 
-    public final static int API_PORT = 8888;
+    public static int API_PORT = 8888;
 
-    @Override
-    public void fillDB(Vertx vertx, VertxTestContext testContext) {
-        super.fillDB(vertx, testContext);
+    private void startupRM(Vertx vertx, VertxTestContext testContext) {
         String address = postgres.getHost();
         Integer port = postgres.getFirstMappedPort();
         ConfigDTO config = TestConfigProvider.getConfigDTO();
         config.setDbHost(address);
         config.setDbPort(port);
         config.setDbUser("root");
+        config.setApiPort(API_PORT);
         config.setDbPassword("root");
         config.setJwtAlgorithm("HS256");
-        try (MockedConstruction<ConfigUtility> ignore = Mockprovider.mockConfig(config)) {
+        try (MockedConstruction<ConfigUtility> ignore = Mockprovider.mockConfig(config);
+                MockedStatic<Vertx> vertxMock = Mockito.mockStatic(Vertx.class)) {
+            vertxMock.when(Vertx::vertx).thenReturn(vertx);
             Main.main(null);
-            WebClient client = WebClient.create(vertx);
-            loginAccount(client, "user1", "Password1!", true, testContext);
-            loginAccount(client, "user2", "Password1!", false, testContext);
+            if (!isInitialized) {
+                WebClient client = WebClient.create(vertx);
+                loginAccount(client, "user1", "Password1!", true, testContext);
+                loginAccount(client, "user2", "Password1!", false, testContext);
+            }
         }
     }
 
@@ -62,5 +68,13 @@ public abstract class RouterTest extends DatabaseTest {
                     jwtDefault = "Bearer " + result.bodyAsJsonObject().getString("token");
                 }
             }, throwable -> testContext.failNow("login failed"));
+    }
+
+    @BeforeEach
+    void initTests(Vertx vertx, VertxTestContext testContext) {
+        initDB(vertx, testContext);
+        startupRM(vertx, testContext);
+        isInitialized = true;
+        testContext.completeNow();
     }
 }

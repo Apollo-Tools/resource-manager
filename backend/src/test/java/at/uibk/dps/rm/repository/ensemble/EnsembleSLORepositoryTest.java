@@ -2,7 +2,7 @@ package at.uibk.dps.rm.repository.ensemble;
 
 import at.uibk.dps.rm.entity.model.Ensemble;
 import at.uibk.dps.rm.entity.model.EnsembleSLO;
-import at.uibk.dps.rm.testutil.DatabaseTest;
+import at.uibk.dps.rm.testutil.integration.DatabaseTest;
 import at.uibk.dps.rm.testutil.objectprovider.TestEnsembleProvider;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
