@@ -16,6 +16,11 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Implements tests for the {@link FunctionRepository} class.
+ *
+ * @author matthi-g
+ */
 public class FunctionRepositoryTest extends DatabaseTest {
 
     private final FunctionRepository repository = new FunctionRepository();

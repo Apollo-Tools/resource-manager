@@ -18,6 +18,11 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Implements tests for the {@link ServiceDeploymentRepository} class.
+ *
+ * @author matthi-g
+ */
 public class ServiceDeploymentRepositoryTest extends DatabaseTest {
 
     private final ServiceDeploymentRepository repository = new ServiceDeploymentRepository();

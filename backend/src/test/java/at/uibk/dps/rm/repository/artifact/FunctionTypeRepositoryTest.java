@@ -12,6 +12,11 @@ import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Implements tests for the {@link FunctionTypeRepository} class.
+ *
+ * @author matthi-g
+ */
 public class FunctionTypeRepositoryTest extends DatabaseTest {
 
     private final FunctionTypeRepository repository = new FunctionTypeRepository();

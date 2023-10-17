@@ -9,6 +9,11 @@ import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Implements tests for the {@link RoleRepository} class.
+ *
+ * @author matthi-g
+ */
 public class RoleRepositoryTest extends DatabaseTest {
 
     private final RoleRepository repository = new RoleRepository();

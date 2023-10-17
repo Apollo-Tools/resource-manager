@@ -12,6 +12,11 @@ import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Implements tests for the {@link AccountRepository} class.
+ *
+ * @author matthi-g
+ */
 public class AccountRepositoryTest extends DatabaseTest {
 
     private final AccountRepository repository = new AccountRepository();

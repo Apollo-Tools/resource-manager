@@ -10,6 +10,11 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Implements tests for the {@link AccountCredentialsRepository} class.
+ *
+ * @author matthi-g
+ */
 public class AccountCredentialsRepositoryTest extends DatabaseTest {
 
     private final AccountCredentialsRepository repository = new AccountCredentialsRepository();

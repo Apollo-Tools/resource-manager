@@ -9,7 +9,12 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class K8sServiceRouteTest extends RouterTest {
+/**
+ * Implements tests for the {@link K8sServiceTypeRoute} class.
+ *
+ * @author matthi-g
+ */
+public class K8sServiceTypeRouteTest extends RouterTest {
 
     @Test
     void listK8sServiceTypes(Vertx vertx, VertxTestContext testContext) {

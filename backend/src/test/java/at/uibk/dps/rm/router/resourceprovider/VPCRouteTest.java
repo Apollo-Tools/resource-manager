@@ -12,6 +12,11 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Implements tests for the {@link VPCRoute} class.
+ *
+ * @author matthi-g
+ */
 public class VPCRouteTest extends RouterTest {
 
     @Override

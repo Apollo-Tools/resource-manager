@@ -12,6 +12,11 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Implements tests for the {@link EnsembleRoute} class.
+ *
+ * @author matthi-g
+ */
 public class EnsembleRouteTest extends RouterTest {
 
     @Override

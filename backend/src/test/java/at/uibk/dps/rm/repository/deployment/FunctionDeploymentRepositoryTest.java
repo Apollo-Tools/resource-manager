@@ -17,6 +17,11 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Implements tests for the {@link FunctionDeploymentRepository} class.
+ *
+ * @author matthi-g
+ */
 public class FunctionDeploymentRepositoryTest extends DatabaseTest {
 
     private final FunctionDeploymentRepository repository = new FunctionDeploymentRepository();

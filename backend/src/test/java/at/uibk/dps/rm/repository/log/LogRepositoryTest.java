@@ -11,6 +11,11 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Implements tests for the {@link LogRepository} class.
+ *
+ * @author matthi-g
+ */
 public class LogRepositoryTest extends DatabaseTest {
 
     private final LogRepository repository = new LogRepository();

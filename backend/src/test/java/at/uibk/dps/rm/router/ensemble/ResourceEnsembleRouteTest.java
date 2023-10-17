@@ -19,6 +19,11 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Implements tests for the {@link ResourceEnsembleRoute} class.
+ *
+ * @author matthi-g
+ */
 public class ResourceEnsembleRouteTest extends RouterTest {
 
     @Override

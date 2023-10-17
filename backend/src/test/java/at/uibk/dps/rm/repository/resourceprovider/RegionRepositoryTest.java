@@ -21,6 +21,11 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Implements tests for the {@link RegionRepository} class.
+ *
+ * @author matthi-g
+ */
 public class RegionRepositoryTest extends DatabaseTest {
 
     private final RegionRepository repository = new RegionRepository();

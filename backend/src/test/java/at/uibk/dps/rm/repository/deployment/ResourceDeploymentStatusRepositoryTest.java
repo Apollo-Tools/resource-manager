@@ -9,6 +9,11 @@ import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Implements tests for the {@link ResourceDeploymentStatusRepository} class.
+ *
+ * @author matthi-g
+ */
 public class ResourceDeploymentStatusRepositoryTest extends DatabaseTest {
 
     private final ResourceDeploymentStatusRepository repository = new ResourceDeploymentStatusRepository();

@@ -20,6 +20,12 @@ import javax.persistence.Persistence;
 
 import java.util.Map;
 
+/**
+ * This abstract class can be used for tests which need a running database instance including all
+ * flyway migrations.
+ *
+ * @author matthi-g
+ */
 @Testcontainers
 @ExtendWith(VertxExtension.class)
 public abstract class DatabaseTest {
@@ -36,6 +42,12 @@ public abstract class DatabaseTest {
 
     public static boolean isInitialized = false;
 
+    /**
+     * Initialize the resource manager database and set up a {@link SessionManagerProvider}.
+     *
+     * @param vertx a vertx instance
+     * @param testContext the vertx testcontext
+     */
     protected void initDB(Vertx vertx, VertxTestContext testContext) {
         String address = postgres.getHost();
         Integer port = postgres.getFirstMappedPort();
@@ -49,6 +61,12 @@ public abstract class DatabaseTest {
         }
     }
 
+    /**
+     * Apply the flyway migrations
+     *
+     * @param address the host address of the database instance
+     * @param port the port of the database instance
+     */
     private void flywayMigration(String address, int port) {
         Flyway flyway = Flyway
             .configure()
@@ -59,6 +77,14 @@ public abstract class DatabaseTest {
         flyway.migrate();
     }
 
+    /**
+     * Set up the {@link SessionManagerProvider}.
+     *
+     * @param address the host address of the database instance
+     * @param port the port of the database instance
+     * @param dbUser the username of the database user
+     * @param dbPassword the password of the database user
+     */
     private static void setupSmProvider(String address, Integer port, String dbUser, String dbPassword) {
         Map<String, String> props = Map.of(
             "javax.persistence.jdbc.url", "jdbc:postgresql://" + address + ":" + port + "/resource-manager",
@@ -70,6 +96,12 @@ public abstract class DatabaseTest {
         smProvider = new SessionManagerProvider(sessionFactory);
     }
 
+    /**
+     * Fill the database with test data.
+     *
+     * @param vertx a vertx instance
+     * @param testContext the test context
+     */
     public void fillDB(Vertx vertx, VertxTestContext testContext) {
         smProvider.withTransactionCompletable(sessionManager -> {
             Role adminRole = TestAccountProvider.createRoleAdmin();

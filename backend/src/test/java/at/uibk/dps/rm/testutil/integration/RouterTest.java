@@ -18,6 +18,11 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+/**
+ * This abstract class can be used for tests which need a running instance of the resource manager.
+ *
+ * @author matthi-g
+ */
 @Testcontainers
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
@@ -29,6 +34,12 @@ public abstract class RouterTest extends DatabaseTest {
 
     public static int API_PORT = 8888;
 
+    /**
+     * Start up the resource manager using the given vertx instance.
+     *
+     * @param vertx a vertx instance
+     * @param testContext the test context
+     */
     private void startupRM(Vertx vertx, VertxTestContext testContext) {
         String address = postgres.getHost();
         Integer port = postgres.getFirstMappedPort();
@@ -51,6 +62,15 @@ public abstract class RouterTest extends DatabaseTest {
         }
     }
 
+    /**
+     * Login an account.
+     *
+     * @param client an active web client
+     * @param username the username
+     * @param password the password
+     * @param isAdmin whether the account is an admin
+     * @param testContext the test context
+     */
     private void loginAccount(WebClient client, String username, String password, boolean isAdmin,
             VertxTestContext testContext) {
         JsonObject login = new JsonObject();

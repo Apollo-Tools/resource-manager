@@ -9,6 +9,11 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Implements tests for the {@link ServiceTypeRoute} class.
+ *
+ * @author matthi-g
+ */
 public class ServiceTypeRouteTest extends RouterTest {
 
     @Test

@@ -19,6 +19,13 @@ public class AccountRepository extends Repository<Account> {
         super(Account.class);
     }
 
+    /**
+     * Find an active account by its id.
+     *
+     * @param sessionManager the database session manager
+     * @param id the id of the account
+     * @return a Maybe that emits the account if it exists and is active, else null
+     */
     public Maybe<Account> findByIdAndActive(SessionManager sessionManager, long id) {
         return Maybe.fromCompletionStage(
             sessionManager.getSession()

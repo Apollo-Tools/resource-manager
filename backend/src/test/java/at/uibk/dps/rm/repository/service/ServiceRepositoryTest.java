@@ -17,6 +17,11 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Implements tests for the {@link ServiceRepository} class.
+ *
+ * @author matthi-g
+ */
 public class ServiceRepositoryTest extends DatabaseTest {
 
     private final ServiceRepository repository = new ServiceRepository();

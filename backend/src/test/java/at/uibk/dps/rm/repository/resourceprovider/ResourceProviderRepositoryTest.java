@@ -10,6 +10,11 @@ import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Implements tests for the {@link ResourceProviderRepository} class.
+ *
+ * @author matthi-g
+ */
 public class ResourceProviderRepositoryTest extends DatabaseTest {
 
     private final ResourceProviderRepository repository = new ResourceProviderRepository();

@@ -20,6 +20,11 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Implements tests for the {@link PlatformMetricRepository} class.
+ *
+ * @author matthi-g
+ */
 public class PlatformMetricRepositoryTest extends DatabaseTest {
 
     private final PlatformMetricRepository repository = new PlatformMetricRepository();

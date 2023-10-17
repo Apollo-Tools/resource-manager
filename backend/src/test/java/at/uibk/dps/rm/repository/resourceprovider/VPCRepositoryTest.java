@@ -17,6 +17,11 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Implements tests for the {@link VPCRepository} class.
+ *
+ * @author matthi-g
+ */
 public class VPCRepositoryTest extends DatabaseTest {
 
     private final VPCRepository repository = new VPCRepository();

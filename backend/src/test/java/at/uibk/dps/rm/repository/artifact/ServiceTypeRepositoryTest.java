@@ -12,6 +12,11 @@ import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Implements tests for the {@link ServiceTypeRepository} class.
+ *
+ * @author matthi-g
+ */
 public class ServiceTypeRepositoryTest extends DatabaseTest {
 
     private final ServiceTypeRepository repository = new ServiceTypeRepository();

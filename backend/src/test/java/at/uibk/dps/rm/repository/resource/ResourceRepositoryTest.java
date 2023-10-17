@@ -19,6 +19,11 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Implements tests for the {@link ResourceRepository} class.
+ *
+ * @author matthi-g
+ */
 public class ResourceRepositoryTest extends DatabaseTest {
 
     private final ResourceRepository repository = new ResourceRepository();

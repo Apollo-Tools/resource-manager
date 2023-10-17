@@ -11,6 +11,11 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Implements tests for the {@link AccountRoute} class.
+ *
+ * @author matthi-g
+ */
 public class AccountRouteTest extends RouterTest {
 
     @ParameterizedTest

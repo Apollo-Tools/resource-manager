@@ -9,6 +9,11 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Implements tests for the {@link AccountNamespaceRepository} class.
+ *
+ * @author matthi-g
+ */
 public class AccountNamespaceRepositoryTest extends DatabaseTest {
 
     private final AccountNamespaceRepository repository = new AccountNamespaceRepository();
