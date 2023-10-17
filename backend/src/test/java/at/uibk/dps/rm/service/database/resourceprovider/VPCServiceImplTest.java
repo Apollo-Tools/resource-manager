@@ -68,11 +68,13 @@ public class VPCServiceImplTest {
 
 
     @Test
-    void findOne(VertxTestContext testContext) {
+    void findOneByIdAndAccountId(VertxTestContext testContext) {
         SessionMockHelper.mockMaybe(smProvider, sessionManager);
-        when(vpcRepository.findByIdAndFetch(sessionManager, vpc1.getVpcId())).thenReturn(Maybe.just(vpc1));
+        when(vpcRepository.findByIdAndAccountIdAndFetch(sessionManager, vpc1.getVpcId(), account.getAccountId()))
+            .thenReturn(Maybe.just(vpc1));
 
-        vpcService.findOne(vpc1.getVpcId(), testContext.succeeding(result -> testContext.verify(() -> {
+        vpcService.findOneByIdAndAccountId(vpc1.getVpcId(), account.getAccountId(),
+            testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("vpc_id")).isEqualTo(1L);
                 assertThat(result.getJsonObject("region").getLong("region_id")).isEqualTo(1L);
                 testContext.completeNow();
@@ -80,14 +82,16 @@ public class VPCServiceImplTest {
     }
 
     @Test
-    void findOneNotFound(VertxTestContext testContext) {
+    void findOneByIdAndAccountIdNotFound(VertxTestContext testContext) {
         SessionMockHelper.mockMaybe(smProvider, sessionManager);
-        when(vpcRepository.findByIdAndFetch(sessionManager, vpc1.getVpcId())).thenReturn(Maybe.empty());
+        when(vpcRepository.findByIdAndAccountIdAndFetch(sessionManager, vpc1.getVpcId(), account.getAccountId()))
+            .thenReturn(Maybe.empty());
 
-        vpcService.findOne(vpc1.getVpcId(), testContext.failing(throwable -> testContext.verify(() -> {
-            assertThat(throwable).isInstanceOf(NotFoundException.class);
-            testContext.completeNow();
-        })));
+        vpcService.findOneByIdAndAccountId(vpc1.getVpcId(), account.getAccountId(),
+            testContext.failing(throwable -> testContext.verify(() -> {
+                assertThat(throwable).isInstanceOf(NotFoundException.class);
+                testContext.completeNow();
+            })));
     }
 
     @Test
