@@ -54,8 +54,9 @@ public class VPCServiceImpl extends DatabaseServiceProxy<VPC> implements VPCServ
     }
 
     @Override
-    public void findOne(long id, Handler<AsyncResult<JsonObject>> resultHandler) {
-        Maybe<VPC> findOne = smProvider.withTransactionMaybe( sm -> repository.findByIdAndFetch(sm, id)
+    public void findOneByIdAndAccountId(long id, long accountId, Handler<AsyncResult<JsonObject>> resultHandler) {
+        Maybe<VPC> findOne = smProvider.withTransactionMaybe( sm -> repository
+            .findByIdAndAccountIdAndFetch(sm, id, accountId)
             .switchIfEmpty(Maybe.error(new NotFoundException(VPC.class))));
         RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
     }

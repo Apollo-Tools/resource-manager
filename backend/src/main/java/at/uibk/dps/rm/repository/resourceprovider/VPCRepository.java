@@ -80,6 +80,26 @@ public class VPCRepository extends Repository<VPC> {
     }
 
     /**
+     * Find a vpc by its id and creator account and fetch the region and the resource provider.
+     *
+     * @param sessionManager the database session manager
+     * @param vpcId the id of the vpc
+     * @param accountId the id of the creator account
+     * @return a Maybe that emits the vpc if it exists, else null
+     */
+    public Maybe<VPC> findByIdAndAccountIdAndFetch(SessionManager sessionManager, long vpcId, long accountId) {
+        return Maybe.fromCompletionStage(sessionManager.getSession()
+            .createQuery("from VPC vpc " +
+                "left join fetch vpc.region reg " +
+                "left join fetch reg.resourceProvider " +
+                "where vpc.vpcId=:vpcId and vpc.createdBy.accountId=:accountId", entityClass)
+            .setParameter("vpcId", vpcId)
+            .setParameter("accountId", accountId)
+            .getSingleResultOrNull()
+        );
+    }
+
+    /**
      * Find all vpcs by account id and fetch the region and resource provider.
      *
      * @param sessionManager the database session manager
