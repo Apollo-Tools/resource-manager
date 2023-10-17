@@ -25,7 +25,7 @@ public class EnsembleRouteTest extends RouterTest {
     }
 
     @Test
-    void getFunctionType(Vertx vertx, VertxTestContext testContext) {
+    void getEnsemble(Vertx vertx, VertxTestContext testContext) {
         WebClient client = WebClient.create(vertx);
         client.get(API_PORT, API_URL, "/api/ensembles/1")
             .putHeader("Authorization", jwtAdmin)
