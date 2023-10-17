@@ -19,18 +19,25 @@ import java.util.stream.Collectors;
 @UtilityClass
 public class TestEnsembleProvider {
 
-    public static Ensemble createEnsemble(Long ensembleId, long accountId, String name, boolean isValid) {
+    public static Ensemble createEnsemble(Long ensembleId, long accountId, String name, boolean isValid,
+            List<Long> regions, List<Long> providers, List<Long> resourceTypes, List<Long> environments,
+            List<Long> platforms) {
         Ensemble ensemble = new Ensemble();
         ensemble.setEnsembleId(ensembleId);
         ensemble.setName(name);
         ensemble.setCreatedBy(TestAccountProvider.createAccount(accountId));
         ensemble.setIsValid(isValid);
-        ensemble.setRegions(List.of(1L, 2L));
-        ensemble.setProviders(List.of(3L, 4L));
-        ensemble.setResource_types(List.of(3L, 4L));
-        ensemble.setEnvironments(List.of(5L));
-        ensemble.setPlatforms(List.of(1L, 5L));
+        ensemble.setRegions(regions);
+        ensemble.setProviders(providers);
+        ensemble.setResource_types(resourceTypes);
+        ensemble.setEnvironments(environments);
+        ensemble.setPlatforms(platforms);
         return ensemble;
+    }
+
+    public static Ensemble createEnsemble(Long ensembleId, long accountId, String name, boolean isValid) {
+        return createEnsemble(ensembleId, accountId, name, isValid, List.of(1L, 2L), List.of(3L, 4L), List.of(3L, 4L),
+            List.of(5L), List.of(1L, 5L));
     }
 
     public static Ensemble createEnsemble(Long ensembleId, long accountId, String name) {
