@@ -38,61 +38,29 @@ info:
     values (see /resources/metrics). For future deployments, it is necessary for a resource to have a metric value for 
     all metrics that are required by the resource's platform. Otherwise the deployment will fail.
     
-    ## Service Level Objectives and Resource Ensembles
-    It is possible to retrieve resources filtered by service level objectives (see resources/slo). If you  are 
-    satisfied with the resulting resources or if you only need a subset of the retrieved resources you can store them 
-    with a name and the service level objectives as a *resource ensemble* (see /ensemble). The resources of the 
-    ensemble can be validated with /ensembles/{id}/validate. Supported metrics as service level objectives are all 
-    metrics that are managed by the RM as well as resource_type, platform, region, resource_provider and 
-    environment. For the latter five properties the values must be the ids of the entities. For example the service 
-    level objective for all resource types of type container would look like this if the *resource_type_id* of the 
-    *container* resource type equals 4:    
-    ```
-    {
-      name: resource_type,
-      expression: "==",
-      value: [4]
-    }
-    ```    
+    It also possible for resources to have sub-resources. This is currently only supported for container resources.
+    A subresource in the context of a container resource would be one node of a k8s cluster. If a container resource
+    is set up correctly on the resource manager including a valid kube config that is readable by the monitoring 
+    system, sub resources are added, updated and delete automatically. *Sub-resources can not have another set of 
+    sub-resources.*
     
-    As you can see the type of the value property of the service level objective is an array. Therefore, it is possible 
-    for service level objectives with the expression '==' to specify multiple values as valid options. For '<' or '>' 
-    expressions the value array must be of size one.
-    
-    ## Functions and Services
-    Functions and Services represent the two different deployable entities in the context of the rm. They don't have 
-    the same structure and are only available for deployments on predefined platforms as described in the 
-    platforms section. They also are always linked to a function type or service type. A type is the abstract
-    description of the functionality while the function or service is a specific implementation of the type.
-    - **functions**: Function entities consist of a function type, name, a runtime and a function code that can be 
-    executed by that runtime. Currently python 3.8 and java 11 are the supported runtimes. In general function code has
-    to be uploaded as a zip file. Templates for all available runtimes can be found at the git repository of the RM 
-    (backend/faas-templates). For python functions it is also possible to directly save the function code of the 
-    function.
-    - **services**: Service entities consist of a service type, name, the title of the docker image, the number of
-    replicas for that service, the ports that should be exposed, the required cpu amount, the required memory amount
-    and the k8s service type. Currently *ClientIP*, *NodePort*, *LoadBalancer*, *NoService* are supported k8s service 
-    types. If *NoService* is the selected service type no ports are allowed. The schema for ports to expose looks like
-    this: 
-    - ``containerPort:servicePort`` 
-    - e.g. your container exposes the port 80 and you want to expose it to service port 8080 you would have to provide 
-    it like this ``80:8080``.
-    
-    ## Deployment
-    Deployments consist of mappings of functions and services to resources and the necessary credentials. 
-    - **Credentials**: If a deployment to a cloud provider is part of the deploy resources request, credentials (access 
-    token, secret token, session token) must be stored on the account (see /credentials). In addition if the 
-    request contains resources of platform *EC2* or *OpenFaaS*, docker credentials must also be included in the 
-    request, because OpenFaaS uses docker images which must first be pushed to a docker repository and then pulled on 
-    the concerning resources. Make sure to generate a docker access token with read and write permissions for this 
-    purpose. For resources of type *container* a valid kube config must be provided within the request. The kube 
-    config must meet some specific requirements:
-      1. The cluster array must contain the cluster(s) where you want to deploy images to. 
-      2. You must provide a valid context for each cluster. The context must contain the namespace to be used. If this
-        is not the case, the RM will use the *default* namespace. 
+    ### Setting up container resources
+    For each resource of type *container*, a valid kube config must be provided. It has to be set up in a way
+    that it can be accessed with e.g. **kubectl** on the same resource as the resource manager is running. To do this,
+    `kubectl apply`can be used with k8s deployment file [rm-kube-secret](kubernetes/rm-kube-secret.yaml). The structure
+    of this file is very simple and only the **data** field has to be updated to your needs:
+    - Each entry represents a separate container resource
+    - The key is the name of the resource. Make sure that you use the same name as in the registration of the 
+    resource at the resource manager.
+    - The value is the content of the kube config in base64 encoding.
+    > It is important that these secrets are readable by the same service account, that is set in the [rm-api]
+    > (kubernetes/rm-api.yaml) deployment file.
+    The kube config must meet some specific requirements:
+      1. The cluster array must contain only one cluster.
+      2. A valid context that can access all namespaces of that cluster must be provided.
       3. The certificate and client key data must be inserted directly into the kube config. To do this, you 
-      need to base64 encode the two whole files as values and use *client-certificate-data* and *client-key-data* as 
-      keys. Using only the certificate or secret string won't work. It is recommended to test the kube config with
+      need to also base64 encode the two whole files as values and use *client-certificate-data* and *client-key-data*
+      as keys. Using only the certificate or secret string won't work. It is recommended to test the kube config with
       kubectl before using it with the resource manager, to make sure it is valid.
     
     A sample kube config looks like this:
@@ -117,6 +85,63 @@ info:
           client-certificate-data: <b64-encoded-cert>
           client-key-data: <b64-encoded-key>
     ```
+    
+    ## Service Level Objectives and Resource Ensembles
+    It is possible to retrieve resources filtered by service level objectives (see resources/slo). If you  are 
+    satisfied with the resulting resources or if you only need a subset of the retrieved resources you can store them 
+    with a name and the service level objectives as a *resource ensemble* (see /ensemble). The resources of the 
+    ensemble can be validated with /ensembles/{id}/validate. Supported metrics as service level objectives are all 
+    metrics that are managed by the RM and where the field **is_slo** is set to `true` as well as the non metric 
+    properties resource_type, platform, region, resource_provider and environment. For the latter five properties
+    the values must be the ids of the entities. For example the service level objective for all resource types of type
+    container would look like this if the *resource_type_id* of the *container* resource type equals 4:    
+    ```
+    {
+      name: resource_type,
+      expression: "==",
+      value: [4]
+    }
+    ```    
+    
+    As you can see the type of the value property of the service level objective is an array. Therefore, it is possible 
+    for service level objectives with the expression '==' to specify multiple values as valid options. For '<' or '>' 
+    expressions the value array must be of size one. 
+    > - Providing multiple values inside the value array acts as a logical OR.
+    > - Providing multiple service level objectives acts as a logical AND.
+    
+    ## Functions and Services
+    Functions and Services represent the two different deployable entities in the context of the rm. They have a 
+    similar but not the the same structure and are only available for deployments on predefined platforms as described 
+    in the platforms section. They also are always linked to a function type or service type. A type is the abstract
+    description of the functionality while the function or service is a specific implementation of the type. Functions
+    and Services both are always coupled to the account that created the specific entity. Hence only the creator of a
+    Function or Service is allowed to modify it but they can still be used for deployments by other users if public 
+    access is enabled by setting the *is_public* field to `true`.
+    - **functions**: Function entities consist of a function type, name, a runtime, a minimum timeout, required memory 
+    and function code that can be executed by that runtime. Currently python 3.8 and java 11 are the supported runtimes.
+    In general function code has to be uploaded as a zip file. Templates (backend/faas-templates) and 
+    examples (backend/faas-examples) for all available runtimes can be found at the git repository of the RM. For 
+    python functions it is also possible to directly save the function code to the Function entity.
+    - **services**: Service entities consist of a service type, name, the title of the docker image, the number of
+    replicas for that service, the ports that should be exposed, the required cpu amount, the required memory amount
+    and the k8s service type. Currently *ClusterIP*, *NodePort*, *LoadBalancer*, *NoService* are supported k8s service 
+    types. If *NoService* is the selected service type no ports are allowed. The schema for ports to expose looks like
+    this: 
+    - ``containerPort:servicePort`` 
+    
+    > e.g. your container exposes the port 80 and you want to expose it to service port 8080 you would have to provide 
+    > it like this ``80:8080``
+    
+    ## Deployment
+    Deployments consist of mappings of functions and services to resources and the necessary credentials. 
+    - **Credentials**: If a deployment to a cloud provider is part of the deploy resources request, credentials (access 
+    token, secret token, session token) must be stored to the account (see /credentials). In addition if the 
+    request contains resources of platform *EC2* or *OpenFaaS*, docker credentials to a registry that is reachable by
+    all resources must also be included in the request. The reason for that is that OpenFaaS uses docker images 
+    which must first be pushed to a docker repository and then pulled on the concerning resources. Make sure to 
+    generate a docker access token with read and write permissions for this purpose that can be invalidated after the
+    deployment was successful.
+    
     - **Virtual Private Clouds**: In order to deploy virtual machines on AWS EC2 a Virtual Private Cloud (VPC) must be 
     registered (see /vpcs) prior to submitting a deployment request for each region in which a virtual machine will
     be deployed. 
@@ -136,24 +161,23 @@ info:
     /deployments/{id}/logs endpoint.
     
     ## Authentication
-    The RM uses **Bearer tokens** for authentication because it's a simple authentication method. 
-    New users can be created using the *accounts/signup* route. A new token can be retrieved using the *accounts/login*
-    route.  
+    The RM uses **Bearer tokens** for authentication because of it's simplicity. 
+    New users can be created by accounts with the admin role using the *accounts/signup* route. A new token can be 
+    retrieved using the *accounts/login* route.  
     
     ### Roles
-    Different routes required different roles. The property *x-role* defines the necessary role on operation level.
+    Different routes require different roles. The property *x-role* defines the necessary role on the operation level.
     If an operation does not define the *x-role* property it is accessible by every user.
     The available roles are:
     - admin
     - default
     The default role is the basic role, which is assigned to every user by default. Accounts with the admin role have
-    special permissions to manage users.
+    special permissions for user management.
     
-    ## Note 
-    Please be aware that the API provided is in the early stage of development and is subject to change in the near
-    future. As the development progresses, updates and improvements may be made to the API, including modifications 
-    to the structure, behavior, or available functionality. These changes could potentially impact the integration 
-    and usage of the API in your application.
+    > Please be aware that the API provided is in the early stage of development and is subject to change in the near
+    > future. As the development progresses, updates and improvements may be made to the API, including modifications 
+    > to the structure, behavior, or available functionality. These changes could potentially impact the integration 
+    > and usage of the API in your application.
     
     Most routes of the API implement CRUD (Create, Read, Update, Delete) operations. For details, see the 
     routes and schemas below.
