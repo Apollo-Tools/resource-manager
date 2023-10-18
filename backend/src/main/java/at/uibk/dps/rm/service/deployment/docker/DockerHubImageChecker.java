@@ -12,7 +12,7 @@ import kotlin.Pair;
 import lombok.RequiredArgsConstructor;
 
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -62,13 +62,15 @@ public class DockerHubImageChecker implements DockerImageChecker {
         return client.get(API_HOST, API_PATH + imageName + "/tags/" + tag)
             .send()
             .map(response -> {
+                client.close();
                 if (response.statusCode() == 404) {
                     return false;
                 } else if (response.statusCode() != 200) {
                     throw new RuntimeException("docker image validation failed");
                 }
                 JsonObject body = response.bodyAsJsonObject();
-                Date lastPushed = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").parse(body.getString("tag_last_pushed"));
+                String lastPushedTimeStamp = body.getString("tag_last_pushed");
+                Date lastPushed = Date.from(Instant.parse(lastPushedTimeStamp));
                 int isUpToDate = lastPushed.compareTo(lastFunctionUpdate);
                 return isUpToDate > 0;
             });
