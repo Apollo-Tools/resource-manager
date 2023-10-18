@@ -112,6 +112,12 @@ tasks.withType<ShadowJar> {
 
 tasks.withType<Test> {
   useJUnitPlatform()
+  if (project.hasProperty("excludeTestcontainers") &&
+          project.property("excludeTestcontainers").toString().toBoolean()) {
+    println("exclude tests that use testcontainers")
+    exclude("**/repository/**")
+    exclude("**/router/**")
+  }
   testLogging {
     events = setOf(PASSED, SKIPPED, FAILED)
   }
