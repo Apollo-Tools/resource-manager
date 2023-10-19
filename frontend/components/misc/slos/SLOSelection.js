@@ -47,15 +47,17 @@ const SLOSelection = ({onChange}) => {
 
   useEffect(() => {
     if (metrics.length > 0 && !metricsInitialised) {
-      setMetrics((prevMetrics) =>
-        [...prevMetrics, {metric_id: -1, metric: 'region', metric_type: {type: 'number'}, description: 'the' +
+      const onlySLOMetrics = metrics.filter((metric) => metric.is_slo);
+      const includingNonMetricSLOs = [...onlySLOMetrics,
+        {metric_id: -1, metric: 'region', metric_type: {type: 'number'}, description: 'the' +
             ' cloud/edge region'},
         {metric_id: -2, metric: 'resource_provider', metric_type: {type: 'number'}, description: 'the resource' +
               ' provider'},
         {metric_id: -3, metric: 'resource_type', metric_type: {type: 'number'}, description: 'the resource type'},
         {metric_id: -4, metric: 'environment', metric_type: {type: 'number'}, description: 'the deployment' +
               ' environment'},
-        {metric_id: -5, metric: 'platform', metric_type: {type: 'number'}, description: 'the deployment platform'}]);
+        {metric_id: -5, metric: 'platform', metric_type: {type: 'number'}, description: 'the deployment platform'}];
+      setMetrics(includingNonMetricSLOs.sort((slo1, slo2) => slo1.metric.localeCompare(slo2.metric)));
       setMetricsInitialised(true);
     }
   }, [metrics]);
@@ -121,30 +123,38 @@ const SLOSelection = ({onChange}) => {
   };
 
   const getSelectables = (sloName) => {
+    let selectables;
     switch (sloName) {
       case 'region':
-        return regions.map((region) => {
+        selectables = regions.map((region) => {
           return {id: region.region_id, name: region.name};
         });
+        break;
       case 'resource_type':
-        return resourceTypes.map((type) => {
+        selectables = resourceTypes.map((type) => {
           return {id: type.type_id, name: type.resource_type};
         });
+        break;
       case 'platform':
-        return platforms.map((platform) => {
+        selectables = platforms.map((platform) => {
           return {id: platform.platform_id, name: platform.platform};
         });
+        break;
       case 'resource_provider':
-        return providers.map((provider) => {
+        selectables = providers.map((provider) => {
           return {id: provider.provider_id, name: provider.provider};
         });
+        break;
       case 'environment':
-        return environments.map((environment) => {
+        selectables = environments.map((environment) => {
           return {id: environment.environment_id, name: environment.environment};
         });
+        break;
       default:
         return null;
     }
+    return selectables.sort((sel1, sel2) =>
+      sel1.name.localeCompare(sel2.name));
   };
 
 

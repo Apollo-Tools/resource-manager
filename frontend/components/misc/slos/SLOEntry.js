@@ -1,5 +1,5 @@
 import {Radio, Select, Space} from 'antd';
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import SLOValue from './SLOValue';
 import PropTypes from 'prop-types';
 import TooltipIcon from '../TooltipIcon';
@@ -8,7 +8,7 @@ const {Option} = Select;
 
 const SLOEntry = ({metrics, selectedMetrics, slo, selectables, updateMetric, updateExpression, updateValue}) => {
   const [expression, setExpression] = useState('');
-  const [selectedMetric, setSelecteMetric] = useState();
+  const [selectedMetric, setSelectedMetric] = useState();
 
   const expressions = {
     number: ['==', '<', '>'],
@@ -17,9 +17,13 @@ const SLOEntry = ({metrics, selectedMetrics, slo, selectables, updateMetric, upd
     selectable: ['=='],
   };
 
+  useEffect(() => {
+    console.log(selectables);
+  }, [selectables]);
+
   const onChangeMetric = (value) => {
     updateMetric?.(value, slo.id);
-    setSelecteMetric(metrics.find((metric) => metric.metric_id === value));
+    setSelectedMetric(metrics.find((metric) => metric.metric_id === value));
     onChangeExpression('');
   };
 
