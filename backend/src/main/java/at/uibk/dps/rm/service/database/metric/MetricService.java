@@ -3,13 +3,13 @@ package at.uibk.dps.rm.service.database.metric;
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.repository.metric.MetricRepository;
-import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
+import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
-import org.hibernate.reactive.stage.Stage;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 /**
  * The interface of the service proxy for te metric entity.
@@ -23,8 +23,8 @@ public interface MetricService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static MetricService create(MetricRepository metricRepository, Stage.SessionFactory sessionFactory) {
-        return new MetricServiceImpl(metricRepository, sessionFactory);
+    static MetricService create(MetricRepository metricRepository, SessionManagerProvider smProvider) {
+        return new MetricServiceImpl(metricRepository, smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

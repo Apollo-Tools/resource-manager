@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.entity.deployment;
 
+import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -15,7 +16,7 @@ import java.util.*;
 public class OpenFaasDeploymentData {
 
     private final long deploymentId;
-    private final String dockerUserName;
+    private final DockerCredentials dockerCredentials;
     private final List<Long> resourceIds = new ArrayList<>();
     private final List<String> functionIdentifiers = new ArrayList<>();
     private final List<String> gatewayUrls = new ArrayList<>();
@@ -59,7 +60,7 @@ public class OpenFaasDeploymentData {
                 "  }\n" +
                 "  timeout = %s\n" +
                 "}\n", resourceId, functionIdentifier, deploymentId, resourceId, functionIdentifier, deploymentId,
-            dockerUserName, functionIdentifier, resourceId, gatewayUrl, resourceId, timeout
+            dockerCredentials.getUsername(), functionIdentifier, resourceId, gatewayUrl, resourceId, timeout
         );
     }
 

@@ -30,6 +30,7 @@ public class TestConfigProvider {
         configDTO.setDockerInsecureRegistries(List.of("localhost:5000"));
         configDTO.setKubeConfigSecretsName("kubesecrets");
         configDTO.setKubeConfigSecretsNamespace("default");
+        configDTO.setKubeConfigDirectory("tmp/kubeconfig");
         configDTO.setKubeApiTimeoutSeconds(10);
         configDTO.setKubeMonitoringPeriod(5.0);
         configDTO.setKubeImagePullSecrets(List.of("regcred"));

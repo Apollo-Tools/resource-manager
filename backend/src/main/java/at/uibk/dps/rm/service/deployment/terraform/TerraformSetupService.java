@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.module.ContainerModule;
 import at.uibk.dps.rm.entity.deployment.module.FaasModule;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
+import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
@@ -16,7 +17,6 @@ import at.uibk.dps.rm.util.misc.RegionMapper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.core.Vertx;
-import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.file.FileSystem;
 
 import java.nio.file.Path;
@@ -177,9 +177,9 @@ public class TerraformSetupService {
         ResourceProviderEnum resourceProvider = ResourceProviderEnum.fromString(provider);
         FaasModule module = new FaasModule(resourceProvider, region);
         long deploymentId = deployRequest.getDeployment().getDeploymentId();
-        String dockerUsername = deployRequest.getDeploymentCredentials().getDockerCredentials().getUsername();
+        DockerCredentials dockerCredentials = deployRequest.getDeploymentCredentials().getDockerCredentials();
         RegionFaasFileService fileService = new RegionFaasFileService(vertx.fileSystem(), deploymentPath, region,
-            regionFunctionDeployments, deploymentId, module, dockerUsername, regionVPCMap.get(region));
+            regionFunctionDeployments, deploymentId, module, dockerCredentials, regionVPCMap.get(region));
         return fileService.setUpDirectory()
             .toSingle(() -> module);
     }
@@ -195,7 +195,6 @@ public class TerraformSetupService {
         long deploymentId = deployRequest.getDeployment().getDeploymentId();
         TerraformModule module = new ContainerModule();
         Path containerFolder = deploymentPath.getModuleFolder(module);
-        Path configPath = Path.of(containerFolder.toString(), "config");
         ContainerPullFileService containerFileService = new ContainerPullFileService(fileSystem, containerFolder,
             serviceDeployments, deploymentId, config);
         List<Completable> completables = new ArrayList<>();
@@ -208,8 +207,6 @@ public class TerraformSetupService {
 
         return containerFileService.setUpDirectory()
             .andThen(Completable.merge(completables))
-            .andThen(Completable.defer(() -> fileSystem.writeFile(configPath.toString(),
-                Buffer.buffer(deployRequest.getDeploymentCredentials().getKubeConfig()))))
             .toSingle(() -> module);
     }
 }

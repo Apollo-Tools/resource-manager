@@ -1,18 +1,19 @@
-import DateFormatter from '../misc/DateFormatter';
 import {Button, Modal, Space, Table, Tooltip} from 'antd';
-import {DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined} from '@ant-design/icons';
+import {DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined, UserOutlined} from '@ant-design/icons';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import ResourceTable from '../resources/ResourceTable';
 import PropTypes from 'prop-types';
-import {deleteService, listServices} from '../../lib/ServiceService';
+import {deleteService, listAllServices, listMyServices} from '../../lib/ServiceService';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 import Link from 'next/link';
+import DateColumnRender from '../misc/DateColumnRender';
+import BoolValueDisplay from '../misc/BoolValueDisplay';
 
 const {Column} = Table;
 const {confirm} = Modal;
 
-const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources}) => {
+const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources, allServices = false}) => {
   const {token, checkTokenExpired} = useAuth();
   const [error, setError] = useState(false);
   const [expandedKeys, setExpandedKeys] = useState([]);
@@ -21,10 +22,14 @@ const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listServices(token, setServices, setError);
+      if (allServices) {
+        listAllServices(token, setServices, setError);
+      } else {
+        listMyServices(token, setServices, setError);
+      }
       setSelectedResources(value);
     }
-  }, []);
+  }, [allServices]);
 
   // TODO: improve error handling
   useEffect(() => {
@@ -140,9 +145,26 @@ const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources
             selectedKeys={selectedKeys} confirm={confirm} columnName="image" />}
         onFilter={(value, record) => record.image.startsWith(value)}
       />
+      {allServices ?
+          <Column title="Created by" dataIndex="created_by" key="created_by"
+            render={(createdBy) => <div><UserOutlined /> {createdBy?.username}</div> }
+            sorter={(a, b) => a.created_by.username.localeCompare(b.created_by.username)}
+            filterDropdown={({setSelectedKeys, selectedKeys, confirm, clearFilters}) =>
+              <ColumnFilterDropdown setSelectedKeys={setSelectedKeys} clearFilters={clearFilters}
+                selectedKeys={selectedKeys} confirm={confirm} columnName="name" />}
+            onFilter={(value, record) => record.created_by.username.startsWith(value)}
+          /> :
+          <Column title="Is Public" dataIndex="is_public" key="is_public"
+            render={(isPublic) => <BoolValueDisplay value={isPublic} />}
+          />
+      }
       <Column title="Created at" dataIndex="created_at" key="created_at"
-        render={(createdAt) => <DateFormatter dateTimestamp={createdAt}/>}
+        render={(createdAt) => <DateColumnRender value={createdAt}/>}
         sorter={(a, b) => a.created_at - b.created_at}
+      />
+      <Column title="Updated at" dataIndex="updated_at" key="updated_at"
+        render={(updatedAt) => <DateColumnRender value={updatedAt}/>}
+        sorter={(a, b) => a.updated_at - b.updated_at}
       />
       {!hideDelete && <Column title="Actions" key="action"
         render={(_, record) => (
@@ -152,9 +174,9 @@ const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources
                 <Button icon={<InfoCircleOutlined />}/>
               </Link>
             </Tooltip>
-            <Tooltip title="Delete">
+            {!allServices && <Tooltip title="Delete">
               <Button onClick={() => showDeleteConfirm(record.service_id)} icon={<DeleteOutlined />}/>
-            </Tooltip>
+            </Tooltip>}
           </Space>
         )}
       />}
@@ -168,6 +190,7 @@ ServiceTable.propTypes = {
   hideDelete: PropTypes.bool,
   isExpandable: PropTypes.bool,
   resources: PropTypes.arrayOf(PropTypes.object),
+  allServices: PropTypes.bool,
 };
 
 export default ServiceTable;

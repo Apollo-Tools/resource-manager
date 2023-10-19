@@ -1,6 +1,8 @@
 package at.uibk.dps.rm.handler.account;
 
+import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.handler.ValidationHandler;
+import at.uibk.dps.rm.service.rxjava3.database.account.AccountService;
 import at.uibk.dps.rm.util.configuration.JWTAuthProvider;
 import at.uibk.dps.rm.util.misc.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
@@ -18,19 +20,19 @@ import java.util.List;
  */
 public class AccountHandler extends ValidationHandler {
 
-    private final AccountChecker accountChecker;
+    private final AccountService accountService;
 
     private final JWTAuth jwtAuth;
 
   /**
-   * Create an instance from the accountChecker and jwtAuth.
+   * Create an instance from the accountService and jwtAuth.
    *
-   * @param accountChecker the account checker
+   * @param accountService the service
    * @param jwtAuth the jwtAuth instance to create access tokens
    */
-    public AccountHandler(AccountChecker accountChecker, JWTAuth jwtAuth) {
-        super(accountChecker);
-        this.accountChecker = accountChecker;
+    public AccountHandler(AccountService accountService, JWTAuth jwtAuth) {
+        super(accountService);
+        this.accountService = accountService;
         this.jwtAuth = jwtAuth;
     }
 
@@ -49,18 +51,14 @@ public class AccountHandler extends ValidationHandler {
         } else {
             getAccountId = HttpHelper.getLongPathParam(rc, "id");
         }
-        return getAccountId.flatMap(entityChecker::checkFindOne)
-            .map(result -> {
-                result.remove("password");
-                return result;
-            });
+        return getAccountId.flatMap(accountService::findOne);
     }
 
     @Override
     public Completable updateOne(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
         JsonObject principal = rc.user().principal();
-        return entityChecker.submitUpdate(principal.getLong("account_id"), requestBody);
+        return accountService.update(principal.getLong("account_id"), requestBody);
     }
 
   /**
@@ -71,13 +69,40 @@ public class AccountHandler extends ValidationHandler {
    */
   public Single<JsonObject> login(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
-        return accountChecker.checkLoginAccount(requestBody.getString("username"),
+        return accountService.loginAccount(requestBody.getString("username"),
                 requestBody.getString("password"))
             .map(result -> {
-                result.remove("password");
                 String role = result.getJsonObject("role").getString("role");
                 result.put(JWTAuthProvider.ROLE_CLAIM, List.of(role));
                 return new JsonObject().put("token", jwtAuth.generateToken(result));
             });
+    }
+
+    /**
+     * Process lock account request
+     *
+     * @param rc the routing context
+     * @return a Completable
+     */
+    public Completable lockAccount(RoutingContext rc) {
+        return HttpHelper.getLongPathParam(rc, "id")
+            .flatMapCompletable(id -> {
+                long principalId = rc.user().principal().getLong("account_id");
+                if (principalId == id) {
+                    return Completable.error(new BadInputException("can't lock own account"));
+                }
+                return accountService.setAccountActive(id, false);
+            });
+    }
+
+    /**
+     * Process unlock account request
+     *
+     * @param rc the routing context
+     * @return a Completable
+     */
+    public Completable unlockAccount(RoutingContext rc) {
+        return HttpHelper.getLongPathParam(rc, "id")
+            .flatMapCompletable(id -> accountService.setAccountActive(id, true));
     }
 }

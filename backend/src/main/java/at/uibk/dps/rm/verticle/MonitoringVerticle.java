@@ -17,9 +17,12 @@ import io.vertx.core.Handler;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.rxjava3.core.AbstractVerticle;
+import io.vertx.rxjava3.core.buffer.Buffer;
+import io.vertx.rxjava3.core.file.FileSystem;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,11 +78,18 @@ public class MonitoringVerticle extends AbstractVerticle {
     // TODO: parallelize monitoring of multiple clusters
     private Map<String, K8sMonitoringData> monitorK8s(ConfigDTO config) {
         try {
+            FileSystem fileSystem = vertx.fileSystem();
             Map<String, K8sMonitoringData> monitoringDataMap = new HashMap<>();
             K8sMonitoringService monitoringService = new K8sMonitoringServiceImpl();
             Map<String, String> kubeConfigs = monitoringService.listSecrets(config);
+            if (!fileSystem.existsBlocking(config.getKubeConfigDirectory())) {
+                fileSystem.mkdirsBlocking(config.getKubeConfigDirectory());
+            }
+            vertx.fileSystem().mkdirsBlocking(config.getKubeConfigDirectory());
             for (Map.Entry<String, String> entry: kubeConfigs.entrySet()) {
                 logger.info("Observe cluster: " + entry.getKey());
+                Path kubeconfigPath = Path.of(config.getKubeConfigDirectory(), entry.getKey());
+                fileSystem.writeFileBlocking(kubeconfigPath.toString(), Buffer.buffer(entry.getValue()));
                 ApiClient externalClient = Config.fromConfig(new StringReader(entry.getValue()));
                 Configuration.setDefaultApiClient(externalClient);
                 List<K8sNode> nodes = monitoringService.listNodes(entry.getValue(), config);

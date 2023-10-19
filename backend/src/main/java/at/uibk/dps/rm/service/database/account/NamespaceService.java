@@ -9,9 +9,10 @@ import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Future;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import org.hibernate.reactive.stage.Stage;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 import java.util.List;
 
@@ -27,8 +28,8 @@ public interface NamespaceService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static NamespaceService create(NamespaceRepository namespaceRepository, Stage.SessionFactory sessionFactory) {
-        return new NamespaceServiceImpl(namespaceRepository, new ResourceRepository(), sessionFactory);
+    static NamespaceService create(NamespaceRepository namespaceRepository, SessionManagerProvider smProvider) {
+        return new NamespaceServiceImpl(namespaceRepository, new ResourceRepository(), smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
@@ -42,7 +43,8 @@ public interface NamespaceService extends DatabaseServiceInterface {
      *
      * @param clusterName the name of the cluster resource
      * @param namespaces the list of namespaces
-     * @return an empty Future
+     * @param resultHandler receives nothing if the update was successful else an error
      */
-    Future<Void> updateAllClusterNamespaces(String clusterName, List<String> namespaces);
+    void updateAllClusterNamespaces(String clusterName, List<String> namespaces,
+        Handler<AsyncResult<Void>> resultHandler);
 }

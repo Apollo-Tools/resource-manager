@@ -49,7 +49,7 @@ public class QuantityDeserializer extends StdDeserializer<Quantity> {
      * @param value the quantity value
      * @return the parse Quantity
      */
-    public Quantity parse(JsonNode value) {
+    protected Quantity parse(JsonNode value) {
         if (value == null || value.isEmpty()) {
             throw new QuantityFormatException("");
         }

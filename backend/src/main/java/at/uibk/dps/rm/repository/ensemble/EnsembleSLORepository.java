@@ -2,10 +2,10 @@ package at.uibk.dps.rm.repository.ensemble;
 
 import at.uibk.dps.rm.entity.model.EnsembleSLO;
 import at.uibk.dps.rm.repository.Repository;
-import org.hibernate.reactive.stage.Stage.Session;
+import at.uibk.dps.rm.service.database.util.SessionManager;
+import io.reactivex.rxjava3.core.Single;
 
 import java.util.List;
-import java.util.concurrent.CompletionStage;
 
 /**
  * Implements database operations for the ensemble_slo entity.
@@ -21,28 +21,18 @@ public class EnsembleSLORepository extends Repository<EnsembleSLO> {
     }
 
     /**
-     * Find all ensembleSlos and fetch the ensemble.
-     *
-     * @param session the database session
-     * @return a CompletionStage that emits the list of all ensembleSLOs
-     */
-    public CompletionStage<List<EnsembleSLO>> findAllAndFetch(Session session) {
-        return session.createQuery("select distinct slo from EnsembleSLO slo " +
-                "left join fetch slo.ensemble ensemble ", entityClass)
-            .getResultList();
-    }
-
-    /**
      * Find all ensembleSlos by their ensembleId.
      *
-     * @param session the database session
+     * @param sessionManager the database session manager
      * @param ensembleId the id of the ensemble
-     * @return a CompletionStage that emits the list of ensembleSLOs
+     * @return a Single that emits the list of ensembleSLOs
      */
-    public CompletionStage<List<EnsembleSLO>> findAllByEnsembleId(Session session, long ensembleId) {
-        return session.createQuery("select distinct slo from EnsembleSLO slo " +
+    public Single<List<EnsembleSLO>> findAllByEnsembleId(SessionManager sessionManager, long ensembleId) {
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery("select distinct slo from EnsembleSLO slo " +
                 "where slo.ensemble.ensembleId=:ensembleId", entityClass)
             .setParameter("ensembleId", ensembleId)
-            .getResultList();
+            .getResultList()
+        );
     }
 }

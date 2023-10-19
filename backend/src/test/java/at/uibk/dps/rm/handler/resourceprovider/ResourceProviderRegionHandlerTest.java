@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler.resourceprovider;
 
 import at.uibk.dps.rm.entity.model.Region;
+import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.RegionService;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProviderProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
@@ -34,7 +35,7 @@ public class ResourceProviderRegionHandlerTest {
     private ResourceProviderRegionHandler providerRegionHandler;
 
     @Mock
-    private RegionChecker regionChecker;
+    private RegionService regionService;
 
     @Mock
     private RoutingContext rc;
@@ -42,7 +43,7 @@ public class ResourceProviderRegionHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        providerRegionHandler = new ResourceProviderRegionHandler(regionChecker);
+        providerRegionHandler = new ResourceProviderRegionHandler(regionService);
     }
 
     @ParameterizedTest
@@ -59,7 +60,7 @@ public class ResourceProviderRegionHandlerTest {
         }
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(providerId));
-        when(regionChecker.checkFindAllByProvider(providerId)).thenReturn(Single.just(regionJson));
+        when(regionService.findAllByProviderId(providerId)).thenReturn(Single.just(regionJson));
 
         providerRegionHandler.getAll(rc)
             .subscribe(result -> testContext.verify(() -> {

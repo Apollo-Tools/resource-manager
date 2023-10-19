@@ -1,17 +1,15 @@
 package at.uibk.dps.rm.testutil.objectprovider;
 
 import at.uibk.dps.rm.entity.dto.credentials.DeploymentCredentials;
-import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
+import at.uibk.dps.rm.entity.dto.deployment.*;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
-import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
-import at.uibk.dps.rm.entity.dto.deployment.FunctionResourceIds;
-import at.uibk.dps.rm.entity.dto.deployment.ServiceResourceIds;
 import at.uibk.dps.rm.entity.dto.resource.ResourceId;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.model.Runtime;
 import lombok.experimental.UtilityClass;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -24,29 +22,25 @@ public class TestRequestProvider {
 
     public static DeployResourcesRequest createDeployResourcesRequest(List<FunctionResourceIds> functionResources,
             List<ServiceResourceIds> serviceResources, List<ResourceId> lockResources,
-            DockerCredentials dockerCredentials, String kubeConfig) {
+            DockerCredentials dockerCredentials) {
         DeployResourcesRequest request = new DeployResourcesRequest();
         request.setFunctionResources(functionResources);
         request.setServiceResources(serviceResources);
         DeploymentCredentials deploymentCredentials = new DeploymentCredentials();
         deploymentCredentials.setDockerCredentials(dockerCredentials);
-        deploymentCredentials.setKubeConfig(kubeConfig);
         request.setCredentials(deploymentCredentials);
         request.setLockResources(lockResources);
         return request;
     }
 
     public static DeployResourcesRequest createDeployResourcesRequest(List<FunctionResourceIds> functionResources,
-            List<ServiceResourceIds> serviceResources, List<ResourceId> lockResources,
-            DockerCredentials dockerCredentials) {
-        return createDeployResourcesRequest(functionResources, serviceResources, lockResources, dockerCredentials,
-            TestDTOProvider.createKubeConfigValue());
-    }
-
-    public static DeployResourcesRequest createDeployResourcesRequest(List<FunctionResourceIds> functionResources,
             List<ServiceResourceIds> serviceResources, List<ResourceId> lockResources) {
         return createDeployResourcesRequest(functionResources, serviceResources, lockResources,
             TestDTOProvider.createDockerCredentials());
+    }
+
+    public static DeployResourcesRequest createDeployResourcesRequest() {
+        return createDeployResourcesRequest(List.of(), List.of(), List.of());
     }
 
     public static DeployResourcesDTO createDeployRequest() {
@@ -58,9 +52,8 @@ public class TestRequestProvider {
         DockerCredentials dockerCredentials = TestDTOProvider.createDockerCredentials();
         DeploymentCredentials deploymentCredentials = new DeploymentCredentials();
         deploymentCredentials.setDockerCredentials(dockerCredentials);
-        deploymentCredentials.setKubeConfig(TestDTOProvider.createKubeConfigValue());
         deployRequest.setDeploymentCredentials(deploymentCredentials);
-        Runtime runtime = TestFunctionProvider.createRuntime(1L, "python39");
+        Runtime runtime = TestFunctionProvider.createRuntime(1L, "python3.8");
         Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime, false);
         Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime, false);
         Resource r1 = TestResourceProvider.createResourceLambda(1L, region);
@@ -70,8 +63,8 @@ public class TestRequestProvider {
         Resource r4 = TestResourceProvider.createResourceContainer(3L, "https://localhost", true);
         FunctionDeployment fd1 = TestFunctionProvider.createFunctionDeployment(1L, f1, r1);
         FunctionDeployment fd2 = TestFunctionProvider.createFunctionDeployment(2L, f1, r2);
-        FunctionDeployment fd3 = TestFunctionProvider.createFunctionDeployment(3L, f2, r2);
-        FunctionDeployment fd4 = TestFunctionProvider.createFunctionDeployment(4L, f1, r3);
+        FunctionDeployment fd3 = TestFunctionProvider.createFunctionDeployment(3L, f1, r3);
+        FunctionDeployment fd4 = TestFunctionProvider.createFunctionDeployment(4L, f2, r3);
         List<FunctionDeployment> functionDeployments = List.of(fd1, fd2, fd3, fd4);
         deployRequest.setFunctionDeployments(functionDeployments);
         Service s1 = TestServiceProvider.createService(1L, "s1");
@@ -82,6 +75,15 @@ public class TestRequestProvider {
         deployRequest.setServiceDeployments(serviceDeployments);
         Credentials c1 = TestAccountProvider.createCredentials(1L, region.getResourceProvider());
         deployRequest.setCredentialsList(List.of(c1));
+        return deployRequest;
+    }
+
+    public static DeployResourcesDTO createBlankDeployRequest(DockerCredentials dockerCredentials) {
+        DeployResourcesDTO deployRequest = new DeployResourcesDTO();
+        DeploymentCredentials deploymentCredentials = new DeploymentCredentials();
+        deploymentCredentials.setDockerCredentials(dockerCredentials);
+        deployRequest.setDeploymentCredentials(deploymentCredentials);
+        deployRequest.setVpcList(new ArrayList<>());
         return deployRequest;
     }
 
@@ -112,5 +114,14 @@ public class TestRequestProvider {
         Credentials c1 = TestAccountProvider.createCredentials(1L, region.getResourceProvider());
         terminateRequest.setCredentialsList(List.of(c1));
         return terminateRequest;
+    }
+
+    public static DeployTerminateDTO createDeployTerminateDTOWithoutResourceDeployments(Deployment deployment) {
+        DeployTerminateDTO deployTerminateDTO = new DeployResourcesDTO();
+        deployTerminateDTO.setDeployment(deployment);
+        deployTerminateDTO.setCredentialsList(List.of());
+        deployTerminateDTO.setFunctionDeployments(List.of());
+        deployTerminateDTO.setServiceDeployments(List.of());
+        return deployTerminateDTO;
     }
 }

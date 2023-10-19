@@ -3,18 +3,19 @@ package at.uibk.dps.rm.service.database.util;
 import at.uibk.dps.rm.entity.dto.metric.MetricTypeEnum;
 import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.entity.model.MetricValue;
+import at.uibk.dps.rm.entity.model.PlatformMetric;
 import at.uibk.dps.rm.entity.model.Resource;
+import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.BadInputException;
+import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
-import at.uibk.dps.rm.util.validation.ServiceResultValidator;
+import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Observable;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.reactive.stage.Stage.Session;
-
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 /**
  * A utility class that provides different methods to validate metric values.
@@ -24,7 +25,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MetricValueUtility {
 
-    private final MetricValueRepository repository;
+    private final MetricValueRepository metricValueRepository;
+
+    private final PlatformMetricRepository platformMetricRepository;
 
 
     /**
@@ -34,41 +37,46 @@ public class MetricValueUtility {
      * @param values the values to add to the resource
      * @return a List of completable futures that emit nothing
      */
-    public List<CompletableFuture<Void>> checkAddMetricList(Session session, Resource resource, JsonArray values) {
-        return values.stream().map(jsonObject -> {
+    public Completable checkAddMetricList(SessionManager sm, Resource resource,
+            JsonArray values) {
+        return Observable.fromIterable(values)
+            .flatMapCompletable(jsonObject -> {
                 JsonObject jsonMetric = (JsonObject) jsonObject;
                 long metricId = jsonMetric.getLong("metric_id");
                 MetricValue metricValue = new MetricValue();
-                return repository.findByResourceAndMetric(session, resource.getResourceId(), metricId)
-                    .thenCompose(existingMetric -> {
-                        ServiceResultValidator.checkExists(existingMetric, MetricValue.class);
-                        return session.find(Metric.class, metricId);
-                    })
-                    .thenCompose(metric -> {
-                        metricValue.setMetric(metric);
+                return metricValueRepository.findByResourceAndMetric(sm, resource.getResourceId(), metricId)
+                    .flatMap(existingValue -> Maybe.<PlatformMetric>error(new AlreadyExistsException(MetricValue.class)))
+                    .switchIfEmpty(platformMetricRepository.findByPlatformAndMetric(sm,
+                        resource.getMain().getPlatform().getPlatformId(), metricId))
+                    .switchIfEmpty(Maybe.error(new NotFoundException(PlatformMetric.class)))
+                    .flatMapCompletable(platformMetric -> {
+                        metricValue.setMetric(platformMetric.getMetric());
                         metricValue.setResource(resource);
-                        checkAddMetricValueSetCorrectly(metric, jsonMetric, metricValue);
-                        return session.persist(metricValue);
-                    })
-                    .toCompletableFuture();
-            })
-            .collect(Collectors.toList());
+                        checkAddMetricValueSetCorrectly(platformMetric, jsonMetric, metricValue);
+                        return sm.persist(metricValue).ignoreElement();
+                    });
+            });
     }
 
 
-    /***
+    /**
      * Check whether the value of a metric value to add is set with the correct value type
      *
-     * @param metric the metric
+     * @param platformMetric the platform metric
      * @param jsonValue the value
      * @param metricValue the metric value to set
      */
-    public void checkAddMetricValueSetCorrectly(Metric metric, JsonObject jsonValue,
-        MetricValue metricValue) {
+    private void checkAddMetricValueSetCorrectly(PlatformMetric platformMetric, JsonObject jsonValue,
+            MetricValue metricValue) {
         Object value = jsonValue.getValue("value");
         boolean valueHasCorrectType = true;
-        if (metric.getIsMonitored()) {
+        Metric metric = platformMetric.getMetric();
+        if (platformMetric.getIsMonitored() && value != null) {
+            throw new BadInputException("monitored metrics can't be set manually");
+        } else if (platformMetric.getIsMonitored()) {
             setDefaultMonitoredMetricValue(metricValue, metric);
+        } else if (value == null) {
+            throw new BadInputException("value can't be empty for non monitored values");
         }
         else if (stringMetricHasStringValue(metric, value)) {
             metricValue.setValueString((String) value);
@@ -143,21 +151,21 @@ public class MetricValueUtility {
      * @param value the value
      * @return true if the types match, else false
      */
-    public boolean metricTypeMatchesValue(MetricTypeEnum metricType, String value) {
+    public static boolean metricTypeMatchesValue(MetricTypeEnum metricType, String value) {
         return value!=null && metricType.equals(MetricTypeEnum.STRING);
     }
 
     /**
      * @see #metricTypeMatchesValue(MetricTypeEnum metricType, String value)
      */
-    public boolean metricTypeMatchesValue(MetricTypeEnum metricType, Double value) {
+    public static boolean metricTypeMatchesValue(MetricTypeEnum metricType, Double value) {
         return value!=null && metricType.equals(MetricTypeEnum.NUMBER);
     }
 
     /**
      * @see #metricTypeMatchesValue(MetricTypeEnum metricType, String value)
      */
-    public boolean metricTypeMatchesValue(MetricTypeEnum metricType, Boolean value) {
+    public static boolean metricTypeMatchesValue(MetricTypeEnum metricType, Boolean value) {
         return value!=null && metricType.equals(MetricTypeEnum.BOOLEAN);
     }
 }

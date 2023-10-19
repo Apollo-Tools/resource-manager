@@ -8,9 +8,10 @@ import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Future;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import org.hibernate.reactive.stage.Stage;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 /**
  * The interface of the service proxy for the service_deployment entity.
@@ -24,8 +25,8 @@ public interface ServiceDeploymentService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static ServiceDeploymentService create(ServiceDeploymentRepository repository, Stage.SessionFactory sessionFactory) {
-        return new ServiceDeploymentServiceImpl(repository, sessionFactory);
+    static ServiceDeploymentService create(ServiceDeploymentRepository repository, SessionManagerProvider smProvider) {
+        return new ServiceDeploymentServiceImpl(repository, smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
@@ -41,8 +42,9 @@ public interface ServiceDeploymentService extends DatabaseServiceInterface {
      * @param deploymentId the id of the deployment
      * @param resourceDeploymentId the id of the resource deployment
      * @param accountId the account id of the creator
-     * @return a Future that emits true if the function exists, else false
+     * @param resultHandler receives true if the container is ready for startup and termination
+     *                      else false
      */
-    Future<Boolean> existsReadyForContainerStartupAndTermination(long deploymentId,
-        long resourceDeploymentId, long accountId);
+    void existsReadyForContainerStartupAndTermination(long deploymentId, long resourceDeploymentId, long accountId,
+        Handler<AsyncResult<Boolean>> resultHandler);
 }

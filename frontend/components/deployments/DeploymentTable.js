@@ -1,13 +1,13 @@
 import {
   InfoCircleOutlined,
 } from '@ant-design/icons';
-import DateFormatter from '../misc/DateFormatter';
 import {Button, Table, Space, Tooltip} from 'antd';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import {listMyDeployments} from '../../lib/DeploymentService';
 import Link from 'next/link';
 import DeploymentStatusBadge from './DeploymentStatusBadge';
+import DateColumnRender from '../misc/DateColumnRender';
 
 const {Column} = Table;
 
@@ -52,7 +52,7 @@ const DeploymentTable = () => {
         onFilter={(value, record) => record.status_value.indexOf(value) === 0}
       />
       <Column title="Created at" dataIndex="created_at" key="created_at"
-        render={ (createdAt) => <DateFormatter dateTimestamp={ createdAt }/> }
+        render={ (createdAt) => <DateColumnRender value={ createdAt }/> }
         sorter={ (a, b) => a.created_at - b.created_at }
         defaultSortOrder='descend'
       />

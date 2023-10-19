@@ -1,19 +1,22 @@
 package at.uibk.dps.rm.service.database.resourceprovider;
 
 import at.uibk.dps.rm.entity.model.ResourceProvider;
+import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
-import io.vertx.core.Future;
+import at.uibk.dps.rm.util.misc.RxVertxHandler;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import org.hibernate.reactive.stage.Stage;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletionStage;
 
 /**
- * This is the implementation of the #ResourceProviderService.
+ * This is the implementation of the {@link ResourceProviderService}.
  *
  * @author matthi-g
  */
@@ -26,34 +29,22 @@ public class ResourceProviderServiceImpl extends DatabaseServiceProxy<ResourcePr
      *
      * @param repository the resource provider repository
      */
-    public ResourceProviderServiceImpl(ResourceProviderRepository repository, Stage.SessionFactory sessionFactory) {
-        super(repository, ResourceProvider.class, sessionFactory);
+    public ResourceProviderServiceImpl(ResourceProviderRepository repository, SessionManagerProvider smProvider) {
+        super(repository, ResourceProvider.class, smProvider);
         this.repository = repository;
     }
 
     @Override
-    public Future<JsonObject> findOne(long id) {
-        CompletionStage<ResourceProvider> findOne = withSession(session -> repository.findByIdAndFetch(session, id));
-        return Future.fromCompletionStage(findOne)
-            .map(obj -> {
-                if (obj != null) {
-                    obj.setProviderPlatforms(null);
-                }
-                return JsonObject.mapFrom(obj);
-            });
+    public void findOne(long id, Handler<AsyncResult<JsonObject>> resultHandler) {
+        Maybe<ResourceProvider> findOne = smProvider.withTransactionMaybe( sm -> repository.findByIdAndFetch(sm, id)
+            .switchIfEmpty(Maybe.error(new NotFoundException(ResourceProvider.class)))
+        );
+        RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
     }
 
     @Override
-    public Future<JsonArray> findAll() {
-        CompletionStage<List<ResourceProvider>> findAll = withSession(repository::findAllAndFetch);
-        return Future.fromCompletionStage(findAll)
-            .map(result -> {
-                ArrayList<JsonObject> objects = new ArrayList<>();
-                for (ResourceProvider entity: result) {
-                    entity.setProviderPlatforms(null);
-                    objects.add(JsonObject.mapFrom(entity));
-                }
-                return new JsonArray(objects);
-            });
+    public void findAll(Handler<AsyncResult<JsonArray>> resultHandler) {
+        Single<List<ResourceProvider>> findAll = smProvider.withTransactionSingle(repository::findAllAndFetch);
+        RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }
 }

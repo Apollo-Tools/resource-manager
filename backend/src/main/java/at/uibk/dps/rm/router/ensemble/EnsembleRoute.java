@@ -17,8 +17,7 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 public class EnsembleRoute implements Route {
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
-        EnsembleChecker ensembleChecker = new EnsembleChecker(serviceProxyProvider.getEnsembleService());
-        EnsembleHandler ensembleHandler = new EnsembleHandler(ensembleChecker);
+        EnsembleHandler ensembleHandler = new EnsembleHandler(serviceProxyProvider.getEnsembleService());
         PrivateEntityResultHandler resultHandler = new PrivateEntityResultHandler(ensembleHandler);
 
         router
@@ -51,7 +50,7 @@ public class EnsembleRoute implements Route {
         new ConfigUtility(vertx).getConfigDTO()
             .map(config -> {
                 long period = Double.valueOf(config.getEnsembleValidationPeriod() * 60 * 1000).longValue();
-                return vertx.setPeriodic(period, id -> ensembleHandler.validateAllExistingEnsembles());
+                return vertx.setPeriodic(period, id -> ensembleHandler.validateAllExistingEnsembles().subscribe());
             })
             .subscribe();
     }

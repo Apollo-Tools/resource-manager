@@ -3,7 +3,7 @@ COPY --chown=gradle:gradle . /home/gradle/src
 COPY ./ruleset.xml /home/gradle/src
 COPY ./ruleset_test.xml /home/gradle/src
 WORKDIR /home/gradle/src
-RUN gradle build --no-daemon
+RUN gradle build --no-daemon -PexcludeTestcontainers=true
 
 FROM docker:git
 
@@ -61,9 +61,9 @@ ENV ensemble_validation_period=60
 ENV docker_insecure_registries=[]
 ENV kube_config_secrets_name="rm_kubeconfigs"
 ENV kube_config_secrets_namespace="default"
+ENV kube_config_directory="build/kubeconfig",
 ENV kube_api_timeout_seconds=10
 ENV kube_monitoring_period=5
 ENV kube_image_pull_secrets=["regcred"]
-ENV TF_CLI_CONFIG_FILE="/terraform/config.tfrc"
 
 ENTRYPOINT ["java", "-jar" ,"/app/rm-api.jar"]

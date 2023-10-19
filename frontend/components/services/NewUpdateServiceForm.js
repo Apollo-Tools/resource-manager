@@ -1,4 +1,4 @@
-import {Button, Divider, Form, Input, InputNumber, Select, Space} from 'antd';
+import {Button, Divider, Form, Input, InputNumber, Select, Space, Switch} from 'antd';
 import {useEffect, useState} from 'react';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import PropTypes from 'prop-types';
@@ -64,10 +64,11 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
       }
       if (mode === 'new') {
         await createService(values.serviceType, values.name, values.image, values.replicas, ports, values.cpu,
-            values.memory, values.k8sServiceType, envVars, volumeMounts, token, setNewService, setError);
+            values.memory, values.k8sServiceType, envVars, volumeMounts, values.isPublic, token, setNewService,
+            setError);
       } else {
         await updateService(service.service_id, values.replicas, ports, values.cpu, values.memory,
-            values.k8sServiceType, envVars, volumeMounts, token, setError);
+            values.k8sServiceType, envVars, volumeMounts, values.isPublic, token, setError);
       }
       setFinished?.(true);
       setModified(false);
@@ -86,7 +87,7 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
   const onReset = () => {
     form.resetFields();
     if (mode==='update' && k8sServiceTypes!=null && k8sServiceTypes.length>0) {
-      setSelectedK8sServiceType(service.service_type);
+      setSelectedK8sServiceType(service.k8s_service_type);
     }
     setModified(false);
   };
@@ -164,8 +165,36 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
                 className="col-span-6"/>
             </>
           }
-          <Divider className="lg:col-span-12 col-span-6"/>
-
+          <Divider className="col-span-full"/>
+          <Form.Item
+            label={<>
+                Is Public
+              <TooltipIcon text="share service with all users" />
+            </>}
+            name="isPublic"
+            valuePropName={'checked'}
+            initialValue={service?.is_public ?? false}
+            className="col-span-6"
+          >
+            <Switch checkedChildren="true" unCheckedChildren="false" onChange={() => setModified(true)}/>
+          </Form.Item>
+          <Form.Item
+            label={<>
+                Replicas
+              <TooltipIcon text="the amount of replicas to deploy" />
+            </>}
+            name="replicas"
+            rules={[
+              {
+                required: true,
+                message: 'Please input the amount of replicas!',
+              },
+            ]}
+            initialValue={service?.replicas ?? 1}
+            className="col-span-6"
+          >
+            <InputNumber className="w-40" controls={false} min={1} precision={0}/>
+          </Form.Item>
           <Form.Item
             label={<>
               CPU
@@ -399,7 +428,7 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
                 message: 'Missing k8s service type',
               },
             ]}
-            className="col-span-6 mb-0"
+            className="col-span-6"
           >
             <Select className="w-40" onSelect={onChangeK8sServiceType}>
               {k8sServiceTypes.sort((st1, st2) => st1.name.localeCompare(st2.name))
@@ -508,24 +537,6 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
                 </Form.List>
               </Form.Item>
           }
-
-          <Form.Item
-            label={<>
-              Replicas
-              <TooltipIcon text="the amount of replicas to deploy" />
-            </>}
-            name="replicas"
-            rules={[
-              {
-                required: true,
-                message: 'Please input the amount of replicas!',
-              },
-            ]}
-            initialValue={service?.replicas ?? 1}
-            className="col-span-6"
-          >
-            <InputNumber className="w-40" controls={false} min={1} precision={0}/>
-          </Form.Item>
         </div>
 
         <Form.Item>

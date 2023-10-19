@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.entity.deployment;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
@@ -11,6 +12,7 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
+@EqualsAndHashCode
 public class ProcessOutput {
     private Process process;
 

@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.handler.metric;
 
+import at.uibk.dps.rm.service.rxjava3.database.metric.PlatformMetricService;
 import at.uibk.dps.rm.testutil.objectprovider.TestMetricProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
@@ -32,7 +33,7 @@ public class PlatformMetricHandlerTest {
     private PlatformMetricHandler handler;
 
     @Mock
-    private PlatformMetricChecker platformMetricChecker;
+    private PlatformMetricService platformMetricService;
 
     @Mock
     private RoutingContext rc;
@@ -40,7 +41,7 @@ public class PlatformMetricHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        handler = new PlatformMetricHandler(platformMetricChecker);
+        handler = new PlatformMetricHandler(platformMetricService);
     }
 
     @Test
@@ -53,7 +54,7 @@ public class PlatformMetricHandlerTest {
 
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(platformId));
-        when(platformMetricChecker.checkFindAllByPlatformId(platformId)).thenReturn(Single.just(response));
+        when(platformMetricService.findAllByPlatformId(platformId)).thenReturn(Single.just(response));
 
         handler.getAll(rc)
             .subscribe(result -> testContext.verify(() -> {

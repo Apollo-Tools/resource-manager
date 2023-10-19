@@ -3,17 +3,19 @@ package at.uibk.dps.rm.service.database.log;
 import at.uibk.dps.rm.entity.model.Log;
 import at.uibk.dps.rm.repository.log.LogRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
-import io.vertx.core.Future;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
+import at.uibk.dps.rm.util.misc.RxVertxHandler;
+import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import org.hibernate.reactive.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletionStage;
 
 /**
- * This is the implementation of the #LogService.
+ * This is the implementation of the {@link LogService}.
  *
  * @author matthi-g
  */
@@ -26,22 +28,25 @@ public class LogServiceImpl extends DatabaseServiceProxy<Log> implements LogServ
      *
      * @param repository the log repository
      */
-    public LogServiceImpl(LogRepository repository, Stage.SessionFactory sessionFactory) {
-        super(repository, Log.class, sessionFactory);
+    public LogServiceImpl(LogRepository repository, SessionManagerProvider smProvider) {
+        super(repository, Log.class, smProvider);
         this.repository = repository;
     }
 
     @Override
-    public Future<JsonArray> findAllByDeploymentIdAndAccountId(long deploymentId, long accountId) {
-        CompletionStage<List<Log>> findAll = withSession(session ->
-            repository.findAllByDeploymentIdAndAccountId(session, deploymentId, accountId));
-        return Future.fromCompletionStage(findAll)
-            .map(result -> {
+    public void findAllByDeploymentIdAndAccountId(long deploymentId, long accountId,
+            Handler<AsyncResult<JsonArray>> resultHandler) {
+        Single<List<Log>> findAll = smProvider.withTransactionSingle(sm -> repository
+            .findAllByDeploymentIdAndAccountId(sm, deploymentId, accountId));
+        RxVertxHandler.handleSession(
+            findAll.map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (Log entity: result) {
                     objects.add(JsonObject.mapFrom(entity));
                 }
                 return new JsonArray(objects);
-            });
+            }),
+            resultHandler
+        );
     }
 }

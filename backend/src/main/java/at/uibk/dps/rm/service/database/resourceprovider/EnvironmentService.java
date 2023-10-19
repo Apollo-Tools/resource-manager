@@ -9,7 +9,7 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
-import org.hibernate.reactive.stage.Stage;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 /**
  * The interface of the service proxy for the environment entity.
@@ -23,8 +23,8 @@ public interface EnvironmentService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static EnvironmentService create(EnvironmentRepository environmentRepository, Stage.SessionFactory sessionFactory) {
-        return new EnvironmentServiceImpl(environmentRepository, sessionFactory);
+    static EnvironmentService create(EnvironmentRepository environmentRepository, SessionManagerProvider smProvider) {
+        return new EnvironmentServiceImpl(environmentRepository, smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

@@ -4,7 +4,6 @@ import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.model.Credentials;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.rxjava3.core.Vertx;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -16,18 +15,17 @@ import java.util.List;
  *
  * @author matthi-g
  */
-public class MainTerraformExecutor extends TerraformExecutor{
+public class MainTerraformExecutor extends TerraformExecutor {
 
     private final DeploymentCredentials credentials;
 
     /**
      * Create an instance from vertx and credentials
      *
-     * @param vertx the vertx instance
      * @param credentials the deployment credentials
      */
-    public MainTerraformExecutor(Vertx vertx, DeploymentCredentials credentials) {
-        super(vertx);
+    public MainTerraformExecutor(DeploymentCredentials credentials) {
+        super();
         this.credentials = credentials;
     }
 

@@ -1,15 +1,23 @@
-import DateFormatter from '../misc/DateFormatter';
-import {Table, Tag} from 'antd';
+import {Button, Modal, Space, Table, Tag, Tooltip} from 'antd';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
-import {listAccounts} from '../../lib/AccountService';
-import {CheckCircleTwoTone, CloseCircleTwoTone} from '@ant-design/icons';
+import {listAccounts, lockUser, unlockUser} from '../../lib/AccountService';
+import {
+  LockTwoTone,
+  InfoCircleOutlined,
+  ExclamationCircleFilled, UnlockTwoTone,
+} from '@ant-design/icons';
+import Link from 'next/link';
+import {ICON_GREEN, ICON_RED} from '../misc/Constants';
+import BoolValueDisplay from '../misc/BoolValueDisplay';
+import DateColumnRender from '../misc/DateColumnRender';
 
 const {Column} = Table;
+const {confirm} = Modal;
 
 const AccountTable = () => {
-  const {token, checkTokenExpired} = useAuth();
+  const {payload, token, checkTokenExpired} = useAuth();
   const [error, setError] = useState(false);
   const [accounts, setAccounts] = useState([]);
 
@@ -26,6 +34,42 @@ const AccountTable = () => {
       setError(false);
     }
   }, [error]);
+
+  const onClickLock = (id, activityLevel) => {
+    if (!checkTokenExpired()) {
+      let updateActivity;
+      if (activityLevel) {
+        updateActivity = unlockUser(id, token, setError);
+      } else {
+        updateActivity = lockUser(id, token, setError);
+      }
+      updateActivity
+          .then((result) => {
+            if (result) {
+              setAccounts(accounts.map((account) => {
+                if (account.account_id === id) {
+                  account.is_active = activityLevel;
+                }
+                return account;
+              }));
+            }
+          });
+    }
+  };
+
+  const showUpdateActivityConfirm = (id, activityLevel) => {
+    confirm({
+      title: 'Confirmation',
+      icon: <ExclamationCircleFilled />,
+      content: `Are you sure you want to ${activityLevel ? 'un' : ''}lock this account?`,
+      okText: 'Yes',
+      okType: 'danger',
+      cancelText: 'No',
+      onOk() {
+        onClickLock(id, activityLevel);
+      },
+    });
+  };
 
   return (
     <Table
@@ -61,17 +105,32 @@ const AccountTable = () => {
         }}
       />
       <Column title="Created at" dataIndex="created_at" key="created_at"
-        render={(createdAt) => <DateFormatter dateTimestamp={createdAt}/>}
+        render={(createdAt) => <DateColumnRender value={createdAt}/>}
         sorter={(a, b) => a.created_at - b.created_at}
       />
       <Column title="Is active" dataIndex={'is_active'} key="is_active"
-        render={(isActive) => {
-          if (isActive) {
-            return <CheckCircleTwoTone twoToneColor="#00ff00"/>;
-          } else {
-            return <CloseCircleTwoTone twoToneColor="#ff0000"/>;
-          }
-        }}
+        render={(isActive) => <BoolValueDisplay value={isActive} />}
+      />
+      <Column title="Actions" key="action"
+        render={(_, record) => (
+          record.is_active ?
+            <Space size="middle">
+              <Tooltip title="Lock account">
+                <Button onClick={() => showUpdateActivityConfirm(record.account_id, false)}
+                  disabled={payload?.account_id === record.account_id}
+                  icon={<LockTwoTone twoToneColor={payload?.account_id === record.account_id ? 'Gainsboro' : ICON_RED}/>}/>
+              </Tooltip>
+              <Tooltip title="Details">
+                <Link href={`/accounts/${record.account_id}`}>
+                  <Button icon={<InfoCircleOutlined/>}/>
+                </Link>
+              </Tooltip>
+            </Space> :
+            <Tooltip title="Unlock account">
+              <Button onClick={() => showUpdateActivityConfirm(record.account_id, true)}
+                icon={<UnlockTwoTone twoToneColor={ICON_GREEN}/>}/>
+            </Tooltip>
+        )}
       />
     </Table>
   );

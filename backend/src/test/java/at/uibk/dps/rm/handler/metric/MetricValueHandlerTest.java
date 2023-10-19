@@ -1,6 +1,8 @@
 package at.uibk.dps.rm.handler.metric;
 
 import at.uibk.dps.rm.entity.model.MetricValue;
+import at.uibk.dps.rm.exception.BadInputException;
+import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestMetricProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
@@ -14,6 +16,8 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -35,7 +39,7 @@ public class MetricValueHandlerTest {
     private MetricValueHandler metricValueHandler;
 
     @Mock
-    private MetricValueChecker metricValueChecker;
+    private MetricValueService metricValueService;
 
     @Mock
     private RoutingContext rc;
@@ -43,7 +47,7 @@ public class MetricValueHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        metricValueHandler = new MetricValueHandler(metricValueChecker);
+        metricValueHandler = new MetricValueHandler(metricValueService);
     }
 
     @Test
@@ -56,7 +60,7 @@ public class MetricValueHandlerTest {
             JsonObject.mapFrom(mv2), JsonObject.mapFrom(mv3)));
 
         when(rc.pathParam("id")).thenReturn(String.valueOf(resourceId));
-        when(metricValueChecker.checkFindAllByResource(resourceId, true))
+        when(metricValueService.findAllByResource(resourceId, true))
             .thenReturn(Single.just(metricValues));
 
         metricValueHandler.getAll(rc)
@@ -79,7 +83,7 @@ public class MetricValueHandlerTest {
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
         when(rc.pathParam("id")).thenReturn(String.valueOf(resourceId));
-        when(metricValueChecker.submitCreateAll(resourceId, requestBody)).thenReturn(Completable.complete());
+        when(metricValueService.saveAllToResource(resourceId, requestBody)).thenReturn(Completable.complete());
 
         metricValueHandler.postAll(rc)
             .blockingSubscribe(() -> testContext.verify(() -> {}),
@@ -88,21 +92,44 @@ public class MetricValueHandlerTest {
         testContext.completeNow();
     }
 
-    @Test
-    void updateOne(VertxTestContext testContext) {
+    @ParameterizedTest
+    @ValueSource(strings = {"8", "\"eight\"", "true"})
+    void updateOne(String value, VertxTestContext testContext) {
         long resourceId = 1L;
         long metricId = 2L;
-        JsonObject requestBody = new JsonObject("{\"value\": 8}");
+        JsonObject requestBody = new JsonObject("{\"value\": " + value + "}");
 
         RoutingContextMockHelper.mockBody(rc, requestBody);
         when(rc.pathParam("resourceId")).thenReturn(String.valueOf(resourceId));
         when(rc.pathParam("metricId")).thenReturn(String.valueOf(metricId));
-        when(metricValueChecker.updateOneByValue(1L, 2L, requestBody))
+        when(metricValueService.updateByResourceAndMetric(1L, 2L,
+            value.equals("\"eight\"") ? "eight" : null, value.equals("8") ? 8.0 : null,
+            value.equals("true") ? true : null, true))
             .thenReturn(Completable.complete());
 
         metricValueHandler.updateOne(rc)
             .blockingSubscribe(() -> {},
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
+            );
+        testContext.completeNow();
+    }
+
+    @Test
+    void updateOneBadInput(VertxTestContext testContext) {
+        long resourceId = 1L;
+        long metricId = 2L;
+        JsonObject requestBody = new JsonObject("{\"value\": []}");
+
+        RoutingContextMockHelper.mockBody(rc, requestBody);
+        when(rc.pathParam("resourceId")).thenReturn(String.valueOf(resourceId));
+        when(rc.pathParam("metricId")).thenReturn(String.valueOf(metricId));
+
+        metricValueHandler.updateOne(rc)
+            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(BadInputException.class);
+                    testContext.completeNow();
+                })
             );
         testContext.completeNow();
     }
@@ -114,7 +141,7 @@ public class MetricValueHandlerTest {
 
         when(rc.pathParam("resourceId")).thenReturn(String.valueOf(resourceId));
         when(rc.pathParam("metricId")).thenReturn(String.valueOf(resourceId));
-        when(metricValueChecker.submitDeleteMetricValue(resourceId, metricId)).thenReturn(Completable.complete());
+        when(metricValueService.deleteByResourceAndMetric(resourceId, metricId)).thenReturn(Completable.complete());
 
         metricValueHandler.deleteOne(rc)
             .blockingSubscribe(() -> testContext.verify(() -> {}),

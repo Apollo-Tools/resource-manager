@@ -1,9 +1,6 @@
 package at.uibk.dps.rm.testutil.objectprovider;
 
-import at.uibk.dps.rm.entity.model.Metric;
-import at.uibk.dps.rm.entity.model.MetricType;
-import at.uibk.dps.rm.entity.model.MetricValue;
-import at.uibk.dps.rm.entity.model.PlatformMetric;
+import at.uibk.dps.rm.entity.model.*;
 import lombok.experimental.UtilityClass;
 
 /**
@@ -32,35 +29,21 @@ public class TestMetricProvider {
         return createMetricType(3L, "boolean");
     }
 
-    public static Metric createMetric(long metricId, String metricName, long metricTypeId, String metricType,
-                                      boolean isMonitored) {
-        Metric metric = new Metric();
-        metric.setMetricId(metricId);
-        metric.setMetric(metricName);
-        metric.setMetricType(createMetricType(metricTypeId, metricType));
-        metric.setDescription("Blah");
-        metric.setIsMonitored(isMonitored);
-        return metric;
-    }
-
-    public static Metric createMetric(long metricId, String metricName, MetricType metricType, boolean isMonitored) {
+    public static Metric createMetric(Long metricId, String metricName, MetricType metricType) {
         Metric metric = new Metric();
         metric.setMetricId(metricId);
         metric.setMetric(metricName);
         metric.setMetricType(metricType);
         metric.setDescription("Blah");
-        metric.setIsMonitored(isMonitored);
         return metric;
     }
 
     public static Metric createMetric(long metricId, String metricName) {
-        Metric metric = new Metric();
-        metric.setMetricId(metricId);
-        metric.setMetric(metricName);
-        metric.setMetricType(createMetricTypeNumber());
-        metric.setDescription("Blah");
-        metric.setIsMonitored(false);
-        return metric;
+        return createMetric(metricId, metricName, createMetricTypeNumber());
+    }
+
+    public static Metric createMetric(Long metricId) {
+        return createMetric(metricId, "metric", createMetricTypeNumber());
     }
 
     public static MetricValue createMetricValue(long metricValueId, long metricId, String metric, double value) {
@@ -70,10 +53,23 @@ public class TestMetricProvider {
         return metricValue;
     }
 
-    public static MetricValue createMetricValue(long metricValueId, Metric metric, double value) {
+    public static MetricValue createMetricValue(Long metricValueId, Metric metric, Resource resource, double value) {
         MetricValue metricValue = new MetricValue();
         initMetricValue(metricValue, metricValueId, metric);
+        metricValue.setResource(resource);
         metricValue.setValueNumber(value);
+        return metricValue;
+    }
+
+    public static MetricValue createMetricValue(Long metricValueId, Metric metric, double value) {
+        return createMetricValue(metricValueId, metric, TestResourceProvider.createResource(1L), value);
+    }
+
+    public static MetricValue createMetricValue(Long metricValueId, Metric metric, Resource resource, String value) {
+        MetricValue metricValue = new MetricValue();
+        initMetricValue(metricValue, metricValueId, metric);
+        metricValue.setResource(resource);
+        metricValue.setValueString(value);
         return metricValue;
     }
 
@@ -98,24 +94,36 @@ public class TestMetricProvider {
         return metricValue;
     }
 
-    private static void initMetricValue(MetricValue metricValue, long metricValueId, long metricId, String metric) {
+    private static void initMetricValue(MetricValue metricValue, Long metricValueId, long metricId, String metric) {
         initMetricValue(metricValue, metricValueId, createMetric(metricId, metric));
     }
 
-    private static void initMetricValue(MetricValue metricValue, long metricValueId, Metric metric) {
+    private static void initMetricValue(MetricValue metricValue, Long metricValueId, Metric metric) {
         metricValue.setMetricValueId(metricValueId);
         metricValue.setMetric(metric);
         metricValue.setCount(10L);
     }
 
-    public static PlatformMetric createPlatformMetric(long platformMetricId, long metricId) {
+    public static PlatformMetric createPlatformMetric(long platformMetricId, Metric metric, Platform platform,
+            boolean isMonitored) {
         PlatformMetric platformMetric = new PlatformMetric();
         platformMetric.setPlatformMetricId(platformMetricId);
-        platformMetric.setPlatform(TestPlatformProvider.createPlatformFaas(1L, "platform"));
-        platformMetric.setMetric(createMetric(metricId, "metric" + metricId));
+        platformMetric.setPlatform(platform);
+        platformMetric.setMetric(metric);
         platformMetric.setIsMainResourceMetric(true);
         platformMetric.setIsSubResourceMetric(true);
         platformMetric.setRequired(true);
+        platformMetric.setIsMonitored(isMonitored);
         return platformMetric;
+    }
+
+    public static PlatformMetric createPlatformMetric(long platformMetricId, Metric metric) {
+        Platform platform = TestPlatformProvider.createPlatformFaas(1L, "platform");
+        return createPlatformMetric(platformMetricId, metric, platform, true);
+    }
+
+    public static PlatformMetric createPlatformMetric(long platformMetricId, long metricId) {
+        Metric metric = createMetric(metricId, "metric" + metricId);
+        return createPlatformMetric(platformMetricId, metric);
     }
 }

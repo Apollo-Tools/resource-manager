@@ -1,14 +1,15 @@
-import DateFormatter from '../misc/DateFormatter';
 import {Button, Modal, Space, Table, Tooltip} from 'antd';
 import Link from 'next/link';
 import {
-  DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined, CloseCircleTwoTone, CheckCircleTwoTone, SyncOutlined,
+  DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined, SyncOutlined,
 } from '@ant-design/icons';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import {deleteEnsemble, listEnsembles, validateEnsemble} from '../../lib/EnsembleService';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 import PropTypes from 'prop-types';
+import BoolValueDisplay from '../misc/BoolValueDisplay';
+import DateColumnRender from '../misc/DateColumnRender';
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -107,23 +108,13 @@ const EnsembleTable = ({rowSelection}) => {
         onFilter={(value, record) => record.name.startsWith(value)}
       />
       <Column title="Valid" dataIndex="is_valid" key="is_valid"
-        render={(isValid) => {
-          if (isValid) {
-            return <CheckCircleTwoTone twoToneColor="#00ff00"/>;
-          } else {
-            return <CloseCircleTwoTone twoToneColor="#ff0000"/>;
-          }
-        }}
+        render={(isValid) => <BoolValueDisplay value={isValid}/>}
         sorter={(a, b) =>
           a.is_valid - b.is_valid}
       />
       <Column title="Created at" dataIndex="created_at" key="created_at"
-        render={(createdAt) => <DateFormatter dateTimestamp={createdAt}/>}
+        render={(createdAt) => <DateColumnRender value={createdAt}/>}
         sorter={(a, b) => a.created_at - b.created_at}
-      />
-      <Column title="Updated at" dataIndex="updated_at" key="updated_at"
-        render={(updatedAt) => <DateFormatter dateTimestamp={updatedAt}/>}
-        sorter={(a, b) => a.updated_at - b.updated_at}
       />
       <Column title="Actions" key="action"
         render={(_, record) => (

@@ -14,8 +14,7 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 public class VPCRoute implements Route {
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
-        VPCChecker vpcChecker = new VPCChecker(serviceProxyProvider.getVpcService());
-        VPCHandler vpcHandler = new VPCHandler(vpcChecker);
+        VPCHandler vpcHandler = new VPCHandler(serviceProxyProvider.getVpcService());
         PrivateEntityResultHandler resultHandler = new PrivateEntityResultHandler(vpcHandler);
 
         router

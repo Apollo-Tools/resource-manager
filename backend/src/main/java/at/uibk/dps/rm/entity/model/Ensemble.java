@@ -32,6 +32,7 @@ public class Ensemble {
     @Type(type="long-array")
     private List<Long> environments;
 
+    // TODO: fix naming
     @Column(name="resource_types", columnDefinition = "_int8")
     @Type(type="long-array")
     private List<Long> resource_types;

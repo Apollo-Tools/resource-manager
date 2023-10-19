@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.entity.deployment;
 
+import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.model.VPC;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ public class EC2DeploymentData {
 
     private final long deploymentId;
     private final VPC vpc;
-    private final String dockerUserName;
+    private final DockerCredentials dockerCredentials;
     private final List<Long> resourceIds = new ArrayList<>();
     private final List<String> functionIdentifiers = new ArrayList<>();
     private final List<String> resourceNames = new ArrayList<>();
@@ -90,7 +91,7 @@ public class EC2DeploymentData {
                 "  vm_props = module.ec2.vm_props[\"%s\"]\n" +
                 "  timeout = %s\n" +
                 "}\n", resourceId, functionIdentifier, resourceId, functionIdentifier, deploymentId, deploymentId,
-            dockerUserName, functionIdentifier, resourceName, timeout
+            dockerCredentials.getUsername(), functionIdentifier, resourceName, timeout
         );
     }
 

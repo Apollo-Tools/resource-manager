@@ -1,8 +1,13 @@
 package at.uibk.dps.rm.testutil.objectprovider;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
+import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
+import at.uibk.dps.rm.entity.deployment.output.TFOutput;
 import at.uibk.dps.rm.entity.model.*;
 import lombok.experimental.UtilityClass;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Utility class to instantiate objects that are linked to the deployment entity.
@@ -27,7 +32,7 @@ public class TestDeploymentProvider {
         return createResourceDeployment(id, deployment, resource, status);
     }
 
-    public static Deployment createDeployment(long id, boolean isActive, Account account) {
+    public static Deployment createDeployment(Long id, boolean isActive, Account account) {
         Deployment deployment = new Deployment();
         deployment.setDeploymentId(id);
         deployment.setIsActive(isActive);
@@ -35,7 +40,7 @@ public class TestDeploymentProvider {
         return  deployment;
     }
 
-    public static Deployment createDeployment(long id) {
+    public static Deployment createDeployment(Long id) {
         Account account = TestAccountProvider.createAccount(1L);
         return createDeployment(id, true, account);
     }
@@ -65,5 +70,16 @@ public class TestDeploymentProvider {
 
     public static ResourceDeploymentStatus createResourceDeploymentStatusTerminated() {
         return createResourceDeploymentStatus(5L, DeploymentStatusValue.TERMINATED);
+    }
+
+    public static DeploymentOutput createDeploymentOutput(String runtime) {
+        DeploymentOutput output = new DeploymentOutput();
+        TFOutput tfOutput = new TFOutput();
+        Map<String, String> values = new HashMap<>();
+        values.put("r1_foo1_" + runtime + "_1", "http://host:port/foo1");
+        values.put("r3_foo2_" + runtime + "_1", "http://host:port/foo2");
+        tfOutput.setValue(values);
+        output.setFunctionUrls(tfOutput);
+        return output;
     }
 }

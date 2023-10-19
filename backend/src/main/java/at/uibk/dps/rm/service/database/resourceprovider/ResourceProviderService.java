@@ -3,13 +3,13 @@ package at.uibk.dps.rm.service.database.resourceprovider;
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.ResourceProvider;
 import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
-import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
+import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
-import org.hibernate.reactive.stage.Stage;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 /**
  * The interface of the service proxy for the resource_provider entity.
@@ -24,8 +24,8 @@ public interface ResourceProviderService extends DatabaseServiceInterface {
     @Generated
     @GenIgnore
     static ResourceProviderService create(ResourceProviderRepository resourceProviderRepository,
-            Stage.SessionFactory sessionFactory) {
-        return new ResourceProviderServiceImpl(resourceProviderRepository, sessionFactory);
+            SessionManagerProvider smProvider) {
+        return new ResourceProviderServiceImpl(resourceProviderRepository, smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

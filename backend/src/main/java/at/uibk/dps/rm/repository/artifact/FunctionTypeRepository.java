@@ -2,9 +2,8 @@ package at.uibk.dps.rm.repository.artifact;
 
 import at.uibk.dps.rm.entity.model.FunctionType;
 import at.uibk.dps.rm.repository.Repository;
-import org.hibernate.reactive.stage.Stage.Session;
-
-import java.util.concurrent.CompletionStage;
+import at.uibk.dps.rm.service.database.util.SessionManager;
+import io.reactivex.rxjava3.core.Maybe;
 
 /**
  * Implements database operations for the function artifact type entity.
@@ -22,15 +21,15 @@ public class FunctionTypeRepository extends Repository<FunctionType> {
     /**
      * Find a function type by its name
      *
-     * @param session the database session
+     * @param sessionManager the database session manager
      * @param name the name of the function type
-     * @return a CompletionStage that emits the function type if it exists, else null
+     * @return a Maybe that emits the function type if it exists, else null
      */
-    public CompletionStage<FunctionType> findByName(Session session, String name) {
-        return session.createQuery(
-        "from FunctionType ft " +
-                "where ft.name =:name", entityClass)
+    public Maybe<FunctionType> findByName(SessionManager sessionManager, String name) {
+        return Maybe.fromCompletionStage(sessionManager.getSession()
+            .createQuery("from FunctionType ft where ft.name =:name", entityClass)
             .setParameter("name", name)
-            .getSingleResultOrNull();
+            .getSingleResultOrNull()
+        );
     }
 }

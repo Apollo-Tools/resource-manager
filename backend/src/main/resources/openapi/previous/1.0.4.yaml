@@ -1,0 +1,4128 @@
+openapi: 3.0.0
+info:
+  version: "1.0.4"
+  title: "Resource Manager"
+  description: |
+    This is the API specification for the Apollo Resource Manager. The api provides various routes to 
+    sign-up/login, manage resources, functions and services, get resources based on Service Level Objectives (SLOs) 
+    and automatically deploy and terminate resources. 
+    
+    ## Resource Types
+    - **faas**: Resources of this type support the deployment of functions (serverless functions).
+    - **container**: Container resources support the deployment of docker images.
+    
+    ## Platforms
+    - **lambda**: AWS Lambda is a serverless compute platform hosted by Amazon Web Services. This platform supports 
+      the deployment of **faas** resources.
+    - **ec2**: AWC EC2 (Elastic Compute Cloud) offers virtual machines for rental to users and is hosted by Amazon 
+      Web Services. This platform supports the deployment of **faas** resources.
+    - **openfaas**: [OpenFaaS](https://www.openfaas.com/) is a serverless framework that can be self-hosted on 
+      kubernetes or faasd. If this platform is selected for a resource, it is required that the concerning resource has
+      an up and running instannce of OpenFaaS. This platform supports the deployment of **faas** resources.
+    - **k8s**: [Kubernetes](https://kubernetes.io) is a container orchestration system that is expected to be 
+    self-hosted by the user. This platform supports the deployment of **container** resources.
+    
+    ## Metrics
+    Metrics are associated with resources and are used for deployment and monitoring. There are two types of metrics:
+    - **monitored**: Monitored resources are automatically updated by the monitoring service of the RM. Examples of 
+    this type of metric are price, availability and the heartbeat of a resource.
+    - **non monitored**: These are user-set properties that are used primarily for resource deployment. Examples
+    for this type of metric are the memory required for serverless functions or the instance type of a virtual machine.
+    
+    Not all platforms support/require the same metrics. The /platforms/{id}/metrics route can be used to get all 
+    metrics that are supported for a particular platform. The value types for metrics can be *string*, *number* and 
+    *boolean*.
+    
+    ## Resources
+    Resources consist of a platform and a region. It is also possible to add metrics to resources in the form of metric
+    values (see /resources/metrics). For future deployments, it is necessary for a resource to have a metric value for 
+    all metrics that are required by the resource's platform. Otherwise the deployment will fail.
+    
+    ## Service Level Objectives and Resource Ensembles
+    It is possible to retrieve resources filtered by service level objectives (see resources/slo). If you  are 
+    satisfied with the resulting resources or if you only need a subset of the retrieved resources you can store them 
+    with a name and the service level objectives as a *resource ensemble* (see /ensemble). The resources of the 
+    ensemble can be validated with /ensembles/{id}/validate. Supported metrics as service level objectives are all 
+    metrics that are managed by the RM as well as resource_type, platform, region, resource_provider and 
+    environment. For the latter five properties the values must be the ids of the entities. For example the service 
+    level objective for all resource types of type container would look like this if the *resource_type_id* of the 
+    *container* resource type equals 4:    
+    ```
+    {
+      name: resource_type,
+      expression: "==",
+      value: [4]
+    }
+    ```    
+    
+    As you can see the type of the value property of the service level objective is an array. Therefore, it is possible 
+    for service level objectives with the expression '==' to specify multiple values as valid options. For '<' or '>' 
+    expressions the value array must be of size one.
+    
+    ## Functions and Services
+    Functions and Services represent the two different deployable entities in the context of the rm. They don't have 
+    the same structure and are only available for deployments on predefined platforms as described in the 
+    platforms section. They also are always linked to a function type or service type. A type is the abstract
+    description of the functionality while the function or service is a specific implementation of the type.
+    - **functions**: Function entities consist of a function type, name, a runtime and a function code that can be 
+    executed by that runtime. Currently python 3.8 and java 11 are the supported runtimes. In general function code has
+    to be uploaded as a zip file. Templates for all available runtimes can be found at the git repository of the RM 
+    (backend/faas-templates). For python functions it is also possible to directly save the function code of the 
+    function.
+    - **services**: Service entities consist of a service type, name, the title of the docker image, the number of
+    replicas for that service, the ports that should be exposed, the required cpu amount, the required memory amount
+    and the k8s service type. Currently *ClientIP*, *NodePort*, *LoadBalancer*, *NoService* are supported k8s service 
+    types. If *NoService* is the selected service type no ports are allowed. The schema for ports to expose looks like
+    this: 
+    - ``containerPort:servicePort`` 
+    - e.g. your container exposes the port 80 and you want to expose it to service port 8080 you would have to provide 
+    it like this ``80:8080``.
+    
+    ## Deployment
+    Deployments consist of mappings of functions and services to resources and the necessary credentials. 
+    - **Credentials**: If a deployment to a cloud provider is part of the deploy resources request, credentials (access 
+    token, secret token, session token) must be stored on the account (see /credentials). In addition if the 
+    request contains resources of platform *EC2* or *OpenFaaS*, docker credentials must also be included in the 
+    request, because OpenFaaS uses docker images which must first be pushed to a docker repository and then pulled on 
+    the concerning resources. Make sure to generate a docker access token with read and write permissions for this 
+    purpose. For resources of type *container* a valid kube config must be provided within the request. The kube 
+    config must meet some specific requirements:
+      1. The cluster array must contain the cluster(s) where you want to deploy images to. 
+      2. You must provide a valid context for each cluster. The context must contain the namespace to be used. If this
+        is not the case, the RM will use the *default* namespace. 
+      3. The certificate and client key data must be inserted directly into the kube config. To do this, you 
+      need to base64 encode the two whole files as values and use *client-certificate-data* and *client-key-data* as 
+      keys. Using only the certificate or secret string won't work. It is recommended to test the kube config with
+      kubectl before using it with the resource manager, to make sure it is valid.
+    
+    A sample kube config looks like this:
+    ```
+    apiVersion: v1
+    clusters:
+      - cluster:
+          certificate-authority-data: <b64-encdoded-cert-authority-data>
+          server: <cluster-url>
+        name: clustername
+    contexts:
+      - context:
+          cluster: clustername
+          namespace: <your-namespace>
+          user: username
+        name: <context-name>
+    kind: Config
+    preferences: {}
+    users:
+      - name: username
+        user:
+          client-certificate-data: <b64-encoded-cert>
+          client-key-data: <b64-encoded-key>
+    ```
+    - **Virtual Private Clouds**: In order to deploy virtual machines on AWS EC2 a Virtual Private Cloud (VPC) must be 
+    registered (see /vpcs) prior to submitting a deployment request for each region in which a virtual machine will
+    be deployed. 
+    - **Output and Status**: After successfully submitting a deploy resources request, a deployment will be created 
+    with the status *NEW*. This indicates that the deployment of resources has started but is still in progress. After 
+    the RM has completed all tasks associated with the new deployment, the status is changed to **DEPLOYED** and 
+    the trigger url is set for all deployed resources. All function-resources and service-resources associated to the 
+    deployment can be retrieved with the GET /deployments/{id} request where the newly set trigger urls can be found. 
+    For function deployments the trigger url is the function's entrypoint. For service deployments the trigger url 
+    starts up the container. The trigger url for service deployments is a endpoint of the RM 
+    /deployments/{deploymentId}/{resourceDeploymentId}/start. It is also possible to stop the container with 
+    the endpoint /deployments/{deploymentId}/{resourceDeploymentId}/stop. 
+    When a deployment is cancelled, the status is changed to *TERMINATING*. After the termination 
+    of all the resources associated with the deployment is finished, the status changes to *TERMINATED*. If an error 
+    occurs in any of these steps, the status is set to *ERROR*. In order to observe what has happened during the 
+    deployment and termination, it is possible to retrieve logs for each deployment using the 
+    /deployments/{id}/logs endpoint.
+    
+    ## Authentication
+    The RM uses **Bearer tokens** for authentication because it's a simple authentication method. 
+    New users can be created using the *accounts/signup* route. A new token can be retrieved using the *accounts/login*
+    route.  
+    
+    ### Roles
+    Different routes required different roles. The property *x-role* defines the necessary role on operation level.
+    If an operation does not define the *x-role* property it is accessible by every user.
+    The available roles are:
+    - admin
+    - default
+    The default role is the basic role, which is assigned to every user by default. Accounts with the admin role have
+    special permissions to manage users.
+    
+    ## Note 
+    Please be aware that the API provided is in the early stage of development and is subject to change in the near
+    future. As the development progresses, updates and improvements may be made to the API, including modifications 
+    to the structure, behavior, or available functionality. These changes could potentially impact the integration 
+    and usage of the API in your application.
+    
+    Most routes of the API implement CRUD (Create, Read, Update, Delete) operations. For details, see the 
+    routes and schemas below.
+  license:
+    name: TODO
+
+servers:
+  - url: localhost:8080/api
+    description: Local Dev Server
+
+tags:
+  - name: accounts
+  - name: accounts/k8snamespaces
+  - name: credentials
+  - name: deployments
+  - name: ensembles
+  - name: ensembles/resources
+  - name: environments
+  - name: functions
+  - name: functionTypes
+  - name: k8snamespaces
+  - name: k8sServiceTypes
+  - name: logs
+  - name: metrics
+  - name: platforms
+  - name: regions
+  - name: resourceTypes
+  - name: resourceProviders
+  - name: resources
+  - name: resources/metrics
+  - name: resources/slo
+  - name: runtimes
+  - name: services
+  - name: serviceTypes
+  - name: vpcs
+
+paths:
+  /accounts:
+    get:
+      description: Return details about all accounts registered at the resource manager
+      operationId: listAccounts
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - accounts
+      x-role: admin
+      responses:
+        200:
+          description: Successful pull of all accounts
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Account"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+  /accounts/{id}:
+    get:
+      description: Return details about a user account
+      operationId: getAccount
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      tags:
+        - accounts
+      responses:
+        200:
+          description: Successful pull of the user account
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        403:
+          $ref: "#/components/responses/403"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+  /accounts/{id}/k8snamespaces:
+    get:
+      description: Return all namespaces that are registered for an user account
+      operationId: listAccountNamespaces
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      tags:
+        - accounts/k8snamespaces
+      x-role: admin
+      responses:
+        200:
+          description: Successful pull of the account namespaces
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Namespace"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        403:
+          $ref: "#/components/responses/403"
+        500:
+          $ref: "#/components/responses/500"
+
+  /accounts/me:
+    get:
+      description: Return details about the currently logged in user account
+      operationId: getMyAccount
+      security:
+        - bearerAuth: []
+      tags:
+        - accounts
+      responses:
+        200:
+          description: Successful pull of the user account
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+    patch:
+      description: Update the password of the currently logged in user account
+      operationId: changePassword
+      security:
+        - bearerAuth: []
+      tags:
+        - accounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              minProperties: 2
+              additionalProperties: false
+              properties:
+                old_password:
+                  type: string
+                  example: "old-password!"
+                new_password:
+                  type: string
+                  example: "new-password!"
+      responses:
+        204:
+          description: Successful update of an accounts password
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+  /accounts/me/k8snamespaces:
+    get:
+      description: Return all namespaces of the currently logged in account
+      operationId: listMyAccountNamespaces
+      security:
+        - bearerAuth: []
+      tags:
+        - accounts/k8snamespaces
+      responses:
+        200:
+          description: Successful pull of the account namespaces
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Namespace"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        403:
+          $ref: "#/components/responses/403"
+        500:
+          $ref: "#/components/responses/500"
+
+  /accounts/signup:
+    post:
+      description: Signup a new user account
+      operationId: signUp
+      tags:
+        - accounts
+      security:
+        - bearerAuth: []
+      x-role: admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              additionalProperties: false
+              properties:
+                username:
+                  description: Only lower case letters, digits or underscore are allowed characters
+                  type: string
+                  example: user1
+                  minLength: 4
+                  maxLength: 32
+                password:
+                  description: |
+                    At least one digit, one lower case letter, one upper case letter, one special character have to 
+                    be present. No white spaces are allowed.
+                  type: string
+                  example: password1234!?
+                  minLength: 8
+                  maxLength: 512
+      responses:
+        201:
+          description: Successful registration of a new user account
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        403:
+          $ref: "#/components/responses/403"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+  /accounts/login:
+    post:
+      description: Login a user account
+      operationId: login
+      tags:
+        - accounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              additionalProperties: false
+              properties:
+                username:
+                  type: string
+                  example: johndoe
+                  minLength: 4
+                  maxLength: 32
+                password:
+                  type: string
+                  example: password1234!?
+                  minLength: 8
+                  maxLength: 512
+      responses:
+        200:
+          description: Successful login of a user
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+
+  /accounts/{accountId}/k8namespaces/{namespaceId}:
+    post:
+      description: |
+        Add a namespace to an account. It is only possible to add one namespace per resource to the same account.
+      operationId: addNamespaceToAccount
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - accounts/k8snamespaces
+      x-role: admin
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+        - name: namespaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        201:
+          description: Successfully added namespace to account
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  account_id:
+                    type: integer
+                    format: int64
+                    example: 1
+                  namespace_id:
+                    type: integer
+                    format: int64
+                    example: 1
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+    delete:
+      description: Remove a namespace from an account
+      operationId: deleteNamespaceFromAccount
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - accounts/k8snamespaces
+      x-role: admin
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+        - name: namespaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        204:
+          description: Successful removal of namespace from an account
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /resources/{id}:
+    get:
+      description: Return details about a resource managed by the resource manager
+      operationId: getResource
+      security:
+        - bearerAuth: []
+      tags:
+        - resources
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of a resource
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourceDetails"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+    delete:
+      description: Delete a resource. This is only successful, if the entity is not used by any other entity.
+      operationId: deleteResource
+      security:
+        - bearerAuth: []
+      tags:
+        - resources
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        204:
+          description: Successful deletion of a resource
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /resources:
+    get:
+      description: Return details about all resources managed by the resource manager
+      operationId: listResources
+      security:
+        - bearerAuth: []
+      tags:
+        - resources
+      responses:
+        200:
+          description: Successful pull of all resources
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ResourceDetails"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+
+    post:
+      description: Register a new resource
+      operationId: createResource
+      security:
+        - bearerAuth: []
+      tags:
+        - resources
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - region
+                - platform
+              additionalProperties: false
+              properties:
+                name:
+                  type: string
+                  minLength: 3
+                  maxLength: 256
+                  example: newresource
+                  description: only lower case letters or digits are allowed
+                region:
+                  type: object
+                  required:
+                    - region_id
+                  additionalProperties: false
+                  properties:
+                    region_id:
+                      type: integer
+                      format: int64
+                      example: 1
+                platform:
+                  type: object
+                  required:
+                    - platform_id
+                  additionalProperties: false
+                  properties:
+                    platform_id:
+                      type: integer
+                      format: int64
+                      example: 1
+      responses:
+        201:
+          description: Successful registration of a new resource
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  resource_id:
+                    type: integer
+                    format: int64
+                    example: 1
+                  region:
+                    type: object
+                    properties:
+                      region_id:
+                        type: integer
+                        format: int64
+                        example: 1
+                  platform:
+                    type: object
+                    properties:
+                      platform_id:
+                        type: integer
+                        format: int64
+                        example: 1
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+  /resources/{id}/metrics:
+    get:
+      description: Return all metric values that are linked to an existing resource identified by id
+      operationId: listResourceMetrics
+      security:
+        - bearerAuth: []
+      tags:
+        - resources/metrics
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of all metric values
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MetricValue"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+    post:
+      description: |
+        Add multiple metrics to an existing resource. It is only possible to add metrics to a resource, 
+        that are supported by the type of the resource.
+      operationId: addResourceMetrics
+      security:
+        - bearerAuth: []
+      tags:
+        - resources/metrics
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              minItems: 1
+              items:
+                type: object
+                required:
+                  - metric_id
+                additionalProperties: false
+                properties:
+                  metric_id:
+                    type: integer
+                    format: int64
+                    example: 1
+                  value:
+                    description: the value type must be equal to the type that is set for the metric
+                    oneOf:
+                      - type: number
+                        example: 4
+                      - type: string
+                        example: "ubuntu"
+                      - type: boolean
+                        example: true
+      responses:
+        204:
+          description: Successfully added metrics to existing resource
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+  /resources/{resourceId}/metrics/{metricId}:
+    patch:
+      description: Update the value of a resource's metric
+      operationId: updateMetricValue
+      security:
+        - bearerAuth: []
+      tags:
+        - resources/metrics
+      parameters:
+        - name: resourceId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+        - name: metricId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - value
+              additionalProperties: false
+              properties:
+                value:
+                  description: the value type has to be equal to the type that is set for the metric
+                  oneOf:
+                    - type: number
+                      example: 4
+                    - type: string
+                      example: "ubuntu"
+                    - type: boolean
+                      example: true
+      responses:
+        204:
+          description: Successful update of metric value
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+    delete:
+      description: Delete a resource metric.
+      operationId: deleteResourceMetric
+      security:
+        - bearerAuth: []
+      tags:
+        - resources/metrics
+      parameters:
+        - name: resourceId
+          in: path
+          description: ID of the resource entity
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+        - name: metricId
+          in: path
+          description: ID of the metric entity
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        204:
+          description: Successful deletion of a metric
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /resources/slo:
+    post:
+      description: Return all resources that fulfill the service level objectives
+      operationId: listResourcesBySLOs
+      security:
+        - bearerAuth: []
+      tags:
+        - resources/slo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                slos:
+                  $ref: "#/components/schemas/Slos"
+      responses:
+        200:
+          description: Successful retrieval of resources that fulfill the service level objectives
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ResourceDetails"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /resources/{id}/subresources:
+    get:
+      description: Return all subresources of an existing resource
+      operationId: listSubresources
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - resources
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of all subresources
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubresourceDetails"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /ensembles/{id}:
+    get:
+      description: Return details about an ensemble managed by the resource manager
+      operationId: getEnsemble
+      security:
+        - bearerAuth: []
+      tags:
+        - ensembles
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of an ensemble
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnsembleDetails"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+    delete:
+      description: Delete an ensemble
+      operationId: deleteEnsemble
+      security:
+        - bearerAuth: []
+      tags:
+        - ensembles
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        204:
+          description: Successful deletion of an ensemble
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /ensembles/{ensembleId}/resources/{resourceId}:
+    post:
+      description: Add a resource to an existing resource ensemble
+      operationId: addResourceToEnsemble
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - ensembles/resources
+      parameters:
+        - name: ensembleId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+        - name: resourceId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        201:
+          description: Successfully added resource to existing ensemble
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ensemble_id:
+                    type: integer
+                    format: int64
+                    example: 1
+                  resource_id:
+                    type: integer
+                    format: int64
+                    example: 1
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+    delete:
+      description: Remove a resource from an existing ensemble
+      operationId: deleteResourceFromEnsemble
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - ensembles/resources
+      parameters:
+        - name: ensembleId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+        - name: resourceId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        204:
+          description: Successful removal of resource from an ensemble
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /ensembles/{id}/validate:
+    get:
+      description: Validate if all resources from an ensemble fulfill its service level objectives
+      operationId: validateEnsemble
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - ensembles
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful validation of all resources of an ensemble
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    resource_id:
+                      type: integer
+                      format: int64
+                      example: 1
+                    is_valid:
+                      type: boolean
+                      example: true
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /ensembles:
+    get:
+      description: Return details about all ensembles managed by the resource manager
+      operationId: listEnsembles
+      security:
+        - bearerAuth: []
+      tags:
+        - ensembles
+      responses:
+        200:
+          description: Successful pull of all ensembles
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Ensemble"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+
+    post:
+      description: Register a new ensemble
+      operationId: createEnsemble
+      security:
+        - bearerAuth: []
+      tags:
+        - ensembles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - slos
+                - resources
+              additionalProperties: false
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 64
+                  example: myensemble
+                  description: only lower case letters or digits are allowed
+                slos:
+                  $ref: "#/components/schemas/Slos"
+                resources:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    required:
+                      - resource_id
+                    additionalProperties: false
+                    properties:
+                      resource_id:
+                        type: integer
+                        format: int64
+                        example: 1
+      responses:
+        201:
+          description: Successful registration of a new ensemble
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ensemble"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+  /runtimes/{id}:
+    get:
+      description: Return details about a runtime
+      operationId: getRuntime
+      security:
+        - bearerAuth: []
+      tags:
+        - runtimes
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of a runtime
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Runtime"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /runtimes/{id}/template:
+    get:
+      description: Return the template code for a selected runtime
+      operationId: getRuntimeTemplate
+      security:
+        - bearerAuth: []
+      tags:
+        - runtimes
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of a runtime template
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: object
+                minProperties: 1
+                additionalProperties: false
+                properties:
+                  template:
+                    type: string
+                    example: |
+                      def main(json_input):
+                        input1 = json_input["input1"]
+                        res = {
+                            "input1": input1
+                        }
+                        return res
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /runtimes:
+    get:
+      description: Return details about all runtimes managed by the resource manager
+      operationId: listRuntimes
+      security:
+        - bearerAuth: []
+      tags:
+        - runtimes
+      responses:
+        200:
+          description: Successful pull of all runtimes
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Runtime"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+
+  /functions/{id}:
+    get:
+      description: Return details about a function
+      operationId: getFunction
+      security:
+        - bearerAuth: []
+      tags:
+        - functions
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of a function
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Function"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+    patch:
+      description: Update a function
+      operationId: updateFunction
+      security:
+        - bearerAuth: []
+      tags:
+        - functions
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              minProperties: 1
+              additionalProperties: false
+              properties:
+                code:
+                  type: string
+                  example: |
+                    def main(json_input):
+                      input1 = json_input["input1"]
+                      res = {
+                          "input1": input1
+                      }
+                      return res
+                timeout_seconds:
+                  type: integer
+                  minimum: 5
+                  maximum: 900
+                  example: 60
+                memory_megabytes:
+                  type: integer
+                  minimum: 128
+                  maximum: 10240
+                  example: 128
+
+      responses:
+        204:
+          description: Successful update of a function
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+    delete:
+      description: Delete a function
+      operationId: deleteFunction
+      security:
+        - bearerAuth: []
+      tags:
+        - functions
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        204:
+          description: Successful deletion of a function
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /functions:
+    get:
+      description: Return details about all functions managed by the resource manager
+      operationId: listFunctions
+      security:
+        - bearerAuth: []
+      tags:
+        - functions
+      responses:
+        200:
+          description: Successful pull of all functions
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Function"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+
+    post:
+      description: Create a new function
+      operationId: createFunction
+      security:
+        - bearerAuth: []
+      tags:
+        - functions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - function_type
+                - runtime
+                - code
+                - timeout_seconds
+                - memory_megabytes
+              additionalProperties: false
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 64
+                  example: "multiply"
+                  description: only lower case letters or digits are allowed
+                function_type:
+                  type: object
+                  required:
+                    - artifact_type_id
+                  additionalProperties: false
+                  properties:
+                    artifact_type_id:
+                      type: integer
+                      format: int64
+                      example: 1
+                runtime:
+                  type: object
+                  required:
+                    - runtime_id
+                  additionalProperties: false
+                  properties:
+                    runtime_id:
+                      type: integer
+                      format: int64
+                      example: 1
+                code:
+                  type: string
+                  minLength: 1
+                  maxLength: 2048
+                  example: |
+                    def main(json_input):
+                      input1 = json_input["input1"]
+                      res = {
+                          "input1": input1
+                      }
+                      return res
+                timeout_seconds:
+                  type: integer
+                  minimum: 5
+                  maximum: 900
+                  example: 60
+                memory_megabytes:
+                  type: integer
+                  minimum: 128
+                  maximum: 10240
+                  example: 128
+      responses:
+        201:
+          description: Successful creation of a new function
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Function"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+  /functions/{id}/file:
+    patch:
+      description: Update a function with code packaged as zip file
+      operationId: updateFunctionFile
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - functions
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - code
+              properties:
+                code:
+                  type: string
+                  format: binary
+            encoding:
+              code:
+                contentType: 'application/*zip*'
+      responses:
+        204:
+          description: Successful update of the function
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /functions/file:
+    post:
+      description: Create a new function with code packaged as zip file
+      operationId: createFunctionFile
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - functions
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - name
+                - function_type
+                - runtime
+                - code
+                - timeout_seconds
+                - memory_megabytes
+              additionalProperties: false
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 64
+                  example: "multiply"
+                  description: only lower case letters or digits are allowed
+                function_type:
+                  type: object
+                  required:
+                    - artifact_type_id
+                  additionalProperties: false
+                  properties:
+                    artifact_type_id:
+                      type: integer
+                      format: int64
+                      example: 1
+                runtime:
+                  type: object
+                  required:
+                    - runtime_id
+                  additionalProperties: false
+                  properties:
+                    runtime_id:
+                      type: integer
+                      format: int64
+                      example: 1
+                code:
+                  type: string
+                  format: binary
+                timeout_seconds:
+                  type: integer
+                  minimum: 5
+                  maximum: 900
+                  example: 60
+                memory_megabytes:
+                  type: integer
+                  minimum: 128
+                  maximum: 10240
+                  example: 128
+            encoding:
+              code:
+                contentType: 'application/*zip*'
+      responses:
+        201:
+          description: Successful creation of a new function
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Function"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+  /function-types/{id}:
+    get:
+      description: Return details about a function type
+      operationId: getFunctionType
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - functionTypes
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of a function type
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FunctionType"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+    delete:
+      description: Delete a function type
+      operationId: deleteFunctionType
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - functionTypes
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        204:
+          description: Successful deletion of a function type
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /function-types:
+    get:
+      description: Return details about all function types managed by the resource manager
+      operationId: listFunctionTypes
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - functionTypes
+      responses:
+        200:
+          description: Successful pull of all function types
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FunctionType"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+
+    post:
+      description: Create a new function type
+      operationId: createFunctionType
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - functionTypes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              additionalProperties: false
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 256
+                  example: splitfiles
+      responses:
+        201:
+          description: Successful creation of a new function type
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FunctionType"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+  /k8snamespaces:
+    get:
+      description: Return details about all k8s namespaces managed by the resource manager
+      operationId: listNamespaces
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - k8snamespaces
+      x-role: admin
+      responses:
+        200:
+          description: Successful pull of all namespaces
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Namespace"
+        401:
+          $ref: "#/components/responses/401"
+        403:
+          $ref: "#/components/responses/403"
+        500:
+          $ref: "#/components/responses/500"
+
+  /deployments:
+    get:
+      description: Return details about the user's deployments
+      operationId: listMyDeployments
+      security:
+        - bearerAuth: []
+      tags:
+        - deployments
+      responses:
+        200:
+          description: Successful pull of all deployments
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    deployment_id:
+                      type: integer
+                      format: int64
+                      example: 1
+                    status_value:
+                      type: string
+                      example: NEW
+                    created_at:
+                      type: integer
+                      format: int64
+                      example: 1679496667103
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+
+    post:
+      description: Deploy resources
+      operationId: deployResources
+      security:
+        - bearerAuth: []
+      tags:
+        - deployments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - function_resources
+                - service_resources
+                - credentials
+                - lock_resources
+              additionalProperties: false
+              properties:
+                service_resources:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - service_id
+                      - resource_id
+                    additionalProperties: false
+                    properties:
+                      service_id:
+                        type: integer
+                        format: int64
+                        example: 1
+                      resource_id:
+                        type: integer
+                        format: int64
+                        example: 1
+                function_resources:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - function_id
+                      - resource_id
+                    additionalProperties: false
+                    properties:
+                      function_id:
+                        type: integer
+                        format: int64
+                        example: 1
+                      resource_id:
+                        type: integer
+                        format: int64
+                        example: 1
+                lock_resources:
+                  description: |
+                    Lock these resources for exclusive usage. Until the deployment is canceled, 
+                    these resources can not be used for other deployments.
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - resource_id
+                    additionalProperties: false
+                    properties:
+                      resource_id:
+                        type: integer
+                        format: int64
+                        example: 1
+                credentials:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    docker_credentials:
+                      $ref: '#/components/schemas/DockerCredentials'
+                    kube_config:
+                      $ref: '#/components/schemas/KubeConfig'
+      responses:
+        201:
+          description: Successful deployment of resources
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deployment"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /deployments/{id}:
+    get:
+      description: Return details about a resource deployment
+      operationId: getDeployment
+      security:
+        - bearerAuth: []
+      tags:
+        - deployments
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of a deployment
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeploymentDetails"
+        400:
+          $ref: "#/components/responses/400"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /deployments/{deploymentId}/{resourceDeploymentId}/startup:
+    post:
+      description: Start up a service container from an existing deployment.
+      operationId: startResourceDeployment
+      security:
+        - bearerAuth: []
+      tags:
+        - deployments
+      parameters:
+        - name: deploymentId
+          in: path
+          description: ID of the deployment
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+        - name: resourceDeploymentId
+          in: path
+          description: ID of the resource deployment
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        204:
+          description: Successful start up of a container
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /deployments/{deploymentId}/{resourceDeploymentId}/terminate:
+    post:
+      description: Stop a service container from an existing deployment
+      operationId: stopResourceDeployment
+      security:
+        - bearerAuth: []
+      tags:
+        - deployments
+      parameters:
+        - name: deploymentId
+          in: path
+          description: ID of the deployment
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+        - name: resourceDeploymentId
+          in: path
+          description: ID of the resource deployment
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        204:
+          description: Successful stop of a container
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /deployments/{id}/logs:
+    get:
+      description: Return all logs linked to a deployment
+      operationId: listDeploymentLogs
+      security:
+        - bearerAuth: []
+      tags:
+        - deployments
+        - logs
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of all logs
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Log"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /deployments/{id}/cancel:
+    patch:
+      description: Cancel a deployment and terminate all resources from that deployment.
+      operationId: cancelDeployment
+      security:
+        - bearerAuth: []
+      tags:
+        - deployments
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        204:
+          description: Successful cancellation of a deployment
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /resource-providers/{id}:
+    get:
+      description: Return details about a resource provider
+      operationId: getResourceProvider
+      security:
+        - bearerAuth: []
+      tags:
+        - resourceProviders
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of a resource provider
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourceProvider"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /resource-providers/{id}/regions:
+    get:
+      description: Return details about all registered resource provider's regions
+      operationId: listResourceProviderRegions
+      security:
+        - bearerAuth: []
+      tags:
+        - resourceProviders
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of all resource provider's regions
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    region_id:
+                      type: integer
+                      format: int64
+                      example: 1
+                    name:
+                      type: string
+                      example: us-east-1
+                    created_at:
+                      type: integer
+                      format: int64
+                      example: 1679496667103
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /resource-providers:
+    get:
+      description: Return details about all resource providers managed by the resource manager
+      operationId: listResourceProviders
+      security:
+        - bearerAuth: []
+      tags:
+        - resourceProviders
+      responses:
+        200:
+          description: Successful pull of all resource providers
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ResourceProvider"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+
+  /regions/{id}:
+    get:
+      description: Return details about a region managed by the resource manager
+      operationId: getRegion
+      security:
+        - bearerAuth: []
+      tags:
+        - regions
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of a region
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Region"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+    delete:
+      description: Delete a region
+      operationId: deleteRegion
+      security:
+        - bearerAuth: []
+      tags:
+        - regions
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        204:
+          description: Successful deletion of a region
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /regions:
+    get:
+      description: Return details about all regions managed by the resource manager
+      operationId: listRegions
+      security:
+        - bearerAuth: []
+      tags:
+        - regions
+      responses:
+        200:
+          description: Successful pull of all regions
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Region"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+
+    post:
+      description: Create a new region
+      operationId: createRegion
+      security:
+        - bearerAuth: []
+      tags:
+        - regions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - resource_provider
+              additionalProperties: false
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 512
+                  example: us-east
+                resource_provider:
+                  type: object
+                  required:
+                    - provider_id
+                  additionalProperties: false
+                  properties:
+                    provider_id:
+                      type: integer
+                      format: int64
+                      example: 1
+      responses:
+        201:
+          description: Successful creation of a new region
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Region"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+  /vpcs:
+    get:
+      description: Return all virtual private clouds registered for the current user account
+      operationId: listVPCs
+      security:
+        - bearerAuth: []
+      tags:
+        - vpcs
+      responses:
+        200:
+          description: Successful pull of the vpcs registered for the current user account
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VPC'
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+
+    post:
+      description: Create a new vpc linked to a region and current user account
+      operationId: createVPC
+      security:
+        - bearerAuth: []
+      tags:
+        - vpcs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - vpc_id_value
+                - subnet_id_value
+                - region
+              additionalProperties: false
+              properties:
+                vpc_id_value:
+                  type: string
+                  example: vpc-ave2412
+                subnet_id_value:
+                  type: string
+                  example: subnet-ave2412
+                region:
+                  type: object
+                  required:
+                    - region_id
+                  additionalProperties: false
+                  properties:
+                    region_id:
+                      type: integer
+                      format: int64
+                      example: 1
+      responses:
+        201:
+          description: Successful creation of the vpc
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VPC"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+  /vpcs/{id}:
+    get:
+      description: Return details about a virtual private cloud registered at the the resource manager
+      operationId: getVPC
+      security:
+        - bearerAuth: []
+      tags:
+        - vpcs
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of a vpc
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VPC"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+    delete:
+      description: Delete a vpc
+      operationId: deleteVPC
+      security:
+        - bearerAuth: []
+      tags:
+        - vpcs
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        204:
+          description: Successful deletion of a vpc
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /credentials:
+    get:
+      description: Return all cloud credentials linked to the current user account
+      operationId: listCredentials
+      security:
+        - bearerAuth: []
+      tags:
+        - credentials
+      responses:
+        200:
+          description: Successful pull of all cloud credentials linked to the current user account
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    credentials_id:
+                      type: integer
+                      format: int64
+                      example: 1
+                    resource_provider:
+                      $ref: "#/components/schemas/ResourceProvider"
+                    created_at:
+                      type: integer
+                      format: int64
+                      example: 1679496667103
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+
+    post:
+      description: Add new cloud credentials to the current user account
+      operationId: addCredentials
+      security:
+        - bearerAuth: []
+      tags:
+        - credentials
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - access_key
+                - resource_provider
+              additionalProperties: false
+              properties:
+                access_key:
+                  type: string
+                  example: accesskey1234
+                secret_access_key:
+                  type: string
+                  example: secretaccesskey1234
+                session_token:
+                  type: string
+                  example: sessiontoken1234
+                resource_provider:
+                  type: object
+                  required:
+                    - provider_id
+                  additionalProperties: false
+                  properties:
+                    provider_id:
+                      type: integer
+                      format: int64
+                      example: 1
+      responses:
+        201:
+          description: Successful creation of new cloud credentials
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  credentials_id:
+                    type: integer
+                    format: int64
+                    example: 1
+                  resource_provider:
+                    $ref: "#/components/schemas/ResourceProvider"
+                  access_key:
+                    type: string
+                    example: accesskey1234
+                  secret_access_key:
+                    type: string
+                    example: secretaccesskey1234
+                  session_token:
+                    type: string
+                    example: sessiontoken1234
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+  /credentials/{id}:
+    delete:
+      description: Delete credentials from user account
+      operationId: deleteCredentials
+      security:
+        - bearerAuth: []
+      tags:
+        - credentials
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        204:
+          description: Successful deletion of credentials
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /resource-types/{id}:
+    get:
+      description: Return details about a resource type managed by the resource manager
+      operationId: getResourceType
+      security:
+        - bearerAuth: []
+      tags:
+        - resourceTypes
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of a resource type
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourceType"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /resource-types:
+    get:
+      description: Return details about all resource types managed by the resource manager
+      operationId: listResourceTypes
+      security:
+        - bearerAuth: []
+      tags:
+        - resourceTypes
+      responses:
+        200:
+          description: Successful pull of all resource types
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ResourceType"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+
+  /metrics/{id}:
+    get:
+      description: Return details about a metric managed by the resource manager
+      operationId: getMetric
+      security:
+        - bearerAuth: []
+      tags:
+        - metrics
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of a metric
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Metric"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /metrics:
+    get:
+      description: Return details about all metrics managed by the resource manager
+      operationId: listMetrics
+      security:
+        - bearerAuth: []
+      tags:
+        - metrics
+      responses:
+        200:
+          description: Successful pull of all metrics
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Metric"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+
+  /services/{id}:
+    get:
+      description: Return details about a service managed by the resource manager
+      operationId: getService
+      security:
+        - bearerAuth: []
+      tags:
+        - services
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of a service
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceDetails"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+    patch:
+      description: Update details about a service managed by the resource manager
+      operationId: updateService
+      security:
+        - bearerAuth: []
+      tags:
+        - services
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              minProperties: 1
+              properties:
+                replicas:
+                  type: integer
+                  format: int32
+                  minimum: 1
+                  example: 1
+                ports:
+                  type: array
+                  items:
+                    type: string
+                    example: 80:8080
+                cpu:
+                  type: number
+                  example: 0.1
+                memory:
+                  type: integer
+                  format: int32
+                  example: 128
+                k8s_service_type:
+                  type: object
+                  required:
+                    - service_type_id
+                  additionalProperties: false
+                  properties:
+                    service_type_id:
+                      type: integer
+                      format: int64
+                      example: 1
+                env_vars:
+                  description: the environment variables of the container
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - name
+                      - value
+                    additionalProperties: false
+                    properties:
+                      name:
+                        type: string
+                        minLength: 3
+                        maxLength: 128
+                        example: db_user
+                      value:
+                        type: string
+                        maxLength: 512
+                        example: root
+                volume_mounts:
+                  description: the volumes to mount (emptyDir)
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - name
+                      - mount_path
+                      - size_megabytes
+                    additionalProperties: false
+                    properties:
+                      name:
+                        type: string
+                        minLength: 3
+                        maxLength: 128
+                        example: file-upload
+                      mount_path:
+                        type: string
+                        maxLength: 512
+                        example: /uploads
+                      size_megabytes:
+                        type: number
+                        example: 10.0
+      responses:
+        204:
+          description: Successful update of a function
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+    delete:
+      description: Delete a service
+      operationId: deleteService
+      security:
+        - bearerAuth: []
+      tags:
+        - services
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        204:
+          description: Successful deletion of a service
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /services:
+    get:
+      description: Return details about all services managed by the resource manager
+      operationId: listServices
+      security:
+        - bearerAuth: []
+      tags:
+        - services
+      responses:
+        200:
+          description: Successful pull of all services
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Service"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+
+    post:
+      description: Create a new service
+      operationId: createService
+      security:
+        - bearerAuth: []
+      tags:
+        - services
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - service_type
+                - image
+                - replicas
+                - ports
+                - cpu
+                - memory
+                - k8s_service_type
+                - volume_mounts
+                - env_vars
+              additionalProperties: false
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 4096
+                  example: servicexhighmemory
+                  description: only lower case letters or digits are allowed
+                service_type:
+                  type: object
+                  required:
+                    - artifact_type_id
+                  additionalProperties: false
+                  properties:
+                    artifact_type_id:
+                      type: integer
+                      format: int64
+                      example: 1
+                image:
+                  description: the name of the docker image
+                  type: string
+                  minLength: 1
+                  maxLength: 4096
+                  example: user/example
+                replicas:
+                  description: the amount of replicas to deploy
+                  type: integer
+                  format: int32
+                  minimum: 1
+                  example: 1
+                ports:
+                  description: the ports to expose
+                  type: array
+                  items:
+                    type: string
+                    example: 80:8000
+                cpu:
+                  description: the necessary amount of cpu resources
+                  type: number
+                  example: 0.1
+                memory:
+                  description: the necessary memory in megabytes
+                  type: integer
+                  format: int32
+                  example: 128
+                k8s_service_type:
+                  description: the service type of the deployment.
+                  type: object
+                  required:
+                    - service_type_id
+                  additionalProperties: false
+                  properties:
+                    service_type_id:
+                      type: integer
+                      format: int64
+                      example: 1
+                env_vars:
+                  description: the environment variables of the container
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - name
+                      - value
+                    additionalProperties: false
+                    properties:
+                      name:
+                        type: string
+                        minLength: 3
+                        maxLength: 128
+                        example: db_user
+                      value:
+                        type: string
+                        maxLength: 512
+                        example: root
+                volume_mounts:
+                  description: the volumes to mount (emptyDir)
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - name
+                      - mount_path
+                      - size_megabytes
+                    additionalProperties: false
+                    properties:
+                      name:
+                        type: string
+                        minLength: 3
+                        maxLength: 128
+                        example: file-upload
+                      mount_path:
+                        type: string
+                        maxLength: 512
+                        example: /uploads
+                      size_megabytes:
+                        type: number
+                        example: 10.0
+      responses:
+        201:
+          description: Successful creation of a new service
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceDetails"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+  /k8s-service-types:
+    get:
+      description: Return details about all k8s service types that are supported by the resource manager
+      operationId: listK8sServiceTypes
+      security:
+        - bearerAuth: []
+      tags:
+        - k8sServiceTypes
+      responses:
+        200:
+          description: Successful pull of all k8sServiceTypes
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/K8sServiceType"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+
+  /service-types/{id}:
+    get:
+      description: Return details about a service type
+      operationId: getServiceType
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - serviceTypes
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of a service type
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceType"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+    delete:
+      description: Delete a service type
+      operationId: deleteServiceType
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - serviceTypes
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        204:
+          description: Successful deletion of a service type
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /service-types:
+    get:
+      description: Return details about all service types managed by the resource manager
+      operationId: listServiceTypes
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - serviceTypes
+      responses:
+        200:
+          description: Successful pull of all service types
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ServiceType"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+
+    post:
+      description: Create a new service type
+      operationId: createServiceType
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - serviceTypes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              additionalProperties: false
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 256
+                  example: splitfiles
+      responses:
+        201:
+          description: Successful creation of a new service type
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceType"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        409:
+          $ref: "#/components/responses/409"
+        500:
+          $ref: "#/components/responses/500"
+
+  /platforms:
+    get:
+      description: Return details about all platforms available for resource deployments
+      operationId: listPlatforms
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - platforms
+      responses:
+        200:
+          description: Successful pull of all platforms
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Platform"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+
+
+  /platforms/{id}/metrics:
+    get:
+      description: Return all metrics that are available for the selected platform
+      operationId: listPlatformMetrics
+      security:
+        - bearerAuth: []
+      tags:
+        - platforms
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of all metrics for the platform
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    metric:
+                      $ref: "#/components/schemas/Metric"
+                    required:
+                      description: whether the metric is required for a platform's resource or not
+                      type: boolean
+                      example: true
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /platforms/{id}/regions:
+    get:
+      description: List all regions where the platform is supported
+      operationId: listPlatformRegions
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - platforms
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of all regions
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Region"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /environments:
+    get:
+      description: Return details about all environments available for resource deployments
+      operationId: listEnvironments
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - environments
+      responses:
+        200:
+          description: Successful pull of all environments
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Environment"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        username:
+          type: string
+          example: johndoe
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+    ResourceProvider:
+      type: object
+      properties:
+        provider_id:
+          type: integer
+          format: int64
+          example: 1
+        provider:
+          type: string
+          enum:
+            - aws
+            - custom-cloud
+            - custom-edge
+          example: aws
+        environment:
+          $ref: "#/components/schemas/Environment"
+        created_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+    Environment:
+      type: object
+      properties:
+        environment_id:
+          type: integer
+          format: int64
+          example: 1
+        environment:
+          type: string
+          enum:
+            - cloud
+            - edge
+        created_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+    Region:
+      type: object
+      properties:
+        region_id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: us-east
+        resource_provider:
+          $ref: "#/components/schemas/ResourceProvider"
+        created_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+    Resource:
+      type: object
+      properties:
+        resource_id:
+          type: integer
+          format: int64
+          example: 1
+        region:
+          $ref: "#/components/schemas/Region"
+        platform:
+          $ref: "#/components/schemas/Platform"
+        created_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+        updated_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+    ResourceDetails:
+      allOf:
+        - $ref: '#/components/schemas/Resource'
+        - type: object
+          properties:
+            metric_values:
+              type: array
+              items:
+                type: object
+                properties:
+                  metric_value_id:
+                    type: integer
+                    format: int64
+                    example: 1
+                  count:
+                    type: integer
+                    format: int64
+                    example: 1
+                  value_number:
+                    type: number
+                    format: double
+                    example: 200.0
+                  metric:
+                    $ref: '#/components/schemas/Metric'
+                  created_at:
+                    type: integer
+                    format: int64
+                    example: 1679496667103
+                  updated_at:
+                    type: integer
+                    format: int64
+                    example: 1679496667103
+    SubresourceDetails:
+      type: object
+      properties:
+        metric_values:
+          type: array
+          items:
+            type: object
+            properties:
+              metric_value_id:
+                type: integer
+                format: int64
+                example: 1
+              count:
+                type: integer
+                format: int64
+                example: 1
+              value_number:
+                type: number
+                format: double
+                example: 200.0
+              metric:
+                $ref: '#/components/schemas/Metric'
+              created_at:
+                type: integer
+                format: int64
+                example: 1679496667103
+              updated_at:
+                type: integer
+                format: int64
+                example: 1679496667103
+    Ensemble:
+      type: object
+      properties:
+        ensemble_id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: myensemble
+          description: only lower case letters or digits are allowed
+        is_valid:
+          type: boolean
+          example: true
+        created_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+        updated_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+    EnsembleDetails:
+      allOf:
+        - $ref: '#/components/schemas/Ensemble'
+        - type: object
+          properties:
+            ensemble_id:
+              type: integer
+              format: int64
+              example: 1
+            name:
+              type: string
+              example: myensemble
+              description: only lower case letters or digits are allowed
+            slos:
+              $ref: "#/components/schemas/Slos"
+            resources:
+              type: array
+              items:
+                $ref: "#/components/schemas/ResourceDetails"
+            created_at:
+              type: integer
+              format: int64
+              example: 1679496667103
+            updated_at:
+              type: integer
+              format: int64
+              example: 1679496667103
+    ResourceType:
+      type: object
+      properties:
+        type_id:
+          type: integer
+          format: int64
+          example: 1
+        resource_type:
+          type: string
+          maxLength: 32
+          enum:
+            - faas
+            - container
+          example: faas
+        created_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+    Metric:
+      type: object
+      properties:
+        metric_id:
+          type: integer
+          format: int64
+          example: 1
+        metric:
+          type: string
+          example: availability
+        is_monitored:
+          type: boolean
+          example: false
+        metricType:
+          type: object
+          properties:
+            metric_type_id:
+              type: integer
+              format: int64
+              example: 1
+            type:
+              type: string
+              example: number
+        description:
+          type: string
+          example: the availability of a resource
+        created_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+    MetricValue:
+      allOf:
+        - type: object
+          properties:
+            metric_value_id:
+              type: integer
+              format: int64
+              example: 1
+            count:
+              type: integer
+              format: int64
+              example: 0
+            metric:
+              $ref: '#/components/schemas/Metric'
+            created_at:
+              type: integer
+              format: int64
+              example: 1679496667103
+            updated_at:
+              type: integer
+              format: int64
+              example: 1679496667103
+        - oneOf:
+          - type: object
+            properties:
+              value_number:
+                type: integer
+                format: int64
+                example: 0
+          - type: object
+            properties:
+              value_string:
+                type: string
+                example: ubuntu
+          - type: object
+            properties:
+              value_bool:
+                type: boolean
+                example: true
+    Deployment:
+      type: object
+      properties:
+        deployment_id:
+          type: integer
+          format: int64
+          example: 1
+        is_active:
+          type: boolean
+          example: true
+    DeploymentDetails:
+      allOf:
+        - $ref: "#/components/schemas/Deployment"
+        - type: object
+          properties:
+            function_resources:
+              type: array
+              items:
+                allOf:
+                  - $ref: '#/components/schemas/ResourceDeployment'
+                  - type: object
+                    properties:
+                      function:
+                        $ref: '#/components/schemas/Function'
+            service_resources:
+              type: array
+              items:
+                allOf:
+                  - $ref: '#/components/schemas/ResourceDeployment'
+                  - type: object
+                    properties:
+                      service:
+                        $ref: '#/components/schemas/Service'
+            created_at:
+              type: integer
+              format: int64
+              example: 1679496667103
+    ResourceDeployment:
+      type: object
+      properties:
+        resource_deployment_id:
+          type: integer
+          format: int64
+          example: 1
+        trigger_url:
+          type: string
+          example: https://localhost:9000/function/invoke
+        resource:
+          $ref: "#/components/schemas/ResourceDetails"
+        status:
+          type: object
+          properties:
+            status_id:
+              type: integer
+              format: int64
+              example: 1
+            status_value:
+              type: string
+              example: NEW
+        created_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+        is_deployed:
+          type: boolean
+          example: true
+    Function:
+      type: object
+      properties:
+        function_id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: foo1
+          description: only lower case letters or digits are allowed
+        code:
+          type: string
+          example: |
+            def main(json_input):
+              input1 = json_input["input1"]
+              res = {
+                  "input1": input1
+              }
+              return res
+        runtime:
+          $ref: "#/components/schemas/Runtime"
+        is_file:
+          type: boolean
+          example: true
+        created_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+    Runtime:
+      type: object
+      properties:
+        runtime_id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: python3.8
+        template_path:
+          type: string
+          example: ./faas-templates/python38/runtime-template.py
+        created_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+    Namespace:
+      type: object
+      properties:
+        namespace_id:
+          type: integer
+          format: int64
+          example: 1
+        namespace:
+          type: string
+          example: user-namespace
+        resource:
+          $ref: '#/components/schemas/Resource'
+        created_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+    Service:
+      type: object
+      properties:
+        service_id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: servicename
+          minLength: 3
+          maxLength: 4096
+          description: only lower case letters or digits are allowed
+        image:
+          type: string
+          example: user/image:latest
+        service_type:
+          $ref: "#/components/schemas/K8sServiceType"
+        created_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+        updated_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+
+    ServiceDetails:
+      allOf:
+        - $ref: '#/components/schemas/Service'
+        - type: object
+          properties:
+            service_id:
+              type: integer
+              format: int64
+              example: 1
+            name:
+              type: string
+              example: servicename
+              minLength: 3
+              maxLength: 4096
+              description: only lower case letters or digits are allowed
+            image:
+              type: string
+              example: user/image:latest
+            replicas:
+              type: integer
+              minimum: 1
+              format: int32
+              example: 1
+            ports:
+              type: array
+              items:
+                type: string
+                example: 80:8080
+            cpu:
+              type: number
+              example: 0.1
+            memory:
+              type: integer
+              format: int32
+              example: 128
+            service_type:
+              $ref: "#/components/schemas/K8sServiceType"
+            created_at:
+              type: integer
+              format: int64
+              example: 1679496667103
+            env_vars:
+              description: the environment variables of the container
+              type: array
+              items:
+                type: object
+                required:
+                  - name
+                  - value
+                additionalProperties: false
+                properties:
+                  name:
+                    type: string
+                    example: db_user
+                  value:
+                    type: string
+                    example: root
+            volume_mounts:
+              description: the volumes to mount (emptyDir)
+              type: array
+              items:
+                type: object
+                required:
+                  - name
+                  - mount_path
+                  - size_megabytes
+                additionalProperties: false
+                properties:
+                  name:
+                    type: string
+                    example: file-upload
+                  mount_path:
+                    type: string
+                    example: /uploads
+                  size_megabytes:
+                    type: number
+                    example: 10.0
+
+    K8sServiceType:
+      type: object
+      properties:
+        service_type_id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: NodePort
+        created_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+
+    VPC:
+      type: object
+      properties:
+        vpc_id:
+          type: integer
+          format: int64
+          example: 1
+        vpc_id_value:
+          type: string
+          example: vpc-ave2412
+        subnet_id_value:
+          type: string
+          example: subnet-ave2412
+        created_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+        region:
+          $ref: "#/components/schemas/Region"
+    Log:
+      type: object
+      properties:
+        log_id:
+          type: integer
+          format: int64
+          example: 1
+        log_value:
+          type: string
+          example: resource was deployed
+        created_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+    FunctionType:
+      type: object
+      properties:
+        artifact_type_id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: splitfile
+        created_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+    ServiceType:
+      type: object
+      properties:
+        artifact_type_id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: splitfile
+        created_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+    Url:
+      type: string
+      minLength: 1
+      maxLength: 512
+      pattern: "^((https?://)(%[0-9A-Fa-f]{2}|[-()_.!~*';/?:@&=+$,A-Za-z0-9])+)([).!';/?:,][[:blank:]])?$"
+      example: https://123456789.execute-api.eu-west-1.amazonaws.com/Shift
+    Error:
+      type: string
+      example: internal server error
+
+    stringValues:
+      type: array
+      minItems: 1
+      items:
+        type: string
+        example: 'ubuntu'
+        minLength: 1
+
+    numberValues:
+      type: array
+      minItems: 1
+      items:
+        type: number
+        example: 2.5
+
+    boolValues:
+      type: array
+      minItems: 1
+      items:
+        type: boolean
+        example: false
+
+    Slos:
+      description: Filter all resources by the given Service Level Objectives
+      type: array
+      minItems: 1
+      items:
+        type: object
+        required:
+          - name
+          - expression
+          - value
+        additionalProperties: false
+        properties:
+          name:
+            description: |
+              The name of the property. Valid property names are all metrics registered at the RM as well 
+              as resource_type, region and resource_provider. The values of the latter three properties are the 
+              associated ids of the entities.
+            type: string
+            minLength: 1
+            maxLength: 256
+            example: "availability"
+          expression:
+            description: Valid expressions are >, <, ==
+            type: string
+            minLength: 1
+            maxLength: 2
+            example: ">"
+          value:
+            description: |
+              The value is allways an array because for == expressions multiple different values are allowed which 
+              represents an OR operator. For other expressions this is not supported.
+            oneOf:
+              - $ref: '#/components/schemas/stringValues'
+              - $ref: '#/components/schemas/numberValues'
+              - $ref: '#/components/schemas/boolValues'
+    Platform:
+      type: object
+      properties:
+        platform_id:
+          type: integer
+          format: int64
+          example: 1
+        platform:
+          type: string
+          enum:
+            - lambda
+            - ec2
+            - openfaas
+            - k8s
+          example: lambda
+        resource_type:
+          $ref: '#/components/schemas/ResourceType'
+        created_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+    KubeConfig:
+      description: |
+        The kube config to use for the resource deployment. For the requirements see the
+          Deployment section of API description.
+      type: string
+      example: |
+        apiVersion: v1
+        clusters:
+        - cluster:
+            certificate-authority-data: <authority-certificate>
+            server: <cluster-ip>
+          name: <cluster-name>
+        contexts:
+        - context:
+            cluster: <cluster-name>
+            user: <user-name>
+          name: <context-name>
+        kind: Config
+        preferences: {}
+        users:
+        - name: <user-name>
+          user:
+            client-certificate-data: <client-certificate-data>
+            client-key-data: <client-key-data>
+    DockerCredentials:
+      type: object
+      required:
+        - registry
+        - username
+        - access_token
+      additionalProperties: false
+      description: |
+        If the deployment contains resources with OpenFaaS or AWS EC2 as platform, 
+        these credentials are used to push and pull the function images.
+      properties:
+        registry:
+          description: |
+            the hostname of the docker registries that are part of the deployment. Use 
+            https://index.docker.io/v1/ for docker hub.
+          type: string
+          example: https://index.docker.io/v1/
+          minLength: 4
+        username:
+          description: the username of the docker registry
+          type: string
+          example: user1
+        access_token:
+          description: |
+            preferably an access token with read and write access or if not available the 
+            password for the docker registry
+          type: string
+          example: abcdef1234
+
+  parameters:
+    idParam:
+      name: id
+      in: path
+      description: ID of the entity
+      required: true
+      schema:
+        type: integer
+        format: int64
+        example: 1
+
+  responses:
+    400:
+      description: Bad input
+      headers:
+        content-length:
+          schema:
+            type: integer
+      content:
+        "*/*":
+          schema:
+            type: string
+            example: bad input
+    401:
+      description: Unauthorized
+      headers:
+        content-length:
+          schema:
+            type: integer
+      content:
+        "*/*":
+          schema:
+            type: string
+            example: unauthorized
+    403:
+      description: Forbidden
+      headers:
+        content-length:
+          schema:
+            type: integer
+      content:
+        "*/*":
+          schema:
+            type: string
+            example: forbidden
+    404:
+      description: Not found
+      headers:
+        content-length:
+          schema:
+            type: integer
+      content:
+        "*/*":
+          schema:
+            type: string
+            example: not found
+    409:
+      description: Already exists
+      headers:
+        content-length:
+          schema:
+            type: integer
+      content:
+        "*/*":
+          schema:
+            type: string
+            example: already exists
+    500:
+      description: Internal server error
+      headers:
+        content-length:
+          schema:
+            type: integer
+      content:
+        "*/*":
+          schema:
+            type: string
+            example: internal server error
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

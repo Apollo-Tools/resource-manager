@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler.ensemble;
 
 import at.uibk.dps.rm.handler.ValidationHandler;
+import at.uibk.dps.rm.service.rxjava3.database.ensemble.ResourceEnsembleService;
 import at.uibk.dps.rm.util.misc.HttpHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -14,16 +15,16 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
  */
 public class ResourceEnsembleHandler extends ValidationHandler {
 
-    private final ResourceEnsembleChecker resourceEnsembleChecker;
+    private final ResourceEnsembleService resourceEnsembleService;
 
     /**
-     * Create an instance from the resourceEnsembleChecker.
+     * Create an instance from the resourceEnsembleService.
      *
-     * @param resourceEnsembleChecker the resource ensemble checker
+     * @param resourceEnsembleService the service
      */
-    public ResourceEnsembleHandler(ResourceEnsembleChecker resourceEnsembleChecker) {
-        super(resourceEnsembleChecker);
-        this.resourceEnsembleChecker = resourceEnsembleChecker;
+    public ResourceEnsembleHandler(ResourceEnsembleService resourceEnsembleService) {
+        super(resourceEnsembleService);
+        this.resourceEnsembleService = resourceEnsembleService;
     }
 
     @Override
@@ -31,7 +32,8 @@ public class ResourceEnsembleHandler extends ValidationHandler {
         long accountId = rc.user().principal().getLong("account_id");
         return HttpHelper.getLongPathParam(rc, "ensembleId")
             .flatMap(ensembleId -> HttpHelper.getLongPathParam(rc, "resourceId")
-                .flatMap(resourceId -> resourceEnsembleChecker.submitCreate(accountId, ensembleId, resourceId))
+                .flatMap(resourceId -> resourceEnsembleService
+                    .saveByEnsembleIdAndResourceId(accountId, ensembleId, resourceId))
             );
     }
 
@@ -40,8 +42,8 @@ public class ResourceEnsembleHandler extends ValidationHandler {
         long accountId = rc.user().principal().getLong("account_id");
         return HttpHelper.getLongPathParam(rc, "ensembleId")
             .flatMapCompletable(ensembleId -> HttpHelper.getLongPathParam(rc, "resourceId")
-                .flatMapCompletable(resourceId -> resourceEnsembleChecker.submitDelete(accountId, ensembleId,
-                    resourceId))
+                .flatMapCompletable(resourceId -> resourceEnsembleService
+                    .deleteByEnsembleIdAndResourceId(accountId, ensembleId, resourceId))
             );
     }
 }

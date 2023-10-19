@@ -1,8 +1,8 @@
 package at.uibk.dps.rm.testutil.mockprovider;
 
 import at.uibk.dps.rm.repository.DeploymentRepositoryProvider;
-import at.uibk.dps.rm.repository.account.AccountRepository;
 import at.uibk.dps.rm.repository.account.CredentialsRepository;
+import at.uibk.dps.rm.repository.account.NamespaceRepository;
 import at.uibk.dps.rm.repository.deployment.*;
 import at.uibk.dps.rm.repository.function.FunctionRepository;
 import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
@@ -35,7 +35,7 @@ public class DeploymentRepositoryProviderMock {
     private final PlatformMetricRepository platformMetricRepository = Mockito.mock(PlatformMetricRepository.class);
     private final VPCRepository vpcRepository = Mockito.mock(VPCRepository.class);
     private final CredentialsRepository credentialsRepository = Mockito.mock(CredentialsRepository.class);
-    private final AccountRepository accountRepository = Mockito.mock(AccountRepository.class);
+    private final NamespaceRepository namespaceRepository = Mockito.mock(NamespaceRepository.class);
 
     public void mock() {
         Mockito.lenient().when(repositoryProvider.getDeploymentRepository()).thenReturn(deploymentRepository);
@@ -53,6 +53,6 @@ public class DeploymentRepositoryProviderMock {
         Mockito.lenient().when(repositoryProvider.getVpcRepository()).thenReturn(vpcRepository);
         Mockito.lenient().when(repositoryProvider.getPlatformMetricRepository()).thenReturn(platformMetricRepository);
         Mockito.lenient().when(repositoryProvider.getCredentialsRepository()).thenReturn(credentialsRepository);
-        Mockito.lenient().when(repositoryProvider.getAccountRepository()).thenReturn(accountRepository);
+        Mockito.lenient().when(repositoryProvider.getNamespaceRepository()).thenReturn(namespaceRepository);
     }
 }

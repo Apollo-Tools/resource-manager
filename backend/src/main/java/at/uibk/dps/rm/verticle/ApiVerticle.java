@@ -21,7 +21,6 @@ import at.uibk.dps.rm.router.resourceprovider.*;
 import at.uibk.dps.rm.router.service.ServiceRoute;
 import at.uibk.dps.rm.router.service.K8sServiceTypeRoute;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
-import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import at.uibk.dps.rm.util.configuration.JWTAuthProvider;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.http.HttpMethod;
@@ -48,21 +47,19 @@ public class ApiVerticle extends AbstractVerticle {
 
     @Override
     public Completable rxStart() {
-        return new ConfigUtility(vertx).getConfigDTO()
-            .flatMapCompletable(config ->
-                RouterBuilder.create(vertx, "openapi/resource-manager.yaml")
-                .flatMap(routerBuilder -> {
-                    Router router = initRouter(routerBuilder, config);
-                    return vertx.createHttpServer()
-                        .requestHandler(router)
-                        .rxListen(config().getInteger("api_port"));
-                })
-                .doOnSuccess(
-                    http -> logger.info("HTTP server started on port " + config().getInteger("api_port")))
-                .doOnError(
-                    throwable -> logger.error("Error", throwable))
-                .ignoreElement()
-            );
+        ConfigDTO config = config().mapTo(ConfigDTO.class);
+        return RouterBuilder.create(vertx, "openapi/resource-manager.yaml")
+            .flatMap(routerBuilder -> {
+                Router router = initRouter(routerBuilder, config);
+                return vertx.createHttpServer()
+                    .requestHandler(router)
+                    .rxListen(config.getApiPort());
+            })
+            .doOnSuccess(
+                http -> logger.info("HTTP server started on port " + config.getApiPort()))
+            .doOnError(
+                throwable -> logger.error("Error", throwable))
+            .ignoreElement();
     }
 
     /**
@@ -76,7 +73,7 @@ public class ApiVerticle extends AbstractVerticle {
         Router globalRouter = Router.router(vertx);
         setupBodyHandler(globalRouter, config);
         setupFailureHandler(globalRouter);
-        setupSecurityHandler(routerBuilder);
+        setupSecurityHandler(routerBuilder, config);
         setupRoutes(routerBuilder);
         Router apiRouter = routerBuilder
             .createRouter();
@@ -116,13 +113,11 @@ public class ApiVerticle extends AbstractVerticle {
         new ResourceProviderRegionRoute().init(routerBuilder, serviceProxyProvider);
         new ResourceProviderRoute().init(routerBuilder, serviceProxyProvider);
         new ResourceRoute().init(routerBuilder, serviceProxyProvider);
-        new ResourceSLORoute().init(routerBuilder, serviceProxyProvider);
         new ResourceTypeRoute().init(routerBuilder, serviceProxyProvider);
         new RuntimeRoute().init(routerBuilder, serviceProxyProvider);
         new RuntimeTemplateRoute().init(routerBuilder, serviceProxyProvider);
         new ServiceRoute().init(routerBuilder, serviceProxyProvider);
         new ServiceTypeRoute().init(routerBuilder, serviceProxyProvider);
-        new SubresourceRoute().init(routerBuilder, serviceProxyProvider);
         new VPCRoute().init(routerBuilder, serviceProxyProvider);
     }
 
@@ -131,9 +126,9 @@ public class ApiVerticle extends AbstractVerticle {
      *
      * @param routerBuilder the router builder
      */
-    private void setupSecurityHandler(RouterBuilder routerBuilder) {
-        jwtAuthProvider = new JWTAuthProvider(vertx,config().getString("jwt_algorithm"),
-            config().getString("jwt_secret"), config().getInteger("token_minutes_valid"));
+    private void setupSecurityHandler(RouterBuilder routerBuilder, ConfigDTO configDTO) {
+        jwtAuthProvider = new JWTAuthProvider(vertx, configDTO.getJwtAlgorithm(), configDTO.getJwtSecret(),
+            configDTO.getTokenMinutesValid());
         routerBuilder
             .securityHandler("bearerAuth")
             .bindBlocking(config -> JWTAuthHandler.create(jwtAuthProvider.getJwtAuth()));

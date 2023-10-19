@@ -2,21 +2,27 @@ package at.uibk.dps.rm.service.database.service;
 
 import at.uibk.dps.rm.entity.dto.service.K8sServiceTypeEnum;
 import at.uibk.dps.rm.entity.dto.service.UpdateServiceDTO;
+import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.entity.model.Service;
 import at.uibk.dps.rm.entity.model.K8sServiceType;
 import at.uibk.dps.rm.entity.model.ServiceType;
+import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.BadInputException;
+import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.service.ServiceRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
-import at.uibk.dps.rm.util.validation.ServiceResultValidator;
-import io.vertx.core.Future;
+import at.uibk.dps.rm.util.misc.RxVertxHandler;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import org.hibernate.reactive.stage.Stage.SessionFactory;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletionStage;
 
 /**
  * This is the implementation of the #ServiceService.
@@ -32,110 +38,139 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
      *
      * @param repository  the repository
      */
-    public ServiceServiceImpl(ServiceRepository repository, SessionFactory sessionFactory) {
-        super(repository, Service.class, sessionFactory);
+    public ServiceServiceImpl(ServiceRepository repository, SessionManagerProvider smProvider) {
+        super(repository, Service.class, smProvider);
         this.repository = repository;
     }
 
     @Override
-    public Future<JsonObject> findOne(long id) {
-        CompletionStage<Service> findOne = withSession(session -> repository.findByIdAndFetch(session, id)
-            .thenCompose(result -> {
-                ServiceResultValidator.checkFound(result, Service.class);
-                return session.fetch(result.getEnvVars())
-                    .thenCompose(res -> session.fetch(result.getVolumeMounts()))
-                    .thenApply(res -> result);
+    public void findOne(long id, Handler<AsyncResult<JsonObject>> resultHandler) {
+        Single<Service> findOne = smProvider.withTransactionSingle( sm -> repository.findByIdAndFetch(sm, id)
+            .switchIfEmpty(Single.error(new NotFoundException(Service.class)))
+            .flatMap(result -> sm.fetch(result.getEnvVars())
+                .flatMap(res -> sm.fetch(result.getVolumeMounts()))
+                .flatMap(res -> Single.just(result)))
+        );
+        RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
+    }
+
+    @Override
+    public void findOneByIdAndAccountId(long id, long accountId, Handler<AsyncResult<JsonObject>> resultHandler) {
+        Maybe<Service> findOne = smProvider.withTransactionMaybe( sm -> repository
+            .findByIdAndAccountId(sm, id, accountId, true))
+            .switchIfEmpty(Maybe.error(new NotFoundException(Service.class)));
+        RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
+    }
+
+    @Override
+    public void findAll(Handler<AsyncResult<JsonArray>> resultHandler) {
+        Single<List<Service>> findAll = smProvider.withTransactionSingle(repository::findAllAndFetch);
+        RxVertxHandler.handleSession(findAll.map(this::mapServiceListToJsonArray), resultHandler);
+    }
+
+    @Override
+    public void findAllAccessibleServices(long accountId, Handler<AsyncResult<JsonArray>> resultHandler) {
+        Single<List<Service>> findAll = smProvider.withTransactionSingle(sm -> repository
+            .findAllAccessibleAndFetch(sm, accountId));
+        RxVertxHandler.handleSession(findAll.map(this::mapServiceListToJsonArray), resultHandler);
+    }
+
+    @Override
+    public void findAllByAccountId(long accountId, Handler<AsyncResult<JsonArray>> resultHandler) {
+        Single<List<Service>> findAll = smProvider.withTransactionSingle(sm -> repository
+            .findAllByAccountId(sm, accountId));
+        RxVertxHandler.handleSession(findAll.map(this::mapServiceListToJsonArray), resultHandler);
+    }
+
+    /**
+     * Compose a JsonArray from the serviceList.
+     *
+     * @param serviceList the service list
+     * @return the new JsonArray
+     */
+    protected JsonArray mapServiceListToJsonArray(List<Service> serviceList) {
+        ArrayList<JsonObject> objects = new ArrayList<>();
+        for (Service entity: serviceList) {
+            entity.setReplicas(null);
+            entity.setPorts(null);
+            entity.setCpu(null);
+            entity.setMemory(null);
+            objects.add(JsonObject.mapFrom(entity));
+        }
+        return new JsonArray(objects);
+    }
+
+    @Override
+    public void saveToAccount(long accountId, JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
+        Service service = data.mapTo(Service.class);
+        Single<Service> create = smProvider.withTransactionSingle( sm -> sm
+            .find(K8sServiceType.class, service.getK8sServiceType().getServiceTypeId())
+            .switchIfEmpty(Maybe.error(new NotFoundException(K8sServiceType.class)))
+            .flatMap(k8sServiceType -> {
+                service.setK8sServiceType(k8sServiceType);
+                checkServiceTypePorts(k8sServiceType, service.getPorts().size());
+                return repository.findOneByNameTypeAndCreator(sm, service.getName(),
+                    service.getServiceType().getArtifactTypeId(), accountId);
+            })
+            .flatMap(existingService -> Maybe.<ServiceType>error(new AlreadyExistsException(Service.class)))
+            .switchIfEmpty(sm.find(ServiceType.class, service.getServiceType().getArtifactTypeId()))
+            .switchIfEmpty(Maybe.error(new NotFoundException(ServiceType.class)))
+            .flatMap(serviceType -> {
+                service.setServiceType(serviceType);
+                return sm.find(Account.class, accountId);
+            })
+            .switchIfEmpty(Single.error(new NotFoundException(Account.class)))
+            .flatMap(account -> {
+                service.setCreatedBy(account);
+                return sm.persist(service);
             })
         );
-
-        return sessionToFuture(findOne).map(JsonObject::mapFrom);
+        RxVertxHandler.handleSession(create.map(JsonObject::mapFrom), resultHandler);
     }
 
     @Override
-    public Future<JsonArray> findAll() {
-        CompletionStage<List<Service>> findAll = withSession(repository::findAllAndFetch);
-        return sessionToFuture(findAll)
-            .map(result -> {
-                ArrayList<JsonObject> objects = new ArrayList<>();
-                for (Service entity: result) {
-                    entity.setReplicas(null);
-                    entity.setPorts(null);
-                    entity.setCpu(null);
-                    entity.setMemory(null);
-                    objects.add(JsonObject.mapFrom(entity));
-                }
-                return new JsonArray(objects);
-            });
-    }
-
-    @Override
-    public Future<JsonObject> save(JsonObject data) {
-        Service service = data.mapTo(Service.class);
-        CompletionStage<Service> create = withTransaction(session ->
-            session.find(K8sServiceType.class, service.getK8sServiceType().getServiceTypeId())
-                .thenCompose(k8sServiceType -> {
-                    ServiceResultValidator.checkFound(k8sServiceType, K8sServiceType.class);
-                    service.setK8sServiceType(k8sServiceType);
-                    checkServiceTypePorts(k8sServiceType, service.getPorts().size());
-                    return repository.findOneByName(session, service.getName());
-                })
-                .thenCompose(existingService -> {
-                    ServiceResultValidator.checkExists(existingService, Service.class);
-                    return session.find(ServiceType.class, service.getServiceType().getArtifactTypeId());
-                })
-                .thenCompose(serviceType -> {
-                    ServiceResultValidator.checkFound(serviceType, ServiceType.class);
-                    return session.persist(service);
-                })
-                .thenApply(res -> service)
-        );
-        return sessionToFuture(create).map(JsonObject::mapFrom);
-    }
-
-    @Override
-    public Future<Void> update(long id, JsonObject fields) {
+    public void updateOwned(long id, long accountId, JsonObject fields, Handler<AsyncResult<Void>> resultHandler) {
         UpdateServiceDTO updateService = fields.mapTo(UpdateServiceDTO.class);
-        CompletionStage<Service> update = withTransaction(session -> repository.findByIdAndFetch(session, id)
-            .thenCompose(service -> {
-                ServiceResultValidator.checkFound(service, Service.class);
+        Completable update = smProvider.withTransactionCompletable(sm -> repository
+            .findByIdAndAccountId(sm, id, accountId, false)
+            .switchIfEmpty(Maybe.error(new NotFoundException(Service.class)))
+            .flatMapCompletable(service -> {
                 long k8sServiceTypeId = updateService.getK8sServiceType() != null ?
                     updateService.getK8sServiceType().getServiceTypeId() :
                     service.getK8sServiceType().getServiceTypeId();
                 int portAmount = updateService.getPorts() != null ?
                     updateService.getPorts().size() : service.getPorts().size();
-                return session.find(K8sServiceType.class, k8sServiceTypeId)
-                    .thenCompose(serviceType -> {
-                        ServiceResultValidator.checkFound(serviceType, K8sServiceType.class);
+                return sm.find(K8sServiceType.class, k8sServiceTypeId)
+                    .switchIfEmpty(Maybe.error(new NotFoundException(K8sServiceType.class)))
+                    .flatMapSingle(serviceType -> {
                         checkServiceTypePorts(serviceType, portAmount);
                         service.setReplicas(updateNonNullValue(service.getReplicas(), updateService.getReplicas()));
                         service.setCpu(updateNonNullValue(service.getCpu(), updateService.getCpu()));
                         service.setMemory(updateNonNullValue(service.getMemory(), updateService.getMemory()));
                         service.setK8sServiceType(serviceType);
                         service.setPorts(updateNonNullValue(service.getPorts(), updateService.getPorts()));
-                        return session.fetch(service.getEnvVars())
-                            .thenCompose(res -> session.fetch(service.getVolumeMounts()));
+                        service.setIsPublic(updateNonNullValue(service.getIsPublic(), updateService.getIsPublic()));
+                        return sm.fetch(service.getEnvVars())
+                            .flatMap(res -> sm.fetch(service.getVolumeMounts()));
                     })
-                    .thenApply(res -> {
+                    .flatMapCompletable(res -> {
                         service.setEnvVars(updateNonNullValue(service.getEnvVars(), updateService.getEnvVars()));
                         service.setVolumeMounts(updateNonNullValue(service.getVolumeMounts(), updateService.getVolumeMounts()));
-                        return service;
+                        return Completable.complete();
                     });
             })
         );
-        return sessionToFuture(update).mapEmpty();
+        RxVertxHandler.handleSession(update, resultHandler);
     }
 
     @Override
-    public Future<Void> delete(long id) {
-        CompletionStage<Void> delete = withTransaction(session -> repository.findByIdAndFetch(session, id)
-                .thenCompose(service -> {
-                    ServiceResultValidator.checkFound(service, Service.class);
-                    return session.fetch(service.getEnvVars())
-                        .thenCompose(res -> session.fetch(service.getVolumeMounts()))
-                        .thenCompose(res -> session.remove(service));
-                })
+    public void deleteFromAccount(long accountId, long id, Handler<AsyncResult<Void>> resultHandler) {
+        Completable delete = smProvider.withTransactionCompletable(sm ->
+            repository.findByIdAndAccountId(sm, id, accountId, false)
+                .switchIfEmpty(Maybe.error(new NotFoundException(Service.class)))
+                .flatMapCompletable(sm::remove)
         );
-        return sessionToFuture(delete);
+        RxVertxHandler.handleSession(delete, resultHandler);
     }
 
     private void checkServiceTypePorts(K8sServiceType serviceType, int portAmount) {

@@ -14,8 +14,7 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 public class EnvironmentRoute implements Route {
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
-        EnvironmentChecker environmentChecker = new EnvironmentChecker(serviceProxyProvider.getEnvironmentService());
-        EnvironmentHandler environmentHandler = new EnvironmentHandler(environmentChecker);
+        EnvironmentHandler environmentHandler = new EnvironmentHandler(serviceProxyProvider.getEnvironmentService());
         ResultHandler resultHandler = new ResultHandler(environmentHandler);
 
         router

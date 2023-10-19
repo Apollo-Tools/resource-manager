@@ -1,8 +1,8 @@
-import DateFormatter from '../misc/DateFormatter';
 import {Button, Modal, Space, Table} from 'antd';
 import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
 import ProviderIcon from '../misc/ProviderIcon';
 import PropTypes from 'prop-types';
+import DateColumnRender from '../misc/DateColumnRender';
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -50,7 +50,7 @@ const VPCTable = ({
           a.subnet_id_value.localeCompare(b.subnet_id_value)}
       />
       <Column title="Created at" dataIndex="created_at" key="created_at"
-        render={(createdAt) => <DateFormatter dateTimestamp={createdAt}/>}
+        render={(createdAt) => <DateColumnRender value={createdAt}/>}
         sorter={(a, b) => a.created_at - b.created_at}
       />
       {hasActions && (<Column title="Actions" key="action"

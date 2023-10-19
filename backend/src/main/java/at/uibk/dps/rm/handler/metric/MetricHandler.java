@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler.metric;
 
-import at.uibk.dps.rm.handler.*;
+import at.uibk.dps.rm.handler.ValidationHandler;
+import at.uibk.dps.rm.service.rxjava3.database.metric.MetricService;
 
 /**
  * Processes the http requests that concern the metric entity.
@@ -10,11 +11,11 @@ import at.uibk.dps.rm.handler.*;
 public class MetricHandler extends ValidationHandler {
 
     /**
-     * Create an instance from the metricChecker and metricTypeChecker.
+     * Create an instance from the metricService.
      *
-     * @param metricChecker the metric checker
+     * @param metricService the service
      */
-    public MetricHandler(MetricChecker metricChecker) {
-        super(metricChecker);
+    public MetricHandler(MetricService metricService) {
+        super(metricService);
     }
 }

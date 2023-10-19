@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.entity.model;
 
 import at.uibk.dps.rm.annotations.Generated;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,6 +36,9 @@ public class PlatformMetric {
     private Boolean isMainResourceMetric;
 
     private Boolean isSubResourceMetric;
+
+    @JsonProperty("is_monitored")
+    private Boolean isMonitored;
 
     @Column(insertable = false, updatable = false)
     private @Setter(AccessLevel.NONE) Timestamp createdAt;

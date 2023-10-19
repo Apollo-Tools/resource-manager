@@ -27,9 +27,11 @@ public class UpdateServiceDTO {
 
     private Integer memory;
 
-    private ServiceTypeId k8sServiceType;
+    private K8sServiceTypeId k8sServiceType;
 
     private List<EnvVar> envVars;
 
     private List<VolumeMount> volumeMounts;
+
+    private Boolean isPublic;
 }

@@ -29,7 +29,7 @@ const getMetricDescription = (metrics, form, name) => {
 const checkMetricIsMonitored = (metrics, form, name) => {
   return getMetricById(metrics,
       form.getFieldValue('metricValues')[name]?.metric)
-      ?.metric.is_monitored;
+      ?.is_monitored;
 };
 
 const checkMetricIsSelected = (metrics, form, name) => {
@@ -89,14 +89,13 @@ const AddMetricValuesForm = ({
   const onFinish = async (values) => {
     if (checkTokenExpired()) return;
     const requestBody = values.metricValues.map((metricValue) => {
-      const metric = metrics.find((metric) =>
-        metric.metric.metric_id === metricValue.metric).metric;
-      if (metric.is_monitored) {
+      const platformMetric = getMetricById(metrics, metricValue.metric);
+      if (platformMetric.is_monitored) {
         return {metric_id: metricValue.metric};
       } else {
         return {
           metric_id: metricValue.metric,
-          value: metric.metric_type.type === 'boolean' && metricValue.value === undefined ? false :
+          value: platformMetric.metric.metric_type.type === 'boolean' && metricValue.value === undefined ? false :
                         metricValue.value};
       }
     });

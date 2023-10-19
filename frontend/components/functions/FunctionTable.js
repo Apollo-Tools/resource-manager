@@ -1,19 +1,20 @@
-import DateFormatter from '../misc/DateFormatter';
 import {Button, Modal, Space, Table, Tooltip} from 'antd';
 import Link from 'next/link';
-import {DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined} from '@ant-design/icons';
+import {DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined, UserOutlined} from '@ant-design/icons';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
-import {deleteFunction, listFunctions} from '../../lib/FunctionService';
+import {deleteFunction, listAllFunctions, listMyFunctions} from '../../lib/FunctionService';
 import ResourceTable from '../resources/ResourceTable';
 import PropTypes from 'prop-types';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 import RuntimeIcon from '../misc/RuntimeIcon';
+import DateColumnRender from '../misc/DateColumnRender';
+import BoolValueDisplay from '../misc/BoolValueDisplay';
 
 const {Column} = Table;
 const {confirm} = Modal;
 
-const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resources}) => {
+const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resources, allFunctions = false}) => {
   const {token, checkTokenExpired} = useAuth();
   const [error, setError] = useState(false);
   const [expandedKeys, setExpandedKeys] = useState([]);
@@ -22,10 +23,15 @@ const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resource
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listFunctions(token, setFunctions, setError);
+      console.log(allFunctions);
+      if (allFunctions) {
+        listAllFunctions(token, setFunctions, setError);
+      } else {
+        listMyFunctions(token, setFunctions, setError);
+      }
       setSelectedResources(value);
     }
-  }, []);
+  }, [allFunctions]);
 
   // TODO: improve error handling
   useEffect(() => {
@@ -139,9 +145,26 @@ const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resource
         sorter={(a, b) =>
           a.runtime.name.localeCompare(b.runtime.name)}
       />
+      {allFunctions ?
+        <Column title="Created by" dataIndex="created_by" key="created_by"
+          render={(createdBy) => <div><UserOutlined /> {createdBy?.username}</div> }
+          sorter={(a, b) => a.created_by.username.localeCompare(b.created_by.username)}
+          filterDropdown={({setSelectedKeys, selectedKeys, confirm, clearFilters}) =>
+            <ColumnFilterDropdown setSelectedKeys={setSelectedKeys} clearFilters={clearFilters}
+              selectedKeys={selectedKeys} confirm={confirm} columnName="name" />}
+          onFilter={(value, record) => record.created_by.username.startsWith(value)}
+        /> :
+        <Column title="Is Public" dataIndex="is_public" key="is_public"
+          render={(isPublic) => <BoolValueDisplay value={isPublic} />}
+        />
+      }
       <Column title="Created at" dataIndex="created_at" key="created_at"
-        render={(createdAt) => <DateFormatter dateTimestamp={createdAt}/>}
+        render={(createdAt) => <DateColumnRender value={createdAt}/> }
         sorter={(a, b) => a.created_at - b.created_at}
+      />
+      <Column title="Updated at" dataIndex="updated_at" key="updated_at"
+        render={(updatedAt) => <DateColumnRender value={updatedAt}/> }
+        sorter={(a, b) => a.updated_at - b.updated_at}
       />
       <Column title="Actions" key="action"
         render={(_, record) => (
@@ -151,7 +174,7 @@ const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resource
                 <Button icon={<InfoCircleOutlined />}/>
               </Link>
             </Tooltip>
-            {!hideDelete && (
+            {!hideDelete && !allFunctions && (
               <Tooltip title="Delete">
                 <Button onClick={() => showDeleteConfirm(record.function_id)} icon={<DeleteOutlined />}/>
               </Tooltip>)}
@@ -168,6 +191,7 @@ FunctionTable.propTypes = {
   hideDelete: PropTypes.bool,
   isExpandable: PropTypes.bool,
   resources: PropTypes.arrayOf(PropTypes.object),
+  allFunctions: PropTypes.bool,
 };
 
 export default FunctionTable;

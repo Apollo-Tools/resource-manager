@@ -127,7 +127,9 @@ public class MainFileServiceTest {
         TerraformModule m1 = new FaasModule(ResourceProviderEnum.AWS, r1);
         TerraformModule m2 = new FaasModule(ResourceProviderEnum.AWS, r2);
         TerraformModule m3 = new FaasModule(ResourceProviderEnum.CUSTOM_EDGE, r3);
-        MainFileService service = TestFileServiceProvider.createMainFileService(vertx.fileSystem(), List.of(m1, m2, m3));
+        TerraformModule m4 = new ContainerModule();
+        MainFileService service = TestFileServiceProvider.createMainFileService(vertx.fileSystem(), List.of(m1, m2,
+            m3, m4));
         String result = service.getVariablesFileContent();
 
         assertThat(result).isEqualTo(
@@ -167,7 +169,7 @@ public class MainFileServiceTest {
 
 
     @Test
-    public void getOutputsFileContentAllTypes(Vertx vertx) {
+    void getOutputsFileContentAllTypes(Vertx vertx) {
         Region r1 = TestResourceProviderProvider.createRegion(1L, "r1");
         Region r2 = TestResourceProviderProvider.createRegion(2L, "r2");
         Region r3 = TestResourceProviderProvider.createRegion(3L, "r3");
@@ -184,7 +186,7 @@ public class MainFileServiceTest {
     }
 
     @Test
-    public void getOutputsFileContentNone(Vertx vertx) {
+    void getOutputsFileContentNone(Vertx vertx) {
         TerraformModule m1 = new ContainerModule();
         MainFileService service = TestFileServiceProvider.createMainFileService(vertx.fileSystem(), List.of(m1));
         String result = service.getOutputsFileContent();

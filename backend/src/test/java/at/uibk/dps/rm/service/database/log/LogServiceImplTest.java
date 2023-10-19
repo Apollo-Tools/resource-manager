@@ -2,13 +2,14 @@ package at.uibk.dps.rm.service.database.log;
 
 import at.uibk.dps.rm.entity.model.Log;
 import at.uibk.dps.rm.repository.log.LogRepository;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestLogProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
+import io.reactivex.rxjava3.core.Single;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
-import org.hibernate.reactive.stage.Stage;
-import org.hibernate.reactive.util.impl.CompletionStages;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,16 +36,16 @@ public class LogServiceImplTest {
     private LogRepository logRepository;
 
     @Mock
-    private Stage.SessionFactory sessionFactory;
+    private SessionManagerProvider smProvider;
 
     @Mock
-    private Stage.Session session;
+    private SessionManager sessionManager;
 
 
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        logService = new LogServiceImpl(logRepository, sessionFactory);
+        logService = new LogServiceImpl(logRepository, smProvider);
     }
 
     @Test
@@ -53,12 +54,12 @@ public class LogServiceImplTest {
         Log log1 = TestLogProvider.createLog(1L);
         Log log2 = TestLogProvider.createLog(2L);
 
-        SessionMockHelper.mockSession(sessionFactory, session);
-        when(logRepository.findAllByDeploymentIdAndAccountId(session, deploymentId, accountId))
-            .thenReturn(CompletionStages.completedFuture(List.of(log1, log2)));
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
+        when(logRepository.findAllByDeploymentIdAndAccountId(sessionManager, deploymentId, accountId))
+            .thenReturn(Single.just(List.of(log1, log2)));
 
-        logService.findAllByDeploymentIdAndAccountId(deploymentId, accountId)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        logService.findAllByDeploymentIdAndAccountId(deploymentId, accountId,
+            testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
                 assertThat(result.getJsonObject(0).getLong("log_id")).isEqualTo(1L);
                 assertThat(result.getJsonObject(1).getLong("log_id")).isEqualTo(2L);

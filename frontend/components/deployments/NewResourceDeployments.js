@@ -63,7 +63,8 @@ const NewResourceDeployments = ({ensembleId, functionResources, setFunctionResou
         hideDelete
         isExpandable
         resources={functionResourceChoice}
-        onChange={setFunctionResources}/> :
+        onChange={setFunctionResources}
+        allFunctions/> :
         <Typography.Text>
           No suitable resources for function deployment available...
         </Typography.Text>
@@ -74,7 +75,8 @@ const NewResourceDeployments = ({ensembleId, functionResources, setFunctionResou
         hideDelete
         isExpandable
         resources={serviceResourceChoice}
-        onChange={setServiceResources}/> :
+        onChange={setServiceResources}
+        allServices /> :
         <Typography.Text className="block mb-10">
           No suitable resources for service deployment available...
         </Typography.Text>

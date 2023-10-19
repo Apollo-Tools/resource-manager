@@ -1,10 +1,7 @@
 package at.uibk.dps.rm.service.deployment.executor;
 
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
-import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.rxjava3.core.Vertx;
-import io.vertx.rxjava3.core.buffer.Buffer;
 import lombok.AllArgsConstructor;
 
 import java.nio.file.Path;
@@ -17,23 +14,6 @@ import java.util.*;
  */
 @AllArgsConstructor
 public class TerraformExecutor {
-
-    private final Vertx vertx;
-
-    /**
-     * Set the folder where terraform should cache its data. By doing this terraform can reuse
-     * already downloaded providers.
-     *
-     * @param folder the path to the cache directory
-     * @return a Completable
-     */
-    public Completable setPluginCacheFolder(Path folder) {
-        String tfConfigContent = "plugin_cache_dir = \"" + Path.of(folder.toString())
-            .toAbsolutePath().toString().replace("\\", "/") + "\"";
-        Path tfConfigPath = Path.of("terraform", "config.tfrc");
-        return vertx.fileSystem().mkdirs(folder.toString())
-            .andThen(vertx.fileSystem().writeFile(tfConfigPath.toString(), Buffer.buffer(tfConfigContent)));
-    }
 
     /**
      * Execute the terraform init operation in the folder path.

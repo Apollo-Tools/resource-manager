@@ -1,4 +1,3 @@
-import DateFormatter from '../misc/DateFormatter';
 import {Button, Space, Table, Tooltip} from 'antd';
 import Link from 'next/link';
 import {DeleteOutlined, InfoCircleOutlined} from '@ant-design/icons';
@@ -6,6 +5,7 @@ import ProviderIcon from '../misc/ProviderIcon';
 import PropTypes from 'prop-types';
 import {useEffect, useState} from 'react';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
+import DateColumnRender from '../misc/DateColumnRender';
 
 const {Column} = Table;
 
@@ -101,7 +101,7 @@ const ResourceTable = ({
         </>
       }
       <Column title="Created at" dataIndex="created_at" key="created_at"
-        render={(createdAt) => <DateFormatter dateTimestamp={createdAt}/>}
+        render={(createdAt) => <DateColumnRender value={createdAt}/>}
         sorter={(a, b) => a.created_at - b.created_at}
       />
       {hasActions && (<Column title="Actions" key="action"

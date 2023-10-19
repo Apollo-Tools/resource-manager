@@ -78,7 +78,7 @@ export const AuthenticationProvider = ({children}) => {
   }, [newToken]);
 
   useEffect(() => {
-    if (!isAuthenticated && !router.pathname.endsWith('/login') && !router.pathname.endsWith('/signup')) {
+    if (!isAuthenticated && !router.pathname.endsWith('/login') && !router.pathname.endsWith('/newAccount')) {
       router.push('/accounts/login');
     } else if (isAuthenticated) {
       router.replace('/');

@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.router.account;
 
 import at.uibk.dps.rm.handler.ResultHandler;
-import at.uibk.dps.rm.handler.account.AccountNamespaceChecker;
 import at.uibk.dps.rm.handler.account.AccountNamespaceHandler;
 import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
@@ -16,9 +15,8 @@ public class AccountNamespaceRoute implements Route {
 
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
-        AccountNamespaceChecker checker =
-            new AccountNamespaceChecker(serviceProxyProvider.getAccountNamespaceService());
-        AccountNamespaceHandler accountHandler = new AccountNamespaceHandler(checker);
+        AccountNamespaceHandler accountHandler = new AccountNamespaceHandler(serviceProxyProvider
+            .getAccountNamespaceService());
         ResultHandler resultHandler = new ResultHandler(accountHandler);
 
         router

@@ -5,13 +5,14 @@ import at.uibk.dps.rm.entity.model.AccountNamespace;
 import at.uibk.dps.rm.repository.account.AccountNamespaceRepository;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
 import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Future;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import org.hibernate.reactive.stage.Stage;
 
 /**
  * The interface of the service proxy for the account_namespace entity.
@@ -24,8 +25,8 @@ public interface AccountNamespaceService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static AccountNamespaceService create(Stage.SessionFactory sessionFactory) {
-        return new AccountNamespaceServiceImpl(new AccountNamespaceRepository(), sessionFactory);
+    static AccountNamespaceService create(SessionManagerProvider smProvider) {
+        return new AccountNamespaceServiceImpl(new AccountNamespaceRepository(), smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
@@ -40,16 +41,19 @@ public interface AccountNamespaceService extends DatabaseServiceInterface {
      *
      * @param accountId the id of the account
      * @param namespaceId the id of the namespace
-     * @return a Future that emits the persisted entity as JsonObject
+     * @param resultHandler receives the persisted entity as JsonObject if the saving was
+     *                      successful else an error
      */
-    Future<JsonObject> saveByAccountIdAndNamespaceId(long accountId, long namespaceId);
+    void saveByAccountIdAndNamespaceId(long accountId, long namespaceId,
+        Handler<AsyncResult<JsonObject>> resultHandler);
 
     /**
-     * Delete a account namespace by its account and namespace.
+     * Delete an account namespace by its account and namespace.
      *
      * @param accountId the id of the creator
      * @param namespaceId the id of the namespace
-     * @return an empty Future
+     * @param resultHandler receives nothing if the deletion was successful else an error
      */
-    Future<Void> deleteByAccountIdAndNamespaceId(long accountId, long namespaceId);
+    void deleteByAccountIdAndNamespaceId(long accountId, long namespaceId,
+        Handler<AsyncResult<Void>> resultHandler);
 }

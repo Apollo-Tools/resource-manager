@@ -2,7 +2,8 @@ package at.uibk.dps.rm.service.database;
 
 import at.uibk.dps.rm.service.ServiceInterface;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Future;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -19,82 +20,90 @@ public interface DatabaseServiceInterface extends ServiceInterface {
      * Save a new entity.
      *
      * @param data the new entity
-     * @return a Future that emits the persisted entity as JsonObject
+     * @param resultHandler receives the persisted entity if the save process was successful else
+     *                      it receives an error
      */
-    Future<JsonObject> save(JsonObject data);
+    void save(JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler);
 
     /**
      * Save a new entity for an account.
      *
      * @param accountId the id of the account
      * @param data the new entity
-     * @return a Future that emits the persisted entity as JsonObject
+     * @param resultHandler receives the persisted entity if the save process was successful else
+     *                      it receives an error
      */
-    Future<JsonObject> saveToAccount(long accountId, JsonObject data);
+    void saveToAccount(long accountId, JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler);
 
     /**
      * Save all new entities.
      *
      * @param data the new entities
-     * @return an empty Future
+     * @param resultHandler receives an empty result if the save process was successful else it
+     *                      receives an error
      */
-    Future<Void> saveAll(JsonArray data);
+    void saveAll(JsonArray data, Handler<AsyncResult<Void>> resultHandler);
 
     /**
      * Find one entity by id.
      *
      * @param id the id of the entity
-     * @return a Future that emits the found entity if it exists, else null
+     * @param resultHandler receives the entity as JsonObject if it exists else a
+     *                      {@link at.uibk.dps.rm.exception.NotFoundException}
      */
-    Future<JsonObject> findOne(long id);
+    void findOne(long id, Handler<AsyncResult<JsonObject>> resultHandler);
 
     /**
      * Find one entity by id and account id.
      *
      * @param id the id of the entity
      * @param accountId the id of the creator's account
-     * @return a Future that emits the found entity if it exists, else null
+     * @param resultHandler receives the entity as JsonObject if it exists else a
+     *                      {@link at.uibk.dps.rm.exception.NotFoundException}
      */
-    Future<JsonObject> findOneByIdAndAccountId(long id, long accountId);
-
-    /**
-     * Check if an entity exists by its id.
-     *
-     * @param id the id of the entity
-     * @return a Future that emits true if the entity exists, else false
-     */
-    Future<Boolean> existsOneById(long id);
+    void findOneByIdAndAccountId(long id, long accountId, Handler<AsyncResult<JsonObject>> resultHandler);
 
     /**
      * Find all entities.
      *
-     * @return a Future that emits all entities as JsonArray
+     * @param resultHandler receives the found entities as JsonArray
      */
-    Future<JsonArray> findAll();
+    void findAll(Handler<AsyncResult<JsonArray>> resultHandler);
 
     /**
      * Find all entities by the accountId.
      *
      * @param accountId the id of the owner
-     * @return a Future that emits all entities as JsonArray
+     * @param resultHandler receives the found entities as JsonArray
      */
-    Future<JsonArray> findAllByAccountId(long accountId);
+    void findAllByAccountId(long accountId, Handler<AsyncResult<JsonArray>> resultHandler);
 
     /**
      * Update an existing entity.
      *
-     * @param data the existing entity with updated values
-     * @return an empty Future
+     * @param id the id of the entity
+     * @param fields the existing entity with updated values
+     * @param resultHandler receives nothing if the update was successful else an error
      */
-    Future<Void> update(long id, JsonObject data);
+    void update(long id, JsonObject fields, Handler<AsyncResult<Void>> resultHandler);
+
+    /**
+     * Update an existing entity that is owned by the account.
+     *
+     * @param id the id of the entity
+     * @param accountId the id of the account
+     * @param fields the existing entity with updated values
+     * @param resultHandler receives nothing if the update was successful else an error
+     */
+    void updateOwned(long id, long accountId, JsonObject fields, Handler<AsyncResult<Void>> resultHandler);
 
     /**
      * Delete an entity by its id.
      *
      * @param id the id of the entity
-     * @return an empty Future
+     * @param resultHandler receives nothing if the deletion was successful else an error
      */
-    Future<Void> delete(long id);
+    void delete(long id, Handler<AsyncResult<Void>> resultHandler);
 
 
     /**
@@ -102,7 +111,7 @@ public interface DatabaseServiceInterface extends ServiceInterface {
      *
      * @param accountId the id of the account
      * @param id the id of the entity
-     * @return an empty Future
+     * @param resultHandler receives nothing if the deletion was successful else an error
      */
-    Future<Void> deleteFromAccount(long accountId, long id);
+    void deleteFromAccount(long accountId, long id, Handler<AsyncResult<Void>> resultHandler);
 }

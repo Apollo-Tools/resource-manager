@@ -5,9 +5,7 @@ import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.dto.resource.RuntimeEnum;
-import at.uibk.dps.rm.entity.model.Function;
-import at.uibk.dps.rm.entity.model.FunctionDeployment;
-import at.uibk.dps.rm.entity.model.MainResource;
+import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.RuntimeNotSupportedException;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackageJavaCode;
 import at.uibk.dps.rm.service.deployment.sourcecode.PackagePythonCode;
@@ -40,6 +38,8 @@ public class FunctionPrepareService {
 
     private final Set<Long> functionIds = new HashSet<>();
 
+    private final Set<Function> openFaasFunctionsToBuild;
+
     private FunctionsToDeploy functionsToDeploy = new FunctionsToDeploy();
 
     /**
@@ -51,11 +51,13 @@ public class FunctionPrepareService {
      * @param dockerCredentials the credentials of the docker user
      */
     public FunctionPrepareService(Vertx vertx, List<FunctionDeployment> functionDeployments,
-            DeploymentPath deploymentPath, DockerCredentials dockerCredentials) {
+            DeploymentPath deploymentPath, Set<Function> openFaasFunctionsToBuild,
+            DockerCredentials dockerCredentials) {
         this.vertx = vertx;
         this.fileSystem = vertx.fileSystem();
         this.functionDeployments = functionDeployments;
         this.deploymentPath = deploymentPath;
+        this.openFaasFunctionsToBuild = openFaasFunctionsToBuild;
         this.dockerCredentials = dockerCredentials;
     }
 
@@ -90,7 +92,7 @@ public class FunctionPrepareService {
                 return Single.error(RuntimeNotSupportedException::new);
             }
             completables.add(packageSourceCode.composeSourceCode());
-            if (deployFunctionOnOpenFaaS(function)) {
+            if (openFaasFunctionsToBuild.contains(function) && deployFunctionOnOpenFaaS(function)) {
                 functionsString.append(getOpenFaasTemplateBlock(functionIdentifier, runtime));
                 if (!copiedOpenFaasTemplates.contains(runtime)) {
                     completables.add(copyOpenFaasTemplate(runtime));
@@ -102,7 +104,6 @@ public class FunctionPrepareService {
             functionsToDeploy.getFunctionIdentifiers().add(functionIdentifier);
         }
         functionsToDeploy.setDockerFunctionsString(functionsString.toString());
-        // TODO: add check if this is necessary (=no changes since last push)
         if (completables.isEmpty()) {
             return Single.just(functionsToDeploy);
         }
@@ -163,13 +164,13 @@ public class FunctionPrepareService {
                     Path.of(destinationPath, "entrypoint").toAbsolutePath().toString();
                 String destinationModelPath =
                     Path.of(destinationPath, "model").toAbsolutePath().toString();
-                return fileSystem.mkdirs(wrapperPath)
-                    .andThen(fileSystem.mkdirs(destinationEntrypointPath))
+                return fileSystem.mkdirs(destinationEntrypointPath)
                     .andThen(fileSystem.mkdirs(destinationModelPath))
                     .andThen(fileSystem.copyRecursive(wrapperPath, destinationPath, true))
                     .andThen(fileSystem.copyRecursive(entryPointPath, destinationEntrypointPath, true))
                     .andThen(fileSystem.copyRecursive(modelPath, destinationModelPath, true));
+            default:
+                return Completable.error(RuntimeNotSupportedException::new);
         }
-        return Completable.error(RuntimeNotSupportedException::new);
     }
 }

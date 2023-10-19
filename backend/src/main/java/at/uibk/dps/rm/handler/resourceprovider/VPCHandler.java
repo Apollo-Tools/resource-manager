@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler.resourceprovider;
 
 import at.uibk.dps.rm.handler.ValidationHandler;
+import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.VPCService;
 
 /**
  * Processes the http requests that concern the vpc entity.
@@ -9,11 +10,11 @@ import at.uibk.dps.rm.handler.ValidationHandler;
  */
 public class VPCHandler extends ValidationHandler {
     /**
-     * Create an instance from the vpcChecker.
+     * Create an instance from the vpcService.
      *
-     * @param vpcChecker the vpc checker
+     * @param vpcService the service
      */
-    public VPCHandler(VPCChecker vpcChecker) {
-        super(vpcChecker);
+    public VPCHandler(VPCService vpcService) {
+        super(vpcService);
     }
 }

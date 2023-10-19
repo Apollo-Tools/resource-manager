@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.router.account;
 
 import at.uibk.dps.rm.handler.ResultHandler;
-import at.uibk.dps.rm.handler.account.AccountChecker;
 import at.uibk.dps.rm.handler.account.AccountHandler;
 import at.uibk.dps.rm.handler.account.AccountInputHandler;
 import at.uibk.dps.rm.router.AuthenticationRoute;
@@ -19,8 +18,7 @@ public class AccountRoute implements AuthenticationRoute {
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider,
         JWTAuthProvider jwtAuthProvider) {
-        AccountChecker accountChecker = new AccountChecker(serviceProxyProvider.getAccountService());
-        AccountHandler accountHandler = new AccountHandler(accountChecker, jwtAuthProvider.getJwtAuth());
+        AccountHandler accountHandler = new AccountHandler(serviceProxyProvider.getAccountService(), jwtAuthProvider.getJwtAuth());
         ResultHandler resultHandler = new ResultHandler(accountHandler);
 
         router
@@ -36,6 +34,16 @@ public class AccountRoute implements AuthenticationRoute {
             .operation("listAccounts")
             .handler(JWTAuthProvider.getAdminAuthorizationHandler())
             .handler(resultHandler::handleFindAllRequest);
+
+        router
+            .operation("lockAccount")
+            .handler(JWTAuthProvider.getAdminAuthorizationHandler())
+            .handler(rc -> resultHandler.handleUpdateRequest(rc, accountHandler.lockAccount(rc)));
+
+        router
+            .operation("unlockAccount")
+            .handler(JWTAuthProvider.getAdminAuthorizationHandler())
+            .handler(rc -> resultHandler.handleUpdateRequest(rc, accountHandler.unlockAccount(rc)));
 
         router
             .operation("signUp")

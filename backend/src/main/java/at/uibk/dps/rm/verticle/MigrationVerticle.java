@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.verticle;
 
+import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.rxjava3.core.AbstractVerticle;
 import org.flywaydb.core.Flyway;
@@ -13,14 +14,12 @@ public class MigrationVerticle extends AbstractVerticle {
 
     @Override
     public Completable rxStart() {
-        String host = config().getString("db_host");
-        String port = config().getString("db_port");
+        ConfigDTO config = config().mapTo(ConfigDTO.class);
         return vertx.executeBlocking(fut -> {
             Flyway flyway = Flyway
                 .configure()
-                .dataSource("jdbc:postgresql://" + host + ":" + port + "/resource-manager",
-                    config().getString("db_user"),
-                    config().getString("db_password"))
+                .dataSource("jdbc:postgresql://" + config.getDbHost() + ":" + config.getDbPort() +
+                    "/resource-manager", config.getDbUser(), config.getDbPassword())
                 .load();
             flyway.migrate();
             fut.complete();

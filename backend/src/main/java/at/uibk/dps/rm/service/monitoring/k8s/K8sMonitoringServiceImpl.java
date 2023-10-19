@@ -126,7 +126,6 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
                 + node.getName() + " --kubeconfig <(echo '" + kubeConfig + "')");
         }
         ProcessExecutor processExecutor = new ProcessExecutor(Paths.get("").toAbsolutePath(), commands);
-        logger.info(String.join(" ", commands));
         processExecutor.executeCli()
             .map(processOutput -> {
                 if (processOutput.getProcess().exitValue() != 0) {

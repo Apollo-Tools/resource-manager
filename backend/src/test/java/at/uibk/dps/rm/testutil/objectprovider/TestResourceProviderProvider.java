@@ -1,9 +1,6 @@
 package at.uibk.dps.rm.testutil.objectprovider;
 
-import at.uibk.dps.rm.entity.model.Account;
-import at.uibk.dps.rm.entity.model.Region;
-import at.uibk.dps.rm.entity.model.ResourceProvider;
-import at.uibk.dps.rm.entity.model.VPC;
+import at.uibk.dps.rm.entity.model.*;
 import lombok.experimental.UtilityClass;
 
 /**
@@ -26,6 +23,13 @@ public class TestResourceProviderProvider {
         return resourceProvider;
     }
 
+    public static ResourceProvider createResourceProvider(long providerId, String provider, Environment environment) {
+        ResourceProvider resourceProvider = createResourceProvider(providerId);
+        resourceProvider.setEnvironment(environment);
+        resourceProvider.setProvider(provider);
+        return resourceProvider;
+    }
+
     public static Region createRegion(long id, String name) {
         ResourceProvider rp = createResourceProvider(1L, "aws");
         return createRegion(id, name, rp);
@@ -39,7 +43,7 @@ public class TestResourceProviderProvider {
         return region;
     }
 
-    public static VPC createVPC(long id, Region region, String vpcIdValue, String subnetIdValue, Account createdBy) {
+    public static VPC createVPC(Long id, Region region, String vpcIdValue, String subnetIdValue, Account createdBy) {
         VPC vpc = new VPC();
         vpc.setVpcId(id);
         vpc.setRegion(region);
@@ -54,7 +58,31 @@ public class TestResourceProviderProvider {
         return createVPC(id, region, "vpc-id", "subnet-id", account);
     }
 
-    public static VPC createVPC(long id, Region region, Account createdBy) {
+    public static VPC createVPC(Long id, Region region, Account createdBy) {
         return createVPC(id, region, "vpc-id", "subnet-id", createdBy);
+    }
+
+    public static K8sNamespace createNamespace(Long id, String name, Resource resource) {
+        K8sNamespace namespace = new K8sNamespace();
+        namespace.setNamespaceId(id);
+        namespace.setResource(resource);
+        namespace.setNamespace(name);
+        return namespace;
+    }
+
+    public static K8sNamespace createNamespace(Long id, Resource resource) {
+        return createNamespace(id, "namespace", resource);
+    }
+
+    public static K8sNamespace createNamespace(long id) {
+        Resource resource = TestResourceProvider.createResource(id + 1);
+        return createNamespace(id, resource);
+    }
+
+    public static Environment createEnvironment(long id, String name) {
+        Environment environment = new Environment();
+        environment.setEnvironmentId(id);
+        environment.setEnvironment(name);
+        return environment;
     }
 }

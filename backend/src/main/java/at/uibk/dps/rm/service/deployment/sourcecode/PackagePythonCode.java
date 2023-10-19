@@ -67,8 +67,8 @@ public class PackagePythonCode extends PackageSourceCode{
     }
 
     @Override
-    protected List<File> getUnzippedFileDest(ZipEntry zipEntry, File destDir) throws IOException {
-        List<File> newFiles = super.getUnzippedFileDest(zipEntry, destDir);
+    protected List<File> getUnzippedFilesDest(ZipEntry zipEntry, File destDir) throws IOException {
+        List<File> newFiles = super.getUnzippedFilesDest(zipEntry, destDir);
         if (zipEntry.getName().equals("requirements.txt") && zipEntry.getSize() > 0) {
             File layerDestDir = layerFolder.toFile();
             newFiles.add(newFile(layerDestDir, zipEntry));

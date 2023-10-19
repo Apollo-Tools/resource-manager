@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.router.service;
 
-import at.uibk.dps.rm.handler.ResultHandler;
-import at.uibk.dps.rm.handler.service.ServiceChecker;
+import at.uibk.dps.rm.handler.PrivateEntityResultHandler;
 import at.uibk.dps.rm.handler.service.ServiceHandler;
 import at.uibk.dps.rm.handler.service.ServiceInputHandler;
 import at.uibk.dps.rm.router.Route;
@@ -16,9 +15,8 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 public class ServiceRoute implements Route {
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
-        ServiceChecker serviceChecker = new ServiceChecker(serviceProxyProvider.getServiceService());
-        ServiceHandler serviceHandler = new ServiceHandler(serviceChecker);
-        ResultHandler resultHandler = new ResultHandler(serviceHandler);
+        ServiceHandler serviceHandler = new ServiceHandler(serviceProxyProvider.getServiceService());
+        PrivateEntityResultHandler resultHandler = new PrivateEntityResultHandler(serviceHandler);
 
         router
             .operation("createService")
@@ -31,8 +29,12 @@ public class ServiceRoute implements Route {
             .handler(resultHandler::handleUpdateRequest);
 
         router
-            .operation("listServices")
-            .handler(resultHandler::handleFindAllRequest);
+            .operation("listMyServices")
+            .handler(rc -> resultHandler.handleFindAllRequest(rc, serviceHandler.getAllFromAccount(rc)));
+
+        router
+            .operation("listAllServices")
+            .handler(rc -> resultHandler.handleFindAllRequest(rc, serviceHandler.getAll(rc)));
 
         router
             .operation("getService")

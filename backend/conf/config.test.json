@@ -1,15 +1,29 @@
 {
   "db_host": "localhost",
   "db_port": 5432,
-  "db_user": "root",
-  "db_password": "root",
+  "db_user": "**USER**",
+  "db_password": "**PASSWORD**",
 
   "api_port": 8888,
 
   "build_directory": "build",
   "dind_directory": "var/lib/apollo-rm/",
+  "upload_persist_directory": "persist/dir",
+  "upload_temp_directory": "temp/dir",
+  "max_file_size": 100000000,
 
-  "jwt_secret": "test-secret",
+  "jwt_secret": "**secret**",
   "jwt_algorithm": "HS256",
-  "token_minutes_valid": 1080
+  "token_minutes_valid": 1080,
+
+  "ensemble_validation_period": 60,
+
+  "docker_insecure_registries": ["localhost:5000"],
+
+  "kube_config_secrets_name": "rm-kubeconfigs",
+  "kube_config_secrets_namespace": "default",
+  "kube_config_directory": "/kubeconfig",
+  "kube_api_timeout_seconds": 30,
+  "kube_monitoring_period": 5,
+  "kube_image_pull_secrets": ["regcred"]
 }

@@ -9,7 +9,8 @@ import lombok.experimental.UtilityClass;
 import java.util.regex.Pattern;
 
 /**
- * Used to validate the inputs of the account endpoint and fails the context if violations are found.
+ * Used to validate the inputs of the account endpoint and fails the context if violations are
+ * found.
  *
  * @author matthi-g
  */
@@ -90,7 +91,7 @@ public class AccountInputHandler {
                 Pattern pattern = Pattern.compile(regex);
 
                 if (!pattern.matcher(username).matches()) {
-                    throw new Throwable("password does not meet the minimum requirements");
+                    throw new Throwable("username does not meet the minimum requirements");
                 }
                 return username;
             })

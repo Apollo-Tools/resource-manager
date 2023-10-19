@@ -3,18 +3,20 @@ package at.uibk.dps.rm.service.database;
 import at.uibk.dps.rm.exception.*;
 import at.uibk.dps.rm.repository.Repository;
 import at.uibk.dps.rm.service.ServiceProxy;
-import at.uibk.dps.rm.util.validation.ServiceResultValidator;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
+import at.uibk.dps.rm.util.misc.RxVertxHandler;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import org.hibernate.reactive.stage.Stage.Session;
-import org.hibernate.reactive.stage.Stage.SessionFactory;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.CompletionStage;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -27,7 +29,7 @@ import java.util.stream.Collectors;
  */
 public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements DatabaseServiceInterface {
 
-    private final SessionFactory sessionFactory;
+    protected final SessionManagerProvider smProvider;
 
     private final Repository<T> repository;
 
@@ -39,34 +41,10 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
      * @param repository the repository
      * @param entityClass the class of the entity
      */
-    public DatabaseServiceProxy(Repository<T> repository, Class<T> entityClass, SessionFactory sessionFactory) {
+    public DatabaseServiceProxy(Repository<T> repository, Class<T> entityClass, SessionManagerProvider smpProvider) {
         this.repository = repository;
         this.entityClass = entityClass;
-        this.sessionFactory = sessionFactory;
-    }
-
-    /**
-     * Perform work using a reactive session. The executions contained in function are not
-     * transactional. Use this method for read operations.
-     *
-     * @param function the function that contains all database operations
-     * @return a CompletionStage that emits an item of type E
-     * @param <E> any datatype that can be returned by the reactive session
-     */
-    protected <E> CompletionStage<E> withSession(Function<Session, CompletionStage<E>> function) {
-        return sessionFactory.withSession(function);
-    }
-
-    /**
-     * Perform work using a reactive session. The executions contained in function are
-     * transactional. Use this method for write operations.
-     *
-     * @param function the function that contains all database operations
-     * @return a CompletionStage that emits an item of type E
-     * @param <E> any datatype that can be returned by the reactive session
-     */
-    protected <E> CompletionStage<E> withTransaction(Function<Session, CompletionStage<E>> function) {
-        return sessionFactory.withTransaction(function);
+        this.smProvider = smpProvider;
     }
 
     @Override
@@ -75,132 +53,111 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
     }
 
     @Override
-    public Future<JsonObject> save(JsonObject data) {
+    public void save(JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
         T entity = data.mapTo(entityClass);
-        CompletionStage<T> save = withTransaction(session -> session.persist(entity)
-            .thenApply(res -> entity));
-        return sessionToFuture(save).map(JsonObject::mapFrom);
+        Single<T> save = smProvider.withTransactionSingle(sm -> sm.persist(entity));
+        RxVertxHandler.handleSession(save.map(JsonObject::mapFrom), resultHandler);
     }
 
     @Override
-    public Future<JsonObject> saveToAccount(long accountId, JsonObject data) {
-        throw new UnsupportedOperationException();
+    public void saveToAccount(long accountId, JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
+        resultHandler.handle(Future.failedFuture(new UnsupportedOperationException()));
     }
 
     @Override
-    public Future<Void> saveAll(JsonArray data) {
+    public void saveAll(JsonArray data, Handler<AsyncResult<Void>> resultHandler) {
         List<T> entities = data
             .stream()
             .map(object -> ((JsonObject) object).mapTo(entityClass))
             .collect(Collectors.toList());
-        CompletionStage<Void> createAll = withTransaction(session -> repository.createAll(session, entities));
-        return sessionToFuture(createAll);
+        Completable createAll = smProvider.withTransactionCompletable(sm -> sm.persist(entities.toArray()));
+        RxVertxHandler.handleSession(createAll, resultHandler);
     }
 
     @Override
-    public Future<JsonObject> findOne(long id) {
-        CompletionStage<T> findOne = withSession(session -> repository.findById(session, id));
-        return sessionToFuture(findOne).map(JsonObject::mapFrom);
-    }
-
-
-    @Override
-    public Future<JsonObject> findOneByIdAndAccountId(long id, long accountId) {
-        CompletionStage<T> findOne = withSession(session ->
-            repository.findByIdAndAccountId(session, id, accountId));
-        return sessionToFuture(findOne).map(JsonObject::mapFrom);
-    }
-
-    @Override
-    public Future<Boolean> existsOneById(long id) {
-        CompletionStage<T> findOne = withSession(session -> repository.findById(session, id));
-        return sessionToFuture(findOne).map(Objects::nonNull);
-    }
-
-    @Override
-    public Future<JsonArray> findAll() {
-        CompletionStage<List<T>> findAll = withSession(repository::findAll);
-        return sessionToFuture(findAll)
-            .map(result -> {
-                ArrayList<JsonObject> objects = new ArrayList<>();
-                for (T entity: result) {
-                    objects.add(JsonObject.mapFrom(entity));
-                }
-                return new JsonArray(objects);
-            });
-    }
-
-    @Override
-    public Future<JsonArray> findAllByAccountId(long accountId) {
-        CompletionStage<List<T>> findAll = withSession(session -> repository.findAllByAccountId(session, accountId));
-        return sessionToFuture(findAll)
-            .map(result -> {
-                ArrayList<JsonObject> objects = new ArrayList<>();
-                for (T entity: result) {
-                    objects.add(JsonObject.mapFrom(entity));
-                }
-                return new JsonArray(objects);
-            });
-    }
-
-    @Override
-    public Future<Void> update(long id, JsonObject fields) {
-        CompletionStage<T> update = withTransaction(session -> repository.findById(session, id)
-            .thenCompose(entity -> {
-                ServiceResultValidator.checkFound(entity, entityClass);
-                JsonObject jsonObject = JsonObject.mapFrom(entity);
-                fields.stream().forEach(entry -> jsonObject.put(entry.getKey(), entry.getValue()));
-                T updatedEntity = jsonObject.mapTo(entityClass);
-                return session.merge(updatedEntity);
-            })
+    public void findOne(long id, Handler<AsyncResult<JsonObject>> resultHandler) {
+        Maybe<T> findOne = smProvider.withTransactionMaybe( sm -> sm
+            .find(entityClass, id)
+            .switchIfEmpty(Maybe.error(new NotFoundException(entityClass)))
         );
-        return sessionToFuture(update).mapEmpty();
+        RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
+    }
+
+
+    @Override
+    public void findOneByIdAndAccountId(long id, long accountId, Handler<AsyncResult<JsonObject>> resultHandler) {
+        Maybe<T> findOne = smProvider.withTransactionMaybe(sm -> repository.findByIdAndAccountId(sm, id, accountId)
+            .switchIfEmpty(Maybe.error(new NotFoundException(entityClass)))
+        );
+        RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
     }
 
     @Override
-    public Future<Void> delete(long id) {
-        CompletionStage<Void> delete = withTransaction(session -> repository.findById(session, id)
-            .thenCompose(entity -> {
-                ServiceResultValidator.checkFound(entity, entityClass);
-                return session.remove(entity);
-            })
-        );
-        return sessionToFuture(delete);
+    public void findAll(Handler<AsyncResult<JsonArray>> resultHandler) {
+        Single<List<T>> findAll = smProvider.withTransactionSingle(repository::findAll);
+        RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }
 
     @Override
-    public Future<Void> deleteFromAccount(long accountId, long id) {
-        CompletionStage<Void> delete = withTransaction(session ->
-            repository.findByIdAndAccountId(session, id, accountId)
-                .thenCompose(entity -> {
-                    ServiceResultValidator.checkFound(entity, entityClass);
-                    return session.remove(entity);
-                })
-        );
-        return sessionToFuture(delete);
+    public void findAllByAccountId(long accountId, Handler<AsyncResult<JsonArray>> resultHandler) {
+        Single<List<T>> findAll = smProvider.withTransactionSingle(sm -> repository
+            .findAllByAccountId(sm, accountId));
+        RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }
 
     /**
-     * Handle an error.
+     * Map a list of found entities to a JsonArray
      *
-     * @param throwable the error
-     * @return a failed future that emits the error if its type is unknown, else the error
-     * gets rethrown.
-     * @param <E> any datatype that can be returned by the reactive session
+     * @param resultList the result list
+     * @return the mapped JsonArray
      */
-    protected <E> Future<E> recoverFailure(Throwable throwable) {
-        if (throwable.getCause() instanceof NotFoundException) {
-            throw new NotFoundException((NotFoundException) throwable.getCause());
-        } else if (throwable.getCause() instanceof UnauthorizedException) {
-            throw new UnauthorizedException((UnauthorizedException) throwable.getCause());
-        } else if (throwable.getCause() instanceof BadInputException) {
-            throw new BadInputException((BadInputException) throwable.getCause());
-        } else if (throwable.getCause() instanceof AlreadyExistsException) {
-            throw new AlreadyExistsException((AlreadyExistsException) throwable.getCause());
-        } else if (throwable.getCause() instanceof MonitoringException) {
-            throw new MonitoringException((MonitoringException) throwable.getCause());
+    @NotNull
+    protected <E> JsonArray mapResultListToJsonArray(List<E> resultList) {
+        ArrayList<JsonObject> objects = new ArrayList<>();
+        for (E entity : resultList) {
+            objects.add(JsonObject.mapFrom(entity));
         }
-        return Future.failedFuture(throwable);
+        return new JsonArray(objects);
+    }
+
+    @Override
+    public void update(long id, JsonObject fields, Handler<AsyncResult<Void>> resultHandler) {
+        Completable update = smProvider.withTransactionCompletable(sm -> sm.find(entityClass, id)
+            .switchIfEmpty(Single.error(new NotFoundException(entityClass)))
+            .flatMap(entity -> {
+                JsonObject jsonObject = JsonObject.mapFrom(entity);
+                fields.stream().forEach(entry -> jsonObject.put(entry.getKey(), entry.getValue()));
+                T updatedEntity = jsonObject.mapTo(entityClass);
+                return sm.merge(updatedEntity);
+            })
+            .ignoreElement()
+        );
+        RxVertxHandler.handleSession(update, resultHandler);
+    }
+
+    @Override
+    public void updateOwned(long id, long accountId, JsonObject fields, Handler<AsyncResult<Void>> resultHandler) {
+        resultHandler.handle(Future.failedFuture(new UnsupportedOperationException()));
+    }
+
+    @Override
+    public void delete(long id, Handler<AsyncResult<Void>> resultHandler) {
+        Completable delete = smProvider.withTransactionCompletable(sm -> sm
+            .find(entityClass, id)
+            .switchIfEmpty(Maybe.error(new NotFoundException(entityClass)))
+            .flatMapCompletable(sm::remove)
+        );
+        RxVertxHandler.handleSession(delete, resultHandler);
+    }
+
+    @Override
+    public void deleteFromAccount(long accountId, long id, Handler<AsyncResult<Void>> resultHandler) {
+        Completable delete = smProvider.withTransactionCompletable(sm -> repository
+            .findByIdAndAccountId(sm, id, accountId)
+            .switchIfEmpty(Maybe.error(new NotFoundException(entityClass)))
+            .flatMapCompletable(sm::remove)
+        );
+        RxVertxHandler.handleSession(delete, resultHandler);
     }
 
     /**
@@ -213,17 +170,5 @@ public abstract class DatabaseServiceProxy<T> extends ServiceProxy implements Da
      */
     protected <E> E updateNonNullValue(E oldValue, E newValue) {
         return newValue == null ? oldValue : newValue;
-    }
-
-    /**
-     * Map a session to a future.
-     *
-     * @param session the session
-     * @return a Future that emits the result of the session
-     * @param <E> any datatype
-     */
-    protected <E> Future<E> sessionToFuture(CompletionStage<E> session) {
-        return Future.fromCompletionStage(session)
-            .recover(this::recoverFailure);
     }
 }

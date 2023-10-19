@@ -3,16 +3,17 @@ package at.uibk.dps.rm.service.database.ensemble;
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.Ensemble;
 import at.uibk.dps.rm.repository.EnsembleRepositoryProvider;
-import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
+import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Future;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import org.hibernate.reactive.stage.Stage;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 /**
  * The interface of the service proxy for the ensemble entity.
@@ -25,8 +26,8 @@ public interface EnsembleService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static EnsembleService create(Stage.SessionFactory sessionFactory) {
-        return new EnsembleServiceImpl(new EnsembleRepositoryProvider(), sessionFactory);
+    static EnsembleService create(SessionManagerProvider smProvider) {
+        return new EnsembleServiceImpl(new EnsembleRepositoryProvider(), smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
@@ -35,44 +36,37 @@ public interface EnsembleService extends DatabaseServiceInterface {
         return new EnsembleServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(Ensemble.class));
     }
 
-
-    /**
-     * Find all ensembles by their creator.
-     *
-     * @param accountId the account id of the creator
-     * @return a Future that emits all ensembles as JsonArray
-     */
-    Future<JsonArray> findAllByAccountId(long accountId);
-
     /**
      * Find one ensemble by its id and creator.
      *
      * @param id the id of the ensemble
      * @param accountId the account id of the creator
-     * @return a Future that emits the found ensemble if it exists, else null
+     * @param resultHandler receives the found ensemble as JsonObject if it exists else a
+     *                      {@link at.uibk.dps.rm.exception.NotFoundException}
      */
-    Future<JsonObject> findOneByIdAndAccountId(long id, long accountId);
+    void findOneByIdAndAccountId(long id, long accountId, Handler<AsyncResult<JsonObject>> resultHandler);
 
     /**
      * Check if all resources from a create ensemble request fulfill its service level objectives.
      *
      * @param data the request data
-     * @return a Future that emits nothing
+     * @param resultHandler receives nothing if the check was successful else an error
      */
-    Future<Void> validateCreateEnsembleRequest(JsonObject data);
+    void validateCreateEnsembleRequest(JsonObject data, Handler<AsyncResult<Void>> resultHandler);
 
     /**
      * Check if all resources from an existing ensemble fulfill its service level objectives.
      *
      * @param ensembleId the id of the ensemble
-     * @return a Future that emits all found resources and their validity state
+     * @param resultHandler receives the found resources and their validity state as JsonArray
      */
-    Future<JsonArray> validateExistingEnsemble(long accountId, long ensembleId);
+    void validateExistingEnsemble(long accountId, long ensembleId,
+        Handler<AsyncResult<JsonArray>> resultHandler);
 
     /**
      * Check if all resources from all existing ensembles fulfill their service level objectives.
      *
-     * @return a Future that emits nothing
+     * @param resultHandler receives nothing if the validation was successful else an error
      */
-    Future<Void> validateAllExistingEnsembles();
+    void validateAllExistingEnsembles(Handler<AsyncResult<Void>> resultHandler);
 }

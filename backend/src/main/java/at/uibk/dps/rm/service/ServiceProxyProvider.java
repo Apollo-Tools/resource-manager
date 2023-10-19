@@ -1,6 +1,5 @@
 package at.uibk.dps.rm.service;
 
-import at.uibk.dps.rm.service.rxjava3.database.account.NamespaceService;
 import at.uibk.dps.rm.service.rxjava3.database.artifact.FunctionTypeService;
 import at.uibk.dps.rm.service.rxjava3.database.artifact.ServiceTypeService;
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.EnsembleService;
@@ -8,9 +7,11 @@ import at.uibk.dps.rm.service.rxjava3.database.ensemble.ResourceEnsembleService;
 import at.uibk.dps.rm.service.rxjava3.database.log.DeploymentLogService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.PlatformMetricService;
 import at.uibk.dps.rm.service.rxjava3.database.deployment.*;
+import at.uibk.dps.rm.service.rxjava3.database.deployment.DeploymentService;
 import at.uibk.dps.rm.service.rxjava3.database.account.AccountNamespaceService;
 import at.uibk.dps.rm.service.rxjava3.database.account.AccountService;
 import at.uibk.dps.rm.service.rxjava3.database.account.CredentialsService;
+import at.uibk.dps.rm.service.rxjava3.database.account.NamespaceService;
 import at.uibk.dps.rm.service.rxjava3.database.function.FunctionService;
 import at.uibk.dps.rm.service.rxjava3.database.function.RuntimeService;
 import at.uibk.dps.rm.service.rxjava3.database.log.LogService;
@@ -18,7 +19,6 @@ import at.uibk.dps.rm.service.rxjava3.database.resource.PlatformService;
 import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.EnvironmentService;
 import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.RegionService;
 import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.ResourceProviderService;
-import at.uibk.dps.rm.service.rxjava3.database.metric.MetricTypeService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
@@ -27,7 +27,6 @@ import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.VPCService;
 import at.uibk.dps.rm.service.rxjava3.database.service.ServiceService;
 import at.uibk.dps.rm.service.rxjava3.database.service.K8sServiceTypeService;
 import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentExecutionService;
-import at.uibk.dps.rm.service.rxjava3.util.FilePathService;
 import at.uibk.dps.rm.verticle.DatabaseVerticle;
 import io.vertx.rxjava3.core.Vertx;
 import lombok.Getter;
@@ -51,7 +50,6 @@ public class ServiceProxyProvider {
     private final LogService logService;
     private final K8sServiceTypeService k8sServiceTypeService;
     private final MetricService metricService;
-    private final MetricTypeService metricTypeService;
     private final MetricValueService metricValueService;
     private final NamespaceService namespaceService;
     private final PlatformService platformService;
@@ -70,7 +68,6 @@ public class ServiceProxyProvider {
     private final ServiceTypeService serviceTypeService;
     private final VPCService vpcService;
     private final DeploymentExecutionService deploymentExecutionService;
-    private final FilePathService filePathService;
 
     /**
      * Create an instance from vertx. All client proxies get setup in this method.
@@ -88,7 +85,6 @@ public class ServiceProxyProvider {
         k8sServiceTypeService = K8sServiceTypeService.createProxy(vertx);
         logService = LogService.createProxy(vertx);
         metricService = MetricService.createProxy(vertx);
-        metricTypeService = MetricTypeService.createProxy(vertx);
         metricValueService = MetricValueService.createProxy(vertx);
         namespaceService = NamespaceService.createProxy(vertx);
         platformService = PlatformService.createProxy(vertx);
@@ -107,6 +103,5 @@ public class ServiceProxyProvider {
         serviceTypeService = ServiceTypeService.createProxy(vertx);
         vpcService = VPCService.createProxy(vertx);
         deploymentExecutionService = DeploymentExecutionService.createProxy(vertx);
-        filePathService = FilePathService.createProxy(vertx);
     }
 }

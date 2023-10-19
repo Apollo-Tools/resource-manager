@@ -24,8 +24,6 @@ public class ContainerDeployFileService extends TerraformFileService {
 
     private final ServiceDeployment serviceDeployment;
 
-    private final Path rootFolder;
-
     private final ConfigDTO config;
 
     /**
@@ -39,7 +37,6 @@ public class ContainerDeployFileService extends TerraformFileService {
     public ContainerDeployFileService(FileSystem fileSystem, Path rootFolder, ServiceDeployment serviceDeployment,
             long deploymentId, ConfigDTO config) {
         super(fileSystem, rootFolder);
-        this.rootFolder = rootFolder;
         this.serviceDeployment = serviceDeployment;
         this.deploymentId = deploymentId;
         this.config = config;
@@ -72,7 +69,7 @@ public class ContainerDeployFileService extends TerraformFileService {
         StringBuilder containerString = new StringBuilder();
         Resource resource = serviceDeployment.getResource();
         Service service = serviceDeployment.getService();
-        String identifier = resource.getResourceId() + "_" + service.getServiceId();
+        String identifier = getServiceDeploymentIdentifier();
         Map<String, MetricValue> mainMetricValues =
             MetricValueMapper.mapMetricValues(resource.getMain().getMetricValues());
         Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
@@ -82,8 +79,8 @@ public class ContainerDeployFileService extends TerraformFileService {
             externalIp = mainMetricValues.get("external-ip").getValueString();
         }
 
-        String configPath = Path.of(rootFolder.getParent().toString(), "config").toAbsolutePath().toString()
-            .replace("\\", "/");
+        String configPath = Path.of(config.getKubeConfigDirectory(), resource.getMain().getName())
+            .toAbsolutePath().toString().replace("\\", "/");
         String ports = service.getPorts().stream()
             .map(portEntry -> String.format("{container_port = %s, service_port = %s}", portEntry.split(":")[0],
                 portEntry.split(":")[1]))
@@ -134,6 +131,20 @@ public class ContainerDeployFileService extends TerraformFileService {
 
     @Override
     protected String getOutputsFileContent() {
-        return "";
+        String identifier = getServiceDeploymentIdentifier();
+        return String.format(
+            "output \"deployment_data\" {\n" +
+            "  value = {\n" +
+            "    service: module.deployment_%s.service_info\n" +
+            "    pods: module.deployment_%s.pods_info\n" +
+            "  }\n" +
+            "}", identifier, identifier
+        );
+    }
+
+    private String getServiceDeploymentIdentifier() {
+        Resource resource = serviceDeployment.getResource();
+        Service service = serviceDeployment.getService();
+        return resource.getResourceId() + "_" + service.getServiceId();
     }
 }

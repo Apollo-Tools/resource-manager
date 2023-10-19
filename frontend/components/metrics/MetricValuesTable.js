@@ -1,11 +1,12 @@
-import DateFormatter from '../misc/DateFormatter';
 import {Button, Modal, Table} from 'antd';
-import {CheckCircleTwoTone, CloseCircleTwoTone, DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
+import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
 import {deleteResourceMetric} from '../../lib/MetricValueService';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import TooltipIcon from '../misc/TooltipIcon';
+import BoolValueDisplay from '../misc/BoolValueDisplay';
+import DateColumnRender from '../misc/DateColumnRender';
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -56,22 +57,16 @@ const MetricValuesTable = ({resourceId, metricValues, setMetricValues}) => {
           return <>{metric.metric.metric} <TooltipIcon text={metric.metric.description} /></>;
         }}
       />
-      <Column title="Is monitored" dataIndex={['metric', 'is_monitored']} key="is_monitored"
-        render={(isMonitored) => {
-          if (isMonitored) {
-            return <CheckCircleTwoTone twoToneColor="#00ff00"/>;
-          } else {
-            return <CloseCircleTwoTone twoToneColor="#ff0000"/>;
-          }
-        }}
+      <Column title="Is monitored" dataIndex='is_monitored' key="is_monitored"
+        render={(isMonitored) => <BoolValueDisplay value={isMonitored} />}
       />
       <Column title="Value" dataIndex="value" key="value" />
       <Column title="Created at" dataIndex="created_at" key="created_at"
-        render={(createdAt) => <DateFormatter dateTimestamp={createdAt}/>}
+        render={(createdAt) => <DateColumnRender value={createdAt}/>}
         sorter={(a, b) => a.created_at - b.created_at}
       />
       <Column title="Modified at" dataIndex="updated_at" key="updated_at"
-        render={(updatedAt) => <DateFormatter dateTimestamp={updatedAt}/>}
+        render={(updatedAt) => <DateColumnRender value={updatedAt}/>}
         sorter={(a, b) => a.updated_at - b.updated_at}
       />
       <Column title="Actions" key="action"

@@ -1,90 +1,84 @@
 package at.uibk.dps.rm.service.database.resourceprovider;
 
-import at.uibk.dps.rm.entity.model.*;
-import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
+import at.uibk.dps.rm.entity.model.Account;
+import at.uibk.dps.rm.entity.model.Region;
+import at.uibk.dps.rm.entity.model.VPC;
+import at.uibk.dps.rm.exception.AlreadyExistsException;
+import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
-import at.uibk.dps.rm.util.validation.ServiceResultValidator;
-import io.vertx.core.Future;
+import at.uibk.dps.rm.util.misc.RxVertxHandler;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import org.hibernate.reactive.stage.Stage;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletionStage;
 
 /**
- * This is the implementation of the #VPCService.
+ * This is the implementation of the {@link VPCService}.
  *
  * @author matthi-g
  */
 public class VPCServiceImpl extends DatabaseServiceProxy<VPC> implements VPCService {
     private final VPCRepository repository;
 
-    private final RegionRepository regionRepository;
-
     /**
      * Create an instance from the vpcRepository.
      *
      * @param repository the vpc repository
      */
-    public VPCServiceImpl(VPCRepository repository, RegionRepository regionRepository,
-            Stage.SessionFactory sessionFactory) {
-        super(repository, VPC.class, sessionFactory);
+    public VPCServiceImpl(VPCRepository repository, SessionManagerProvider smProvider) {
+        super(repository, VPC.class, smProvider);
         this.repository = repository;
-        this.regionRepository = regionRepository;
     }
 
     @Override
-    public Future<JsonArray> findAllByAccountId(long accountId) {
-        CompletionStage<List<VPC>> findAll = withSession(session ->
-            repository.findAllByAccountIdAndFetch(session, accountId));
-        return Future.fromCompletionStage(findAll)
-            .map(result -> {
+    public void findAllByAccountId(long accountId, Handler<AsyncResult<JsonArray>> resultHandler) {
+        Single<List<VPC>> findAll = smProvider.withTransactionSingle(sm -> repository
+            .findAllByAccountIdAndFetch(sm, accountId));
+        RxVertxHandler.handleSession(
+            findAll.map(result -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
                 for (VPC entity: result) {
-                    objects.add(serializeVPC(entity));
+                    objects.add(JsonObject.mapFrom(entity));
                 }
                 return new JsonArray(objects);
-            });
-    }
-
-    @Override
-    public Future<JsonObject> findOne(long id) {
-        CompletionStage<VPC> findOne = withSession(session -> repository.findByIdAndFetch(session, id));
-        return Future.fromCompletionStage(findOne)
-            .map(this::serializeVPC);
-    }
-
-    @Override
-    public Future<JsonObject> saveToAccount(long accountId, JsonObject data) {
-        VPC vpc = data.mapTo(VPC.class);
-        CompletionStage<VPC> create = withTransaction(session ->
-            regionRepository.findByIdAndFetch(session, vpc.getRegion().getRegionId())
-                .thenCompose(region -> {
-                    ServiceResultValidator.checkFound(region, Region.class);
-                    vpc.setRegion(region);
-                    return repository.findByRegionIdAndAccountId(session, region.getRegionId(), accountId);
-                })
-                .thenApply(existingVPC -> {
-                    ServiceResultValidator.checkExists(existingVPC, VPC.class);
-                    Account account = new Account();
-                    account.setAccountId(accountId);
-                    vpc.setCreatedBy(account);
-                    session.persist(vpc);
-                    return vpc;
-                })
+            }),
+            resultHandler
         );
-        return sessionToFuture(create).map(this::serializeVPC);
     }
 
-    private JsonObject serializeVPC(VPC vpc) {
-        if (vpc != null) {
-            vpc.getRegion().getResourceProvider().setProviderPlatforms(null);
-            vpc.getRegion().getResourceProvider().setEnvironment(null);
-            vpc.setCreatedBy(null);
-        }
-        return JsonObject.mapFrom(vpc);
+    @Override
+    public void findOneByIdAndAccountId(long id, long accountId, Handler<AsyncResult<JsonObject>> resultHandler) {
+        Maybe<VPC> findOne = smProvider.withTransactionMaybe( sm -> repository
+            .findByIdAndAccountIdAndFetch(sm, id, accountId)
+            .switchIfEmpty(Maybe.error(new NotFoundException(VPC.class))));
+        RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
+    }
+
+    @Override
+    public void saveToAccount(long accountId, JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
+        VPC vpc = data.mapTo(VPC.class);
+        Single<VPC> create = smProvider.withTransactionSingle(sm -> repository
+            .findByRegionIdAndAccountId(sm, vpc.getRegion().getRegionId(), accountId)
+            .flatMap(existingVPC -> Maybe.<Account>error(new AlreadyExistsException(VPC.class)))
+            .switchIfEmpty(sm.find(Account.class, accountId))
+            .switchIfEmpty(Maybe.error(new NotFoundException()))
+            .flatMap(account -> {
+                vpc.setCreatedBy(account);
+                return sm.find(Region.class, vpc.getRegion().getRegionId());
+            })
+            .switchIfEmpty(Single.error(new NotFoundException(Region.class)))
+            .flatMap(region -> {
+                vpc.setRegion(region);
+                return sm.persist(vpc);
+            })
+        );
+        RxVertxHandler.handleSession(create.map(JsonObject::mapFrom), resultHandler);
     }
 }

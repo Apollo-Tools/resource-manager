@@ -2,22 +2,25 @@ package at.uibk.dps.rm.service.database.account;
 
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
+import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.account.AccountNamespaceRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
-import at.uibk.dps.rm.util.validation.ServiceResultValidator;
-import io.vertx.core.Future;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
+import at.uibk.dps.rm.util.misc.RxVertxHandler;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
-import org.hibernate.reactive.stage.Stage.SessionFactory;
-
-import java.util.concurrent.CompletionStage;
 
 /**
- * This is the implementation of the #AccountNamespaceService.
+ * This is the implementation of the {@link AccountNamespaceService}.
  *
  * @author matthi-g
  */
 public class AccountNamespaceServiceImpl extends DatabaseServiceProxy<AccountNamespace> implements
-        AccountNamespaceService {
+    AccountNamespaceService {
 
     private final AccountNamespaceRepository repository;
 
@@ -26,58 +29,52 @@ public class AccountNamespaceServiceImpl extends DatabaseServiceProxy<AccountNam
      *
      * @param repository the resource ensemble repository     *
      */
-    public AccountNamespaceServiceImpl(AccountNamespaceRepository repository, SessionFactory sessionFactory) {
-        super(repository, AccountNamespace.class, sessionFactory);
+    public AccountNamespaceServiceImpl(AccountNamespaceRepository repository, SessionManagerProvider smProvider) {
+        super(repository, AccountNamespace.class, smProvider);
         this.repository = repository;
     }
 
     @Override
-    public Future<JsonObject> saveByAccountIdAndNamespaceId(long accountId, long namespaceId) {
+    public void saveByAccountIdAndNamespaceId(long accountId, long namespaceId,
+            Handler<AsyncResult<JsonObject>> resultHandler) {
         AccountNamespace accountNamespace = new AccountNamespace();
-        CompletionStage<AccountNamespace> create = withTransaction(session ->
-            repository.findByAccountIdAndNamespaceId(session, accountId, namespaceId)
-                .thenCompose(existing -> {
-                    ServiceResultValidator.checkExists(existing, AccountNamespace.class);
-                    return session.find(K8sNamespace.class, namespaceId);
-                })
-                .thenCompose(namespace -> {
-                    ServiceResultValidator.checkFound(namespace, K8sNamespace.class);
+        Single<AccountNamespace> create = smProvider.withTransactionSingle(sm ->
+            repository.findByAccountIdAndNamespaceId(sm, accountId, namespaceId)
+                .flatMap(existingService -> Maybe.<K8sNamespace>error(new AlreadyExistsException(AccountNamespace.class)))
+                .switchIfEmpty(sm.find(K8sNamespace.class, namespaceId))
+                .switchIfEmpty(Maybe.error(new NotFoundException(K8sNamespace.class)))
+                .flatMap(namespace -> {
                     long resourceId = namespace.getResource().getResourceId();
                     accountNamespace.setNamespace(namespace);
-                    return repository.findByAccountIdAndResourceId(session, accountId, resourceId);
+                    return repository.findByAccountIdAndResourceId(sm, accountId, resourceId);
                 })
-                .thenCompose(existing -> {
-                    if (!existing.isEmpty()) {
-                        throw new AlreadyExistsException("only one namespace per resource allowed");
-                    }
-                    return session.find(Account.class, accountId);
-                })
-                .thenCompose(account -> {
-                    ServiceResultValidator.checkFound(account, Account.class);
+                .flatMap(existingNamespace -> Maybe.<Account>error(new AlreadyExistsException("only one namespace " +
+                    "per resource allowed")))
+                .switchIfEmpty(sm.find(Account.class, accountId))
+                .switchIfEmpty(Single.error(new NotFoundException(Account.class)))
+                .flatMap(account -> {
                     accountNamespace.setAccount(account);
-                    return session.persist(accountNamespace);
+                    return sm.persist(accountNamespace);
                 })
-                .thenApply(res -> accountNamespace)
         );
-        return sessionToFuture(create)
+        RxVertxHandler.handleSession(create
             .map(result -> {
                 JsonObject response = new JsonObject();
                 response.put("account_id", result.getAccount().getAccountId());
                 response.put("namespace_id", result.getNamespace().getNamespaceId());
                 return response;
-            });
+            }),
+            resultHandler);
     }
 
     @Override
-    public Future<Void> deleteByAccountIdAndNamespaceId(long accountId, long namespaceId) {
-        CompletionStage<Void> delete = withTransaction(session ->
-            repository.findByAccountIdAndNamespaceId(session, accountId, namespaceId)
-                .thenCompose(resourceEnsemble -> {
-                    ServiceResultValidator.checkFound(resourceEnsemble, ResourceEnsemble.class);
-                    return session.remove(resourceEnsemble);
-                })
+    public void deleteByAccountIdAndNamespaceId(long accountId, long namespaceId,
+            Handler<AsyncResult<Void>> resultHandler) {
+        Completable delete = smProvider.withTransactionCompletable(sm -> repository
+            .findByAccountIdAndNamespaceId(sm, accountId, namespaceId)
+            .switchIfEmpty(Maybe.error(new NotFoundException(AccountNamespace.class)))
+            .flatMapCompletable(sm::remove)
         );
-        return Future.fromCompletionStage(delete)
-            .recover(this::recoverFailure);
+        RxVertxHandler.handleSession(delete, resultHandler);
     }
 }

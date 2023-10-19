@@ -43,7 +43,7 @@ public class SLOValueSerializerTest {
     }
     @ParameterizedTest
     @MethodSource("provideSLOValue")
-    public void serialize(SLOValue sloValue, String expectedValue) {
+    void serialize(SLOValue sloValue, String expectedValue) {
         SLOValueWrapper wrapper = new SLOValueWrapper(List.of(sloValue));
         JsonObject result = JsonObject.mapFrom(wrapper);
 

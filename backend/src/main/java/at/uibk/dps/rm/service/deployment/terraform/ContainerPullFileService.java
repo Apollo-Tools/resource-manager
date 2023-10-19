@@ -22,8 +22,6 @@ public class ContainerPullFileService extends TerraformFileService {
 
     private final List<ServiceDeployment> serviceDeployments;
 
-    private final Path rootFolder;
-
     private final ConfigDTO config;
 
     /**
@@ -37,7 +35,6 @@ public class ContainerPullFileService extends TerraformFileService {
     public ContainerPullFileService(FileSystem fileSystem, Path rootFolder, List<ServiceDeployment> serviceDeployments,
             long deploymentId, ConfigDTO config) {
         super(fileSystem, rootFolder);
-        this.rootFolder = rootFolder;
         this.serviceDeployments = serviceDeployments;
         this.deploymentId = deploymentId;
         this.config = config;
@@ -59,10 +56,10 @@ public class ContainerPullFileService extends TerraformFileService {
      * @return the container modules string
      */
     private String getContainerModulesString() {
-        HashMap<PrePullGroup, List<String>> prePullGroups = new HashMap<>();
+        HashMap<PrePullGroup, Set<String>> prePullGroups = new HashMap<>();
         StringBuilder functionsString = new StringBuilder();
         for (ServiceDeployment serviceDeployment : serviceDeployments) {
-            List<String> imageList;
+            Set<String> imageSet;
             Resource resource = serviceDeployment.getResource();
             Service service = serviceDeployment.getService();
             Map<String, MetricValue> mainMetricValues =
@@ -72,21 +69,21 @@ public class ContainerPullFileService extends TerraformFileService {
                 "\"" + metricValues.get("hostname").getValueString() + "\"" : null;
             PrePullGroup pullGroup = new PrePullGroup(resource.getResourceId(), serviceDeployment.getContext(),
                 serviceDeployment.getNamespace(), mainMetricValues.get("pre-pull-timeout").getValueNumber().longValue(),
-                hostname);
+                hostname, resource.getMain().getName());
             if (!prePullGroups.containsKey(pullGroup)) {
-                imageList = new ArrayList<>();
-                prePullGroups.put(pullGroup, imageList);
+                imageSet = new HashSet<>();
+                prePullGroups.put(pullGroup, imageSet);
             } else {
-                imageList = prePullGroups.get(pullGroup);
+                imageSet = prePullGroups.get(pullGroup);
             }
-            imageList.add("\"" + service.getImage() + "\"");
+            imageSet.add("\"" + service.getImage() + "\"");
         }
 
-        String configPath = Path.of(rootFolder.toString(), "config").toAbsolutePath().toString()
-            .replace("\\", "/");
         String imagePullSecrets = config.getKubeImagePullSecrets().stream()
             .map(secret -> "\"" + secret + "\"").collect(Collectors.joining(","));
-        prePullGroups.forEach((prePullGroup, imageList) ->
+        prePullGroups.forEach((prePullGroup, imageSet) -> {
+            String configPath = Path.of(config.getKubeConfigDirectory(), prePullGroup.getMainResourceName())
+                .toAbsolutePath().toString().replace("\\", "/");
             functionsString.append(String.format(
                 "module \"pre_pull_%s\" {\n" +
                     "  source = \"../../../terraform/k8s/prepull\"\n" +
@@ -98,10 +95,11 @@ public class ContainerPullFileService extends TerraformFileService {
                     "  timeout = \"%sm\"\n" +
                     "  hostname = %s\n" +
                     "  image_pull_secrets = [%s]\n" +
-                    "}\n", prePullGroup.getIdentifier(), deploymentId, configPath, prePullGroup.getNamespace(),
-                prePullGroup.getContext(), String.join(",", imageList), prePullGroup.getTimeout(),
+                    "}\n", prePullGroup.getResourceId(), deploymentId, configPath, prePullGroup.getNamespace(),
+                prePullGroup.getContext(), String.join(",", imageSet), prePullGroup.getTimeout(),
                 prePullGroup.getHostname(), imagePullSecrets
-        )));
+            ));
+        });
         return functionsString.toString();
     }
 

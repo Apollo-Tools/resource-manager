@@ -118,36 +118,58 @@ public class ResultHandlerTest {
         testContext.completeNow();
     }
 
-    @Test
-    void handlePostOneRequestValid(VertxTestContext testContext) {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void handlePostOneRequestValid(boolean useCustomHandler, VertxTestContext testContext) {
         setupMockResponse(true);
         JsonObject basicJsonObject = new JsonObject("{\"id\": 10}");
         Single<JsonObject> handler = Single.just(basicJsonObject);
 
-        when(validationHandler.postOne(rc)).thenReturn(handler);
-
-        resultHandler.handleSaveOneRequest(rc);
+        if (useCustomHandler) {
+            resultHandler.handleSaveOneRequest(rc, handler);
+        } else {
+            when(validationHandler.postOne(rc)).thenReturn(handler);
+            resultHandler.handleSaveOneRequest(rc);
+        }
 
         Mockito.verify(response).setStatusCode(201);
         testContext.completeNow();
     }
 
-    @Test
-    void handlePostOneRequestInvalid(VertxTestContext testContext) {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void handlePostOneRequestInvalid(boolean useCustomHandler, VertxTestContext testContext) {
         Throwable throwable = new Throwable();
         Single<JsonObject> handler = Single.error(throwable);
 
-        when(validationHandler.postOne(rc)).thenReturn(handler);
-
-        resultHandler.handleSaveOneRequest(rc);
+        if (useCustomHandler) {
+            resultHandler.handleSaveOneRequest(rc, handler);
+        } else {
+            when(validationHandler.postOne(rc)).thenReturn(handler);
+            resultHandler.handleSaveOneRequest(rc);
+        }
 
         Mockito.verify(rc).fail(500, throwable);
         testContext.completeNow();
     }
 
+
+
     @ParameterizedTest
-    @CsvSource({"saveAll, 204", "saveAll, 500", "update, 204", "update, 500", "delete, 204", "delete, 500"})
-    void handlePostAllUpdateDeleteRequest(String method, int statusCode, VertxTestContext testContext) {
+    @CsvSource({
+        "saveAll, 204, false",
+        "saveAll, 500, false",
+        "update, 204, false",
+        "update, 204, true",
+        "update, 500, false",
+        "update, 500, true",
+        "delete, 204, false",
+        "delete, 204, true",
+        "delete, 500, false",
+        "delete, 500, true"
+    })
+    void handlePostAllUpdateDeleteRequest(String method, int statusCode, boolean useCustomHandler,
+            VertxTestContext testContext) {
         Completable handler;
         Throwable throwable = new Throwable();
         if (statusCode == 204) {
@@ -163,12 +185,20 @@ public class ResultHandlerTest {
                 resultHandler.handleSaveAllRequest(rc);
                 break;
             case "update":
-                when(validationHandler.updateOne(rc)).thenReturn(handler);
-                resultHandler.handleUpdateRequest(rc);
+                if (useCustomHandler) {
+                    resultHandler.handleUpdateRequest(rc, handler);
+                } else {
+                    when(validationHandler.updateOne(rc)).thenReturn(handler);
+                    resultHandler.handleUpdateRequest(rc);
+                }
                 break;
             case "delete":
-                when(validationHandler.deleteOne(rc)).thenReturn(handler);
-                resultHandler.handleDeleteRequest(rc);
+                if (useCustomHandler) {
+                    resultHandler.handleDeleteRequest(rc, handler);
+                } else {
+                    when(validationHandler.deleteOne(rc)).thenReturn(handler);
+                    resultHandler.handleDeleteRequest(rc);
+                }
                 break;
         }
 

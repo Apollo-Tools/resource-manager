@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.deployment.docker;
 
+import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
@@ -27,7 +28,7 @@ public class OpenFaasImageService {
 
     private final DockerCredentials dockerCredentials;
 
-    private final List<String> functionIdentifiers;
+    private final FunctionsToDeploy functionsToDeploy;
 
     private final Path functionsDir;
 
@@ -35,11 +36,10 @@ public class OpenFaasImageService {
      * Build and push a docker image for each entry in the functionsString that can be deployed to
      * OpenFaaS.
      *
-     * @param functionsString the functions for which the image should be built
      * @return a Single that emits the process output of the build process
      */
-    public Single<ProcessOutput> buildOpenFaasImages(String functionsString) {
-        if (functionIdentifiers.isEmpty()) {
+    public Single<ProcessOutput> buildOpenFaasImages() {
+        if (functionsToDeploy.getDockerFunctionIdentifiers().isEmpty()) {
             return Single.just(new ProcessOutput());
         }
         String stackFile = String.format(
@@ -47,7 +47,7 @@ public class OpenFaasImageService {
                 "provider:\n" +
                 "  name: openfaas\n" +
                 "functions:\n" +
-                "%s\n", functionsString);
+                "%s\n", functionsToDeploy.getDockerFunctionsString());
 
         return createStackFile(functionsDir, stackFile)
             .andThen(generateFunctionsDockerFiles(functionsDir))
@@ -121,12 +121,11 @@ public class OpenFaasImageService {
 
     private StringBuilder getBuildxBuildCommands() {
         StringBuilder dockerInteractiveCommands = new StringBuilder();
-        for (String functionIdentifier : functionIdentifiers) {
+        for (String functionIdentifier : functionsToDeploy.getDockerFunctionIdentifiers()) {
+            String ARCHITECTURES = "linux/amd64,linux/arm/v7";
             dockerInteractiveCommands.append(String.format(" && docker buildx build " +
-                            "-t %s/%s/%s ./%s --platform " +
-                            "linux/arm/v7,linux/amd64 --push  --provenance=false", dockerCredentials.getRegistry(),
-                    dockerCredentials.getUsername(),
-                    functionIdentifier, functionIdentifier)
+                    "-t %s/%s/%s ./%s --platform %s --push --provenance=false", dockerCredentials.getRegistry(),
+                dockerCredentials.getUsername(), functionIdentifier, functionIdentifier, ARCHITECTURES)
             );
         }
         return dockerInteractiveCommands;

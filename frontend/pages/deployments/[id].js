@@ -8,6 +8,8 @@ import DeploymentStatusCircle from '../../components/deployments/DeploymentStatu
 import {useInterval} from '../../lib/hooks/useInterval';
 import LogsDisplay from '../../components/logs/LogsDisplay';
 import {DisconnectOutlined, ExclamationCircleFilled, ReloadOutlined} from '@ant-design/icons';
+import Head from 'next/head';
+import {siteTitle} from '../../components/misc/Sidebar';
 
 const {confirm} = Modal;
 
@@ -110,32 +112,36 @@ const DeploymentDetails = () => {
   }
 
   return (
-    <div className="default-card">
-      <Typography.Title level={ 2 }>
-        <DeploymentStatusCircle isNew={deploymentStatus.isNew}
-          isDeployed={deploymentStatus.isDeployed}
-          isTerminating={deploymentStatus.isTerminating}
-          isTerminated={deploymentStatus.isTerminated}
-          isError={deploymentStatus.isError}
-        />
+    <>
+      <Head>
+        <title>{`${siteTitle}: Deployment Details`}</title>
+      </Head>
+      <div className="default-card">
+        <Typography.Title level={ 2 }>
+          <DeploymentStatusCircle isNew={deploymentStatus.isNew}
+            isDeployed={deploymentStatus.isDeployed}
+            isTerminating={deploymentStatus.isTerminating}
+            isTerminated={deploymentStatus.isTerminated}
+            isError={deploymentStatus.isError}
+          />
         Deployment Details ({ id })
-        <div className="float-right">
-          <Tooltip title="Refresh">
-            <Button icon={<ReloadOutlined />}
-              className="bg-yellow-50 text-yellow-500 border-yellow-500"
-              onClick={refreshDeployment}
-            />
-          </Tooltip>
-          {deploymentStatus.isDeployed &&
+          <div className="float-right">
+            <Tooltip title="Refresh">
+              <Button icon={<ReloadOutlined />}
+                className="bg-yellow-50 text-yellow-500 border-yellow-500"
+                onClick={refreshDeployment}
+              />
+            </Tooltip>
+            {deploymentStatus.isDeployed &&
           <Tooltip title="Cancel Deployment">
             <Button disabled={!deployment.is_active} onClick={ () => showCancelConfirm(id) }
               icon={ <DisconnectOutlined/> } className="ml-2 bg-red-50 text-red-500 border-red-500"/>
           </Tooltip>
-          }
-        </div>
-      </Typography.Title>
-      <Divider/>
-      {deployment.is_active &&
+            }
+          </div>
+        </Typography.Title>
+        <Divider/>
+        {deployment.is_active &&
         <>
           {deployment.function_resources.length > 0 &&
             <ResourceDeploymentTable resourceDeployments={deployment.function_resources} type='function'/>}
@@ -143,16 +149,17 @@ const DeploymentDetails = () => {
             <ResourceDeploymentTable resourceDeployments={deployment.service_resources} type='service'/>}
           <Divider />
         </>
-      }
-      <Typography.Title level={3}>Logs</Typography.Title>
-      <LogsDisplay logs={logs}/>
-      <Divider />
-      {/* TODO: insert monitoring data*/}
-      <Typography.Title level={3}>Monitoring</Typography.Title>
-      <div>
+        }
+        <Typography.Title level={3}>Logs</Typography.Title>
+        <LogsDisplay logs={logs}/>
+        <Divider />
+        {/* TODO: insert monitoring data*/}
+        <Typography.Title level={3}>Monitoring</Typography.Title>
+        <div>
         TODO display monitoring data
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

@@ -3,15 +3,16 @@ package at.uibk.dps.rm.service.database.log;
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.Log;
 import at.uibk.dps.rm.repository.log.LogRepository;
-import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
+import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Future;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
-import org.hibernate.reactive.stage.Stage;
 
 /**
  * The interface of the service proxy for the log entity.
@@ -25,8 +26,8 @@ public interface LogService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static LogService create(LogRepository logRepository, Stage.SessionFactory sessionFactory) {
-        return new LogServiceImpl(logRepository, sessionFactory);
+    static LogService create(LogRepository logRepository, SessionManagerProvider smProvider) {
+        return new LogServiceImpl(logRepository, smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
@@ -40,7 +41,8 @@ public interface LogService extends DatabaseServiceInterface {
      *
      * @param deploymentId the id of the deployment
      * @param accountId the id of the creator account
-     * @return a Future that emits all logs as JsonArray
+     * @param resultHandler receives the found entities as JsonArray
      */
-    Future<JsonArray> findAllByDeploymentIdAndAccountId(long deploymentId, long accountId);
+    void findAllByDeploymentIdAndAccountId(long deploymentId, long accountId,
+        Handler<AsyncResult<JsonArray>> resultHandler);
 }

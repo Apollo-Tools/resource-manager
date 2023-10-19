@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler.artifact;
 
 import at.uibk.dps.rm.handler.ValidationHandler;
+import at.uibk.dps.rm.service.rxjava3.database.artifact.FunctionTypeService;
 
 /**
  * Processes the http requests that concern the function artifact type entity.
@@ -11,9 +12,9 @@ public class FunctionTypeHandler extends ValidationHandler {
     /**
      * Create an instance from the functionTypeChecker.
      *
-     * @param functionTypeChecker the artifact type checker
+     * @param functionTypeService the service
      */
-    public FunctionTypeHandler(FunctionTypeChecker functionTypeChecker) {
-        super(functionTypeChecker);
+    public FunctionTypeHandler(FunctionTypeService functionTypeService) {
+        super(functionTypeService);
     }
 }

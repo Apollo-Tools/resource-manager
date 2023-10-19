@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler.resourceprovider;
 
 import at.uibk.dps.rm.handler.ValidationHandler;
+import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.ResourceProviderService;
 
 /**
  * Processes the http requests that concern the resource_provider entity.
@@ -10,11 +11,11 @@ import at.uibk.dps.rm.handler.ValidationHandler;
 public class ResourceProviderHandler extends ValidationHandler {
 
     /**
-     * Create an instance from the providerChecker.
+     * Create an instance from the providerService.
      *
-     * @param providerChecker the resource provider checker
+     * @param providerService the service
      */
-    public ResourceProviderHandler(ResourceProviderChecker providerChecker) {
-        super(providerChecker);
+    public ResourceProviderHandler(ResourceProviderService providerService) {
+        super(providerService);
     }
 }

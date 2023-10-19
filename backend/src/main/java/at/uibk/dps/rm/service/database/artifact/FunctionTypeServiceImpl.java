@@ -1,17 +1,19 @@
 package at.uibk.dps.rm.service.database.artifact;
 
 import at.uibk.dps.rm.entity.model.FunctionType;
+import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.repository.artifact.FunctionTypeRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
-import at.uibk.dps.rm.util.validation.ServiceResultValidator;
-import io.vertx.core.Future;
+import at.uibk.dps.rm.util.misc.RxVertxHandler;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
-import org.hibernate.reactive.stage.Stage.SessionFactory;
-
-import java.util.concurrent.CompletionStage;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 /**
- * This is the implementation of the #FunctionTypeService.
+ * This is the implementation of the {@link FunctionTypeService}.
  *
  * @author matthi-g
  */
@@ -23,19 +25,18 @@ public class FunctionTypeServiceImpl extends DatabaseServiceProxy<FunctionType> 
      *
      * @param repository  the repository
      */
-    public FunctionTypeServiceImpl(FunctionTypeRepository repository, SessionFactory sessionFactory) {
-        super(repository, FunctionType.class, sessionFactory);
+    public FunctionTypeServiceImpl(FunctionTypeRepository repository, SessionManagerProvider smProvider) {
+        super(repository, FunctionType.class, smProvider);
         this.repository = repository;
     }
 
     @Override
-    public Future<JsonObject> save(JsonObject data) {
+    public void save(JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
         FunctionType functionType = data.mapTo(FunctionType.class);
-        CompletionStage<FunctionType> save = withTransaction(
-                session -> repository.findByName(session, functionType.getName()).thenCompose(existing -> {
-                    ServiceResultValidator.checkExists(existing, FunctionType.class);
-                    return session.persist(functionType);
-                }).thenApply(res -> functionType));
-        return sessionToFuture(save).map(JsonObject::mapFrom);
+        Single<FunctionType> save = smProvider.withTransactionSingle(sm -> repository
+            .findByName(sm, functionType.getName())
+            .flatMap(existingType -> Maybe.<FunctionType>error(new AlreadyExistsException(FunctionType.class)))
+            .switchIfEmpty(sm.persist(functionType)));
+        RxVertxHandler.handleSession(save.map(JsonObject::mapFrom), resultHandler);
     }
 }

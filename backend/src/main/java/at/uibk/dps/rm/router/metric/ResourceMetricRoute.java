@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.router.metric;
 
 import at.uibk.dps.rm.handler.ResultHandler;
-import at.uibk.dps.rm.handler.metric.MetricValueChecker;
 import at.uibk.dps.rm.handler.metric.MetricValueHandler;
 import at.uibk.dps.rm.handler.resource.ResourceInputHandler;
 import at.uibk.dps.rm.router.Route;
@@ -17,9 +16,7 @@ public class ResourceMetricRoute implements Route {
 
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
-        MetricValueChecker metricValueChecker = new MetricValueChecker(serviceProxyProvider
-            .getMetricValueService());
-        MetricValueHandler metricValueHandler = new MetricValueHandler(metricValueChecker);
+        MetricValueHandler metricValueHandler = new MetricValueHandler(serviceProxyProvider.getMetricValueService());
         ResultHandler resultHandler = new ResultHandler(metricValueHandler);
 
         router

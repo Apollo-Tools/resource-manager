@@ -3,7 +3,6 @@ package at.uibk.dps.rm.testutil.objectprovider;
 import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.service.deployment.executor.MainTerraformExecutor;
 import at.uibk.dps.rm.service.deployment.executor.TerraformExecutor;
-import io.vertx.rxjava3.core.Vertx;
 import lombok.experimental.UtilityClass;
 
 import java.util.ArrayList;
@@ -16,18 +15,18 @@ import java.util.List;
  */
 @UtilityClass
 public class TestExecutorProvider {
-    public static TerraformExecutor createTerraformExecutor(Vertx vertx) {
-        return new TerraformExecutor(vertx);
+    public static TerraformExecutor createTerraformExecutor() {
+        return new TerraformExecutor();
     }
 
-    public static MainTerraformExecutor createTerraformExecutorAWSOpenFaas(Vertx vertx) {
+    public static MainTerraformExecutor createTerraformExecutorAWSOpenFaas() {
         DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWSOpenfaas();
-        return new MainTerraformExecutor(vertx, deploymentCredentials);
+        return new MainTerraformExecutor(deploymentCredentials);
     }
 
-    public static MainTerraformExecutor createTerraformExecutorAWS(Vertx vertx) {
+    public static MainTerraformExecutor createTerraformExecutorAWS() {
         DeploymentCredentials deploymentCredentials = TestDTOProvider.createDeploymentCredentialsAWS();
-        return new MainTerraformExecutor(vertx, deploymentCredentials);
+        return new MainTerraformExecutor(deploymentCredentials);
     }
 
     public static List<String> tfCommandsWithCredsAWSOpenFaas(String mainCommand) {

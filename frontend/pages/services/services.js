@@ -1,7 +1,7 @@
 import {useState} from 'react';
 import Head from 'next/head';
 import {siteTitle} from '../../components/misc/Sidebar';
-import {Divider, Segmented, Typography} from 'antd';
+import {Divider, Segmented, Switch, Typography} from 'antd';
 import ServiceTable from '../../components/services/ServiceTable';
 import NewEntityButton from '../../components/misc/NewEntityButton';
 import ArtifactTypeTable from '../../components/artifacttypes/ArtifactTypeTable';
@@ -9,6 +9,7 @@ import ArtifactTypeTable from '../../components/artifacttypes/ArtifactTypeTable'
 const Services = () => {
   const [selectedSegment, setSelectedSegment] = useState('Services');
   const segments = ['Services', 'Types'];
+  const [showAllServices, setShowAllServices] = useState(false);
   return (
     <>
       <Head>
@@ -20,10 +21,22 @@ const Services = () => {
           onChange={(e) => setSelectedSegment(e)} size="large" block/>
         <Divider />
         {selectedSegment === 'Services' ?
-          <>
-            <NewEntityButton name="Service" />
-            <ServiceTable />
-          </> :
+            <div className="grid grid-cols-6 gap-5 content-center">
+              <div className="grid col-span-1 content-center">
+                <NewEntityButton name="Service" marginBottom={false}/>
+              </div>
+              <div className="grid col-start-6 col-span-1 content-center justify-end">
+                <Switch
+                  checkedChildren="all service"
+                  unCheckedChildren="my services"
+                  checked={showAllServices}
+                  onChange={setShowAllServices}
+                />
+              </div>
+              <div className="col-span-full">
+                <ServiceTable allServices={showAllServices}/>
+              </div>
+            </div> :
           <>
             <NewEntityButton name="Service Type" path={`/services/new-type`}/>
             <ArtifactTypeTable artifact="service" />

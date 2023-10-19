@@ -2,16 +2,15 @@ package at.uibk.dps.rm.repository.account;
 
 import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.repository.Repository;
-import org.hibernate.reactive.stage.Stage.Session;
-
-import java.util.concurrent.CompletionStage;
+import at.uibk.dps.rm.service.database.util.SessionManager;
+import io.reactivex.rxjava3.core.Maybe;
 
 /**
  * Implements database operations for the account entity.
  *
  * @author matthi-g
  */
-public class AccountRepository  extends Repository<Account> {
+public class AccountRepository extends Repository<Account> {
 
     /**
      * Create an instance.
@@ -20,23 +19,35 @@ public class AccountRepository  extends Repository<Account> {
         super(Account.class);
     }
 
-    @Override
-    public CompletionStage<Account> findById(Session session, long id) {
-        return session.createQuery("from Account a where a.accountId=:id and a.isActive=true", entityClass)
-            .setParameter("id", id)
-            .getSingleResultOrNull();
+    /**
+     * Find an active account by its id.
+     *
+     * @param sessionManager the database session manager
+     * @param id the id of the account
+     * @return a Maybe that emits the account if it exists and is active, else null
+     */
+    public Maybe<Account> findByIdAndActive(SessionManager sessionManager, long id) {
+        return Maybe.fromCompletionStage(
+            sessionManager.getSession()
+                .createQuery("from Account a where a.accountId=:id and a.isActive=true", entityClass)
+                .setParameter("id", id)
+                .getSingleResultOrNull()
+        );
     }
 
     /**
      * Find an account by its username
      *
-     * @param session the db session
+     * @param sessionManager the database session manager
      * @param username the username of the account
-     * @return a CompletionStage that emits the account if it exists, else null
+     * @return a Maybe that emits the account if it exists, else null
      */
-    public CompletionStage<Account> findByUsername(Session session, String username) {
-        return session.createQuery("from Account a where a.username=:username and a.isActive=true", entityClass)
+    public Maybe<Account> findByUsername(SessionManager sessionManager, String username) {
+        return Maybe.fromCompletionStage(sessionManager.getSession()
+            .createQuery("from Account a where a.username=:username",
+                entityClass)
             .setParameter("username", username)
-            .getSingleResultOrNull();
+            .getSingleResultOrNull()
+        );
     }
 }

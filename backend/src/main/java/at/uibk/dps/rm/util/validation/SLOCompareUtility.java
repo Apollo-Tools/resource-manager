@@ -121,7 +121,8 @@ public class SLOCompareUtility {
      * @return true if the resource fulfills all non-metric service level objectives, else false
      */
     public static boolean resourceValidByNonMetricSLOS(Resource resource, Ensemble ensemble) {
-        boolean validRegion = true, validResourceProvider = true, validResourceType = true;
+        boolean validRegion = true, validResourceProvider = true, validResourceType = true, validPlatforms = true,
+            validEnvironments = true;
         if (!ensemble.getRegions().isEmpty()) {
             validRegion = ensemble.getRegions().contains(resource.getMain().getRegion().getRegionId());
         }
@@ -133,7 +134,15 @@ public class SLOCompareUtility {
             validResourceType = ensemble.getResource_types()
                 .contains(resource.getMain().getPlatform().getResourceType().getTypeId());
         }
-        return validRegion && validResourceProvider && validResourceType;
+        if (!ensemble.getPlatforms().isEmpty()) {
+            validPlatforms = ensemble.getPlatforms()
+                .contains(resource.getMain().getPlatform().getPlatformId());
+        }
+        if (!ensemble.getEnvironments().isEmpty()) {
+            validEnvironments = ensemble.getEnvironments()
+                .contains(resource.getMain().getRegion().getResourceProvider().getEnvironment().getEnvironmentId());
+        }
+        return validRegion && validResourceProvider && validResourceType && validPlatforms && validEnvironments;
     }
 
     /**
@@ -144,7 +153,8 @@ public class SLOCompareUtility {
      * @param serviceLevelObjectives the service level objectives
      * @return a positive value if r1 should be ranked higher than r2 else a negative value
      */
-    public static int sortResourceBySLOs(Resource r1, Resource r2, List<ServiceLevelObjective> serviceLevelObjectives) {
+    private static int sortResourceBySLOs(Resource r1, Resource r2,
+            List<ServiceLevelObjective> serviceLevelObjectives) {
         for (int i = 0; i < serviceLevelObjectives.size(); i++) {
             ServiceLevelObjective slo = serviceLevelObjectives.get(i);
             if (slo.getValue().get(0).getSloValueType() != SLOValueType.NUMBER) {

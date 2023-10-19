@@ -29,7 +29,7 @@ public class TestFunctionProvider {
         return List.of(ids1, ids2, ids3, ids4);
     }
 
-    public static Runtime createRuntime(long runtimeId, String name, String templatePath) {
+    public static Runtime createRuntime(Long runtimeId, String name, String templatePath) {
         Runtime runtime = new Runtime();
         runtime.setRuntimeId(runtimeId);
         runtime.setName(name);
@@ -37,7 +37,7 @@ public class TestFunctionProvider {
         return runtime;
     }
 
-    public static Runtime createRuntime(long runtimeId, String name) {
+    public static Runtime createRuntime(Long runtimeId, String name) {
         return createRuntime(runtimeId, name, "");
     }
 
@@ -45,26 +45,49 @@ public class TestFunctionProvider {
         return createRuntime(runtimeId, "python3.9");
     }
 
-    public static Function createFunction(long functionId, String name, String code, Runtime runtime, boolean isFile,
-            int timeout, int memory) {
+    public static FunctionType createFunctionType(Long functionTypeId, String name) {
+        FunctionType functionType = new FunctionType();
+        functionType.setArtifactTypeId(functionTypeId);
+        functionType.setName(name);
+        return functionType;
+    }
+
+    public static Function createFunction(Long functionId, FunctionType functionType, String name, String code,
+            Runtime runtime, boolean isFile, int timeout, int memory, boolean isPublic, Account account) {
         Function function = new Function();
         function.setFunctionId(functionId);
+        function.setFunctionType(functionType);
         function.setName(name);
         function.setRuntime(runtime);
         function.setCode(code);
         function.setIsFile(isFile);
         function.setTimeoutSeconds((short) timeout);
         function.setMemoryMegabytes((short) memory);
+        function.setCreatedBy(account);
+        function.setIsPublic(isPublic);
         return function;
     }
 
+    public static Function createFunction(Long functionId, FunctionType functionType, String name, String code,
+            Runtime runtime, boolean isFile, int timeout, int memory,Account account) {
+        return createFunction(functionId, functionType, name, code, runtime, isFile, timeout, memory, true,
+            account);
+    }
+
     public static Function createFunction(long functionId, String name, String code, Runtime runtime, boolean isFile) {
-        return createFunction(functionId, name, code, runtime, isFile, 60, 128);
+        Account account = TestAccountProvider.createAccount(1L);
+        FunctionType functionType = createFunctionType(1L, name + "type");
+        return createFunction(functionId, functionType, name, code, runtime, isFile, 60,
+            128, account);
     }
 
     public static Function createFunction(long functionId, String name, String code, long runtimeId) {
         Runtime runtime = createRuntime(runtimeId);
         return createFunction(functionId, name, code, runtime, false);
+    }
+
+    public static Function createFunction(long id, String name, String code, Runtime runtime) {
+        return createFunction(id, name, code, runtime, false);
     }
 
     public static Function createFunction(long id, String name, String code) {
@@ -77,7 +100,7 @@ public class TestFunctionProvider {
     }
 
 
-    public static FunctionDeployment createFunctionDeployment(long id, Function function, Resource resource,
+    public static FunctionDeployment createFunctionDeployment(Long id, Function function, Resource resource,
             boolean isDeployed, Deployment deployment, ResourceDeploymentStatus deploymentStatus) {
         FunctionDeployment functionDeployment = new FunctionDeployment();
         functionDeployment.setResourceDeploymentId(id);
@@ -90,20 +113,10 @@ public class TestFunctionProvider {
     }
 
 
-    public static FunctionDeployment createFunctionDeployment(long id, Function function, Resource resource,
+    public static FunctionDeployment createFunctionDeployment(Long id, Function function, Resource resource,
             boolean isDeployed, Deployment deployment) {
         ResourceDeploymentStatus status = TestDeploymentProvider.createResourceDeploymentStatusNew();
         return createFunctionDeployment(id, function, resource, isDeployed, deployment, status);
-    }
-
-    public static FunctionDeployment createFunctionDeployment(long id, long resourceId, Deployment deployment) {
-        Function function = createFunction(22L, "func-test", "false");
-        Resource resource = TestResourceProvider.createResource(resourceId);
-        return createFunctionDeployment(id, function, resource, true, deployment);
-    }
-
-    public static FunctionDeployment createFunctionDeployment(long id, Deployment deployment) {
-        return createFunctionDeployment(id, 33L, deployment);
     }
 
     public static FunctionDeployment createFunctionDeployment(long id, Resource resource, Deployment deployment) {

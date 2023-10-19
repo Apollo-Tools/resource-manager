@@ -164,7 +164,7 @@ public class PrivateEntityResultHandlerTest {
                 resultHandler.handleSaveAllRequest(rc);
                 break;
             case "update":
-                when(validationHandler.updateOne(rc)).thenReturn(handler);
+                when(validationHandler.updateOneOwned(rc)).thenReturn(handler);
                 resultHandler.handleUpdateRequest(rc);
                 break;
             case "delete":

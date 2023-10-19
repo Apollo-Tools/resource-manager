@@ -2,12 +2,13 @@ package at.uibk.dps.rm.service.database.deployment;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.repository.deployment.ResourceDeploymentRepository;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
+import io.reactivex.rxjava3.core.Completable;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
-import org.hibernate.reactive.stage.Stage;
-import org.hibernate.reactive.util.impl.CompletionStages;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,15 +33,15 @@ public class ResourceDeploymentServiceImplTest {
     ResourceDeploymentRepository repository;
 
     @Mock
-    private Stage.SessionFactory sessionFactory;
+    private SessionManagerProvider smProvider;
 
     @Mock
-    private Stage.Session session;
+    private SessionManager sessionManager;
 
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        service = new ResourceDeploymentServiceImpl(repository, sessionFactory);
+        service = new ResourceDeploymentServiceImpl(repository, smProvider);
     }
 
     @Test
@@ -48,12 +49,12 @@ public class ResourceDeploymentServiceImplTest {
         long deploymentId = 1L;
         DeploymentStatusValue statusValue = DeploymentStatusValue.NEW;
 
-        SessionMockHelper.mockTransaction(sessionFactory, session);
-        when(repository.updateDeploymentStatusByDeploymentId(session, deploymentId, statusValue))
-            .thenReturn(CompletionStages.completedFuture(1));
+        SessionMockHelper.mockCompletable(smProvider, sessionManager);
+        when(repository.updateDeploymentStatusByDeploymentId(sessionManager, deploymentId, statusValue))
+            .thenReturn(Completable.complete());
 
-        service.updateSetStatusByDeploymentId(deploymentId, statusValue)
-            .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        service.updateStatusByDeploymentId(deploymentId, statusValue,
+            testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result).isNull();
                 testContext.completeNow();
             })));

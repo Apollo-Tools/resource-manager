@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler.artifact;
 
 import at.uibk.dps.rm.handler.ValidationHandler;
+import at.uibk.dps.rm.service.rxjava3.database.artifact.ServiceTypeService;
 
 /**
  * Processes the http requests that concern the service artifact type entity.
@@ -11,9 +12,9 @@ public class ServiceTypeHandler extends ValidationHandler {
     /**
      * Create an instance from the serviceTypeChecker.
      *
-     * @param serviceTypeChecker the artifact type checker
+     * @param serviceTypeService the service
      */
-    public ServiceTypeHandler(ServiceTypeChecker serviceTypeChecker) {
-        super(serviceTypeChecker);
+    public ServiceTypeHandler(ServiceTypeService serviceTypeService) {
+        super(serviceTypeService);
     }
 }

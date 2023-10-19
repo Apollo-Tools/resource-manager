@@ -2,13 +2,13 @@ package at.uibk.dps.rm.repository.function;
 
 import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.repository.Repository;
-import org.hibernate.reactive.stage.Stage.Session;
-import org.hibernate.reactive.util.impl.CompletionStages;
+import at.uibk.dps.rm.service.database.util.SessionManager;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
 /**
@@ -26,68 +26,136 @@ public class FunctionRepository extends Repository<Function> {
     }
 
     /**
-     * Find a function by its id and fetch the runtime
+     * Find a function by its id and fetch the runtime and the function type.
      *
-     * @param session the database session
+     * @param sessionManager the database session manger
      * @param id the id of the function
-     * @return a CompletionStage that emits the function if it exists, else null
+     * @return a Maybe that emits the function if it exists, else null
      */
-    public CompletionStage<Function> findByIdAndFetch(Session session, long id) {
-        return session.createQuery(
+    public Maybe<Function> findByIdAndFetch(SessionManager sessionManager, long id) {
+        return Maybe.fromCompletionStage(sessionManager.getSession()
+            .createQuery(
                 "from Function f " +
                     "left join fetch f.runtime " +
                     "left join fetch f.functionType " +
                     "where f.functionId =:id", entityClass)
             .setParameter("id", id)
-            .getSingleResultOrNull();
+            .getSingleResultOrNull()
+        );
+    }
+
+
+    /**
+     * Find a function by its id and accountId.
+     *
+     * @param sessionManager the database session manger
+     * @param functionId the id of the function
+     * @param accountId the id of the owner
+     * @param includePublic whether to include public function
+     * @return a Maybe that emits the entity if it exists, else null
+     */
+    public Maybe<Function> findByIdAndAccountId(SessionManager sessionManager, long functionId, long accountId,
+            boolean includePublic) {
+        return Maybe.fromCompletionStage(sessionManager.getSession()
+            .createQuery("from Function f " +
+                "left join fetch f.runtime " +
+                "left join fetch f.functionType " +
+                "left join fetch f.createdBy " +
+                "where f.functionId=:functionId and " +
+                "(f.createdBy.accountId=:accountId or (:includePublic=true and f.isPublic=true))", entityClass)
+            .setParameter("functionId", functionId)
+            .setParameter("accountId", accountId)
+            .setParameter("includePublic", includePublic)
+            .getSingleResultOrNull()
+        );
     }
 
     /**
-     * Find a function by its name and runtime.
+     * Find a function by its name, function type and creator.
      *
-     * @param session the database session
+     * @param sessionManager the database session manger
      * @param name the name of the function
+     * @param typeId the id of the function
      * @param runtimeId the id of the runtime
-     * @return a CompletionStage that emits the function if it exists, else null
+     * @param accountId the id of the account
+     * @return a Maybe that emits the function if it exists, else null
      */
-    public CompletionStage<Function> findOneByNameAndRuntimeId(Session session, String name, long runtimeId) {
-        return session.createQuery(
-                "from Function f " +
-                "left join fetch f.runtime r " +
-                "left join fetch f.functionType " +
-                "where f.name=:name and r.runtimeId =:runtimeId", entityClass)
+    public Maybe<Function> findOneByNameTypeRuntimeAndCreator(SessionManager sessionManager, String name, long typeId,
+            long runtimeId, long accountId) {
+        return Maybe.fromCompletionStage(sessionManager.getSession()
+            .createQuery("from Function f " +
+                    "where f.name=:name and f.functionType.artifactTypeId=:typeId and " +
+                    "f.runtime.runtimeId=:runtimeId and f.createdBy.accountId=:accountId", entityClass)
             .setParameter("name", name)
+            .setParameter("typeId", typeId)
             .setParameter("runtimeId", runtimeId)
-            .getSingleResultOrNull();
+            .setParameter("accountId", accountId)
+            .getSingleResultOrNull()
+        );
     }
 
     /**
      * Find all functions and fetch the runtime.
      *
-     * @param session the database session
-     * @return a CompletionStage that emits the list of all functions
+     * @param sessionManager the database session manger
+     * @return a Single that emits the list of all functions
      */
-    public CompletionStage<List<Function>> findAllAndFetch(Session session) {
-        return session.createQuery("select distinct f from Function f " +
+    public Single<List<Function>> findAllAndFetch(SessionManager sessionManager) {
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery("from Function f " +
                 "left join fetch f.runtime " +
                 "left join fetch f.functionType", entityClass)
-            .getResultList();
+            .getResultList()
+        );
     }
 
     /**
      * Find all functions by their ids.
      *
-     * @param session the database session
+     * @param sessionManager the database session manger
      * @param functionIds the list of function ids
-     * @return a CompletionStage that emits the list of all functions
+     * @return a Single that emits the list of all functions
      */
-    public CompletionStage<List<Function>> findAllByIds(Session session, Set<Long> functionIds) {
+    public Single<List<Function>> findAllByIds(SessionManager sessionManager, Set<Long> functionIds) {
         if (functionIds.isEmpty()) {
-            return CompletionStages.completedFuture(new ArrayList<>());
+            return Single.just(new ArrayList<>());
         }
         String functionIdsConcat = functionIds.stream().map(Object::toString).collect(Collectors.joining(","));
-        return session.createQuery("select distinct f from Function f " +
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery("select distinct f from Function f " +
                 "where f.functionId in (" + functionIdsConcat + ")", entityClass)
-            .getResultList();
+            .getResultList()
+        );
+    }
+
+
+    /**
+     * Find all accessible functions and fetch the function type and runtime.
+     *
+     * @param sessionManager the database session manger
+     * @return a Single that emits a list of all function
+     */
+    public Single<List<Function>> findAllAccessibleAndFetch(SessionManager sessionManager, long accountId) {
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery("from Function f " +
+                "left join fetch f.runtime " +
+                "left join fetch f.functionType " +
+                "left join fetch f.createdBy " +
+                "where f.isPublic = true or f.createdBy.accountId=:accountId", entityClass)
+            .setParameter("accountId", accountId)
+            .getResultList()
+        );
+    }
+
+    @Override
+    public Single<List<Function>> findAllByAccountId(SessionManager sessionManager, long accountId) {
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery("from Function f " +
+                "left join fetch f.runtime " +
+                "left join fetch f.functionType " +
+                "where f.createdBy.accountId=:accountId", entityClass)
+            .setParameter("accountId", accountId)
+            .getResultList()
+        );
     }
 }

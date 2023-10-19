@@ -4,16 +4,16 @@ import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.repository.DeploymentRepositoryProvider;
-import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
+import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Future;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import org.hibernate.reactive.stage.Stage;
 
 /**
  * The interface of the service proxy for the deployment entity.
@@ -27,8 +27,8 @@ public interface DeploymentService extends DatabaseServiceInterface {
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static DeploymentService create(Stage.SessionFactory sessionFactory) {
-        return new DeploymentServiceImpl(new DeploymentRepositoryProvider(), sessionFactory);
+    static DeploymentService create(SessionManagerProvider smProvider) {
+        return new DeploymentServiceImpl(new DeploymentRepositoryProvider(), smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
@@ -42,41 +42,26 @@ public interface DeploymentService extends DatabaseServiceInterface {
      *
      * @param id the id of the deployment
      * @param accountId the id of the creator account
+     * @param resultHandler receives nothing if the cancellation was successful else an error
      */
-    Future<JsonObject> cancelDeployment(long id, long accountId);
-
-    /**
-     * Find all deployments by their creator account.
-     *
-     * @param accountId the id of the account
-     * @return a Future that emits all deployments as JsonArray
-     */
-    Future<JsonArray> findAllByAccountId(long accountId);
-
-    /**
-     * Find one deployment by its id and creator account.
-     *
-     * @param id the id of the deployment
-     * @param accountId the id of the creator account
-     * @return a Future that emits the deployment as JsonObject if it exists, else null
-     */
-    Future<JsonObject> findOneByIdAndAccountId(long id, long accountId);
+    void cancelDeployment(long id, long accountId, Handler<AsyncResult<JsonObject>> resultHandler);
 
     /**
      * Handle a deployment error.
      *
      * @param id the id of the deployment
      * @param errorMessage the error message of the error
-     * @return an empty Future
+     * @param resultHandler receives nothing if the error was handled successfully else an error
      */
-    Future<Void> handleDeploymentError(long id, String errorMessage);
+    void handleDeploymentError(long id, String errorMessage, Handler<AsyncResult<Void>> resultHandler);
 
     /**
      * Handle a successful deployment.
      *
      * @param terraformOutput the output of the deployment process
      * @param request the deployment request
-     * @return an empty Future
+     * @param resultHandler receives nothing if the update was successful else an error
      */
-    Future<Void> handleDeploymentSuccessful(JsonObject terraformOutput, DeployResourcesDTO request);
+    void handleDeploymentSuccessful(JsonObject terraformOutput, DeployResourcesDTO request,
+        Handler<AsyncResult<Void>> resultHandler);
 }

@@ -2,6 +2,7 @@ package at.uibk.dps.rm.entity.model;
 
 import at.uibk.dps.rm.annotations.Generated;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,6 +25,9 @@ public class Function {
 
     private String name;
 
+    @JsonProperty("is_public")
+    private Boolean isPublic;
+
     private Short timeoutSeconds;
 
     private Short memoryMegabytes;
@@ -39,6 +43,10 @@ public class Function {
     private String code;
 
     private Boolean isFile;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_id")
+    private Account createdBy;
 
     @Column(insertable = false, updatable = false)
     private @Setter(AccessLevel.NONE) Timestamp createdAt;

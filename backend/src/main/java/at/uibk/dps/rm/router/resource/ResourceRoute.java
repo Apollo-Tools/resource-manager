@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.router.resource;
 
+import at.uibk.dps.rm.handler.resource.ResourceSLOInputHandler;
 import at.uibk.dps.rm.handler.ResultHandler;
-import at.uibk.dps.rm.handler.resource.ResourceChecker;
 import at.uibk.dps.rm.handler.resource.ResourceHandler;
 import at.uibk.dps.rm.handler.resource.ResourceInputHandler;
 import at.uibk.dps.rm.router.Route;
@@ -16,8 +16,7 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 public class ResourceRoute implements Route {
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
-        ResourceChecker resourceChecker = new ResourceChecker(serviceProxyProvider.getResourceService());
-        ResourceHandler resourceHandler = new ResourceHandler(resourceChecker);
+        ResourceHandler resourceHandler = new ResourceHandler(serviceProxyProvider.getResourceService());
         ResultHandler resultHandler = new ResultHandler(resourceHandler);
 
         router
@@ -28,6 +27,16 @@ public class ResourceRoute implements Route {
         router
             .operation("listResources")
             .handler(resultHandler::handleFindAllRequest);
+
+        router
+            .operation("listSubresources")
+            .handler(rc -> resultHandler.handleFindAllRequest(rc,
+                resourceHandler.getAllSubResourcesByMainResource(rc)));
+
+        router
+            .operation("listResourcesBySLOs")
+            .handler(ResourceSLOInputHandler::validateGetResourcesBySLOsRequest)
+            .handler(rc -> resultHandler.handleFindAllRequest(rc, resourceHandler.getAllBySLOs(rc)));
 
         router
             .operation("getResource")

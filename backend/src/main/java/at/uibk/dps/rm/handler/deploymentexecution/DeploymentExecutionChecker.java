@@ -1,25 +1,25 @@
 package at.uibk.dps.rm.handler.deploymentexecution;
 
+import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
-import at.uibk.dps.rm.entity.model.FunctionDeployment;
-import at.uibk.dps.rm.entity.model.Log;
 import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.entity.model.DeploymentLog;
+import at.uibk.dps.rm.entity.model.FunctionDeployment;
+import at.uibk.dps.rm.entity.model.Log;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
+import at.uibk.dps.rm.service.rxjava3.database.log.DeploymentLogService;
+import at.uibk.dps.rm.service.rxjava3.database.log.LogService;
 import at.uibk.dps.rm.service.deployment.docker.LambdaJavaBuildService;
 import at.uibk.dps.rm.service.deployment.docker.LambdaLayerService;
 import at.uibk.dps.rm.service.deployment.docker.OpenFaasImageService;
 import at.uibk.dps.rm.service.deployment.executor.MainTerraformExecutor;
 import at.uibk.dps.rm.service.deployment.executor.TerraformExecutor;
 import at.uibk.dps.rm.service.deployment.terraform.TerraformFileService;
-import at.uibk.dps.rm.service.rxjava3.database.log.LogService;
-import at.uibk.dps.rm.service.rxjava3.database.log.DeploymentLogService;
 import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentExecutionService;
-import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import at.uibk.dps.rm.util.misc.ConsoleOutputUtility;
 import io.reactivex.rxjava3.core.Completable;
@@ -85,10 +85,8 @@ public class DeploymentExecutionChecker {
                         .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, deployResources.getDeployment())))
                     .andThen(deploymentService.setUpTFModules(deployResources))
                     .flatMap(deploymentCredentials -> {
-                        TerraformExecutor terraformExecutor = new MainTerraformExecutor(vertx, deploymentCredentials);
-                        return Single.fromCallable(() ->
-                                terraformExecutor.setPluginCacheFolder(deploymentPath.getTFCacheFolder()))
-                            .flatMapCompletable(res -> initialiseAllContainerModules(deployResources, deploymentPath))
+                        TerraformExecutor terraformExecutor = new MainTerraformExecutor(deploymentCredentials);
+                        return initialiseAllContainerModules(deployResources, deploymentPath)
                             .andThen(Single.just(terraformExecutor));
                     })
                     .flatMap(terraformExecutor -> terraformExecutor.init(deploymentPath.getRootFolder())
@@ -106,7 +104,7 @@ public class DeploymentExecutionChecker {
     private Completable initialiseAllContainerModules(DeployResourcesDTO request, DeploymentPath deploymentPath) {
         return Observable.fromIterable(request.getServiceDeployments())
             .map(serviceDeployment -> {
-                TerraformExecutor terraformExecutor = new TerraformExecutor(Vertx.currentContext().owner());
+                TerraformExecutor terraformExecutor = new TerraformExecutor();
                 Path containerPath = Path.of(deploymentPath.getRootFolder().toString(), "container",
                     String.valueOf(serviceDeployment.getResourceDeploymentId()));
                 return terraformExecutor.init(containerPath)
@@ -127,8 +125,8 @@ public class DeploymentExecutionChecker {
     private Single<ProcessOutput> buildAndPushOpenFaasImages(Vertx vertx, DockerCredentials dockerCredentials,
             FunctionsToDeploy functionsToDeploy, DeploymentPath deploymentPath) {
         OpenFaasImageService openFaasImageService = new OpenFaasImageService(vertx, dockerCredentials,
-            functionsToDeploy.getDockerFunctionIdentifiers(), deploymentPath.getFunctionsFolder());
-        return openFaasImageService.buildOpenFaasImages(functionsToDeploy.getDockerFunctionsString());
+            functionsToDeploy, deploymentPath.getFunctionsFolder());
+        return openFaasImageService.buildOpenFaasImages();
     }
 
   /**
@@ -202,7 +200,7 @@ public class DeploymentExecutionChecker {
                 DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
                 return terminateAllContainerResources(terminateResources, deploymentPath)
                     .andThen(deploymentService.getNecessaryCredentials(terminateResources))
-                    .map(deploymentCredentials -> new MainTerraformExecutor(vertx, deploymentCredentials))
+                    .map(MainTerraformExecutor::new)
                     .flatMap(terraformExecutor -> terraformExecutor.destroy(deploymentPath.getRootFolder()))
                     .flatMapCompletable(terminateOutput -> persistLogs(terminateOutput, terminateResources.getDeployment()));
             });
@@ -218,7 +216,7 @@ public class DeploymentExecutionChecker {
     public Completable terminateAllContainerResources(TerminateResourcesDTO request, DeploymentPath deploymentPath) {
         return Observable.fromIterable(request.getServiceDeployments())
             .map(serviceDeployment -> {
-                TerraformExecutor terraformExecutor = new TerraformExecutor(Vertx.currentContext().owner());
+                TerraformExecutor terraformExecutor = new TerraformExecutor();
                 Path containerPath = Path.of(deploymentPath.getRootFolder().toString(), "container",
                     String.valueOf(serviceDeployment.getResourceDeploymentId()));
                 return terraformExecutor.destroy(containerPath)
@@ -233,18 +231,25 @@ public class DeploymentExecutionChecker {
      * @param resourceDeploymentId the id of the resource deployment
      * @return a Completable
      */
-    public Completable startContainer(long deploymentId, long resourceDeploymentId) {
+    public Single<JsonObject> startContainer(long deploymentId, long resourceDeploymentId) {
         Vertx vertx = Vertx.currentContext().owner();
         Deployment deployment = new Deployment();
         deployment.setDeploymentId(deploymentId);
         return new ConfigUtility(vertx).getConfigDTO()
-            .flatMapCompletable(config -> {
-                TerraformExecutor terraformExecutor = new TerraformExecutor(vertx);
+            .flatMap(config -> {
+                TerraformExecutor terraformExecutor = new TerraformExecutor();
                 DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
                 Path containerPath = Path.of(deploymentPath.getRootFolder().toString(), "container",
                     String.valueOf(resourceDeploymentId));
                 return terraformExecutor.apply(containerPath)
-                    .flatMapCompletable(applyOutput -> persistLogs(applyOutput, deployment));
+                    .flatMapCompletable(applyOutput -> persistLogs(applyOutput, deployment))
+                    .andThen(terraformExecutor.getOutput(containerPath))
+                    .flatMap(tfOutput -> persistLogs(tfOutput, deployment)
+                        .toSingle(() -> {
+                            JsonObject jsonOutput = new JsonObject(tfOutput.getOutput());
+                            return jsonOutput.getJsonObject("deployment_data").getJsonObject("value");
+                        })
+                    );
             });
     }
 
@@ -261,7 +266,7 @@ public class DeploymentExecutionChecker {
         deployment.setDeploymentId(deploymentId);
         return new ConfigUtility(vertx).getConfigDTO()
             .flatMapCompletable(config -> {
-                TerraformExecutor terraformExecutor = new TerraformExecutor(vertx);
+                TerraformExecutor terraformExecutor = new TerraformExecutor();
                 DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
                 Path containerPath = Path.of(deploymentPath.getRootFolder().toString(), "container",
                     String.valueOf(resourceDeploymentId));

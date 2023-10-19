@@ -3,23 +3,23 @@ package at.uibk.dps.rm.testutil.objectprovider;
 import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
-import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
-import at.uibk.dps.rm.entity.deployment.output.TFOutput;
 import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
 import at.uibk.dps.rm.entity.dto.ListResourcesBySLOsRequest;
 import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
+import at.uibk.dps.rm.entity.dto.function.UpdateFunctionDTO;
 import at.uibk.dps.rm.entity.dto.resource.ResourceId;
+import at.uibk.dps.rm.entity.dto.service.K8sServiceTypeId;
+import at.uibk.dps.rm.entity.dto.service.UpdateServiceDTO;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.SLOValue;
 import at.uibk.dps.rm.entity.dto.slo.SLOValueType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
-import at.uibk.dps.rm.entity.model.Region;
-import at.uibk.dps.rm.entity.model.Resource;
-import at.uibk.dps.rm.entity.model.ResourceProvider;
+import at.uibk.dps.rm.entity.model.*;
 import lombok.experimental.UtilityClass;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -53,6 +53,11 @@ public class TestDTOProvider {
     }
 
     public static ServiceLevelObjective createServiceLevelObjective(String metricName, ExpressionType expressionType,
+            List<SLOValue> sloValues) {
+        return new ServiceLevelObjective(metricName, expressionType, sloValues);
+    }
+
+    public static ServiceLevelObjective createServiceLevelObjective(String metricName, ExpressionType expressionType,
                                                                     double... value) {
         List<SLOValue> sloValues = new ArrayList<>();
         for (double v : value) {
@@ -82,112 +87,27 @@ public class TestDTOProvider {
         return new ServiceLevelObjective(metricName, expressionType, sloValues);
     }
 
-    public static DockerCredentials createDockerCredentials() {
+    public static DockerCredentials createDockerCredentials(String registry) {
         DockerCredentials dockerCredentials = new DockerCredentials();
         dockerCredentials.setUsername("testuser");
         dockerCredentials.setAccessToken("abcdef12234");
-        dockerCredentials.setRegistry("docker.io");
+        dockerCredentials.setRegistry(registry);
         return dockerCredentials;
     }
 
-    public static String createKubeConfigValue() {
-        return "apiVersion: v1\n" +
-            "clusters:\n" +
-            "- cluster:\n" +
-            "    certificate-authority-data: cert-data\n" +
-            "    server: https://localhost\n" +
-            "  name: cluster\n" +
-            "contexts:\n" +
-            "- context:\n" +
-            "    cluster:  cluster\n" +
-            "    user:  user\n" +
-            "    namespace: default\n" +
-            "  name:  context\n" +
-            "current-context:  context\n" +
-            "kind: Config\n" +
-            "preferences: {}\n" +
-            "users:\n" +
-            "- name:  user\n" +
-            "  user:\n" +
-            "    client-certificate-data: cert-data\n" +
-            "    client-key-data: key-data\n";
-    }
-
-    public static String createKubeConfigValue(String url) {
-        return "apiVersion: v1\n" +
-            "clusters:\n" +
-            "- cluster:\n" +
-            "    certificate-authority-data: cert-data\n" +
-            "    server: " + url + "\n" +
-            "  name: cluster\n" +
-            "contexts:\n" +
-            "- context:\n" +
-            "    cluster:  cluster\n" +
-            "    user:  user\n" +
-            "    namespace: default\n" +
-            "  name:  context\n" +
-            "current-context:  context\n" +
-            "kind: Config\n" +
-            "preferences: {}\n" +
-            "users:\n" +
-            "- name:  user\n" +
-            "  user:\n" +
-            "    client-certificate-data: cert-data\n" +
-            "    client-key-data: key-data\n";
-    }
-
-    public static String createKubeConfigValueNoMatchingKubeContext() {
-        return "apiVersion: v1\n" +
-            "clusters:\n" +
-            "- cluster:\n" +
-            "    certificate-authority-data: cert-data\n" +
-            "    server: https://localhost\n" +
-            "  name: cluster\n" +
-            "contexts:\n" +
-            "- context:\n" +
-            "    cluster:  server\n" +
-            "    user:  user\n" +
-            "    namespace: default\n" +
-            "  name:  context\n" +
-            "current-context:  context\n" +
-            "kind: Config\n" +
-            "preferences: {}\n" +
-            "users:\n" +
-            "- name:  user\n" +
-            "  user:\n" +
-            "    client-certificate-data: cert-data\n" +
-            "    client-key-data: key-data\n";
-    }
-
-    public static String createKubeConfigValueNoNamespace() {
-        return "apiVersion: v1\n" +
-            "clusters:\n" +
-            "- cluster:\n" +
-            "    certificate-authority-data: cert-data\n" +
-            "    server: https://localhost\n" +
-            "  name: cluster\n" +
-            "contexts:\n" +
-            "- context:\n" +
-            "    cluster:  cluster\n" +
-            "    user:  user\n" +
-            "  name:  context\n" +
-            "current-context:  context\n" +
-            "kind: Config\n" +
-            "preferences: {}\n" +
-            "users:\n" +
-            "- name:  user\n" +
-            "  user:\n" +
-            "    client-certificate-data: cert-data\n" +
-            "    client-key-data: key-data\n";
+    public static DockerCredentials createDockerCredentials() {
+        return createDockerCredentials("docker.io");
     }
 
     public static FunctionsToDeploy createFunctionsToDeploy() {
         FunctionsToDeploy functionsToDeploy = new FunctionsToDeploy();
-        functionsToDeploy.getFunctionIdentifiers().add("foo1_python39");
-        functionsToDeploy.getFunctionIdentifiers().add("foo2_python39");
-        functionsToDeploy.setDockerFunctionsString("\"  foo1_python39:\\n    lang: python3-flask-debian\\n    " +
-            "handler: ./foo1_python39\\n    image: user/foo1_python39:latest\\n  foo2_python39:\\n    " +
-            "lang: python3-flask-debian\\n    handler: ./foo2_python39\\n    image: user/foo2_python39:latest\\n\"");
+        functionsToDeploy.getFunctionIdentifiers().add("foo1_python38");
+        functionsToDeploy.getFunctionIdentifiers().add("foo2_python38");
+        functionsToDeploy.getDockerFunctionIdentifiers().add("foo1_python38");
+        functionsToDeploy.getDockerFunctionIdentifiers().add("foo2_python38");
+        functionsToDeploy.setDockerFunctionsString("\"  foo1_python38:\\n    lang: python3-flask-debian\\n    " +
+            "handler: ./foo1_python38\\n    image: user/foo1_python38:latest\\n  foo2_python38:\\n    " +
+            "lang: python3-flask-debian\\n    handler: ./foo2_python38\\n    image: user/foo2_python38:latest\\n\"");
         return functionsToDeploy;
     }
 
@@ -218,37 +138,6 @@ public class TestDTOProvider {
         processOutput.setProcess(process);
         processOutput.setOutput(output);
         return processOutput;
-    }
-
-    public static TFOutput createTFOutputFaas(String runtime) {
-        TFOutput tfOutput = new TFOutput();
-        Map<String, String> valueMap = new HashMap<>();
-        valueMap.put("r1_foo1_" + runtime, "http://localhostfaas1");
-        tfOutput.setValue(valueMap);
-        return tfOutput;
-    }
-
-    public static TFOutput createTFOutput() {
-        TFOutput tfOutput = new TFOutput();
-        Map<String, String> valueMap = new HashMap<>();
-        valueMap.put("r1_foo1_python39", "http://localhostlambda/foo1");
-        valueMap.put("r2_foo1_python39", "http://localhostec2/foo1");
-        valueMap.put("r2_foo2_python39", "http://localhostec2/foo2");
-        valueMap.put("r3_foo1_python39", "http://localhostopenfaas/foo1");
-        tfOutput.setValue(valueMap);
-        return tfOutput;
-    }
-
-    public static DeploymentOutput createDeploymentOutput() {
-        DeploymentOutput deploymentOutput = new DeploymentOutput();
-        deploymentOutput.setFunctionUrls(createTFOutput());
-        return deploymentOutput;
-    }
-
-    public static DeploymentOutput createDeploymentOutputUnknownFunction() {
-        DeploymentOutput deploymentOutput = new DeploymentOutput();
-        deploymentOutput.setFunctionUrls(createTFOutputFaas("supershell"));
-        return deploymentOutput;
     }
 
     public static List<SLOValue> createSLOValueList(Number... values) {
@@ -316,5 +205,38 @@ public class TestDTOProvider {
         Resource r2 = TestResourceProvider.createResourceEC2(2L, region2, "t1.micro");
         getOneEnsemble.setResources(List.of(r1, r2));
         return getOneEnsemble;
+    }
+
+    public static UpdateFunctionDTO createUpdateFunctionDTO(String code, boolean isFile, boolean isPublic,
+            short timeout, short memory) {
+        UpdateFunctionDTO dto = new UpdateFunctionDTO();
+        dto.setCode(code);
+        dto.setIsFile(isFile);
+        dto.setIsPublic(isPublic);
+        dto.setTimeoutSeconds(timeout);
+        dto.setMemoryMegabytes(memory);
+        return dto;
+    }
+
+    public static UpdateServiceDTO createUpdateServiceDTO(int replicas, List<String> ports, BigDecimal cpu, int memory,
+            K8sServiceTypeId k8sServiceType, List<EnvVar> envVars, List<VolumeMount> volumeMounts, boolean isPublic) {
+        UpdateServiceDTO dto = new UpdateServiceDTO();
+        dto.setReplicas(replicas);
+        dto.setPorts(ports);
+        dto.setCpu(cpu);
+        dto.setMemory(memory);
+        dto.setK8sServiceType(k8sServiceType);
+        dto.setEnvVars(envVars);
+        dto.setVolumeMounts(volumeMounts);
+        dto.setIsPublic(isPublic);
+        return dto;
+    }
+
+    public static UpdateServiceDTO createUpdateServiceDTO(List<String> ports, List<EnvVar> envVars,
+            List<VolumeMount> volumeMounts) {
+        K8sServiceTypeId k8sServiceTypeId = new K8sServiceTypeId();
+        k8sServiceTypeId.setServiceTypeId(1L);
+        return createUpdateServiceDTO(1, ports, BigDecimal.valueOf(13.37), 128, k8sServiceTypeId,
+            envVars, volumeMounts, true);
     }
 }

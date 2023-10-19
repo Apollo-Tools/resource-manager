@@ -4,9 +4,9 @@ import {format} from 'date-fns-tz';
 const DateFormatter = ({dateTimestamp, includeTime}) => {
   const dateTime = new Date(dateTimestamp);
   if (includeTime) {
-    return <time dateTime={dateTime}>{format(dateTime, 'yyyy-MM-dd HH:mm:ss')}</time>;
+    return <div>{format(dateTime, 'yyyy-MM-dd HH:mm:ss')}</div>;
   }
-  return <time dateTime={dateTime}>{format(dateTime, 'yyyy-MM-dd')}</time>;
+  return <div>{format(dateTime, 'yyyy-MM-dd')}</div>;
 };
 
 DateFormatter.propTypes = {

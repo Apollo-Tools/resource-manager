@@ -22,16 +22,19 @@ public class PrePullGroup {
      * @param namespace the k8s namespace
      * @param timeout the timeout of the pre-pull deployment
      * @param hostname the hostname label of the node
+     * @param mainResourceName the name of the main resource
      */
-    public PrePullGroup(Long resourceId, String context, String namespace, long timeout, String hostname) {
-        this.identifier = resourceId + namespace;
+    public PrePullGroup(Long resourceId, String context, String namespace, long timeout, String hostname,
+            String mainResourceName) {
+        this.resourceId = resourceId;
         this.context = context;
         this.namespace = namespace;
         this.timeout = timeout;
         this.hostname = hostname;
+        this.mainResourceName = mainResourceName;
     }
 
-    private final String identifier;
+    private final Long resourceId;
 
     private final String context;
 
@@ -40,6 +43,8 @@ public class PrePullGroup {
     private final long timeout;
 
     private final String hostname;
+
+    private final String mainResourceName;
 
     @Override
     @Generated
@@ -51,13 +56,13 @@ public class PrePullGroup {
             return false;
         }
         PrePullGroup prePullGroup = (PrePullGroup) obj;
-        return identifier.equals(prePullGroup.identifier);
+        return resourceId.equals(prePullGroup.resourceId);
     }
 
     @Override
     @Generated
     public int hashCode() {
-        return identifier.hashCode();
+        return resourceId.hashCode();
     }
 
 }

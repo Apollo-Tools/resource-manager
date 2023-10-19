@@ -36,6 +36,7 @@ dependencies {
   // vert.x
   implementation("io.vertx:vertx-core:$vertxVersion")
   implementation("io.vertx:vertx-web:$vertxVersion")
+  implementation("io.vertx:vertx-web-client:$vertxVersion")
   implementation("io.vertx:vertx-pg-client:$vertxVersion")
   implementation("io.vertx:vertx-auth-oauth2:$vertxVersion")
   implementation("io.vertx:vertx-auth-jwt:$vertxVersion")
@@ -72,8 +73,11 @@ dependencies {
   testImplementation("io.vertx:vertx-junit5-rx-java3:$vertxVersion")
   testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
   testImplementation("org.assertj:assertj-core:3.23.1")
-  testImplementation("org.mockito:mockito-inline:3.+")
+  testImplementation("org.mockito:mockito-inline:4.8.0")
   testImplementation("org.mockito:mockito-junit-jupiter:4.8.0")
+  testImplementation("org.testcontainers:testcontainers:1.19.1")
+  testImplementation("org.testcontainers:postgresql:1.19.1")
+  testImplementation("org.testcontainers:junit-jupiter:1.19.1")
 
   // Commons
   implementation("org.apache.commons:commons-lang3:3.13.0")
@@ -82,6 +86,7 @@ dependencies {
 java {
   sourceCompatibility = JavaVersion.VERSION_11
   targetCompatibility = JavaVersion.VERSION_11
+
 }
 
 jacoco {
@@ -95,6 +100,10 @@ pmd {
   ruleSetFiles = files("./ruleset.xml", "./ruleset_test.xml")
 }
 
+tasks.withType<JavaCompile> {
+  options.encoding = "UTF-8"
+}
+
 tasks.withType<ShadowJar> {
   manifest {
     attributes["Main-Class"] = "at.uibk.dps.rm.Main"
@@ -103,6 +112,12 @@ tasks.withType<ShadowJar> {
 
 tasks.withType<Test> {
   useJUnitPlatform()
+  if (project.hasProperty("excludeTestcontainers") &&
+          project.property("excludeTestcontainers").toString().toBoolean()) {
+    println("exclude tests that use testcontainers")
+    exclude("**/repository/**")
+    exclude("**/router/**")
+  }
   testLogging {
     events = setOf(PASSED, SKIPPED, FAILED)
   }

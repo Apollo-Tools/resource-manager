@@ -13,18 +13,22 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class TestLogProvider {
 
-    public static Log createLog(long id) {
+    public static Log createLog(Long id) {
         Log log = new Log();
         log.setLogId(id);
         log.setLogValue("log");
         return log;
     }
 
-    public static DeploymentLog createDeploymentLog(long id, Deployment deployment) {
+    public static DeploymentLog createDeploymentLog(Long id, Deployment deployment, Log log) {
         DeploymentLog deploymentLog = new DeploymentLog();
         deploymentLog.setDeploymentLogId(id);
         deploymentLog.setDeployment(deployment);
-        deploymentLog.setLog(createLog(id));
+        deploymentLog.setLog(log);
         return deploymentLog;
+    }
+
+    public static DeploymentLog createDeploymentLog(Long id, Deployment deployment) {
+        return createDeploymentLog(id, deployment, createLog(id));
     }
 }

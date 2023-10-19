@@ -7,12 +7,16 @@ import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
+import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.service.ServiceProxy;
+import at.uibk.dps.rm.service.deployment.docker.DockerHubImageChecker;
 import at.uibk.dps.rm.service.deployment.terraform.FunctionPrepareService;
 import at.uibk.dps.rm.service.deployment.terraform.MainFileService;
 import at.uibk.dps.rm.service.deployment.terraform.TerraformSetupService;
 import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
+import at.uibk.dps.rm.testutil.mockprovider.TerraformExecutorMockprovider;
+import at.uibk.dps.rm.testutil.mockprovider.TerraformFileServiceMockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestRequestProvider;
@@ -31,6 +35,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedConstruction;
 import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -71,19 +76,22 @@ public class DeploymentExecutionServiceImplTest {
     void packageFunctionsCode(VertxTestContext testContext) {
         DeployResourcesDTO deployRequest = TestRequestProvider.createDeployRequest();
         FunctionsToDeploy functionsToDeploy = TestDTOProvider.createFunctionsToDeploy();
-
+        Function f1 = deployRequest.getFunctionDeployments().get(0).getFunction();
+        Function f2 = deployRequest.getFunctionDeployments().get(3).getFunction();
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
-             MockedConstruction<FunctionPrepareService> ignoredFPS = Mockprovider
-                .mockFunctionPrepareService(functionsToDeploy)) {
-            deploymentExecutionService.packageFunctionsCode(deployRequest)
-                .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+             MockedConstruction<FunctionPrepareService> ignoredFPS = TerraformFileServiceMockprovider
+                .mockFunctionPrepareService(functionsToDeploy);
+             MockedConstruction<DockerHubImageChecker> ignoredImageChecker =
+                 Mockprovider.mockDockerHubImageChecker(deployRequest.getFunctionDeployments(), Set.of(f1, f2))) {
+            deploymentExecutionService.packageFunctionsCode(deployRequest,
+                testContext.succeeding(result -> testContext.verify(() -> {
                     assertThat(result.getFunctionIdentifiers().size()).isEqualTo(2);
-                    assertThat(result.getFunctionIdentifiers().get(0)).isEqualTo("foo1_python39");
-                    assertThat(result.getFunctionIdentifiers().get(1)).isEqualTo("foo2_python39");
-                    assertThat(result.getDockerFunctionsString()).isEqualTo("\"  foo1_python39:\\n    " +
-                        "lang: python3-flask-debian\\n    handler: ./foo1_python39\\n    " +
-                        "image: user/foo1_python39:latest\\n  foo2_python39:\\n    lang: python3-flask-debian\\n    " +
-                        "handler: ./foo2_python39\\n    image: user/foo2_python39:latest\\n\"");
+                    assertThat(result.getFunctionIdentifiers().get(0)).isEqualTo("foo1_python38");
+                    assertThat(result.getFunctionIdentifiers().get(1)).isEqualTo("foo2_python38");
+                    assertThat(result.getDockerFunctionsString()).isEqualTo("\"  foo1_python38:\\n    " +
+                        "lang: python3-flask-debian\\n    handler: ./foo1_python38\\n    " +
+                        "image: user/foo1_python38:latest\\n  foo2_python38:\\n    lang: python3-flask-debian\\n    " +
+                        "handler: ./foo2_python38\\n    image: user/foo2_python38:latest\\n\"");
                     testContext.completeNow();
                 })));
         }
@@ -98,11 +106,11 @@ public class DeploymentExecutionServiceImplTest {
         TerraformModule m2 = new FaasModule(ResourceProviderEnum.AWS, r2);
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
-            MockedConstruction<TerraformSetupService> ignoredTFS =
-                Mockprovider.mockTFSetupServiceSetupModuleDirs(config, Single.just(List.of(m1, m2)));
-            MockedConstruction<MainFileService> ignoredMFS = Mockprovider.mockMainFileService(Completable.complete())) {
-                deploymentExecutionService.setUpTFModules(deployRequest)
-                    .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+             MockedConstruction<TerraformSetupService> ignoredTFS =
+                TerraformExecutorMockprovider.mockTFSetupServiceSetupModuleDirs(config, Single.just(List.of(m1, m2)));
+             MockedConstruction<MainFileService> ignoredMFS = TerraformFileServiceMockprovider.mockMainFileService(Completable.complete())) {
+                deploymentExecutionService.setUpTFModules(deployRequest,
+                    testContext.succeeding(result -> testContext.verify(() -> {
                         assertThat(result.getEdgeLoginCredentials()).isEqualTo("");
                         assertThat(result.getCloudCredentials().size()).isEqualTo(0);
                         testContext.completeNow();
@@ -119,12 +127,12 @@ public class DeploymentExecutionServiceImplTest {
         TerraformModule m2 = new FaasModule(ResourceProviderEnum.AWS, r2);
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
-            MockedConstruction<TerraformSetupService> ignoredTFS =
-                Mockprovider.mockTFSetupServiceSetupModuleDirs(config, Single.just(List.of(m1, m2)));
-            MockedConstruction<MainFileService> ignoredMFS = Mockprovider
+             MockedConstruction<TerraformSetupService> ignoredTFS =
+                TerraformExecutorMockprovider.mockTFSetupServiceSetupModuleDirs(config, Single.just(List.of(m1, m2)));
+             MockedConstruction<MainFileService> ignoredMFS = TerraformFileServiceMockprovider
                 .mockMainFileService(Completable.error(RuntimeException::new))) {
-                deploymentExecutionService.setUpTFModules(deployRequest)
-                    .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
+                deploymentExecutionService.setUpTFModules(deployRequest,
+                    testContext.failing(throwable -> testContext.verify(() -> {
                         assertThat(throwable).isInstanceOf(RuntimeException.class);
                         testContext.completeNow();
                     })));
@@ -136,10 +144,10 @@ public class DeploymentExecutionServiceImplTest {
         DeployResourcesDTO deployRequest = TestRequestProvider.createDeployRequest();
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
-             MockedConstruction<TerraformSetupService> ignoredTFS = Mockprovider
+             MockedConstruction<TerraformSetupService> ignoredTFS = TerraformExecutorMockprovider
                  .mockTFSetupServiceSetupModuleDirs(config, Single.error(RuntimeException::new))) {
-                deploymentExecutionService.setUpTFModules(deployRequest)
-                    .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
+                deploymentExecutionService.setUpTFModules(deployRequest,
+                    testContext.failing(throwable -> testContext.verify(() -> {
                         assertThat(throwable).isInstanceOf(RuntimeException.class);
                         testContext.completeNow();
                     })));
@@ -153,9 +161,9 @@ public class DeploymentExecutionServiceImplTest {
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
              MockedConstruction<TerraformSetupService> ignoredTFS =
-                 Mockprovider.mockTFSetupServiceGetTerminationCreds(Single.just(deploymentCredentials))) {
-                deploymentExecutionService.getNecessaryCredentials(terminateRequest)
-                    .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+                 TerraformExecutorMockprovider.mockTFSetupServiceGetTerminationCreds(Single.just(deploymentCredentials))) {
+                deploymentExecutionService.getNecessaryCredentials(terminateRequest,
+                    testContext.succeeding(result -> testContext.verify(() -> {
                         assertThat(result.getOpenFaasCredentialsString())
                             .isEqualTo("openfaas_login_data={r1={auth_user=\"user\", auth_pw=\"pw\"}}");
                         assertThat(result.getCloudCredentials().size()).isEqualTo(1);
@@ -171,9 +179,9 @@ public class DeploymentExecutionServiceImplTest {
 
         try (MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
              MockedConstruction<TerraformSetupService> ignoredTFS =
-                     Mockprovider.mockTFSetupServiceGetTerminationCreds(Single.error(IllegalStateException::new))) {
-            deploymentExecutionService.getNecessaryCredentials(terminateRequest)
-                .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
+                     TerraformExecutorMockprovider.mockTFSetupServiceGetTerminationCreds(Single.error(IllegalStateException::new))) {
+            deploymentExecutionService.getNecessaryCredentials(terminateRequest,
+                testContext.failing(throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(IllegalStateException.class);
                     testContext.completeNow();
                 })));
