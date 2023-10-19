@@ -1,12 +1,13 @@
 package at.uibk.dps.rm.service.database.util;
 
-import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Maybe;
-import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.core.*;
+import io.vertx.pgclient.PgException;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.hibernate.reactive.stage.Stage.SessionFactory;
 
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 /**
@@ -33,7 +34,15 @@ public class SessionManagerProvider {
             SessionManager sessionManager = new SessionManager(session);
             return function.apply(sessionManager).toCompletionStage();
         });
-        return Single.fromCompletionStage(transaction);
+        return Single.fromCompletionStage(transaction)
+            .retryWhen(attempt -> attempt.flatMapSingle(throwable -> {
+                if (ExceptionUtils.getRootCause(throwable) instanceof PgException &&
+                        ((PgException) ExceptionUtils.getRootCause(throwable)).getSqlState().equals("40001")) {
+                    return Single.timer(5000, TimeUnit.MILLISECONDS);
+                } else {
+                    return Single.error(throwable);
+                }
+            }));
     }
 
     /**
