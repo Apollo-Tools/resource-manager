@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  version: "1.0.6"
+  version: "1.0.5"
   title: "Resource Manager"
   description: |
     This is the API specification for the Apollo Resource Manager. The api provides various routes to 
@@ -55,7 +55,6 @@ info:
     - The value is the content of the kube config in base64 encoding.
     > It is important that these secrets are readable by the same service account, that is set in the [rm-api]
     > (kubernetes/rm-api.yaml) deployment file.
-    
     The kube config must meet some specific requirements:
       1. The cluster array must contain only one cluster.
       2. A valid context that can access all namespaces of that cluster must be provided.
