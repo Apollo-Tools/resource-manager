@@ -93,7 +93,7 @@ public abstract class DatabaseTest {
         Stage.SessionFactory sessionFactory = Persistence
             .createEntityManagerFactory("postgres-unit", props)
             .unwrap(Stage.SessionFactory.class);
-        smProvider = new SessionManagerProvider(sessionFactory);
+        smProvider = new SessionManagerProvider(sessionFactory, 5, 1000);
     }
 
     /**

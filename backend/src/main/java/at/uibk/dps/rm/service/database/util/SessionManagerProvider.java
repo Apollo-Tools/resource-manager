@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.database.util;
 
+import at.uibk.dps.rm.entity.misc.RetryCount;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.*;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,7 @@ public class SessionManagerProvider {
      * @param <E> any datatype that can be returned by the reactive session
      */
     public <E> Single<E> withTransactionSingle(Function<SessionManager, Single<E>> function) {
-        int[] retryCount = {0};
+        RetryCount retryCount = new RetryCount();
         return Single.defer(() -> {
                 CompletionStage<E> transaction = sessionFactory.withTransaction(session -> {
                     SessionManager sessionManager = new SessionManager(session);
@@ -53,7 +54,7 @@ public class SessionManagerProvider {
      * @param <E> any datatype that can be returned by the reactive session
      */
     public <E> Maybe<E> withTransactionMaybe(Function<SessionManager, Maybe<E>> function) {
-        int[] retryCount = {0};
+        RetryCount retryCount = new RetryCount();
         return Maybe.defer(() -> {
                 CompletionStage<E> transaction = sessionFactory.withTransaction(session -> {
                     SessionManager sessionManager = new SessionManager(session);
@@ -72,7 +73,7 @@ public class SessionManagerProvider {
      * @return a Completable
      */
     public Completable withTransactionCompletable(Function<SessionManager, Completable> function) {
-        int[] retryCount = {0};
+        RetryCount retryCount = new RetryCount();
             return Completable.defer(() -> {
                 CompletionStage<Void> transaction = sessionFactory.withTransaction(session -> {
                     SessionManager sessionManager = new SessionManager(session);

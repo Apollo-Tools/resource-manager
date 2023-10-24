@@ -21,6 +21,6 @@ public class SerializationException extends ServiceException {
      * Create an instance with the message.
      */
     public SerializationException(String message) {
-        super(401, message);
+        super(409, message);
     }
 }

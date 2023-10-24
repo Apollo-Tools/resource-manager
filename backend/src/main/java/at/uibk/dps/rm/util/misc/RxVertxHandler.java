@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.util.misc;
 
+import at.uibk.dps.rm.entity.misc.RetryCount;
 import at.uibk.dps.rm.exception.SerializationException;
 import at.uibk.dps.rm.verticle.DatabaseVerticle;
 import io.reactivex.rxjava3.annotations.NonNull;
@@ -176,12 +177,11 @@ public class RxVertxHandler {
         };
     }
 
-    public static Function<Flowable<Throwable>, Flowable<Long>> checkForRetry(int[] retryCount, int maxRetries,
+    public static Function<Flowable<Throwable>, Flowable<Long>> checkForRetry(RetryCount retryCount, int maxRetries,
             int retryDelay) {
         return throwables -> throwables.flatMapSingle(throwable -> {
-            if (rootCauseIsSerializationError(throwable) && retryCount[0] < maxRetries) {
-                logger.info("serialization error occurred. retry count: " + retryCount[0]);
-                retryCount[0]++;
+            if (rootCauseIsSerializationError(throwable) && retryCount.increment() < maxRetries) {
+                logger.info("serialization error occurred. retry count: " + retryCount.getRetryCount());
                 return Single.timer(retryDelay, TimeUnit.MILLISECONDS);
             } else if (rootCauseIsSerializationError(throwable)){
                 logger.info("serialization error occurred. max retries reached");
