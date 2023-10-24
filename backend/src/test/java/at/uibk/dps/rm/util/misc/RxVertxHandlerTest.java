@@ -106,7 +106,9 @@ public class RxVertxHandlerTest {
         RetryCount count = mock(RetryCount.class);
         Flowable<Throwable> errors = Flowable.just(error);
 
-        when(count.increment()).thenReturn(retryCount);
+        if (expectedRetry || expectedException.equals(SerializationException.class)) {
+            when(count.increment()).thenReturn(retryCount);
+        }
 
         RxVertxHandler.checkForRetry(count, maxRetries, retryDelay)
             .apply(errors)
