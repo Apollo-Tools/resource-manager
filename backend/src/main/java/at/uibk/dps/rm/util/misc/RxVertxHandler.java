@@ -177,6 +177,17 @@ public class RxVertxHandler {
         };
     }
 
+    /**
+     * Check if the throwable that are emitted by a flowable are a database serialization error. If
+     * a flowable is a serialization error and the max retries are not exceeded yet, wait for a
+     * specific amount of time and check the next one if there is one present.
+     *
+     * @param retryCount the retry count object
+     * @param maxRetries the max amount o retries
+     * @param retryDelay the delay between retries
+     * @return a Flowable that emits 0L if a retry happened without another throwable or the current
+     * exception
+     */
     public static Function<Flowable<Throwable>, Flowable<Long>> checkForRetry(RetryCount retryCount, int maxRetries,
             int retryDelay) {
         return throwables -> throwables.flatMapSingle(throwable -> {
