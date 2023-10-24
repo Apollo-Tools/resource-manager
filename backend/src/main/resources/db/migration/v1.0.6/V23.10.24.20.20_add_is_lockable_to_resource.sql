@@ -1,0 +1,2 @@
+ALTER TABLE resource
+ADD COLUMN is_lockable BOOLEAN NOT NULL DEFAULT false;

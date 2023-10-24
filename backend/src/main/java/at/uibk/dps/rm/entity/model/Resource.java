@@ -35,6 +35,8 @@ public abstract class Resource {
 
     private String name;
 
+    private Boolean isLockable;
+
     @Column(insertable = false, updatable = false)
     private @Setter(AccessLevel.NONE) Timestamp createdAt;
 
