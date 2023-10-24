@@ -1,13 +1,11 @@
 package at.uibk.dps.rm.service.database.util;
 
+import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.*;
-import io.vertx.pgclient.PgException;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.hibernate.reactive.stage.Stage.SessionFactory;
 
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 /**
@@ -21,6 +19,11 @@ public class SessionManagerProvider {
 
     private final SessionFactory sessionFactory;
 
+    private final int maxRetries;
+
+    private final int retryDelay;
+
+
     /**
      * Perform work using a reactive session. The executions contained in function are
      * transactional.
@@ -30,19 +33,15 @@ public class SessionManagerProvider {
      * @param <E> any datatype that can be returned by the reactive session
      */
     public <E> Single<E> withTransactionSingle(Function<SessionManager, Single<E>> function) {
-        CompletionStage<E> transaction = sessionFactory.withTransaction(session -> {
-            SessionManager sessionManager = new SessionManager(session);
-            return function.apply(sessionManager).toCompletionStage();
-        });
-        return Single.fromCompletionStage(transaction)
-            .retryWhen(attempt -> attempt.flatMapSingle(throwable -> {
-                if (ExceptionUtils.getRootCause(throwable) instanceof PgException &&
-                        ((PgException) ExceptionUtils.getRootCause(throwable)).getSqlState().equals("40001")) {
-                    return Single.timer(5000, TimeUnit.MILLISECONDS);
-                } else {
-                    return Single.error(throwable);
-                }
-            }));
+        int[] retryCount = {0};
+        return Single.defer(() -> {
+                CompletionStage<E> transaction = sessionFactory.withTransaction(session -> {
+                    SessionManager sessionManager = new SessionManager(session);
+                    return function.apply(sessionManager).toCompletionStage();
+                });
+                return Single.fromCompletionStage(transaction);
+            })
+            .retryWhen(RxVertxHandler.checkForRetry(retryCount, maxRetries, retryDelay));
     }
 
     /**
@@ -54,11 +53,15 @@ public class SessionManagerProvider {
      * @param <E> any datatype that can be returned by the reactive session
      */
     public <E> Maybe<E> withTransactionMaybe(Function<SessionManager, Maybe<E>> function) {
-        CompletionStage<E> transaction = sessionFactory.withTransaction(session -> {
-            SessionManager sessionManager = new SessionManager(session);
-            return function.apply(sessionManager).toCompletionStage();
-        });
-        return Maybe.fromCompletionStage(transaction);
+        int[] retryCount = {0};
+        return Maybe.defer(() -> {
+                CompletionStage<E> transaction = sessionFactory.withTransaction(session -> {
+                    SessionManager sessionManager = new SessionManager(session);
+                    return function.apply(sessionManager).toCompletionStage();
+                });
+                return Maybe.fromCompletionStage(transaction);
+            })
+            .retryWhen(RxVertxHandler.checkForRetry(retryCount, maxRetries, retryDelay));
     }
 
     /**
@@ -69,10 +72,14 @@ public class SessionManagerProvider {
      * @return a Completable
      */
     public Completable withTransactionCompletable(Function<SessionManager, Completable> function) {
-        CompletionStage<Void> transaction = sessionFactory.withTransaction(session -> {
-            SessionManager sessionManager = new SessionManager(session);
-            return function.apply(sessionManager).toCompletionStage(null);
-        });
-        return Completable.fromCompletionStage(transaction);
+        int[] retryCount = {0};
+            return Completable.defer(() -> {
+                CompletionStage<Void> transaction = sessionFactory.withTransaction(session -> {
+                    SessionManager sessionManager = new SessionManager(session);
+                    return function.apply(sessionManager).toCompletionStage(null);
+                });
+                return Completable.fromCompletionStage(transaction);
+            })
+            .retryWhen(RxVertxHandler.checkForRetry(retryCount, maxRetries, retryDelay));
     }
 }

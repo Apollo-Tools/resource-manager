@@ -1,17 +1,25 @@
 package at.uibk.dps.rm.util.misc;
 
+import at.uibk.dps.rm.exception.SerializationException;
+import at.uibk.dps.rm.verticle.DatabaseVerticle;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.*;
 import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.functions.Function;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.pgclient.PgException;
 import io.vertx.rxjava3.CompletableHelper;
 import io.vertx.rxjava3.MaybeHelper;
 import io.vertx.rxjava3.SingleHelper;
 import lombok.experimental.UtilityClass;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -22,6 +30,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 @UtilityClass
 public class RxVertxHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(DatabaseVerticle.class);
+
 
     /**
      * Handle a Maybe operation.
@@ -163,5 +174,26 @@ public class RxVertxHandler {
                 }
             }
         };
+    }
+
+    public static Function<Flowable<Throwable>, Flowable<Long>> checkForRetry(int[] retryCount, int maxRetries,
+            int retryDelay) {
+        return throwables -> throwables.flatMapSingle(throwable -> {
+            if (rootCauseIsSerializationError(throwable) && retryCount[0] < maxRetries) {
+                logger.info("serialization error occurred. retry count: " + retryCount[0]);
+                retryCount[0]++;
+                return Single.timer(retryDelay, TimeUnit.MILLISECONDS);
+            } else if (rootCauseIsSerializationError(throwable)){
+                logger.info("serialization error occurred. max retries reached");
+                return Single.error(SerializationException::new);
+            } else {
+                return Single.error(throwable);
+            }
+        });
+    }
+
+    private static boolean rootCauseIsSerializationError(Throwable throwable) {
+        return ExceptionUtils.getRootCause(throwable) instanceof PgException &&
+            ((PgException) ExceptionUtils.getRootCause(throwable)).getSqlState().equals("40001");
     }
 }

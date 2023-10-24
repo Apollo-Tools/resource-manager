@@ -49,6 +49,11 @@ spec:
               value: root
             - name: db_pw
               value: root
+            # Retry policy for database operations
+            - name: max_retries
+              value: "5"
+            - name: retry_delay_millis
+              value: "1000"
             # The path of the build directory
             - name: build_directory
               value: build

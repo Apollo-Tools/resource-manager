@@ -86,7 +86,7 @@ public class DatabaseVerticle extends AbstractVerticle {
         ConfigDTO config = config().mapTo(ConfigDTO.class);
         return setupDatabase(config)
             .andThen(Single.defer(() -> Single.just(1L)))
-            .flatMapCompletable(res -> setupEventBus());
+            .flatMapCompletable(res -> setupEventBus(config));
     }
 
     /**
@@ -114,11 +114,12 @@ public class DatabaseVerticle extends AbstractVerticle {
      *
      * @return a Completable
      */
-    private Completable setupEventBus() {
+    private Completable setupEventBus(ConfigDTO configDTO) {
         Maybe<Void> setupEventBus = Maybe.create(emitter -> {
             ServiceBinder serviceBinder = new ServiceBinder(vertx.getDelegate());
             ServiceProxyBinder serviceProxyBinder = new ServiceProxyBinder(serviceBinder);
-            SessionManagerProvider smProvider = new SessionManagerProvider(sessionFactory);
+            SessionManagerProvider smProvider = new SessionManagerProvider(sessionFactory, configDTO.getMaxRetries(),
+                configDTO.getRetryDelayMillis());
 
             serviceProxyBinder.bind(AccountNamespaceService.class,
                 new AccountNamespaceServiceImpl(new AccountNamespaceRepository(), smProvider));
