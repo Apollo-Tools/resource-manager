@@ -34,6 +34,7 @@ public class SubResourceDTO extends Resource {
         this.setMainResourceId(mainResource.getResourceId());
         this.setPlatform(mainResource.getPlatform());
         this.setIsLockable(subResource.getIsLockable());
+        this.setIsLocked(subResource.getIsLocked());
         this.setRegion(mainResource.getRegion());
         this.setCreatedAt(subResource.getCreatedAt());
         this.setUpdatedAt(subResource.getUpdatedAt());

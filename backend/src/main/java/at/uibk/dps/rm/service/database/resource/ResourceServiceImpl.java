@@ -16,6 +16,7 @@ import at.uibk.dps.rm.service.database.util.SLOUtility;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -54,7 +55,8 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     public void findOne(long id, Handler<AsyncResult<JsonObject>> resultHandler) {
         Maybe<Resource> findOne = smProvider.withTransactionMaybe( sm -> repository
             .findByIdAndFetch(sm, id)
-            .switchIfEmpty(Maybe.error(new NotFoundException(Resource.class))));
+            .switchIfEmpty(Maybe.error(new NotFoundException(Resource.class)))
+            .map(this::getResourceLockState));
         RxVertxHandler.handleSession(
             findOne.map(resource -> {
                 if (resource instanceof SubResource) {
@@ -70,7 +72,11 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
 
     @Override
     public void findAll(Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<Resource>> findAll = smProvider.withTransactionSingle(repository::findAllAndFetch);
+        Single<List<Resource>> findAll = smProvider.withTransactionSingle(sessionManager ->
+            repository.findAllAndFetch(sessionManager)
+                .flatMapObservable(Observable::fromIterable)
+                .map(this::getResourceLockState).toList()
+        );
         RxVertxHandler.handleSession(findAll.map(this::mapResourceListToJsonArray), resultHandler);
     }
 
@@ -78,15 +84,22 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     public void findAllBySLOs(JsonObject data, Handler<AsyncResult<JsonArray>> resultHandler) {
         SLORequest sloRequest = data.mapTo(SLORequest.class);
         Single<List<Resource>> findAll = smProvider.withTransactionSingle(sm ->
-            new SLOUtility(repository, metricRepository).findAndFilterResourcesBySLOs(sm, sloRequest));
+            new SLOUtility(repository, metricRepository).findAndFilterResourcesBySLOs(sm, sloRequest)
+                .flatMapObservable(Observable::fromIterable)
+                .map(this::getResourceLockState).toList()
+        );
         RxVertxHandler.handleSession(findAll.map(this::mapResourceListToJsonArray), resultHandler);
     }
 
     // TODO: remove main_resource
+
     @Override
     public void findAllSubResources(long resourceId, Handler<AsyncResult<JsonArray>> resultHandler) {
         Single<List<SubResource>> findAll = smProvider.withTransactionSingle(sm ->
-            repository.findAllSubresources(sm, resourceId));
+            repository.findAllSubresources(sm, resourceId)
+                .flatMapObservable(Observable::fromIterable)
+                .map(resource -> (SubResource) this.getResourceLockState(resource)).toList()
+        );
         RxVertxHandler.handleSession(
             findAll.map(resources -> {
                 ArrayList<JsonObject> objects = new ArrayList<>();
@@ -98,11 +111,13 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
             resultHandler
         );
     }
-
     @Override
     public void findAllByResourceIds(List<Long> resourceIds, Handler<AsyncResult<JsonArray>> resultHandler) {
         Single<List<Resource>> findAll = smProvider.withTransactionSingle(sm -> repository
-            .findAllByResourceIdsAndFetch(sm, resourceIds));
+            .findAllByResourceIdsAndFetch(sm, resourceIds)
+            .flatMapObservable(Observable::fromIterable)
+            .map(this::getResourceLockState).toList()
+        );
         RxVertxHandler.handleSession(findAll.map(this::mapResourceListToJsonArray), resultHandler);
     }
 
@@ -126,6 +141,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
             .flatMap(platform -> {
                 resource.setPlatform(platform);
                 resource.setIsLockable(isLockable);
+                resource.setIsLocked(false);
                 return sm.persist(resource);
             })
         );
@@ -165,6 +181,11 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
                 .andThen(updateUtility.updateCluster(sm, cluster, data)))
         );
         RxVertxHandler.handleSession(updateClusterResource, resultHandler);
+    }
+
+    private Resource getResourceLockState(Resource resource) {
+        resource.setIsLocked(resource.getLockedByDeployment() != null);
+        return resource;
     }
 
     /**

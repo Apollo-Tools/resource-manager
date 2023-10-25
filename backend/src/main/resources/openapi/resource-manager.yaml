@@ -1077,7 +1077,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SubresourceDetails"
+                type: array
+                items:
+                  $ref: "#/components/schemas/SubresourceDetails"
         400:
           $ref: "#/components/responses/400"
         401:
@@ -3658,6 +3660,9 @@ components:
                 type: integer
                 format: int64
                 example: 1679496667103
+        is_locked:
+          type: boolean
+          example: false
     ResourceDetails:
       allOf:
         - $ref: '#/components/schemas/Resource'
