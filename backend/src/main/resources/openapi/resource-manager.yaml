@@ -666,6 +666,42 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
+    patch:
+      description: Update a resource
+      operationId: updateResource
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - resources
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - is_lockable
+              additionalProperties: false
+              properties:
+                is_lockable:
+                  description: |
+                    This flag indicates whether or not a resource is lockable for deployments.
+                  type: boolean
+                  example: false
+      responses:
+        204:
+          description: Successful update the resource
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
     delete:
       description: Delete a resource. This is only successful, if the entity is not used by any other entity.
       operationId: deleteResource

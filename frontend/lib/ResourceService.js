@@ -28,7 +28,7 @@ export async function createResource(name, platformId, regionId, isLockable, tok
         region: {
           region_id: regionId,
         },
-        is_lockable: isLockable
+        is_lockable: isLockable,
       }),
     });
     const data = await response.json();
@@ -182,6 +182,35 @@ export async function listResourcesBySLOs(slos, token, setResources, setError) {
     });
     const data = await response.json();
     setResources(() => data);
+  } catch (error) {
+    setError(true);
+    console.log(error);
+  }
+}
+
+
+/**
+ * Update an existing resource.
+ *
+ * @param {number} id the id of the resource
+ * @param {boolean} isLockable whether the resource should be lockable for deployments
+ * @param {string} token the access token
+ * @param {function} setError the function to set the error if one occurred
+ * @return {Promise<boolean>} true if the request was successful
+ */
+export async function updateResource(id, isLockable, token, setError) {
+  try {
+    const response = await fetch(`${API_ROUTE}/${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        is_lockable: isLockable,
+      }),
+    });
+    return response.ok;
   } catch (error) {
     setError(true);
     console.log(error);

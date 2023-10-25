@@ -111,7 +111,7 @@ const ResourceDetails = () => {
         <Divider />
         {
           selectedSegment === 'Details' && resource != null &&
-          <ResourceDetailsCard resource={resource}/>
+          <ResourceDetailsCard resource={resource} setResource={setResource}/>
         }
         {
           selectedSegment === 'Metric Values' && resource != null && (

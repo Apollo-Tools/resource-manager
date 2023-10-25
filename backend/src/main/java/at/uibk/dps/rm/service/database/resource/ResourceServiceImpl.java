@@ -142,6 +142,18 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     }
 
     @Override
+    public void update(long id, JsonObject fields, Handler<AsyncResult<Void>> resultHandler) {
+        Completable update = smProvider.withTransactionCompletable(sm -> sm.find(Resource.class, id)
+            .switchIfEmpty(Maybe.error(new NotFoundException(Resource.class)))
+            .flatMapCompletable(resource -> {
+                resource.setIsLockable(fields.getBoolean("is_lockable"));
+                return Completable.complete();
+            })
+        );
+        RxVertxHandler.handleSession(update, resultHandler);
+    }
+
+    @Override
     public void updateClusterResource(String clusterName, K8sMonitoringData data,
             Handler<AsyncResult<Void>> resultHandler) {
         K8sResourceUpdateUtility updateUtility = new K8sResourceUpdateUtility(metricRepository);
