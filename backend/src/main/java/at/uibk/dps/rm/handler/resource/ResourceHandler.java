@@ -3,6 +3,7 @@ package at.uibk.dps.rm.handler.resource;
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
 import at.uibk.dps.rm.util.misc.HttpHelper;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -48,8 +49,14 @@ public class ResourceHandler extends ValidationHandler {
         return resourceService.findAllBySLOs(rc.body().asJsonObject());
     }
 
-
-    public Single<JsonObject> saveStandardized(RoutingContext rc) {
+    /**
+     * Saves all resources given in TOSCA format
+     *
+     * @param rc the RoutingContext of the request
+     * @return a Completable
+     */
+    @Override
+    protected Completable postAll(RoutingContext rc) {
         return resourceService.saveStandardized(rc.body().asString());
     }
 }

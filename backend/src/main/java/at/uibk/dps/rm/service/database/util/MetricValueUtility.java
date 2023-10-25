@@ -8,6 +8,7 @@ import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
+import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import io.reactivex.rxjava3.core.Completable;
@@ -27,6 +28,8 @@ public class MetricValueUtility {
 
     private final MetricValueRepository metricValueRepository;
 
+    private final MetricRepository metricRepository;
+
     private final PlatformMetricRepository platformMetricRepository;
 
 
@@ -42,19 +45,13 @@ public class MetricValueUtility {
         return Observable.fromIterable(values)
             .flatMapCompletable(jsonObject -> {
                 JsonObject jsonMetric = (JsonObject) jsonObject;
-                long metricId = jsonMetric.getLong("metric_id");
-                MetricValue metricValue = new MetricValue();
-                return metricValueRepository.findByResourceAndMetric(sm, resource.getResourceId(), metricId)
-                    .flatMap(existingValue -> Maybe.<PlatformMetric>error(new AlreadyExistsException(MetricValue.class)))
-                    .switchIfEmpty(platformMetricRepository.findByPlatformAndMetric(sm,
-                        resource.getMain().getPlatform().getPlatformId(), metricId))
-                    .switchIfEmpty(Maybe.error(new NotFoundException(PlatformMetric.class)))
-                    .flatMapCompletable(platformMetric -> {
-                        metricValue.setMetric(platformMetric.getMetric());
-                        metricValue.setResource(resource);
-                        checkAddMetricValueSetCorrectly(platformMetric, jsonMetric, metricValue);
-                        return sm.persist(metricValue).ignoreElement();
-                    });
+                if(((JsonObject) jsonObject).containsKey("metric_id")) {
+                    return persistByMetricId(sm, resource, jsonMetric);
+                } else {
+                    return persistByMetricName(sm, resource, jsonMetric);
+                }
+
+
             });
     }
 
@@ -168,4 +165,41 @@ public class MetricValueUtility {
     public static boolean metricTypeMatchesValue(MetricTypeEnum metricType, Boolean value) {
         return value!=null && metricType.equals(MetricTypeEnum.BOOLEAN);
     }
+
+    private Completable persistByMetricId(SessionManager sm, Resource resource, JsonObject jsonMetric) {
+        long metricId = jsonMetric.getLong("metric_id");
+        MetricValue metricValue = new MetricValue();
+        return persist(sm, resource, metricId, metricValue, jsonMetric);
+    }
+
+    private Completable persistByMetricName(SessionManager sm, Resource resource, JsonObject jsonMetric) {
+        String metricName = jsonMetric.getString("metric");
+        MetricValue metricValue = new MetricValue();
+        System.out.println(resource.getResourceId());
+        System.out.println(metricName);
+        System.out.println("-----------------");
+        return metricRepository.findByMetric(sm, metricName)
+                .switchIfEmpty(Maybe.error(new NotFoundException("Metric " + jsonMetric.encode() + " not found")))
+                .flatMapCompletable(metric ->{
+                    long metricId = metric.getMetricId();
+                    return persist(sm, resource, metricId, metricValue, jsonMetric);
+                });
+
+
+    }
+
+    private Completable persist(SessionManager sm, Resource resource, long metricId, MetricValue metricValue, JsonObject jsonMetric) {
+        return metricValueRepository.findByResourceAndMetric(sm, resource.getResourceId(), metricId)
+                .flatMap(existingValue -> Maybe.<PlatformMetric>error(new AlreadyExistsException(MetricValue.class)))
+                .switchIfEmpty(platformMetricRepository.findByPlatformAndMetric(sm,
+                        resource.getMain().getPlatform().getPlatformId(), metricId))
+                .switchIfEmpty(Maybe.error(new NotFoundException(PlatformMetric.class)))
+                .flatMapCompletable(platformMetric -> {
+                    metricValue.setMetric(platformMetric.getMetric());
+                    metricValue.setResource(resource);
+                    checkAddMetricValueSetCorrectly(platformMetric, jsonMetric, metricValue);
+                    return sm.persist(metricValue).ignoreElement();
+                });
+    }
+
 }

@@ -8,10 +8,13 @@ import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.MonitoringException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.metric.MetricRepository;
+import at.uibk.dps.rm.repository.metric.MetricValueRepository;
+import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import at.uibk.dps.rm.service.database.util.K8sResourceUpdateUtility;
+import at.uibk.dps.rm.service.database.util.MetricValueUtility;
 import at.uibk.dps.rm.service.database.util.SLOUtility;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import at.uibk.dps.rm.util.toscamapping.TOSCAFile;
@@ -39,6 +42,8 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     private final ResourceRepository repository;
     private final RegionRepository regionRepository;
     private final MetricRepository metricRepository;
+    private final MetricValueRepository metricValueRepository;
+    private final PlatformMetricRepository platformMetricRepository;
 
     /**
      * Create an instance from the resourceRepository.
@@ -46,11 +51,13 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
      * @param repository the resource repository
      */
     public ResourceServiceImpl(ResourceRepository repository, RegionRepository regionRepository,
-            MetricRepository metricRepository, SessionManagerProvider smProvider) {
+            MetricRepository metricRepository, MetricValueRepository metricValueRepository, PlatformMetricRepository platformMetricRepository, SessionManagerProvider smProvider) {
         super(repository, Resource.class, smProvider);
         this.repository = repository;
         this.regionRepository = regionRepository;
         this.metricRepository = metricRepository;
+        this.metricValueRepository=metricValueRepository;
+        this.platformMetricRepository=platformMetricRepository;
     }
 
     @Override
@@ -132,7 +139,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
         RxVertxHandler.handleSession(save.map(JsonObject::mapFrom), resultHandler);
     }
 
-    public void saveStandardized(String data, Handler<AsyncResult<JsonObject>> resultHandler) {
+    public void saveStandardized(String data, Handler<AsyncResult<Void>> resultHandler) {
         TOSCAFile toscaFile = null;
 
         try {
@@ -144,8 +151,10 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
         String name = toscaFile.getTopology_template().getNode_templates().get("resource_1").getCapabilities().get("resource").getProperties().get("name").toString();
         long regionId =  (int)toscaFile.getTopology_template().getNode_templates().get("resource_1").getCapabilities().get("resource").getProperties().get("region");
         long platformId = (int) toscaFile.getTopology_template().getNode_templates().get("resource_1").getCapabilities().get("resource").getProperties().get("platform");
+        MetricValueUtility metricValueUtility = new MetricValueUtility(metricValueRepository, metricRepository, platformMetricRepository);
         MainResource resource = new MainResource();
-        Single<Resource> save = smProvider.withTransactionSingle(sm -> repository.findByName(sm, name)
+        TOSCAFile finalToscaFile = toscaFile;
+        Completable save = smProvider.withTransactionCompletable(sm -> repository.findByName(sm, name)
                 .flatMap(existingResource -> Maybe.<Region>error(new AlreadyExistsException(Resource.class)))
                 .switchIfEmpty(regionRepository.findByRegionIdAndPlatformId(sm, regionId, platformId))
                 .switchIfEmpty(Maybe.error(new NotFoundException("platform is not supported by the selected region")))
@@ -154,13 +163,26 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
                     resource.setRegion(region);
                     return sm.find(Platform.class, platformId);
                 })
-                .switchIfEmpty(Single.error(new NotFoundException(Platform.class)))
+                .switchIfEmpty(Maybe.error(new NotFoundException(Platform.class)))
                 .flatMap(platform -> {
                     resource.setPlatform(platform);
-                    return sm.persist(resource);
+                    sm.persist(resource);
+                    return repository.findByName(sm, name);
+                }).switchIfEmpty(Maybe.error(new NotFoundException(Resource.class)))
+                .flatMapCompletable(resource1 -> {
+                    System.out.println(resource1.getResourceId());
+                    Map<String, Object> props = finalToscaFile.getTopology_template().getNode_templates().get("resource_1").getCapabilities().get("ec2instance").getProperties();
+                    JsonArray jsonArray = new JsonArray();
+                    props.entrySet().forEach(entry ->{
+                        JsonObject jsonObject =new JsonObject();
+                        jsonObject.put("metric", entry.getKey());
+                        jsonObject.put("value", entry.getValue());
+                        jsonArray.add(jsonObject);
+                    });
+                    return metricValueUtility.checkAddMetricList(sm,resource1,jsonArray);
                 })
         );
-        RxVertxHandler.handleSession(save.map(JsonObject::mapFrom), resultHandler);
+        RxVertxHandler.handleSession(save, resultHandler);
     }
 
     @Override

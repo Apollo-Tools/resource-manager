@@ -2,6 +2,7 @@ package at.uibk.dps.rm.service.database.metric;
 
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.MetricValue;
+import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
@@ -28,7 +29,7 @@ public interface MetricValueService extends DatabaseServiceInterface {
     @Generated
     @GenIgnore
     static MetricValueService create(SessionManagerProvider smProvider) {
-        return new MetricValueServiceImpl(new MetricValueRepository(), new PlatformMetricRepository(), smProvider);
+        return new MetricValueServiceImpl(new MetricValueRepository(), new MetricRepository(), new PlatformMetricRepository(), smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")

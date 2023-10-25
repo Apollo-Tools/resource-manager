@@ -140,7 +140,7 @@ public class DatabaseVerticle extends AbstractVerticle {
             serviceProxyBinder.bind(MetricService.class, new MetricServiceImpl(new MetricRepository(),
                 smProvider));
             serviceProxyBinder.bind(MetricValueService.class,
-                new MetricValueServiceImpl(new MetricValueRepository(), new PlatformMetricRepository(), smProvider)
+                new MetricValueServiceImpl(new MetricValueRepository(), new MetricRepository(), new PlatformMetricRepository(), smProvider)
             );
             serviceProxyBinder.bind(NamespaceService.class,
                 new NamespaceServiceImpl(new NamespaceRepository(), new ResourceRepository(), smProvider));
@@ -157,7 +157,7 @@ public class DatabaseVerticle extends AbstractVerticle {
                 new ResourceEnsembleServiceImpl(new EnsembleRepositoryProvider(), smProvider));
             serviceProxyBinder.bind(ResourceService.class,
                 new ResourceServiceImpl(new ResourceRepository(),
-                    new RegionRepository(), new MetricRepository(),
+                    new RegionRepository(), new MetricRepository(), new MetricValueRepository(), new PlatformMetricRepository(),
                     smProvider));
             serviceProxyBinder.bind(ResourceProviderService.class,
                 new ResourceProviderServiceImpl(new ResourceProviderRepository(), smProvider));

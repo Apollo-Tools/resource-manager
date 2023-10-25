@@ -4,6 +4,8 @@ import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.monitoring.K8sMonitoringData;
 import at.uibk.dps.rm.repository.metric.MetricRepository;
+import at.uibk.dps.rm.repository.metric.MetricValueRepository;
+import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
@@ -34,7 +36,7 @@ public interface ResourceService extends DatabaseServiceInterface {
     @GenIgnore
     static ResourceService create(SessionManagerProvider smProvider) {
         return new ResourceServiceImpl(new ResourceRepository(), new RegionRepository(), new MetricRepository(),
-            smProvider);
+                new MetricValueRepository(), new PlatformMetricRepository(), smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
@@ -76,5 +78,11 @@ public interface ResourceService extends DatabaseServiceInterface {
      */
     void updateClusterResource(String resourceName, K8sMonitoringData data, Handler<AsyncResult<Void>> resultHandler);
 
-    void saveStandardized(String requestBody, Handler<AsyncResult<JsonObject>> resultHandler);
+    /**
+     * Saves all resources given in TOSCA format
+     *
+     * @param data the resource data
+     * @param resultHandler receives nothing if the update was successful else an error
+     */
+    void saveStandardized(String data, Handler<AsyncResult<Void>> resultHandler);
 }

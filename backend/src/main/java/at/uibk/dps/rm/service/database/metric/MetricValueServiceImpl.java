@@ -6,6 +6,7 @@ import at.uibk.dps.rm.entity.model.PlatformMetric;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
+import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
@@ -31,7 +32,7 @@ import java.util.List;
 public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> implements MetricValueService {
 
     private final MetricValueRepository repository;
-
+    private final MetricRepository metricRepository;
     private final PlatformMetricRepository platformMetricRepository;
 
     /**
@@ -39,16 +40,17 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
      *
      * @param repository the metric value repository
      */
-    public MetricValueServiceImpl(MetricValueRepository repository, PlatformMetricRepository platformMetricRepository,
+    public MetricValueServiceImpl(MetricValueRepository repository, MetricRepository metricRepository, PlatformMetricRepository platformMetricRepository,
             SessionManagerProvider smProvider) {
         super(repository, MetricValue.class, smProvider);
         this.repository = repository;
         this.platformMetricRepository = platformMetricRepository;
+        this.metricRepository = metricRepository;
     }
 
     @Override
     public void saveAllToResource(long resourceId, JsonArray data, Handler<AsyncResult<Void>> resultHandler) {
-        MetricValueUtility metricValueUtility = new MetricValueUtility(repository, platformMetricRepository);
+        MetricValueUtility metricValueUtility = new MetricValueUtility(repository, metricRepository, platformMetricRepository);
         Completable createAll = smProvider.withTransactionCompletable(sm -> sm
             .find(Resource.class, resourceId)
             .switchIfEmpty(Maybe.error(new NotFoundException(Resource.class)))
