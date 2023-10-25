@@ -82,6 +82,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
         RxVertxHandler.handleSession(findAll.map(this::mapResourceListToJsonArray), resultHandler);
     }
 
+    // TODO: remove main_resource
     @Override
     public void findAllSubResources(long resourceId, Handler<AsyncResult<JsonArray>> resultHandler) {
         Single<List<SubResource>> findAll = smProvider.withTransactionSingle(sm ->
@@ -110,6 +111,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
         String name = data.getString("name");
         long regionId = data.getJsonObject("region").getLong("region_id");
         long platformId = data.getJsonObject("platform").getLong("platform_id");
+        boolean isLockable = data.getBoolean("is_lockable");
         MainResource resource = new MainResource();
         Single<Resource> save = smProvider.withTransactionSingle(sm -> repository.findByName(sm, name)
             .flatMap(existingResource -> Maybe.<Region>error(new AlreadyExistsException(Resource.class)))
@@ -123,6 +125,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
             .switchIfEmpty(Single.error(new NotFoundException(Platform.class)))
             .flatMap(platform -> {
                 resource.setPlatform(platform);
+                resource.setIsLockable(isLockable);
                 return sm.persist(resource);
             })
         );

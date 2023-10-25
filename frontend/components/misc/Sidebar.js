@@ -82,7 +82,7 @@ const Sidebar = ({children}) => {
           <main>{children}</main>
         </Content>
         <Footer
-          className="text-center"
+          className="text-center bg-transparent"
         >
           Apollo Tools ©2022
         </Footer>

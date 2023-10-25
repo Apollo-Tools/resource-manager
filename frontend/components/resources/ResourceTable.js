@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import {useEffect, useState} from 'react';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 import DateColumnRender from '../misc/DateColumnRender';
+import BoolValueDisplay from "../misc/BoolValueDisplay";
 
 const {Column} = Table;
 
@@ -100,6 +101,9 @@ const ResourceTable = ({
           />
         </>
       }
+      <Column title="Lockable" dataIndex="is_lockable" key="is_lockable"
+        render={(isLockable) => <BoolValueDisplay value={isLockable} />}
+      />
       <Column title="Created at" dataIndex="created_at" key="created_at"
         render={(createdAt) => <DateColumnRender value={createdAt}/>}
         sorter={(a, b) => a.created_at - b.created_at}
