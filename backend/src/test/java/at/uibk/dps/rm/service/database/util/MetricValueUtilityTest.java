@@ -5,6 +5,7 @@ import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
+import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.testutil.objectprovider.TestMetricProvider;
@@ -48,6 +49,9 @@ public class MetricValueUtilityTest {
     private MetricValueRepository metricValueRepository;
 
     @Mock
+    private MetricRepository metricRepository;
+
+    @Mock
     private PlatformMetricRepository platformMetricRepository;
 
     @Mock
@@ -63,7 +67,7 @@ public class MetricValueUtilityTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        utility = new MetricValueUtility(metricValueRepository, platformMetricRepository);
+        utility = new MetricValueUtility(metricValueRepository, metricRepository, platformMetricRepository);
         pLambda = TestPlatformProvider.createPlatformFaas(1L, "lambda");
         mtNumber = TestMetricProvider.createMetricTypeNumber();
         mtString = TestMetricProvider.createMetricTypeString();

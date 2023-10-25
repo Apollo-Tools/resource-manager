@@ -10,9 +10,14 @@ import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.MonitoringException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.metric.MetricRepository;
+import at.uibk.dps.rm.repository.metric.MetricValueRepository;
+import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
-import at.uibk.dps.rm.service.database.util.*;
+import at.uibk.dps.rm.service.database.util.K8sResourceUpdateUtility;
+import at.uibk.dps.rm.service.database.util.SLOUtility;
+import at.uibk.dps.rm.service.database.util.SessionManager;
+import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.*;
@@ -40,7 +45,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.when;
 
 /**
  * Implements tests for the {@link ResourceServiceImpl} class.
@@ -63,6 +69,12 @@ public class ResourceServiceImplTest {
     private MetricRepository metricRepository;
 
     @Mock
+    private MetricValueRepository metricValueRepository;
+
+    @Mock
+    private PlatformMetricRepository platformMetricRepository;
+
+    @Mock
     private SessionManagerProvider smProvider;
 
     @Mock
@@ -80,9 +92,9 @@ public class ResourceServiceImplTest {
     void initTest() {
         JsonMapperConfig.configJsonMapper();
         resourceService = new ResourceServiceImpl(resourceRepository, regionRepository, metricRepository,
-            smProvider);
+                metricValueRepository, platformMetricRepository, smProvider);
         data = new JsonObject("{\"name\": \"new_r\", \"region\": {\"region_id\": 1}, \"platform\": " +
-            "{\"platform_id\":  2}}");
+                "{\"platform_id\":  2}}");
         reg1 = TestResourceProviderProvider.createRegion(1L, "us-east");
         p1 = TestPlatformProvider.createPlatformFaas(2L, "lambda");
         r1 = TestResourceProvider.createResource(1L);
@@ -91,7 +103,7 @@ public class ResourceServiceImplTest {
         sr1 = TestResourceProvider.createSubResource(4L, "subresource1", cr1);
         sr2 = TestResourceProvider.createSubResource(5L, "subresource2", cr1);
         K8sNode k8sn1 = TestMonitoringDataProvider.createK8sNode("n1", 10.0, 8.75,
-            1000, 500, 10000, 5000);
+                1000, 500, 10000, 5000);
         V1Namespace namespace = TestMonitoringDataProvider.createV1Namespace("default");
         monitoringData = new K8sMonitoringData(List.of(k8sn1), List.of(namespace));
     }
@@ -104,10 +116,10 @@ public class ResourceServiceImplTest {
         when(resourceRepository.findByIdAndFetch(sessionManager, resource.getResourceId())).thenReturn(Maybe.just(resource));
 
         resourceService.findOne(resource.getResourceId(), testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result.getLong("resource_id")).isEqualTo(resource.getResourceId());
-                assertThat(result.containsKey("sub_resources")).isEqualTo(type.equals("main"));
+            assertThat(result.getLong("resource_id")).isEqualTo(resource.getResourceId());
+            assertThat(result.containsKey("sub_resources")).isEqualTo(type.equals("main"));
             assertThat(result.containsKey("main_metric_values")).isEqualTo(type.equals("sub"));
-                testContext.completeNow();
+            testContext.completeNow();
         })));
     }
 
@@ -128,17 +140,17 @@ public class ResourceServiceImplTest {
         when(resourceRepository.findAllAndFetch(sessionManager)).thenReturn(Single.just(List.of(r1, r2)));
 
         resourceService.findAll(testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result.size()).isEqualTo(2);
-                assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
-                assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
-                testContext.completeNow();
-            })));
+            assertThat(result.size()).isEqualTo(2);
+            assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
+            assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
+            testContext.completeNow();
+        })));
     }
 
     @Test
     void findAllBySLOs(VertxTestContext testContext) {
         ServiceLevelObjective slo1 = new ServiceLevelObjective("instance-type", ExpressionType.EQ,
-            TestDTOProvider.createSLOValueList("t2.micro"));
+                TestDTOProvider.createSLOValueList("t2.micro"));
         SLORequest sloRequest = TestDTOProvider.createSLORequest(List.of(slo1));
 
         SessionMockHelper.mockSingle(smProvider, sessionManager);
@@ -156,15 +168,15 @@ public class ResourceServiceImplTest {
     void findAllSubResources(VertxTestContext testContext) {
         SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(resourceRepository.findAllSubresources(sessionManager, cr1.getResourceId()))
-            .thenReturn(Single.just(List.of(sr1, sr2)));
+                .thenReturn(Single.just(List.of(sr1, sr2)));
 
         resourceService.findAllSubResources(cr1.getResourceId(),
-            testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result.size()).isEqualTo(2);
-                assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(4L);
-                assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(5L);
-                testContext.completeNow();
-            })));
+                testContext.succeeding(result -> testContext.verify(() -> {
+                    assertThat(result.size()).isEqualTo(2);
+                    assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(4L);
+                    assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(5L);
+                    testContext.completeNow();
+                })));
     }
 
     @Test
@@ -173,14 +185,14 @@ public class ResourceServiceImplTest {
 
         SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(resourceRepository.findAllByResourceIdsAndFetch(sessionManager, resourceIds))
-            .thenReturn(Single.just(List.of(r1, r2)));
+                .thenReturn(Single.just(List.of(r1, r2)));
 
         resourceService.findAllByResourceIds(resourceIds, testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result.size()).isEqualTo(2);
-                assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
-                assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
-                testContext.completeNow();
-            })));
+            assertThat(result.size()).isEqualTo(2);
+            assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
+            assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
+            testContext.completeNow();
+        })));
     }
 
     @Test
@@ -188,11 +200,11 @@ public class ResourceServiceImplTest {
         SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(resourceRepository.findByName(sessionManager, "new_r")).thenReturn(Maybe.empty());
         when(regionRepository.findByRegionIdAndPlatformId(sessionManager, reg1.getRegionId(), p1.getPlatformId()))
-            .thenReturn(Maybe.just(reg1));
+                .thenReturn(Maybe.just(reg1));
         when(sessionManager.find(Platform.class, p1.getPlatformId())).thenReturn(Maybe.just(p1));
         when(sessionManager.persist(argThat((Resource res) -> res.getName().equals("new_r") &&
                 res.getMain().getRegion().equals(reg1) && res.getMain().getPlatform().equals(p1))))
-            .thenReturn(Single.just(new MainResource()));
+                .thenReturn(Single.just(new MainResource()));
 
         resourceService.save(data, testContext.succeeding(result -> testContext.verify(testContext::completeNow)));
     }
@@ -202,7 +214,7 @@ public class ResourceServiceImplTest {
         SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(resourceRepository.findByName(sessionManager, "new_r")).thenReturn(Maybe.empty());
         when(regionRepository.findByRegionIdAndPlatformId(sessionManager, reg1.getRegionId(), p1.getPlatformId()))
-            .thenReturn(Maybe.just(reg1));
+                .thenReturn(Maybe.just(reg1));
         when(sessionManager.find(Platform.class, p1.getPlatformId())).thenReturn(Maybe.empty());
 
         resourceService.save(data, testContext.failing(throwable -> testContext.verify(() -> {
@@ -216,7 +228,7 @@ public class ResourceServiceImplTest {
         SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(resourceRepository.findByName(sessionManager, "new_r")).thenReturn(Maybe.empty());
         when(regionRepository.findByRegionIdAndPlatformId(sessionManager, reg1.getRegionId(), p1.getPlatformId()))
-            .thenReturn(Maybe.empty());
+                .thenReturn(Maybe.empty());
 
         resourceService.save(data, testContext.failing(throwable -> testContext.verify(() -> {
             assertThat(throwable).isInstanceOf(NotFoundException.class);
@@ -229,7 +241,7 @@ public class ResourceServiceImplTest {
         SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(resourceRepository.findByName(sessionManager, "new_r")).thenReturn(Maybe.just(r1));
         when(regionRepository.findByRegionIdAndPlatformId(sessionManager, reg1.getRegionId(), p1.getPlatformId()))
-            .thenReturn(Maybe.just(reg1));
+                .thenReturn(Maybe.just(reg1));
 
         resourceService.save(data, testContext.failing(throwable -> testContext.verify(() -> {
             assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
@@ -244,7 +256,7 @@ public class ResourceServiceImplTest {
         when(sessionManager.remove(r1)).thenReturn(Completable.complete());
 
         resourceService.delete(r1.getResourceId(),
-            testContext.succeeding(result -> testContext.verify(testContext::completeNow)));
+                testContext.succeeding(result -> testContext.verify(testContext::completeNow)));
     }
 
     @Test
@@ -263,9 +275,9 @@ public class ResourceServiceImplTest {
         SessionMockHelper.mockCompletable(smProvider, sessionManager);
         when(resourceRepository.findClusterByName(sessionManager, cr1.getName())).thenReturn(Maybe.just(cr1));
         try (MockedConstruction<K8sResourceUpdateUtility> ignored = Mockprovider.mockK8sResourceUpdateUtility(
-            sessionManager, cr1, monitoringData)) {
+                sessionManager, cr1, monitoringData)) {
             resourceService.updateClusterResource(cr1.getName(), monitoringData,
-                testContext.succeeding(result -> testContext.verify(testContext::completeNow)));
+                    testContext.succeeding(result -> testContext.verify(testContext::completeNow)));
         }
     }
 
@@ -308,7 +320,7 @@ public class ResourceServiceImplTest {
             assertThat(resultEntry.getJsonArray("sub_resources").size()).isEqualTo(type.equals("initialized") ? 1 : 0);
             if (type.equals("initialized")) {
                 assertThat(resultEntry.getJsonArray("sub_resources").getJsonObject(0)
-                    .getJsonObject("main_resource")).isNull();
+                        .getJsonObject("main_resource")).isNull();
             }
             assertThat(resultEntry.containsKey("created_at")).isEqualTo(true);
             assertThat(resultEntry.containsKey("updated_at")).isEqualTo(true);

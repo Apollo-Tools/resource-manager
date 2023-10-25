@@ -3,6 +3,7 @@ package at.uibk.dps.rm.service.database.metric;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
+import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.service.database.util.MetricValueUtility;
@@ -51,6 +52,9 @@ public class MetricValueServiceImplTest {
     private MetricValueRepository metricValueRepository;
 
     @Mock
+    private MetricRepository metricRepository;
+
+    @Mock
     private PlatformMetricRepository platformMetricRepository;
 
     @Mock
@@ -67,7 +71,7 @@ public class MetricValueServiceImplTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        metricValueService = new MetricValueServiceImpl(metricValueRepository, platformMetricRepository,
+        metricValueService = new MetricValueServiceImpl(metricValueRepository, metricRepository, platformMetricRepository,
             smProvider);
         r1 = TestResourceProvider.createResource(1L);
         MetricType mtString = TestMetricProvider.createMetricTypeString();
