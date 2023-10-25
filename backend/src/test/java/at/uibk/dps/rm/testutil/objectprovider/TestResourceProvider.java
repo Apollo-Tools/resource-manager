@@ -37,6 +37,7 @@ public class TestResourceProvider {
         metricValues.add(TestMetricProvider.createMetricValue(3L, 4L,"storage-size", 100));
         metricValues.add(TestMetricProvider.createMetricValue(4L, 5L,"availability", 99.5));
         mainResource.setMetricValues(metricValues);
+        mainResource.setIsLockable(false);
         return mainResource;
     }
 
@@ -51,6 +52,7 @@ public class TestResourceProvider {
         metricValues.add(TestMetricProvider.createMetricValue(3L, 4L,"storage-size", 100));
         metricValues.add(TestMetricProvider.createMetricValue(4L, 5L,"availability", 99.5));
         mainResource.setMetricValues(metricValues);
+        mainResource.setIsLockable(false);
         return mainResource;
     }
 
@@ -62,6 +64,7 @@ public class TestResourceProvider {
         metricValues.add(TestMetricProvider.createMetricValue(3L, 4L,"storage-size", 100));
         metricValues.add(TestMetricProvider.createMetricValue(4L, 5L,"availability", 99.5));
         subResource.setMetricValues(metricValues);
+        subResource.setIsLockable(false);
         return subResource;
     }
 
@@ -71,6 +74,7 @@ public class TestResourceProvider {
         subResource.setName(name);
         subResource.setMainResource(mainResource);
         subResource.setMetricValues(Set.of());
+        subResource.setIsLockable(false);
         return subResource;
     }
 
@@ -82,6 +86,7 @@ public class TestResourceProvider {
         resource.setRegion(region);
         resource.setPlatform(platform);
         resource.setMetricValues(new HashSet<>());
+        resource.setIsLockable(false);
         return resource;
     }
 
@@ -126,6 +131,7 @@ public class TestResourceProvider {
         Metric m1 = TestMetricProvider.createMetric(1L, "deployment-role", mt1);
         MetricValue mv1 = TestMetricProvider.createMetricValue(1L, m1, "labRole");
         resource.setMetricValues(Set.of(mv1));
+        resource.setIsLockable(false);
         return resource;
     }
 
@@ -145,6 +151,7 @@ public class TestResourceProvider {
         Metric m1 = TestMetricProvider.createMetric(3L, "instance-type", mt1);
         MetricValue mv1 = TestMetricProvider.createMetricValue(1L, m1, instanceType);
         resource.setMetricValues(Set.of(mv1));
+        resource.setIsLockable(false);
         return resource;
     }
 
@@ -164,6 +171,7 @@ public class TestResourceProvider {
         MetricValue mv2 = TestMetricProvider.createMetricValue(4L, m2, openfaasUser);
         MetricValue mv3 = TestMetricProvider.createMetricValue(5L, m3, openfaasPw);
         resource.setMetricValues(Set.of(mv1, mv2, mv3));
+        resource.setIsLockable(false);
         return resource;
     }
 
@@ -184,6 +192,7 @@ public class TestResourceProvider {
         MetricValue mv1 = TestMetricProvider.createMetricValue(1L, m1, timeout);
         MetricValue mv2 = TestMetricProvider.createMetricValue(2L, m2, memorySize);
         resource.setMetricValues(Set.of(mv1, mv2));
+        resource.setIsLockable(false);
         return resource;
     }
 
@@ -207,6 +216,7 @@ public class TestResourceProvider {
         } else {
             resource.setMetricValues(Set.of(mv1, mv2));
         }
+        resource.setIsLockable(false);
 
         return resource;
     }

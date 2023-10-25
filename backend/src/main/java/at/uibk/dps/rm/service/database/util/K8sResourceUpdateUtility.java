@@ -58,6 +58,7 @@ public class K8sResourceUpdateUtility {
                 subResource.setMainResource(cluster);
                 subResource.setName(node.getName());
                 subResource.setMetricValues(Set.of());
+                subResource.setIsLockable(false);
                 Arrays.stream(K8sMonitoringMetricEnum.values())
                     .filter(K8sMonitoringMetricEnum::getIsSubResourceMetric)
                     .forEach(metric -> createNewMetricValue(subResource, metric, node, mvToPersist));

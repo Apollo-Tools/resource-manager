@@ -30,6 +30,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
@@ -82,7 +83,7 @@ public class ResourceServiceImplTest {
         resourceService = new ResourceServiceImpl(resourceRepository, regionRepository, metricRepository,
             smProvider);
         data = new JsonObject("{\"name\": \"new_r\", \"region\": {\"region_id\": 1}, \"platform\": " +
-            "{\"platform_id\":  2}}");
+            "{\"platform_id\":  2}, \"is_lockable\": true}");
         reg1 = TestResourceProviderProvider.createRegion(1L, "us-east");
         p1 = TestPlatformProvider.createPlatformFaas(2L, "lambda");
         r1 = TestResourceProvider.createResource(1L);
@@ -233,6 +234,40 @@ public class ResourceServiceImplTest {
 
         resourceService.save(data, testContext.failing(throwable -> testContext.verify(() -> {
             assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
+            testContext.completeNow();
+        })));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "true, true",
+        "true, false",
+        "false, true",
+        "false, false"
+    })
+    void update(boolean isLockableCurrent, boolean isLockableNew, VertxTestContext testContext) {
+        r1.setIsLockable(isLockableCurrent);
+        JsonObject data = new JsonObject("{\"is_lockable\": " + isLockableNew + "}");
+
+        SessionMockHelper.mockCompletable(smProvider, sessionManager);
+        when(sessionManager.find(Resource.class, r1.getResourceId()))
+            .thenReturn(Maybe.just(r1));
+
+        resourceService.update(r1.getResourceId(), data, testContext.succeeding(result -> testContext.verify(() -> {
+            assertThat(r1.getIsLockable()).isEqualTo(isLockableNew);
+            testContext.completeNow();
+        })));
+    }
+
+    @Test
+    void updateNotFound(VertxTestContext testContext) {
+        JsonObject data = new JsonObject("{\"is_lockable\": true}");
+
+        SessionMockHelper.mockCompletable(smProvider, sessionManager);
+        when(sessionManager.find(Resource.class, r1.getResourceId())).thenReturn(Maybe.empty());
+
+        resourceService.update(r1.getResourceId(), data, testContext.failing(throwable -> testContext.verify(() -> {
+            assertThat(throwable).isInstanceOf(NotFoundException.class);
             testContext.completeNow();
         })));
     }
