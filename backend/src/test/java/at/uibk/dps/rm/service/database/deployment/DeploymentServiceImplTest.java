@@ -228,7 +228,9 @@ public class DeploymentServiceImplTest {
             MockedConstruction<SaveResourceDeploymentUtility> ignoreSave = DatabaseUtilMockprovider
                     .mockSaveResourceDeploymentUtility(sessionManager, rdsNew, List.of(n1), List.of(r1, r2));
             MockedConstruction<DeploymentUtility> ignoreDeployment = DatabaseUtilMockprovider
-                    .mockDeploymentUtility(sessionManager)) {
+                    .mockDeploymentUtility(sessionManager);
+            MockedConstruction<LockedResourcesUtility> ignoreLock = DatabaseUtilMockprovider
+                .mockLockUtilityLockResources(sessionManager, List.of())) {
             deploymentService.saveToAccount(accountId, JsonObject.mapFrom(request),
                 testContext.succeeding(result -> testContext.verify(() -> {
                     DeployResourcesDTO resultDTO = result.mapTo(DeployResourcesDTO.class);
@@ -299,8 +301,11 @@ public class DeploymentServiceImplTest {
             return deploymentLog.getDeployment().equals(deployment);
         }))).thenReturn(Single.just(new DeploymentLog()));
 
-        deploymentService.handleDeploymentError(deploymentId, errorMessage,
-            testContext.succeeding(result -> testContext.verify(testContext::completeNow)));
+        try(MockedConstruction<LockedResourcesUtility> ignore =
+                DatabaseUtilMockprovider.mockLockUtilityUnlockResources(sessionManager, deploymentId)) {
+            deploymentService.handleDeploymentError(deploymentId, errorMessage,
+                testContext.succeeding(result -> testContext.verify(testContext::completeNow)));
+        }
     }
 
     @Test

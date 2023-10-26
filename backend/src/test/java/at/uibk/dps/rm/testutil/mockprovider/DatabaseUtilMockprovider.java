@@ -7,6 +7,7 @@ import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateDTO;
 import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
 import at.uibk.dps.rm.entity.dto.ensemble.ResourceEnsembleStatus;
+import at.uibk.dps.rm.entity.dto.resource.ResourceId;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.monitoring.K8sMonitoringData;
 import at.uibk.dps.rm.service.database.util.*;
@@ -112,5 +113,18 @@ public class DatabaseUtilMockprovider {
             given(mock.setTriggerUrlForContainers(eq(sm), any(DeployResourcesDTO.class)))
                 .willReturn(Completable.complete());
         });
+    }
+
+    public static MockedConstruction<LockedResourcesUtility> mockLockUtilityLockResources(SessionManager sm,
+            List<ResourceId> lockResources) {
+        return Mockito.mockConstruction(LockedResourcesUtility.class, (mock, context) ->
+            given(mock.lockResources(eq(sm), eq(lockResources), any(Deployment.class)))
+                .willReturn(Single.just(List.of())));
+    }
+
+    public static MockedConstruction<LockedResourcesUtility> mockLockUtilityUnlockResources(SessionManager sm,
+            Long deploymentId) {
+        return Mockito.mockConstruction(LockedResourcesUtility.class, (mock, context) ->
+            given(mock.unlockDeploymentResources(sm, deploymentId)).willReturn(Completable.complete()));
     }
 }

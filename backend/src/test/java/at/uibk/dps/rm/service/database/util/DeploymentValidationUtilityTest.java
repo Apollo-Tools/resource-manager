@@ -9,6 +9,7 @@ import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
 import at.uibk.dps.rm.entity.dto.resource.ResourceTypeEnum;
 import at.uibk.dps.rm.entity.model.*;
+import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.testutil.mockprovider.DeploymentRepositoryProviderMock;
@@ -111,6 +112,9 @@ public class DeploymentValidationUtilityTest {
         when(repositoryMock.getResourceRepository().findAllByResourceIdsAndResourceTypes(sessionManager,
             Set.of(r1.getResourceId(), r2.getResourceId()), List.of(ResourceTypeEnum.FAAS.getValue())))
             .thenReturn(Single.just(testCase.equals("frNotFound") ? List.of(r3) : List.of(r3, r4)));
+        if (testCase.equals("resourceLocked")) {
+            r2.setLockedByDeployment(new Deployment());
+        }
         when(repositoryMock.getResourceRepository().findAllByResourceIdsAndFetch(sessionManager,
             List.of(r1.getResourceId(), r2.getResourceId(), r3.getResourceId(), r4.getResourceId())))
             .thenReturn(Single.just(List.of(r1, r2, r3, r4)));
@@ -168,6 +172,20 @@ public class DeploymentValidationUtilityTest {
             .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
+                    testContext.completeNow();
+                })
+            );
+    }
+
+    @Test
+    void checkDeploymentResourceLocked(VertxTestContext testContext) {
+        setupMocks("resourceLocked");
+
+        utility.checkDeploymentIsValid(sessionManager, requestDTO, deployResourcesDTO)
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(BadInputException.class);
+                    assertThat(throwable.getMessage()).isEqualTo("resource r2(2) is locked");
                     testContext.completeNow();
                 })
             );
