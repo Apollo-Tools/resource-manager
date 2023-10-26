@@ -198,6 +198,7 @@ public class MetricValueUtility {
                     metricValue.setMetric(platformMetric.getMetric());
                     metricValue.setResource(resource);
                     checkAddMetricValueSetCorrectly(platformMetric, jsonMetric, metricValue);
+                    System.out.println("saveMetric");
                     return sm.persist(metricValue).ignoreElement();
                 });
     }
