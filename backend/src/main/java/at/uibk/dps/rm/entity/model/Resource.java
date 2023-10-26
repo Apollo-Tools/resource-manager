@@ -85,4 +85,9 @@ public abstract class Resource {
         SubResource subResource = (SubResource) this;
         return subResource.getMainResource();
     }
+
+    @Override
+    public String toString() {
+        return  this.getName() + "(" + this.getResourceId() + ")";
+    }
 }

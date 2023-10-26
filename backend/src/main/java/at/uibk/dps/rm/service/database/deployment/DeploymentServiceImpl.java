@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.dto.deployment.*;
+import at.uibk.dps.rm.entity.dto.resource.ResourceId;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
@@ -23,6 +24,7 @@ import io.vertx.core.json.JsonObject;
 import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * This is the implementation of the {@link DeploymentService}.
@@ -141,6 +143,9 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
         deployResources.setDeployment(deployment);
         deployResources.setDeploymentCredentials(request.getCredentials());
         deployResources.setVpcList(new ArrayList<>());
+        List<Long> lockResourcesId = request.getLockResources().stream()
+            .map(ResourceId::getResourceId)
+            .collect(Collectors.toList());
         Single<DeployResourcesDTO> save = smProvider.withTransactionSingle(sm -> sm.find(Account.class, accountId)
             .switchIfEmpty(Maybe.error(new UnauthorizedException()))
             .flatMapCompletable(account -> {
@@ -164,6 +169,17 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                     return Completable.mergeArray(saveFunctionDeployments, saveServiceDeployments);
                 })
             )
+            .andThen(Completable.defer(() -> repositoryProvider.getResourceRepository()
+                .findAllByResourceIdsAndFetch(sm, lockResourcesId)
+                .flatMapObservable(Observable::fromIterable)
+                .flatMapCompletable(resource -> {
+                    if (!resource.getIsLockable()) {
+                        return Completable.error(new BadInputException("resource " + resource + " is not lockable"));
+                    }
+                    resource.setLockedByDeployment(deployment);
+                    return  sm.flush();
+                })
+            ))
             .andThen(Single.defer(() -> repositoryProvider.getCredentialsRepository()
                 .findAllByAccountId(sm, accountId)
                 .map(credentials -> {
