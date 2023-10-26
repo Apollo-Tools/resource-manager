@@ -65,7 +65,9 @@ public class DeploymentRoute implements Route {
                     Completable completable = deploymentExecutionChecker.terminateResources(terminateResources)
                         .andThen(Completable.defer(() -> deploymentExecutionChecker.deleteTFDirs(deploymentId)))
                         .andThen(Completable.defer(() -> serviceProxyProvider.getResourceDeploymentService()
-                            .updateStatusByDeploymentId(deploymentId, DeploymentStatusValue.TERMINATED)));
+                            .updateStatusByDeploymentId(deploymentId, DeploymentStatusValue.TERMINATED)))
+                        .andThen(Completable.defer(() -> serviceProxyProvider.getResourceService()
+                            .unlockLockedResourcesByDeploymentId(deploymentId)));
                     deploymentErrorHandler.handleTerminateResources(completable, deploymentId);
                     return Completable.complete();
                 })

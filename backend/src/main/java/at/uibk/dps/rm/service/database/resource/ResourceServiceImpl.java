@@ -12,6 +12,7 @@ import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import at.uibk.dps.rm.service.database.util.K8sResourceUpdateUtility;
+import at.uibk.dps.rm.service.database.util.LockedResourcesUtility;
 import at.uibk.dps.rm.service.database.util.SLOUtility;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Completable;
@@ -163,6 +164,9 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
             .switchIfEmpty(Maybe.error(new NotFoundException(Resource.class)))
             .flatMapCompletable(resource -> {
                 resource.setIsLockable(fields.getBoolean("is_lockable"));
+                if (resource.getIsLockable()) {
+                    resource.setLockedByDeployment(null);
+                }
                 return Completable.complete();
             })
         );
@@ -181,6 +185,15 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
                 .andThen(updateUtility.updateCluster(sm, cluster, data)))
         );
         RxVertxHandler.handleSession(updateClusterResource, resultHandler);
+    }
+
+    @Override
+    public void unlockLockedResourcesByDeploymentId(long deploymentId, Handler<AsyncResult<Void>> resultHandler) {
+        LockedResourcesUtility lockUtility = new LockedResourcesUtility(repository);
+        Completable unlockResources = smProvider.withTransactionCompletable(sm -> lockUtility
+            .unlockDeploymentResources(sm, deploymentId)
+        );
+        RxVertxHandler.handleSession(unlockResources, resultHandler);
     }
 
     private Resource getResourceLockState(Resource resource) {
