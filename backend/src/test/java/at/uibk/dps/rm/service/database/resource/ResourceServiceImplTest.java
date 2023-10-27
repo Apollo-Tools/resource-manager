@@ -125,13 +125,16 @@ public class ResourceServiceImplTest {
 
     @Test
     void findAll(VertxTestContext testContext) {
+        r1.setLockedByDeployment(new Deployment());
         SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(resourceRepository.findAllAndFetch(sessionManager)).thenReturn(Single.just(List.of(r1, r2)));
 
         resourceService.findAll(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
                 assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
+                assertThat(result.getJsonObject(0).getBoolean("is_locked")).isEqualTo(true);
                 assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
+                assertThat(result.getJsonObject(1).getBoolean("is_locked")).isEqualTo(false);
                 testContext.completeNow();
             })));
     }
@@ -247,6 +250,7 @@ public class ResourceServiceImplTest {
     })
     void update(boolean isLockableCurrent, boolean isLockableNew, VertxTestContext testContext) {
         r1.setIsLockable(isLockableCurrent);
+        r1.setLockedByDeployment(new Deployment());
         JsonObject data = new JsonObject("{\"is_lockable\": " + isLockableNew + "}");
 
         SessionMockHelper.mockCompletable(smProvider, sessionManager);
@@ -255,6 +259,7 @@ public class ResourceServiceImplTest {
 
         resourceService.update(r1.getResourceId(), data, testContext.succeeding(result -> testContext.verify(() -> {
             assertThat(r1.getIsLockable()).isEqualTo(isLockableNew);
+            assertThat(r1.getLockedByDeployment() == null).isEqualTo(!isLockableNew);
             testContext.completeNow();
         })));
     }
@@ -316,6 +321,21 @@ public class ResourceServiceImplTest {
                     testContext.completeNow();
                 })));
     }
+
+    @Test
+    void unlockLockedResourcesByDeploymentId(VertxTestContext testContext) {
+        long deploymentId = 1L;
+
+        SessionMockHelper.mockCompletable(smProvider, sessionManager);
+
+        try(MockedConstruction<LockedResourcesUtility> ignore = DatabaseUtilMockprovider
+            .mockLockUtilityUnlockResources(sessionManager, deploymentId)) {
+            resourceService.unlockLockedResourcesByDeploymentId(deploymentId,
+                testContext.succeeding(result -> testContext.completeNow()));
+        }
+    }
+
+
 
     @Test
     void encodeResourceListSubResource() {

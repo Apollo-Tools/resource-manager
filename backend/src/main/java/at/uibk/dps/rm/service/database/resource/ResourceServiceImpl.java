@@ -164,7 +164,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
             .switchIfEmpty(Maybe.error(new NotFoundException(Resource.class)))
             .flatMapCompletable(resource -> {
                 resource.setIsLockable(fields.getBoolean("is_lockable"));
-                if (resource.getIsLockable()) {
+                if (!resource.getIsLockable()) {
                     resource.setLockedByDeployment(null);
                 }
                 return Completable.complete();
