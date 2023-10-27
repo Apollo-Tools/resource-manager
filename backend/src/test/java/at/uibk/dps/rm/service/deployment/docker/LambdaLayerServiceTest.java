@@ -55,12 +55,12 @@ public class LambdaLayerServiceTest {
         Resource r1 = TestResourceProvider.createResourceLambda(1L);
         Resource r2 = TestResourceProvider.createResourceOpenFaas(2L, "localhost", "user",
             "pw");
-        fd1 = TestFunctionProvider.createFunctionDeployment(1L, f1, r1, false, deployment);
-        fd2 = TestFunctionProvider.createFunctionDeployment(2L, f2, r1, false, deployment);
-        fd3 = TestFunctionProvider.createFunctionDeployment(3L, f3, r1, false, deployment);
-        fd4 = TestFunctionProvider.createFunctionDeployment(4L, f1, r2, false, deployment);
-        fd5 = TestFunctionProvider.createFunctionDeployment(5L, f2, r2, false, deployment);
-        fd6 = TestFunctionProvider.createFunctionDeployment(6L, f3, r2, false, deployment);
+        fd1 = TestFunctionProvider.createFunctionDeployment(1L, f1, r1, deployment);
+        fd2 = TestFunctionProvider.createFunctionDeployment(2L, f2, r1, deployment);
+        fd3 = TestFunctionProvider.createFunctionDeployment(3L, f3, r1, deployment);
+        fd4 = TestFunctionProvider.createFunctionDeployment(4L, f1, r2, deployment);
+        fd5 = TestFunctionProvider.createFunctionDeployment(5L, f2, r2, deployment);
+        fd6 = TestFunctionProvider.createFunctionDeployment(6L, f3, r2, deployment);
     }
 
     @Test

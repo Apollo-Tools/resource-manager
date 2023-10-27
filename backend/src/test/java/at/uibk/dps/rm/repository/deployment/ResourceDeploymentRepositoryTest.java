@@ -35,8 +35,8 @@ public class ResourceDeploymentRepositoryTest extends DatabaseTest {
         super.fillDB(vertx, testContext);
 
         smProvider.withTransactionSingle(sessionManager -> {
-            Deployment d1 = TestDeploymentProvider.createDeployment(null, true, accountAdmin);
-            Deployment d2 = TestDeploymentProvider.createDeployment(null, true, accountAdmin);
+            Deployment d1 = TestDeploymentProvider.createDeployment(null, accountAdmin);
+            Deployment d2 = TestDeploymentProvider.createDeployment(null, accountAdmin);
             Runtime rtPython = TestFunctionProvider.createRuntime(1L);
             FunctionType ft1 = TestFunctionProvider.createFunctionType(1L, "notype");
             Function f1 = TestFunctionProvider.createFunction(null, ft1, "foo1",
@@ -69,15 +69,15 @@ public class ResourceDeploymentRepositoryTest extends DatabaseTest {
                 DeploymentStatusValue.TERMINATING);
             ResourceDeploymentStatus rds5 = TestDeploymentProvider.createResourceDeploymentStatus(5L,
                 DeploymentStatusValue.TERMINATED);
-            FunctionDeployment fd1 = TestFunctionProvider.createFunctionDeployment(null, f1, r1, true, d1,
+            FunctionDeployment fd1 = TestFunctionProvider.createFunctionDeployment(null, f1, r1, d1,
                 rds1);
-            FunctionDeployment fd2 = TestFunctionProvider.createFunctionDeployment(null, f2, r1, true, d1,
+            FunctionDeployment fd2 = TestFunctionProvider.createFunctionDeployment(null, f2, r1, d1,
                 rds2);
-            FunctionDeployment fd3 = TestFunctionProvider.createFunctionDeployment(null, f1, r1, true, d2,
+            FunctionDeployment fd3 = TestFunctionProvider.createFunctionDeployment(null, f1, r1, d2,
                 rds3);
-            ServiceDeployment sd1 = TestServiceProvider.createServiceDeployment(null, s1, r2, true, d1,
+            ServiceDeployment sd1 = TestServiceProvider.createServiceDeployment(null, s1, r2, d1,
                 rds4);
-            ServiceDeployment sd2 = TestServiceProvider.createServiceDeployment(null, s2, r2, true, d2,
+            ServiceDeployment sd2 = TestServiceProvider.createServiceDeployment(null, s2, r2, d2,
                 rds5);
             return sessionManager.persist(d1)
                 .flatMap(res -> sessionManager.persist(d2))

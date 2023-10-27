@@ -73,7 +73,7 @@ public class DeploymentServiceImplTest {
         deploymentId = 1L;
         accountId = 2L;
         account = TestAccountProvider.createAccount(accountId);
-        deployment = TestDeploymentProvider.createDeployment(deploymentId, true, account);
+        deployment = TestDeploymentProvider.createDeployment(deploymentId, account);
         r1 = TestResourceProvider.createResourceLambda(1L);
         r2 = TestResourceProvider.createResourceContainer(2L, "localhost", true);
         c1 = TestAccountProvider.createCredentials(1L,
@@ -159,7 +159,7 @@ public class DeploymentServiceImplTest {
 
     @Test
     void findAllByAccountId(VertxTestContext testContext) {
-        Deployment d2 = TestDeploymentProvider.createDeployment(2L, true, account);
+        Deployment d2 = TestDeploymentProvider.createDeployment(2L, account);
 
         SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(repositoryMock.getDeploymentRepository().findAllByAccountId(sessionManager, accountId))
@@ -221,7 +221,7 @@ public class DeploymentServiceImplTest {
         SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(sessionManager.find(Account.class, accountId)).thenReturn(Maybe.just(account));
         when(sessionManager.persist(argThat((Deployment depl) ->
-            depl.getCreatedBy().equals(account) && deployment.getIsActive()))).thenReturn(Single.just(deployment));
+            depl.getCreatedBy().equals(account)))).thenReturn(Single.just(deployment));
         when(sessionManager.flush()).thenReturn(Completable.complete());
         when(repositoryMock.getStatusRepository().findOneByStatusValue(sessionManager,
             DeploymentStatusValue.NEW.name())).thenReturn(Maybe.just(rdsNew));
@@ -256,7 +256,7 @@ public class DeploymentServiceImplTest {
         SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(sessionManager.find(Account.class, accountId)).thenReturn(Maybe.just(account));
         when(sessionManager.persist(argThat((Deployment depl) ->
-            depl.getCreatedBy().equals(account) && deployment.getIsActive()))).thenReturn(Single.just(deployment));
+            depl.getCreatedBy().equals(account)))).thenReturn(Single.just(deployment));
         when(sessionManager.flush()).thenReturn(Completable.complete());
         when(repositoryMock.getStatusRepository().findOneByStatusValue(sessionManager,
             DeploymentStatusValue.NEW.name())).thenReturn(Maybe.empty());

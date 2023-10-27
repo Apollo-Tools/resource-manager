@@ -33,7 +33,7 @@ public class ResourceRepositoryTest extends DatabaseTest {
         super.fillDB(vertx, testContext);
 
         smProvider.withTransactionCompletable(sessionManager -> {
-            Deployment d1 = TestDeploymentProvider.createDeployment(null, true, accountAdmin);
+            Deployment d1 = TestDeploymentProvider.createDeployment(null, accountAdmin);
             Region reg1 = TestResourceProviderProvider.createRegion(1L, "us-east-1");
             Region reg2 = TestResourceProviderProvider.createRegion(3L, "edge");
             Platform p1 = TestPlatformProvider.createPlatformContainer(4L, "k8s");

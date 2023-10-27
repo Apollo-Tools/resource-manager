@@ -35,9 +35,9 @@ public class DeploymentRepositoryTest extends DatabaseTest {
         super.fillDB(vertx, testContext);
 
         smProvider.withTransactionSingle(sessionManager -> {
-            Deployment d1 = TestDeploymentProvider.createDeployment(null, true, accountAdmin);
-            Deployment d2 = TestDeploymentProvider.createDeployment(null, true, accountAdmin);
-            Deployment d3 = TestDeploymentProvider.createDeployment(null, true, accountDefault);
+            Deployment d1 = TestDeploymentProvider.createDeployment(null, accountAdmin);
+            Deployment d2 = TestDeploymentProvider.createDeployment(null, accountAdmin);
+            Deployment d3 = TestDeploymentProvider.createDeployment(null, accountDefault);
             return sessionManager.persist(d1)
                 .flatMap(res -> sessionManager.persist(d2))
                 .flatMap(res -> sessionManager.persist(d3));

@@ -22,7 +22,7 @@ public class ResourceDeploymentRouteTest extends RouterTest {
         super.fillDB(vertx, testContext);
 
         smProvider.withTransactionSingle(sessionManager -> {
-            Deployment d1 = TestDeploymentProvider.createDeployment(null, true, accountAdmin);
+            Deployment d1 = TestDeploymentProvider.createDeployment(null, accountAdmin);
             return sessionManager.persist(d1);
         }).blockingSubscribe(res -> {}, testContext::failNow);
     }

@@ -51,7 +51,7 @@ public class ResourceDeploymentRepository extends Repository<ResourceDeployment>
     public Completable updateTriggerUrl(SessionManager sessionManager, long id, String triggerUrl) {
         return Single.fromCompletionStage(sessionManager.getSession()
             .createQuery("update ResourceDeployment rd " +
-                "set triggerUrl=:triggerUrl, isDeployed=true " +
+                "set triggerUrl=:triggerUrl " +
                 "where rd.resourceDeploymentId=:id")
             .setParameter("triggerUrl", triggerUrl)
             .setParameter("id", id)

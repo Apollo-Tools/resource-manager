@@ -85,12 +85,11 @@ public class TestServiceProvider {
 
 
     public static ServiceDeployment createServiceDeployment(Long id, Service service, Resource resource,
-            boolean isDeployed, Deployment deployment, ResourceDeploymentStatus status) {
+            Deployment deployment, ResourceDeploymentStatus status) {
         ServiceDeployment serviceDeployment = new ServiceDeployment();
         serviceDeployment.setResourceDeploymentId(id);
         serviceDeployment.setService(service);
         serviceDeployment.setResource(resource);
-        serviceDeployment.setIsDeployed(isDeployed);
         serviceDeployment.setDeployment(deployment);
         serviceDeployment.setContext("k8s-context");
         serviceDeployment.setNamespace("default");
@@ -99,15 +98,15 @@ public class TestServiceProvider {
     }
 
     public static ServiceDeployment createServiceDeployment(long id, Service service, Resource resource,
-            boolean isDeployed, Deployment deployment) {
+            Deployment deployment) {
         ResourceDeploymentStatus status = TestDeploymentProvider.createResourceDeploymentStatusNew();
-        return createServiceDeployment(id, service, resource, isDeployed, deployment, status);
+        return createServiceDeployment(id, service, resource, deployment, status);
     }
 
     public static ServiceDeployment createServiceDeployment(long id, long resourceId, Deployment deployment) {
         Service service = createService(22L, "test");
         Resource resource = TestResourceProvider.createResourceContainer(resourceId, "localhost", true);
-        return createServiceDeployment(id, service, resource, true, deployment);
+        return createServiceDeployment(id, service, resource, deployment);
     }
 
     public static ServiceDeployment createServiceDeployment(long id, Deployment deployment) {
@@ -116,18 +115,18 @@ public class TestServiceProvider {
 
     public static ServiceDeployment createServiceDeployment(long id, Resource resource, Deployment deployment) {
         Service service = createService(22L, "test");
-        return createServiceDeployment(id, service, resource, false, deployment);
+        return createServiceDeployment(id, service, resource, deployment);
     }
 
     public static ServiceDeployment createServiceDeployment(long id, Resource resource, Deployment deployment,
             ResourceDeploymentStatus status) {
         Service service = createService(22L, "test");
-        return createServiceDeployment(id, service, resource, false, deployment, status);
+        return createServiceDeployment(id, service, resource, deployment, status);
     }
 
     public static ServiceDeployment createServiceDeployment(long id, Service service, Resource resource) {
         Deployment deployment = TestDeploymentProvider.createDeployment(1L);
-        return createServiceDeployment(id, service, resource, false, deployment);
+        return createServiceDeployment(id, service, resource, deployment);
     }
 
     public static VolumeMount createVolumeMount(long id) {

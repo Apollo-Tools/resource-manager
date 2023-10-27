@@ -54,7 +54,7 @@ public class DeploymentUtilityTest {
         utility = new DeploymentUtility(repositoryMock.getRepositoryProvider());
         deploymentId = 1L;
         Account account = TestAccountProvider.createAccount(2L);
-        deployment = TestDeploymentProvider.createDeployment(deploymentId, true, account);
+        deployment = TestDeploymentProvider.createDeployment(deploymentId, account);
         Resource r1 = TestResourceProvider.createResourceLambda(1L);
         Resource r2 = TestResourceProvider.createResourceContainer(2L, "localhost", true);
         ResourceDeploymentStatus rdsDeployed = TestDeploymentProvider.createResourceDeploymentStatusDeployed();

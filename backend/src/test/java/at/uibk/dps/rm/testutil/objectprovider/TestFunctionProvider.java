@@ -101,12 +101,11 @@ public class TestFunctionProvider {
 
 
     public static FunctionDeployment createFunctionDeployment(Long id, Function function, Resource resource,
-            boolean isDeployed, Deployment deployment, ResourceDeploymentStatus deploymentStatus) {
+            Deployment deployment, ResourceDeploymentStatus deploymentStatus) {
         FunctionDeployment functionDeployment = new FunctionDeployment();
         functionDeployment.setResourceDeploymentId(id);
         functionDeployment.setFunction(function);
         functionDeployment.setResource(resource);
-        functionDeployment.setIsDeployed(isDeployed);
         functionDeployment.setStatus(deploymentStatus);
         functionDeployment.setDeployment(deployment);
         return functionDeployment;
@@ -114,20 +113,20 @@ public class TestFunctionProvider {
 
 
     public static FunctionDeployment createFunctionDeployment(Long id, Function function, Resource resource,
-            boolean isDeployed, Deployment deployment) {
+            Deployment deployment) {
         ResourceDeploymentStatus status = TestDeploymentProvider.createResourceDeploymentStatusNew();
-        return createFunctionDeployment(id, function, resource, isDeployed, deployment, status);
+        return createFunctionDeployment(id, function, resource, deployment, status);
     }
 
     public static FunctionDeployment createFunctionDeployment(long id, Resource resource, Deployment deployment) {
         Function function = createFunction(22L, "func-test", "false");
-        return createFunctionDeployment(id, function, resource, true, deployment);
+        return createFunctionDeployment(id, function, resource, deployment);
     }
 
     public static FunctionDeployment createFunctionDeployment(long id, Resource resource, Deployment deployment,
             ResourceDeploymentStatus status) {
         Function function = createFunction(22L, "func-test", "false");
-        return createFunctionDeployment(id, function, resource, true, deployment, status);
+        return createFunctionDeployment(id, function, resource, deployment, status);
     }
 
     public static FunctionDeployment createFunctionDeployment(long id, Resource resource) {
@@ -137,6 +136,6 @@ public class TestFunctionProvider {
 
     public static FunctionDeployment createFunctionDeployment(long id, Function function, Resource resource) {
         Deployment deployment = TestDeploymentProvider.createDeployment(1L);
-        return createFunctionDeployment(id, function, resource, false, deployment);
+        return createFunctionDeployment(id, function, resource, deployment);
     }
 }

@@ -59,10 +59,10 @@ public class DockerHubImageCheckerTest {
         f3 = spy(TestFunctionProvider.createFunction(3L, "func3", "code"));
         Resource r1 = TestResourceProvider.createResource(1L);
         Resource r2 = TestResourceProvider.createResource(2L);
-        fd1 = TestFunctionProvider.createFunctionDeployment(1L, f1, r1, false, new Deployment());
-        fd2 = TestFunctionProvider.createFunctionDeployment(2L, f2, r1, false, new Deployment());
-        fd3 = TestFunctionProvider.createFunctionDeployment(3L, f3, r1, false, new Deployment());
-        fd4 = TestFunctionProvider.createFunctionDeployment(4L, f1, r2, false, new Deployment());
+        fd1 = TestFunctionProvider.createFunctionDeployment(1L, f1, r1, new Deployment());
+        fd2 = TestFunctionProvider.createFunctionDeployment(2L, f2, r1, new Deployment());
+        fd3 = TestFunctionProvider.createFunctionDeployment(3L, f3, r1, new Deployment());
+        fd4 = TestFunctionProvider.createFunctionDeployment(4L, f1, r2, new Deployment());
     }
 
     @Test

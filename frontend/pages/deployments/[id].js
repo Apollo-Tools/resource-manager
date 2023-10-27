@@ -139,7 +139,7 @@ const DeploymentDetails = () => {
             </Tooltip>
             {deploymentStatus.isDeployed &&
           <Tooltip title="Cancel Deployment">
-            <Button disabled={!deployment.is_active} onClick={ () => showCancelConfirm(id) }
+            <Button onClick={ () => showCancelConfirm(id) }
               icon={ <DisconnectOutlined/> } className="ml-2 bg-red-50 text-red-500 border-red-500"/>
           </Tooltip>
             }
@@ -148,15 +148,11 @@ const DeploymentDetails = () => {
         <DeploymentDetailsCard deployment={deployment} />
         <Typography.Title level={3}>Resource Deployments</Typography.Title>
         <Divider/>
-        {deployment.is_active &&
-        <>
-          {deployment.function_resources.length > 0 &&
-            <ResourceDeploymentTable resourceDeployments={deployment.function_resources} type='function'/>}
-          {deployment.service_resources.length > 0 &&
-            <ResourceDeploymentTable resourceDeployments={deployment.service_resources} type='service'/>}
-          <Divider />
-        </>
-        }
+        {deployment.function_resources.length > 0 &&
+          <ResourceDeploymentTable resourceDeployments={deployment.function_resources} type='function'/>}
+        {deployment.service_resources.length > 0 &&
+          <ResourceDeploymentTable resourceDeployments={deployment.service_resources} type='service'/>}
+        <Divider />
         {lockedResources.length > 0 &&
           <>
             <Typography.Title level={3}>Locked Resources</Typography.Title>

@@ -105,7 +105,6 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
             .switchIfEmpty(Single.error(new NotFoundException(Deployment.class)))
             .flatMap(deployment -> {
                 result.setDeploymentId(id);
-                result.setIsActive(deployment.getIsActive());
                 result.setCreatedAt(deployment.getCreatedAt());
                 result.setFinishedAt(deployment.getFinishedAt());
                 return repositoryProvider.getFunctionDeploymentRepository().findAllByDeploymentId(sm, id);
@@ -146,7 +145,6 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
         Single<DeployResourcesDTO> save = smProvider.withTransactionSingle(sm -> sm.find(Account.class, accountId)
             .switchIfEmpty(Maybe.error(new UnauthorizedException()))
             .flatMapCompletable(account -> {
-                deployment.setIsActive(true);
                 deployment.setCreatedBy(account);
                 return sm.persist(deployment)
                     .flatMapCompletable(res -> sm.flush());

@@ -47,7 +47,7 @@ public class LockedResourcesUtilityTest {
         utility = new LockedResourcesUtility(resourceRepository);
         deploymentId = 1L;
         Account account = TestAccountProvider.createAccount(2L);
-        deployment = TestDeploymentProvider.createDeployment(deploymentId, true, account);
+        deployment = TestDeploymentProvider.createDeployment(deploymentId, account);
         r1 = TestResourceProvider.createResource(1L);
         r1.setIsLockable(true);
         r2 = TestResourceProvider.createResource(2L);

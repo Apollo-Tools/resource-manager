@@ -3915,9 +3915,6 @@ components:
           type: integer
           format: int64
           example: 1
-        is_active:
-          type: boolean
-          example: true
         created_at:
           type: integer
           format: int64
@@ -3976,9 +3973,6 @@ components:
           type: integer
           format: int64
           example: 1679496667103
-        is_deployed:
-          type: boolean
-          example: true
     Function:
       type: object
       properties:
