@@ -1,9 +1,10 @@
 import {useEffect, useState} from 'react';
-import {Button, Form, Input, Typography} from 'antd';
+import {Button, Form, Input} from 'antd';
 import {LockOutlined, UserOutlined} from '@ant-design/icons';
 import {deployResources} from '../../lib/DeploymentService';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import PropTypes from 'prop-types';
+import NothingToSelectCard from './NothingToSelectCard';
 
 
 const AddCredentials = ({functionResources, serviceResources, lockResources, next, prev, onSubmit}) => {
@@ -96,11 +97,7 @@ const AddCredentials = ({functionResources, serviceResources, lockResources, nex
         autoComplete="off"
         layout="vertical"
       >
-        {!needsDockerCreds &&
-          <Typography.Title
-            level={3}
-            className="p-6 text-center bg-cyan-50 rounded-md shadow-lg">
-          No credentials required for this deployment</Typography.Title>}
+        {!needsDockerCreds && <NothingToSelectCard text="No credentials required for this deployment"/>}
         <Form.Item
           label="Docker registry"
           name="dockerRegistry"

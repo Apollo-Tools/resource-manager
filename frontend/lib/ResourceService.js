@@ -69,7 +69,7 @@ export async function listResources(token, setResources, setError) {
  * @param {number} id the id of the resource
  * @param {string} token the access token
  * @param {function} setResource the function to set the retrieved resource
- * @param {function} setError the function to set the error if one occured
+ * @param {function} setError the function to set the error if one occurred
  */
 export async function getResource(id, token, setResource, setError) {
   try {
@@ -93,7 +93,7 @@ export async function getResource(id, token, setResource, setError) {
  * @param {number} id the id of the resource
  * @param {string} token the access token
  * @param {function} setSubresources the function to set the retrieved resource
- * @param {function} setError the function to set the error if one occured
+ * @param {function} setError the function to set the error if one occurred
  */
 export async function listSubresources(id, token, setSubresources, setError) {
   try {
@@ -105,6 +105,30 @@ export async function listSubresources(id, token, setSubresources, setError) {
     });
     const data = await response.json();
     setSubresources(() => data);
+  } catch (error) {
+    setError(true);
+    console.log(error);
+  }
+}
+
+/**
+ * Get all resources that are locked by a deployment.
+ *
+ * @param {number} deploymentId the deploymentId of the deployment
+ * @param {string} token the access token
+ * @param {function} setResources the function to set the retrieved resource
+ * @param {function} setError the function to set the error if one occurred
+ */
+export async function listLockedResources(deploymentId, token, setResources, setError) {
+  try {
+    const response = await fetch(`${env('API_URL')}/deployments/${deploymentId}/resources/locked`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await response.json();
+    setResources(() => data);
   } catch (error) {
     setError(true);
     console.log(error);

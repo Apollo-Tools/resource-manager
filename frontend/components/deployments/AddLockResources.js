@@ -2,6 +2,7 @@ import {Button} from 'antd';
 import {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import ResourceTable from '../resources/ResourceTable';
+import NothingToSelectCard from './NothingToSelectCard';
 
 
 const AddLockResources = ({functionResources, serviceResources, lockResources, setLockResources, next, prev}) => {
@@ -33,14 +34,17 @@ const AddLockResources = ({functionResources, serviceResources, lockResources, s
 
   return (
     <>
-      <ResourceTable resources={lockableResources} hasActions={true} resourceType="sub" rowSelection={
-        {
-          selectedRowKeys: lockResources,
-          onChange: (newSelectedResourceIds) => {
-            setLockResources(() => newSelectedResourceIds);
-          },
-        }
-      }/>
+      {lockableResources.length > 0 ?
+        <ResourceTable resources={lockableResources} hasActions={true} resourceType="sub" rowSelection={
+          {
+            selectedRowKeys: lockResources,
+            onChange: (newSelectedResourceIds) => {
+              setLockResources(() => newSelectedResourceIds);
+            },
+          }
+        }/> :
+        <NothingToSelectCard text="No lockable resources selected"/>
+      }
       <Button type="primary" onClick={next} className="float-right">Next</Button>
       <Button type="default" onClick={onClickBack} className="float-left">Back</Button>
     </>

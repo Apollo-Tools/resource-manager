@@ -10,6 +10,8 @@ import LogsDisplay from '../../components/logs/LogsDisplay';
 import {DisconnectOutlined, ExclamationCircleFilled, ReloadOutlined} from '@ant-design/icons';
 import Head from 'next/head';
 import {siteTitle} from '../../components/misc/Sidebar';
+import {listLockedResources} from '../../lib/ResourceService';
+import ResourceTable from '../../components/resources/ResourceTable';
 
 const {confirm} = Modal;
 
@@ -26,6 +28,7 @@ const DeploymentDetails = () => {
     isTerminated: false,
     isError: false,
   });
+  const [lockedResources, setLockedResources] = useState([]);
   const router = useRouter();
   const {id} = router.query;
 
@@ -65,6 +68,7 @@ const DeploymentDetails = () => {
     setPollingDelay(null);
     await getDeployment(id, token, setDeployment, setError);
     await listDeploymentLogs(id, token, setLogs, setError);
+    await listLockedResources(id, token, setLockedResources, setError);
   };
 
   const checkDeploymentStatus = () => {
@@ -140,6 +144,7 @@ const DeploymentDetails = () => {
             }
           </div>
         </Typography.Title>
+        <Typography.Title level={3}>Resource Deployments</Typography.Title>
         <Divider/>
         {deployment.is_active &&
         <>
@@ -149,6 +154,13 @@ const DeploymentDetails = () => {
             <ResourceDeploymentTable resourceDeployments={deployment.service_resources} type='service'/>}
           <Divider />
         </>
+        }
+        {lockedResources.length > 0 &&
+          <>
+            <Typography.Title level={3}>Locked Resources</Typography.Title>
+            <ResourceTable resources={lockedResources} hasActions={true} resourceType='all'/>
+            <Divider />
+          </>
         }
         <Typography.Title level={3}>Logs</Typography.Title>
         <LogsDisplay logs={logs}/>
