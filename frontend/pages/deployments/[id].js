@@ -1,8 +1,8 @@
 import {Button, Divider, Modal, Tooltip, Typography} from 'antd';
 import {useRouter} from 'next/router';
 import {useEffect, useState} from 'react';
-import {useAuth} from '../../lib/AuthenticationProvider';
-import {cancelDeployment, getDeployment, listDeploymentLogs} from '../../lib/DeploymentService';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
+import {cancelDeployment, getDeployment, listDeploymentLogs} from '../../lib/api/DeploymentService';
 import ResourceDeploymentTable from '../../components/deployments/ResourceDeploymentTable';
 import DeploymentStatusCircle from '../../components/deployments/DeploymentStatusCircle';
 import {useInterval} from '../../lib/hooks/useInterval';
@@ -10,7 +10,7 @@ import LogsDisplay from '../../components/logs/LogsDisplay';
 import {DisconnectOutlined, ExclamationCircleFilled, ReloadOutlined} from '@ant-design/icons';
 import Head from 'next/head';
 import {siteTitle} from '../../components/misc/Sidebar';
-import {listLockedResources} from '../../lib/ResourceService';
+import {listLockedResources} from '../../lib/api/ResourceService';
 import ResourceTable from '../../components/resources/ResourceTable';
 
 const {confirm} = Modal;

@@ -2,9 +2,9 @@ import {
   InfoCircleOutlined,
 } from '@ant-design/icons';
 import {Button, Table, Space, Tooltip} from 'antd';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {useEffect, useState} from 'react';
-import {listMyDeployments} from '../../lib/DeploymentService';
+import {listMyDeployments} from '../../lib/api/DeploymentService';
 import Link from 'next/link';
 import DeploymentStatusBadge from './DeploymentStatusBadge';
 import DateColumnRender from '../misc/DateColumnRender';

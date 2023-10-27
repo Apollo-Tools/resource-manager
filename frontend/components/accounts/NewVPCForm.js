@@ -1,10 +1,10 @@
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import {Button, Form, Input, message, Select} from 'antd';
 import {SettingOutlined} from '@ant-design/icons';
 import PropTypes from 'prop-types';
-import {listRegions} from '../../lib/RegionService';
-import {createVPC} from '../../lib/VPCService';
+import {listRegions} from '../../lib/api/RegionService';
+import {createVPC} from '../../lib/api/VPCService';
 import ProviderIcon from '../misc/ProviderIcon';
 
 

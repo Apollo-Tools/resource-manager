@@ -2,14 +2,14 @@ import {useEffect, useState} from 'react';
 import SLOEntry from './SLOEntry';
 import {Button} from 'antd';
 import {CloseSquareOutlined, PlusSquareOutlined} from '@ant-design/icons';
-import {listMetrics} from '../../../lib/MetricService';
-import {useAuth} from '../../../lib/AuthenticationProvider';
+import {listMetrics} from '../../../lib/api/MetricService';
+import {useAuth} from '../../../lib/misc/AuthenticationProvider';
 import PropTypes from 'prop-types';
-import {listRegions} from '../../../lib/RegionService';
-import {listResourceTypes} from '../../../lib/ResourceTypeService';
-import {listPlatforms} from '../../../lib/PlatformService';
-import {listResourceProviders} from '../../../lib/ResourceProviderService';
-import {listEnvironments} from '../../../lib/EnvironmentService';
+import {listRegions} from '../../../lib/api/RegionService';
+import {listResourceTypes} from '../../../lib/api/ResourceTypeService';
+import {listPlatforms} from '../../../lib/api/PlatformService';
+import {listResourceProviders} from '../../../lib/api/ResourceProviderService';
+import {listEnvironments} from '../../../lib/api/EnvironmentService';
 
 
 const SLOSelection = ({onChange}) => {

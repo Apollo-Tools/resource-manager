@@ -1,10 +1,10 @@
 import {Button, Form, Input} from 'antd';
 import {useEffect, useState} from 'react';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import PropTypes from 'prop-types';
-import {nameRegexValidationRule, nameValidationRule} from '../../lib/FormValidationRules';
-import {createServiceType} from '../../lib/ServiceTypeService';
-import {createFunctionType} from '../../lib/FunctionTypeService';
+import {nameRegexValidationRule, nameValidationRule} from '../../lib/api/FormValidationRules';
+import {createServiceType} from '../../lib/api/ServiceTypeService';
+import {createFunctionType} from '../../lib/api/FunctionTypeService';
 
 const NewFunctionFrom = ({setNewArtifactType, artifact}) => {
   const [form] = Form.useForm();

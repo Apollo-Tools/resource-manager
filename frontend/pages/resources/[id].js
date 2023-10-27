@@ -1,16 +1,16 @@
-import {getResource, listSubresources} from '../../lib/ResourceService';
+import {getResource, listSubresources} from '../../lib/api/ResourceService';
 import {useRouter} from 'next/router';
 import {useEffect, useState} from 'react';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {Divider, Segmented, Tooltip, Typography} from 'antd';
 import ResourceDetailsCard from '../../components/resources/ResourceDetailsCard';
 import AddMetricValuesForm from '../../components/metrics/AddMetricValuesForm';
-import {listResourceMetrics} from '../../lib/MetricValueService';
+import {listResourceMetrics} from '../../lib/api/MetricValueService';
 import MetricValuesTable from '../../components/metrics/MetricValuesTable';
 import ResourceTable from '../../components/resources/ResourceTable';
 import Head from 'next/head';
 import {siteTitle} from '../../components/misc/Sidebar';
-import {listPlatformMetrics} from '../../lib/PlatformMetricService';
+import {listPlatformMetrics} from '../../lib/api/PlatformMetricService';
 import {LockTwoTone, UnlockTwoTone} from '@ant-design/icons';
 import {ICON_GREEN, ICON_RED} from '../../components/misc/Constants';
 

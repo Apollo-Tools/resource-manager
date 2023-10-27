@@ -1,9 +1,9 @@
 import {Button, Checkbox, Form, Select, Input, InputNumber, Typography} from 'antd';
 import {MinusCircleOutlined, PlusOutlined} from '@ant-design/icons';
 import {useEffect, useState} from 'react';
-import {useAuth} from '../../lib/AuthenticationProvider';
-import {listPlatformMetrics} from '../../lib/PlatformMetricService';
-import {addResourceMetrics} from '../../lib/ResourceService';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
+import {listPlatformMetrics} from '../../lib/api/PlatformMetricService';
+import {addResourceMetrics} from '../../lib/api/ResourceService';
 import PropTypes from 'prop-types';
 import TooltipIcon from '../misc/TooltipIcon';
 

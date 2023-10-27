@@ -1,12 +1,12 @@
 import {Divider} from 'antd';
 import PropTypes from 'prop-types';
 import {useEffect, useState} from 'react';
-import {useAuth} from '../../../lib/AuthenticationProvider';
-import {listRegions} from '../../../lib/RegionService';
-import {listResourceTypes} from '../../../lib/ResourceTypeService';
-import {listResourceProviders} from '../../../lib/ResourceProviderService';
-import {listPlatforms} from '../../../lib/PlatformService';
-import {listEnvironments} from '../../../lib/EnvironmentService';
+import {useAuth} from '../../../lib/misc/AuthenticationProvider';
+import {listRegions} from '../../../lib/api/RegionService';
+import {listResourceTypes} from '../../../lib/api/ResourceTypeService';
+import {listResourceProviders} from '../../../lib/api/ResourceProviderService';
+import {listPlatforms} from '../../../lib/api/PlatformService';
+import {listEnvironments} from '../../../lib/api/EnvironmentService';
 
 
 const SloDisplay = ({slos}) => {

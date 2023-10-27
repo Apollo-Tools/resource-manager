@@ -1,9 +1,9 @@
 import {Button, Modal, Table, Tooltip} from 'antd';
 import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import Link from 'next/link';
-import {deleteNamespaceFromAccount} from '../../lib/AccountNamespaceService';
+import {deleteNamespaceFromAccount} from '../../lib/api/AccountNamespaceService';
 import PropTypes from 'prop-types';
 import DateColumnRender from '../misc/DateColumnRender';
 

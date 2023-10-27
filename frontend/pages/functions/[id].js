@@ -1,8 +1,8 @@
 import {useRouter} from 'next/router';
 import {useEffect, useState} from 'react';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {Divider, Typography} from 'antd';
-import {getFunction} from '../../lib/FunctionService';
+import {getFunction} from '../../lib/api/FunctionService';
 import UpdateFunctionFileForm from '../../components/functions/UpdateFunctionFileForm';
 import UpdateFunctionSettingsForm from '../../components/functions/UpdateFunctionSettingsForm';
 import Head from 'next/head';

@@ -5,7 +5,7 @@ import {Divider, Segmented, Typography} from 'antd';
 import AccountInfoCard from '../../components/accounts/AccountInfoCard';
 import CredentialsCard from '../../components/accounts/CredentialsCard';
 import VPCCard from '../../components/accounts/VPCCard';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 const {Title} = Typography;
 
 const Profile = () => {

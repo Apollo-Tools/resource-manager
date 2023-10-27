@@ -6,9 +6,9 @@ import {Button, Modal, Tooltip} from 'antd';
 import {ClusterOutlined, ExclamationCircleFilled, LockTwoTone, UnlockTwoTone} from '@ant-design/icons';
 import Link from 'next/link';
 import BoolDataDisplay from '../misc/BoolDataDisplay';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {useEffect, useState} from 'react';
-import {updateResource} from '../../lib/ResourceService';
+import {updateResource} from '../../lib/api/ResourceService';
 
 const {confirm} = Modal;
 

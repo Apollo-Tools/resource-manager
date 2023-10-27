@@ -3,9 +3,9 @@ import Link from 'next/link';
 import {
   DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined, SyncOutlined,
 } from '@ant-design/icons';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {useEffect, useState} from 'react';
-import {deleteEnsemble, listEnsembles, validateEnsemble} from '../../lib/EnsembleService';
+import {deleteEnsemble, listEnsembles, validateEnsemble} from '../../lib/api/EnsembleService';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 import PropTypes from 'prop-types';
 import BoolValueDisplay from '../misc/BoolValueDisplay';

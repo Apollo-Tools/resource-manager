@@ -1,15 +1,15 @@
 import {Button, Divider, Form, Input, InputNumber, Select, Space, Switch} from 'antd';
 import {useEffect, useState} from 'react';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import PropTypes from 'prop-types';
-import {createService, updateService} from '../../lib/ServiceService';
-import {listK8sServiceTypes} from '../../lib/K8sServiceTypeService';
+import {createService, updateService} from '../../lib/api/ServiceService';
+import {listK8sServiceTypes} from '../../lib/api/K8sServiceTypeService';
 import {MinusCircleOutlined, PlusOutlined} from '@ant-design/icons';
 import TextDataDisplay from '../misc/TextDataDisplay';
 import DateFormatter from '../misc/DateFormatter';
 import TooltipIcon from '../misc/TooltipIcon';
-import {nameRegexValidationRule, nameValidationRule} from '../../lib/FormValidationRules';
-import {listServiceTypes} from '../../lib/ServiceTypeService';
+import {nameRegexValidationRule, nameValidationRule} from '../../lib/api/FormValidationRules';
+import {listServiceTypes} from '../../lib/api/ServiceTypeService';
 
 
 const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished}) => {

@@ -1,7 +1,7 @@
 import {Divider, Typography} from 'antd';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {useEffect, useState} from 'react';
-import {deleteVPC, listVPCs} from '../../lib/VPCService';
+import {deleteVPC, listVPCs} from '../../lib/api/VPCService';
 import VPCTable from './VPCTable';
 import NewVPCForm from './NewVPCForm';
 

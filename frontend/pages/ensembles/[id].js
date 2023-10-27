@@ -1,13 +1,13 @@
 import {useRouter} from 'next/router';
 import {useEffect, useState} from 'react';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {Divider, Modal, Segmented, Typography} from 'antd';
 import ResourceTable from '../../components/resources/ResourceTable';
-import {getEnsemble, validateEnsemble} from '../../lib/EnsembleService';
+import {getEnsemble, validateEnsemble} from '../../lib/api/EnsembleService';
 import EnsembleDetailsCard from '../../components/ensembles/EnsembleDetailsCard';
 import {ExclamationCircleFilled, PlusCircleOutlined} from '@ant-design/icons';
-import {addResourceToEnsemble, deleteResourceFromEnsemble} from '../../lib/ResourceEnsembleService';
-import {listResourcesBySLOs} from '../../lib/ResourceService';
+import {addResourceToEnsemble, deleteResourceFromEnsemble} from '../../lib/api/ResourceEnsembleService';
+import {listResourcesBySLOs} from '../../lib/api/ResourceService';
 import Head from 'next/head';
 import {siteTitle} from '../../components/misc/Sidebar';
 

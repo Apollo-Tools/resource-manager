@@ -2,8 +2,8 @@ import NewCredentialsForm from './NewCredentialsForm';
 import {Divider, Typography} from 'antd';
 import CredentialsList from './CredentialsList';
 import {useEffect, useState} from 'react';
-import {listCredentials} from '../../lib/CredentialsService';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {listCredentials} from '../../lib/api/CredentialsService';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 
 const CredentialsCard = () => {
   const {token, checkTokenExpired} = useAuth();

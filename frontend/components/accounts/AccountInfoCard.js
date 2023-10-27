@@ -5,10 +5,10 @@ import {useEffect, useState} from 'react';
 import TextDataDisplay from '../misc/TextDataDisplay';
 import DataDisplay from '../misc/DataDisplay';
 import NamespaceTable from './NamespaceTable';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import AddNamespaceForm from './AddNamespaceForm';
-import {getAccount, getMyAccount} from '../../lib/AccountService';
-import {listMyNamespaces, listNamespaces} from '../../lib/AccountNamespaceService';
+import {getAccount, getMyAccount} from '../../lib/api/AccountService';
+import {listMyNamespaces, listNamespaces} from '../../lib/api/AccountNamespaceService';
 import PropTypes from 'prop-types';
 
 const AccountInfoCard = ({isAdmin, accountId}) => {

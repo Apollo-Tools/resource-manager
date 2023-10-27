@@ -1,12 +1,12 @@
 import {Button, Form, Input, Select, Switch} from 'antd';
-import {createResource} from '../../lib/ResourceService';
+import {createResource} from '../../lib/api/ResourceService';
 import {useEffect, useState} from 'react';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import PropTypes from 'prop-types';
 import ProviderIcon from '../misc/ProviderIcon';
-import {listPlatforms, listRegionsByPlatform} from '../../lib/PlatformService';
-import {nameRegexValidationRule, nameValidationRule} from '../../lib/FormValidationRules';
-import TooltipIcon from "../misc/TooltipIcon";
+import {listPlatforms, listRegionsByPlatform} from '../../lib/api/PlatformService';
+import {nameRegexValidationRule, nameValidationRule} from '../../lib/api/FormValidationRules';
+import TooltipIcon from '../misc/TooltipIcon';
 
 
 const NewResourceForm = ({setNewResource}) => {
@@ -70,14 +70,14 @@ const NewResourceForm = ({setNewResource}) => {
           <Input className="w-40" />
         </Form.Item>
         <Form.Item
-            label={<>
+          label={<>
               Is Lockable
-              <TooltipIcon text="whether a resource is lockable for deployments or not" />
-            </>}
-            name="isLockable"
-            valuePropName={'checked'}
-            initialValue={false}
-            className="col-span-6"
+            <TooltipIcon text="whether a resource is lockable for deployments or not" />
+          </>}
+          name="isLockable"
+          valuePropName={'checked'}
+          initialValue={false}
+          className="col-span-6"
         >
           <Switch checkedChildren="true" unCheckedChildren="false" />
         </Form.Item>

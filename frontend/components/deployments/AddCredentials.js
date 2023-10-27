@@ -1,8 +1,8 @@
 import {useEffect, useState} from 'react';
 import {Button, Form, Input} from 'antd';
 import {LockOutlined, UserOutlined} from '@ant-design/icons';
-import {deployResources} from '../../lib/DeploymentService';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {deployResources} from '../../lib/api/DeploymentService';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import PropTypes from 'prop-types';
 import NothingToSelectCard from './NothingToSelectCard';
 

@@ -1,8 +1,8 @@
 import {Button, Form, Upload} from 'antd';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
-import {updateFunctionUpload} from '../../lib/FunctionService';
+import {updateFunctionUpload} from '../../lib/api/FunctionService';
 import {PlusOutlined} from '@ant-design/icons';
 
 const UpdateFunctionFileForm = ({func, reloadFunction}) => {
