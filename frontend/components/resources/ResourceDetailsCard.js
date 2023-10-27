@@ -2,14 +2,15 @@ import PropTypes from 'prop-types';
 import TextDataDisplay from '../misc/TextDataDisplay';
 import DateFormatter from '../misc/DateFormatter';
 import ProviderIcon from '../misc/ProviderIcon';
-import {Button, Tooltip} from 'antd';
-import {ClusterOutlined, LockTwoTone, UnlockTwoTone} from '@ant-design/icons';
+import {Button, Modal, Tooltip} from 'antd';
+import {ClusterOutlined, ExclamationCircleFilled, LockTwoTone, UnlockTwoTone} from '@ant-design/icons';
 import Link from 'next/link';
 import BoolDataDisplay from '../misc/BoolDataDisplay';
 import {useAuth} from '../../lib/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import {updateResource} from '../../lib/ResourceService';
 
+const {confirm} = Modal;
 
 const ResourceDetailsCard = ({resource, setResource}) => {
   const {token, checkTokenExpired} = useAuth();
@@ -31,10 +32,26 @@ const ResourceDetailsCard = ({resource, setResource}) => {
               setResource((prevState) => ({
                 ...prevState,
                 is_lockable: isLockable,
+                is_locked: false,
               }));
             }
           });
     }
+  };
+
+  const showUpdateConfirm = (isLockable) => {
+    confirm({
+      title: 'Confirmation',
+      icon: <ExclamationCircleFilled />,
+      content: `Are you sure you want to make this resource ${isLockable ? '' : 'non-'}lockable? ${isLockable ? '' :
+        'This will unlock the item if it is currently locked!'}`,
+      okText: 'Yes',
+      okType: 'danger',
+      cancelText: 'No',
+      onOk() {
+        setResourceLockable(isLockable);
+      },
+    });
   };
 
   return (
@@ -55,11 +72,11 @@ const ResourceDetailsCard = ({resource, setResource}) => {
         <BoolDataDisplay label="Lockable" value={resource.is_lockable} />
         {resource.is_lockable ?
               <Tooltip title="Set to non lockable" className="ml-5 self-end">
-                <Button onClick={() => setResourceLockable(false)}
+                <Button onClick={() => showUpdateConfirm(false)}
                   icon={<UnlockTwoTone twoToneColor={'DarkGrey'}/>}/>
               </Tooltip> :
               <Tooltip title="Set to lockable" className="ml-5 self-end">
-                <Button onClick={() => setResourceLockable(true)}
+                <Button onClick={() => showUpdateConfirm(true)}
                   icon={<LockTwoTone twoToneColor={'DarkGrey'}/>}/>
               </Tooltip>}
       </div>
