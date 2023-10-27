@@ -3,6 +3,7 @@ package at.uibk.dps.rm.repository.deployment;
 import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.repository.Repository;
 import at.uibk.dps.rm.service.database.util.SessionManager;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 
@@ -55,5 +56,13 @@ public class DeploymentRepository extends Repository<Deployment> {
             .setParameter("accountId", accountId)
             .getSingleResultOrNull()
         );
+    }
+
+    public Completable setDeploymentFinishedTime(SessionManager sessionManager, long id) {
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery("update Deployment d set d.finishedAt = current_timestamp where d.deploymentId=:deploymentId")
+            .setParameter("deploymentId", id)
+            .executeUpdate()
+        ).ignoreElement();
     }
 }

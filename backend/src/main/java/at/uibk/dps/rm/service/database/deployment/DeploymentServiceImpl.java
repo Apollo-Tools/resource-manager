@@ -107,6 +107,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                 result.setDeploymentId(id);
                 result.setIsActive(deployment.getIsActive());
                 result.setCreatedAt(deployment.getCreatedAt());
+                result.setFinishedAt(deployment.getFinishedAt());
                 return repositoryProvider.getFunctionDeploymentRepository().findAllByDeploymentId(sm, id);
             })
             .flatMap(functionDeployments -> {
@@ -224,7 +225,9 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
             Completable setContainerUrls = urlUtility.setTriggerUrlForContainers(sm, request);
             Completable updateDeploymentStatus = repositoryProvider.getResourceDeploymentRepository()
                 .updateDeploymentStatusByDeploymentId(sm, request.getDeployment().getDeploymentId(),
-                    DeploymentStatusValue.DEPLOYED);
+                    DeploymentStatusValue.DEPLOYED)
+                .andThen(Completable.defer(() -> repositoryProvider.getDeploymentRepository()
+                    .setDeploymentFinishedTime(sm, request.getDeployment().getDeploymentId())));
             return Completable.mergeArray(setFunctionUrls, setContainerUrls, updateDeploymentStatus);
         });
 

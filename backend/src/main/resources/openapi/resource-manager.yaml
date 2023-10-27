@@ -3915,6 +3915,15 @@ components:
         is_active:
           type: boolean
           example: true
+        created_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+        finished_at:
+          type: integer
+          format: int64
+          example: 1679496667103
+
     DeploymentDetails:
       allOf:
         - $ref: "#/components/schemas/Deployment"
@@ -3938,10 +3947,6 @@ components:
                     properties:
                       service:
                         $ref: '#/components/schemas/Service'
-            created_at:
-              type: integer
-              format: int64
-              example: 1679496667103
     ResourceDeployment:
       type: object
       properties:
