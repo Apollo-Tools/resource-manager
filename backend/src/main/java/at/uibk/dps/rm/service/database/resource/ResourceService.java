@@ -68,6 +68,14 @@ public interface ResourceService extends DatabaseServiceInterface {
     void findAllByResourceIds(List<Long> resourceIds, Handler<AsyncResult<JsonArray>> resultHandler);
 
     /**
+     * Find all resources that are locked by a deployment.
+     *
+     * @param deploymentId the id of the deployment
+     * @param resultHandler receives the found resources as JsonArray
+     */
+    void findAllLockedByDeployment(long deploymentId, Handler<AsyncResult<JsonArray>> resultHandler);
+
+    /**
      * Update a cluster resource using the contents of the data object.
      *
      * @param resourceName the name of the cluster resource

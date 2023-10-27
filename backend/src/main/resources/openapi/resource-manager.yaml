@@ -194,6 +194,7 @@ tags:
   - name: accounts/k8snamespaces
   - name: credentials
   - name: deployments
+  - name: deployments/resources
   - name: ensembles
   - name: ensembles/resources
   - name: environments
@@ -2322,6 +2323,34 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
+  /deployments/{id}/resources/locked:
+    get:
+      description: Get all resources that are locked by a deployment.
+      operationId: listLockedResourcesByDeployment
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - deployments/resources
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of all locked resources
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Resource"
+        401:
+          $ref: "#/components/responses/401"
+        500:
+          $ref: "#/components/responses/500"
+
   /resource-providers/{id}:
     get:
       description: Return details about a resource provider
@@ -3626,12 +3655,9 @@ components:
           type: string
           example: resource1
         is_lockable:
+          description: "Whether a resource is lockable by a deployment."
           type: boolean
           example: true
-        region:
-          $ref: "#/components/schemas/Region"
-        platform:
-          $ref: "#/components/schemas/Platform"
         created_at:
           type: integer
           format: int64
@@ -3640,27 +3666,13 @@ components:
           type: integer
           format: int64
           example: 1679496667103
-        sub_resources:
-          type: array
-          items:
-            type: object
-            properties:
-              resource_id:
-                type: integer
-                format: int64
-                example: 1
-              name:
-                type: string
-                example: subresource1
-              created_at:
-                type: integer
-                format: int64
-                example: 1679496667103
-              updated_at:
-                type: integer
-                format: int64
-                example: 1679496667103
+        main_resource_id:
+          description: "The id of the main resource. This property is only present if the resource is a sub resource."
+          type: integer
+          format: int64
+          example: 1
         is_locked:
+          description: "Whether a resource is currently locked by any deployment."
           type: boolean
           example: false
     ResourceDetails:
@@ -3685,8 +3697,25 @@ components:
                     type: number
                     format: double
                     example: 200.0
-                  metric:
-                    $ref: '#/components/schemas/Metric'
+            metric:
+              $ref: '#/components/schemas/Metric'
+            region:
+              $ref: "#/components/schemas/Region"
+            platform:
+              $ref: "#/components/schemas/Platform"
+            sub_resources:
+              description: "The sub resources of a resource. This property is only present for main resources."
+              type: array
+              items:
+                type: object
+                properties:
+                  resource_id:
+                    type: integer
+                    format: int64
+                    example: 1
+                  name:
+                    type: string
+                    example: subresource1
                   created_at:
                     type: integer
                     format: int64

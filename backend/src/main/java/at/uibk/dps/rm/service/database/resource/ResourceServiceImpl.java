@@ -112,6 +112,17 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
             resultHandler
         );
     }
+
+    @Override
+    public void findAllLockedByDeployment(long deploymentId, Handler<AsyncResult<JsonArray>> resultHandler) {
+        Single<List<Resource>> findAll = smProvider.withTransactionSingle(sessionManager ->
+            repository.findAllLockedByDeploymentId(sessionManager, deploymentId)
+                .flatMapObservable(Observable::fromIterable)
+                .map(this::getResourceLockState).toList()
+        );
+        RxVertxHandler.handleSession(findAll.map(this::mapResourceListToJsonArray), resultHandler);
+    }
+
     @Override
     public void findAllByResourceIds(List<Long> resourceIds, Handler<AsyncResult<JsonArray>> resultHandler) {
         Single<List<Resource>> findAll = smProvider.withTransactionSingle(sm -> repository

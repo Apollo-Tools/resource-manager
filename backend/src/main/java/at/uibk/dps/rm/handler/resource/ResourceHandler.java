@@ -46,4 +46,15 @@ public class ResourceHandler extends ValidationHandler {
     public Single<JsonArray> getAllBySLOs(RoutingContext rc) {
         return resourceService.findAllBySLOs(rc.body().asJsonObject());
     }
+
+    /**
+     * Find and return all resources that fulfill the service level objectives from the request.
+     *
+     * @param rc the RoutingContext of the request
+     * @return a Single that emits the found entities as JsonArray
+     */
+    public Single<JsonArray> getAllLockedByDeployment(RoutingContext rc) {
+        return HttpHelper.getLongPathParam(rc, "id")
+            .flatMap(resourceService::findAllLockedByDeployment);
+    }
 }

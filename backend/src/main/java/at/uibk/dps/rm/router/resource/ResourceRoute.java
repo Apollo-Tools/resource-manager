@@ -38,6 +38,9 @@ public class ResourceRoute implements Route {
             .handler(ResourceSLOInputHandler::validateGetResourcesBySLOsRequest)
             .handler(rc -> resultHandler.handleFindAllRequest(rc, resourceHandler.getAllBySLOs(rc)));
 
+        router.operation("listLockedResourcesByDeployment")
+            .handler(rc -> resultHandler.handleFindAllRequest(rc, resourceHandler.getAllLockedByDeployment(rc)));
+
         router
             .operation("getResource")
             .handler(resultHandler::handleFindOneRequest);
