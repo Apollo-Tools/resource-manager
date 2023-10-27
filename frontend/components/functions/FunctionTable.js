@@ -96,6 +96,9 @@ const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resource
           record.rowSelection.selectedRowKeys = newSelectedResourceIds;
           updatedSelectedResourceIds(record.function_id, newSelectedResources);
         },
+        getCheckboxProps: (resource) => ({
+          disabled: resource.is_locked,
+        }),
       };
       keys.push(record.function_id);
     }

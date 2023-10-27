@@ -94,6 +94,9 @@ const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources
           record.rowSelection.selectedRowKeys = newSelectedResourceIds;
           updatedSelectedResourceIds(record.service_id, newSelectedResources);
         },
+        getCheckboxProps: (resource) => ({
+          disabled: resource.is_locked,
+        }),
       };
       keys.push(record.service_id);
     }

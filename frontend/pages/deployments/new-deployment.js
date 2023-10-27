@@ -7,6 +7,7 @@ import NewResourceDeployments from '../../components/deployments/NewResourceDepl
 import AddCredentials from '../../components/deployments/AddCredentials';
 import {GroupOutlined, SmileOutlined, UndoOutlined} from '@ant-design/icons';
 import Link from 'next/link';
+import AddLockResources from '../../components/deployments/AddLockResources';
 
 const steps = [
   {
@@ -14,6 +15,9 @@ const steps = [
   },
   {
     title: 'Select resources',
+  },
+  {
+    title: 'Lock resources',
   },
   {
     title: 'Add credentials',
@@ -31,6 +35,7 @@ const NewDeployment = () => {
   const [current, setCurrent] = useState(0);
   const [functionResources, setFunctionResources] = useState(new Map());
   const [serviceResources, setServiceResources] = useState(new Map());
+  const [lockResources, setLockResources] = useState([]);
 
   const items = steps.map((item) => ({
     key: item.title,
@@ -93,16 +98,26 @@ const NewDeployment = () => {
           />
         }
         {current === 2 &&
+          <AddLockResources
+            serviceResources={serviceResources}
+            functionResources={functionResources}
+            lockResources={lockResources}
+            setLockResources={setLockResources}
+            next={next}
+            prev={prev}
+          />
+        }
+        {current === 3 &&
           <AddCredentials
             serviceResources={serviceResources}
             functionResources={functionResources}
+            lockResources={lockResources}
             next={next}
             prev={prev}
             onSubmit={setNewDeployment}
           />
         }
-        {
-          current === 3 &&
+        {current === 4 &&
           <Result
             icon={<SmileOutlined />}
             title="The deployment has been created!"

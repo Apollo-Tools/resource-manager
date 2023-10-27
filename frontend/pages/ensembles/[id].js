@@ -122,8 +122,10 @@ const EnsembleDetails = () => {
   const setInvalidRowClasses = (resource) => {
     if (invalidResourceIds.includes(resource.resource_id)) {
       return 'invalid-entry';
+    } else if (resource.is_locked) {
+      return 'locked-entry';
     }
-    return '';
+    return 'available-entry';
   };
 
   return (

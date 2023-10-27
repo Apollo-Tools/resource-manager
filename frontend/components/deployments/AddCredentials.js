@@ -6,7 +6,7 @@ import {useAuth} from '../../lib/AuthenticationProvider';
 import PropTypes from 'prop-types';
 
 
-const AddCredentials = ({functionResources, serviceResources, next, prev, onSubmit}) => {
+const AddCredentials = ({functionResources, serviceResources, lockResources, next, prev, onSubmit}) => {
   const [form] = Form.useForm();
   const {token, checkTokenExpired} = useAuth();
   const [error, setError] = useState(false);
@@ -74,7 +74,9 @@ const AddCredentials = ({functionResources, serviceResources, next, prev, onSubm
     };
     requestBody.function_resources = functionDeployments;
     requestBody.service_resources = serviceDeployments;
-    requestBody.lock_resources = [];
+    requestBody.lock_resources = lockResources.map((resourceId) => {
+      return {resource_id: resourceId};
+    });
     if (!checkTokenExpired()) {
       deployResources(requestBody, token, setNewDeployment, setError);
     }
@@ -152,6 +154,7 @@ const AddCredentials = ({functionResources, serviceResources, next, prev, onSubm
 AddCredentials.propTypes = {
   functionResources: PropTypes.instanceOf(Map).isRequired,
   serviceResources: PropTypes.instanceOf(Map).isRequired,
+  lockResources: PropTypes.arrayOf(PropTypes.number).isRequired,
   next: PropTypes.func.isRequired,
   prev: PropTypes.func.isRequired,
   onSubmit: PropTypes.func,
