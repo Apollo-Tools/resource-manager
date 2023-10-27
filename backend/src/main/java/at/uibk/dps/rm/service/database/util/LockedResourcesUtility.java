@@ -57,7 +57,7 @@ public class LockedResourcesUtility {
      * @return a Completable
      */
     public Completable unlockDeploymentResources(SessionManager sessionManager, long deploymentId) {
-        return resourceRepository.findAllByDeploymentId(sessionManager, deploymentId)
+        return resourceRepository.findAllLockedByDeploymentId(sessionManager, deploymentId)
             .flatMapObservable(Observable::fromIterable)
             .flatMapCompletable(resource -> {
                 resource.setLockedByDeployment(null);

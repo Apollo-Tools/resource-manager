@@ -33,6 +33,7 @@ public class ResourceRepositoryTest extends DatabaseTest {
         super.fillDB(vertx, testContext);
 
         smProvider.withTransactionCompletable(sessionManager -> {
+            Deployment d1 = TestDeploymentProvider.createDeployment(null, true, accountAdmin);
             Region reg1 = TestResourceProviderProvider.createRegion(1L, "us-east-1");
             Region reg2 = TestResourceProviderProvider.createRegion(3L, "edge");
             Platform p1 = TestPlatformProvider.createPlatformContainer(4L, "k8s");
@@ -40,6 +41,8 @@ public class ResourceRepositoryTest extends DatabaseTest {
             Resource r1 = TestResourceProvider.createResource(null, "r1", p1, reg1);
             Resource r2 = TestResourceProvider.createResource(null, "r2", p1, reg2);
             Resource r3 = TestResourceProvider.createResource(null, "r3", p2, reg1);
+            r1.setLockedByDeployment(d1);
+            r3.setLockedByDeployment(d1);
             SubResource sr1 = TestResourceProvider.createSubResourceWithoutMVs(null, "r4", (MainResource) r1);
             SubResource sr2 = TestResourceProvider.createSubResourceWithoutMVs(null, "r5", (MainResource) r2);
             Metric mAvailability = TestMetricProvider.createMetric(1L);
@@ -57,7 +60,8 @@ public class ResourceRepositoryTest extends DatabaseTest {
             ResourceEnsemble re2 = TestEnsembleProvider.createResourceEnsemble(null, e1, r2);
             ResourceEnsemble re3 = TestEnsembleProvider.createResourceEnsemble(null, e2, sr1);
 
-            return sessionManager.persist(r1)
+            return sessionManager.persist(d1)
+                .flatMap(res -> sessionManager.persist(r1))
                 .flatMap(res -> sessionManager.persist(r2))
                 .flatMap(res -> sessionManager.persist(r3))
                 .flatMap(res -> sessionManager.persist(sr1))
@@ -320,6 +324,25 @@ public class ResourceRepositoryTest extends DatabaseTest {
                     .collect(Collectors.toList())).isEqualTo(platforms);
                 assertThat(result.stream().map(resource -> resource.getMain().getPlatform().getResourceType()
                     .getResourceType()).collect(Collectors.toList())).isEqualTo(resourceTypes);
+                testContext.completeNow();
+            }), throwable -> testContext.failNow("method has thrown exception"));
+    }
+
+    private static Stream<Arguments> provideFindAllLockedByDeploymentId() {
+        return Stream.of(
+            Arguments.of(1L, List.of(1L, 3L)),
+            Arguments.of(2L, List.of())
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideFindAllLockedByDeploymentId")
+    void findAllLockedByDeploymentId(long deploymentId, List<Long> resourceIds, VertxTestContext testContext) {
+        smProvider.withTransactionSingle(sessionManager -> repository
+            .findAllLockedByDeploymentId(sessionManager, deploymentId))
+            .subscribe(result -> testContext.verify(() -> {
+                assertThat(result.stream().map(Resource::getResourceId).collect(Collectors.toList()))
+                    .isEqualTo(resourceIds);
                 testContext.completeNow();
             }), throwable -> testContext.failNow("method has thrown exception"));
     }

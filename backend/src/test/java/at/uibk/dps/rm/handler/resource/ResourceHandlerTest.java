@@ -82,4 +82,24 @@ public class ResourceHandlerTest {
                 testContext.completeNow();
             }));
     }
+
+    @Test
+    void getAllLockedByDeployment(VertxTestContext testContext) {
+        rMain.setIsLocked(true);
+        rSub1.setIsLocked(true);
+        rSub2.setIsLocked(true);
+        JsonArray jsonResult = new JsonArray(List.of(JsonObject.mapFrom(rMain), JsonObject.mapFrom(rSub1),
+            JsonObject.mapFrom(rSub2)));
+
+        when(rc.pathParam("id")).thenReturn(String.valueOf(rMain.getResourceId()));
+        when(resourceService.findAllLockedByDeployment(1L)).thenReturn(Single.just(jsonResult));
+
+        resourceHandler.getAllLockedByDeployment(rc)
+            .subscribe(result -> testContext.verify(() -> {
+                assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
+                assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
+                assertThat(result.getJsonObject(2).getLong("resource_id")).isEqualTo(3L);
+                testContext.completeNow();
+            }));
+    }
 }

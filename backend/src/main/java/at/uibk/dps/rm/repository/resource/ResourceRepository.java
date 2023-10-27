@@ -372,20 +372,4 @@ public class ResourceRepository extends Repository<Resource> {
             })
         );
     }
-
-    /**
-     * Find all resources that are locked by the deployment.
-     *
-     * @param sessionManager the database session
-     * @param deploymentId the id of the deployment
-     * @return a Single that emits a list of all found resources
-     */
-    public Single<List<Resource>> findAllByDeploymentId(SessionManager sessionManager, long deploymentId) {
-        return Single.fromCompletionStage(sessionManager.getSession()
-            .createQuery("from Resource r " +
-                "where r.lockedByDeployment.deploymentId=:deploymentId", Resource.class)
-            .setParameter("deploymentId", deploymentId)
-            .getResultList()
-        );
-    }
 }

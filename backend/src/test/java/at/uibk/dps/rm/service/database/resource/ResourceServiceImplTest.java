@@ -76,6 +76,7 @@ public class ResourceServiceImplTest {
     private SubResource sr1, sr2;
     private MainResource cr1;
     private K8sMonitoringData monitoringData;
+    private Deployment deployment;
 
     @BeforeEach
     void initTest() {
@@ -95,6 +96,7 @@ public class ResourceServiceImplTest {
             1000, 500, 10000, 5000);
         V1Namespace namespace = TestMonitoringDataProvider.createV1Namespace("default");
         monitoringData = new K8sMonitoringData(List.of(k8sn1), List.of(namespace));
+        deployment = TestDeploymentProvider.createDeployment(1L);
     }
 
     @ParameterizedTest
@@ -125,7 +127,7 @@ public class ResourceServiceImplTest {
 
     @Test
     void findAll(VertxTestContext testContext) {
-        r1.setLockedByDeployment(new Deployment());
+        r1.setLockedByDeployment(deployment);
         SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(resourceRepository.findAllAndFetch(sessionManager)).thenReturn(Single.just(List.of(r1, r2)));
 
@@ -170,6 +172,26 @@ public class ResourceServiceImplTest {
                 testContext.completeNow();
             })));
     }
+
+    @Test
+    void findAllByDeployment(VertxTestContext testContext) {
+        r1.setLockedByDeployment(deployment);
+        r2.setLockedByDeployment(deployment);
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
+        when(resourceRepository.findAllLockedByDeploymentId(sessionManager, deployment.getDeploymentId()))
+            .thenReturn(Single.just(List.of(r1, r2)));
+
+        resourceService.findAllLockedByDeployment(deployment.getDeploymentId(),
+            testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result.size()).isEqualTo(2);
+                assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
+                assertThat(result.getJsonObject(0).getBoolean("is_locked")).isEqualTo(true);
+                assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
+                assertThat(result.getJsonObject(1).getBoolean("is_locked")).isEqualTo(true);
+                testContext.completeNow();
+            })));
+    }
+
 
     @Test
     void findAllByResourceIds(VertxTestContext testContext) {
@@ -250,7 +272,7 @@ public class ResourceServiceImplTest {
     })
     void update(boolean isLockableCurrent, boolean isLockableNew, VertxTestContext testContext) {
         r1.setIsLockable(isLockableCurrent);
-        r1.setLockedByDeployment(new Deployment());
+        r1.setLockedByDeployment(deployment);
         JsonObject data = new JsonObject("{\"is_lockable\": " + isLockableNew + "}");
 
         SessionMockHelper.mockCompletable(smProvider, sessionManager);

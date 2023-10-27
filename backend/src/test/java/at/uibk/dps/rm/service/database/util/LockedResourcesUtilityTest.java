@@ -96,7 +96,7 @@ public class LockedResourcesUtilityTest {
         List<Resource> lockedResources = Stream.of(r1, r2, r3)
             .peek(resource -> resource.setLockedByDeployment(deployment))
             .collect(Collectors.toList());
-        when(resourceRepository.findAllByDeploymentId(sessionManager, deploymentId))
+        when(resourceRepository.findAllLockedByDeploymentId(sessionManager, deploymentId))
             .thenReturn(Single.just(lockedResources));
 
         utility.unlockDeploymentResources(sessionManager, deploymentId)
