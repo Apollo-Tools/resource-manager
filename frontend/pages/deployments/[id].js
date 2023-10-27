@@ -12,6 +12,7 @@ import Head from 'next/head';
 import {siteTitle} from '../../components/misc/Sidebar';
 import {listLockedResources} from '../../lib/api/ResourceService';
 import ResourceTable from '../../components/resources/ResourceTable';
+import DeploymentDetailsCard from '../../components/deployments/DeploymentDetailsCard';
 
 const {confirm} = Modal;
 
@@ -144,6 +145,7 @@ const DeploymentDetails = () => {
             }
           </div>
         </Typography.Title>
+        <DeploymentDetailsCard deployment={deployment} />
         <Typography.Title level={3}>Resource Deployments</Typography.Title>
         <Divider/>
         {deployment.is_active &&

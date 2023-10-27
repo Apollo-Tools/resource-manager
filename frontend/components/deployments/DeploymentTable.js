@@ -39,6 +39,10 @@ const DeploymentTable = () => {
     }
   }, [error]);
 
+  const checkFinishedAtNotNull = (deployment) => {
+    return Object.hasOwn(deployment, 'finished_at') && deployment.finishedAt == null;
+  };
+
   return (
     <Table dataSource={ deployments } rowKey={ (record) => record.deployment_id } size="small">
       <Column title="Id" dataIndex="deployment_id" key="id"
@@ -55,6 +59,10 @@ const DeploymentTable = () => {
         render={ (createdAt) => <DateColumnRender value={ createdAt }/> }
         sorter={ (a, b) => a.created_at - b.created_at }
         defaultSortOrder='descend'
+      />
+      <Column title="Finished at" dataIndex="finished_at" key="finished_at"
+        render={(finishedAt, record) => checkFinishedAtNotNull(record) ?
+          <DateColumnRender value={ finishedAt }/> : 'not finished'}
       />
       <Column title="Action at" key="action"
         render={ (_, record) => (
