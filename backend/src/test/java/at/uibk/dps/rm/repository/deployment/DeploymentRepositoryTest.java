@@ -3,13 +3,17 @@ package at.uibk.dps.rm.repository.deployment;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.testutil.integration.DatabaseTest;
 import at.uibk.dps.rm.testutil.objectprovider.TestDeploymentProvider;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -81,10 +85,30 @@ public class DeploymentRepositoryTest extends DatabaseTest {
                 } else {
                     testContext.failNow("method did not throw exception");
                 }
-            }), throwable -> {
+            }), throwable -> testContext.verify(() -> {
                 assertThat(exists).isEqualTo(false);
                 assertThat(throwable.getCause()).isInstanceOf(NoSuchElementException.class);
                 testContext.completeNow();
-            });
+            }));
+    }
+
+    @Test
+    void findByIdAndAccountId(VertxTestContext testContext) {
+        long startTimestamp = System.currentTimeMillis();
+        smProvider.withTransactionCompletable(sessionManager -> sessionManager.find(Deployment.class, 1L)
+            .flatMapCompletable(deployment -> {
+                if (deployment.getFinishedAt() != null) {
+                    return Completable.error(new RuntimeException("finish timestamp not null"));
+                }
+                return repository.setDeploymentFinishedTime(sessionManager, 1L);
+            }))
+            .andThen(Maybe.defer(() -> smProvider
+                .withTransactionMaybe(sessionManager -> sessionManager.find(Deployment.class, 1L))))
+            .subscribe(result -> testContext.verify(() -> {
+                long endTimestamp = System.currentTimeMillis();
+                assertThat(result.getFinishedAt()).isNotNull();
+                assertThat(result.getFinishedAt()).isBetween(new Date(startTimestamp), new Date(endTimestamp));
+                testContext.completeNow();
+            }), throwable -> testContext.failNow("method has thrown exception"));
     }
 }

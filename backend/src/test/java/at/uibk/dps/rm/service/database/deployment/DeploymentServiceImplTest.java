@@ -29,6 +29,7 @@ import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -180,18 +181,24 @@ public class DeploymentServiceImplTest {
 
     @Test
     void findOneByIdAndAccountExists(VertxTestContext testContext) {
+        Deployment deploymentSpy = spy(deployment);
+
         SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(repositoryMock.getDeploymentRepository().findByIdAndAccountId(sessionManager, deploymentId, accountId))
-            .thenReturn(Maybe.just(deployment));
+            .thenReturn(Maybe.just(deploymentSpy));
         when(repositoryMock.getFunctionDeploymentRepository().findAllByDeploymentId(sessionManager, deploymentId))
             .thenReturn(Single.just(List.of(fd1)));
         when(repositoryMock.getServiceDeploymentRepository().findAllByDeploymentId(sessionManager, deploymentId))
             .thenReturn(Single.just(List.of(sd1, sd2)));
+        when(deploymentSpy.getCreatedAt()).thenReturn(new Timestamp(1692667639304L));
+        when(deploymentSpy.getFinishedAt()).thenReturn(new Timestamp(1692667639999L));
 
         deploymentService.findOneByIdAndAccountId(deploymentId, accountId, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("deployment_id")).isEqualTo(1L);
                 assertThat(result.getJsonArray("function_resources").size()).isEqualTo(1);
                 assertThat(result.getJsonArray("service_resources").size()).isEqualTo(2);
+                assertThat(result.getLong("created_at")).isEqualTo(1692667639304L);
+                assertThat(result.getLong("finished_at")).isEqualTo(1692667639999L);
                 testContext.completeNow();
             })));
     }
@@ -316,6 +323,9 @@ public class DeploymentServiceImplTest {
         SessionMockHelper.mockCompletable(smProvider, sessionManager);
         when(repositoryMock.getResourceDeploymentRepository().updateDeploymentStatusByDeploymentId(sessionManager,
             deploymentId, DeploymentStatusValue.DEPLOYED)).thenReturn(Completable.complete());
+        when(repositoryMock.getDeploymentRepository().setDeploymentFinishedTime(sessionManager, deploymentId))
+            .thenReturn(Completable.complete());
+
         try(MockedConstruction<TriggerUrlUtility> ignored = DatabaseUtilMockprovider.mockTriggerUrlUtility(sessionManager)) {
             deploymentService.handleDeploymentSuccessful(JsonObject.mapFrom(deploymentOutput), deployResourcesDTO,
                 testContext.succeeding(result -> testContext.verify(testContext::completeNow)));
