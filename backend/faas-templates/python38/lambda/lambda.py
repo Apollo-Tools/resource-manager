@@ -4,6 +4,10 @@ from enum import Enum
 from main import main
 
 class RequestType(str, Enum):
+    """
+    The request type is used to determine structure of the response body. If the request type is
+    equal to 'rm', additional measurement data is added to the response body.
+    """
     CLIENT = 'client'
     RM = 'rm'
 
