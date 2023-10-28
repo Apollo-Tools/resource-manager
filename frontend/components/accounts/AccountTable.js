@@ -1,8 +1,8 @@
 import {Button, Modal, Space, Table, Tag, Tooltip} from 'antd';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
-import {listAccounts, lockUser, unlockUser} from '../../lib/AccountService';
+import {listAccounts, lockUser, unlockUser} from '../../lib/api/AccountService';
 import {
   LockTwoTone,
   InfoCircleOutlined,

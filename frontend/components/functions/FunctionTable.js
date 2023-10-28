@@ -1,9 +1,9 @@
 import {Button, Modal, Space, Table, Tooltip} from 'antd';
 import Link from 'next/link';
 import {DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined, UserOutlined} from '@ant-design/icons';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {useEffect, useState} from 'react';
-import {deleteFunction, listAllFunctions, listMyFunctions} from '../../lib/FunctionService';
+import {deleteFunction, listAllFunctions, listMyFunctions} from '../../lib/api/FunctionService';
 import ResourceTable from '../resources/ResourceTable';
 import PropTypes from 'prop-types';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
@@ -96,6 +96,9 @@ const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resource
           record.rowSelection.selectedRowKeys = newSelectedResourceIds;
           updatedSelectedResourceIds(record.function_id, newSelectedResources);
         },
+        getCheckboxProps: (resource) => ({
+          disabled: resource.is_locked,
+        }),
       };
       keys.push(record.function_id);
     }

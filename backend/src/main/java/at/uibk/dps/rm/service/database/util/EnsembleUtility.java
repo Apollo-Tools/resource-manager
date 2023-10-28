@@ -57,6 +57,7 @@ public class EnsembleUtility {
             })
             .flatMapObservable(Observable::fromIterable)
             .map(resource -> {
+                resource.setIsLocked(resource.getLockedByDeployment() != null);
                 if (resource instanceof SubResource) {
                     return new SubResourceDTO((SubResource) resource);
                 }

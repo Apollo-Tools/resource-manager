@@ -69,7 +69,14 @@ public class ContainerStartupHandler {
                             return Single.error(new NotFoundException(ServiceDeployment.class));
                         }
                         if (isStartup) {
-                            return deploymentChecker.startContainer(deploymentId, resourceDeploymentId);
+                            long startTime = System.nanoTime();
+                            return deploymentChecker.startContainer(deploymentId, resourceDeploymentId)
+                                .map(result -> {
+                                    long endTime = System.nanoTime();
+                                    double startupTime = (endTime - startTime) / 1_000_000_000.0;
+                                    result.put("startup_time_seconds", startupTime);
+                                    return result;
+                                });
                         } else {
                             return deploymentChecker.stopContainer(deploymentId, resourceDeploymentId)
                                 .toSingle(JsonObject::new);

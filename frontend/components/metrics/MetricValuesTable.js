@@ -1,7 +1,7 @@
 import {Button, Modal, Table} from 'antd';
 import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
-import {deleteResourceMetric} from '../../lib/MetricValueService';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {deleteResourceMetric} from '../../lib/api/MetricValueService';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import TooltipIcon from '../misc/TooltipIcon';

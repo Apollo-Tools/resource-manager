@@ -31,6 +31,7 @@ public class DeploymentUtility {
         DeploymentResponse deploymentResponse = new DeploymentResponse();
         deploymentResponse.setDeploymentId(deployment.getDeploymentId());
         deploymentResponse.setCreatedAt(deployment.getCreatedAt());
+        deploymentResponse.setFinishedAt(deployment.getFinishedAt());
         return repositoryProvider.getResourceDeploymentRepository()
             .findAllByDeploymentIdAndFetch(sm, deployment.getDeploymentId())
             .map(resourceDeployments -> {

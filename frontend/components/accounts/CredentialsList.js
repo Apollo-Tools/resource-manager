@@ -1,8 +1,8 @@
 import {Button, Modal, Space, Table} from 'antd';
 import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
 import {useEffect, useState} from 'react';
-import {deleteCredentials} from '../../lib/CredentialsService';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {deleteCredentials} from '../../lib/api/CredentialsService';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import PropTypes from 'prop-types';
 import DateColumnRender from '../misc/DateColumnRender';
 

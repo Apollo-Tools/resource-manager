@@ -1,10 +1,10 @@
 import {Button, Modal, Space, Table, Tooltip} from 'antd';
 import {DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined, UserOutlined} from '@ant-design/icons';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import ResourceTable from '../resources/ResourceTable';
 import PropTypes from 'prop-types';
-import {deleteService, listAllServices, listMyServices} from '../../lib/ServiceService';
+import {deleteService, listAllServices, listMyServices} from '../../lib/api/ServiceService';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 import Link from 'next/link';
 import DateColumnRender from '../misc/DateColumnRender';
@@ -94,6 +94,9 @@ const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources
           record.rowSelection.selectedRowKeys = newSelectedResourceIds;
           updatedSelectedResourceIds(record.service_id, newSelectedResources);
         },
+        getCheckboxProps: (resource) => ({
+          disabled: resource.is_locked,
+        }),
       };
       keys.push(record.service_id);
     }

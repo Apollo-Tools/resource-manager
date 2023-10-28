@@ -14,6 +14,14 @@
     @apply bg-red-200 text-red-600;
   }
 
+  .locked-entry {
+    @apply bg-yellow-50 text-yellow-500;
+  }
+
+  .available-entry {
+    @apply bg-green-50 text-green-500;
+  }
+
   .invalid-entry td.ant-table-column-sort {
     @apply bg-red-200 hover:bg-red-100 !important;
   }

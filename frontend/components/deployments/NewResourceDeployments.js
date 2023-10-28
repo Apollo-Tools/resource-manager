@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
-import {useAuth} from '../../lib/AuthenticationProvider';
-import {getEnsemble} from '../../lib/EnsembleService';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
+import {getEnsemble} from '../../lib/api/EnsembleService';
 import FunctionTable from '../functions/FunctionTable';
 import ServiceTable from '../services/ServiceTable';
 import {Button, Typography} from 'antd';

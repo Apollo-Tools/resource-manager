@@ -1,11 +1,12 @@
-import {Button, Form, Input, Select} from 'antd';
-import {createResource} from '../../lib/ResourceService';
+import {Button, Form, Input, Select, Switch} from 'antd';
+import {createResource} from '../../lib/api/ResourceService';
 import {useEffect, useState} from 'react';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import PropTypes from 'prop-types';
 import ProviderIcon from '../misc/ProviderIcon';
-import {listPlatforms, listRegionsByPlatform} from '../../lib/PlatformService';
-import {nameRegexValidationRule, nameValidationRule} from '../../lib/FormValidationRules';
+import {listPlatforms, listRegionsByPlatform} from '../../lib/api/PlatformService';
+import {nameRegexValidationRule, nameValidationRule} from '../../lib/api/FormValidationRules';
+import TooltipIcon from '../misc/TooltipIcon';
 
 
 const NewResourceForm = ({setNewResource}) => {
@@ -34,7 +35,8 @@ const NewResourceForm = ({setNewResource}) => {
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
-      await createResource(values.name, values.platform, values.region, token, setNewResource, setError);
+      await createResource(values.name, values.platform, values.region, values.isLockable, token, setNewResource,
+          setError);
     }
   };
   const onFinishFailed = (errorInfo) => {
@@ -57,13 +59,27 @@ const NewResourceForm = ({setNewResource}) => {
         onFinishFailed={onFinishFailed}
         autoComplete="off"
         layout="vertical"
+        className="grid lg:grid-cols-12 grid-cols-6 gap-4"
       >
         <Form.Item
           label="Name"
           name="name"
           rules={[nameValidationRule, nameRegexValidationRule]}
+          className="col-span-6"
         >
           <Input className="w-40" />
+        </Form.Item>
+        <Form.Item
+          label={<>
+              Is Lockable
+            <TooltipIcon text="whether a resource is lockable for deployments or not" />
+          </>}
+          name="isLockable"
+          valuePropName={'checked'}
+          initialValue={false}
+          className="col-span-6"
+        >
+          <Switch checkedChildren="true" unCheckedChildren="false" />
         </Form.Item>
         <Form.Item
           label="Platform"
@@ -74,6 +90,7 @@ const NewResourceForm = ({setNewResource}) => {
               message: 'Missing platform',
             },
           ]}
+          className="col-span-6"
         >
           <Select className="w-40" onChange={onChangePlatform}>
             {platforms.map((platform) => {
@@ -86,7 +103,6 @@ const NewResourceForm = ({setNewResource}) => {
             })}
           </Select>
         </Form.Item>
-
         <Form.Item
           label="Region"
           name="region"
@@ -96,6 +112,7 @@ const NewResourceForm = ({setNewResource}) => {
               message: 'Missing region',
             },
           ]}
+          className="col-span-6"
         >
           <Select className="w-40" disabled={regions.length === 0}>
             {regions.map((region) => {
@@ -107,8 +124,6 @@ const NewResourceForm = ({setNewResource}) => {
             })}
           </Select>
         </Form.Item>
-
-
         <Form.Item>
           <Button type="primary" htmlType="submit">
                         Create

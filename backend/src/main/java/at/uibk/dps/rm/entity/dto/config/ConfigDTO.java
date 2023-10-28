@@ -19,6 +19,8 @@ public class ConfigDTO {
     private Integer dbPort;
     private String dbUser;
     private String dbPassword;
+    private int maxRetries;
+    private int retryDelayMillis;
     private Integer apiPort;
     private String buildDirectory;
     private String dindDirectory;

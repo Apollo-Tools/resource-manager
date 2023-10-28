@@ -1,13 +1,13 @@
 import {Button, Form, Input, message} from 'antd';
 import {useEffect, useState} from 'react';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import PropTypes from 'prop-types';
 import SLOSelection from '../misc/slos/SLOSelection';
-import {listResourcesBySLOs} from '../../lib/ResourceService';
+import {listResourcesBySLOs} from '../../lib/api/ResourceService';
 import {SearchOutlined} from '@ant-design/icons';
 import ResourceTableFormItem from '../resources/ResourceTableFormItem';
-import {createEnsemble} from '../../lib/EnsembleService';
-import {nameRegexValidationRule, nameValidationRule} from '../../lib/FormValidationRules';
+import {createEnsemble} from '../../lib/api/EnsembleService';
+import {nameRegexValidationRule, nameValidationRule} from '../../lib/api/FormValidationRules';
 
 const NewEnsembleForm = ({setNewEnsemble}) => {
   const [form] = Form.useForm();

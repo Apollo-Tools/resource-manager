@@ -30,6 +30,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
@@ -75,6 +76,7 @@ public class ResourceServiceImplTest {
     private SubResource sr1, sr2;
     private MainResource cr1;
     private K8sMonitoringData monitoringData;
+    private Deployment deployment;
 
     @BeforeEach
     void initTest() {
@@ -82,7 +84,7 @@ public class ResourceServiceImplTest {
         resourceService = new ResourceServiceImpl(resourceRepository, regionRepository, metricRepository,
             smProvider);
         data = new JsonObject("{\"name\": \"new_r\", \"region\": {\"region_id\": 1}, \"platform\": " +
-            "{\"platform_id\":  2}}");
+            "{\"platform_id\":  2}, \"is_lockable\": true}");
         reg1 = TestResourceProviderProvider.createRegion(1L, "us-east");
         p1 = TestPlatformProvider.createPlatformFaas(2L, "lambda");
         r1 = TestResourceProvider.createResource(1L);
@@ -94,6 +96,7 @@ public class ResourceServiceImplTest {
             1000, 500, 10000, 5000);
         V1Namespace namespace = TestMonitoringDataProvider.createV1Namespace("default");
         monitoringData = new K8sMonitoringData(List.of(k8sn1), List.of(namespace));
+        deployment = TestDeploymentProvider.createDeployment(1L);
     }
 
     @ParameterizedTest
@@ -124,13 +127,16 @@ public class ResourceServiceImplTest {
 
     @Test
     void findAll(VertxTestContext testContext) {
+        r1.setLockedByDeployment(deployment);
         SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(resourceRepository.findAllAndFetch(sessionManager)).thenReturn(Single.just(List.of(r1, r2)));
 
         resourceService.findAll(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
                 assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
+                assertThat(result.getJsonObject(0).getBoolean("is_locked")).isEqualTo(true);
                 assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
+                assertThat(result.getJsonObject(1).getBoolean("is_locked")).isEqualTo(false);
                 testContext.completeNow();
             })));
     }
@@ -166,6 +172,26 @@ public class ResourceServiceImplTest {
                 testContext.completeNow();
             })));
     }
+
+    @Test
+    void findAllByDeployment(VertxTestContext testContext) {
+        r1.setLockedByDeployment(deployment);
+        r2.setLockedByDeployment(deployment);
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
+        when(resourceRepository.findAllLockedByDeploymentId(sessionManager, deployment.getDeploymentId()))
+            .thenReturn(Single.just(List.of(r1, r2)));
+
+        resourceService.findAllLockedByDeployment(deployment.getDeploymentId(),
+            testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result.size()).isEqualTo(2);
+                assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
+                assertThat(result.getJsonObject(0).getBoolean("is_locked")).isEqualTo(true);
+                assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
+                assertThat(result.getJsonObject(1).getBoolean("is_locked")).isEqualTo(true);
+                testContext.completeNow();
+            })));
+    }
+
 
     @Test
     void findAllByResourceIds(VertxTestContext testContext) {
@@ -237,6 +263,42 @@ public class ResourceServiceImplTest {
         })));
     }
 
+    @ParameterizedTest
+    @CsvSource({
+        "true, true",
+        "true, false",
+        "false, true",
+        "false, false"
+    })
+    void update(boolean isLockableCurrent, boolean isLockableNew, VertxTestContext testContext) {
+        r1.setIsLockable(isLockableCurrent);
+        r1.setLockedByDeployment(deployment);
+        JsonObject data = new JsonObject("{\"is_lockable\": " + isLockableNew + "}");
+
+        SessionMockHelper.mockCompletable(smProvider, sessionManager);
+        when(sessionManager.find(Resource.class, r1.getResourceId()))
+            .thenReturn(Maybe.just(r1));
+
+        resourceService.update(r1.getResourceId(), data, testContext.succeeding(result -> testContext.verify(() -> {
+            assertThat(r1.getIsLockable()).isEqualTo(isLockableNew);
+            assertThat(r1.getLockedByDeployment() == null).isEqualTo(!isLockableNew);
+            testContext.completeNow();
+        })));
+    }
+
+    @Test
+    void updateNotFound(VertxTestContext testContext) {
+        JsonObject data = new JsonObject("{\"is_lockable\": true}");
+
+        SessionMockHelper.mockCompletable(smProvider, sessionManager);
+        when(sessionManager.find(Resource.class, r1.getResourceId())).thenReturn(Maybe.empty());
+
+        resourceService.update(r1.getResourceId(), data, testContext.failing(throwable -> testContext.verify(() -> {
+            assertThat(throwable).isInstanceOf(NotFoundException.class);
+            testContext.completeNow();
+        })));
+    }
+
     @Test
     void delete(VertxTestContext testContext) {
         SessionMockHelper.mockCompletable(smProvider, sessionManager);
@@ -281,6 +343,21 @@ public class ResourceServiceImplTest {
                     testContext.completeNow();
                 })));
     }
+
+    @Test
+    void unlockLockedResourcesByDeploymentId(VertxTestContext testContext) {
+        long deploymentId = 1L;
+
+        SessionMockHelper.mockCompletable(smProvider, sessionManager);
+
+        try(MockedConstruction<LockedResourcesUtility> ignore = DatabaseUtilMockprovider
+            .mockLockUtilityUnlockResources(sessionManager, deploymentId)) {
+            resourceService.unlockLockedResourcesByDeploymentId(deploymentId,
+                testContext.succeeding(result -> testContext.completeNow()));
+        }
+    }
+
+
 
     @Test
     void encodeResourceListSubResource() {

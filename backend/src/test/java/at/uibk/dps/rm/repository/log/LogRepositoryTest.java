@@ -25,8 +25,8 @@ public class LogRepositoryTest extends DatabaseTest {
         super.fillDB(vertx, testContext);
 
         smProvider.withTransactionSingle(sessionManager -> {
-            Deployment d1 = TestDeploymentProvider.createDeployment(null, true, accountAdmin);
-            Deployment d2 = TestDeploymentProvider.createDeployment(null, true, accountDefault);
+            Deployment d1 = TestDeploymentProvider.createDeployment(null, accountAdmin);
+            Deployment d2 = TestDeploymentProvider.createDeployment(null, accountDefault);
             Log l1 = TestLogProvider.createLog(null);
             Log l2 = TestLogProvider.createLog(null);
             Log l3 = TestLogProvider.createLog(null);

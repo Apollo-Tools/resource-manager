@@ -4,8 +4,8 @@ import {Button, Form, Input, Typography, message} from 'antd';
 import {siteTitle} from '../../components/misc/Sidebar';
 import Head from 'next/head';
 import Link from 'next/link';
-import {signUp} from '../../lib/AccountService';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {signUp} from '../../lib/api/AccountService';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 
 const {Title} = Typography;
 

@@ -1,9 +1,9 @@
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import {Button, Form, Input, message, Select} from 'antd';
-import {listResourceProviders} from '../../lib/ResourceProviderService';
+import {listResourceProviders} from '../../lib/api/ResourceProviderService';
 import {LockOutlined} from '@ant-design/icons';
-import {createCredentials} from '../../lib/CredentialsService';
+import {createCredentials} from '../../lib/api/CredentialsService';
 import PropTypes from 'prop-types';
 
 

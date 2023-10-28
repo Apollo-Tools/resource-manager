@@ -32,17 +32,16 @@ public class TestDeploymentProvider {
         return createResourceDeployment(id, deployment, resource, status);
     }
 
-    public static Deployment createDeployment(Long id, boolean isActive, Account account) {
+    public static Deployment createDeployment(Long id, Account account) {
         Deployment deployment = new Deployment();
         deployment.setDeploymentId(id);
-        deployment.setIsActive(isActive);
         deployment.setCreatedBy(account);
         return  deployment;
     }
 
     public static Deployment createDeployment(Long id) {
         Account account = TestAccountProvider.createAccount(1L);
-        return createDeployment(id, true, account);
+        return createDeployment(id, account);
     }
 
     public static ResourceDeploymentStatus createResourceDeploymentStatus(long id, DeploymentStatusValue status) {

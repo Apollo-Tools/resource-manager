@@ -244,6 +244,17 @@ public class ResultHandlerTest {
     }
 
     @Test
+    void handleSerializationError(VertxTestContext testContext) {
+        Throwable throwable = new SerializationException();
+        Single<JsonObject> handler = Single.error(throwable);
+
+        resultHandler.handleFindOneRequest(rc, handler);
+
+        Mockito.verify(rc).fail(409, throwable);
+        testContext.completeNow();
+    }
+
+    @Test
     void handleRequestBadInput(VertxTestContext testContext) {
         Throwable throwable = new BadInputException();
         Single<JsonObject> handler = Single.error(throwable);

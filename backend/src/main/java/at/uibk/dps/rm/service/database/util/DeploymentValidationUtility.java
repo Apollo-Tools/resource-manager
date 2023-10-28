@@ -8,6 +8,7 @@ import at.uibk.dps.rm.entity.dto.deployment.ServiceResourceIds;
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.dto.resource.ResourceTypeEnum;
 import at.uibk.dps.rm.entity.model.*;
+import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.repository.DeploymentRepositoryProvider;
@@ -127,10 +128,9 @@ public class DeploymentValidationUtility {
             PlatformEnum platform = PlatformEnum.fromPlatform(mainResource.getPlatform());
             checkDockerCredentials(deployResources.getDeploymentCredentials().getDockerCredentials(),
                 mainResource.getPlatform().getPlatformId(), platform, platformIds);
-            completables.add(checkCloudCredentials(sm, providerId, platform,
-                resourceProviderIds)
-                .andThen(checkMissingVPC(sm, regionId, platform, regionIds, deployResources))
-            );
+            completables.add(checkCloudCredentials(sm, providerId, platform, resourceProviderIds)
+                .andThen(checkResourceNotLocked(resource))
+                .andThen(checkMissingVPC(sm, regionId, platform, regionIds, deployResources)));
         }
         return Completable.merge(completables);
     }
@@ -228,5 +228,18 @@ public class DeploymentValidationUtility {
                         return Completable.complete();
                     });
             });
+    }
+
+    /**
+     * Check if a resource is locked.
+     *
+     * @param resource the resource
+     * @return a Completable that emits nothing if it is not locked else an error
+     */
+    private Completable checkResourceNotLocked(Resource resource) {
+        if (resource.getLockedByDeployment() != null) {
+            return Completable.error(new BadInputException("resource " + resource + " is locked"));
+        }
+        return Completable.complete();
     }
 }

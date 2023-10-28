@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.entity.model;
 
 import at.uibk.dps.rm.annotations.Generated;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,9 +23,6 @@ public abstract class ResourceDeployment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long resourceDeploymentId;
-
-    @JsonProperty("is_deployed")
-    private Boolean isDeployed = false;
 
     private String triggerUrl = "";
 

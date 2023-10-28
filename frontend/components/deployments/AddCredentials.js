@@ -1,12 +1,13 @@
 import {useEffect, useState} from 'react';
-import {Button, Form, Input, Typography} from 'antd';
+import {Button, Form, Input} from 'antd';
 import {LockOutlined, UserOutlined} from '@ant-design/icons';
-import {deployResources} from '../../lib/DeploymentService';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {deployResources} from '../../lib/api/DeploymentService';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import PropTypes from 'prop-types';
+import NothingToSelectCard from './NothingToSelectCard';
 
 
-const AddCredentials = ({functionResources, serviceResources, next, prev, onSubmit}) => {
+const AddCredentials = ({functionResources, serviceResources, lockResources, next, prev, onSubmit}) => {
   const [form] = Form.useForm();
   const {token, checkTokenExpired} = useAuth();
   const [error, setError] = useState(false);
@@ -74,7 +75,9 @@ const AddCredentials = ({functionResources, serviceResources, next, prev, onSubm
     };
     requestBody.function_resources = functionDeployments;
     requestBody.service_resources = serviceDeployments;
-    requestBody.lock_resources = [];
+    requestBody.lock_resources = lockResources.map((resourceId) => {
+      return {resource_id: resourceId};
+    });
     if (!checkTokenExpired()) {
       deployResources(requestBody, token, setNewDeployment, setError);
     }
@@ -94,11 +97,7 @@ const AddCredentials = ({functionResources, serviceResources, next, prev, onSubm
         autoComplete="off"
         layout="vertical"
       >
-        {!needsDockerCreds &&
-          <Typography.Title
-            level={3}
-            className="p-6 text-center bg-cyan-50 rounded-md shadow-lg">
-          No credentials required for this deployment</Typography.Title>}
+        {!needsDockerCreds && <NothingToSelectCard text="No credentials required for this deployment"/>}
         <Form.Item
           label="Docker registry"
           name="dockerRegistry"
@@ -152,6 +151,7 @@ const AddCredentials = ({functionResources, serviceResources, next, prev, onSubm
 AddCredentials.propTypes = {
   functionResources: PropTypes.instanceOf(Map).isRequired,
   serviceResources: PropTypes.instanceOf(Map).isRequired,
+  lockResources: PropTypes.arrayOf(PropTypes.number).isRequired,
   next: PropTypes.func.isRequired,
   prev: PropTypes.func.isRequired,
   onSubmit: PropTypes.func,

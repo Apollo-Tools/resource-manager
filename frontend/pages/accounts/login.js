@@ -1,8 +1,8 @@
 import {useEffect, useState} from 'react';
 import {LockOutlined, UserOutlined} from '@ant-design/icons';
 import {Button, Form, Input, Typography, message} from 'antd';
-import {getLogin} from '../../lib/AccountService';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {getLogin} from '../../lib/api/AccountService';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {siteTitle} from '../../components/misc/Sidebar';
 import Head from 'next/head';
 import {useRouter} from 'next/router';

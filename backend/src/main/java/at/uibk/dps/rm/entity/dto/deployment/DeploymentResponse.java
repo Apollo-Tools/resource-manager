@@ -18,4 +18,6 @@ public class DeploymentResponse {
     public DeploymentStatusValue statusValue;
 
     private Timestamp createdAt;
+
+    private Timestamp finishedAt;
 }

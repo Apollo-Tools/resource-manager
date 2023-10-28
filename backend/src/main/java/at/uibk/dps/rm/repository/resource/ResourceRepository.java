@@ -221,6 +221,22 @@ public class ResourceRepository extends Repository<Resource> {
     }
 
     /**
+     * Find all resources that are locked by a deployment.
+     *
+     * @param sessionManager the database session manager
+     * @param deploymentId the id of the deployment
+     * @return a Single that emits a list of resources
+     */
+    public Single<List<Resource>> findAllLockedByDeploymentId(SessionManager sessionManager, long deploymentId) {
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery("from Resource r " +
+                "where r.lockedByDeployment.deploymentId=:deploymentId", Resource.class)
+            .setParameter("deploymentId", deploymentId)
+            .getResultList()
+        );
+    }
+
+    /**
      * Find all resources by the resourceIds and resourceTypes.
      *
      * @param sessionManager the database session manager

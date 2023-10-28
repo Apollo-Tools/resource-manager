@@ -1,8 +1,8 @@
 import {useEffect, useState} from 'react';
 import {LockOutlined} from '@ant-design/icons';
 import {Button, Form, Input, message, Space} from 'antd';
-import {changePassword} from '../../lib/AccountService';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {changePassword} from '../../lib/api/AccountService';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 
 const ResetPasswordForm = () => {
   const {token, checkTokenExpired} = useAuth();

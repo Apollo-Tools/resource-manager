@@ -3,6 +3,7 @@ package at.uibk.dps.rm.repository.deployment;
 import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.repository.Repository;
 import at.uibk.dps.rm.service.database.util.SessionManager;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 
@@ -45,7 +46,7 @@ public class DeploymentRepository extends Repository<Deployment> {
      * @param sessionManager the database session manager
      * @param id the id of the deployment
      * @param accountId the id of the creator account
-     * @return a Completable that emits the deployment if it exists, else null
+     * @return a Maybe that emits the deployment if it exists, else null
      */
     public Maybe<Deployment> findByIdAndAccountId(SessionManager sessionManager, long id, long accountId) {
         return Maybe.fromCompletionStage(sessionManager.getSession()
@@ -55,5 +56,20 @@ public class DeploymentRepository extends Repository<Deployment> {
             .setParameter("accountId", accountId)
             .getSingleResultOrNull()
         );
+    }
+
+    /**
+     * Set deployment finished time to current timestamp.
+     *
+     * @param sessionManager the database session manager
+     * @param id the id of the deployment
+     * @return a Completable
+     */
+    public Completable setDeploymentFinishedTime(SessionManager sessionManager, long id) {
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery("update Deployment d set d.finishedAt = current_timestamp where d.deploymentId=:deploymentId")
+            .setParameter("deploymentId", id)
+            .executeUpdate()
+        ).ignoreElement();
     }
 }

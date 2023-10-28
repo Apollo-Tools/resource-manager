@@ -1,14 +1,14 @@
 import {Button, Divider, Form, Input, InputNumber, Select, Switch, Upload} from 'antd';
 import {useEffect, useState} from 'react';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import PropTypes from 'prop-types';
-import {getRuntimeTemplate, listRuntimes} from '../../lib/RuntimeService';
-import {createFunctionCode, createFunctionUpload} from '../../lib/FunctionService';
+import {getRuntimeTemplate, listRuntimes} from '../../lib/api/RuntimeService';
+import {createFunctionCode, createFunctionUpload} from '../../lib/api/FunctionService';
 import CodeMirror from '@uiw/react-codemirror';
-import {getEditorExtension} from '../../lib/CodeEditorService';
+import {getEditorExtension} from '../../lib/api/CodeEditorService';
 import {PlusOutlined} from '@ant-design/icons';
-import {nameRegexValidationRule, nameValidationRule} from '../../lib/FormValidationRules';
-import {listFunctionTypes} from '../../lib/FunctionTypeService';
+import {nameRegexValidationRule, nameValidationRule} from '../../lib/api/FormValidationRules';
+import {listFunctionTypes} from '../../lib/api/FunctionTypeService';
 import TooltipIcon from '../misc/TooltipIcon';
 
 

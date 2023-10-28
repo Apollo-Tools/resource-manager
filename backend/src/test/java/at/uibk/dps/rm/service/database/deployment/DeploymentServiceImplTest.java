@@ -29,6 +29,7 @@ import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -72,7 +73,7 @@ public class DeploymentServiceImplTest {
         deploymentId = 1L;
         accountId = 2L;
         account = TestAccountProvider.createAccount(accountId);
-        deployment = TestDeploymentProvider.createDeployment(deploymentId, true, account);
+        deployment = TestDeploymentProvider.createDeployment(deploymentId, account);
         r1 = TestResourceProvider.createResourceLambda(1L);
         r2 = TestResourceProvider.createResourceContainer(2L, "localhost", true);
         c1 = TestAccountProvider.createCredentials(1L,
@@ -158,7 +159,7 @@ public class DeploymentServiceImplTest {
 
     @Test
     void findAllByAccountId(VertxTestContext testContext) {
-        Deployment d2 = TestDeploymentProvider.createDeployment(2L, true, account);
+        Deployment d2 = TestDeploymentProvider.createDeployment(2L, account);
 
         SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(repositoryMock.getDeploymentRepository().findAllByAccountId(sessionManager, accountId))
@@ -180,18 +181,24 @@ public class DeploymentServiceImplTest {
 
     @Test
     void findOneByIdAndAccountExists(VertxTestContext testContext) {
+        Deployment deploymentSpy = spy(deployment);
+
         SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(repositoryMock.getDeploymentRepository().findByIdAndAccountId(sessionManager, deploymentId, accountId))
-            .thenReturn(Maybe.just(deployment));
+            .thenReturn(Maybe.just(deploymentSpy));
         when(repositoryMock.getFunctionDeploymentRepository().findAllByDeploymentId(sessionManager, deploymentId))
             .thenReturn(Single.just(List.of(fd1)));
         when(repositoryMock.getServiceDeploymentRepository().findAllByDeploymentId(sessionManager, deploymentId))
             .thenReturn(Single.just(List.of(sd1, sd2)));
+        when(deploymentSpy.getCreatedAt()).thenReturn(new Timestamp(1692667639304L));
+        when(deploymentSpy.getFinishedAt()).thenReturn(new Timestamp(1692667639999L));
 
         deploymentService.findOneByIdAndAccountId(deploymentId, accountId, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("deployment_id")).isEqualTo(1L);
                 assertThat(result.getJsonArray("function_resources").size()).isEqualTo(1);
                 assertThat(result.getJsonArray("service_resources").size()).isEqualTo(2);
+                assertThat(result.getLong("created_at")).isEqualTo(1692667639304L);
+                assertThat(result.getLong("finished_at")).isEqualTo(1692667639999L);
                 testContext.completeNow();
             })));
     }
@@ -214,7 +221,7 @@ public class DeploymentServiceImplTest {
         SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(sessionManager.find(Account.class, accountId)).thenReturn(Maybe.just(account));
         when(sessionManager.persist(argThat((Deployment depl) ->
-            depl.getCreatedBy().equals(account) && deployment.getIsActive()))).thenReturn(Single.just(deployment));
+            depl.getCreatedBy().equals(account)))).thenReturn(Single.just(deployment));
         when(sessionManager.flush()).thenReturn(Completable.complete());
         when(repositoryMock.getStatusRepository().findOneByStatusValue(sessionManager,
             DeploymentStatusValue.NEW.name())).thenReturn(Maybe.just(rdsNew));
@@ -228,7 +235,9 @@ public class DeploymentServiceImplTest {
             MockedConstruction<SaveResourceDeploymentUtility> ignoreSave = DatabaseUtilMockprovider
                     .mockSaveResourceDeploymentUtility(sessionManager, rdsNew, List.of(n1), List.of(r1, r2));
             MockedConstruction<DeploymentUtility> ignoreDeployment = DatabaseUtilMockprovider
-                    .mockDeploymentUtility(sessionManager)) {
+                    .mockDeploymentUtility(sessionManager);
+            MockedConstruction<LockedResourcesUtility> ignoreLock = DatabaseUtilMockprovider
+                .mockLockUtilityLockResources(sessionManager, List.of())) {
             deploymentService.saveToAccount(accountId, JsonObject.mapFrom(request),
                 testContext.succeeding(result -> testContext.verify(() -> {
                     DeployResourcesDTO resultDTO = result.mapTo(DeployResourcesDTO.class);
@@ -247,7 +256,7 @@ public class DeploymentServiceImplTest {
         SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(sessionManager.find(Account.class, accountId)).thenReturn(Maybe.just(account));
         when(sessionManager.persist(argThat((Deployment depl) ->
-            depl.getCreatedBy().equals(account) && deployment.getIsActive()))).thenReturn(Single.just(deployment));
+            depl.getCreatedBy().equals(account)))).thenReturn(Single.just(deployment));
         when(sessionManager.flush()).thenReturn(Completable.complete());
         when(repositoryMock.getStatusRepository().findOneByStatusValue(sessionManager,
             DeploymentStatusValue.NEW.name())).thenReturn(Maybe.empty());
@@ -299,8 +308,11 @@ public class DeploymentServiceImplTest {
             return deploymentLog.getDeployment().equals(deployment);
         }))).thenReturn(Single.just(new DeploymentLog()));
 
-        deploymentService.handleDeploymentError(deploymentId, errorMessage,
-            testContext.succeeding(result -> testContext.verify(testContext::completeNow)));
+        try(MockedConstruction<LockedResourcesUtility> ignore =
+                DatabaseUtilMockprovider.mockLockUtilityUnlockResources(sessionManager, deploymentId)) {
+            deploymentService.handleDeploymentError(deploymentId, errorMessage,
+                testContext.succeeding(result -> testContext.verify(testContext::completeNow)));
+        }
     }
 
     @Test
@@ -311,6 +323,9 @@ public class DeploymentServiceImplTest {
         SessionMockHelper.mockCompletable(smProvider, sessionManager);
         when(repositoryMock.getResourceDeploymentRepository().updateDeploymentStatusByDeploymentId(sessionManager,
             deploymentId, DeploymentStatusValue.DEPLOYED)).thenReturn(Completable.complete());
+        when(repositoryMock.getDeploymentRepository().setDeploymentFinishedTime(sessionManager, deploymentId))
+            .thenReturn(Completable.complete());
+
         try(MockedConstruction<TriggerUrlUtility> ignored = DatabaseUtilMockprovider.mockTriggerUrlUtility(sessionManager)) {
             deploymentService.handleDeploymentSuccessful(JsonObject.mapFrom(deploymentOutput), deployResourcesDTO,
                 testContext.succeeding(result -> testContext.verify(testContext::completeNow)));

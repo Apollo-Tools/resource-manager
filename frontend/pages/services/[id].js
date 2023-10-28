@@ -1,8 +1,8 @@
 import {useRouter} from 'next/router';
 import {useEffect, useState} from 'react';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {Divider, Typography} from 'antd';
-import {getService} from '../../lib/ServiceService';
+import {getService} from '../../lib/api/ServiceService';
 import NewUpdateServiceForm from '../../components/services/NewUpdateServiceForm';
 import Head from 'next/head';
 import {siteTitle} from '../../components/misc/Sidebar';

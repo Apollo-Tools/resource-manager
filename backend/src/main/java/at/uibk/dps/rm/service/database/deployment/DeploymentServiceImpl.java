@@ -105,8 +105,8 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
             .switchIfEmpty(Single.error(new NotFoundException(Deployment.class)))
             .flatMap(deployment -> {
                 result.setDeploymentId(id);
-                result.setIsActive(deployment.getIsActive());
                 result.setCreatedAt(deployment.getCreatedAt());
+                result.setFinishedAt(deployment.getFinishedAt());
                 return repositoryProvider.getFunctionDeploymentRepository().findAllByDeploymentId(sm, id);
             })
             .flatMap(functionDeployments -> {
@@ -141,10 +141,10 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
         deployResources.setDeployment(deployment);
         deployResources.setDeploymentCredentials(request.getCredentials());
         deployResources.setVpcList(new ArrayList<>());
+        LockedResourcesUtility lockUtility = new LockedResourcesUtility(repositoryProvider.getResourceRepository());
         Single<DeployResourcesDTO> save = smProvider.withTransactionSingle(sm -> sm.find(Account.class, accountId)
             .switchIfEmpty(Maybe.error(new UnauthorizedException()))
             .flatMapCompletable(account -> {
-                deployment.setIsActive(true);
                 deployment.setCreatedBy(account);
                 return sm.persist(deployment)
                     .flatMapCompletable(res -> sm.flush());
@@ -164,6 +164,9 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                     return Completable.mergeArray(saveFunctionDeployments, saveServiceDeployments);
                 })
             )
+            .andThen(Completable.defer(() -> lockUtility.lockResources(sm, request.getLockResources(), deployment)
+                .flatMapCompletable(resources -> sm.flush())
+            ))
             .andThen(Single.defer(() -> repositoryProvider.getCredentialsRepository()
                 .findAllByAccountId(sm, accountId)
                 .map(credentials -> {
@@ -190,6 +193,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
     @Override
     public void handleDeploymentError(long deploymentId, String errorMessage,
             Handler<AsyncResult<Void>> resultHandler) {
+        LockedResourcesUtility lockUtility = new LockedResourcesUtility(repositoryProvider.getResourceRepository());
         Completable handleError = smProvider.withTransactionCompletable(sm -> {
             Completable updateStatus = repositoryProvider.getResourceDeploymentRepository()
                 .updateDeploymentStatusByDeploymentId(sm, deploymentId, DeploymentStatusValue.ERROR);
@@ -203,7 +207,8 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
             Completable createLog = sm.persist(log)
                 .flatMap(res -> sm.persist(deploymentLog))
                 .ignoreElement();
-            return Completable.mergeArray(updateStatus, createLog);
+            Completable unlockResources = lockUtility.unlockDeploymentResources(sm, deploymentId);
+            return Completable.mergeArray(updateStatus, createLog, unlockResources);
         });
         RxVertxHandler.handleSession(handleError, resultHandler);
     }
@@ -218,7 +223,9 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
             Completable setContainerUrls = urlUtility.setTriggerUrlForContainers(sm, request);
             Completable updateDeploymentStatus = repositoryProvider.getResourceDeploymentRepository()
                 .updateDeploymentStatusByDeploymentId(sm, request.getDeployment().getDeploymentId(),
-                    DeploymentStatusValue.DEPLOYED);
+                    DeploymentStatusValue.DEPLOYED)
+                .andThen(Completable.defer(() -> repositoryProvider.getDeploymentRepository()
+                    .setDeploymentFinishedTime(sm, request.getDeployment().getDeploymentId())));
             return Completable.mergeArray(setFunctionUrls, setContainerUrls, updateDeploymentStatus);
         });
 

@@ -1,11 +1,11 @@
 import {Button, Modal, Table, Tooltip} from 'antd';
 import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
-import {deleteFunctionType, listFunctionTypes} from '../../lib/FunctionTypeService';
+import {deleteFunctionType, listFunctionTypes} from '../../lib/api/FunctionTypeService';
 import PropTypes from 'prop-types';
-import {deleteServiceType, listServiceTypes} from '../../lib/ServiceTypeService';
+import {deleteServiceType, listServiceTypes} from '../../lib/api/ServiceTypeService';
 import DateColumnRender from '../misc/DateColumnRender';
 
 const {Column} = Table;

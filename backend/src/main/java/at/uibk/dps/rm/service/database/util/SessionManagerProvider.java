@@ -1,8 +1,8 @@
 package at.uibk.dps.rm.service.database.util;
 
-import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Maybe;
-import io.reactivex.rxjava3.core.Single;
+import at.uibk.dps.rm.entity.misc.RetryCount;
+import at.uibk.dps.rm.util.misc.RxVertxHandler;
+import io.reactivex.rxjava3.core.*;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.reactive.stage.Stage.SessionFactory;
 
@@ -20,6 +20,11 @@ public class SessionManagerProvider {
 
     private final SessionFactory sessionFactory;
 
+    private final int maxRetries;
+
+    private final int retryDelay;
+
+
     /**
      * Perform work using a reactive session. The executions contained in function are
      * transactional.
@@ -29,11 +34,15 @@ public class SessionManagerProvider {
      * @param <E> any datatype that can be returned by the reactive session
      */
     public <E> Single<E> withTransactionSingle(Function<SessionManager, Single<E>> function) {
-        CompletionStage<E> transaction = sessionFactory.withTransaction(session -> {
-            SessionManager sessionManager = new SessionManager(session);
-            return function.apply(sessionManager).toCompletionStage();
-        });
-        return Single.fromCompletionStage(transaction);
+        RetryCount retryCount = new RetryCount();
+        return Single.defer(() -> {
+                CompletionStage<E> transaction = sessionFactory.withTransaction(session -> {
+                    SessionManager sessionManager = new SessionManager(session);
+                    return function.apply(sessionManager).toCompletionStage();
+                });
+                return Single.fromCompletionStage(transaction);
+            })
+            .retryWhen(RxVertxHandler.checkForRetry(retryCount, maxRetries, retryDelay));
     }
 
     /**
@@ -45,11 +54,15 @@ public class SessionManagerProvider {
      * @param <E> any datatype that can be returned by the reactive session
      */
     public <E> Maybe<E> withTransactionMaybe(Function<SessionManager, Maybe<E>> function) {
-        CompletionStage<E> transaction = sessionFactory.withTransaction(session -> {
-            SessionManager sessionManager = new SessionManager(session);
-            return function.apply(sessionManager).toCompletionStage();
-        });
-        return Maybe.fromCompletionStage(transaction);
+        RetryCount retryCount = new RetryCount();
+        return Maybe.defer(() -> {
+                CompletionStage<E> transaction = sessionFactory.withTransaction(session -> {
+                    SessionManager sessionManager = new SessionManager(session);
+                    return function.apply(sessionManager).toCompletionStage();
+                });
+                return Maybe.fromCompletionStage(transaction);
+            })
+            .retryWhen(RxVertxHandler.checkForRetry(retryCount, maxRetries, retryDelay));
     }
 
     /**
@@ -60,10 +73,14 @@ public class SessionManagerProvider {
      * @return a Completable
      */
     public Completable withTransactionCompletable(Function<SessionManager, Completable> function) {
-        CompletionStage<Void> transaction = sessionFactory.withTransaction(session -> {
-            SessionManager sessionManager = new SessionManager(session);
-            return function.apply(sessionManager).toCompletionStage(null);
-        });
-        return Completable.fromCompletionStage(transaction);
+        RetryCount retryCount = new RetryCount();
+            return Completable.defer(() -> {
+                CompletionStage<Void> transaction = sessionFactory.withTransaction(session -> {
+                    SessionManager sessionManager = new SessionManager(session);
+                    return function.apply(sessionManager).toCompletionStage(null);
+                });
+                return Completable.fromCompletionStage(transaction);
+            })
+            .retryWhen(RxVertxHandler.checkForRetry(retryCount, maxRetries, retryDelay));
     }
 }

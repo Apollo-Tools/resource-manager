@@ -32,8 +32,8 @@ public class ServiceDeploymentRepositoryTest extends DatabaseTest {
         super.fillDB(vertx, testContext);
 
         smProvider.withTransactionSingle(sessionManager -> {
-            Deployment d1 = TestDeploymentProvider.createDeployment(null, true, accountAdmin);
-            Deployment d2 = TestDeploymentProvider.createDeployment(null, true, accountDefault);
+            Deployment d1 = TestDeploymentProvider.createDeployment(null, accountAdmin);
+            Deployment d2 = TestDeploymentProvider.createDeployment(null, accountDefault);
             K8sServiceType k8sStNodePort = TestServiceProvider.createK8sServiceType(1L);
             K8sServiceType k8sStNoSvc = TestServiceProvider.createK8sServiceType(3L);
             ServiceType st1 = TestServiceProvider.createServiceTyp(2L, "notype");
@@ -63,15 +63,15 @@ public class ServiceDeploymentRepositoryTest extends DatabaseTest {
                 DeploymentStatusValue.TERMINATING);
             ResourceDeploymentStatus rds5 = TestDeploymentProvider.createResourceDeploymentStatus(5L,
                 DeploymentStatusValue.TERMINATED);
-            ServiceDeployment sd1 = TestServiceProvider.createServiceDeployment(null, s1, r1, true, d1,
+            ServiceDeployment sd1 = TestServiceProvider.createServiceDeployment(null, s1, r1, d1,
                 rds1);
-            ServiceDeployment sd2 = TestServiceProvider.createServiceDeployment(null, s2, sr1, true, d1,
+            ServiceDeployment sd2 = TestServiceProvider.createServiceDeployment(null, s2, sr1, d1,
                 rds2);
-            ServiceDeployment sd3 = TestServiceProvider.createServiceDeployment(null, s1, r2, true, d1,
+            ServiceDeployment sd3 = TestServiceProvider.createServiceDeployment(null, s1, r2, d1,
                 rds3);
-            ServiceDeployment sd4 = TestServiceProvider.createServiceDeployment(null, s1, r1, true, d2,
+            ServiceDeployment sd4 = TestServiceProvider.createServiceDeployment(null, s1, r1, d2,
                 rds4);
-            ServiceDeployment sd5 = TestServiceProvider.createServiceDeployment(null, s2, r2, true, d2,
+            ServiceDeployment sd5 = TestServiceProvider.createServiceDeployment(null, s2, r2, d2,
                 rds5);
             return sessionManager.persist(d1)
                 .flatMap(res -> sessionManager.persist(d2))

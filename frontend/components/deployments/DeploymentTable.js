@@ -2,9 +2,9 @@ import {
   InfoCircleOutlined,
 } from '@ant-design/icons';
 import {Button, Table, Space, Tooltip} from 'antd';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {useEffect, useState} from 'react';
-import {listMyDeployments} from '../../lib/DeploymentService';
+import {listMyDeployments} from '../../lib/api/DeploymentService';
 import Link from 'next/link';
 import DeploymentStatusBadge from './DeploymentStatusBadge';
 import DateColumnRender from '../misc/DateColumnRender';
@@ -39,6 +39,10 @@ const DeploymentTable = () => {
     }
   }, [error]);
 
+  const checkFinishedAtNotNull = (deployment) => {
+    return Object.hasOwn(deployment, 'finished_at') && deployment.finishedAt == null;
+  };
+
   return (
     <Table dataSource={ deployments } rowKey={ (record) => record.deployment_id } size="small">
       <Column title="Id" dataIndex="deployment_id" key="id"
@@ -55,6 +59,10 @@ const DeploymentTable = () => {
         render={ (createdAt) => <DateColumnRender value={ createdAt }/> }
         sorter={ (a, b) => a.created_at - b.created_at }
         defaultSortOrder='descend'
+      />
+      <Column title="Finished at" dataIndex="finished_at" key="finished_at"
+        render={(finishedAt, record) => checkFinishedAtNotNull(record) ?
+          <DateColumnRender value={ finishedAt }/> : 'not finished'}
       />
       <Column title="Action at" key="action"
         render={ (_, record) => (

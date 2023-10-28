@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import {useEffect, useState} from 'react';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 import DateColumnRender from '../misc/DateColumnRender';
+import BoolValueDisplay from '../misc/BoolValueDisplay';
 
 const {Column} = Table;
 
@@ -23,7 +24,7 @@ const ResourceTable = ({
   const [platformFilter, setPlatformFilter] = useState([]);
 
   useEffect(() => {
-    if (resourceType === 'sub') {
+    if (['sub', 'all'].includes(resourceType)) {
       return;
     }
     setEnvFilter(() =>
@@ -100,6 +101,12 @@ const ResourceTable = ({
           />
         </>
       }
+      <Column title="Lockable" dataIndex="is_lockable" key="is_lockable"
+        render={(isLockable) => <BoolValueDisplay value={isLockable} />}
+      />
+      <Column title="Locked" dataIndex="is_locked" key="is_locked"
+        render={(isLocked) => <BoolValueDisplay value={isLocked} />}
+      />
       <Column title="Created at" dataIndex="created_at" key="created_at"
         render={(createdAt) => <DateColumnRender value={createdAt}/>}
         sorter={(a, b) => a.created_at - b.created_at}
@@ -136,7 +143,7 @@ ResourceTable.propTypes={
   rowSelection: PropTypes.object,
   customButton: PropTypes.shape({onClick: PropTypes.func, icon: PropTypes.node, tooltip: PropTypes.node}),
   getRowClassname: PropTypes.func,
-  resourceType: PropTypes.oneOf(['main', 'sub']),
+  resourceType: PropTypes.oneOf(['main', 'sub', 'all']),
 };
 
 

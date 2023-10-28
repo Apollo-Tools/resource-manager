@@ -22,8 +22,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -84,7 +83,10 @@ public class ContainerStartupHandlerTest {
         if (isValid && isStartup) {
             when(rc.response()).thenReturn(response);
             when(response.setStatusCode(200)).thenReturn(response);
-            when(response.end(new JsonObject().encodePrettily())).thenReturn(Completable.complete());
+            when(response.end(argThat((String response) -> {
+                JsonObject body = new JsonObject(response);
+                return body.containsKey("startup_time_seconds") && body.getDouble("startup_time_seconds") > 0.0;
+            }))).thenReturn(Completable.complete());
         }
         if (isStartup) {
             if (isValid || readyForStartup) {

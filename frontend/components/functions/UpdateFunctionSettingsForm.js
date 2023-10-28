@@ -1,10 +1,10 @@
 import {Button, Divider, Form, InputNumber, Space, Switch, Typography} from 'antd';
 import {useEffect, useState} from 'react';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import PropTypes from 'prop-types';
-import {updateFunctionSettings} from '../../lib/FunctionService';
+import {updateFunctionSettings} from '../../lib/api/FunctionService';
 import CodeMirror from '@uiw/react-codemirror';
-import {getEditorExtension} from '../../lib/CodeEditorService';
+import {getEditorExtension} from '../../lib/api/CodeEditorService';
 import TooltipIcon from '../misc/TooltipIcon';
 import TextDataDisplay from '../misc/TextDataDisplay';
 import DateFormatter from '../misc/DateFormatter';

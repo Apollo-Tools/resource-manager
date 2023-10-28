@@ -12,7 +12,7 @@ import {
   DatabaseOutlined, TeamOutlined,
 } from '@ant-design/icons';
 import {Layout, Menu} from 'antd';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import Link from 'next/link';
 import PropTypes from 'prop-types';
 const {Content, Footer, Sider} = Layout;
@@ -82,7 +82,7 @@ const Sidebar = ({children}) => {
           <main>{children}</main>
         </Content>
         <Footer
-          className="text-center"
+          className="text-center bg-transparent"
         >
           Apollo Tools ©2022
         </Footer>

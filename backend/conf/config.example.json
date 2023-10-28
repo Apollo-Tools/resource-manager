@@ -3,6 +3,8 @@
   "db_port": 5432,
   "db_user": "**USER**",
   "db_password": "**PASSWORD**",
+  "max_retries": 5,
+  "retry_delay_millis": 1000,
 
   "api_port": 8888,
 

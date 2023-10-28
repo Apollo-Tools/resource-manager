@@ -68,6 +68,14 @@ public interface ResourceService extends DatabaseServiceInterface {
     void findAllByResourceIds(List<Long> resourceIds, Handler<AsyncResult<JsonArray>> resultHandler);
 
     /**
+     * Find all resources that are locked by a deployment.
+     *
+     * @param deploymentId the id of the deployment
+     * @param resultHandler receives the found resources as JsonArray
+     */
+    void findAllLockedByDeployment(long deploymentId, Handler<AsyncResult<JsonArray>> resultHandler);
+
+    /**
      * Update a cluster resource using the contents of the data object.
      *
      * @param resourceName the name of the cluster resource
@@ -75,4 +83,12 @@ public interface ResourceService extends DatabaseServiceInterface {
      * @param resultHandler receives nothing if the update was successful else an error
      */
     void updateClusterResource(String resourceName, K8sMonitoringData data, Handler<AsyncResult<Void>> resultHandler);
+
+    /**
+     * Unlock all resources that are locked by a deployment.
+     *
+     * @param deploymentId the id of the deployment
+     * @param resultHandler receives nothing if unlocking resources was successful else an error
+     */
+    void unlockLockedResourcesByDeploymentId(long deploymentId, Handler<AsyncResult<Void>> resultHandler);
 }

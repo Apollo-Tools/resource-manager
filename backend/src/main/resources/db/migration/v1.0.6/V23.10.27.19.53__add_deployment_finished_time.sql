@@ -1,0 +1,2 @@
+ALTER TABLE deployment
+ADD COLUMN finished_at TIMESTAMP DEFAULT NULL;

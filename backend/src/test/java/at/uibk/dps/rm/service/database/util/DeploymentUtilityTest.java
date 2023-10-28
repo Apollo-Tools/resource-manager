@@ -18,13 +18,13 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Implements tests for the {@link DeploymentUtility} class.
@@ -54,7 +54,7 @@ public class DeploymentUtilityTest {
         utility = new DeploymentUtility(repositoryMock.getRepositoryProvider());
         deploymentId = 1L;
         Account account = TestAccountProvider.createAccount(2L);
-        deployment = TestDeploymentProvider.createDeployment(deploymentId, true, account);
+        deployment = TestDeploymentProvider.createDeployment(deploymentId, account);
         Resource r1 = TestResourceProvider.createResourceLambda(1L);
         Resource r2 = TestResourceProvider.createResourceContainer(2L, "localhost", true);
         ResourceDeploymentStatus rdsDeployed = TestDeploymentProvider.createResourceDeploymentStatusDeployed();
@@ -70,6 +70,8 @@ public class DeploymentUtilityTest {
     @ParameterizedTest
     @ValueSource(strings = {"new", "deployed", "terminating", "terminated", "error"})
     void composeDeploymentResponse(String type, VertxTestContext testContext) {
+        Deployment deploymentSpy = spy(deployment);
+
         DeploymentStatusValue status;
         switch (type) {
             case "new":
@@ -77,12 +79,15 @@ public class DeploymentUtilityTest {
                 break;
             case "deployed":
                 status = DeploymentStatusValue.DEPLOYED;
+                when(deploymentSpy.getFinishedAt()).thenReturn(new Timestamp(1692667639999L));
                 break;
             case "terminating":
                 status = DeploymentStatusValue.TERMINATING;
+                when(deploymentSpy.getFinishedAt()).thenReturn(new Timestamp(1692667639999L));
                 break;
             case "terminated":
                 status = DeploymentStatusValue.TERMINATED;
+                when(deploymentSpy.getFinishedAt()).thenReturn(new Timestamp(1692667639999L));
                 break;
             case "error":
             default:
@@ -92,13 +97,21 @@ public class DeploymentUtilityTest {
         List<ResourceDeployment> resourceDeployments = List.of(rd1, rd2);
         when(repositoryMock.getResourceDeploymentRepository()
             .findAllByDeploymentIdAndFetch(sessionManager, deploymentId)).thenReturn(Single.just(resourceDeployments));
+        when(deploymentSpy.getCreatedAt()).thenReturn(new Timestamp(1692667639304L));
+
         try(MockedStatic<DeploymentStatusUtility> mock = Mockito.mockStatic(DeploymentStatusUtility.class)) {
             mock.when(() -> DeploymentStatusUtility.checkCrucialResourceDeploymentStatus(resourceDeployments))
                 .thenReturn(status);
-            utility.composeDeploymentResponse(sessionManager, deployment)
+            utility.composeDeploymentResponse(sessionManager, deploymentSpy)
                 .subscribe(result -> testContext.verify(() -> {
                         assertThat(result.getDeploymentId()).isEqualTo(deploymentId);
                         assertThat(result.getStatusValue()).isEqualTo(status);
+                        assertThat(result.getCreatedAt()).isEqualTo(new Timestamp(1692667639304L));
+                        if (List.of("new", "error").contains(type)) {
+                            assertThat(result.getFinishedAt()).isNull();
+                        } else {
+                            assertThat(result.getFinishedAt()).isEqualTo(new Timestamp(1692667639999L));
+                        }
                         testContext.completeNow();
                     }),
                     throwable -> testContext.verify(() -> fail("method has thrown exception"))

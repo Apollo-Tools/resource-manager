@@ -1,9 +1,9 @@
 import {Button, Form} from 'antd';
-import {useAuth} from '../../lib/AuthenticationProvider';
+import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {useEffect, useState} from 'react';
-import {listK8sNamespaces} from '../../lib/K8sNamespaceService';
+import {listK8sNamespaces} from '../../lib/api/K8sNamespaceService';
 import AccountNamespaceSelect from './AccountNamespaceSelect';
-import {addAccountNamespace} from '../../lib/AccountNamespaceService';
+import {addAccountNamespace} from '../../lib/api/AccountNamespaceService';
 import PropTypes from 'prop-types';
 
 

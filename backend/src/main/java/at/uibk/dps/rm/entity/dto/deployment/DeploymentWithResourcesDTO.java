@@ -24,4 +24,6 @@ public class DeploymentWithResourcesDTO extends Deployment {
     private List<ServiceDeployment> serviceResources = new ArrayList<>();
 
     private Timestamp createdAt;
+
+    private Timestamp finishedAt;
 }

@@ -24,7 +24,7 @@ public class DeploymentLogRouteTest extends RouterTest {
         super.fillDB(vertx, testContext);
 
         smProvider.withTransactionSingle(sessionManager -> {
-            Deployment d1 = TestDeploymentProvider.createDeployment(null, true, accountAdmin);
+            Deployment d1 = TestDeploymentProvider.createDeployment(null, accountAdmin);
             Log l1 = TestLogProvider.createLog(null);
             Log l2 = TestLogProvider.createLog(null);
             DeploymentLog dl1 = TestLogProvider.createDeploymentLog(null, d1, l1);

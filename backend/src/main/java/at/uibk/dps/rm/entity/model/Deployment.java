@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.entity.model;
 
 import at.uibk.dps.rm.annotations.Generated;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,16 +22,15 @@ public class Deployment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long deploymentId;
 
-    @JsonProperty("is_active")
-    @Column(name = "is_active")
-    private Boolean isActive;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_id")
     private Account createdBy;
 
     @Column(insertable = false, updatable = false)
     private @Setter(AccessLevel.NONE) Timestamp createdAt;
+
+    @Column(insertable = false, updatable = false)
+    private @Setter(AccessLevel.NONE) Timestamp finishedAt;
 
     @Override
     @Generated

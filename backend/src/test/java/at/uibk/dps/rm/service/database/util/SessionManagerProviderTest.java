@@ -1,10 +1,12 @@
 package at.uibk.dps.rm.service.database.util;
 
+import at.uibk.dps.rm.exception.SerializationException;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import io.vertx.pgclient.PgException;
 import org.hibernate.reactive.stage.Stage;
 import org.hibernate.reactive.stage.Stage.SessionFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,7 +42,7 @@ public class SessionManagerProviderTest {
 
     @BeforeEach
     void initTest() {
-        sessionManagerProvider = new SessionManagerProvider(sessionFactory);
+        sessionManagerProvider = new SessionManagerProvider(sessionFactory, 5, 1000);
     }
 
     @Test
@@ -60,6 +62,55 @@ public class SessionManagerProviderTest {
                 testContext.completeNow();
             }), throwable -> testContext.verify(() -> fail("method has thrown exception"))
         );
+    }
+
+    @Test
+    void withTransactionWithRetryMax(VertxTestContext testContext) {
+        Function<SessionManager, Single<String>> function = mock(Function.class);
+        PgException serializationException = mock(PgException.class);
+        Single<String> errorResult = Single.error(serializationException);
+
+        when(serializationException.getSqlState()).thenReturn("40001");
+        when(function.apply(any(SessionManager.class))).thenReturn(errorResult);
+        when(sessionFactory.withTransaction(any(Function.class))).thenAnswer(invocation -> {
+            Function<Stage.Session, CompletionStage<String>> transactionFunction = invocation.getArgument(0);
+            return transactionFunction.apply(session);
+        });
+
+        sessionManagerProvider.withTransactionSingle(function)
+            .subscribe(result -> testContext.failNow("method did not throw exception"),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(SerializationException.class);
+                    assertThat(throwable.getMessage()).isEqualTo("the requested operation could not be " +
+                        "completed due to a serialization conflict. Please retry the operation.");
+                    testContext.completeNow();
+                })
+            );
+    }
+
+    @Test
+    void withTransactionWithRetryResolved(VertxTestContext testContext) {
+        Function<SessionManager, Single<String>> function = mock(Function.class);
+        PgException serializationException = mock(PgException.class);
+        Single<String> errorResult = Single.error(serializationException);
+        Single<String> expectedResult = Single.just("TestResult");
+
+        when(serializationException.getSqlState()).thenReturn("40001");
+        when(function.apply(any(SessionManager.class)))
+            .thenReturn(errorResult)
+            .thenReturn(errorResult)
+            .thenReturn(expectedResult);
+        when(sessionFactory.withTransaction(any(Function.class))).thenAnswer(invocation -> {
+            Function<Stage.Session, CompletionStage<String>> transactionFunction = invocation.getArgument(0);
+            return transactionFunction.apply(session);
+        });
+
+        sessionManagerProvider.withTransactionSingle(function)
+            .subscribe(result -> testContext.verify(() -> {
+                    assertThat(result).isEqualTo("TestResult");
+                    testContext.completeNow();
+                }), throwable -> testContext.verify(() -> fail("method has thrown exception"))
+            );
     }
 
     @Test
