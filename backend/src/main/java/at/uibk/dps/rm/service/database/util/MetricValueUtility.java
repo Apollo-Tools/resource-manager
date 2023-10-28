@@ -45,6 +45,7 @@ public class MetricValueUtility {
         return Observable.fromIterable(values)
             .flatMapCompletable(jsonObject -> {
                 JsonObject jsonMetric = (JsonObject) jsonObject;
+                System.out.println(resource.getResourceId());
                 if(((JsonObject) jsonObject).containsKey("metric_id")) {
                     return persistByMetricId(sm, resource, jsonMetric);
                 } else {
@@ -189,7 +190,7 @@ public class MetricValueUtility {
     }
 
     private Completable persist(SessionManager sm, Resource resource, long metricId, MetricValue metricValue, JsonObject jsonMetric) {
-        return metricValueRepository.findByResourceAndMetric(sm, resource.getResourceId(), metricId)
+        return metricValueRepository.findByResourceNameAndMetric(sm, resource.getName(), metricId)
                 .flatMap(existingValue -> Maybe.<PlatformMetric>error(new AlreadyExistsException(MetricValue.class)))
                 .switchIfEmpty(platformMetricRepository.findByPlatformAndMetric(sm,
                         resource.getMain().getPlatform().getPlatformId(), metricId))

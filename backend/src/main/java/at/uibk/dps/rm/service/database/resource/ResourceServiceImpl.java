@@ -170,17 +170,17 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
                                 resource.setRegion(region);
                                 return sm.find(Platform.class, platformId);
                             })
-                            .switchIfEmpty(Maybe.error(new NotFoundException(Platform.class)))
+                            .switchIfEmpty(Single.error(new NotFoundException(Platform.class)))
                             .flatMap(platform -> {
                                 System.out.println(resource.getName());
                                 System.out.println(key);
                                 resource.setPlatform(platform);
-                                sm.persist(resource);
+
                                 System.out.println(resource.getName());
-                                return repository.findByName(sm, resource.getName());
-                            }).switchIfEmpty(Maybe.error(new NotFoundException(Resource.class)))
-                            .flatMapCompletable(resource1 -> {
+                                return sm.persist(resource);
+                            }).flatMapCompletable(resource1->{
                                 Map<String, Object> props = nodeTemplateEntry.getValue().getCapabilities().get("metrics").getProperties();
+
                                 JsonArray jsonArray = new JsonArray();
                                 props.entrySet().forEach(entry -> {
                                     JsonObject jsonObject = new JsonObject();
@@ -188,11 +188,34 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
                                     jsonObject.put("value", entry.getValue());
                                     jsonArray.add(jsonObject);
                                 });
-                                System.out.println(resource1.getResourceId());
-                                System.out.println("metricSave");
                                 return metricValueUtility.checkAddMetricList(sm, resource1, jsonArray);
                             });
                 }));
+
+        Completable saveMetrics =   smProvider.withTransactionCompletable(sm -> Observable.fromIterable(finalToscaFile.getTopology_template().getNode_templates().entrySet())
+                .flatMapCompletable(nodeTemplateEntry -> {
+
+                    Map<String, Object> props = nodeTemplateEntry.getValue().getCapabilities().get("metrics").getProperties();
+                    String name = nodeTemplateEntry.getValue().getCapabilities().get("resource").getProperties().get("name").toString();
+
+                    JsonArray jsonArray = new JsonArray();
+                    props.entrySet().forEach(entry -> {
+                        JsonObject jsonObject = new JsonObject();
+                        jsonObject.put("metric", entry.getKey());
+                        jsonObject.put("value", entry.getValue());
+                        jsonArray.add(jsonObject);
+                    });
+                    System.out.println("metricSave");
+                    return
+                    repository.findByName(sm, name)
+                            .switchIfEmpty(Maybe.error(new NotFoundException(Resource.class)))
+                            .flatMapCompletable(resource2 -> {
+                                System.out.println(resource2.getResourceId());
+                                return metricValueUtility.checkAddMetricList(sm, resource2, jsonArray);
+                            });
+                }));
+
+
 
         RxVertxHandler.handleSession(save, resultHandler);
     }
