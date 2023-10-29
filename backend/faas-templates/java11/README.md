@@ -15,8 +15,8 @@ There are three projects which make up a single gradle build:
 - entrypoint - Each platform implements a different entrypoint. The function developer does not 
   need to know any implementation details of this project but if you are interested implementation 
   details can be found in the directories of the corresponding platforms.
-- model - Interfaces, Exceptions that are used by the entrypoint and function. Modifications of
-  these classes don't apply to the final deployment!
+- model - Interfaces, Helper-Classes and Exceptions that are used by the entrypoint and function projects. 
+  **Modifications of these classes don't apply to the final deployment!**
 
 ### Handler
 The handler is implemented in the `Main.java` of the function project. This class must implement
