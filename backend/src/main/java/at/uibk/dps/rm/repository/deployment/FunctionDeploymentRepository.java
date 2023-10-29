@@ -3,6 +3,7 @@ package at.uibk.dps.rm.repository.deployment;
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
 import at.uibk.dps.rm.repository.Repository;
 import at.uibk.dps.rm.service.database.util.SessionManager;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 
 import java.util.List;
@@ -46,5 +47,27 @@ public class FunctionDeploymentRepository extends Repository<FunctionDeployment>
             .setParameter("deploymentId", deploymentId)
             .getResultList()
         );
+    }
+
+    /**
+     * Update the trigger url of a resource deployment by its id.
+     *
+     * @param sessionManager the database session manager
+     * @param id the id of the resource deployment
+     * @param rmTriggerUrl the new rm trigger url
+     * @param directTriggerUrl the new direct trigger url
+     * @return a Completable
+     */
+    public Completable updateTriggerUrls(SessionManager sessionManager, long id, String rmTriggerUrl,
+            String directTriggerUrl) {
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery("update FunctionDeployment fd " +
+                "set rmTriggerUrl=:rmTriggerUrl, directTriggerUrl=:directTriggerUrl " +
+                "where fd.resourceDeploymentId=:id")
+            .setParameter("rmTriggerUrl", rmTriggerUrl)
+            .setParameter("directTriggerUrl", directTriggerUrl)
+            .setParameter("id", id)
+            .executeUpdate()
+        ).ignoreElement();
     }
 }

@@ -46,19 +46,23 @@ public class TriggerUrlUtility {
      * @param resourceId the id of the resource
      * @param functionName the name of the function
      * @param runtimeName the name of the runtime
-     * @param triggerUrl the trigger url
+     * @param directTriggerUrl the trigger url
      * @return a Completable
      */
-    private Completable findFunctionDeploymentAndUpdateTriggerUrl(SessionManager sm,
-            DeployResourcesDTO request, long resourceId, String functionName, String runtimeName, String triggerUrl) {
+    private Completable findFunctionDeploymentAndUpdateTriggerUrl(SessionManager sm, DeployResourcesDTO request,
+            long resourceId, String functionName, String runtimeName, String directTriggerUrl) {
         return Observable.fromIterable(request.getFunctionDeployments())
             .filter(functionDeployment -> matchesFunctionDeployment(resourceId, functionName, runtimeName,
                 functionDeployment))
             .firstElement()
             .switchIfEmpty(Single.error(new NotFoundException("trigger url could not be set up for function " +
                 "deployment")))
-            .flatMapCompletable(functionDeployment -> repositoryProvider.getResourceDeploymentRepository()
-                .updateTriggerUrl(sm, functionDeployment.getResourceDeploymentId(), triggerUrl));
+            .flatMapCompletable(functionDeployment -> {
+                String rmTriggerUrl = String.format("/deployments/%s/resource-deployment/%s/invoke",
+                    request.getDeployment().getDeploymentId(), functionDeployment.getResourceDeploymentId());
+                return repositoryProvider.getFunctionDeploymentRepository().updateTriggerUrls(sm,
+                    functionDeployment.getResourceDeploymentId(), rmTriggerUrl, directTriggerUrl);
+            });
     }
 
     /**
@@ -87,11 +91,10 @@ public class TriggerUrlUtility {
     public Completable setTriggerUrlForContainers(SessionManager sm, DeployResourcesDTO request) {
         return Observable.fromIterable(request.getServiceDeployments())
             .flatMapCompletable(serviceDeployment -> {
-                String triggerUrl = String.format("/deployments/%s/%s/startup",
-                    request.getDeployment().getDeploymentId(),
-                    serviceDeployment.getResourceDeploymentId()) ;
+                String rmTriggerUrl = String.format("/deployments/%s/resource-deployments/%s/startup",
+                    request.getDeployment().getDeploymentId(), serviceDeployment.getResourceDeploymentId()) ;
                 return repositoryProvider.getResourceDeploymentRepository()
-                    .updateTriggerUrl(sm, serviceDeployment.getResourceDeploymentId(), triggerUrl);
+                    .updateRmTriggerUrl(sm, serviceDeployment.getResourceDeploymentId(), rmTriggerUrl);
             });
     }
 }

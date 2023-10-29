@@ -54,10 +54,10 @@ public class TriggerUrlUtilityTest {
         DeployResourcesDTO deployResourcesDTO = TestRequestProvider.createDeployRequest();
 
         when(repositoryMock.getResourceDeploymentRepository()
-            .updateTriggerUrl(sessionManager, 1L, "http://host:port/foo1"))
+            .updateRmTriggerUrl(sessionManager, 1L, "http://host:port/foo1"))
             .thenReturn(Completable.complete());
         when(repositoryMock.getResourceDeploymentRepository()
-            .updateTriggerUrl(sessionManager, 4L, "http://host:port/foo2"))
+            .updateRmTriggerUrl(sessionManager, 4L, "http://host:port/foo2"))
             .thenReturn(Completable.complete());
 
         utility.setTriggerUrlsForFunctions(sessionManager, output, deployResourcesDTO)
@@ -103,13 +103,13 @@ public class TriggerUrlUtilityTest {
         DeployResourcesDTO deployResourcesDTO = TestRequestProvider.createDeployRequest();
 
         when(repositoryMock.getResourceDeploymentRepository()
-            .updateTriggerUrl(sessionManager, 4L, "/deployments/1/4/startup"))
+            .updateRmTriggerUrl(sessionManager, 4L, "/deployments/1/4/startup"))
             .thenReturn(Completable.complete());
         when(repositoryMock.getResourceDeploymentRepository()
-            .updateTriggerUrl(sessionManager, 5L, "/deployments/1/5/startup"))
+            .updateRmTriggerUrl(sessionManager, 5L, "/deployments/1/5/startup"))
             .thenReturn(Completable.complete());
         when(repositoryMock.getResourceDeploymentRepository()
-            .updateTriggerUrl(sessionManager, 6L, "/deployments/1/6/startup"))
+            .updateRmTriggerUrl(sessionManager, 6L, "/deployments/1/6/startup"))
             .thenReturn(Completable.complete());
 
         utility.setTriggerUrlForContainers(sessionManager, deployResourcesDTO)

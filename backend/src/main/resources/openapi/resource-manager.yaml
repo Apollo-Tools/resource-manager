@@ -3938,6 +3938,9 @@ components:
                     properties:
                       function:
                         $ref: '#/components/schemas/Function'
+                      direct_trigger_url:
+                        type: string
+                        example: http://localhost:8080/foo
             service_resources:
               type: array
               items:
@@ -3947,6 +3950,13 @@ components:
                     properties:
                       service:
                         $ref: '#/components/schemas/Service'
+                      namespace:
+                        type: string
+                        example: default
+                      context:
+                        type: string
+                        example: default-context
+
     ResourceDeployment:
       type: object
       properties:
@@ -3954,7 +3964,7 @@ components:
           type: integer
           format: int64
           example: 1
-        trigger_url:
+        rm_trigger_url:
           type: string
           example: https://localhost:9000/function/invoke
         resource:

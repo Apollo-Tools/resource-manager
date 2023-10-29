@@ -45,15 +45,15 @@ public class ResourceDeploymentRepository extends Repository<ResourceDeployment>
      *
      * @param sessionManager the database session manager
      * @param id the id of the resource deployment
-     * @param triggerUrl the new trigger url
+     * @param rmTriggerUrl the new rm trigger url
      * @return a Completable
      */
-    public Completable updateTriggerUrl(SessionManager sessionManager, long id, String triggerUrl) {
+    public Completable updateRmTriggerUrl(SessionManager sessionManager, long id, String rmTriggerUrl) {
         return Single.fromCompletionStage(sessionManager.getSession()
             .createQuery("update ResourceDeployment rd " +
-                "set triggerUrl=:triggerUrl " +
+                "set rmTriggerUrl=:rmTriggerUrl " +
                 "where rd.resourceDeploymentId=:id")
-            .setParameter("triggerUrl", triggerUrl)
+            .setParameter("rmTriggerUrl", rmTriggerUrl)
             .setParameter("id", id)
             .executeUpdate()
         ).ignoreElement();

@@ -18,4 +18,6 @@ public class FunctionDeployment extends ResourceDeployment {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "function_id")
     private Function function;
+
+    private String directTriggerUrl = "";
 }
