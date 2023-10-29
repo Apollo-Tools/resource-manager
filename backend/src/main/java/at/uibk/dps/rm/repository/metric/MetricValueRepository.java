@@ -80,25 +80,6 @@ public class MetricValueRepository extends Repository<MetricValue> {
      * Find a metric value by its resource and metric.
      *
      * @param sessionManager the database session manager
-     * @param resourceName the name of the resource
-     * @param metricId the id of the metric
-     * @return a Maybe that emits the metric value if it exists, else null
-     */
-    public Maybe<MetricValue> findByResourceNameAndMetric(SessionManager sessionManager, String resourceName, long metricId) {
-        return Maybe.fromCompletionStage(sessionManager.getSession()
-                .createQuery("select mv from Resource r " +
-                        "left join r.metricValues mv " +
-                        "where r.name=:resourceId and mv.metric.metricId=:metricId", entityClass)
-                .setParameter("resourceId", resourceName)
-                .setParameter("metricId", metricId)
-                .getSingleResultOrNull()
-        );
-    }
-
-    /**
-     * Find a metric value by its resource and metric.
-     *
-     * @param sessionManager the database session manager
      * @param resourceId the id of the resource
      * @param metricId the id of the metric
      * @return a Maybe that emits the metric value if it exists, else null

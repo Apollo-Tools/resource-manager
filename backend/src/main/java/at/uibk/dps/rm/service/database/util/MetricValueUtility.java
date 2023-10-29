@@ -184,7 +184,7 @@ public class MetricValueUtility {
     }
 
     private Completable persist(SessionManager sm, Resource resource, long metricId, MetricValue metricValue, JsonObject jsonMetric) {
-        return metricValueRepository.findByResourceNameAndMetric(sm, resource.getName(), metricId)
+        return metricValueRepository.findByResourceAndMetric(sm, resource.getResourceId(), metricId)
                 .flatMap(existingValue -> Maybe.<PlatformMetric>error(new AlreadyExistsException(MetricValue.class)))
                 .switchIfEmpty(platformMetricRepository.findByPlatformAndMetric(sm,
                         resource.getMain().getPlatform().getPlatformId(), metricId))
