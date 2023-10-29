@@ -54,7 +54,7 @@ public class ResourceRoute implements Route {
         router
             .operation("getAllStandardizedResources")
             .handler(rc -> resultHandler.handleFindOneRequest(rc,
-            resourceHandler.getAllStandarizedResource(rc)));
+            resourceHandler.getAllStandarizedResource()));
 
         router
             .operation("deleteResource")

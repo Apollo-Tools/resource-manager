@@ -3,10 +3,7 @@ package at.uibk.dps.rm.util.validation;
 import at.uibk.dps.rm.util.toscamapping.TOSCAFile;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
-import io.vertx.core.json.JsonArray;
 import lombok.experimental.UtilityClass;
-
-import java.util.Optional;
 
 /**
  * A utility class that can be used to validate a TOSCA file

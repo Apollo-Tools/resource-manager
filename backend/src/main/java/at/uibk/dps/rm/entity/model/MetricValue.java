@@ -1,6 +1,5 @@
 package at.uibk.dps.rm.entity.model;
 
-import at.uibk.dps.rm.annotations.Generated;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AccessLevel;
@@ -61,10 +60,10 @@ public class MetricValue {
         }
     }
 
-    @Override
     /**
-     * Implementation from : https://jpa-buddy.com/blog/hopefully-the-final-article-about-equals-and-hashcode-for-jpa-entities-with-db-generated-ids/
+     * Implementation from : <a href="https://jpa-buddy.com/blog/hopefully-the-final-article-about-equals-and-hashcode-for-jpa-entities-with-db-generated-ids/">...</a>
      */
+    @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null) return false;
@@ -75,11 +74,10 @@ public class MetricValue {
         return getMetricValueId() != null && Objects.equals(getMetricValueId(), metricValue.getMetricValueId());
     }
 
-    @Override
-
     /**
-     * Implementation from : https://jpa-buddy.com/blog/hopefully-the-final-article-about-equals-and-hashcode-for-jpa-entities-with-db-generated-ids/
+     * Implementation from : <a href="https://jpa-buddy.com/blog/hopefully-the-final-article-about-equals-and-hashcode-for-jpa-entities-with-db-generated-ids/">...</a>
      */
+    @Override
     public int hashCode() {
         return this instanceof HibernateProxy
                 ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode()

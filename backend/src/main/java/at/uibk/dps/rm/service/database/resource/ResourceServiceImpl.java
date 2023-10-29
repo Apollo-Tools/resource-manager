@@ -141,7 +141,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     }
 
     public void saveStandardized(String data, Handler<AsyncResult<Void>> resultHandler) {
-        TOSCAFile toscaFile = null;
+        TOSCAFile toscaFile;
 
         try {
             toscaFile = TOSCAMapper.readTOSCA(data);
@@ -176,20 +176,20 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
                         .flatMapCompletable(metricList ->{
                             Set<MetricValue> metrics = new HashSet<>();
                             Map<String, Object> props = nodeTemplateEntry.getValue().getCapabilities().get("metrics").getProperties();
-                            props.entrySet().forEach(entry -> {
-                            PlatformMetric platformMetric = metricList.stream()
-                                    .filter(value -> value.getMetric().getMetric().equals(entry.getKey()))
-                                    .findFirst().orElse(null);
-                                    if (platformMetric != null && !platformMetric.getIsMonitored()) {
-                                        JsonObject jsonObject = new JsonObject();
-                                        jsonObject.put("metric", entry.getKey());
-                                        jsonObject.put("value", entry.getValue());
-                                        MetricValue metricValue = new MetricValue();
-                                        metricValue.setMetric(platformMetric.getMetric());
-                                        metricValue.setResource(resource);
-                                        metricValueUtility.checkAddMetricValueSetCorrectly(platformMetric,jsonObject,metricValue);
-                                        metrics.add(metricValue);
-                                    }
+                            props.forEach((key, value1) -> {
+                                PlatformMetric platformMetric = metricList.stream()
+                                        .filter(value -> value.getMetric().getMetric().equals(key))
+                                        .findFirst().orElse(null);
+                                if (platformMetric != null && !platformMetric.getIsMonitored()) {
+                                    JsonObject jsonObject = new JsonObject();
+                                    jsonObject.put("metric", key);
+                                    jsonObject.put("value", value1);
+                                    MetricValue metricValue = new MetricValue();
+                                    metricValue.setMetric(platformMetric.getMetric());
+                                    metricValue.setResource(resource);
+                                    metricValueUtility.checkAddMetricValueSetCorrectly(platformMetric, jsonObject, metricValue);
+                                    metrics.add(metricValue);
+                                }
                             });
                             resource.setMetricValues(metrics);
                             return sm.persist(resource).ignoreElement();

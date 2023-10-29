@@ -65,7 +65,7 @@ public class ResourceHandler extends ValidationHandler {
                 .flatMap(resourceService::getStandardized);
     }
 
-    public Single<JsonObject> getAllStandarizedResource(RoutingContext rc) {
+    public Single<JsonObject> getAllStandarizedResource() {
         return resourceService.getAllStandardized();
     }
 }

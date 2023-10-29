@@ -17,8 +17,7 @@ public class TOSCAMapper {
         ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
         objectMapper.findAndRegisterModules();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        TOSCAFile toscaFile = objectMapper.readValue(toscaString, TOSCAFile.class);
-        return toscaFile;
+        return objectMapper.readValue(toscaString, TOSCAFile.class);
     }
 
     public static String writeTOSCA(TOSCAFile toscaFile) throws JsonProcessingException {
@@ -48,12 +47,11 @@ public class TOSCAMapper {
             }
             nodeTemplate.setCapabilities("resource", resourceCapability);
             Capability metricCapability = new Capability();
-            resource.getMetricValues().forEach(metricValue -> {
-                metricCapability.addProperty(metricValue.getMetric().getMetric(),
-                        metricValue.getValueBool() != null ? metricValue.getValueBool() :
-                                metricValue.getValueNumber() != null ? metricValue.getValueNumber() :
-                                        metricValue.getValueString());
-            });
+            resource.getMetricValues().forEach(
+                    metricValue -> metricCapability.addProperty(metricValue.getMetric().getMetric(),
+                    metricValue.getValueBool() != null ? metricValue.getValueBool() :
+                            metricValue.getValueNumber() != null ? metricValue.getValueNumber() :
+                                    metricValue.getValueString()));
             nodeTemplate.setCapabilities("metrics", metricCapability);
             nodeTemplates.put("resource_"+resource.getResourceId().toString(),nodeTemplate);
         });
