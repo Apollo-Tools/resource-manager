@@ -45,14 +45,11 @@ public class MetricValueUtility {
         return Observable.fromIterable(values)
             .flatMapCompletable(jsonObject -> {
                 JsonObject jsonMetric = (JsonObject) jsonObject;
-                System.out.println(resource.getResourceId());
                 if(((JsonObject) jsonObject).containsKey("metric_id")) {
                     return persistByMetricId(sm, resource, jsonMetric);
                 } else {
                     return persistByMetricName(sm, resource, jsonMetric);
                 }
-
-
             });
     }
 
@@ -64,7 +61,7 @@ public class MetricValueUtility {
      * @param jsonValue the value
      * @param metricValue the metric value to set
      */
-    private void checkAddMetricValueSetCorrectly(PlatformMetric platformMetric, JsonObject jsonValue,
+    public void checkAddMetricValueSetCorrectly(PlatformMetric platformMetric, JsonObject jsonValue,
             MetricValue metricValue) {
         Object value = jsonValue.getValue("value");
         boolean valueHasCorrectType = true;
@@ -176,9 +173,6 @@ public class MetricValueUtility {
     private Completable persistByMetricName(SessionManager sm, Resource resource, JsonObject jsonMetric) {
         String metricName = jsonMetric.getString("metric");
         MetricValue metricValue = new MetricValue();
-        System.out.println(resource.getResourceId());
-        System.out.println(metricName);
-        System.out.println("-----------------");
         return metricRepository.findByMetric(sm, metricName)
                 .switchIfEmpty(Maybe.error(new NotFoundException("Metric " + jsonMetric.encode() + " not found")))
                 .flatMapCompletable(metric ->{
@@ -199,7 +193,6 @@ public class MetricValueUtility {
                     metricValue.setMetric(platformMetric.getMetric());
                     metricValue.setResource(resource);
                     checkAddMetricValueSetCorrectly(platformMetric, jsonMetric, metricValue);
-                    System.out.println("saveMetric");
                     return sm.persist(metricValue).ignoreElement();
                 });
     }

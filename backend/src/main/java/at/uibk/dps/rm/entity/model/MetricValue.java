@@ -7,10 +7,12 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Type;
+import org.hibernate.proxy.HibernateProxy;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.Objects;
 
 /**
  * Represents the metric_value entity.
@@ -60,22 +62,28 @@ public class MetricValue {
     }
 
     @Override
-    @Generated
+    /**
+     * Implementation from : https://jpa-buddy.com/blog/hopefully-the-final-article-about-equals-and-hashcode-for-jpa-entities-with-db-generated-ids/
+     */
     public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        MetricValue that = (MetricValue) obj;
-        return metricValueId.equals(that.metricValueId);
+        if (this == obj) return true;
+        if (obj == null) return false;
+        Class<?> oEffectiveClass = obj instanceof HibernateProxy ? ((HibernateProxy) obj).getHibernateLazyInitializer().getPersistentClass() : obj.getClass();
+        Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
+        if (thisEffectiveClass != oEffectiveClass) return false;
+        MetricValue metricValue = (MetricValue) obj;
+        return getMetricValueId() != null && Objects.equals(getMetricValueId(), metricValue.getMetricValueId());
     }
 
     @Override
-    @Generated
+
+    /**
+     * Implementation from : https://jpa-buddy.com/blog/hopefully-the-final-article-about-equals-and-hashcode-for-jpa-entities-with-db-generated-ids/
+     */
     public int hashCode() {
-        return metricValueId.hashCode();
+        return this instanceof HibernateProxy
+                ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode()
+                : getClass().hashCode();
     }
 
     /**

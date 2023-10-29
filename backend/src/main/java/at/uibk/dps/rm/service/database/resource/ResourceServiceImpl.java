@@ -145,7 +145,6 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
 
         try {
             toscaFile = TOSCAMapper.readTOSCA(data);
-            System.out.println(toscaFile.getTopology_template().getNode_templates().get("resource_1").getCapabilities().get("resource").getProperties().get("name"));
         } catch (JsonProcessingException e) {
             throw new RuntimeException("No valid TOSCA input", e);
         }
@@ -155,68 +154,47 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
 
         Completable save = smProvider.withTransactionCompletable(sm -> Observable.fromIterable(finalToscaFile.getTopology_template().getNode_templates().entrySet())
                 .flatMapCompletable(nodeTemplateEntry -> {
-                    String key = nodeTemplateEntry.getKey();
                     String name = nodeTemplateEntry.getValue().getCapabilities().get("resource").getProperties().get("name").toString();
                     long regionId = (int) nodeTemplateEntry.getValue().getCapabilities().get("resource").getProperties().get("region");
                     long platformId = (int) nodeTemplateEntry.getValue().getCapabilities().get("resource").getProperties().get("platform");
                     MainResource resource = new MainResource();
 
                     return repository.findByName(sm, name)
-                            .flatMap(existingResource -> Maybe.<Region>error(new AlreadyExistsException(Resource.class)))
-                            .switchIfEmpty(regionRepository.findByRegionIdAndPlatformId(sm, regionId, platformId))
-                            .switchIfEmpty(Maybe.error(new NotFoundException("platform is not supported by the selected region")))
-                            .flatMap(region -> {
-                                resource.setName(name);
-                                resource.setRegion(region);
-                                return sm.find(Platform.class, platformId);
-                            })
-                            .switchIfEmpty(Single.error(new NotFoundException(Platform.class)))
-                            .flatMap(platform -> {
-                                System.out.println(resource.getName());
-                                System.out.println(key);
-                                resource.setPlatform(platform);
-
-                                System.out.println(resource.getName());
-                                return sm.persist(resource);
-                            }).flatMapCompletable(resource1->{
-                                Map<String, Object> props = nodeTemplateEntry.getValue().getCapabilities().get("metrics").getProperties();
-
-                                JsonArray jsonArray = new JsonArray();
-                                props.entrySet().forEach(entry -> {
-                                    JsonObject jsonObject = new JsonObject();
-                                    jsonObject.put("metric", entry.getKey());
-                                    jsonObject.put("value", entry.getValue());
-                                    jsonArray.add(jsonObject);
-                                });
-                                return metricValueUtility.checkAddMetricList(sm, resource1, jsonArray);
+                        .flatMap(existingResource -> Maybe.<Region>error(new AlreadyExistsException(Resource.class)))
+                        .switchIfEmpty(regionRepository.findByRegionIdAndPlatformId(sm, regionId, platformId))
+                        .switchIfEmpty(Maybe.error(new NotFoundException("platform is not supported by the selected region")))
+                        .flatMap(region -> {
+                            resource.setName(name);
+                            resource.setRegion(region);
+                            return sm.find(Platform.class, platformId);
+                        })
+                        .switchIfEmpty(Single.error(new NotFoundException(Platform.class)))
+                        .flatMap(platform -> {
+                            resource.setPlatform(platform);
+                            return platformMetricRepository.findAllByPlatform(sm, platform.getPlatformId());
+                        })
+                        .flatMapCompletable(metricList ->{
+                            Set<MetricValue> metrics = new HashSet<>();
+                            Map<String, Object> props = nodeTemplateEntry.getValue().getCapabilities().get("metrics").getProperties();
+                            props.entrySet().forEach(entry -> {
+                            PlatformMetric platformMetric = metricList.stream()
+                                    .filter(value -> value.getMetric().getMetric().equals(entry.getKey()))
+                                    .findFirst().orElse(null);
+                                    if (platformMetric != null && !platformMetric.getIsMonitored()) {
+                                        JsonObject jsonObject = new JsonObject();
+                                        jsonObject.put("metric", entry.getKey());
+                                        jsonObject.put("value", entry.getValue());
+                                        MetricValue metricValue = new MetricValue();
+                                        metricValue.setMetric(platformMetric.getMetric());
+                                        metricValue.setResource(resource);
+                                        metricValueUtility.checkAddMetricValueSetCorrectly(platformMetric,jsonObject,metricValue);
+                                        metrics.add(metricValue);
+                                    }
                             });
+                            resource.setMetricValues(metrics);
+                            return sm.persist(resource).ignoreElement();
+                        });
                 }));
-
-        Completable saveMetrics =   smProvider.withTransactionCompletable(sm -> Observable.fromIterable(finalToscaFile.getTopology_template().getNode_templates().entrySet())
-                .flatMapCompletable(nodeTemplateEntry -> {
-
-                    Map<String, Object> props = nodeTemplateEntry.getValue().getCapabilities().get("metrics").getProperties();
-                    String name = nodeTemplateEntry.getValue().getCapabilities().get("resource").getProperties().get("name").toString();
-
-                    JsonArray jsonArray = new JsonArray();
-                    props.entrySet().forEach(entry -> {
-                        JsonObject jsonObject = new JsonObject();
-                        jsonObject.put("metric", entry.getKey());
-                        jsonObject.put("value", entry.getValue());
-                        jsonArray.add(jsonObject);
-                    });
-                    System.out.println("metricSave");
-                    return
-                    repository.findByName(sm, name)
-                            .switchIfEmpty(Maybe.error(new NotFoundException(Resource.class)))
-                            .flatMapCompletable(resource2 -> {
-                                System.out.println(resource2.getResourceId());
-                                return metricValueUtility.checkAddMetricList(sm, resource2, jsonArray);
-                            });
-                }));
-
-
-
         RxVertxHandler.handleSession(save, resultHandler);
     }
 

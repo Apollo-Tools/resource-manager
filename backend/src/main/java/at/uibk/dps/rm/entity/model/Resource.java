@@ -41,7 +41,7 @@ public abstract class Resource {
     @Column(insertable = false, updatable = false)
     private @Setter(AccessLevel.NONE) Timestamp updatedAt;
 
-    @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, mappedBy = "resource")
+    @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, mappedBy = "resource",cascade = CascadeType.PERSIST)
     private Set<MetricValue> metricValues;
 
     @Override
