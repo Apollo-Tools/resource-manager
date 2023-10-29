@@ -59,4 +59,13 @@ public class ResourceHandler extends ValidationHandler {
     protected Completable postAll(RoutingContext rc) {
         return resourceService.saveStandardized(rc.body().asString());
     }
+
+    public Single<JsonObject> getStandarizedResource(RoutingContext rc) {
+        return HttpHelper.getLongPathParam(rc, "id")
+                .flatMap(resourceService::getStandardized);
+    }
+
+    public Single<JsonObject> getAllStandarizedResource(RoutingContext rc) {
+        return resourceService.getAllStandardized();
+    }
 }

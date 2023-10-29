@@ -85,4 +85,20 @@ public interface ResourceService extends DatabaseServiceInterface {
      * @param resultHandler receives nothing if the update was successful else an error
      */
     void saveStandardized(String data, Handler<AsyncResult<Void>> resultHandler);
+
+    /**
+     * returns the requested resource  in TOSCA format
+     *
+     * @param id the resource id
+     * @param resultHandler receives the found resources as JsonObject
+     */
+    void getStandardized(long id, Handler<AsyncResult<JsonObject>> resultHandler);
+
+    /**
+     * returns the all resource  in TOSCA format
+     *
+     * @param resultHandler receives the found resources as JsonArray
+     */
+    void getAllStandardized(Handler<AsyncResult<JsonObject>> resultHandler);
+
 }

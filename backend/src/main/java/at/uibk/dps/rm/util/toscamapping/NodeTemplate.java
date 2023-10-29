@@ -2,6 +2,7 @@ package at.uibk.dps.rm.util.toscamapping;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -33,5 +34,18 @@ public class NodeTemplate {
 
     public void setCapabilities(Map<String, Capability> capabilities) {
         this.capabilities = capabilities;
+    }
+
+    public void setCapabilities(String key, Capability capabilities) {
+        if(this.capabilities == null) {
+            Map<String,Capability> map =new HashMap<>();
+            map.put(key,capabilities);
+            this.capabilities = map;
+        } else {
+            this.capabilities.put(key,capabilities);
+        }
+
+
+
     }
 }

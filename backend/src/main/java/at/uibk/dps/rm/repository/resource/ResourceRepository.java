@@ -98,6 +98,8 @@ public class ResourceRepository extends Repository<Resource> {
     public Single<List<Resource>> findAllAndFetch(SessionManager sessionManager) {
         return Single.fromCompletionStage(sessionManager.getSession()
             .createQuery("select distinct r from MainResource r " +
+                "left join fetch r.metricValues mv " +
+                "left join fetch mv.metric " +
                 "left join fetch r.region reg " +
                 "left join fetch reg.resourceProvider rp " +
                 "left join fetch rp.environment " +

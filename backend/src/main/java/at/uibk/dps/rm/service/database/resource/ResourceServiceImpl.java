@@ -237,4 +237,34 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
         }
         return new JsonArray(objects);
     }
+
+    @Override
+    public void getStandardized(long id, Handler<AsyncResult<JsonObject>> resultHandler) {
+        Single<Resource> find = smProvider.withTransactionSingle(sm -> repository
+                .findByIdAndFetch(sm,id)
+                .switchIfEmpty(Single.error(new NotFoundException(Resource.class))));
+
+        RxVertxHandler.handleSession(find.map(this::encodeSingleResourceTosca), resultHandler);
+    }
+
+    @Override
+    public void getAllStandardized(Handler<AsyncResult<JsonObject>> resultHandler) {
+        Single<List<Resource>> findAll = smProvider.withTransactionSingle(repository::findAllAndFetch);
+
+        RxVertxHandler.handleSession(findAll.map(this::encodeResourceTosca), resultHandler);
+    }
+
+    protected JsonObject encodeSingleResourceTosca( Resource resource) throws JsonProcessingException {
+        List<Resource> list = new ArrayList<>();
+        list.add(resource);
+        TOSCAFile toscaFile = TOSCAMapper.mapResourceToTosca(list);
+
+        return new JsonObject().put("data",TOSCAMapper.writeTOSCA(toscaFile));
+    }
+
+    protected JsonObject encodeResourceTosca( List<Resource> resources) throws JsonProcessingException {
+        TOSCAFile toscaFile = TOSCAMapper.mapResourceToTosca(resources);
+
+        return new JsonObject().put("data",TOSCAMapper.writeTOSCA(toscaFile));
+    }
 }

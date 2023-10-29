@@ -611,6 +611,32 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
+  /resources/{id}/getStandardized:
+    get:
+      description: Return details about a resource managed by the resource manager in TOSCA format
+      operationId: getStandardizedResource
+      security:
+        - bearerAuth: []
+      tags:
+        - resources
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of a resource
+          headers:
+            content-length:
+              schema:
+                type: integer
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
   /resources/{id}:
     get:
       description: Return details about a resource managed by the resource manager
@@ -808,6 +834,25 @@ paths:
           $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+  /resources/getStandardizedResources:
+    get:
+      description: Return details about all resources managed by the resource manager in TOSCA format
+      operationId: getAllStandardizedResources
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - resources
+      responses:
+        200:
+          description: Successful pull of all resources
+          headers:
+            content-length:
+              schema:
+                type: integer
+        401:
+          $ref: "#/components/responses/401"
         500:
           $ref: "#/components/responses/500"
 

@@ -27,7 +27,7 @@ public class ResourceRoute implements Route {
         router
                 .operation("createStandardizedResource")
                 .handler(ResourceInputHandler::validateAddStandardizedResourceRequest)
-                .handler(rc -> resultHandler.handleSaveAllRequest(rc));
+                .handler(resultHandler::handleSaveAllRequest);
 
         router
             .operation("listResources")
@@ -46,6 +46,15 @@ public class ResourceRoute implements Route {
         router
             .operation("getResource")
             .handler(resultHandler::handleFindOneRequest);
+
+        router
+            .operation("getStandardizedResource")
+            .handler(rc -> resultHandler.handleFindOneRequest(rc,
+                    resourceHandler.getStandarizedResource(rc)));
+        router
+            .operation("getAllStandardizedResources")
+            .handler(rc -> resultHandler.handleFindOneRequest(rc,
+            resourceHandler.getAllStandarizedResource(rc)));
 
         router
             .operation("deleteResource")

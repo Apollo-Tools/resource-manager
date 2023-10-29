@@ -1,0 +1,48 @@
+tosca_definitions_version: tosca_v1
+description: Description and information about resources
+topology_template:
+  node_templates:
+    resource_1:
+      type: at.uibk.dps.rm.genericResource
+      requirements:
+        - data_endpoint:
+            node: GraphiteService
+            capability: org.alien4cloud.graphite.pub.capabilities.GraphiteDataEndpoint
+            relationship: org.alien4cloud.diamond.agent_linux.relationships.DiamondLinuxAgentConnectsToGraphite
+        - grafana:
+            node: GrafanaService
+            capability: org.alien4cloud.grafana.pub.capabilities.GrafanaHttpEndpoint
+            relationship: org.alien4cloud.diamond.agent_linux.relationships.DiamondLinuxAgentConnectsToGrafana
+      capabilities:
+        metrics:
+          properties:
+            memory-size: 1024
+            instance-type: t2.micro
+            cpu: 1
+        resource:
+          properties:
+            platform: 2
+            region: 1
+            name: ec2resource1
+    resource_2:
+      type: at.uibk.dps.rm.genericResource
+      requirements:
+        - data_endpoint:
+            node: GraphiteService
+            capability: org.alien4cloud.graphite.pub.capabilities.GraphiteDataEndpoint
+            relationship: org.alien4cloud.diamond.agent_linux.relationships.DiamondLinuxAgentConnectsToGraphite
+        - grafana:
+            node: GrafanaService
+            capability: org.alien4cloud.grafana.pub.capabilities.GrafanaHttpEndpoint
+            relationship: org.alien4cloud.diamond.agent_linux.relationships.DiamondLinuxAgentConnectsToGrafana
+      capabilities:
+        metrics:
+          properties:
+            memory-size: 2048
+            instance-type: t2.medium
+            cpu: 2
+        resource:
+          properties:
+            platform: 2
+            region: 1
+            name: ec2resource2
