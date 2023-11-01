@@ -111,7 +111,7 @@ spec:
             # Necessary for docker-in-docker
             privileged: true
           volumeMounts:
-            # The volume where all build data (terraform files, filed to build images) is stored
+            # The volume where all build data (terraform files, files to build images) is stored
             - name: rm-api-storage
               mountPath: /build
             # The path to the docker.sock used by docker-in-docker

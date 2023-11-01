@@ -48,7 +48,7 @@ public class App implements RequestStreamHandler {
                 monitoringData.setExecutionTimeMs((endTime - startTime) / 1_000_000.0);
                 ResponseWithMonitoring response = new ResponseWithMonitoring();
                 response.setMonitoringData(monitoringData);
-                response.setBody(objectMapper.readValue(result, Object.class));
+                response.setBody(result);
                 result = objectMapper.writeValueAsString(response);
             }
             // Return value

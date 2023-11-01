@@ -131,6 +131,8 @@ public class DatabaseVerticle extends AbstractVerticle {
                 smProvider));
             serviceProxyBinder.bind(EnvironmentService.class,
                 new EnvironmentServiceImpl(new EnvironmentRepository(), smProvider));
+            serviceProxyBinder.bind(FunctionDeploymentService.class,
+                new FunctionDeploymentServiceImpl(new FunctionDeploymentRepository(), smProvider));
             serviceProxyBinder.bind(FunctionService.class,
                 new FunctionServiceImpl(new FunctionRepository(), smProvider));
             serviceProxyBinder.bind(FunctionTypeService.class,

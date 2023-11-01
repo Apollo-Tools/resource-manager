@@ -45,6 +45,7 @@ public class ServiceProxyProvider {
     private final CredentialsService credentialsService;
     private final EnsembleService ensembleService;
     private final EnvironmentService environmentService;
+    private final FunctionDeploymentService functionDeploymentService;
     private final FunctionService functionService;
     private final FunctionTypeService functionTypeService;
     private final LogService logService;
@@ -80,6 +81,7 @@ public class ServiceProxyProvider {
         credentialsService = CredentialsService.createProxy(vertx);
         ensembleService = EnsembleService.createProxy(vertx);
         environmentService = EnvironmentService.createProxy(vertx);
+        functionDeploymentService = FunctionDeploymentService.createProxy(vertx);
         functionService = FunctionService.createProxy(vertx);
         functionTypeService = FunctionTypeService.createProxy(vertx);
         k8sServiceTypeService = K8sServiceTypeService.createProxy(vertx);

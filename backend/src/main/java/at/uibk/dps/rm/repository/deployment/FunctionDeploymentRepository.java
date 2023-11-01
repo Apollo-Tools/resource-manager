@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.model.FunctionDeployment;
 import at.uibk.dps.rm.repository.Repository;
 import at.uibk.dps.rm.service.database.util.SessionManager;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 
 import java.util.List;
@@ -69,5 +70,25 @@ public class FunctionDeploymentRepository extends Repository<FunctionDeployment>
             .setParameter("id", id)
             .executeUpdate()
         ).ignoreElement();
+    }
+
+    /**
+     * Find a function deployment by its id and the id of the creator and fetch the status
+     *
+     * @param sessionManager the database session manager
+     * @param id the id of the function deployment
+     * @param accountId the id of the creator account
+     * @return a Maybe that emits the function deployment if it exists, else null
+     */
+    @Override
+    public Maybe<FunctionDeployment> findByIdAndAccountId(SessionManager sessionManager, long id, long accountId) {
+        return Maybe.fromCompletionStage(sessionManager.getSession()
+            .createQuery("from FunctionDeployment fd " +
+                "left join fetch fd.status " +
+                "where fd.resourceDeploymentId=:id and fd.deployment.createdBy.accountId=:accountId", entityClass)
+            .setParameter("id", id)
+            .setParameter("accountId", accountId)
+            .getSingleResultOrNull()
+        );
     }
 }

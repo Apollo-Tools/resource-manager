@@ -1,7 +1,7 @@
 # Copyright (c) Alex Ellis 2017. All rights reserved.
 # Licensed under the MIT license. See LICENSE file in the project root for full license information.
 # Source: https://github.com/openfaas/python-flask-template/tree/master/template/python3-flask-debian
-
+import json
 from flask import Flask, request
 from waitress import serve
 import os
@@ -52,7 +52,7 @@ def main_route(path):
     if add_monitoring_data:
         end = time.time()
         body = {"monitoring_data": {"execution_time_ms": (end-start) * 1000, "start_timestamp": int(start * 1000)},
-                "body": body}
+                "body": json.dumps(body)}
     return body
 
 if __name__ == '__main__':

@@ -58,7 +58,7 @@ public class TriggerUrlUtility {
             .switchIfEmpty(Single.error(new NotFoundException("trigger url could not be set up for function " +
                 "deployment")))
             .flatMapCompletable(functionDeployment -> {
-                String rmTriggerUrl = String.format("/deployments/%s/resource-deployment/%s/invoke",
+                String rmTriggerUrl = String.format("/deployments/%s/function-deployments/%s/invoke",
                     request.getDeployment().getDeploymentId(), functionDeployment.getResourceDeploymentId());
                 return repositoryProvider.getFunctionDeploymentRepository().updateTriggerUrls(sm,
                     functionDeployment.getResourceDeploymentId(), rmTriggerUrl, directTriggerUrl);

@@ -31,7 +31,7 @@ def handler(event, context):
     if add_monitoring_data:
         end = time.time()
         body = {"monitoring_data": {"execution_time_ms": (end-start) * 1000, "start_timestamp": int(start * 1000)},
-                "body": body}
+                "body": json.dumps(body)}
     return {"statusCode": 200, "body": body}
 ##################################################
 

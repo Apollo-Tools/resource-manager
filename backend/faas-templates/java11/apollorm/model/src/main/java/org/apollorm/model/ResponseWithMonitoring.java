@@ -14,7 +14,7 @@ public class ResponseWithMonitoring {
     @JsonProperty("monitoring_data")
     private MonitoringData monitoringData;
 
-    private Object body;
+    private String body;
 
     public MonitoringData getMonitoringData() {
         return monitoringData;
@@ -24,11 +24,11 @@ public class ResponseWithMonitoring {
         this.monitoringData = monitoringData;
     }
 
-    public Object getBody() {
+    public String getBody() {
         return body;
     }
 
-    public void setBody(Object body) {
+    public void setBody(String body) {
         this.body = body;
     }
 }
