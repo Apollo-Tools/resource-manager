@@ -58,8 +58,8 @@ public class TriggerUrlUtility {
             .switchIfEmpty(Single.error(new NotFoundException("trigger url could not be set up for function " +
                 "deployment")))
             .flatMapCompletable(functionDeployment -> {
-                String rmTriggerUrl = String.format("/deployments/%s/function-deployments/%s/invoke",
-                    request.getDeployment().getDeploymentId(), functionDeployment.getResourceDeploymentId());
+                String rmTriggerUrl = String.format("/function-deployments/%s/invoke",
+                    functionDeployment.getResourceDeploymentId());
                 return repositoryProvider.getFunctionDeploymentRepository().updateTriggerUrls(sm,
                     functionDeployment.getResourceDeploymentId(), rmTriggerUrl, directTriggerUrl);
             });
@@ -91,8 +91,8 @@ public class TriggerUrlUtility {
     public Completable setTriggerUrlForContainers(SessionManager sm, DeployResourcesDTO request) {
         return Observable.fromIterable(request.getServiceDeployments())
             .flatMapCompletable(serviceDeployment -> {
-                String rmTriggerUrl = String.format("/deployments/%s/resource-deployments/%s/startup",
-                    request.getDeployment().getDeploymentId(), serviceDeployment.getResourceDeploymentId()) ;
+                String rmTriggerUrl = String.format("/service-deployments/%s/startup",
+                    serviceDeployment.getResourceDeploymentId()) ;
                 return repositoryProvider.getResourceDeploymentRepository()
                     .updateRmTriggerUrl(sm, serviceDeployment.getResourceDeploymentId(), rmTriggerUrl);
             });
