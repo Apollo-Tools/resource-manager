@@ -1,16 +1,39 @@
-import {Button, Table} from 'antd';
-import {CopyOutlined} from '@ant-design/icons';
+import {Button, Table, Tooltip} from 'antd';
+import {CopyOutlined, ExpandAltOutlined, ControlOutlined} from '@ant-design/icons';
 import Link from 'next/link';
 import PropTypes from 'prop-types';
 import DeploymentStatusBadge from './DeploymentStatusBadge';
 import env from '@beam-australia/react-env';
 import DateColumnRender from '../misc/DateColumnRender';
+import {useEffect, useState} from 'react';
 
 const {Column} = Table;
 
 const ResourceDeploymentTable = ({resourceDeployments, type}) => {
+  const [functionDeployments, setFunctionDeployments] = useState(resourceDeployments);
+
+  useEffect(() => {
+    setFunctionDeployments(() =>
+      functionDeployments.map((functionDeployment) => ({...functionDeployment, showDirectUrl: false})),
+    );
+  }, [resourceDeployments]);
+
+  const switchUrl = (functionDeploymentId) => {
+    setFunctionDeployments(() => functionDeployments.map((functionDeployment) => {
+      console.log(functionDeployment);
+      if (functionDeployment.resource_deployment_id === functionDeploymentId) {
+        return {...functionDeployment, showDirectUrl: !functionDeployment.showDirectUrl};
+      }
+      return functionDeployment;
+    }));
+  };
+
   return (
-    <Table dataSource={ resourceDeployments } rowKey={ (record) => record.resource_deployment_id } size="small">
+    <Table
+      dataSource={ (type === 'function' ? functionDeployments : resourceDeployments) }
+      rowKey={ (record) => record.resource_deployment_id }
+      size="small"
+    >
       <Column title="Id" dataIndex="resource_deployment_id" key="resource_deployment_id"
         sorter={ (a, b) => a.resource_deployment_id - b.resource_deployment_id }
       />
@@ -36,15 +59,33 @@ const ResourceDeploymentTable = ({resourceDeployments, type}) => {
           </Link>}
         sorter={ (a, b) => a.resource.resource_id - b.resource.resource_id }
       />
-      <Column title="Trigger url" dataIndex="trigger_url" key="trigger_url"
-        sorter={ (a, b) => a.trigger_url.localeCompare(b.trigger_url) }
-        render={(triggerUrl) => {
+      <Column title="Trigger url" dataIndex="rm_trigger_url" key="rm_trigger_url"
+        render={(triggerUrl, record) => {
           if (triggerUrl!=='') {
-            const url = (type==='service' ? env('API_URL') : '') + triggerUrl;
-            return <span>{url} <Button className="text-gray-400 ml-1.5" type="ghost" icon={<CopyOutlined />}
-              onClick={async () => {
-                await navigator.clipboard.writeText(url);
-              }}/></span>;
+            const url = record.showDirectUrl ? record.direct_trigger_url : env('API_URL') + triggerUrl;
+            return (
+              <span>
+                {type === 'function' ?
+                  <Tooltip title={`Show ${record.showDirectUrl ? 'rm' : 'direct'} trigger url`}>
+                    <Button
+                      className="text-gray-400 ml-1.5"
+                      type="ghost"
+                      onClick={() => switchUrl(record.resource_deployment_id)}
+                      icon={record.showDirectUrl ? <ExpandAltOutlined /> : <ControlOutlined /> }/>
+                  </Tooltip> :
+                  <Button
+                    className="text-gray-400 ml-1.5 cursor-default"
+                    type="ghost"
+                    disabled={true}
+                    icon={<ControlOutlined /> }/>
+                }
+                {url}
+                <Button className="text-gray-400 ml-1.5" type="ghost" icon={<CopyOutlined />}
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(url);
+                  }}/>
+              </span>
+            );
           } else {
             return <>Not available ...</>;
           }
