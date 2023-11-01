@@ -5,12 +5,10 @@ import at.uibk.dps.rm.entity.model.FunctionDeployment;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
-import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.service.rxjava3.database.deployment.FunctionDeploymentService;
 import at.uibk.dps.rm.service.rxjava3.database.deployment.ServiceDeploymentService;
 import at.uibk.dps.rm.util.misc.HttpHelper;
-import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.MultiMap;
 import io.vertx.rxjava3.core.buffer.Buffer;
@@ -60,44 +58,40 @@ public class ContainerStartupHandler {
      */
     private void processDeployTerminateRequest(RoutingContext rc, boolean isStartup) {
         long accountId = rc.user().principal().getLong("account_id");
-        HttpHelper.getLongPathParam(rc, "deploymentId")
-            .flatMap(deploymentId -> HttpHelper.getLongPathParam(rc, "serviceDeploymentId")
-                .flatMap(serviceDeployment -> serviceDeploymentService
-                    .existsReadyForContainerStartupAndTermination(deploymentId, serviceDeployment, accountId)
-                    .flatMap(exists -> {
-                        if (!exists) {
-                            return Single.error(new NotFoundException(ServiceDeployment.class));
-                        }
-                        if (isStartup) {
-                            long startTime = System.nanoTime();
-                            return deploymentChecker.startContainer(deploymentId, serviceDeployment)
-                                .map(result -> {
-                                    long endTime = System.nanoTime();
-                                    double startupTime = (endTime - startTime) / 1_000_000_000.0;
-                                    result.put("startup_time_seconds", startupTime);
-                                    return result;
-                                });
-                        } else {
-                            return deploymentChecker.stopContainer(deploymentId, serviceDeployment)
-                                .toSingle(JsonObject::new);
-                        }
-                    }))
-            )
-            .subscribe(result -> {
-                    if (isStartup) {
-                        rc.response().setStatusCode(200).end(result.encodePrettily());
-                    } else {
-                        rc.response().setStatusCode(204).end();
-                    }
-                },
-                throwable -> {
-                    Throwable throwable1 = throwable;
-                    if (throwable instanceof DeploymentTerminationFailedException) {
-                        throwable1 = new BadInputException("Deployment failed. See deployment logs for details.");
-                    }
-                    ResultHandler.handleRequestError(rc, throwable1);
+        HttpHelper.getLongPathParam(rc, "id")
+            .flatMap(serviceDeploymentId -> serviceDeploymentService
+                .findOneForDeploymentAndTermination(serviceDeploymentId, accountId))
+            .flatMap(existingServiceDeployment -> {
+                ServiceDeployment serviceDeployment = existingServiceDeployment.mapTo(ServiceDeployment.class);
+                if (isStartup) {
+                    long startTime = System.nanoTime();
+                    return deploymentChecker.startContainer(serviceDeployment)
+                        .map(result -> {
+                            long endTime = System.nanoTime();
+                            double startupTime = (endTime - startTime) / 1_000_000_000.0;
+                            result.put("startup_time_seconds", startupTime);
+                            return result;
+                        });
+                } else {
+                    return deploymentChecker.stopContainer(serviceDeployment)
+                        .toSingle(JsonObject::new);
                 }
-            );
+            }
+        ).subscribe(result -> {
+                if (isStartup) {
+                    rc.response().setStatusCode(200).end(result.encodePrettily());
+                } else {
+                    rc.response().setStatusCode(204).end();
+                }
+            },
+            throwable -> {
+                Throwable throwable1 = throwable;
+                if (throwable instanceof DeploymentTerminationFailedException) {
+                    throwable1 = new BadInputException("Deployment failed. See deployment logs for details.");
+                }
+                ResultHandler.handleRequestError(rc, throwable1);
+            }
+        );
     }
 
     public void invokeFunction(RoutingContext rc) {
@@ -108,20 +102,19 @@ public class ContainerStartupHandler {
             .remove("Host")
             .remove("User-Agent")
             .add("apollo-request-type", "rm");
-        HttpHelper.getLongPathParam(rc, "deploymentId")
-            .flatMap(deploymentId -> HttpHelper.getLongPathParam(rc, "functionDeploymentId")
-                .flatMap(functionDeploymentId -> functionDeploymentService
-                    .findOneForInvocation(functionDeploymentId, accountId)
-                    .map(functionDeployment -> functionDeployment.mapTo(FunctionDeployment.class))
-                    .flatMap(functionDeployment -> webClient.postAbs(functionDeployment.getDirectTriggerUrl())
-                        .putHeaders(headers)
-                        .sendBuffer(requestBody))
-                )).subscribe(response -> {
-                    // TODO: handle error
-                    InvocationResponseDTO responseBody = response.bodyAsJson(InvocationResponseDTO.class);
-                    rc.response().setStatusCode(response.statusCode()).end(responseBody.getBody());
-                },
-                throwable -> ResultHandler.handleRequestError(rc, throwable)
-            );
+        HttpHelper.getLongPathParam(rc, "id")
+            .flatMap(functionDeploymentId -> functionDeploymentService
+                .findOneForInvocation(functionDeploymentId, accountId)
+                .map(functionDeployment -> functionDeployment.mapTo(FunctionDeployment.class))
+                .flatMap(functionDeployment -> webClient.postAbs(functionDeployment.getDirectTriggerUrl())
+                    .putHeaders(headers)
+                    .sendBuffer(requestBody))
+            ).subscribe(response -> {
+                // TODO: handle error
+                InvocationResponseDTO responseBody = response.bodyAsJson(InvocationResponseDTO.class);
+                rc.response().setStatusCode(response.statusCode()).end(responseBody.getBody());
+            },
+            throwable -> ResultHandler.handleRequestError(rc, throwable)
+        );
     }
 }

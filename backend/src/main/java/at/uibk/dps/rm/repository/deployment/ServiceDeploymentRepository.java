@@ -1,9 +1,9 @@
 package at.uibk.dps.rm.repository.deployment;
 
-import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.repository.Repository;
 import at.uibk.dps.rm.service.database.util.SessionManager;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 
 import java.util.List;
@@ -19,6 +19,29 @@ public class ServiceDeploymentRepository extends Repository<ServiceDeployment> {
      */
     public ServiceDeploymentRepository() {
         super(ServiceDeployment.class);
+    }
+
+    /**
+     * Find a service deployment by its id, creator and fetch the deployment and deployment status.
+     *
+     * @param sessionManager the database session manger
+     * @param id the id of the service deployment
+     * @param accountId the id of the creator
+     * @return a Maybe that emits the service deployment if it exists, else null
+     */
+    public Maybe<ServiceDeployment> findByIdAndAccountIdAndFetch(SessionManager sessionManager, long id,
+            long accountId) {
+        return Maybe.fromCompletionStage(sessionManager.getSession()
+            .createQuery(
+                "from ServiceDeployment sd " +
+                    "left join fetch sd.deployment " +
+                    "left join fetch sd.status " +
+                    "where sd.resourceDeploymentId =:id and " +
+                    "sd.deployment.createdBy.accountId=:accountId", entityClass)
+            .setParameter("id", id)
+            .setParameter("accountId", accountId)
+            .getSingleResultOrNull()
+        );
     }
 
     /**
@@ -53,34 +76,6 @@ public class ServiceDeploymentRepository extends Repository<ServiceDeployment> {
                 "where sd.deployment.deploymentId=:deploymentId", entityClass)
             .setParameter("deploymentId", deploymentId)
             .getResultList()
-        );
-    }
-
-
-
-    /**
-     * Find the amount of service deployments by deployment, resourceDeployment, creator and
-     * deployment status.
-     *
-     * @param sessionManager the database session manager
-     * @param deploymentId the id of the deployment
-     * @param resourceDeploymentId the id of the resource deployment
-     * @param accountId the account id of the creator
-     * @return a Single that emits the amount resource deployments
-     */
-    public Single<Long> countByDeploymentStatus(SessionManager sessionManager, long deploymentId,
-            long resourceDeploymentId, long accountId, DeploymentStatusValue statusValue) {
-        return Single.fromCompletionStage(sessionManager.getSession()
-            .createQuery("select count(*) from ServiceDeployment sd " +
-                "where sd.deployment.deploymentId=:deploymentId and " +
-                "sd.resourceDeploymentId=:resourceDeploymentId and " +
-                "sd.deployment.createdBy.accountId=:accountId and " +
-                "sd.status.statusValue=:statusValue", Long.class)
-            .setParameter("deploymentId", deploymentId)
-            .setParameter("resourceDeploymentId", resourceDeploymentId)
-            .setParameter("accountId", accountId)
-            .setParameter("statusValue", statusValue.name())
-            .getSingleResult()
         );
     }
 }
