@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.router.deployment;
 
+import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.handler.deploymentexecution.DeploymentExecutionChecker;
 import at.uibk.dps.rm.handler.deploymentexecution.ContainerStartupHandler;
 import at.uibk.dps.rm.router.Route;
@@ -26,14 +27,20 @@ public class ResourceDeploymentRoute implements Route {
 
         router
             .operation("startServiceDeployment")
-            .handler(startupHandler::deployContainer);
+            .handler(rc -> startupHandler.deployContainer(rc)
+                .subscribe(() -> {}, throwable -> ResultHandler.handleRequestError(rc, throwable))
+            );
 
         router
             .operation("stopServiceDeployment")
-            .handler(startupHandler::terminateContainer);
+            .handler(rc -> startupHandler.terminateContainer(rc)
+                .subscribe(() -> {}, throwable -> ResultHandler.handleRequestError(rc, throwable))
+            );
 
         router
             .operation("invokeFunctionDeployment")
-            .handler(startupHandler::invokeFunction);
+            .handler(rc -> startupHandler.invokeFunction(rc)
+                .subscribe(() -> {}, throwable -> ResultHandler.handleRequestError(rc, throwable))
+            );
     }
 }

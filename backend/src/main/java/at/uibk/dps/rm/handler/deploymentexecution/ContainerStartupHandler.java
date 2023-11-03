@@ -5,7 +5,6 @@ import at.uibk.dps.rm.entity.model.FunctionDeployment;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
-import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.service.rxjava3.database.deployment.FunctionDeploymentService;
 import at.uibk.dps.rm.service.rxjava3.database.deployment.ServiceDeploymentService;
 import at.uibk.dps.rm.util.misc.HttpHelper;
@@ -43,8 +42,8 @@ public class ContainerStartupHandler {
      *
      * @param rc the routing context
      */
-    public void deployContainer(RoutingContext rc) {
-        processDeployTerminateRequest(rc, true);
+    public Completable deployContainer(RoutingContext rc) {
+        return processDeployTerminateRequest(rc, true);
     }
 
     /**
@@ -52,8 +51,8 @@ public class ContainerStartupHandler {
      *
      * @param rc the routing context
      */
-    public void terminateContainer(RoutingContext rc) {
-        processDeployTerminateRequest(rc, false);
+    public Completable terminateContainer(RoutingContext rc) {
+        return processDeployTerminateRequest(rc, false);
     }
 
     /**
@@ -62,9 +61,9 @@ public class ContainerStartupHandler {
      * @param rc the routing context
      * @param isStartup if the request is for startup or termination of a container
      */
-    private void processDeployTerminateRequest(RoutingContext rc, boolean isStartup) {
+    private Completable processDeployTerminateRequest(RoutingContext rc, boolean isStartup) {
         long accountId = rc.user().principal().getLong("account_id");
-        HttpHelper.getLongPathParam(rc, "id")
+        return HttpHelper.getLongPathParam(rc, "id")
             .flatMap(serviceDeploymentId -> serviceDeploymentService
                 .findOneForDeploymentAndTermination(serviceDeploymentId, accountId))
             .flatMapCompletable(existingServiceDeployment -> {
@@ -91,12 +90,10 @@ public class ContainerStartupHandler {
                 } else {
                     return Completable.error(throwable);
                 }
-            })
-            .subscribe(() -> {}, throwable -> ResultHandler.handleRequestError(rc, throwable)
-        );
+            });
     }
 
-    public void invokeFunction(RoutingContext rc) {
+    public Completable invokeFunction(RoutingContext rc) {
         long accountId = rc.user().principal().getLong("account_id");
         Buffer requestBody = rc.body() == null || rc.body().buffer() == null ? Buffer.buffer() : rc.body().buffer();
         MultiMap headers = rc.request().headers()
@@ -104,7 +101,7 @@ public class ContainerStartupHandler {
             .remove("Host")
             .remove("User-Agent")
             .add("apollo-request-type", "rm");
-        HttpHelper.getLongPathParam(rc, "id")
+        return HttpHelper.getLongPathParam(rc, "id")
             .flatMap(functionDeploymentId -> functionDeploymentService
             .findOneForInvocation(functionDeploymentId, accountId))
             .map(functionDeployment -> functionDeployment.mapTo(FunctionDeployment.class))
@@ -120,8 +117,6 @@ public class ContainerStartupHandler {
                     logger.info("failed to decode response: " + body.substring(0, Math.min(50, body.length())));
                 }
                 return rc.response().setStatusCode(response.statusCode()).end(body);
-            })
-            .subscribe(() -> {}, throwable -> ResultHandler.handleRequestError(rc, throwable)
-        );
+            });
     }
 }

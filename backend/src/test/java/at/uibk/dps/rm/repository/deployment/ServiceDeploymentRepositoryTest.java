@@ -8,7 +8,6 @@ import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.math.BigDecimal;
@@ -150,30 +149,6 @@ public class ServiceDeploymentRepositoryTest extends DatabaseTest {
                     .isEqualTo(environments);
                 assertThat(result.stream().map(serviceDeployment -> serviceDeployment.getStatus().getStatusValue())
                     .collect(Collectors.toList())).isEqualTo(statusList);
-                testContext.completeNow();
-            }), throwable -> testContext.failNow("method has thrown exception"));
-    }
-
-    @ParameterizedTest
-    @CsvSource({
-        "1, 1, 1, NEW, 1",
-        "1, 2, 1, NEW, 0",
-        "1, 1, 2, NEW, 0",
-        "1, 3, 1, NEW, 0",
-        "1, 2, 1, ERROR, 1",
-        "1, 3, 1, DEPLOYED, 1",
-        "2, 1, 1, TERMINATING, 0",
-        "2, 4, 1, TERMINATING, 0",
-        "2, 4, 2, TERMINATING, 1",
-        "3, 1, 1, NEW, 0",
-    })
-    void countByDeploymentStatus(long deploymentId, long resourceDeploymentId, long accountId, String status, int count,
-            VertxTestContext testContext) {
-        DeploymentStatusValue statusValue = DeploymentStatusValue.valueOf(status);
-        smProvider.withTransactionSingle(sessionManager -> repository
-                .countByDeploymentStatus(sessionManager, deploymentId, resourceDeploymentId, accountId, statusValue))
-            .subscribe(result -> testContext.verify(() -> {
-                assertThat(result).isEqualTo(count);
                 testContext.completeNow();
             }), throwable -> testContext.failNow("method has thrown exception"));
     }
