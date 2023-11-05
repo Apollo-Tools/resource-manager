@@ -37,6 +37,7 @@ public class TriggerUrlUtilityTest {
     @Mock
     private Stage.Session session;
 
+    @Mock
     private SessionManager sessionManager;
 
 
@@ -53,15 +54,17 @@ public class TriggerUrlUtilityTest {
         DeploymentOutput output = TestDeploymentProvider.createDeploymentOutput("python38");
         DeployResourcesDTO deployResourcesDTO = TestRequestProvider.createDeployRequest();
 
-        when(repositoryMock.getResourceDeploymentRepository()
-            .updateRmTriggerUrl(sessionManager, 1L, "http://host:port/foo1"))
+        when(repositoryMock.getFunctionDeploymentRepository()
+            .updateTriggerUrls(sessionManager, 1L, "/function-deployments/1/invoke",
+                "http://host:port/foo1"))
             .thenReturn(Completable.complete());
-        when(repositoryMock.getResourceDeploymentRepository()
-            .updateRmTriggerUrl(sessionManager, 4L, "http://host:port/foo2"))
+        when(repositoryMock.getFunctionDeploymentRepository()
+            .updateTriggerUrls(sessionManager, 4L, "/function-deployments/4/invoke",
+                "http://host:port/foo2"))
             .thenReturn(Completable.complete());
 
         utility.setTriggerUrlsForFunctions(sessionManager, output, deployResourcesDTO)
-            .blockingSubscribe(() -> testContext.verify(testContext::completeNow),
+            .blockingSubscribe(testContext::completeNow,
                 throwable -> testContext.failNow("method has thrown exception"));
     }
 
@@ -103,18 +106,17 @@ public class TriggerUrlUtilityTest {
         DeployResourcesDTO deployResourcesDTO = TestRequestProvider.createDeployRequest();
 
         when(repositoryMock.getResourceDeploymentRepository()
-            .updateRmTriggerUrl(sessionManager, 4L, "/deployments/1/4/startup"))
+            .updateRmTriggerUrl(sessionManager, 4L, "/service-deployments/4/startup"))
             .thenReturn(Completable.complete());
         when(repositoryMock.getResourceDeploymentRepository()
-            .updateRmTriggerUrl(sessionManager, 5L, "/deployments/1/5/startup"))
+            .updateRmTriggerUrl(sessionManager, 5L, "/service-deployments/5/startup"))
             .thenReturn(Completable.complete());
         when(repositoryMock.getResourceDeploymentRepository()
-            .updateRmTriggerUrl(sessionManager, 6L, "/deployments/1/6/startup"))
+            .updateRmTriggerUrl(sessionManager, 6L, "/service-deployments/6/startup"))
             .thenReturn(Completable.complete());
 
         utility.setTriggerUrlForContainers(sessionManager, deployResourcesDTO)
             .blockingSubscribe(() -> testContext.verify(testContext::completeNow),
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
+                throwable -> testContext.failNow("method has thrown exception"));
     }
 }

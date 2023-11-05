@@ -137,6 +137,11 @@ public class TestFunctionProvider {
         return createFunctionDeployment(id, function, resource, deployment);
     }
 
+    public static FunctionDeployment createFunctionDeployment(long id, long resourceId, Deployment deployment) {
+        Resource resource = TestResourceProvider.createResourceContainer(resourceId, "localhost", true);
+        return createFunctionDeployment(id, resource, deployment);
+    }
+
     public static FunctionDeployment createFunctionDeployment(long id, Resource resource, Deployment deployment,
             String directTriggerUrl) {
         Function function = createFunction(22L, "func-test", "false");

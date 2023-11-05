@@ -2,22 +2,22 @@ package at.uibk.dps.rm.service.database.deployment;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.model.Deployment;
+import at.uibk.dps.rm.entity.model.FunctionDeployment;
 import at.uibk.dps.rm.entity.model.ResourceDeploymentStatus;
-import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.repository.deployment.ServiceDeploymentRepository;
+import at.uibk.dps.rm.repository.deployment.FunctionDeploymentRepository;
+import at.uibk.dps.rm.service.database.util.SessionManager;
 import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestDeploymentProvider;
-import at.uibk.dps.rm.testutil.objectprovider.TestServiceProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
-import at.uibk.dps.rm.service.database.util.SessionManager;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,12 +37,12 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class ServiceDeploymentImplTest {
+public class FunctionDeploymentImplTest {
 
-    private ServiceDeploymentService service;
+    private FunctionDeploymentService service;
 
     @Mock
-    ServiceDeploymentRepository repository;
+    FunctionDeploymentRepository repository;
 
     @Mock
     private SessionManagerProvider smProvider;
@@ -53,27 +53,30 @@ public class ServiceDeploymentImplTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        service = new ServiceDeploymentServiceImpl(repository, smProvider);
+        service = new FunctionDeploymentServiceImpl(repository, smProvider);
     }
 
     @ParameterizedTest
     @CsvSource({
-        "NEW, false",
-        "DEPLOYED, true"
+        "NEW, '', false",
+        "DEPLOYED, '', false",
+        "NEW, 'triggerUrl', false",
+        "DEPLOYED, triggerUrl, true"
     })
-    void findOneForDeploymentAndTermination(String status, boolean valid,
+    void findOneForDeploymentAndTermination(String status, String directUrl, boolean valid,
             VertxTestContext testContext) {
         long accountId = 1L, resourceDeploymentId = 2L;
         DeploymentStatusValue statusValue = DeploymentStatusValue.valueOf(status);
         Deployment d1 = TestDeploymentProvider.createDeployment(1L);
         ResourceDeploymentStatus rds = TestDeploymentProvider
             .createResourceDeploymentStatus(1L, statusValue);
-        ServiceDeployment sd = TestServiceProvider.createServiceDeployment(2L, 2L, d1);
-        sd.setStatus(rds);
+        FunctionDeployment fd = TestFunctionProvider.createFunctionDeployment(2L, 2L, d1);
+        fd.setStatus(rds);
+        fd.setDirectTriggerUrl(directUrl);
 
         SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(repository.findByIdAndAccountId(sessionManager, resourceDeploymentId, accountId))
-            .thenReturn(Maybe.just(sd));
+            .thenReturn(Maybe.just(fd));
 
         Handler<AsyncResult<JsonObject>> handler;
         if (valid) {
@@ -85,12 +88,12 @@ public class ServiceDeploymentImplTest {
             handler = testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(BadInputException.class);
                 assertThat(throwable.getMessage())
-                    .isEqualTo("Service Deployment is not ready for startup/termination");
+                    .isEqualTo("Function Deployment is not ready for invocation");
                 testContext.completeNow();
             }));
         }
 
-        service.findOneForDeploymentAndTermination(resourceDeploymentId, accountId, handler);
+        service.findOneForInvocation(resourceDeploymentId, accountId, handler);
     }
 
     @Test
@@ -101,7 +104,7 @@ public class ServiceDeploymentImplTest {
         when(repository.findByIdAndAccountId(sessionManager, resourceDeploymentId, accountId))
             .thenReturn(Maybe.empty());
 
-        service.findOneForDeploymentAndTermination(resourceDeploymentId, accountId,
+        service.findOneForInvocation(resourceDeploymentId, accountId,
             testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(NotFoundException.class);
                 testContext.completeNow();

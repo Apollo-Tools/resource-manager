@@ -29,8 +29,8 @@ public class ServiceDeploymentRepository extends Repository<ServiceDeployment> {
      * @param accountId the id of the creator
      * @return a Maybe that emits the service deployment if it exists, else null
      */
-    public Maybe<ServiceDeployment> findByIdAndAccountIdAndFetch(SessionManager sessionManager, long id,
-            long accountId) {
+    @Override
+    public Maybe<ServiceDeployment> findByIdAndAccountId(SessionManager sessionManager, long id, long accountId) {
         return Maybe.fromCompletionStage(sessionManager.getSession()
             .createQuery(
                 "from ServiceDeployment sd " +

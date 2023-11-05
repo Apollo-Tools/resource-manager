@@ -37,7 +37,7 @@ public class ServiceDeploymentServiceImpl extends DatabaseServiceProxy<ServiceDe
     public void findOneForDeploymentAndTermination(long resourceDeploymentId, long accountId,
             Handler<AsyncResult<JsonObject>> resultHandler) {
         Single<ServiceDeployment> findOne = smProvider.withTransactionSingle(sm -> repository
-            .findByIdAndAccountIdAndFetch(sm, resourceDeploymentId, accountId)
+            .findByIdAndAccountId(sm, resourceDeploymentId, accountId)
             .switchIfEmpty(Single.error(new NotFoundException(ServiceDeployment.class)))
             .map(serviceDeployment ->  {
                 DeploymentStatusValue status = DeploymentStatusValue

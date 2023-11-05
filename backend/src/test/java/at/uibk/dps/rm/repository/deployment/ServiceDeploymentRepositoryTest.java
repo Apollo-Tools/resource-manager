@@ -8,10 +8,12 @@ import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -87,6 +89,35 @@ public class ServiceDeploymentRepositoryTest extends DatabaseTest {
                 .flatMap(res -> sessionManager.persist(sd4))
                 .flatMap(res -> sessionManager.persist(sd5));
         }).blockingSubscribe(res -> {}, testContext::failNow);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "1, 1, true, 1, NEW",
+        "1, 2, false, -1, NEW",
+        "4, 1, false, -1, NEW",
+        "4, 2, true, 2, TERMINATING",
+        "10, 1, false, -1, NEW",
+    })
+    void findByIdAndAccountId(long resourceDeploymentId, long accountId, boolean exists, long deploymentId,
+            String status, VertxTestContext testContext) {
+        DeploymentStatusValue statusValue = DeploymentStatusValue.valueOf(status);
+        smProvider.withTransactionMaybe(sessionManager -> repository
+                .findByIdAndAccountId(sessionManager, resourceDeploymentId, accountId))
+            .subscribe(result -> testContext.verify(() -> {
+                if (exists) {
+                    assertThat(result.getResourceDeploymentId()).isEqualTo(resourceDeploymentId);
+                    assertThat(result.getDeployment().getDeploymentId()).isEqualTo(deploymentId);
+                    assertThat(DeploymentStatusValue.fromDeploymentStatus(result.getStatus())).isEqualTo(statusValue);
+                    testContext.completeNow();
+                } else {
+                    testContext.failNow("method did not throw exception");
+                }
+            }), throwable -> {
+                assertThat(exists).isEqualTo(false);
+                assertThat(throwable.getCause()).isInstanceOf(NoSuchElementException.class);
+                testContext.completeNow();
+            });
     }
 
     private static Stream<Arguments> provideFindAllByDeploymentId() {
