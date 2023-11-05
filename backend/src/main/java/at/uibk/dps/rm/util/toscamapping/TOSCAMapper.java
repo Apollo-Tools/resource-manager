@@ -42,8 +42,8 @@ public class TOSCAMapper {
             resourceCapability.addProperty("created_at", resource.getCreatedAt());
             resourceCapability.addProperty("updated_at", resource.getUpdatedAt());
             if (resource instanceof MainResource) {
-                resourceCapability.addProperty("region_id", ((MainResource) resource).getRegion().getRegionId());
-                resourceCapability.addProperty("platform_id", ((MainResource) resource).getPlatform().getPlatformId());
+                resourceCapability.addProperty("region_id", ((MainResource) resource).getRegion());
+                resourceCapability.addProperty("platform_id", ((MainResource) resource).getPlatform());
             }
             nodeTemplate.setCapabilities("resource", resourceCapability);
             Capability metricCapability = new Capability();

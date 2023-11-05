@@ -17,7 +17,7 @@ import java.util.List;
 @Getter
 @Setter
 public class MainResource extends Resource {
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "region_id")
     private Region region;
 

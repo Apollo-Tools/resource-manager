@@ -31,6 +31,14 @@ public class Region {
     @Column(insertable = false, updatable = false)
     private @Setter(AccessLevel.NONE) Timestamp createdAt;
 
+    public Region(String name, ResourceProvider resourceProvider) {
+        this.name = name;
+        this.resourceProvider = resourceProvider;
+    }
+
+    public Region() {
+
+    }
 
     @Override
     @Generated

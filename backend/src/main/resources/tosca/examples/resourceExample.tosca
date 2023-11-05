@@ -22,7 +22,9 @@ topology_template:
         resource:
           properties:
             platform: 2
-            region: 1
+            region: us-east-1
+            region-provider: aws
+            provider-environment: 1
             name: ec2resource1
     resource_2:
       type: at.uibk.dps.rm.genericResource

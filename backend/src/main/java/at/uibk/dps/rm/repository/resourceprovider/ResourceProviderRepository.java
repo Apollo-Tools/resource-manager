@@ -40,6 +40,24 @@ public class ResourceProviderRepository extends Repository<ResourceProvider> {
     }
 
     /**
+     * Find a platform by its name and fetch the environment.
+     *
+     * @param sessionManager the database session manager
+     * @param name the name of the resource provider
+     * @return a Maybe that emits the region if it exists, else null
+     */
+    public Maybe<ResourceProvider> findByNameAndFetch(SessionManager sessionManager, String name, long envId) {
+        return Maybe.fromCompletionStage(sessionManager.getSession()
+                .createQuery("from ResourceProvider rp " +
+                        "left join fetch rp.environment " +
+                        "where rp.provider =:name and rp.id =:envId", entityClass)
+                .setParameter("name", name)
+                .setParameter("envId", envId)
+                .getSingleResultOrNull()
+        );
+    }
+
+    /**
      * Find all platforms and fetch the environment.
      *
      * @param sessionManager the database session manager

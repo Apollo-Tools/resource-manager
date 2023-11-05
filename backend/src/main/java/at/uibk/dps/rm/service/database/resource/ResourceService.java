@@ -8,6 +8,7 @@ import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
+import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
 import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -35,7 +36,7 @@ public interface ResourceService extends DatabaseServiceInterface {
     @Generated
     @GenIgnore
     static ResourceService create(SessionManagerProvider smProvider) {
-        return new ResourceServiceImpl(new ResourceRepository(), new RegionRepository(), new MetricRepository(),
+        return new ResourceServiceImpl(new ResourceRepository(), new RegionRepository(), new ResourceProviderRepository(), new MetricRepository(),
                 new MetricValueRepository(), new PlatformMetricRepository(), smProvider);
     }
 

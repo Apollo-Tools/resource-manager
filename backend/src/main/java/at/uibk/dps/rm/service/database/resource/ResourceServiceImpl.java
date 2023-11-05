@@ -12,24 +12,20 @@ import at.uibk.dps.rm.repository.metric.MetricValueRepository;
 import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
+import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
-import at.uibk.dps.rm.service.database.util.K8sResourceUpdateUtility;
-import at.uibk.dps.rm.service.database.util.MetricValueUtility;
-import at.uibk.dps.rm.service.database.util.SLOUtility;
+import at.uibk.dps.rm.service.database.util.*;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import at.uibk.dps.rm.util.toscamapping.TOSCAFile;
 import at.uibk.dps.rm.util.toscamapping.TOSCAMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.*;
 import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.hibernate.Hibernate;
-import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 import java.util.*;
 
@@ -42,6 +38,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
 
     private final ResourceRepository repository;
     private final RegionRepository regionRepository;
+    private final ResourceProviderRepository providerRepository;
     private final MetricRepository metricRepository;
     private final MetricValueRepository metricValueRepository;
     private final PlatformMetricRepository platformMetricRepository;
@@ -51,11 +48,13 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
      *
      * @param repository the resource repository
      */
-    public ResourceServiceImpl(ResourceRepository repository, RegionRepository regionRepository,
-            MetricRepository metricRepository, MetricValueRepository metricValueRepository, PlatformMetricRepository platformMetricRepository, SessionManagerProvider smProvider) {
+    public ResourceServiceImpl(ResourceRepository repository, RegionRepository regionRepository, ResourceProviderRepository providerResitory,
+            MetricRepository metricRepository,  MetricValueRepository metricValueRepository,
+                               PlatformMetricRepository platformMetricRepository, SessionManagerProvider smProvider) {
         super(repository, Resource.class, smProvider);
         this.repository = repository;
         this.regionRepository = regionRepository;
+        this.providerRepository = providerResitory;
         this.metricRepository = metricRepository;
         this.metricValueRepository=metricValueRepository;
         this.platformMetricRepository=platformMetricRepository;
@@ -155,31 +154,64 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
         Completable save = smProvider.withTransactionCompletable(sm -> Observable.fromIterable(finalToscaFile.getTopology_template().getNode_templates().entrySet())
                 .flatMapCompletable(nodeTemplateEntry -> {
                     String name = nodeTemplateEntry.getValue().getCapabilities().get("resource").getProperties().get("name").toString();
-                    long regionId = (int) nodeTemplateEntry.getValue().getCapabilities().get("resource").getProperties().get("region");
+                    Object regionObj = nodeTemplateEntry.getValue().getCapabilities().get("resource").getProperties().get("region");
+                    Object regionProviderObj = nodeTemplateEntry.getValue().getCapabilities().get("resource").getProperties().get("region-provider");
+                    Object providerEnvironmentObj = nodeTemplateEntry.getValue().getCapabilities().get("resource").getProperties().get("provider-environment");
+                    System.out.println("hi1");
+                    long regionId;
+                    String regionName;
+                    String regionProvider;
+                    long providerEnvironment;
+                    if(regionObj instanceof Number) {
+                        providerEnvironment = -1;
+                        regionProvider = null;
+                        regionName = null;
+                        regionId = (int) regionObj;
+                    } else {
+                        regionId = -1;
+                        regionName =  regionObj.toString();
+                        if( regionProviderObj==null) {
+                            return Completable.error(new NotFoundException("Missing RegionProvider"));
+                        }
+                        if(providerEnvironmentObj==null) {
+                            return Completable.error(new NotFoundException("Missing Environment Level"));
+                        }
+                        regionProvider = regionProviderObj.toString();
+                        providerEnvironment = (int) providerEnvironmentObj;
+                    }
+                    System.out.println("hi2");
                     long platformId = (int) nodeTemplateEntry.getValue().getCapabilities().get("resource").getProperties().get("platform");
                     MainResource resource = new MainResource();
 
                     return repository.findByName(sm, name)
-                        .flatMap(existingResource -> Maybe.<Region>error(new AlreadyExistsException(Resource.class)))
-                        .switchIfEmpty(regionRepository.findByRegionIdAndPlatformId(sm, regionId, platformId))
-                        .switchIfEmpty(Maybe.error(new NotFoundException("platform is not supported by the selected region")))
-                        .flatMap(region -> {
-                            resource.setName(name);
-                            resource.setRegion(region);
-                            return sm.find(Platform.class, platformId);
-                        })
-                        .switchIfEmpty(Single.error(new NotFoundException(Platform.class)))
+                        .flatMap(existingResource -> Maybe.<Platform>error(new AlreadyExistsException(Resource.class)))
+                        .switchIfEmpty(sm.find(Platform.class, platformId))
+                        .switchIfEmpty(Maybe.error(new NotFoundException(Platform.class)))
                         .flatMap(platform -> {
+                            resource.setName(name);
                             resource.setPlatform(platform);
-                            return platformMetricRepository.findAllByPlatform(sm, platform.getPlatformId());
+                            if(regionId<0) {
+                              return createRegion(regionName,regionProvider,providerEnvironment);
+                            } else {
+                                return sm.find(Region.class, platformId);
+                            }
+                        })
+                        .switchIfEmpty(Single.error(new NotFoundException(Region.class)))
+                        .flatMap(region -> {
+                            resource.setRegion(region);
+                            System.out.println("hi");
+                            return platformMetricRepository.findAllByPlatform(sm, resource.getPlatform().getPlatformId());
                         })
                         .flatMapCompletable(metricList ->{
                             Set<MetricValue> metrics = new HashSet<>();
                             Map<String, Object> props = nodeTemplateEntry.getValue().getCapabilities().get("metrics").getProperties();
                             props.forEach((key, value1) -> {
+                                System.out.println(key);
+                                System.out.println(value1);
                                 PlatformMetric platformMetric = metricList.stream()
                                         .filter(value -> value.getMetric().getMetric().equals(key))
                                         .findFirst().orElse(null);
+                                System.out.println(platformMetric);
                                 if (platformMetric != null && !platformMetric.getIsMonitored()) {
                                     JsonObject jsonObject = new JsonObject();
                                     jsonObject.put("metric", key);
@@ -196,6 +228,27 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
                         });
                 }));
         RxVertxHandler.handleSession(save, resultHandler);
+    }
+
+    private Maybe<Region> createRegion( String regionName, String regionProvider, long providerEnvironment) {
+        return  smProvider.withTransactionMaybe(sm -> providerRepository.findByNameAndFetch(sm,regionProvider,providerEnvironment)
+                .switchIfEmpty(Maybe.just(new ResourceProvider()))
+                .flatMap(resourceProvider-> {
+                    if(resourceProvider.getProviderId()==null) {
+                        return sm.find(Environment.class,providerEnvironment)
+                                .switchIfEmpty(Maybe.error(new NotFoundException(Environment.class)))
+                                .flatMap(environment -> {
+                                    Region region = new Region();
+                                    resourceProvider.setEnvironment(environment);
+                                    resourceProvider.setProvider(regionProvider);
+                                    region.setResourceProvider(resourceProvider);
+                                    return Maybe.just(region);
+                                });
+                    } else {
+                        return regionRepository.findOneByNameAndProviderId(sm, regionName, resourceProvider.getProviderId())
+                                .switchIfEmpty(Maybe.just(new Region(regionName,resourceProvider)));
+                    }
+                }));
     }
 
     @Override

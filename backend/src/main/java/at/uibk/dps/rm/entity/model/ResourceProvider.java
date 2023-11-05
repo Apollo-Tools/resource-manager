@@ -36,6 +36,15 @@ public class ResourceProvider {
     private @Setter(AccessLevel.NONE)
     Timestamp createdAt;
 
+    public ResourceProvider(String provider, Environment environment) {
+        this.provider = provider;
+        this.environment = environment;
+    }
+
+    public ResourceProvider() {
+
+    }
+
     @Override
     @Generated
     public boolean equals(Object obj) {
