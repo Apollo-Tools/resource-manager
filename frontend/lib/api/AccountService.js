@@ -40,7 +40,7 @@ export async function getLogin(username, password, setToken, setError) {
  */
 export async function changePassword(oldPassword, newPassword, token, setResponse, setError) {
   try {
-    const response = await fetch(`${API_ROUTE}`, {
+    const response = await fetch(`${API_ROUTE}/me`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${token}`,
