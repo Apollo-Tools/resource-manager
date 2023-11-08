@@ -41,6 +41,7 @@ public class ContainerStartupHandler {
      * Deploy a container.
      *
      * @param rc the routing context
+     * @return a Completable
      */
     public Completable deployContainer(RoutingContext rc) {
         return processDeployTerminateRequest(rc, true);
@@ -50,6 +51,7 @@ public class ContainerStartupHandler {
      * Terminate a container.
      *
      * @param rc the routing context
+     * @return a Completable
      */
     public Completable terminateContainer(RoutingContext rc) {
         return processDeployTerminateRequest(rc, false);
@@ -60,6 +62,7 @@ public class ContainerStartupHandler {
      *
      * @param rc the routing context
      * @param isStartup if the request is for startup or termination of a container
+     * @return a Completable
      */
     private Completable processDeployTerminateRequest(RoutingContext rc, boolean isStartup) {
         long accountId = rc.user().principal().getLong("account_id");
@@ -93,6 +96,12 @@ public class ContainerStartupHandler {
             });
     }
 
+    /**
+     * Invoke a function using the resource manager as a proxy.
+     *
+     * @param rc the routing context
+     * @return a Completable
+     */
     public Completable invokeFunction(RoutingContext rc) {
         long accountId = rc.user().principal().getLong("account_id");
         Buffer requestBody = rc.body() == null || rc.body().buffer() == null ? Buffer.buffer() : rc.body().buffer();

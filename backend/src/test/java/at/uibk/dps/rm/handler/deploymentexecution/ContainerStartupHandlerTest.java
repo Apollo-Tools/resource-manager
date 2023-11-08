@@ -103,18 +103,18 @@ public class ContainerStartupHandlerTest {
 
     @ParameterizedTest
     @MethodSource("provideProcessDeployTerminateRequest")
-    void deployContainer(boolean isStartup, ServiceDeployment serviceDeployment, boolean successfulDeploymentTermination,
+    void deployContainer(boolean isStartup, ServiceDeployment serviceDeployment, boolean successDeploymentTermination,
             VertxTestContext testContext) {
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         when(rc.pathParam("id")).thenReturn(String.valueOf(serviceDeployment.getResourceDeploymentId()));
         when(serviceDeploymentService.findOneForDeploymentAndTermination(serviceDeployment.getResourceDeploymentId(),
             account.getAccountId())).thenReturn(Single.just(JsonObject.mapFrom(serviceDeployment)));
-        if (!isStartup && successfulDeploymentTermination) {
+        if (!isStartup && successDeploymentTermination) {
             when(rc.response()).thenReturn(response);
             when(response.setStatusCode(204)).thenReturn(response);
             when(response.end()).thenReturn(Completable.complete());
         }
-        if (isStartup && successfulDeploymentTermination) {
+        if (isStartup && successDeploymentTermination) {
             when(rc.response()).thenReturn(response);
             when(response.setStatusCode(200)).thenReturn(response);
             when(response.end(argThat((String response) -> {
@@ -125,24 +125,24 @@ public class ContainerStartupHandlerTest {
         Completable completable;
         if (isStartup) {
             when(deploymentChecker.startContainer(serviceDeployment))
-                .thenReturn(successfulDeploymentTermination ? Single.just(new JsonObject()) :
+                .thenReturn(successDeploymentTermination ? Single.just(new JsonObject()) :
                     Single.error(DeploymentTerminationFailedException::new));
             completable = handler.deployContainer(rc);
         } else {
             when(deploymentChecker.stopContainer(serviceDeployment))
-                .thenReturn(successfulDeploymentTermination ? Completable.complete() :
+                .thenReturn(successDeploymentTermination ? Completable.complete() :
                     Completable.error(DeploymentTerminationFailedException::new));
             completable = handler.terminateContainer(rc);
         }
 
         completable.subscribe(() -> testContext.verify(() -> {
-                if (!successfulDeploymentTermination) {
+                if (!successDeploymentTermination) {
                     testContext.failNow("methods did not throw exception");
                 }
                 testContext.completeNow();
             }),
                 throwable -> testContext.verify(() -> {
-                    if (successfulDeploymentTermination) {
+                    if (successDeploymentTermination) {
                         testContext.failNow("methods has thrown exception");
                     }
                     assertThat(throwable).isInstanceOf(BadInputException.class);

@@ -42,8 +42,8 @@ public interface ServiceDeploymentService extends DatabaseServiceInterface {
      *
      * @param resourceDeploymentId the id of the service deployment
      * @param accountId the account id of the creator
-     * @param resultHandler receives the service deployment if it exists and is ready for startup and termination
-     *                      else an error
+     * @param resultHandler receives the service deployment if it exists and is ready for startup
+     *                      and termination else an error
      */
     void findOneForDeploymentAndTermination(long resourceDeploymentId, long accountId,
         Handler<AsyncResult<JsonObject>> resultHandler);

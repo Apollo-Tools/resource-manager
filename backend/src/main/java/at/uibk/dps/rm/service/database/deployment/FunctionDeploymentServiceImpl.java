@@ -35,6 +35,7 @@ public class FunctionDeploymentServiceImpl extends DatabaseServiceProxy<Function
         this.repository = repository;
     }
 
+    @Override
     public void findOneForInvocation(long id, long accountId, Handler<AsyncResult<JsonObject>> resultHandler) {
         Single<FunctionDeployment> findOne = smProvider.withTransactionSingle(sm -> repository
             .findByIdAndAccountId(sm, id, accountId)
@@ -53,6 +54,7 @@ public class FunctionDeploymentServiceImpl extends DatabaseServiceProxy<Function
         RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
     }
 
+    @Override
     public void saveExecTime(long id, int execTimeMs, String requestBody, Handler<AsyncResult<Void>> resultHandler) {
         Completable saveExecTime = smProvider.withTransactionCompletable(sm ->  sm
             .find(FunctionDeployment.class, id)
