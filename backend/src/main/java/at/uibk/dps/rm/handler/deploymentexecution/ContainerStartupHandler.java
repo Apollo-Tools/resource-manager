@@ -105,18 +105,25 @@ public class ContainerStartupHandler {
             .flatMap(functionDeploymentId -> functionDeploymentService
             .findOneForInvocation(functionDeploymentId, accountId))
             .map(functionDeployment -> functionDeployment.mapTo(FunctionDeployment.class))
-            .flatMap(functionDeployment -> webClient.postAbs(functionDeployment.getDirectTriggerUrl())
+            .flatMapCompletable(functionDeployment -> webClient.postAbs(functionDeployment.getDirectTriggerUrl())
                 .putHeaders(headers)
-                .sendBuffer(requestBody))
-            .flatMapCompletable(response -> {
-                String body = response.bodyAsString();
-                try {
-                    InvocationResponseDTO invocationResponse = response.bodyAsJson(InvocationResponseDTO.class);
-                    body = invocationResponse.getBody();
-                } catch (DecodeException ex) {
-                    logger.info("failed to decode response: " + body.substring(0, Math.min(50, body.length())));
-                }
-                return rc.response().setStatusCode(response.statusCode()).end(body);
-            });
+                .sendBuffer(requestBody)
+                .flatMapCompletable(response -> {
+                    String body = response.bodyAsString();
+                    Completable processResponse = Completable.complete();
+                    try {
+                        InvocationResponseDTO invocationResponse = response.bodyAsJson(InvocationResponseDTO.class);
+                        body = invocationResponse.getBody();
+                        processResponse = functionDeploymentService
+                            .saveExecTime(functionDeployment.getResourceDeploymentId(),
+                                (int) invocationResponse.getMonitoringData().getExecutionTimeMs());
+                    } catch (DecodeException ex) {
+                        logger.info("failed to decode response: " + body.substring(0, Math.min(50, body.length())));
+                    }
+                    String finalBody = body;
+                    return processResponse
+                        .andThen(Single.defer(() -> Single.just(1L)))
+                        .flatMapCompletable(res -> rc.response().setStatusCode(response.statusCode()).end(finalBody));
+                }));
     }
 }

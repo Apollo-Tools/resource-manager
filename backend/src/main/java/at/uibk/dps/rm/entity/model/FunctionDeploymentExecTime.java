@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.entity.model;
 
-import at.uibk.dps.rm.annotations.Generated;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -20,33 +20,16 @@ public class FunctionDeploymentExecTime implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long execTimeId;
+    @Column(insertable = false, updatable = false)
+    private @Setter(AccessLevel.NONE) Long execTimeId;
 
-    @Id
-    private Timestamp time;
+    @Column(insertable = false, updatable = false)
+    private @Setter(AccessLevel.NONE) Timestamp time;
 
+    @Column(name = "exec_time_ms")
     private Integer execTimeMs;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resource_deployment_id")
     private FunctionDeployment functionDeployment;
-
-    @Override
-    @Generated
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        FunctionDeploymentExecTime that = (FunctionDeploymentExecTime) obj;
-        return execTimeId.equals(that.execTimeId);
-    }
-
-    @Override
-    @Generated
-    public int hashCode() {
-        return execTimeId.hashCode();
-    }
 }
