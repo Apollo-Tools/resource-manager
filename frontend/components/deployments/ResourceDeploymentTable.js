@@ -14,7 +14,7 @@ const ResourceDeploymentTable = ({resourceDeployments, type}) => {
 
   useEffect(() => {
     setFunctionDeployments(() =>
-      functionDeployments.map((functionDeployment) => ({...functionDeployment, showDirectUrl: false})),
+      resourceDeployments.map((functionDeployment) => ({...functionDeployment, showDirectUrl: false})),
     );
   }, [resourceDeployments]);
 
