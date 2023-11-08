@@ -225,6 +225,10 @@ public class ContainerStartupHandlerTest {
         when(rc.response()).thenReturn(response);
         when(response.setStatusCode(200)).thenReturn(response);
         doReturn(Completable.complete()).when(response).end(argThat((String result) -> result.equals(responseBody)));
+        if (!body.equals("nullBody") && !body.equals("nullBuffer") && !invocationResult.equals("invocationresult")) {
+            when(functionDeploymentService.saveExecTime(2L, 235, "{\"arg\":1}"))
+                .thenReturn(Completable.complete());
+        }
 
         handler.invokeFunction(rc)
             .subscribe(testContext::completeNow, throwable -> testContext.failNow("methods has thrown exception"));

@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 import javax.persistence.Persistence;
 
@@ -30,8 +31,11 @@ import java.util.Map;
 @ExtendWith(VertxExtension.class)
 public abstract class DatabaseTest {
 
+    public static DockerImageName myImage = DockerImageName.parse("timescale/timescaledb:latest-pg14")
+            .asCompatibleSubstituteFor("postgres");
+
     @Container
-    public static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:14.3")
+    public static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(myImage)
         .withDatabaseName("resource-manager")
         .withUsername("root")
         .withPassword("root");

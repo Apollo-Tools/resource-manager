@@ -13,6 +13,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -60,23 +61,23 @@ public class PlatformMetricRepositoryTest extends DatabaseTest {
 
     private static Stream<Arguments> providePlatformMetrics() {
         return Stream.of(
-            Arguments.of(1L, List.of(38L, 1L, 3L, 5L, 2L, 7L), List.of("deployment-role", "availability",
-                "latency", "online", "cost", "time-to-live"), List.of("string", "number", "number", "boolean", "number",
-                "number")),
-            Arguments.of(2L, List.of(10L, 12L, 34L, 8L, 11L, 13L, 9L, 15L, 46L), List.of("cpu",
-                "memory-size", "instance-type", "availability", "latency", "online", "cost", "time-to-live",
-                "docker-architecture"), List.of("number", "number", "string", "number", "number", "boolean", "number",
-                "number", "string")),
-            Arguments.of(3L, List.of(35L, 36L, 37L, 18L, 20L, 16L, 19L, 21L, 17L, 23L, 44L, 45L,
-                47L), List.of("gateway-url", "openfaas-user", "openfaas-pw", "cpu", "memory-size",
-                "availability", "latency", "online", "cost", "time-to-live", "cpu-available", "memory-size-available",
-                "docker-architecture"), List.of("string", "string", "string", "number", "number", "number",
-                "number", "boolean", "number", "number", "number", "number", "string")),
-            Arguments.of(4L, List.of(25L, 28L, 27L, 30L, 32L, 24L, 29L, 31L, 26L, 33L, 39L, 40L,
-                    41L, 42L, 43L), List.of("cluster-url", "external-ip", "cpu", "memory-size",
-                    "pre-pull-timeout", "availability", "latency", "online", "cost", "time-to-live", "hostname",
-                    "storage-size", "storage-size-available", "cpu-available", "memory-size-available"),
-                List.of("string", "string", "number", "number", "number", "number", "number", "boolean",
+            Arguments.of(1L, List.of(1L, 2L, 3L, 5L, 7L, 38L), List.of("availability", "cost", "latency",
+                "online", "time-to-live", "deployment-role"), List.of("number", "number", "number", "boolean", "number",
+                "string")),
+            Arguments.of(2L, List.of(8L, 9L, 10L, 11L, 12L, 13L, 15L, 34L, 46L), List.of("availability",
+                "cost", "cpu", "latency", "memory-size", "online", "time-to-live", "instance-type",
+                "docker-architecture"), List.of("number", "number", "number", "number", "number", "boolean", "number",
+                "string", "string")),
+            Arguments.of(3L, List.of(16L, 17L, 18L, 19L, 20L, 21L, 23L, 35L, 36L, 37L, 44L, 45L,
+                47L), List.of("availability", "cost", "cpu", "latency", "memory-size", "online",
+                "time-to-live", "gateway-url", "openfaas-user", "openfaas-pw", "cpu-available", "memory-size-available",
+                "docker-architecture"), List.of("number", "number", "number", "number", "number", "boolean",
+                "number", "string", "string", "string", "number", "number", "string")),
+            Arguments.of(4L, List.of(24L, 25L, 26L, 27L, 28L, 29L, 30L, 31L, 32L, 33L, 39L, 40L,
+                    41L, 42L, 43L), List.of("availability", "cluster-url", "cost", "cpu", "external-ip",
+                    "latency", "memory-size", "online", "pre-pull-timeout", "time-to-live", "hostname", "storage-size",
+                    "storage-size-available", "cpu-available", "memory-size-available"),
+                List.of("number", "string", "number", "number", "string", "number", "number", "boolean",
                     "number", "number", "string", "number", "number", "number", "number")),
             Arguments.of(99L, List.of(), List.of(), List.of())
         );
@@ -88,11 +89,14 @@ public class PlatformMetricRepositoryTest extends DatabaseTest {
                              List<String> metricTypes, VertxTestContext testContext) {
         smProvider.withTransactionSingle(sessionManager -> repository.findAllByPlatform(sessionManager, platformId))
             .subscribe(result -> testContext.verify(() -> {
-                assertThat(result.stream().map(PlatformMetric::getPlatformMetricId).collect(Collectors.toList()))
+                List<PlatformMetric> sorted = result.stream()
+                    .sorted(Comparator.comparingLong(PlatformMetric::getPlatformMetricId))
+                    .collect(Collectors.toList());
+                assertThat(sorted.stream().map(PlatformMetric::getPlatformMetricId).collect(Collectors.toList()))
                     .isEqualTo(platformMetricIds);
-                assertThat(result.stream().map(pm -> pm.getMetric().getMetric()).collect(Collectors.toList()))
+                assertThat(sorted.stream().map(pm -> pm.getMetric().getMetric()).collect(Collectors.toList()))
                     .isEqualTo(metrics);
-                assertThat(result.stream().map(pm -> pm.getMetric().getMetricType().getType())
+                assertThat(sorted.stream().map(pm -> pm.getMetric().getMetricType().getType())
                     .collect(Collectors.toList()))
                     .isEqualTo(metricTypes);
                 testContext.completeNow();
