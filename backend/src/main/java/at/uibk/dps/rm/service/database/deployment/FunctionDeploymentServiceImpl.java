@@ -53,13 +53,14 @@ public class FunctionDeploymentServiceImpl extends DatabaseServiceProxy<Function
         RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
     }
 
-    public void saveExecTime(long id, int execTimeMs, Handler<AsyncResult<Void>> resultHandler) {
+    public void saveExecTime(long id, int execTimeMs, String requestBody, Handler<AsyncResult<Void>> resultHandler) {
         Completable saveExecTime = smProvider.withTransactionCompletable(sm ->  sm
             .find(FunctionDeployment.class, id)
             .switchIfEmpty(Single.error(new NotFoundException(FunctionDeployment.class)))
             .flatMapCompletable(functionDeployment -> {
                 FunctionDeploymentExecTime execTime = new FunctionDeploymentExecTime();
                 execTime.setFunctionDeployment(functionDeployment);
+                execTime.setRequest_body(requestBody);
                 execTime.setExecTimeMs(execTimeMs);
                 return sm.persist(execTime).ignoreElement();
             })

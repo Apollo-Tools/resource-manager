@@ -53,5 +53,5 @@ public interface FunctionDeploymentService extends DatabaseServiceInterface {
      * @param execTimeMs the execution time
      * @param resultHandler receives nothing if the update was successful else an error
      */
-    void saveExecTime(long id, int execTimeMs, Handler<AsyncResult<Void>> resultHandler);
+    void saveExecTime(long id, int execTimeMs, String requestBody, Handler<AsyncResult<Void>> resultHandler);
 }

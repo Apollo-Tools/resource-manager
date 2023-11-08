@@ -116,7 +116,8 @@ public class ContainerStartupHandler {
                         body = invocationResponse.getBody();
                         processResponse = functionDeploymentService
                             .saveExecTime(functionDeployment.getResourceDeploymentId(),
-                                (int) invocationResponse.getMonitoringData().getExecutionTimeMs());
+                                (int) invocationResponse.getMonitoringData().getExecutionTimeMs(),
+                                requestBody.toString());
                     } catch (DecodeException ex) {
                         logger.info("failed to decode response: " + body.substring(0, Math.min(50, body.length())));
                     }

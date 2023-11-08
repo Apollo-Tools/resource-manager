@@ -29,6 +29,9 @@ public class FunctionDeploymentExecTime implements Serializable {
     @Column(name = "exec_time_ms")
     private Integer execTimeMs;
 
+    @Column(columnDefinition="TEXT")
+    private String request_body;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resource_deployment_id")
     private FunctionDeployment functionDeployment;
