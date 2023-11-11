@@ -1,24 +1,28 @@
 package at.uibk.dps.rm.handler.deploymentexecution;
 
 import at.uibk.dps.rm.entity.dto.function.InvocationResponseDTO;
+import at.uibk.dps.rm.entity.dto.function.InvokeFunctionDTO;
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
-import at.uibk.dps.rm.service.rxjava3.database.deployment.FunctionDeploymentService;
-import at.uibk.dps.rm.service.rxjava3.database.deployment.ServiceDeploymentService;
+import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.util.misc.HttpHelper;
+import at.uibk.dps.rm.util.misc.MultiMapUtility;
 import at.uibk.dps.rm.verticle.ApiVerticle;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.DecodeException;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.MultiMap;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.ext.web.RoutingContext;
-import io.vertx.rxjava3.ext.web.client.WebClient;
 import lombok.RequiredArgsConstructor;
+
+import java.util.Map;
 
 /**
  * Processes requests that concern startup of containers.
@@ -31,11 +35,7 @@ public class ContainerStartupHandler {
 
     private final DeploymentExecutionChecker deploymentChecker;
 
-    private final ServiceDeploymentService serviceDeploymentService;
-
-    private final FunctionDeploymentService functionDeploymentService;
-
-    private final WebClient webClient;
+    private final ServiceProxyProvider serviceProxyProvider;
 
     /**
      * Deploy a container.
@@ -67,7 +67,7 @@ public class ContainerStartupHandler {
     private Completable processDeployTerminateRequest(RoutingContext rc, boolean isStartup) {
         long accountId = rc.user().principal().getLong("account_id");
         return HttpHelper.getLongPathParam(rc, "id")
-            .flatMap(serviceDeploymentId -> serviceDeploymentService
+            .flatMap(serviceDeploymentId -> serviceProxyProvider.getServiceDeploymentService()
                 .findOneForDeploymentAndTermination(serviceDeploymentId, accountId))
             .flatMapCompletable(existingServiceDeployment -> {
                 ServiceDeployment serviceDeployment = existingServiceDeployment.mapTo(ServiceDeployment.class);
@@ -110,20 +110,22 @@ public class ContainerStartupHandler {
             .remove("Host")
             .remove("User-Agent")
             .add("apollo-request-type", "rm");
+        Map<String, JsonArray> serializedHeaders = MultiMapUtility.serializeMultimap(headers);
         return HttpHelper.getLongPathParam(rc, "id")
-            .flatMap(functionDeploymentId -> functionDeploymentService
-            .findOneForInvocation(functionDeploymentId, accountId))
+            .flatMap(functionDeploymentId -> serviceProxyProvider.getFunctionDeploymentService()
+                .findOneForInvocation(functionDeploymentId, accountId))
             .map(functionDeployment -> functionDeployment.mapTo(FunctionDeployment.class))
-            .flatMapCompletable(functionDeployment -> webClient.postAbs(functionDeployment.getDirectTriggerUrl())
-                .putHeaders(headers)
-                .sendBuffer(requestBody)
-                .flatMapCompletable(response -> {
-                    String body = response.bodyAsString();
+            .flatMapCompletable(functionDeployment -> serviceProxyProvider.getFunctionExecutionService()
+                .invokeFunction(functionDeployment.getDirectTriggerUrl(), requestBody.toString(), serializedHeaders)
+                .flatMapCompletable(result -> {
+                    InvokeFunctionDTO invokeFunctionDTO = result.mapTo(InvokeFunctionDTO.class);
+                    String body = invokeFunctionDTO.getBody();
                     Completable processResponse = Completable.complete();
                     try {
-                        InvocationResponseDTO invocationResponse = response.bodyAsJson(InvocationResponseDTO.class);
+                        InvocationResponseDTO invocationResponse = new JsonObject(body)
+                            .mapTo(InvocationResponseDTO.class);
                         body = invocationResponse.getBody();
-                        processResponse = functionDeploymentService
+                        processResponse = serviceProxyProvider.getFunctionDeploymentService()
                             .saveExecTime(functionDeployment.getResourceDeploymentId(),
                                 (int) invocationResponse.getMonitoringData().getExecutionTimeMs(),
                                 requestBody.toString());
@@ -133,7 +135,8 @@ public class ContainerStartupHandler {
                     String finalBody = body;
                     return processResponse
                         .andThen(Single.defer(() -> Single.just(1L)))
-                        .flatMapCompletable(res -> rc.response().setStatusCode(response.statusCode()).end(finalBody));
+                        .flatMapCompletable(res -> rc.response().setStatusCode(invokeFunctionDTO.getStatusCode())
+                            .end(finalBody));
                 }));
     }
 }

@@ -23,9 +23,7 @@ public class DeploymentRoute implements Route {
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         /* Checker initialization */
-        DeploymentExecutionChecker deploymentExecutionChecker =
-            new DeploymentExecutionChecker(serviceProxyProvider.getDeploymentExecutionService(),
-            serviceProxyProvider.getLogService(), serviceProxyProvider.getDeploymentLogService());
+        DeploymentExecutionChecker deploymentExecutionChecker = new DeploymentExecutionChecker(serviceProxyProvider);
         /* Handler initialization */
         DeploymentErrorHandler deploymentErrorHandler = new DeploymentErrorHandler(
             serviceProxyProvider.getDeploymentService(), deploymentExecutionChecker);

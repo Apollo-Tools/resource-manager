@@ -27,6 +27,7 @@ import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.VPCService;
 import at.uibk.dps.rm.service.rxjava3.database.service.ServiceService;
 import at.uibk.dps.rm.service.rxjava3.database.service.K8sServiceTypeService;
 import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentExecutionService;
+import at.uibk.dps.rm.service.rxjava3.monitoring.functions.FunctionExecutionService;
 import at.uibk.dps.rm.verticle.DatabaseVerticle;
 import io.vertx.rxjava3.core.Vertx;
 import lombok.Getter;
@@ -40,6 +41,7 @@ import lombok.Getter;
  */
 @Getter
 public class ServiceProxyProvider {
+    /* Database services */
     private final AccountNamespaceService accountNamespaceService;
     private final AccountService accountService;
     private final CredentialsService credentialsService;
@@ -69,6 +71,8 @@ public class ServiceProxyProvider {
     private final ServiceTypeService serviceTypeService;
     private final VPCService vpcService;
     private final DeploymentExecutionService deploymentExecutionService;
+    /* Monitoring Service */
+    private final FunctionExecutionService functionExecutionService;
 
     /**
      * Create an instance from vertx. All client proxies get setup in this method.
@@ -105,5 +109,7 @@ public class ServiceProxyProvider {
         serviceTypeService = ServiceTypeService.createProxy(vertx);
         vpcService = VPCService.createProxy(vertx);
         deploymentExecutionService = DeploymentExecutionService.createProxy(vertx);
+
+        functionExecutionService = FunctionExecutionService.createProxy(vertx);
     }
 }
