@@ -3,9 +3,15 @@ package at.uibk.dps.rm.verticle;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.handler.monitoring.K8sMonitoringHandler;
 import at.uibk.dps.rm.handler.monitoring.MonitoringHandler;
+import at.uibk.dps.rm.service.ServiceProxyBinder;
+import at.uibk.dps.rm.service.monitoring.functions.FunctionExecutionService;
+import at.uibk.dps.rm.service.monitoring.functions.FunctionExecutionServiceImpl;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Observable;
 import io.vertx.rxjava3.core.AbstractVerticle;
+import io.vertx.rxjava3.ext.web.client.WebClient;
+import io.vertx.serviceproxy.ServiceBinder;
 
 import java.util.*;
 
@@ -16,18 +22,38 @@ import java.util.*;
  */
 public class MonitoringVerticle extends AbstractVerticle {
 
-    private final Set<MonitoringHandler> monitoringHandlers = new HashSet<>();
+    private WebClient webClient;
 
+    private final Set<MonitoringHandler> monitoringHandlers = new HashSet<>();
 
     @Override
     public Completable rxStart() {
+        webClient = WebClient.create(vertx);
         ConfigDTO config = config().mapTo(ConfigDTO.class);
         monitoringHandlers.add(new K8sMonitoringHandler(vertx, config));
-        return startMonitoringLoops();
+        return setupEventBus()
+            .andThen(startMonitoringLoops());
     }
 
     private Completable startMonitoringLoops() {
         return Observable.fromIterable(monitoringHandlers)
             .flatMapCompletable(handler -> Completable.fromAction(handler::startMonitoringLoop));
+    }
+
+    /**
+     * Register all monitoring service proxies on the event bus.
+     *
+     * @return a Completable
+     */
+    private Completable setupEventBus() {
+        Maybe<Void> setupEventBus = Maybe.create(emitter -> {
+            ServiceBinder serviceBinder = new ServiceBinder(vertx.getDelegate());
+            ServiceProxyBinder serviceProxyBinder = new ServiceProxyBinder(serviceBinder);
+
+            serviceProxyBinder.bind(FunctionExecutionService.class,
+                new FunctionExecutionServiceImpl(webClient));
+            emitter.onComplete();
+        });
+        return Completable.fromMaybe(setupEventBus);
     }
 }
