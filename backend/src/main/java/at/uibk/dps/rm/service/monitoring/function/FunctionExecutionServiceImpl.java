@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.service.monitoring.functions;
+package at.uibk.dps.rm.service.monitoring.function;
 
 import at.uibk.dps.rm.entity.dto.function.InvokeFunctionDTO;
 import at.uibk.dps.rm.service.ServiceProxy;

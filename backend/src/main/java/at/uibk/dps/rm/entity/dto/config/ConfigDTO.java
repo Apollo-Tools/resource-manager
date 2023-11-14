@@ -36,6 +36,8 @@ public class ConfigDTO {
     private String kubeConfigSecretsNamespace;
     private String kubeConfigDirectory;
     private Integer kubeApiTimeoutSeconds;
-    private Double kubeMonitoringPeriod;
     private List<String> kubeImagePullSecrets;
+
+    private Double kubeMonitoringPeriod;
+    private Double regionMonitoringPeriod;
 }

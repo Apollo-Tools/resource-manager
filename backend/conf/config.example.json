@@ -26,6 +26,8 @@
   "kube_config_secrets_namespace": "default",
   "kube_config_directory": "/kubeconfig",
   "kube_api_timeout_seconds": 30,
+  "kube_image_pull_secrets": ["regcred"],
+
   "kube_monitoring_period": 5,
-  "kube_image_pull_secrets": ["regcred"]
+  "region_monitoring_period": 5
 }

@@ -3,9 +3,10 @@ package at.uibk.dps.rm.verticle;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.handler.monitoring.K8sMonitoringHandler;
 import at.uibk.dps.rm.handler.monitoring.MonitoringHandler;
+import at.uibk.dps.rm.handler.monitoring.RegionMonitoringHandler;
 import at.uibk.dps.rm.service.ServiceProxyBinder;
-import at.uibk.dps.rm.service.monitoring.functions.FunctionExecutionService;
-import at.uibk.dps.rm.service.monitoring.functions.FunctionExecutionServiceImpl;
+import at.uibk.dps.rm.service.monitoring.function.FunctionExecutionService;
+import at.uibk.dps.rm.service.monitoring.function.FunctionExecutionServiceImpl;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Observable;
@@ -31,6 +32,7 @@ public class MonitoringVerticle extends AbstractVerticle {
         webClient = WebClient.create(vertx);
         ConfigDTO config = config().mapTo(ConfigDTO.class);
         monitoringHandlers.add(new K8sMonitoringHandler(vertx, config));
+        monitoringHandlers.add(new RegionMonitoringHandler(vertx, config));
         return setupEventBus()
             .andThen(startMonitoringLoops());
     }
