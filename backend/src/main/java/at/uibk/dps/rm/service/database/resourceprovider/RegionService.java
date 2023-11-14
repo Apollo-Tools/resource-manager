@@ -52,4 +52,5 @@ public interface RegionService extends DatabaseServiceInterface {
      */
     void findAllByPlatformId(long platformId, Handler<AsyncResult<JsonArray>> resultHandler);
 
+    void saveAllRegionConnectivities(JsonArray regionConnectivities, Handler<AsyncResult<Void>> resultHandler);
 }

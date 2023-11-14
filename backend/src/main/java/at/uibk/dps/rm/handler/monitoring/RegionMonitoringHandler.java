@@ -3,12 +3,15 @@ package at.uibk.dps.rm.handler.monitoring;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
 import at.uibk.dps.rm.entity.model.Region;
+import at.uibk.dps.rm.entity.model.RegionConnectivity;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.service.deployment.executor.ProcessExecutor;
 import io.reactivex.rxjava3.core.Observable;
 import io.vertx.core.Handler;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
 import lombok.RequiredArgsConstructor;
@@ -58,12 +61,26 @@ public class RegionMonitoringHandler implements MonitoringHandler {
                     commands = List.of("bash", "-c", scriptPath + scriptArgs);
                 }
                 ProcessExecutor processExecutor = new ProcessExecutor(resourcePath, commands);
-                return processExecutor.executeCli();
+                return processExecutor.executeCli()
+                    .map(processOutput -> {
+                        RegionConnectivity connectivity = new RegionConnectivity();
+                        connectivity.setRegion(region);
+                        if (processOutput.getProcess().exitValue() == 0) {
+                            connectivity.setIsOnline(true);
+                            connectivity.setLatencyMs(Integer.parseInt(processOutput.getOutput()));
+                        } else {
+                            connectivity.setIsOnline(false);
+                        }
+                        return connectivity;
+                    });
             })
             .toList()
-            .subscribe(res -> {
+            .flatMapCompletable(connectivities -> {
+                JsonArray serializedConnectivities = new JsonArray(Json.encode(connectivities));
+                return serviceProxyProvider.getRegionService().saveAllRegionConnectivities(serializedConnectivities);
+            })
+            .subscribe(() -> {
                 logger.info("Finished: monitor regions");
-                res.forEach(entry -> logger.info(entry.getOutput()));
                 currentTimer = pauseLoop ? currentTimer : vertx.setTimer(period, monitoringHandler);
             }, throwable -> {
                 logger.error(throwable.getMessage());
@@ -74,6 +91,10 @@ public class RegionMonitoringHandler implements MonitoringHandler {
 
     @Override
     public void pauseMonitoringLoop() {
-
+        pauseLoop = true;
+        if (!vertx.cancelTimer(currentTimer)) {
+            vertx.cancelTimer(currentTimer);
+        }
+        currentTimer = -1L;
     }
 }
