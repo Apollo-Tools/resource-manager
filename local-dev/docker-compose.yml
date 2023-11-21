@@ -1,4 +1,8 @@
-version: '3.1'
+version: '3.8'
+
+volumes:
+  prometheus-data: {}
+  grafana-data: {}
 
 services:
   db:
@@ -10,6 +14,39 @@ services:
       POSTGRES_PASSWORD: root
       TZ: 'UTC'
       PGTZ: 'UTC'
-
+    networks:
+      - my-network
     ports:
       - "5432:5432"
+  db-exporter:
+    image: burningalchemist/sql_exporter:0.13
+    restart: always
+    volumes:
+      - ./sql_exporter.yml:/sql_exporter.yml
+    ports:
+      - "9399:9399"
+    networks:
+      - my-network
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      # enable live reload of config
+      - '--web.enable-lifecycle'
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    networks:
+      - my-network
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - '3001:3000'
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - my-network
+networks:
+  my-network:
