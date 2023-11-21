@@ -2,17 +2,22 @@ package at.uibk.dps.rm.handler.deploymentexecution;
 
 import at.uibk.dps.rm.entity.dto.function.InvocationMonitoringDTO;
 import at.uibk.dps.rm.entity.dto.function.InvocationResponseDTO;
+import at.uibk.dps.rm.entity.dto.function.InvokeFunctionDTO;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
 import at.uibk.dps.rm.exception.NotFoundException;
+import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.service.rxjava3.database.deployment.FunctionDeploymentService;
 import at.uibk.dps.rm.service.rxjava3.database.deployment.ServiceDeploymentService;
+import at.uibk.dps.rm.service.rxjava3.monitoring.function.FunctionExecutionService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.*;
+import at.uibk.dps.rm.util.misc.MultiMapUtility;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -20,9 +25,6 @@ import io.vertx.rxjava3.core.MultiMap;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.http.HttpServerResponse;
 import io.vertx.rxjava3.ext.web.RoutingContext;
-import io.vertx.rxjava3.ext.web.client.HttpRequest;
-import io.vertx.rxjava3.ext.web.client.HttpResponse;
-import io.vertx.rxjava3.ext.web.client.WebClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +34,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -53,25 +56,22 @@ public class ContainerStartupHandlerTest {
     private DeploymentExecutionChecker deploymentChecker;
 
     @Mock
+    private ServiceProxyProvider serviceProxyProvider;
+
+    @Mock
     private ServiceDeploymentService serviceDeploymentService;
 
     @Mock
     private FunctionDeploymentService functionDeploymentService;
 
     @Mock
-    private WebClient webClient;
+    private FunctionExecutionService functionExecutionService;
 
     @Mock
     private RoutingContext rc;
 
     @Mock
     private HttpServerResponse response;
-
-    @Mock
-    private HttpRequest<Buffer> proxyRequest;
-
-    @Mock
-    private HttpResponse<Buffer> proxyResponse;
 
     private Account account;
     private ServiceDeployment sd;
@@ -80,8 +80,10 @@ public class ContainerStartupHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        handler = new ContainerStartupHandler(deploymentChecker, serviceDeploymentService, functionDeploymentService,
-            webClient);
+        handler = new ContainerStartupHandler(deploymentChecker, serviceProxyProvider);
+        lenient().when(serviceProxyProvider.getServiceDeploymentService()).thenReturn(serviceDeploymentService);
+        lenient().when(serviceProxyProvider.getFunctionDeploymentService()).thenReturn(functionDeploymentService);
+        lenient().when(serviceProxyProvider.getFunctionExecutionService()).thenReturn(functionExecutionService);
         account = TestAccountProvider.createAccount(1L);
         Deployment d1 = TestDeploymentProvider.createDeployment(1L);
         Resource r1 = TestResourceProvider.createResource(3L);
@@ -197,6 +199,7 @@ public class ContainerStartupHandlerTest {
         MultiMap proxyHeaders = MultiMap.caseInsensitiveMultiMap();
         proxyHeaders.add("Content-Type", "application/json")
             .add("apollo-request-type", "rm");
+        Map<String, JsonArray> serializedHeaders = MultiMapUtility.serializeMultimap(proxyHeaders);
 
         Buffer buffer = Buffer.buffer();
         if (body.equals("nullBody")) {
@@ -207,21 +210,15 @@ public class ContainerStartupHandlerTest {
             buffer = Buffer.buffer(body);
             RoutingContextMockHelper.mockBody(rc, buffer);
         }
+        InvokeFunctionDTO invokeFunctionDTO = TestDTOProvider.createInvokeFunctionDTO(invocationResult, 200);
+
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
         RoutingContextMockHelper.mockHeaders(rc, initialHeaders);
         when(rc.pathParam("id")).thenReturn(String.valueOf(fd.getResourceDeploymentId()));
         when(functionDeploymentService.findOneForInvocation(fd.getResourceDeploymentId(), account.getAccountId()))
             .thenReturn(Single.just(JsonObject.mapFrom(fd)));
-        when(webClient.postAbs(fd.getDirectTriggerUrl())).thenReturn(proxyRequest);
-        when(proxyRequest.putHeaders(argThat((MultiMap headers) -> headers.entries().stream()
-            .noneMatch(entry -> !proxyHeaders.contains(entry.getKey()) ||
-                !proxyHeaders.get(entry.getKey()).equals(entry.getValue())))))
-            .thenReturn(proxyRequest);
-        when(proxyRequest.sendBuffer(buffer)).thenReturn(Single.just(proxyResponse));
-        when(proxyResponse.bodyAsString()).thenReturn(invocationResult);
-        when(proxyResponse.bodyAsJson(InvocationResponseDTO.class)).thenAnswer(res ->
-            new JsonObject(invocationResult).mapTo(InvocationResponseDTO.class));
-        when(proxyResponse.statusCode()).thenReturn(200);
+        when(functionExecutionService.invokeFunction(fd.getDirectTriggerUrl(), buffer.toString(), serializedHeaders))
+            .thenReturn(Single.just(JsonObject.mapFrom(invokeFunctionDTO)));
         when(rc.response()).thenReturn(response);
         when(response.setStatusCode(200)).thenReturn(response);
         doReturn(Completable.complete()).when(response).end(argThat((String result) -> result.equals(responseBody)));

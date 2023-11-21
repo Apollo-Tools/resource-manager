@@ -32,9 +32,10 @@ public class TestConfigProvider {
         configDTO.setKubeConfigSecretsNamespace("default");
         configDTO.setKubeConfigDirectory("tmp/kubeconfig");
         configDTO.setKubeApiTimeoutSeconds(10);
-        configDTO.setKubeMonitoringPeriod(5.0);
         configDTO.setKubeImagePullSecrets(List.of("regcred"));
 
+        configDTO.setKubeMonitoringPeriod(5.0);
+        configDTO.setRegionMonitoringPeriod(5.0);
         return configDTO;
     }
 }

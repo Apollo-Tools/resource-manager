@@ -29,7 +29,7 @@ public class MultiMapUtility {
         multiMap.forEach((key, value) -> {
             JsonArray values = serializedMap.get(key);
             if (values == null) {
-                values = new io.vertx.core.json.JsonArray();
+                values = new JsonArray();
                 values.add(Json.encode(value));
                 serializedMap.put(key, values);
             } else {

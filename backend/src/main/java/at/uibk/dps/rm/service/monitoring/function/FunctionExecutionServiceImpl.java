@@ -41,7 +41,7 @@ public class FunctionExecutionServiceImpl extends ServiceProxy implements Functi
             .sendBuffer(Buffer.buffer(requestBody))
             .map(httpResponse -> {
                 InvokeFunctionDTO invokeFunctionDTO = new InvokeFunctionDTO();
-                invokeFunctionDTO.setStatusCode(httpResponse.getDelegate().statusCode());
+                invokeFunctionDTO.setStatusCode(httpResponse.statusCode());
                 invokeFunctionDTO.setBody(httpResponse.bodyAsString());
                 return JsonObject.mapFrom(invokeFunctionDTO);
             })

@@ -11,6 +11,7 @@ import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
 import at.uibk.dps.rm.exception.NotFoundException;
+import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.service.deployment.docker.LambdaJavaBuildService;
 import at.uibk.dps.rm.service.deployment.docker.LambdaLayerService;
 import at.uibk.dps.rm.service.deployment.docker.OpenFaasImageService;
@@ -54,8 +55,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Implements tests for the {@link DeploymentExecutionChecker} class.
@@ -72,6 +72,9 @@ public class DeploymentExecutionCheckerTest {
     private DeploymentExecutionChecker deploymentChecker;
 
     private final ConfigDTO config = TestConfigProvider.getConfigDTO();
+
+    @Mock
+    private ServiceProxyProvider serviceProxyProvider;
 
     @Mock
     private DeploymentExecutionService deploymentExecutionService;
@@ -95,7 +98,10 @@ public class DeploymentExecutionCheckerTest {
     void initTest() {
         rtoc.vertx();
         JsonMapperConfig.configJsonMapper();
-        deploymentChecker = new DeploymentExecutionChecker(deploymentExecutionService, logService, deploymentLogService);
+        deploymentChecker = new DeploymentExecutionChecker(serviceProxyProvider);
+        lenient().when(serviceProxyProvider.getDeploymentExecutionService()).thenReturn(deploymentExecutionService);
+        lenient().when(serviceProxyProvider.getLogService()).thenReturn(logService);
+        lenient().when(serviceProxyProvider.getDeploymentLogService()).thenReturn(deploymentLogService);
     }
 
     @ParameterizedTest
