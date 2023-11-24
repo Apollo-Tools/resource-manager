@@ -13,6 +13,7 @@ import {siteTitle} from '../../components/misc/Sidebar';
 import {listLockedResources} from '../../lib/api/ResourceService';
 import ResourceTable from '../../components/resources/ResourceTable';
 import DeploymentDetailsCard from '../../components/deployments/DeploymentDetailsCard';
+import DeploymentDashboard from '../../components/monitoring/DeploymentDashboard';
 
 const {confirm} = Modal;
 
@@ -31,7 +32,7 @@ const DeploymentDetails = () => {
   });
   const [lockedResources, setLockedResources] = useState([]);
   const router = useRouter();
-  const {id} = router.query;
+  const id = parseInt(router.query.id);
 
   useEffect(() => {
     if (!checkTokenExpired() && id !== undefined) {
@@ -163,11 +164,8 @@ const DeploymentDetails = () => {
         <Typography.Title level={3}>Logs</Typography.Title>
         <LogsDisplay logs={logs}/>
         <Divider />
-        {/* TODO: insert monitoring data*/}
         <Typography.Title level={3}>Monitoring</Typography.Title>
-        <div>
-        TODO display monitoring data
-        </div>
+        <DeploymentDashboard deploymentId={id} />
       </div>
     </>
   );

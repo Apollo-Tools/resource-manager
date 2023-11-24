@@ -41,12 +41,27 @@ services:
     networks:
       - my-network
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:10.2.2
     ports:
       - '3001:3000'
     volumes:
       - grafana-data:/var/lib/grafana
+      - ../grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ../grafana/datasources:/etc/grafana/provisioning/datasources
     networks:
       - my-network
+    environment:
+      # security
+      GF_SECURITY_ADMIN_EMAIL: admin@localhost
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ALLOW_EMBEDDING: true
+      GF_SECURITY_COOKIE_SAMESITE: none
+      # auth
+      GF_AUTH_ANONYMOUS_ENABLED: true
+      GF_AUTH_ANONYMOUS_ORG_NAME: apollo-rm
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      # theming
+      GF_USERS_DEFAULT_THEME: light
 networks:
   my-network:
