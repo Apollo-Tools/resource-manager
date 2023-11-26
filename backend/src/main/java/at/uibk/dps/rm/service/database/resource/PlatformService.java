@@ -8,8 +8,11 @@ import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
+import io.vertx.core.json.JsonArray;
 
 /**
  * The interface of the service proxy for the platform entity.
@@ -33,4 +36,13 @@ public interface PlatformService  extends DatabaseServiceInterface {
         return new PlatformServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(Platform.class));
     }
 
+
+
+    /**
+     * Find all platforms by resource provider.
+     *
+     * @param resourceProvider the resource provider
+     * @param resultHandler receives the found entities as JsonArray
+     */
+    void findAllByResourceProvider(String resourceProvider, Handler<AsyncResult<JsonArray>> resultHandler);
 }

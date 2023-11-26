@@ -33,4 +33,21 @@ public class PlatformRepository extends Repository<Platform> {
             .getResultList()
         );
     }
+
+    /**
+     * Find all platforms by resource provider.
+     *
+     * @param sessionManager the database session manager
+     * @param resourceProvider the name of the resource provider
+     * @return a Single that emits a list of all found platforms
+     */
+    public Single<List<Platform>> findAllByResourceProvider(SessionManager sessionManager, String resourceProvider) {
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery(
+                "select distinct pp.platform from ProviderPlatform pp " +
+                    "where pp.resourceProvider.provider=:resourceProvider", Platform.class)
+            .setParameter("resourceProvider", resourceProvider)
+            .getResultList()
+        );
+    }
 }

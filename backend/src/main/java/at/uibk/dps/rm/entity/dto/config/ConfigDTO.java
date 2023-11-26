@@ -40,4 +40,5 @@ public class ConfigDTO {
 
     private Double kubeMonitoringPeriod;
     private Double regionMonitoringPeriod;
+    private Double awsPriceMonitoringPeriod;
 }

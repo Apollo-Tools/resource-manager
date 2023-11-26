@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.verticle;
 
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
+import at.uibk.dps.rm.handler.monitoring.AWSPriceListMonitoringHandler;
 import at.uibk.dps.rm.handler.monitoring.K8sMonitoringHandler;
 import at.uibk.dps.rm.handler.monitoring.MonitoringHandler;
 import at.uibk.dps.rm.handler.monitoring.RegionMonitoringHandler;
@@ -33,6 +34,7 @@ public class MonitoringVerticle extends AbstractVerticle {
         ConfigDTO config = config().mapTo(ConfigDTO.class);
         monitoringHandlers.add(new K8sMonitoringHandler(vertx, config));
         monitoringHandlers.add(new RegionMonitoringHandler(vertx, config));
+        monitoringHandlers.add(new AWSPriceListMonitoringHandler(vertx, webClient, config));
         return setupEventBus()
             .andThen(startMonitoringLoops());
     }

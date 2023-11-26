@@ -4,29 +4,41 @@ import at.uibk.dps.rm.annotations.Generated;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 /**
- * Represents the region entity.
+ * Represents the aws_price entity.
  *
  * @author matthi-g
  */
 @Entity
 @Getter
 @Setter
-public class Region {
+public class AwsPrice {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long regionId;
-
-    private String name;
+    private Long awsPriceId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "resource_provider_id")
-    private ResourceProvider resourceProvider;
+    @JoinColumn(name = "region_id")
+    private Region region;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "platform_id")
+    private Platform platform;
+
+
+    @Column(columnDefinition = "text")
+    private String instanceType;
+
+    @Column(precision = 8, scale = 4)
+    @Type(type = "big_decimal")
+    private BigDecimal price;
 
     @Column(insertable = false, updatable = false)
     private @Setter(AccessLevel.NONE) Timestamp createdAt;
@@ -40,13 +52,13 @@ public class Region {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        Region region = (Region) obj;
-        return regionId.equals(region.regionId);
+        AwsPrice awsPrice = (AwsPrice) obj;
+        return awsPriceId.equals(awsPrice.awsPriceId);
     }
 
     @Override
     @Generated
     public int hashCode() {
-        return regionId.hashCode();
+        return awsPriceId.hashCode();
     }
 }

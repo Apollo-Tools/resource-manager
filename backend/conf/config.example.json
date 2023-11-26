@@ -29,5 +29,6 @@
   "kube_image_pull_secrets": ["regcred"],
 
   "kube_monitoring_period": 5,
-  "region_monitoring_period": 5
+  "region_monitoring_period": 5,
+  "aws_price_monitoring_period": 1440
 }

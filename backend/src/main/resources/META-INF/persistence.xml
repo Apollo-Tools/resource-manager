@@ -8,6 +8,7 @@
         <class>at.uibk.dps.rm.entity.model.AccountCredentials</class>
         <class>at.uibk.dps.rm.entity.model.AccountNamespace</class>
         <class>at.uibk.dps.rm.entity.model.ArtifactType</class>
+        <class>at.uibk.dps.rm.entity.model.AwsPrice</class>
         <class>at.uibk.dps.rm.entity.model.Credentials</class>
         <class>at.uibk.dps.rm.entity.model.Ensemble</class>
         <class>at.uibk.dps.rm.entity.model.EnsembleSLO</class>
