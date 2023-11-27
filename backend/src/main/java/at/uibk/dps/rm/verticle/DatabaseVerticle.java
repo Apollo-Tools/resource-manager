@@ -17,10 +17,7 @@ import at.uibk.dps.rm.repository.deployment.*;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resource.PlatformRepository;
 import at.uibk.dps.rm.repository.resource.ResourceTypeRepository;
-import at.uibk.dps.rm.repository.resourceprovider.EnvironmentRepository;
-import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
-import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
-import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
+import at.uibk.dps.rm.repository.resourceprovider.*;
 import at.uibk.dps.rm.repository.service.ServiceRepository;
 import at.uibk.dps.rm.repository.service.K8sServiceTypeRepository;
 import at.uibk.dps.rm.service.database.account.*;
@@ -125,6 +122,8 @@ public class DatabaseVerticle extends AbstractVerticle {
                 new AccountNamespaceServiceImpl(new AccountNamespaceRepository(), smProvider));
             serviceProxyBinder.bind(AccountService.class,
                 new AccountServiceImpl(new AccountRepository(), new RoleRepository(), smProvider));
+            serviceProxyBinder.bind(AwsPriceService.class, new AwsPriceServiceImpl(new AwsPriceRepository(),
+                smProvider));
             serviceProxyBinder.bind(CredentialsService.class, new CredentialsServiceImpl(new CredentialsRepository(),
                 new AccountCredentialsRepository(), smProvider));
             serviceProxyBinder.bind(EnsembleService.class, new EnsembleServiceImpl(new EnsembleRepositoryProvider(),

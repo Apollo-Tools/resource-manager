@@ -10,18 +10,16 @@ import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.service.monitoring.aws.AWSPriceMonitoring;
 import at.uibk.dps.rm.service.monitoring.aws.EC2PriceMonitoring;
 import at.uibk.dps.rm.service.monitoring.aws.LambdaPriceMonitoring;
-import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.Handler;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.web.client.WebClient;
 import lombok.RequiredArgsConstructor;
-
-import java.util.List;
 
 @RequiredArgsConstructor
 public class AWSPriceListMonitoringHandler implements MonitoringHandler {
@@ -52,7 +50,7 @@ public class AWSPriceListMonitoringHandler implements MonitoringHandler {
             .findAllByResourceProvider(ResourceProviderEnum.AWS.getValue())
             .flatMapObservable(Observable::fromIterable)
             .map(platform -> ((JsonObject) platform).mapTo(Platform.class))
-            .flatMapCompletable(platform -> serviceProxyProvider.getRegionService().findAll()
+            .flatMap(platform -> serviceProxyProvider.getRegionService().findAll()
                 .flatMapObservable(Observable::fromIterable)
                 .map(region -> ((JsonObject) region).mapTo(Region.class))
                 .filter(region -> {
@@ -60,7 +58,7 @@ public class AWSPriceListMonitoringHandler implements MonitoringHandler {
                         .fromString(region.getResourceProvider().getProvider());
                     return resourceProvider.equals(ResourceProviderEnum.AWS);
                 })
-                .flatMapSingle(region -> {
+                .flatMap(region -> {
                     String offersCode;
                     PlatformEnum platformEnum = PlatformEnum.fromPlatform(platform);
                     AWSPriceMonitoring priceMonitoring;
@@ -72,7 +70,7 @@ public class AWSPriceListMonitoringHandler implements MonitoringHandler {
                         priceMonitoring = lambdaMonitoring;
                     } else {
                         logger.info("skipping platform " + platform.getPlatform());
-                        return Single.just(List.of());
+                        return Observable.empty();
                     }
                     String priceUrl = "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/" + offersCode +
                     "/current/" + region.getName() + "/index.json";
@@ -85,13 +83,12 @@ public class AWSPriceListMonitoringHandler implements MonitoringHandler {
                             awsPrice.setPrice(price);
                             awsPrice.setPlatform(platform);
                             return awsPrice;
-                        })
-                        .toList();
+                        });
                 })
-                .toList()
-                .flatMapCompletable(connectivities -> {
-                    return Completable.complete();
-                }))
+            )
+            .toList()
+            .flatMapCompletable(prices -> serviceProxyProvider.getAwsPriceService()
+                .saveAll(new JsonArray(Json.encode(prices))))
             .subscribe(() -> {
                 logger.info("Finished: monitor aws price list");
                 currentTimer = pauseLoop ? currentTimer : vertx.setTimer(period, monitoringHandler);

@@ -16,14 +16,11 @@ import at.uibk.dps.rm.service.rxjava3.database.function.FunctionService;
 import at.uibk.dps.rm.service.rxjava3.database.function.RuntimeService;
 import at.uibk.dps.rm.service.rxjava3.database.log.LogService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.PlatformService;
-import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.EnvironmentService;
-import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.RegionService;
-import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.ResourceProviderService;
+import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.*;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceTypeService;
-import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.VPCService;
 import at.uibk.dps.rm.service.rxjava3.database.service.ServiceService;
 import at.uibk.dps.rm.service.rxjava3.database.service.K8sServiceTypeService;
 import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentExecutionService;
@@ -44,6 +41,7 @@ public class ServiceProxyProvider {
     /* Database services */
     private final AccountNamespaceService accountNamespaceService;
     private final AccountService accountService;
+    private final AwsPriceService awsPriceService;
     private final CredentialsService credentialsService;
     private final EnsembleService ensembleService;
     private final EnvironmentService environmentService;
@@ -82,6 +80,7 @@ public class ServiceProxyProvider {
     public ServiceProxyProvider(Vertx vertx) {
         accountNamespaceService = AccountNamespaceService.createProxy(vertx);
         accountService = AccountService.createProxy(vertx);
+        awsPriceService = AwsPriceService.createProxy(vertx);
         credentialsService = CredentialsService.createProxy(vertx);
         ensembleService = EnsembleService.createProxy(vertx);
         environmentService = EnvironmentService.createProxy(vertx);
