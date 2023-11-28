@@ -43,6 +43,9 @@ public class AwsPrice {
     @Column(insertable = false, updatable = false)
     private @Setter(AccessLevel.NONE) Timestamp createdAt;
 
+    @Column(insertable = false, updatable = false)
+    private @Setter(AccessLevel.NONE) Timestamp updatedAt;
+
     @Override
     @Generated
     public boolean equals(Object obj) {

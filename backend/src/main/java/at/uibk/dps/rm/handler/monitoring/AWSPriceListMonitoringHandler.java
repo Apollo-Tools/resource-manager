@@ -76,11 +76,11 @@ public class AWSPriceListMonitoringHandler implements MonitoringHandler {
                     "/current/" + region.getName() + "/index.json";
                     return priceMonitoring.computeExpectedPrice(priceUrl)
                         .flatMapObservable(Observable::fromIterable)
-                        .map(price -> {
+                        .map(pricePair -> {
                             AwsPrice awsPrice = new AwsPrice();
                             awsPrice.setRegion(region);
-                            awsPrice.setInstanceType("lambda");
-                            awsPrice.setPrice(price);
+                            awsPrice.setInstanceType(pricePair.component1());
+                            awsPrice.setPrice(pricePair.component2());
                             awsPrice.setPlatform(platform);
                             return awsPrice;
                         });
@@ -101,6 +101,10 @@ public class AWSPriceListMonitoringHandler implements MonitoringHandler {
 
     @Override
     public void pauseMonitoringLoop() {
-
+        pauseLoop = true;
+        if (!vertx.cancelTimer(currentTimer)) {
+            vertx.cancelTimer(currentTimer);
+        }
+        currentTimer = -1L;
     }
 }
