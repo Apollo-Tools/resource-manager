@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.monitoring.K8sNode;
 import io.kubernetes.client.openapi.models.V1Namespace;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
@@ -24,27 +25,27 @@ public interface K8sMonitoringService {
     /**
      * List all namespace of a k8s resource.
      *
-     * @param kubeConfig the kube config for access to the k8s resource
+     * @param kubeConfigPath the path to kube config to access to the k8s resource
      * @param config the vertx config
      * @return a List of all found namespaces
      */
-    List<V1Namespace> listNamespaces(String kubeConfig, ConfigDTO config);
+    List<V1Namespace> listNamespaces(Path kubeConfigPath, ConfigDTO config);
 
     /**
      * List all nodes of a k8s resource.
      *
-     * @param kubeConfig the kube config for access to the k8s resource
+     * @param kubeConfigPath the path to kube config to access to the k8s resource
      * @param config the vertx config
      * @return a List of all found nodes
      */
-    List<K8sNode> listNodes(String kubeConfig, ConfigDTO config);
+    List<K8sNode> listNodes(Path kubeConfigPath, ConfigDTO config);
 
     /**
      * Get the current resource allocation by node.
      *
      * @param node the node
-     * @param kubeConfig the kube config for access to the k8s resource
+     * @param kubeConfigPath the path to kube config to access to the k8s resource
      * @param config the vertx config
      */
-    void getCurrentNodeAllocation(K8sNode node, String kubeConfig, ConfigDTO config);
+    void getCurrentNodeAllocation(K8sNode node, Path kubeConfigPath, ConfigDTO config);
 }

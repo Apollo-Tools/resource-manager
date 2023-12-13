@@ -21,7 +21,6 @@ import io.vertx.rxjava3.core.file.FileSystem;
 import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
@@ -101,17 +100,16 @@ public class K8sMonitoringHandler implements MonitoringHandler {
             if (!fileSystem.existsBlocking(configDTO.getKubeConfigDirectory())) {
                 fileSystem.mkdirsBlocking(configDTO.getKubeConfigDirectory());
             }
-            vertx.fileSystem().mkdirsBlocking(configDTO.getKubeConfigDirectory());
             for (Map.Entry<String, String> entry: kubeConfigs.entrySet()) {
                 logger.info("Observe cluster: " + entry.getKey());
                 Path kubeconfigPath = Path.of(configDTO.getKubeConfigDirectory(), entry.getKey());
                 fileSystem.writeFileBlocking(kubeconfigPath.toString(), Buffer.buffer(entry.getValue()));
-                ApiClient externalClient = Config.fromConfig(new StringReader(entry.getValue()));
+                ApiClient externalClient = Config.fromConfig(kubeconfigPath.toAbsolutePath().toString());
                 Configuration.setDefaultApiClient(externalClient);
-                List<K8sNode> nodes = monitoringService.listNodes(entry.getValue(), configDTO);
-                List<V1Namespace> namespaces = monitoringService.listNamespaces(entry.getValue(), configDTO);
+                List<K8sNode> nodes = monitoringService.listNodes(kubeconfigPath, configDTO);
+                List<V1Namespace> namespaces = monitoringService.listNamespaces(kubeconfigPath, configDTO);
                 for (K8sNode node: nodes) {
-                    monitoringService.getCurrentNodeAllocation(node, entry.getValue(), configDTO);
+                    monitoringService.getCurrentNodeAllocation(node, kubeconfigPath, configDTO);
                 }
                 K8sMonitoringData k8sMonitoringData = new K8sMonitoringData(nodes, namespaces);
                 monitoringDataMap.put(entry.getKey(), k8sMonitoringData);

@@ -16,8 +16,8 @@ import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -41,9 +41,9 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
         }
     }
 
-    private CoreV1Api setUpExternalClient(String kubeConfig) {
+    private CoreV1Api setUpExternalClient(Path kubeConfig) {
         try {
-            ApiClient externalClient = Config.fromConfig(new StringReader(kubeConfig));
+            ApiClient externalClient = Config.fromConfig(kubeConfig.toAbsolutePath().toString());
             Configuration.setDefaultApiClient(externalClient);
             return new CoreV1Api();
         } catch (IOException e) {
@@ -77,7 +77,7 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
     }
 
     @Override
-    public List<V1Namespace> listNamespaces(String kubeConfig, ConfigDTO config) {
+    public List<V1Namespace> listNamespaces(Path kubeConfig, ConfigDTO config) {
         try {
             CoreV1Api api = setUpExternalClient(kubeConfig);
             V1NamespaceList list = api.listNamespace(null, null,  null, null,
@@ -95,7 +95,7 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
     }
 
     @Override
-    public List<K8sNode> listNodes(String kubeConfig, ConfigDTO config) {
+    public List<K8sNode> listNodes(Path kubeConfig, ConfigDTO config) {
         try {
             CoreV1Api api = setUpExternalClient(kubeConfig);
             V1NodeList list = api.listNode(null, null,  null, null,
@@ -115,15 +115,14 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
     }
 
     @Override
-    public void getCurrentNodeAllocation(K8sNode node, String kubeConfig, ConfigDTO config) {
+    public void getCurrentNodeAllocation(K8sNode node, Path kubeConfig, ConfigDTO config) {
         List<String> commands;
         if (System.getProperty("os.name").toLowerCase().contains("windows")) {
-            commands = List.of("powershell.exe", "-Command", "$tempfile = New-TemporaryFile; '" + kubeConfig + "' | " +
-                "Out-File -FilePath $tempfile -Encoding UTF8; kubectl describe node " + node.getName() +
-                " --kubeconfig $tempfile");
+            commands = List.of("powershell.exe", "kubectl describe node " + node.getName() +
+                " --kubeconfig '" + kubeConfig.toAbsolutePath() + "'");
         } else {
-            commands = List.of("bash", "-c", "echo <(echo '" + kubeConfig + "') && kubectl describe node "
-                + node.getName() + " --kubeconfig <(echo '" + kubeConfig + "')");
+            commands = List.of("bash", "-c",
+                "kubectl describe node " + node.getName() + " --kubeconfig '" + kubeConfig.toAbsolutePath() + "'");
         }
         ProcessExecutor processExecutor = new ProcessExecutor(Paths.get("").toAbsolutePath(), commands);
         processExecutor.executeCli()
