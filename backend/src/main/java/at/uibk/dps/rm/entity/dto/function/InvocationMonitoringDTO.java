@@ -5,7 +5,7 @@ import lombok.Setter;
 
 /**
  * A DTO that represents the monitoring data of a function invocation that is part of the
- * {@link InvocationResponseDTO}.
+ * {@link InvocationResponseBodyDTO}.
  *
  * @author matthi-g
  */

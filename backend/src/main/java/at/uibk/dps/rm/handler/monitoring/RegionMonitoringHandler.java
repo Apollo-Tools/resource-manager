@@ -19,6 +19,12 @@ import lombok.RequiredArgsConstructor;
 import java.nio.file.Path;
 import java.util.List;
 
+/**
+ * This monitoring handler monitors registered regions. This includes checking if a regions is
+ * reachable and measuring the latency to that region.
+ *
+ * @author matthi-g
+ */
 @RequiredArgsConstructor
 public class RegionMonitoringHandler implements MonitoringHandler {
     private static final Logger logger = LoggerFactory.getLogger(RegionMonitoringHandler.class);

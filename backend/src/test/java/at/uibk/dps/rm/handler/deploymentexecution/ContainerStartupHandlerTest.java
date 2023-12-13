@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.handler.deploymentexecution;
 
 import at.uibk.dps.rm.entity.dto.function.InvocationMonitoringDTO;
-import at.uibk.dps.rm.entity.dto.function.InvocationResponseDTO;
+import at.uibk.dps.rm.entity.dto.function.InvocationResponseBodyDTO;
 import at.uibk.dps.rm.entity.dto.function.InvokeFunctionDTO;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.BadInputException;
@@ -177,7 +177,7 @@ public class ContainerStartupHandlerTest {
         String resultBody = "{\"result\": 42}";
         InvocationMonitoringDTO monitoringData = TestDTOProvider
             .createInvocationMonitoringDTO(235, 1699023299133L);
-        InvocationResponseDTO invocationResponseDTO = TestDTOProvider
+        InvocationResponseBodyDTO invocationResponseDTO = TestDTOProvider
             .createInvocationResponseDTO(monitoringData, resultBody);
 
         return Stream.of(

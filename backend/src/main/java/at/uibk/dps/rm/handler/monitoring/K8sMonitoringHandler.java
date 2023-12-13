@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
  * This monitoring handler monitors k8s clusters. This includes checking if new nodes got added,
  * existing nodes got deleted and the current usage of cpu, memory and storage of each node.
  *
+ * @author matthi-g
  */
 @RequiredArgsConstructor
 public class K8sMonitoringHandler implements MonitoringHandler {
@@ -82,6 +83,7 @@ public class K8sMonitoringHandler implements MonitoringHandler {
         currentTimer = vertx.setTimer(period, monitoringHandler);
     }
 
+    @Override
     public void pauseMonitoringLoop() {
         pauseLoop = true;
         if (!vertx.cancelTimer(currentTimer)) {

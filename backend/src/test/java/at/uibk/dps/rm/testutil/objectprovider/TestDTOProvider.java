@@ -9,7 +9,7 @@ import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
 import at.uibk.dps.rm.entity.dto.function.InvocationMonitoringDTO;
-import at.uibk.dps.rm.entity.dto.function.InvocationResponseDTO;
+import at.uibk.dps.rm.entity.dto.function.InvocationResponseBodyDTO;
 import at.uibk.dps.rm.entity.dto.function.InvokeFunctionDTO;
 import at.uibk.dps.rm.entity.dto.function.UpdateFunctionDTO;
 import at.uibk.dps.rm.entity.dto.resource.ResourceId;
@@ -250,9 +250,9 @@ public class TestDTOProvider {
         return invocationMonitoringDTO;
     }
 
-    public static InvocationResponseDTO createInvocationResponseDTO(InvocationMonitoringDTO monitoringData,
-            String body) {
-        InvocationResponseDTO invocationResponseDTO = new InvocationResponseDTO();
+    public static InvocationResponseBodyDTO createInvocationResponseDTO(InvocationMonitoringDTO monitoringData,
+                                                                        String body) {
+        InvocationResponseBodyDTO invocationResponseDTO = new InvocationResponseBodyDTO();
         invocationResponseDTO.setMonitoringData(monitoringData);
         invocationResponseDTO.setBody(body);
         return invocationResponseDTO;

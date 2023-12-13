@@ -8,6 +8,11 @@ import lombok.Setter;
 
 import java.util.Map;
 
+/**
+ * A DTO that represents a single AWS price list term.
+ *
+ * @author matthi-g
+ */
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)

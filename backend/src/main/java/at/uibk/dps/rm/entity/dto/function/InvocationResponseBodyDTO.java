@@ -4,13 +4,13 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * A DTO that represents the monitoring data and response of a function invocation.
+ * A DTO that represents the monitoring data and response data of a function invocation.
  *
  * @author matthi-g
  */
 @Getter
 @Setter
-public class InvocationResponseDTO {
+public class InvocationResponseBodyDTO {
 
     private InvocationMonitoringDTO monitoringData;
 

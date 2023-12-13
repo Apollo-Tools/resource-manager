@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.handler.deploymentexecution;
 
-import at.uibk.dps.rm.entity.dto.function.InvocationResponseDTO;
+import at.uibk.dps.rm.entity.dto.function.InvocationResponseBodyDTO;
 import at.uibk.dps.rm.entity.dto.function.InvokeFunctionDTO;
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
@@ -122,8 +122,8 @@ public class ContainerStartupHandler {
                     String body = invokeFunctionDTO.getBody();
                     Completable processResponse = Completable.complete();
                     try {
-                        InvocationResponseDTO invocationResponse = new JsonObject(body)
-                            .mapTo(InvocationResponseDTO.class);
+                        InvocationResponseBodyDTO invocationResponse = new JsonObject(body)
+                            .mapTo(InvocationResponseBodyDTO.class);
                         body = invocationResponse.getBody();
                         processResponse = serviceProxyProvider.getFunctionDeploymentService()
                             .saveExecTime(functionDeployment.getResourceDeploymentId(),

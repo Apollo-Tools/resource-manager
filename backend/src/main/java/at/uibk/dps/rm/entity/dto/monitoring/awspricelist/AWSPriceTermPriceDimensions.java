@@ -5,6 +5,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * A DTO that represents the AWS price list price dimensions.
+ *
+ * @author matthi-g
+ */
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)

@@ -14,6 +14,11 @@ import lombok.RequiredArgsConstructor;
 import java.math.BigDecimal;
 import java.util.List;
 
+/**
+ * Implements the {@link AWSPriceMonitoring} interface to compute expected prices for AWS Lambda.
+ *
+ * @author matthi-g
+ */
 @RequiredArgsConstructor
 public class LambdaPriceMonitoring implements AWSPriceMonitoring {
 

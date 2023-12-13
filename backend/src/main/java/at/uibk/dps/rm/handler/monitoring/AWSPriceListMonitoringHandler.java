@@ -21,6 +21,11 @@ import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.web.client.WebClient;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * This monitoring handler monitors the aws price list api and persists the observed prices.
+ *
+ * @author matthi-g
+ */
 @RequiredArgsConstructor
 public class AWSPriceListMonitoringHandler implements MonitoringHandler {
 

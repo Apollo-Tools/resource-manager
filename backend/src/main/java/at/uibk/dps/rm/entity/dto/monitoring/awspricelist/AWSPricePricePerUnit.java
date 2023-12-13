@@ -7,6 +7,11 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 
+/**
+ * A DTO that represents the AWS price list price unit.
+ *
+ * @author matthi-g
+ */
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)

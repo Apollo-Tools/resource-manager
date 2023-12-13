@@ -19,7 +19,8 @@ import java.util.stream.Collectors;
 public class MultiMapUtility {
 
     /**
-     * Transform a {@link MultiMap} to be transportable on the {@link io.vertx.rxjava3.core.eventbus.EventBus}.
+     * Transform a {@link MultiMap} to be transportable on the
+     * {@link io.vertx.rxjava3.core.eventbus.EventBus}.
      *
      * @param multiMap the multimap
      * @return the transformed map
@@ -40,7 +41,8 @@ public class MultiMapUtility {
     }
 
     /**
-     * Create a multimap from a map that has been sent over the {@link io.vertx.rxjava3.core.eventbus.EventBus}.
+     * Create a multimap from a map that has been sent over the
+     * @link io.vertx.rxjava3.core.eventbus.EventBus}.
      *
      * @param serializedMap the map
      * @return the composed multimap
