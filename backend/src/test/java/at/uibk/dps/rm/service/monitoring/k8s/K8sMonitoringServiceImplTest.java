@@ -33,14 +33,13 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
-import java.io.StringReader;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
@@ -68,14 +67,13 @@ public class K8sMonitoringServiceImplTest {
     private V1Node node1, node2;
     private K8sNode k8sNode;
     private ConfigDTO config;
-    private String kubeConfig;
+    private Path kubeConfigPath;
     private ProcessOutput processOutput;
 
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
         monitoringService = new K8sMonitoringServiceImpl();
-        kubeConfig = "kubeconfigdata";
         config = TestConfigProvider.getConfigDTO();
         s1 = TestK8sProvider.createSecret();
         secretList = new V1SecretList();
@@ -87,6 +85,7 @@ public class K8sMonitoringServiceImplTest {
         node2 = TestK8sProvider.createNode("node2");
         k8sNode = TestMonitoringDataProvider.createK8sNode("node1");
         processOutput = TestDTOProvider.createProcessOutput(process, "output");
+        kubeConfigPath = Path.of("path", "to", "config");
     }
 
     @Test
@@ -155,10 +154,10 @@ public class K8sMonitoringServiceImplTest {
                 MockedStatic<Configuration> k8sConfiguration = Mockito.mockStatic(Configuration.class);
                 MockedConstruction<CoreV1Api> ignore = K8sObjectMockprovider
                     .mockCoreV1ApiListNamespaces(config, namespaceList)) {
-            k8sConfig.when(() -> Config.fromConfig(any(StringReader.class))).thenReturn(apiClient);
+            k8sConfig.when(() -> Config.fromConfig(kubeConfigPath.toAbsolutePath().toString())).thenReturn(apiClient);
             k8sConfiguration.when(() -> Configuration.setDefaultApiClient(apiClient)).then(invocation -> null);
 
-            List<V1Namespace> namespaces = monitoringService.listNamespaces(kubeConfig, config);
+            List<V1Namespace> namespaces = monitoringService.listNamespaces(kubeConfigPath, config);
             assertThat(namespaces.size()).isEqualTo(2);
             assertThat(namespaces.get(0)).isEqualTo(ns1);
             assertThat(namespaces.get(1)).isEqualTo(ns2);
@@ -171,11 +170,11 @@ public class K8sMonitoringServiceImplTest {
             MockedStatic<Config> k8sConfig = Mockito.mockStatic(Config.class);
             MockedStatic<Configuration> k8sConfiguration = Mockito.mockStatic(Configuration.class);
             MockedConstruction<CoreV1Api> ignore = K8sObjectMockprovider.mockCoreV1ApiListNamespacesException(config)) {
-            k8sConfig.when(() -> Config.fromConfig(new StringReader(kubeConfig))).thenReturn(apiClient);
+            k8sConfig.when(() -> Config.fromConfig(kubeConfigPath.toAbsolutePath().toString())).thenReturn(apiClient);
             k8sConfiguration.when(() -> Configuration.setDefaultApiClient(apiClient)).then(invocation -> null);
 
             MonitoringException exception = assertThrows(MonitoringException.class, () ->
-                monitoringService.listNamespaces(kubeConfig, config));
+                monitoringService.listNamespaces(kubeConfigPath, config));
             assertThat(exception.getMessage()).isEqualTo("failed to list namespaces");
         }
     }
@@ -188,10 +187,10 @@ public class K8sMonitoringServiceImplTest {
                 MockedStatic<Config> k8sConfig = Mockito.mockStatic(Config.class);
                 MockedStatic<Configuration> k8sConfiguration = Mockito.mockStatic(Configuration.class);
                 MockedConstruction<CoreV1Api> ignore = K8sObjectMockprovider.mockCoreV1ApiListNodes(config, nodeList)) {
-            k8sConfig.when(() -> Config.fromConfig(new StringReader(kubeConfig))).thenReturn(apiClient);
+            k8sConfig.when(() -> Config.fromConfig(kubeConfigPath.toAbsolutePath().toString())).thenReturn(apiClient);
             k8sConfiguration.when(() -> Configuration.setDefaultApiClient(apiClient)).then(invocation -> null);
 
-            List<K8sNode> nodes = monitoringService.listNodes(kubeConfig, config);
+            List<K8sNode> nodes = monitoringService.listNodes(kubeConfigPath, config);
             assertThat(nodes.size()).isEqualTo(2);
             assertThat(nodes.get(0).getNode()).isEqualTo(node1);
             assertThat(nodes.get(1).getNode()).isEqualTo(node2);
@@ -204,11 +203,11 @@ public class K8sMonitoringServiceImplTest {
             MockedStatic<Config> k8sConfig = Mockito.mockStatic(Config.class);
             MockedStatic<Configuration> k8sConfiguration = Mockito.mockStatic(Configuration.class);
             MockedConstruction<CoreV1Api> ignore = K8sObjectMockprovider.mockCoreV1ApiListNodesException(config)) {
-            k8sConfig.when(() -> Config.fromConfig(new StringReader(kubeConfig))).thenReturn(apiClient);
+            k8sConfig.when(() -> Config.fromConfig(kubeConfigPath.toAbsolutePath().toString())).thenReturn(apiClient);
             k8sConfiguration.when(() -> Configuration.setDefaultApiClient(apiClient)).then(invocation -> null);
 
             MonitoringException exception = assertThrows(MonitoringException.class, () ->
-                monitoringService.listNodes(kubeConfig, config));
+                monitoringService.listNodes(kubeConfigPath, config));
             assertThat(exception.getMessage()).isEqualTo("failed to list nodes");
         }
     }
@@ -216,16 +215,15 @@ public class K8sMonitoringServiceImplTest {
     @Test
     void getCurrentNodeLocationWindows() {
         System.setProperty("os.name", "Windows");
-        List<String> commands = List.of("powershell.exe", "-Command", "$tempfile = New-TemporaryFile; '" +
-            kubeConfig + "' | " + "Out-File -FilePath $tempfile -Encoding UTF8; kubectl describe node " +
-            k8sNode.getName() + " --kubeconfig $tempfile");
+        List<String> commands = List.of("powershell.exe", "kubectl describe node " + k8sNode.getName() + " " +
+            "--kubeconfig '" + kubeConfigPath.toAbsolutePath() + "'");
 
         try(MockedConstruction<ProcessExecutor> ignorePe = ProcessExecutorMockprovider
                     .mockProcessExecutor(Paths.get("").toAbsolutePath(), processOutput, commands);
                 MockedStatic<K8sDescribeParser> outputParser = Mockito.mockStatic(K8sDescribeParser.class)) {
             outputParser.when(() -> K8sDescribeParser.parseContent(processOutput.getOutput(), k8sNode))
                 .then(invocation -> null);
-            monitoringService.getCurrentNodeAllocation(k8sNode, kubeConfig, config);
+            monitoringService.getCurrentNodeAllocation(k8sNode, kubeConfigPath, config);
             outputParser.verify(() -> K8sDescribeParser.parseContent(processOutput.getOutput(), k8sNode));
         }
     }
@@ -233,8 +231,8 @@ public class K8sMonitoringServiceImplTest {
     @Test
     void getCurrentNodeLocationLinux() {
         System.setProperty("os.name", "Linux");
-        List<String> commands = List.of("bash", "-c", "echo <(echo '" + kubeConfig + "') && kubectl describe node "
-            + k8sNode.getName() + " --kubeconfig <(echo '" + kubeConfig + "')");
+        List<String> commands = List.of("bash", "-c", "kubectl describe node " + k8sNode.getName() + " --kubeconfig '" +
+            kubeConfigPath.toAbsolutePath() + "'");
 
         try(MockedConstruction<ProcessExecutor> ignorePe = ProcessExecutorMockprovider
             .mockProcessExecutor(Paths.get("").toAbsolutePath(), processOutput, commands);
@@ -242,7 +240,7 @@ public class K8sMonitoringServiceImplTest {
             outputParser.when(() -> K8sDescribeParser.parseContent(processOutput.getOutput(), k8sNode))
                 .then(invocation -> null);
 
-            monitoringService.getCurrentNodeAllocation(k8sNode, kubeConfig, config);
+            monitoringService.getCurrentNodeAllocation(k8sNode, kubeConfigPath, config);
 
             outputParser.verify(() -> K8sDescribeParser.parseContent(processOutput.getOutput(), k8sNode));
         }
@@ -251,15 +249,15 @@ public class K8sMonitoringServiceImplTest {
     @Test
     void getCurrentNodeLocationProcessFailed() {
         System.setProperty("os.name", "Linux");
-        List<String> commands = List.of("bash", "-c", "echo <(echo '" + kubeConfig + "') && kubectl describe node "
-            + k8sNode.getName() + " --kubeconfig <(echo '" + kubeConfig + "')");
+        List<String> commands = List.of("bash", "-c", "kubectl describe node " + k8sNode.getName() + " --kubeconfig '" +
+            kubeConfigPath.toAbsolutePath() + "'");
 
         try(MockedConstruction<ProcessExecutor> ignorePe = ProcessExecutorMockprovider
-            .mockProcessExecutor(Paths.get("").toAbsolutePath(), processOutput, commands)) {
+                .mockProcessExecutor(Paths.get("").toAbsolutePath(), processOutput, commands)) {
             when(process.exitValue()).thenReturn(-1);
 
             MonitoringException exception = assertThrows(MonitoringException.class,
-                () -> monitoringService.getCurrentNodeAllocation(k8sNode, kubeConfig, config));
+                () -> monitoringService.getCurrentNodeAllocation(k8sNode, kubeConfigPath, config));
             assertThat(exception.getMessage()).isEqualTo("Retrieving node allocation failed");
         }
     }
@@ -280,9 +278,10 @@ public class K8sMonitoringServiceImplTest {
                 MockedStatic<Config> k8sConfig = Mockito.mockStatic(Config.class);
                 MockedConstruction<CoreV1Api> ignore = K8sObjectMockprovider
                     .mockCoreV1ApiListNamespaces(config, namespaceList)) {
-            k8sConfig.when(() -> Config.fromConfig(any(StringReader.class))).thenThrow(IOException.class);
+            k8sConfig.when(() -> Config.fromConfig(kubeConfigPath.toAbsolutePath().toString()))
+                .thenThrow(IOException.class);
 
-            assertThrows(MonitoringException.class, () -> monitoringService.listNamespaces(kubeConfig, config));
+            assertThrows(MonitoringException.class, () -> monitoringService.listNamespaces(kubeConfigPath, config));
         }
     }
 }
