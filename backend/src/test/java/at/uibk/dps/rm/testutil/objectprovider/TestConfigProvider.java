@@ -36,6 +36,7 @@ public class TestConfigProvider {
 
         configDTO.setKubeMonitoringPeriod(5.0);
         configDTO.setRegionMonitoringPeriod(5.0);
+        configDTO.setAwsPriceMonitoringPeriod(5.0);
         return configDTO;
     }
 }
