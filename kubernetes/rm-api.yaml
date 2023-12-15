@@ -54,6 +54,9 @@ spec:
               value: "5"
             - name: retry_delay_millis
               value: "1000"
+            # The api port
+            - name: api_port
+              value: "8080"
             # The path of the build directory
             - name: build_directory
               value: build
@@ -84,28 +87,34 @@ spec:
             # The k8s secrets that contain the kubeconfigs for all monitored k8s resources
             - name: kube_config_secrets_name
               value: "rm_kubeconfigs"
-            # The path of the directory where the kube configs to access registered k8s resources are stored
-            - name: kube_config_directory
-              value: "build/kubeconfig"
             # The namespace where the kube config secrets are stored
             - name: kube_config_secrets_namespace
               value: "default"
+            # The path of the directory where the kube configs to access registered k8s resources are stored
+            - name: kube_config_directory
+              value: "build/kubeconfig"
             # The timeout of k8s api requests in seconds
             - name: kube_api_timeout_seconds
               value: "10"
-            # The period of time between each monitoring run performed on all existing k8s resources in minutes
-            - name: kube_monitoring_period
-              value: "5"
             # The secrets that contain credentials to private repositories
             - name: kube_image_pull_secrets
               value: "[\"regcred\"]"
+            # The period of time between each monitoring run performed on all existing k8s resources in minutes
+            - name: kube_monitoring_period
+              value: "5"
+            # The period of time between each monitoring run performed on all existing regions in minutes
+            - name: region_monitoring_period
+              value: "5"
+            # The period of time between each monitoring run performed on the aws price list api in minutes
+            - name: aws_price_monitoring_period
+              value: "1440"
           resources:
             # The resource limits
             limits:
               memory: "1000Mi"
               cpu: "1.5"
           ports:
-            # The internal port of the api
+            # The internal port of the api, must match api_port env variable
             - containerPort: 8080
           securityContext:
             # Necessary for docker-in-docker

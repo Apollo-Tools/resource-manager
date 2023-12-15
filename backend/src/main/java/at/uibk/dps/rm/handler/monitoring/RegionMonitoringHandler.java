@@ -56,25 +56,26 @@ public class RegionMonitoringHandler implements MonitoringHandler {
                 int numberRequests = 5;
                 logger.info("Monitor latency: " + region.getName());
                 String pingUrl = "ec2." + region.getName() + ".amazonaws.com";
-                Path resourcePath = Path.of("src", "main", "resources", "monitoring").toAbsolutePath();
+                Path scriptsPath = Path.of("monitoring").toAbsolutePath();
                 String scriptArgs = " -c " + numberRequests + " -w " + pingUrl;
                 List<String> commands;
                 if (System.getProperty("os.name").toLowerCase().contains("windows")) {
-                    Path scriptPath = Path.of(resourcePath.toString(), "latencytest.bat");
+                    Path scriptPath = Path.of(scriptsPath.toString(), "latencytest.bat");
                     commands = List.of("cmd.exe", "/c", scriptPath + scriptArgs);
                 } else {
-                    Path scriptPath = Path.of(resourcePath.toString(), "latencytest.sh");
+                    Path scriptPath = Path.of(scriptsPath.toString(), "latencytest.sh");
                     commands = List.of("bash", "-c", scriptPath + scriptArgs);
                 }
-                ProcessExecutor processExecutor = new ProcessExecutor(resourcePath, commands);
+                ProcessExecutor processExecutor = new ProcessExecutor(scriptsPath, commands);
                 return processExecutor.executeCli()
                     .map(processOutput -> {
                         RegionConnectivity connectivity = new RegionConnectivity();
                         connectivity.setRegion(region);
                         if (processOutput.getProcess().exitValue() == 0) {
                             connectivity.setIsOnline(true);
-                            connectivity.setLatencyMs(Integer.parseInt(processOutput.getOutput()));
+                            connectivity.setLatencyMs((int) Double.parseDouble(processOutput.getOutput()));
                         } else {
+                            logger.info("Region " + region.getName() + " not reachable: " + processOutput.getOutput());
                             connectivity.setIsOnline(false);
                         }
                         return connectivity;

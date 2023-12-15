@@ -3,7 +3,7 @@ COPY --chown=gradle:gradle . /home/gradle/src
 COPY ./ruleset.xml /home/gradle/src
 COPY ./ruleset_test.xml /home/gradle/src
 WORKDIR /home/gradle/src
-RUN gradle build --no-daemon -PexcludeTestcontainers=true
+RUN gradle build --no-daemon -PexcludeTestcontainers=true -x test
 
 FROM docker:git
 
@@ -34,16 +34,18 @@ ENV LD_PRELOAD=/lib/libgcompat.so.0
 RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 RUN install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
-EXPOSE 8888
+EXPOSE 8080
 
 RUN mkdir /app
 RUN mkdir /conf
 RUN mkdir /faas-templates
 RUN mkdir /terraform
+RUN mkdir /monitoring
 
 COPY ./conf/config.json ./conf/config.json
 COPY ./faas-templates ./faas-templates
 COPY ./terraform ./terraform
+COPY ./monitoring ./monitoring
 COPY --from=build /home/gradle/src/build/libs/*-all.jar /app/rm-api.jar
 
 ENV db_host=localhost
@@ -52,7 +54,8 @@ ENV db_user=root
 ENV db_password=root
 ENV max_retries=5
 ENV retry_delay_millis=1000
-ENV build_directory=build
+ENV api_port=8080
+ENV build_directory="build"
 ENV dind_directory="var/lib/apollo-rm/"
 ENV upload_persist_directory="build/upload/"
 ENV upload_temp_directory="build/upload/temp/"
@@ -65,7 +68,10 @@ ENV kube_config_secrets_name="rm_kubeconfigs"
 ENV kube_config_secrets_namespace="default"
 ENV kube_config_directory="build/kubeconfig",
 ENV kube_api_timeout_seconds=10
-ENV kube_monitoring_period=5
 ENV kube_image_pull_secrets=["regcred"]
+
+ENV kube_monitoring_period=5
+ENV region_monitoring_period=5
+ENV aws_price_monitoring_period=1440
 
 ENTRYPOINT ["java", "-jar" ,"/app/rm-api.jar"]

@@ -25,8 +25,7 @@ result=$(ping -c $count $website)
 
 # compose output
 if [ $? -eq 0 ]; then
-  echo "$result"
-  time=$(echo "$result" | grep "rtt min/avg/max/mdev" | awk -F'/' '{print $5}')
+  time=$(echo "$result" | grep 'min/avg/max' | awk -F'=' '{print $2}' | awk -F'/' '{print $2}')
   echo "$time"
   exit 0
 else

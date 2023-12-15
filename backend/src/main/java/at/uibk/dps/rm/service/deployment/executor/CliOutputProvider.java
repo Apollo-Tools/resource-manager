@@ -32,8 +32,7 @@ public class CliOutputProvider implements Callable<ProcessOutput> {
             final Process process = processBuilder.start();
             processOutput.setProcess(process);
             processOutput.setOutput(getProcessOutput(process));
-            process.waitFor();
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
         return processOutput;
