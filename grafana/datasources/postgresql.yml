@@ -18,3 +18,15 @@ datasources:
       connMaxLifetime: 14400 # Grafana v5.4+
       postgresVersion: 1400 # 903=9.3, 904=9.4, 905=9.5, 906=9.6, 1000=10
       timescaledb: true
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    # Access mode - proxy (server in the UI) or direct (browser in the UI).
+    url: http://prometheus:9090
+    jsonData:
+      httpMethod: POST
+      manageAlerts: true
+      prometheusType: Prometheus
+      prometheusVersion: 2.44.0
+      cacheLevel: 'Medium'
+      disableRecordingRules: false
