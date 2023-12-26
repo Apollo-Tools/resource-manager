@@ -21,7 +21,7 @@ rule_files:
 scrape_configs:
   - job_name: 'prometheus'
     static_configs:
-      - targets: ['localhost:9090']
+      - targets: ['prometheus:9090']
   - job_name: 'db-exporter'
     static_configs:
       - targets: ['db-exporter:9399']
@@ -29,4 +29,4 @@ scrape_configs:
   - job_name: 'pi1'
     scrape_interval: 5s
     static_configs:
-      - targets: ['192.168.0.109:9100']
+      - targets: ['192.168.10.198:9100']

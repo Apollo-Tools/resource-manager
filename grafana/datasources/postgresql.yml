@@ -9,6 +9,7 @@ datasources:
     user: root
     secureJsonData:
       password: 'root'
+    uid: RESOURCE_MANAGER_DB
     jsonData:
       database: resource-manager
       sslmode: 'disable' # disable/require/verify-ca/verify-full
@@ -23,6 +24,7 @@ datasources:
     access: proxy
     # Access mode - proxy (server in the UI) or direct (browser in the UI).
     url: http://prometheus:9090
+    uid: RESOURCE_MANAGER_PROM
     jsonData:
       httpMethod: POST
       manageAlerts: true

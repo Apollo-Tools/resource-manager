@@ -18,7 +18,6 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 118,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -29,7 +28,7 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 24,
+        "w": 14,
         "x": 0,
         "y": 0
       },
@@ -40,7 +39,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "- Total cpu: ${cpuTotal}\r\n- Total memory (bytee): ${memoryTotal}\r\n- Total storage (bytee): ${storageTotal} ",
+        "content": "# Resource ${resourceName}\r\n\r\n- Total cpu: ${cpuTotal}\r\n- Total memory (bytee): ${memoryTotal}\r\n- Total storage (bytee): ${storageTotal} ",
         "mode": "markdown"
       },
       "pluginVersion": "10.2.2",
@@ -50,7 +49,153 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "ef9f7f4a-7b4a-4b3a-961a-bd14c7f347b5"
+        "uid": "RESOURCE_MANAGER_PROM"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "max": 1,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 0.7
+              },
+              {
+                "color": "red",
+                "value": 0.9
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 5,
+        "x": 14,
+        "y": 0
+      },
+      "id": 3,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "10.2.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_PROM"
+          },
+          "editorMode": "code",
+          "expr": "($memoryTotal - node_memory_MemAvailable_bytes{job=~\"$resourceName\"}) / $memoryTotal",
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Memory Load",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "RESOURCE_MANAGER_PROM"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "max": 1,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 0.7
+              },
+              {
+                "color": "red",
+                "value": 0.9
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 5,
+        "x": 19,
+        "y": 0
+      },
+      "id": 4,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "10.2.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_PROM"
+          },
+          "editorMode": "code",
+          "expr": "node_filesystem_avail_bytes{mountpoint=\"/\",fstype!=\"rootfs\", job=~\"$resourceName\"} / $storageTotal",
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Storage Load",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "RESOURCE_MANAGER_PROM"
       },
       "fieldConfig": {
         "defaults": {
@@ -63,7 +208,7 @@
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
-            "axisSoftMax": 100,
+            "axisSoftMax": 1,
             "barAlignment": 0,
             "drawStyle": "line",
             "fillOpacity": 0,
@@ -103,13 +248,14 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "percentunit"
         },
         "overrides": []
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
+        "w": 24,
         "x": 0,
         "y": 8
       },
@@ -130,10 +276,10 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "ef9f7f4a-7b4a-4b3a-961a-bd14c7f347b5"
+            "uid": "RESOURCE_MANAGER_PROM"
           },
           "editorMode": "code",
-          "expr": "100 * avg(1 - rate(node_cpu_seconds_total{mode=\"idle\"}[10s])) by (cpu)",
+          "expr": "avg(1 - rate(node_cpu_seconds_total{mode=\"idle\",job=~\"$resourceName\"}[10s])) by (cpu)",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -142,152 +288,6 @@
       ],
       "title": "CPU Load",
       "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "ef9f7f4a-7b4a-4b3a-961a-bd14c7f347b5"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "max": 1,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "#EAB839",
-                "value": 0.7
-              },
-              {
-                "color": "red",
-                "value": 0.9
-              }
-            ]
-          },
-          "unit": "percentunit"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 5,
-        "x": 12,
-        "y": 8
-      },
-      "id": 3,
-      "options": {
-        "minVizHeight": 75,
-        "minVizWidth": 75,
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true
-      },
-      "pluginVersion": "10.2.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "ef9f7f4a-7b4a-4b3a-961a-bd14c7f347b5"
-          },
-          "editorMode": "code",
-          "expr": "($memoryTotal - node_memory_MemAvailable_bytes{job=\"pi1\"}) / $memoryTotal",
-          "instant": false,
-          "legendFormat": "__auto",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Memory Load",
-      "type": "gauge"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "ef9f7f4a-7b4a-4b3a-961a-bd14c7f347b5"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "max": 1,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "#EAB839",
-                "value": 0.7
-              },
-              {
-                "color": "red",
-                "value": 0.9
-              }
-            ]
-          },
-          "unit": "percentunit"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 7,
-        "x": 17,
-        "y": 8
-      },
-      "id": 4,
-      "options": {
-        "minVizHeight": 75,
-        "minVizWidth": 75,
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true
-      },
-      "pluginVersion": "10.2.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "ef9f7f4a-7b4a-4b3a-961a-bd14c7f347b5"
-          },
-          "editorMode": "code",
-          "expr": "node_filesystem_avail_bytes{mountpoint=\"/\",fstype!=\"rootfs\", job=\"pi1\"} / $storageTotal",
-          "instant": false,
-          "legendFormat": "__auto",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Storage Load",
-      "type": "gauge"
     }
   ],
   "refresh": "5s",
@@ -303,7 +303,7 @@
         },
         "datasource": {
           "type": "prometheus",
-          "uid": "ef9f7f4a-7b4a-4b3a-961a-bd14c7f347b5"
+          "uid": "RESOURCE_MANAGER_PROM"
         },
         "definition": "query_result(count without (cpu, mode, job, instance) (node_cpu_seconds_total{mode=\"idle\", job=\"pi1\"}))",
         "hide": 2,
@@ -330,7 +330,7 @@
         },
         "datasource": {
           "type": "prometheus",
-          "uid": "ef9f7f4a-7b4a-4b3a-961a-bd14c7f347b5"
+          "uid": "RESOURCE_MANAGER_PROM"
         },
         "definition": "query_result(sum without (job, instance) (node_memory_MemTotal_bytes{job=\"pi1\"}))",
         "hide": 2,
@@ -357,7 +357,7 @@
         },
         "datasource": {
           "type": "prometheus",
-          "uid": "ef9f7f4a-7b4a-4b3a-961a-bd14c7f347b5"
+          "uid": "RESOURCE_MANAGER_PROM"
         },
         "definition": "query_result(sum without (device,fstype,instance,job,mountpoint) (node_filesystem_size_bytes{job=\"pi1\", mountpoint=\"/\",fstype!=\"rootfs\"}))",
         "hide": 2,
@@ -375,6 +375,22 @@
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "pi1",
+          "value": "pi1"
+        },
+        "hide": 1,
+        "includeAll": false,
+        "multi": false,
+        "name": "resourceName",
+        "options": [],
+        "query": "",
+        "queryValue": "",
+        "skipUrlSync": false,
+        "type": "custom"
       }
     ]
   },
@@ -386,6 +402,6 @@
   "timezone": "",
   "title": "Prometheus Node Exporter",
   "uid": "adfada55-e7e9-42cf-9521-0cf1df2ee34a",
-  "version": 6,
+  "version": 4,
   "weekStart": ""
 }

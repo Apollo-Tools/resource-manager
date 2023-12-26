@@ -24,7 +24,7 @@
     {
       "datasource": {
         "type": "postgres",
-        "uid": "PCA765F5BE8A45144"
+        "uid": "RESOURCE_MANAGER_DB"
       },
       "fieldConfig": {
         "defaults": {
@@ -177,7 +177,7 @@
         {
           "datasource": {
             "type": "postgres",
-            "uid": "PCA765F5BE8A45144"
+            "uid": "RESOURCE_MANAGER_DB"
           },
           "editorMode": "code",
           "format": "table",
@@ -209,7 +209,7 @@
     {
       "datasource": {
         "type": "postgres",
-        "uid": "PCA765F5BE8A45144"
+        "uid": "RESOURCE_MANAGER_DB"
       },
       "fieldConfig": {
         "defaults": {
@@ -308,7 +308,7 @@
         {
           "datasource": {
             "type": "postgres",
-            "uid": "PCA765F5BE8A45144"
+            "uid": "RESOURCE_MANAGER_DB"
           },
           "editorMode": "code",
           "format": "table",
@@ -358,7 +358,7 @@
     {
       "datasource": {
         "type": "postgres",
-        "uid": "PCA765F5BE8A45144"
+        "uid": "RESOURCE_MANAGER_DB"
       },
       "fieldConfig": {
         "defaults": {
@@ -436,7 +436,7 @@
         {
           "datasource": {
             "type": "postgres",
-            "uid": "PCA765F5BE8A45144"
+            "uid": "RESOURCE_MANAGER_DB"
           },
           "editorMode": "code",
           "format": "table",
@@ -525,7 +525,7 @@
         },
         "datasource": {
           "type": "postgres",
-          "uid": "PCA765F5BE8A45144"
+          "uid": "RESOURCE_MANAGER_DB"
         },
         "definition": "select resource_deployment_id from resource_deployment where deployment_type='function' and deployment_id=$deploymentId",
         "hide": 2,
