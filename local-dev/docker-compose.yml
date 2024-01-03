@@ -3,6 +3,7 @@ version: '3.8'
 volumes:
   prometheus-data: {}
   grafana-data: {}
+  victoria-metrics-data: {}
 
 services:
   db:
@@ -18,30 +19,34 @@ services:
       - my-network
     ports:
       - "5432:5432"
-  db-exporter:
-    image: burningalchemist/sql_exporter:0.13
-    restart: always
-    volumes:
-      - ./sql_exporter.yml:/sql_exporter.yml
+  victoria-metrics:
+    image: victoriametrics/victoria-metrics:v1.96.0
+    depends_on:
+      - db
     ports:
-      - "9399:9399"
-    networks:
-      - my-network
-  prometheus:
-    image: prom/prometheus:latest
-    ports:
-      - "9090:9090"
+      - "8428:8428"
+      - "8089:8089"
+      - "8089:8089/udp"
+      - "2003:2003"
+      - "2003:2003/udp"
+      - "4242:4242"
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus-data:/prometheus
+      - victoria-metrics-data:/victoria-metrics-data
+      -  ./:/configs
     command:
-      # enable live reload of config
-      - '--web.enable-lifecycle'
-      - '--config.file=/etc/prometheus/prometheus.yml'
+      - "--promscrape.config=/configs/vmscrape.yml"
+      - "--storageDataPath=/victoria-metrics-data"
+      - "--graphiteListenAddr=:2003"
+      - "--opentsdbListenAddr=:4242"
+      - "--httpListenAddr=:8428"
+      - "--influxListenAddr=:8089"
     networks:
       - my-network
   grafana:
     image: grafana/grafana:10.2.2
+    depends_on:
+      - db
+      - victoria-metrics
     ports:
       - '3001:3000'
     volumes:
@@ -51,6 +56,9 @@ services:
     networks:
       - my-network
     environment:
+      #plugins
+      GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: victoriametrics-datasource
+      GF_INSTALL_PLUGINS: https://github.com/VictoriaMetrics/grafana-datasource/releases/download/v0.5.0/victoriametrics-datasource-v0.5.0.zip;custom-plugin
       # security
       GF_SECURITY_ADMIN_EMAIL: admin@localhost
       GF_SECURITY_ADMIN_USER: admin

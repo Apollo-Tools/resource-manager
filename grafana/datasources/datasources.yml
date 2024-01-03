@@ -23,7 +23,7 @@ datasources:
     type: prometheus
     access: proxy
     # Access mode - proxy (server in the UI) or direct (browser in the UI).
-    url: http://prometheus:9090
+    url: http://victoria-metrics:8428
     uid: RESOURCE_MANAGER_PROM
     jsonData:
       httpMethod: POST
@@ -32,3 +32,17 @@ datasources:
       prometheusVersion: 2.44.0
       cacheLevel: 'Medium'
       disableRecordingRules: false
+  - name: VictoriaMetrics
+    # <string, required> Sets the data source type.
+    type: victoriametrics-datasource
+    # <string, required> Sets the access mode, either
+    # proxy or direct (Server or Browser in the UI).
+    # Some data sources are incompatible with any setting
+    # but proxy (Server).
+    access: proxy
+    # <string> Sets default URL of the single node version of VictoriaMetrics
+    url: http://victoria-metrics:8428
+    # <string> Sets the pre-selected datasource for new panels.
+    # You can set only one default data source per organization.
+    isDefault: false
+    uid: RESOURCE_MANAGER_VM
