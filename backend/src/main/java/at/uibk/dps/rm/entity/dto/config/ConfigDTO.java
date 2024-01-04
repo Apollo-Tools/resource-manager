@@ -38,6 +38,7 @@ public class ConfigDTO {
     private Integer kubeApiTimeoutSeconds;
     private List<String> kubeImagePullSecrets;
 
+    private String monitoringPushUrl;
     private Double kubeMonitoringPeriod;
     private Double regionMonitoringPeriod;
     private Double awsPriceMonitoringPeriod;
