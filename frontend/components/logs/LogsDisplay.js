@@ -9,7 +9,7 @@ const LogsDisplay = ({logs}) => {
     return <>Currently there are no logs...</>;
   }
 
-  return <Collapse accordion style={{whiteSpace: 'pre-wrap'}} size="small">
+  return <Collapse accordion style={{whiteSpace: 'pre-wrap'}} size="small" bordered={false}>
     {logs.map((log) =>
       (<Panel header={<DateFormatter dateTimestamp={log.created_at} includeTime/>} key={log.log_id}>
         <div className="max-h-56 overflow-auto m-[-12px] px-2">

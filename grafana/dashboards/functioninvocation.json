@@ -547,7 +547,10 @@
     "to": "now"
   },
   "timepicker": {
+    "hidden": true,
     "refresh_intervals": [
+      "1s",
+      "2s",
       "5s",
       "10s",
       "30s",
@@ -561,8 +564,8 @@
     ]
   },
   "timezone": "",
-  "title": "Deployment",
+  "title": "Function Invocations",
   "uid": "db738643-24c0-4975-8da7-76a2259e9479",
-  "version": 1,
+  "version": 3,
   "weekStart": ""
 }

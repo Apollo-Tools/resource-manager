@@ -920,8 +920,8 @@
       },
       "gridPos": {
         "h": 11,
-        "w": 13,
-        "x": 6,
+        "w": 24,
+        "x": 0,
         "y": 0
       },
       "hideTimeOverride": false,
@@ -1194,7 +1194,7 @@
           "refId": "Hostname"
         }
       ],
-      "title": "VM/Edge device Overview",
+      "title": "VM/Bare-Metal Resources",
       "transformations": [
         {
           "id": "merge",
@@ -1394,7 +1394,7 @@
       },
       {
         "current": {
-          "selected": false,
+          "selected": true,
           "text": [
             "1",
             "13"
@@ -1459,6 +1459,6 @@
   "timezone": "browser",
   "title": "Node Exporter",
   "uid": "efa71f23-5850-4144-8b29-0ae9480eec94",
-  "version": 4,
+  "version": 8,
   "weekStart": ""
 }

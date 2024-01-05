@@ -13,7 +13,7 @@ import {siteTitle} from '../../components/misc/Sidebar';
 import {listLockedResources} from '../../lib/api/ResourceService';
 import ResourceTable from '../../components/resources/ResourceTable';
 import DeploymentDetailsCard from '../../components/deployments/DeploymentDetailsCard';
-import DeploymentDashboard from '../../components/monitoring/DeploymentDashboard';
+import DeploymentDashboards from '../../components/monitoring/DeploymentDashboards';
 
 const {confirm} = Modal;
 
@@ -30,6 +30,7 @@ const DeploymentDetails = () => {
     isTerminated: false,
     isError: false,
   });
+  const [functionResourceIds, setFunctionResourceIds] = useState([]);
   const [lockedResources, setLockedResources] = useState([]);
   const router = useRouter();
   const id = parseInt(router.query.id);
@@ -51,6 +52,7 @@ const DeploymentDetails = () => {
   useEffect(() => {
     if (deployment != null) {
       checkDeploymentStatus();
+      updateResourceIds();
     }
   }, [deployment]);
 
@@ -84,6 +86,11 @@ const DeploymentDetails = () => {
         isError: existResourceDeploymentsByStatusValue(resourceDeployments, 'ERROR'),
       };
     });
+  };
+
+  const updateResourceIds = () => {
+    setFunctionResourceIds(() =>
+      deployment.function_resources?.map((functionResource) => functionResource.resource.resource_id));
   };
 
   const existResourceDeploymentsByStatusValue = (resourceDeployments, statusValue) => {
@@ -165,7 +172,11 @@ const DeploymentDetails = () => {
         <LogsDisplay logs={logs}/>
         <Divider />
         <Typography.Title level={3}>Monitoring</Typography.Title>
-        <DeploymentDashboard deploymentId={id} />
+        <DeploymentDashboards
+          deploymentId={id}
+          isActive={deploymentStatus.isNew || deploymentStatus.isDeployed || deploymentStatus.isTerminating}
+          functionResourceIds={functionResourceIds}
+        />
       </div>
     </>
   );
