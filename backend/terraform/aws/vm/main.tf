@@ -45,6 +45,16 @@ resource "aws_security_group" "vm" {
     protocol  = "tcp"
   }
 
+  ingress {
+    description = "NodeExporter"
+    cidr_blocks = [
+      "0.0.0.0/0"
+    ]
+    from_port = 9100
+    to_port   = 9100
+    protocol  = "tcp"
+  }
+
   egress {
     from_port   = 0
     to_port     = 0

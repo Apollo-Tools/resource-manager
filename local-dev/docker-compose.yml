@@ -35,11 +35,13 @@ services:
       -  ./:/configs
     command:
       - "--promscrape.config=/configs/vmscrape.yml"
+      - "--promscrape.httpSDCheckInterval=1m"
       - "--storageDataPath=/victoria-metrics-data"
       - "--graphiteListenAddr=:2003"
       - "--opentsdbListenAddr=:4242"
       - "--httpListenAddr=:8428"
       - "--influxListenAddr=:8089"
+      - "--search.latencyOffset=1s"
     networks:
       - my-network
   grafana:
@@ -56,7 +58,7 @@ services:
     networks:
       - my-network
     environment:
-      #plugins
+      # plugins
       GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: victoriametrics-datasource
       GF_INSTALL_PLUGINS: https://github.com/VictoriaMetrics/grafana-datasource/releases/download/v0.5.0/victoriametrics-datasource-v0.5.0.zip;custom-plugin
       # security
@@ -71,5 +73,7 @@ services:
       GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
       # theming
       GF_USERS_DEFAULT_THEME: light
+      # dashboards
+      GF_DASHBOARDS_MIN_REFRESH_INTERVAL: 1s
 networks:
   my-network:

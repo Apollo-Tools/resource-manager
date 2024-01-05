@@ -23,17 +23,16 @@
     ]
   },
   "description": "Dasbhoard based on https://grafana.com/grafana/dashboards/15172",
-  "editable": true,
+  "editable": false,
   "fiscalYearStartMonth": 0,
   "gnetId": 15172,
   "graphTooltip": 0,
-  "id": 7,
   "links": [],
   "liveNow": false,
   "panels": [
     {
       "datasource": {
-        "type": "prometheus",
+        "type": "victoriametrics-datasource",
         "uid": "RESOURCE_MANAGER_VM"
       },
       "description": "",
@@ -56,7 +55,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -221,7 +221,8 @@
                   "mode": "percentage",
                   "steps": [
                     {
-                      "color": "rgba(50, 172, 45, 0.97)"
+                      "color": "rgba(50, 172, 45, 0.97)",
+                      "value": null
                     },
                     {
                       "color": "rgba(237, 129, 40, 0.89)",
@@ -279,7 +280,8 @@
                   "mode": "percentage",
                   "steps": [
                     {
-                      "color": "rgba(50, 172, 45, 0.97)"
+                      "color": "rgba(50, 172, 45, 0.97)",
+                      "value": null
                     },
                     {
                       "color": "rgba(237, 129, 40, 0.89)",
@@ -338,7 +340,8 @@
                   "mode": "percentage",
                   "steps": [
                     {
-                      "color": "rgba(50, 172, 45, 0.97)"
+                      "color": "rgba(50, 172, 45, 0.97)",
+                      "value": null
                     },
                     {
                       "color": "rgba(237, 129, 40, 0.89)",
@@ -394,7 +397,8 @@
                   "mode": "absolute",
                   "steps": [
                     {
-                      "color": "rgba(50, 172, 45, 0.97)"
+                      "color": "rgba(50, 172, 45, 0.97)",
+                      "value": null
                     },
                     {
                       "color": "rgba(237, 129, 40, 0.89)",
@@ -442,7 +446,8 @@
                   "mode": "absolute",
                   "steps": [
                     {
-                      "color": "rgba(50, 172, 45, 0.97)"
+                      "color": "rgba(50, 172, 45, 0.97)",
+                      "value": null
                     },
                     {
                       "color": "rgba(237, 129, 40, 0.89)",
@@ -490,7 +495,8 @@
                   "mode": "absolute",
                   "steps": [
                     {
-                      "color": "rgba(50, 172, 45, 0.97)"
+                      "color": "rgba(50, 172, 45, 0.97)",
+                      "value": null
                     },
                     {
                       "color": "rgba(237, 129, 40, 0.89)",
@@ -538,7 +544,8 @@
                   "mode": "absolute",
                   "steps": [
                     {
-                      "color": "rgba(50, 172, 45, 0.97)"
+                      "color": "rgba(50, 172, 45, 0.97)",
+                      "value": null
                     },
                     {
                       "color": "rgba(237, 129, 40, 0.89)",
@@ -609,7 +616,8 @@
                   "mode": "absolute",
                   "steps": [
                     {
-                      "color": "rgba(50, 172, 45, 0.97)"
+                      "color": "rgba(50, 172, 45, 0.97)",
+                      "value": null
                     },
                     {
                       "color": "rgba(237, 129, 40, 0.89)",
@@ -654,7 +662,8 @@
                   "mode": "absolute",
                   "steps": [
                     {
-                      "color": "rgba(50, 172, 45, 0.97)"
+                      "color": "rgba(50, 172, 45, 0.97)",
+                      "value": null
                     },
                     {
                       "color": "rgba(237, 129, 40, 0.89)",
@@ -672,7 +681,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Temperature"
+              "options": "Value #Temperature"
             },
             "properties": [
               {
@@ -685,7 +694,8 @@
                   "mode": "absolute",
                   "steps": [
                     {
-                      "color": "green"
+                      "color": "green",
+                      "value": null
                     },
                     {
                       "color": "orange",
@@ -752,7 +762,7 @@
             "properties": [
               {
                 "id": "unit",
-                "value": "bytes"
+                "value": "decbytes"
               },
               {
                 "id": "decimals",
@@ -807,20 +817,121 @@
                 "value": 145
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "resource"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 113
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Up"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "0": {
+                        "color": "red",
+                        "index": 1,
+                        "text": "Offline"
+                      },
+                      "1": {
+                        "color": "green",
+                        "index": 0,
+                        "text": "Online"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 73
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Storage"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 99
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Mem"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 108
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "IP"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 155
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Temperature"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 145
+              }
+            ]
           }
         ]
       },
       "gridPos": {
-        "h": 10,
-        "w": 16,
-        "x": 0,
+        "h": 11,
+        "w": 13,
+        "x": 6,
         "y": 0
       },
+      "hideTimeOverride": false,
       "id": 185,
+      "interval": "1s",
       "options": {
         "cellHeight": "sm",
         "footer": {
           "countRows": false,
+          "enablePagination": true,
           "fields": "",
           "reducer": [
             "sum"
@@ -838,20 +949,7 @@
             "uid": "RESOURCE_MANAGER_VM"
           },
           "editorMode": "code",
-          "expr": "node_uname_info{id=~\"$resourceId\", job=~\"$job\"} -0",
-          "format": "table",
-          "instant": true,
-          "interval": "",
-          "legendFormat": "Hostname",
-          "refId": "Hostname"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "RESOURCE_MANAGER_VM"
-          },
-          "editorMode": "code",
-          "expr": "sum(time() - node_boot_time_seconds{id=~\"$resourceId\",job=~\"$job\"})by(instance)",
+          "expr": "sum(time() - node_boot_time_seconds{resource=~\"$resourceId\",job=~\"$job\"})by(resource, instance, job)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -865,7 +963,7 @@
             "uid": "RESOURCE_MANAGER_VM"
           },
           "editorMode": "code",
-          "expr": "node_memory_MemTotal_bytes{id=~\"$resourceId\",job=~\"$job\"} - 0",
+          "expr": "node_memory_MemTotal_bytes{resource=~\"$resourceId\",job=~\"$job\"}-0",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -879,153 +977,15 @@
             "uid": "RESOURCE_MANAGER_VM"
           },
           "editorMode": "code",
-          "expr": "count(node_cpu_seconds_total{id=~\"$resourceId\",job=~\"$job\",mode='system'}) by (instance)",
+          "exemplar": false,
+          "expr": "count(node_cpu_seconds_total{resource=~\"$resourceId\",job=~\"$job\",mode='system'}) by (resource, instance, job)",
           "format": "table",
           "hide": false,
           "instant": true,
           "interval": "",
           "legendFormat": "CPU",
+          "range": false,
           "refId": "CPU"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "RESOURCE_MANAGER_VM"
-          },
-          "editorMode": "code",
-          "expr": "node_load5{id=~\"$resourceId\",job=~\"$job\"}",
-          "format": "table",
-          "instant": true,
-          "interval": "",
-          "legendFormat": "Load(5m)",
-          "refId": "Load(5m)"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "RESOURCE_MANAGER_VM"
-          },
-          "editorMode": "code",
-          "expr": "(1 - avg(rate(node_cpu_seconds_total{id=~\"$resourceId\",job=~\"$job\",mode=\"idle\"}[$interval])) by (instance)) * 100",
-          "format": "table",
-          "hide": false,
-          "instant": true,
-          "interval": "",
-          "legendFormat": "CPU utilization",
-          "refId": "CPU util"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "RESOURCE_MANAGER_VM"
-          },
-          "editorMode": "code",
-          "exemplar": true,
-          "expr": "(node_memory_Buffers_bytes{id=~\"$resourceId\",job=~\"$job\"}+\nnode_memory_Cached_bytes{id=~\"$resourceId\",job=~\"$job\"}) / node_memory_MemTotal_bytes{id=~\"$resourceId\",job=~\"$job\"} * 100",
-          "format": "table",
-          "hide": false,
-          "instant": true,
-          "interval": "",
-          "legendFormat": "Memory utilization",
-          "refId": "Mem util"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "RESOURCE_MANAGER_VM"
-          },
-          "editorMode": "code",
-          "expr": "max((node_filesystem_size_bytes{id=~\"$resourceId\",job=~\"$job\",fstype=~\"ext.?|xfs\"}-node_filesystem_free_bytes{id=~\"$resourceId\",job=~\"$job\",fstype=~\"ext.?|xfs\"}) *100/(node_filesystem_avail_bytes {id=~\"$resourceId\",job=~\"$job\",fstype=~\"ext.?|xfs\"}+(node_filesystem_size_bytes{id=~\"$resourceId\",job=~\"$job\",fstype=~\"ext.?|xfs\"}-node_filesystem_free_bytes{id=~\"$resourceId\",job=~\"$job\",fstype=~\"ext.?|xfs\"})))by(instance)",
-          "format": "table",
-          "hide": false,
-          "instant": true,
-          "interval": "",
-          "legendFormat": "Partition utilization",
-          "refId": "Part util"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "RESOURCE_MANAGER_VM"
-          },
-          "editorMode": "code",
-          "expr": "max(rate(node_disk_read_bytes_total{id=~\"$resourceId\",job=~\"$job\"}[$interval])) by (instance)",
-          "format": "table",
-          "hide": false,
-          "instant": true,
-          "interval": "",
-          "legendFormat": "Maximum read",
-          "refId": "Disk read"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "RESOURCE_MANAGER_VM"
-          },
-          "editorMode": "code",
-          "expr": "max(rate(node_disk_written_bytes_total{id=~\"$resourceId\",job=~\"$job\"}[$interval])) by (instance)",
-          "format": "table",
-          "hide": false,
-          "instant": true,
-          "interval": "",
-          "legendFormat": "Maximum write",
-          "refId": "Disk write"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "RESOURCE_MANAGER_VM"
-          },
-          "editorMode": "code",
-          "expr": "node_netstat_Tcp_CurrEstab{id=~\"$resourceId\",job=~\"$job\"} - 0",
-          "format": "table",
-          "hide": false,
-          "instant": true,
-          "interval": "",
-          "legendFormat": "TCP connections",
-          "refId": "TCP_estab"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "RESOURCE_MANAGER_VM"
-          },
-          "editorMode": "code",
-          "expr": "node_sockstat_TCP_tw{id=~\"$resourceId\",job=~\"$job\"} - 0",
-          "format": "table",
-          "hide": false,
-          "instant": true,
-          "interval": "",
-          "legendFormat": "TCP time wait",
-          "refId": "TCP_tw"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "RESOURCE_MANAGER_VM"
-          },
-          "editorMode": "code",
-          "expr": "max(rate(node_network_receive_bytes_total{id=~\"$resourceId\",job=~\"$job\"}[$interval])*8) by (instance)",
-          "format": "table",
-          "hide": false,
-          "instant": true,
-          "interval": "",
-          "legendFormat": "Download bandwidth",
-          "refId": "Receive"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "RESOURCE_MANAGER_VM"
-          },
-          "editorMode": "code",
-          "expr": "max(rate(node_network_transmit_bytes_total{id=~\"$resourceId\",job=~\"$job\"}[$interval])*8) by (instance)",
-          "format": "table",
-          "hide": false,
-          "instant": true,
-          "interval": "",
-          "legendFormat": "Upload bandwidth",
-          "refId": "Transmit"
         },
         {
           "datasource": {
@@ -1035,8 +995,8 @@
           "disableTextWrap": false,
           "editorMode": "code",
           "exemplar": false,
-          "expr": "max(node_hwmon_temp_celsius{id=~\"$resourceId\",job=~\"$job\"}) by (instance)",
-          "format": "time_series",
+          "expr": "max(node_hwmon_temp_celsius{resource=~\"$resourceId\",job=~\"$job\"} or node_thermal_zone_temp{resource=~\"resourceId\",job=~\"$job\"}) by (resource, instance, job)",
+          "format": "table",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,
@@ -1053,13 +1013,185 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum(avg(node_filesystem_size_bytes{id=~\"$resourceId\",job=~\"$job\",fstype=~\"xfs|ext.*\"})by(device,instance))",
+          "expr": "(1 - avg(rate(node_cpu_seconds_total{resource=~\"$resourceId\",job=~\"$job\",mode=\"idle\"}[$interval])) by (resource)) * 100",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "CPU utilization",
+          "range": false,
+          "refId": "CPU util"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "exemplar": true,
+          "expr": "(1 - (node_memory_MemFree_bytes{resource=~\"$resourceId\",job=~\"$job\"} + node_memory_Buffers_bytes{resource=~\"$resourceId\",job=~\"$job\"} + node_memory_Cached_bytes{resource=~\"$resourceId\",job=~\"$job\"}) / node_memory_MemTotal_bytes{resource=~\"$resourceId\",job=~\"$job\"}) * 100",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "Memory utilization",
+          "refId": "Mem util"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "label_del(node_filesystem_size_bytes{resource=~\"$resourceId\",job=~\"$job\",mountpoint=\"/\",fstype!=\"rootfs\"} - 0, \"device\", \"fstype\", \"mountpoint\")",
           "format": "table",
           "hide": false,
           "instant": true,
           "legendFormat": "__auto",
           "range": false,
           "refId": "Storage"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "expr": "label_del(100 - ((node_filesystem_avail_bytes{resource=~\"$resourceId\",job=~\"$job\",mountpoint=\"/\",fstype!=\"rootfs\"} * 100) / node_filesystem_size_bytes{resource=~\"$resourceId\",job=~\"$job\",mountpoint=\"/\",fstype!=\"rootfs\"}), \"device\", \"fstype\", \"mountpoint\")",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "Partition utilization",
+          "refId": "Part util"
+        },
+        {
+          "datasource": {
+            "type": "victoriametrics-datasource",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "up{resource=~\"$resourceId\",job=~\"$job\"} - 0",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "Up"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "expr": "max(rate(node_disk_read_bytes_total{resource=~\"$resourceId\",job=~\"$job\"}[$interval])) by (resource)",
+          "format": "table",
+          "hide": true,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "Maximum read",
+          "refId": "Disk read"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "expr": "max(rate(node_disk_written_bytes_total{resource=~\"$resourceId\",job=~\"$job\"}[$interval])) by (resource)",
+          "format": "table",
+          "hide": true,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "Maximum write",
+          "refId": "Disk write"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "expr": "node_netstat_Tcp_CurrEstab{resource=~\"$resourceId\",job=~\"$job\"} - 0",
+          "format": "table",
+          "hide": true,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "TCP connections",
+          "refId": "TCP_estab"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "expr": "node_sockstat_TCP_tw{resource=~\"$resourceId\",job=~\"$job\"} - 0",
+          "format": "table",
+          "hide": true,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "TCP time wait",
+          "refId": "TCP_tw"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "expr": "max(rate(node_network_receive_bytes_total{resource=~\"$resourceId\",job=~\"$job\"}[$interval])*8) by (resource)",
+          "format": "table",
+          "hide": true,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "Download bandwidth",
+          "refId": "Receive"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "expr": "max(rate(node_network_transmit_bytes_total{resource=~\"$resourceId\",job=~\"$job\"}[$interval])*8) by (resource)",
+          "format": "table",
+          "hide": true,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "Upload bandwidth",
+          "refId": "Transmit"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "expr": "node_load5{resource=~\"$resourceId\",job=~\"$job\"}",
+          "format": "table",
+          "hide": true,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "Load(5m)",
+          "refId": "Load(5m)"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "expr": "label_del(node_uname_info{resource=~\"$resourceId\",job=~\"$job\"} -0, \"domainname\", \"machine\", \"nodename\", \"release\", \"sysname\", \"version\")",
+          "format": "table",
+          "hide": true,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "Hostname",
+          "refId": "Hostname"
         }
       ],
       "title": "VM/Edge device Overview",
@@ -1074,57 +1206,73 @@
           "id": "organize",
           "options": {
             "excludeByName": {
+              "Temperature": false,
               "Time": true,
+              "Value #CPU": false,
+              "Value #CPU util": false,
               "Value #Disk read": true,
               "Value #Disk write": true,
               "Value #Hostname": true,
               "Value #Load(5m)": true,
+              "Value #Mem": false,
+              "Value #Mem util": false,
+              "Value #Part util": false,
               "Value #Receive": true,
+              "Value #Storage": false,
               "Value #TCP_estab": true,
               "Value #TCP_tw": true,
               "Value #Transmit": true,
+              "Value #Up": false,
+              "Value #Uptime": false,
               "__name__": true,
+              "device": true,
               "domainname": true,
-              "instance": true,
+              "fstype": true,
+              "instance": false,
               "job": true,
               "machine": true,
+              "mountpoint": true,
               "nodename": true,
               "release": true,
+              "resource": false,
               "sysname": true,
               "version": true
             },
             "indexByName": {
-              "Temperature": 20,
-              "Time": 0,
-              "Value #CPU": 12,
-              "Value #CPU util": 17,
-              "Value #Disk read": 21,
-              "Value #Disk write": 22,
-              "Value #Hostname": 10,
-              "Value #Load(5m)": 16,
-              "Value #Mem": 13,
-              "Value #Mem util": 18,
-              "Value #Part util": 19,
-              "Value #Receive": 25,
-              "Value #Storage": 14,
-              "Value #TCP_estab": 23,
-              "Value #TCP_tw": 24,
-              "Value #Transmit": 26,
-              "Value #Uptime": 11,
-              "__name__": 15,
-              "domainname": 1,
-              "id": 2,
-              "instance": 3,
-              "job": 4,
-              "machine": 5,
-              "nodename": 6,
-              "release": 7,
-              "sysname": 8,
-              "version": 9
+              "Temperature": 21,
+              "Time": 2,
+              "Value #CPU": 13,
+              "Value #CPU util": 18,
+              "Value #Disk read": 22,
+              "Value #Disk write": 23,
+              "Value #Hostname": 11,
+              "Value #Load(5m)": 17,
+              "Value #Mem": 14,
+              "Value #Mem util": 19,
+              "Value #Part util": 20,
+              "Value #Receive": 26,
+              "Value #Storage": 15,
+              "Value #TCP_estab": 24,
+              "Value #TCP_tw": 25,
+              "Value #Transmit": 27,
+              "Value #Up": 1,
+              "Value #Uptime": 12,
+              "__name__": 16,
+              "domainname": 3,
+              "instance": 4,
+              "job": 5,
+              "machine": 6,
+              "nodename": 7,
+              "release": 8,
+              "resource": 0,
+              "sysname": 9,
+              "version": 10
             },
             "renameByName": {
               "Value #Part util": "",
               "Value #Storage": "Storage",
+              "Value #Temperature": "Temperature",
+              "Value #Up": "Up",
               "id": "Id"
             }
           }
@@ -1133,7 +1281,7 @@
       "type": "table"
     }
   ],
-  "refresh": false,
+  "refresh": "1s",
   "schemaVersion": 38,
   "tags": [],
   "templating": {
@@ -1148,8 +1296,8 @@
           "type": "prometheus",
           "uid": "RESOURCE_MANAGER_PROM"
         },
-        "definition": "label_values(node_uname_info{id=~\"$resourceId\"},job)",
-        "hide": 0,
+        "definition": "label_values(node_uname_info{resource=~\"$resourceId\"},job)",
+        "hide": 2,
         "includeAll": false,
         "label": "JOB",
         "multi": false,
@@ -1157,7 +1305,7 @@
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(node_uname_info{id=~\"$resourceId\"},job)",
+          "query": "label_values(node_uname_info{resource=~\"$resourceId\"},job)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
@@ -1174,16 +1322,31 @@
         "auto_count": 100,
         "auto_min": "10s",
         "current": {
-          "selected": true,
-          "text": "15s",
-          "value": "15s"
+          "selected": false,
+          "text": "2s",
+          "value": "2s"
         },
-        "hide": 0,
+        "hide": 2,
         "label": "Interval",
         "name": "interval",
         "options": [
           {
+            "selected": false,
+            "text": "1s",
+            "value": "1s"
+          },
+          {
             "selected": true,
+            "text": "2s",
+            "value": "2s"
+          },
+          {
+            "selected": false,
+            "text": "5s",
+            "value": "5s"
+          },
+          {
+            "selected": false,
             "text": "15s",
             "value": "15s"
           },
@@ -1223,7 +1386,7 @@
             "value": "30m"
           }
         ],
-        "query": "15s,30s,1m,2m,3m,5m,10m,30m",
+        "query": "1s,2s,5s,15s,30s,1m,2m,3m,5m,10m,30m",
         "queryValue": "",
         "refresh": 2,
         "skipUrlSync": false,
@@ -1233,10 +1396,12 @@
         "current": {
           "selected": false,
           "text": [
-            "1"
+            "1",
+            "13"
           ],
           "value": [
-            "1"
+            "1",
+            "13"
           ]
         },
         "datasource": {
@@ -1244,14 +1409,14 @@
           "uid": "RESOURCE_MANAGER_PROM"
         },
         "definition": "label_values(id)",
-        "hide": 0,
+        "hide": 2,
         "includeAll": true,
         "multi": true,
         "name": "resourceId",
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(id)",
+          "query": "label_values(resource)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
@@ -1263,13 +1428,15 @@
     ]
   },
   "time": {
-    "from": "2024-01-02T19:00:00.000Z",
-    "to": "2024-01-02T21:00:59.000Z"
+    "from": "now-5m",
+    "to": "now"
   },
   "timepicker": {
     "hidden": true,
     "now": true,
     "refresh_intervals": [
+      "1s",
+      "5s",
       "15s",
       "30s",
       "1m",
@@ -1290,7 +1457,8 @@
     ]
   },
   "timezone": "browser",
-  "title": "Node Exporter Newest import",
-  "version": 7,
+  "title": "Node Exporter",
+  "uid": "efa71f23-5850-4144-8b29-0ae9480eec94",
+  "version": 4,
   "weekStart": ""
 }

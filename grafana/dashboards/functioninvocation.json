@@ -15,7 +15,7 @@
       }
     ]
   },
-  "editable": true,
+  "editable": false,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "links": [],
@@ -563,6 +563,6 @@
   "timezone": "",
   "title": "Deployment",
   "uid": "db738643-24c0-4975-8da7-76a2259e9479",
-  "version": 7,
+  "version": 1,
   "weekStart": ""
 }
