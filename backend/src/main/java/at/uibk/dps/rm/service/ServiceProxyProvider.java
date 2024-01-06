@@ -26,6 +26,7 @@ import at.uibk.dps.rm.service.rxjava3.database.service.K8sServiceTypeService;
 import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentExecutionService;
 import at.uibk.dps.rm.service.rxjava3.monitoring.function.FunctionExecutionService;
 import at.uibk.dps.rm.service.rxjava3.monitoring.metricpusher.FunctionInvocationPushService;
+import at.uibk.dps.rm.service.rxjava3.monitoring.metricpusher.RegionMetricPushService;
 import at.uibk.dps.rm.verticle.DatabaseVerticle;
 import io.vertx.rxjava3.core.Vertx;
 import lombok.Getter;
@@ -73,6 +74,7 @@ public class ServiceProxyProvider {
     /* Monitoring Service */
     private final FunctionExecutionService functionExecutionService;
     private final FunctionInvocationPushService functionInvocationPushService;
+    private final RegionMetricPushService regionMetricPushService;
 
 
     /**
@@ -114,5 +116,6 @@ public class ServiceProxyProvider {
         /* Monitoring Service */
         functionExecutionService = FunctionExecutionService.createProxy(vertx);
         functionInvocationPushService = FunctionInvocationPushService.createProxy(vertx);
+        regionMetricPushService = RegionMetricPushService.createProxy(vertx);
     }
 }

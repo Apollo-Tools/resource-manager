@@ -10,6 +10,11 @@ import io.vertx.rxjava3.ext.web.client.WebClient;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * This is the implementation of the {@link FunctionInvocationPushService}.
+ *
+ * @author matthi-g
+ */
 public class FunctionInvocationPushServiceImpl extends ServiceProxy implements FunctionInvocationPushService {
 
     private final MetricPusher monitoringPusher;

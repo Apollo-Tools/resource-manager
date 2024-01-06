@@ -13,7 +13,8 @@ import io.vertx.core.Vertx;
 import io.vertx.rxjava3.ext.web.client.WebClient;
 
 /**
- * The interface of the service proxy for pushing metric data to the monitoring system.
+ * The interface of the service proxy for pushing function invocation metric data to the monitoring
+ * system.
  *
  * @author matthi-g
  */

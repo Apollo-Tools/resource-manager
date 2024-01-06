@@ -1,14 +1,12 @@
 package at.uibk.dps.rm.service.database.resourceprovider;
 
 import at.uibk.dps.rm.entity.model.Region;
-import at.uibk.dps.rm.entity.model.RegionConnectivity;
 import at.uibk.dps.rm.entity.model.ResourceProvider;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
-import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
@@ -77,16 +75,5 @@ public class RegionServiceImpl extends DatabaseServiceProxy<Region> implements R
             .flatMap(provider -> sm.persist(region))
         );
         RxVertxHandler.handleSession(create.map(JsonObject::mapFrom), resultHandler);
-    }
-
-    @Override
-    public void saveAllRegionConnectivities(JsonArray regionConnectivities, Handler<AsyncResult<Void>> resultHandler) {
-        RegionConnectivity[] regionConnectivitiesList = regionConnectivities.stream()
-            .map(value -> ((JsonObject) value).mapTo(RegionConnectivity.class))
-            .toArray(RegionConnectivity[]::new);
-        Completable create = smProvider.withTransactionCompletable(sm -> sm
-                .persist(regionConnectivitiesList)
-            );
-        RxVertxHandler.handleSession(create, resultHandler);
     }
 }

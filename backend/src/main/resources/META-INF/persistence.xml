@@ -29,7 +29,6 @@
         <class>at.uibk.dps.rm.entity.model.PlatformMetric</class>
         <class>at.uibk.dps.rm.entity.model.ProviderPlatform</class>
         <class>at.uibk.dps.rm.entity.model.Region</class>
-        <class>at.uibk.dps.rm.entity.model.RegionConnectivity</class>
         <class>at.uibk.dps.rm.entity.model.Deployment</class>
         <class>at.uibk.dps.rm.entity.model.DeploymentLog</class>
         <class>at.uibk.dps.rm.entity.model.Resource</class>

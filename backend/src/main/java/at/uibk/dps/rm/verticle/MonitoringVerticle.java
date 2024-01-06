@@ -10,6 +10,8 @@ import at.uibk.dps.rm.service.monitoring.function.FunctionExecutionService;
 import at.uibk.dps.rm.service.monitoring.function.FunctionExecutionServiceImpl;
 import at.uibk.dps.rm.service.monitoring.metricpusher.FunctionInvocationPushService;
 import at.uibk.dps.rm.service.monitoring.metricpusher.FunctionInvocationPushServiceImpl;
+import at.uibk.dps.rm.service.monitoring.metricpusher.RegionMetricPushService;
+import at.uibk.dps.rm.service.monitoring.metricpusher.RegionMetricPushServiceImpl;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Observable;
@@ -59,6 +61,7 @@ public class MonitoringVerticle extends AbstractVerticle {
             serviceProxyBinder.bind(FunctionExecutionService.class, new FunctionExecutionServiceImpl(webClient));
             serviceProxyBinder.bind(FunctionInvocationPushService.class,
                 new FunctionInvocationPushServiceImpl(webClient, config));
+            serviceProxyBinder.bind(RegionMetricPushService.class, new RegionMetricPushServiceImpl(webClient, config));
             emitter.onComplete();
         });
         return Completable.fromMaybe(setupEventBus);

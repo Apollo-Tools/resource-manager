@@ -3,7 +3,7 @@ package at.uibk.dps.rm.handler.monitoring;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
 import at.uibk.dps.rm.entity.model.Region;
-import at.uibk.dps.rm.entity.model.RegionConnectivity;
+import at.uibk.dps.rm.entity.monitoring.RegionConnectivity;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.service.deployment.executor.ProcessExecutor;
 import io.reactivex.rxjava3.core.Observable;
@@ -73,7 +73,7 @@ public class RegionMonitoringHandler implements MonitoringHandler {
                         connectivity.setRegion(region);
                         if (processOutput.getProcess().exitValue() == 0) {
                             connectivity.setIsOnline(true);
-                            connectivity.setLatencyMs((int) Double.parseDouble(processOutput.getOutput()));
+                            connectivity.setLatencySeconds(Double.parseDouble(processOutput.getOutput()) / 1000);
                         } else {
                             logger.info("Region " + region.getName() + " not reachable: " + processOutput.getOutput());
                             connectivity.setIsOnline(false);
@@ -84,7 +84,8 @@ public class RegionMonitoringHandler implements MonitoringHandler {
             .toList()
             .flatMapCompletable(connectivities -> {
                 JsonArray serializedConnectivities = new JsonArray(Json.encode(connectivities));
-                return serviceProxyProvider.getRegionService().saveAllRegionConnectivities(serializedConnectivities);
+                return serviceProxyProvider.getRegionMetricPushService()
+                    .composeAndPushMetrics(serializedConnectivities);
             })
             .subscribe(() -> {
                 logger.info("Finished: monitor regions");
