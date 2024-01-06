@@ -8,6 +8,8 @@ import at.uibk.dps.rm.handler.monitoring.RegionMonitoringHandler;
 import at.uibk.dps.rm.service.ServiceProxyBinder;
 import at.uibk.dps.rm.service.monitoring.function.FunctionExecutionService;
 import at.uibk.dps.rm.service.monitoring.function.FunctionExecutionServiceImpl;
+import at.uibk.dps.rm.service.monitoring.metricpusher.FunctionInvocationPushService;
+import at.uibk.dps.rm.service.monitoring.metricpusher.FunctionInvocationPushServiceImpl;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Observable;
@@ -35,7 +37,7 @@ public class MonitoringVerticle extends AbstractVerticle {
         monitoringHandlers.add(new K8sMonitoringHandler(vertx, config));
         monitoringHandlers.add(new RegionMonitoringHandler(vertx, config));
         monitoringHandlers.add(new AWSPriceListMonitoringHandler(vertx, webClient, config));
-        return setupEventBus()
+        return setupEventBus(config)
             .andThen(startMonitoringLoops());
     }
 
@@ -49,13 +51,14 @@ public class MonitoringVerticle extends AbstractVerticle {
      *
      * @return a Completable
      */
-    private Completable setupEventBus() {
+    private Completable setupEventBus(ConfigDTO config) {
         Maybe<Void> setupEventBus = Maybe.create(emitter -> {
             ServiceBinder serviceBinder = new ServiceBinder(vertx.getDelegate());
             ServiceProxyBinder serviceProxyBinder = new ServiceProxyBinder(serviceBinder);
 
-            serviceProxyBinder.bind(FunctionExecutionService.class,
-                new FunctionExecutionServiceImpl(webClient));
+            serviceProxyBinder.bind(FunctionExecutionService.class, new FunctionExecutionServiceImpl(webClient));
+            serviceProxyBinder.bind(FunctionInvocationPushService.class,
+                new FunctionInvocationPushServiceImpl(webClient, config));
             emitter.onComplete();
         });
         return Completable.fromMaybe(setupEventBus);

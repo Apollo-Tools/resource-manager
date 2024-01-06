@@ -25,6 +25,7 @@ import at.uibk.dps.rm.service.rxjava3.database.service.ServiceService;
 import at.uibk.dps.rm.service.rxjava3.database.service.K8sServiceTypeService;
 import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentExecutionService;
 import at.uibk.dps.rm.service.rxjava3.monitoring.function.FunctionExecutionService;
+import at.uibk.dps.rm.service.rxjava3.monitoring.metricpusher.FunctionInvocationPushService;
 import at.uibk.dps.rm.verticle.DatabaseVerticle;
 import io.vertx.rxjava3.core.Vertx;
 import lombok.Getter;
@@ -71,6 +72,8 @@ public class ServiceProxyProvider {
     private final DeploymentExecutionService deploymentExecutionService;
     /* Monitoring Service */
     private final FunctionExecutionService functionExecutionService;
+    private final FunctionInvocationPushService functionInvocationPushService;
+
 
     /**
      * Create an instance from vertx. All client proxies get setup in this method.
@@ -108,7 +111,8 @@ public class ServiceProxyProvider {
         serviceTypeService = ServiceTypeService.createProxy(vertx);
         vpcService = VPCService.createProxy(vertx);
         deploymentExecutionService = DeploymentExecutionService.createProxy(vertx);
-
+        /* Monitoring Service */
         functionExecutionService = FunctionExecutionService.createProxy(vertx);
+        functionInvocationPushService = FunctionInvocationPushService.createProxy(vertx);
     }
 }

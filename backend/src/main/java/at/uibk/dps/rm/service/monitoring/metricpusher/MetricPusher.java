@@ -1,18 +1,27 @@
-package at.uibk.dps.rm.service.monitoring.promexport;
+package at.uibk.dps.rm.service.monitoring.metricpusher;
 
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.monitoring.opentsdb.OpenTSDBEntity;
+import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Completable;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.Json;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.ext.web.client.WebClient;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
-@RequiredArgsConstructor
+/**
+ * This class can be used to push metrics to the configured monitoring system.
+ *
+ * @author matthi-g
+ */
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class MetricPusher {
 
     private static final Logger logger = LoggerFactory.getLogger(MetricPusher.class);
@@ -21,9 +30,9 @@ public class MetricPusher {
 
     private final ConfigDTO config;
 
-    public Completable pushMetrics(List<OpenTSDBEntity> metrics) {
+    protected void pushMetrics(List<OpenTSDBEntity> metrics, Handler<AsyncResult<Void>> resultHandler) {
         String requestBody = Json.encode(metrics);
-        return webClient.postAbs(config.getMonitoringPushUrl() + "/api/put")
+        Completable pushMetrics = webClient.postAbs(config.getMonitoringPushUrl() + "/api/put")
             .sendBuffer(Buffer.buffer(requestBody))
             .flatMapCompletable(httpResponse -> {
                 if (httpResponse.statusCode() != 204) {
@@ -37,5 +46,6 @@ public class MetricPusher {
                 logger.error("failed to push metrics:" + throwable.getMessage());
                 return Completable.complete();
             });
+        RxVertxHandler.handleSession(pushMetrics, resultHandler);
     }
 }

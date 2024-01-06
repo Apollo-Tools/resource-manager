@@ -12,7 +12,7 @@ import io.vertx.core.Vertx;
 import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 /**
- * The interface of the service proxy for te metric entity.
+ * The interface of the service proxy for the metric entity.
  *
  * @author matthi-g
  */

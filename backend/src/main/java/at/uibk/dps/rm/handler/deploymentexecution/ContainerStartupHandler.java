@@ -125,9 +125,11 @@ public class ContainerStartupHandler {
                         InvocationResponseBodyDTO invocationResponse = new JsonObject(body)
                             .mapTo(InvocationResponseBodyDTO.class);
                         body = invocationResponse.getBody();
-                        processResponse = serviceProxyProvider.getFunctionDeploymentService()
-                            .saveExecTime(functionDeployment.getResourceDeploymentId(),
-                                (int) invocationResponse.getMonitoringData().getExecutionTimeMs(),
+                        processResponse = serviceProxyProvider.getFunctionInvocationPushService()
+                            .composeAndPushMetric(invocationResponse.getMonitoringData().getExecutionTimeMs() / 1000.0,
+                                functionDeployment.getResourceDeploymentId(),
+                                functionDeployment.getFunction().getFunctionId(),
+                                functionDeployment.getResource().getResourceId(),
                                 requestBody.toString());
                     } catch (DecodeException ex) {
                         logger.info("failed to decode response: " + body.substring(0, Math.min(50, body.length())));

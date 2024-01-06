@@ -85,6 +85,8 @@ public class FunctionDeploymentRepository extends Repository<FunctionDeployment>
         return Maybe.fromCompletionStage(sessionManager.getSession()
             .createQuery("from FunctionDeployment fd " +
                 "left join fetch fd.status " +
+                "left join fetch fd.function " +
+                "left join fetch fd.resource " +
                 "where fd.resourceDeploymentId=:id and fd.deployment.createdBy.accountId=:accountId", entityClass)
             .setParameter("id", id)
             .setParameter("accountId", accountId)
