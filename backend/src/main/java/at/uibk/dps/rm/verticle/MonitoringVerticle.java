@@ -8,10 +8,7 @@ import at.uibk.dps.rm.handler.monitoring.RegionMonitoringHandler;
 import at.uibk.dps.rm.service.ServiceProxyBinder;
 import at.uibk.dps.rm.service.monitoring.function.FunctionExecutionService;
 import at.uibk.dps.rm.service.monitoring.function.FunctionExecutionServiceImpl;
-import at.uibk.dps.rm.service.monitoring.metricpusher.FunctionInvocationPushService;
-import at.uibk.dps.rm.service.monitoring.metricpusher.FunctionInvocationPushServiceImpl;
-import at.uibk.dps.rm.service.monitoring.metricpusher.RegionMetricPushService;
-import at.uibk.dps.rm.service.monitoring.metricpusher.RegionMetricPushServiceImpl;
+import at.uibk.dps.rm.service.monitoring.metricpusher.*;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Observable;
@@ -58,6 +55,7 @@ public class MonitoringVerticle extends AbstractVerticle {
             ServiceBinder serviceBinder = new ServiceBinder(vertx.getDelegate());
             ServiceProxyBinder serviceProxyBinder = new ServiceProxyBinder(serviceBinder);
 
+            serviceProxyBinder.bind(AWSPricePushService.class, new AWSPricePushServiceImpl(webClient, config));
             serviceProxyBinder.bind(FunctionExecutionService.class, new FunctionExecutionServiceImpl(webClient));
             serviceProxyBinder.bind(FunctionInvocationPushService.class,
                 new FunctionInvocationPushServiceImpl(webClient, config));

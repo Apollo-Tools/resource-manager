@@ -25,6 +25,7 @@ import at.uibk.dps.rm.service.rxjava3.database.service.ServiceService;
 import at.uibk.dps.rm.service.rxjava3.database.service.K8sServiceTypeService;
 import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentExecutionService;
 import at.uibk.dps.rm.service.rxjava3.monitoring.function.FunctionExecutionService;
+import at.uibk.dps.rm.service.rxjava3.monitoring.metricpusher.AWSPricePushService;
 import at.uibk.dps.rm.service.rxjava3.monitoring.metricpusher.FunctionInvocationPushService;
 import at.uibk.dps.rm.service.rxjava3.monitoring.metricpusher.RegionMetricPushService;
 import at.uibk.dps.rm.verticle.DatabaseVerticle;
@@ -43,7 +44,6 @@ public class ServiceProxyProvider {
     /* Database services */
     private final AccountNamespaceService accountNamespaceService;
     private final AccountService accountService;
-    private final AwsPriceService awsPriceService;
     private final CredentialsService credentialsService;
     private final EnsembleService ensembleService;
     private final EnvironmentService environmentService;
@@ -72,6 +72,7 @@ public class ServiceProxyProvider {
     private final VPCService vpcService;
     private final DeploymentExecutionService deploymentExecutionService;
     /* Monitoring Service */
+    private final AWSPricePushService awsPricePushService;
     private final FunctionExecutionService functionExecutionService;
     private final FunctionInvocationPushService functionInvocationPushService;
     private final RegionMetricPushService regionMetricPushService;
@@ -85,7 +86,6 @@ public class ServiceProxyProvider {
     public ServiceProxyProvider(Vertx vertx) {
         accountNamespaceService = AccountNamespaceService.createProxy(vertx);
         accountService = AccountService.createProxy(vertx);
-        awsPriceService = AwsPriceService.createProxy(vertx);
         credentialsService = CredentialsService.createProxy(vertx);
         ensembleService = EnsembleService.createProxy(vertx);
         environmentService = EnvironmentService.createProxy(vertx);
@@ -114,6 +114,7 @@ public class ServiceProxyProvider {
         vpcService = VPCService.createProxy(vertx);
         deploymentExecutionService = DeploymentExecutionService.createProxy(vertx);
         /* Monitoring Service */
+        awsPricePushService = AWSPricePushService.createProxy(vertx);
         functionExecutionService = FunctionExecutionService.createProxy(vertx);
         functionInvocationPushService = FunctionInvocationPushService.createProxy(vertx);
         regionMetricPushService = RegionMetricPushService.createProxy(vertx);

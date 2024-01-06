@@ -14,33 +14,34 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.rxjava3.ext.web.client.WebClient;
 
 /**
- * The interface of the service proxy for pushing region metric data to the monitoring system.
+ * The interface of the service proxy for pushing aws price list data to the monitoring
+ * system.
  *
  * @author matthi-g
  */
 @ProxyGen
 @VertxGen
-public interface RegionMetricPushService extends ServiceInterface {
+public interface AWSPricePushService extends ServiceInterface {
 
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static RegionMetricPushService create(WebClient webClient, ConfigDTO config) {
-        return new RegionMetricPushServiceImpl(webClient, config);
+    static AWSPricePushService create(WebClient webClient, ConfigDTO config) {
+        return new AWSPricePushServiceImpl(webClient, config);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
-    static RegionMetricPushService createProxy(Vertx vertx) {
-        return new RegionMetricPushServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(
-            "region-metric-pusher"));
+    static AWSPricePushService createProxy(Vertx vertx) {
+        return new AWSPricePushServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(
+            "aws-price-pusher"));
     }
 
     /**
      * Compose OpenTSDB metrics and push it to the monitoring system.
      *
-     * @param regionConnectivity the connectivity to registered regions
+     * @param awsPriceArray the price list of the registered aws arrays
      * @param resultHandler receives nothing if the saving was successful else an error
      */
-    void composeAndPushMetrics(JsonArray regionConnectivity, Handler<AsyncResult<Void>> resultHandler);
+    void composeAndPushMetrics(JsonArray awsPriceArray, Handler<AsyncResult<Void>> resultHandler);
 }

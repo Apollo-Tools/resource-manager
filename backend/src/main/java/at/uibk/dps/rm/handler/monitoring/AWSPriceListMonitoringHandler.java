@@ -3,7 +3,7 @@ package at.uibk.dps.rm.handler.monitoring;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
-import at.uibk.dps.rm.entity.model.AwsPrice;
+import at.uibk.dps.rm.entity.monitoring.AWSPrice;
 import at.uibk.dps.rm.entity.model.Platform;
 import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
@@ -82,7 +82,7 @@ public class AWSPriceListMonitoringHandler implements MonitoringHandler {
                     return priceMonitoring.computeExpectedPrice(priceUrl)
                         .flatMapObservable(Observable::fromIterable)
                         .map(pricePair -> {
-                            AwsPrice awsPrice = new AwsPrice();
+                            AWSPrice awsPrice = new AWSPrice();
                             awsPrice.setRegion(region);
                             awsPrice.setInstanceType(pricePair.component1());
                             awsPrice.setPrice(pricePair.component2());
@@ -92,8 +92,10 @@ public class AWSPriceListMonitoringHandler implements MonitoringHandler {
                 })
             )
             .toList()
-            .flatMapCompletable(prices -> serviceProxyProvider.getAwsPriceService()
-                .saveAll(new JsonArray(Json.encode(prices))))
+            .flatMapCompletable(prices -> {
+                JsonArray serializedPrices = new JsonArray(Json.encode(prices));
+                return serviceProxyProvider.getAwsPricePushService().composeAndPushMetrics(serializedPrices);
+            })
             .subscribe(() -> {
                 logger.info("Finished: monitor aws price list");
                 currentTimer = pauseLoop ? currentTimer : vertx.setTimer(period, monitoringHandler);
