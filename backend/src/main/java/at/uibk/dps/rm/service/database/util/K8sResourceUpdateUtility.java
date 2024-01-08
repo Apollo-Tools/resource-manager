@@ -44,6 +44,7 @@ public class K8sResourceUpdateUtility {
                 .findFirst();
             if (matchingNode.isPresent()) {
                 K8sNode node = matchingNode.get();
+                node.setResourceId(subResource.getResourceId());
                 updateExistingMetricValues(subResource.getMetricValues(), node);
                 composeMissingMetricValues(subResource, node, mvToPersist);
             } else {

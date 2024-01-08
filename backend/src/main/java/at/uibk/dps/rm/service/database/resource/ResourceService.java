@@ -78,11 +78,12 @@ public interface ResourceService extends DatabaseServiceInterface {
     /**
      * Update a cluster resource using the contents of the data object.
      *
-     * @param resourceName the name of the cluster resource
+     * @param clusterName the name of the cluster resource
      * @param data the monitoring data
      * @param resultHandler receives nothing if the update was successful else an error
      */
-    void updateClusterResource(String resourceName, K8sMonitoringData data, Handler<AsyncResult<Void>> resultHandler);
+    void updateClusterResource(String clusterName, K8sMonitoringData data,
+        Handler<AsyncResult<K8sMonitoringData>> resultHandler);
 
     /**
      * Unlock all resources that are locked by a deployment.

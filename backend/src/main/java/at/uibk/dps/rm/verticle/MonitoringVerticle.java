@@ -59,6 +59,7 @@ public class MonitoringVerticle extends AbstractVerticle {
             serviceProxyBinder.bind(FunctionExecutionService.class, new FunctionExecutionServiceImpl(webClient));
             serviceProxyBinder.bind(FunctionInvocationPushService.class,
                 new FunctionInvocationPushServiceImpl(webClient, config));
+            serviceProxyBinder.bind(K8sMetricPushService.class, new K8sMetricPushServiceImpl(webClient, config));
             serviceProxyBinder.bind(RegionMetricPushService.class, new RegionMetricPushServiceImpl(webClient, config));
             emitter.onComplete();
         });

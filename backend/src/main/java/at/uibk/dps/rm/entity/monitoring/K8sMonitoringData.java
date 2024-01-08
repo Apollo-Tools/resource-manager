@@ -20,6 +20,9 @@ import java.util.List;
 @NoArgsConstructor
 @DataObject
 public class K8sMonitoringData implements K8sEntityData {
+
+    private long resourceId;
+
     private List<K8sNode> nodes;
 
     private List<V1Namespace> namespaces;
@@ -31,6 +34,7 @@ public class K8sMonitoringData implements K8sEntityData {
      */
     public K8sMonitoringData(JsonObject jsonObject) {
         K8sMonitoringData request = jsonObject.mapTo(K8sMonitoringData.class);
+        this.resourceId = request.getResourceId();
         this.nodes = request.getNodes();
         this.namespaces = request.getNamespaces();
     }

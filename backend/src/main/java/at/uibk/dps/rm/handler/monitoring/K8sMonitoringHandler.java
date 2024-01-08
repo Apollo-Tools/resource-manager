@@ -13,6 +13,7 @@ import io.kubernetes.client.openapi.models.V1Namespace;
 import io.kubernetes.client.util.Config;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.Handler;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
@@ -68,11 +69,14 @@ public class K8sMonitoringHandler implements MonitoringHandler {
                             .map(namespace -> Objects.requireNonNull(namespace.getMetadata()).getName())
                             .collect(Collectors.toList());
                         completable =
-                            completable.andThen(Completable.defer(() -> serviceProxyProvider.getResourceService()
-                            .updateClusterResource(entry.getKey(), entry.getValue())))
-                            .andThen(Completable.defer(() ->
-                                    serviceProxyProvider.getNamespaceService().updateAllClusterNamespaces(entry.getKey(),
-                                namespaces)))
+                            completable.andThen(Single.defer(() -> serviceProxyProvider.getResourceService()
+                                .updateClusterResource(entry.getKey(), entry.getValue()))
+                            .flatMapCompletable(updatedMonitoringData ->
+                                serviceProxyProvider.getNamespaceService()
+                                    .updateAllClusterNamespaces(entry.getKey(), namespaces)
+                                .andThen(serviceProxyProvider.getK8sMetricPushService()
+                                    .composeAndPushMetrics(updatedMonitoringData))
+                            ))
                             .doOnError(throwable -> {
                                 logger.error(throwable.getMessage());
                                 if (!(throwable instanceof MonitoringException)) {
@@ -119,7 +123,7 @@ public class K8sMonitoringHandler implements MonitoringHandler {
                 Configuration.setDefaultApiClient(externalClient);
                 List<K8sNode> nodes = monitoringService.listNodes(kubeconfigPath, configDTO);
                 List<V1Namespace> namespaces = monitoringService.listNamespaces(kubeconfigPath, configDTO);
-                K8sMonitoringData k8sMonitoringData = new K8sMonitoringData(nodes, namespaces);
+                K8sMonitoringData k8sMonitoringData = new K8sMonitoringData(-1L, nodes, namespaces);
                 monitoringDataMap.put(entry.getKey(), k8sMonitoringData);
             }
             return monitoringDataMap;

@@ -22,6 +22,8 @@ import java.util.Objects;
 @Setter
 public class K8sNode implements K8sEntityData {
 
+    private long resourceId;
+
     private V1Node node;
 
     private Quantity cpuLoad;

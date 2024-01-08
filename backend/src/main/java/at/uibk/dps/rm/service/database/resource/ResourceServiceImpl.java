@@ -186,14 +186,18 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
 
     @Override
     public void updateClusterResource(String clusterName, K8sMonitoringData data,
-            Handler<AsyncResult<Void>> resultHandler) {
+            Handler<AsyncResult<K8sMonitoringData>> resultHandler) {
         K8sResourceUpdateUtility updateUtility = new K8sResourceUpdateUtility(metricRepository);
-        Completable updateClusterResource = smProvider.withTransactionCompletable(sm -> repository
+        Single<K8sMonitoringData> updateClusterResource = smProvider.withTransactionSingle(sm -> repository
             .findClusterByName(sm, clusterName)
             // TODO: swap with NotFoundException and handle in Monitoring Verticle
             .switchIfEmpty(Maybe.error(new MonitoringException("cluster " + clusterName + " is not registered")))
-            .flatMapCompletable(cluster -> updateUtility.updateClusterNodes(sm, cluster, data)
-                .andThen(updateUtility.updateCluster(sm, cluster, data)))
+            .flatMapCompletable(cluster -> {
+                data.setResourceId(cluster.getResourceId());
+                return updateUtility.updateClusterNodes(sm, cluster, data)
+                    .andThen(updateUtility.updateCluster(sm, cluster, data));
+            })
+            .toSingle(() -> data)
         );
         RxVertxHandler.handleSession(updateClusterResource, resultHandler);
     }
