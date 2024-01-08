@@ -39,13 +39,4 @@ public interface K8sMonitoringService {
      * @return a List of all found nodes
      */
     List<K8sNode> listNodes(Path kubeConfigPath, ConfigDTO config);
-
-    /**
-     * Get the current resource allocation by node.
-     *
-     * @param node the node
-     * @param kubeConfigPath the path to kube config to access to the k8s resource
-     * @param config the vertx config
-     */
-    void getCurrentNodeAllocation(K8sNode node, Path kubeConfigPath, ConfigDTO config);
 }

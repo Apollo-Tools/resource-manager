@@ -11,6 +11,7 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.models.V1Namespace;
 import io.kubernetes.client.util.Config;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.vertx.core.Handler;
 import io.vertx.core.impl.logging.Logger;
@@ -58,20 +59,28 @@ public class K8sMonitoringHandler implements MonitoringHandler {
             vertx.executeBlocking(fut -> fut.complete(monitorK8s()))
                 .map(monitoringData -> (Map<String, K8sMonitoringData>) monitoringData)
                 .flatMapObservable(monitoringData -> Observable.fromIterable(monitoringData.entrySet()))
-                .flatMapCompletable(entry -> {
-                    List<String> namespaces = entry.getValue().getNamespaces().stream()
-                        .map(namespace -> Objects.requireNonNull(namespace.getMetadata()).getName())
-                        .collect(Collectors.toList());
-                    return serviceProxyProvider.getResourceService()
-                        .updateClusterResource(entry.getKey(), entry.getValue())
-                        .andThen(serviceProxyProvider.getNamespaceService().updateAllClusterNamespaces(entry.getKey(),
-                            namespaces))
-                        .doOnError(throwable -> {
-                            logger.error(throwable.getMessage());
-                            if (!(throwable instanceof MonitoringException)) {
-                                throw new RuntimeException(throwable);
-                            }
-                        });
+                .toList()
+                .flatMapCompletable(entries -> {
+                    // Necessary to prevent serialization error
+                    Completable completable = Completable.complete();
+                    for (Map.Entry<String, K8sMonitoringData> entry : entries) {
+                        List<String> namespaces = entry.getValue().getNamespaces().stream()
+                            .map(namespace -> Objects.requireNonNull(namespace.getMetadata()).getName())
+                            .collect(Collectors.toList());
+                        completable =
+                            completable.andThen(Completable.defer(() -> serviceProxyProvider.getResourceService()
+                            .updateClusterResource(entry.getKey(), entry.getValue())))
+                            .andThen(Completable.defer(() ->
+                                    serviceProxyProvider.getNamespaceService().updateAllClusterNamespaces(entry.getKey(),
+                                namespaces)))
+                            .doOnError(throwable -> {
+                                logger.error(throwable.getMessage());
+                                if (!(throwable instanceof MonitoringException)) {
+                                    throw new RuntimeException(throwable);
+                                }
+                            });
+                    }
+                    return completable;
                 }).subscribe(() -> {
                     logger.info("Finished: monitor k8s resources");
                     currentTimer = pauseLoop ? currentTimer : vertx.setTimer(period, monitoringHandler);
@@ -110,9 +119,6 @@ public class K8sMonitoringHandler implements MonitoringHandler {
                 Configuration.setDefaultApiClient(externalClient);
                 List<K8sNode> nodes = monitoringService.listNodes(kubeconfigPath, configDTO);
                 List<V1Namespace> namespaces = monitoringService.listNamespaces(kubeconfigPath, configDTO);
-                for (K8sNode node: nodes) {
-                    monitoringService.getCurrentNodeAllocation(node, kubeconfigPath, configDTO);
-                }
                 K8sMonitoringData k8sMonitoringData = new K8sMonitoringData(nodes, namespaces);
                 monitoringDataMap.put(entry.getKey(), k8sMonitoringData);
             }

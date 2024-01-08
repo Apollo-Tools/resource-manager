@@ -13,7 +13,6 @@ import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestK8sProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestMonitoringDataProvider;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
-import at.uibk.dps.rm.util.misc.K8sDescribeParser;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.Configuration;
