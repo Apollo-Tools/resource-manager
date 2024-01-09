@@ -56,6 +56,8 @@ public class MonitoringVerticle extends AbstractVerticle {
             ServiceProxyBinder serviceProxyBinder = new ServiceProxyBinder(serviceBinder);
 
             serviceProxyBinder.bind(AWSPricePushService.class, new AWSPricePushServiceImpl(webClient, config));
+            serviceProxyBinder.bind(ContainerStartupTerminationPushService.class,
+                new ContainerStartupTerminationPushServiceImpl(webClient, config));
             serviceProxyBinder.bind(FunctionExecutionService.class, new FunctionExecutionServiceImpl(webClient));
             serviceProxyBinder.bind(FunctionInvocationPushService.class,
                 new FunctionInvocationPushServiceImpl(webClient, config));

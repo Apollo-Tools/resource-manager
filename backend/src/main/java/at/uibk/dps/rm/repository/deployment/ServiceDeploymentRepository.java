@@ -22,7 +22,8 @@ public class ServiceDeploymentRepository extends Repository<ServiceDeployment> {
     }
 
     /**
-     * Find a service deployment by its id, creator and fetch the deployment and deployment status.
+     * Find a service deployment by its id, creator and fetch the deployment, deployment status,
+     * resource and service.
      *
      * @param sessionManager the database session manger
      * @param id the id of the service deployment
@@ -36,6 +37,8 @@ public class ServiceDeploymentRepository extends Repository<ServiceDeployment> {
                 "from ServiceDeployment sd " +
                     "left join fetch sd.deployment " +
                     "left join fetch sd.status " +
+                    "left join fetch sd.resource " +
+                    "left join fetch sd.service " +
                     "where sd.resourceDeploymentId =:id and " +
                     "sd.deployment.createdBy.accountId=:accountId", entityClass)
             .setParameter("id", id)

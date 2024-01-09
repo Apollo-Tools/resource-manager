@@ -71,19 +71,35 @@ public class ContainerStartupHandler {
                 .findOneForDeploymentAndTermination(serviceDeploymentId, accountId))
             .flatMapCompletable(existingServiceDeployment -> {
                 ServiceDeployment serviceDeployment = existingServiceDeployment.mapTo(ServiceDeployment.class);
+                long startTime = System.nanoTime();
                 if (isStartup) {
-                    long startTime = System.nanoTime();
                     return deploymentChecker.startContainer(serviceDeployment)
                         .flatMapCompletable(result -> {
                             long endTime = System.nanoTime();
                             double startupTime = (endTime - startTime) / 1_000_000_000.0;
+                            serviceProxyProvider.getContainerStartupTerminationPushService()
+                                .composeAndPushMetric(startupTime, serviceDeployment.getResourceDeploymentId(),
+                                    serviceDeployment.getResource().getResourceId(),
+                                    serviceDeployment.getService().getServiceId(), true)
+                                .subscribe();
                             result.put("startup_time_seconds", startupTime);
                             return rc.response().setStatusCode(200).end(result.encodePrettily());
                         });
                 } else {
                     return deploymentChecker.stopContainer(serviceDeployment)
                         .andThen(Single.defer(() -> Single.just(1L))
-                        .flatMapCompletable(res -> rc.response().setStatusCode(204).end()));
+                        .flatMapCompletable(res -> {
+                            long endTime = System.nanoTime();
+                            double terminationTime = (endTime - startTime) / 1_000_000_000.0;
+                            serviceProxyProvider.getContainerStartupTerminationPushService()
+                                .composeAndPushMetric(terminationTime, serviceDeployment.getResourceDeploymentId(),
+                                    serviceDeployment.getResource().getResourceId(),
+                                    serviceDeployment.getService().getServiceId(), false)
+                                .subscribe();
+                            JsonObject result = new JsonObject();
+                            result.put("termination_time_seconds", terminationTime);
+                            return rc.response().setStatusCode(200).end(result.encodePrettily());
+                        }));
                 }
             })
             .onErrorResumeNext(throwable -> {

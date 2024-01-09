@@ -25,10 +25,7 @@ import at.uibk.dps.rm.service.rxjava3.database.service.ServiceService;
 import at.uibk.dps.rm.service.rxjava3.database.service.K8sServiceTypeService;
 import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentExecutionService;
 import at.uibk.dps.rm.service.rxjava3.monitoring.function.FunctionExecutionService;
-import at.uibk.dps.rm.service.rxjava3.monitoring.metricpusher.AWSPricePushService;
-import at.uibk.dps.rm.service.rxjava3.monitoring.metricpusher.FunctionInvocationPushService;
-import at.uibk.dps.rm.service.rxjava3.monitoring.metricpusher.K8sMetricPushService;
-import at.uibk.dps.rm.service.rxjava3.monitoring.metricpusher.RegionMetricPushService;
+import at.uibk.dps.rm.service.rxjava3.monitoring.metricpusher.*;
 import at.uibk.dps.rm.verticle.DatabaseVerticle;
 import io.vertx.rxjava3.core.Vertx;
 import lombok.Getter;
@@ -74,6 +71,7 @@ public class ServiceProxyProvider {
     private final DeploymentExecutionService deploymentExecutionService;
     /* Monitoring Service */
     private final AWSPricePushService awsPricePushService;
+    private final ContainerStartupTerminationPushService containerStartupTerminationPushService;
     private final FunctionExecutionService functionExecutionService;
     private final FunctionInvocationPushService functionInvocationPushService;
     private final K8sMetricPushService k8sMetricPushService;
@@ -117,6 +115,7 @@ public class ServiceProxyProvider {
         deploymentExecutionService = DeploymentExecutionService.createProxy(vertx);
         /* Monitoring Service */
         awsPricePushService = AWSPricePushService.createProxy(vertx);
+        containerStartupTerminationPushService = ContainerStartupTerminationPushService.createProxy(vertx);
         functionExecutionService = FunctionExecutionService.createProxy(vertx);
         functionInvocationPushService = FunctionInvocationPushService.createProxy(vertx);
         k8sMetricPushService = K8sMetricPushService.createProxy(vertx);

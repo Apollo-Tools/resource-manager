@@ -39,13 +39,16 @@ public class ServiceDeploymentServiceImpl extends DatabaseServiceProxy<ServiceDe
         Single<ServiceDeployment> findOne = smProvider.withTransactionSingle(sm -> repository
             .findByIdAndAccountId(sm, resourceDeploymentId, accountId)
             .switchIfEmpty(Single.error(new NotFoundException(ServiceDeployment.class)))
-            .map(serviceDeployment ->  {
+            .flatMap(serviceDeployment ->  {
                 DeploymentStatusValue status = DeploymentStatusValue
                     .fromDeploymentStatus(serviceDeployment.getStatus());
                 if (!status.equals(DeploymentStatusValue.DEPLOYED)) {
-                    throw new BadInputException("Service Deployment is not ready for startup/termination");
+                    return Single.error(new BadInputException("Service Deployment is not ready for " +
+                        "startup/termination"));
                 }
-                return serviceDeployment;
+                return sm.fetch(serviceDeployment.getService().getEnvVars())
+                    .flatMap(res -> sm.fetch(serviceDeployment.getService().getVolumeMounts()))
+                    .map(res -> serviceDeployment);
             })
         );
         RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
