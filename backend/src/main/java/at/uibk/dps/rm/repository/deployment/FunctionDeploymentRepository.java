@@ -1,5 +1,7 @@
 package at.uibk.dps.rm.repository.deployment;
 
+import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
+import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
 import at.uibk.dps.rm.repository.Repository;
 import at.uibk.dps.rm.service.database.util.SessionManager;
@@ -91,6 +93,25 @@ public class FunctionDeploymentRepository extends Repository<FunctionDeployment>
             .setParameter("id", id)
             .setParameter("accountId", accountId)
             .getSingleResultOrNull()
+        );
+    }
+
+
+    /**
+     * Find all scrape targets.
+     *
+     * @param sessionManager the database session
+     * @return a Maybe that emits the resource if it exists, else null
+     */
+    public Single<List<FunctionDeployment>> findAllScrapeTargets(SessionManager sessionManager) {
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery("select distinct fd from FunctionDeployment fd " +
+                "left join fetch fd.resource r " +
+                "where fd.status.statusValue=:statusDeployed and r.platform.platform=:platformEc2",
+                    FunctionDeployment.class)
+            .setParameter("statusDeployed", DeploymentStatusValue.DEPLOYED.getValue())
+            .setParameter("platformEc2", PlatformEnum.EC2.getValue())
+            .getResultList()
         );
     }
 }

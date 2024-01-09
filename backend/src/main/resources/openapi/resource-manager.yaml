@@ -1091,6 +1091,29 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
+  /resources/scrape-targets:
+    get:
+      description: Return all scrape targets in a format which conforms to [Victoria Metrics' HTTP-based service discovery](https://docs.victoriametrics.com/sd_configs.html#http_sd_configs)
+      operationId: listScrapeTargets
+      security: [ ]
+      tags:
+        - resources
+      responses:
+        200:
+          description: Successful pull of all scrape targets
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ScrapeTarget"
+        500:
+          $ref: "#/components/responses/500"
+
   /ensembles/{id}:
     get:
       description: Return details about an ensemble managed by the resource manager
@@ -2992,7 +3015,7 @@ paths:
           $ref: "#/components/responses/500"
 
     patch:
-      description: | 
+      description: |
         Update details about a service managed by the resource manager that is owned by the logged in user.
       operationId: updateService
       security:
@@ -3769,6 +3792,19 @@ components:
                 type: integer
                 format: int64
                 example: 1679496667103
+    ScrapeTarget:
+      type: object
+      properties:
+        targets:
+          type: array
+          items:
+            description: "The scrape url of the target"
+            type: string
+        labels:
+          type: object
+          description: "The labels associated to the target"
+          additionalProperties:
+            type: string
     Ensemble:
       type: object
       properties:
@@ -3889,22 +3925,22 @@ components:
               format: int64
               example: 1679496667103
         - oneOf:
-          - type: object
-            properties:
-              value_number:
-                type: integer
-                format: int64
-                example: 0
-          - type: object
-            properties:
-              value_string:
-                type: string
-                example: ubuntu
-          - type: object
-            properties:
-              value_bool:
-                type: boolean
-                example: true
+            - type: object
+              properties:
+                value_number:
+                  type: integer
+                  format: int64
+                  example: 0
+            - type: object
+              properties:
+                value_string:
+                  type: string
+                  example: ubuntu
+            - type: object
+              properties:
+                value_bool:
+                  type: boolean
+                  example: true
     Deployment:
       type: object
       properties:

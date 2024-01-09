@@ -116,6 +116,7 @@ public class ApiVerticle extends AbstractVerticle {
         new ResourceTypeRoute().init(routerBuilder, serviceProxyProvider);
         new RuntimeRoute().init(routerBuilder, serviceProxyProvider);
         new RuntimeTemplateRoute().init(routerBuilder, serviceProxyProvider);
+        new ScrapeTargetRoute().init(routerBuilder, serviceProxyProvider);
         new ServiceRoute().init(routerBuilder, serviceProxyProvider);
         new ServiceTypeRoute().init(routerBuilder, serviceProxyProvider);
         new VPCRoute().init(routerBuilder, serviceProxyProvider);
