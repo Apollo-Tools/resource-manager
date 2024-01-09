@@ -1,11 +1,13 @@
 package at.uibk.dps.rm.entity.dto.resource;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class FindAllScrapeTargetsDTO {
+@AllArgsConstructor
+public class FindAllFunctionDeploymentScrapeTargetsDTO {
 
     private long resourceDeploymentId;
 

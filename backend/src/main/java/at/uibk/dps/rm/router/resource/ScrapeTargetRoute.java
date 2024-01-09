@@ -15,7 +15,7 @@ public class ScrapeTargetRoute implements Route {
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         ScrapeTargetHandler scrapeTargetHandler = new ScrapeTargetHandler(
-            serviceProxyProvider.getFunctionDeploymentService());
+            serviceProxyProvider.getScrapeTargetService());
         ResultHandler resultHandler = new ResultHandler(scrapeTargetHandler);
 
         router

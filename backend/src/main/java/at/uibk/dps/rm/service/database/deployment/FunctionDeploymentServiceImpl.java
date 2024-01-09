@@ -1,7 +1,6 @@
 package at.uibk.dps.rm.service.database.deployment;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
-import at.uibk.dps.rm.entity.dto.resource.ScrapeTargetDTO;
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
 import at.uibk.dps.rm.entity.model.FunctionDeploymentExecTime;
 import at.uibk.dps.rm.exception.BadInputException;
@@ -11,15 +10,10 @@ import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * This is the implementation of the {@link FunctionDeploymentService}.
@@ -74,22 +68,5 @@ public class FunctionDeploymentServiceImpl extends DatabaseServiceProxy<Function
             })
         );
         RxVertxHandler.handleSession(saveExecTime, resultHandler);
-    }
-
-    @Override
-    public void findAllScrapeTargets(Handler<AsyncResult<JsonArray>> resultHandler) {
-        Single<List<FunctionDeployment>> findAll = smProvider.withTransactionSingle(repository::findAllScrapeTargets);
-        RxVertxHandler.handleSession(findAll.flatMapObservable(Observable::fromIterable)
-            .map(functionDeployment -> {
-                ScrapeTargetDTO scrapeTarget = new ScrapeTargetDTO();
-                scrapeTarget.setTargets(List.of(functionDeployment.getDirectTriggerUrl()));
-                scrapeTarget.setLabels(Map.of("resource",
-                    Long.toString(functionDeployment.getResource().getResourceId()), "resource_deployment",
-                    Long.toString(functionDeployment.getResourceDeploymentId())));
-                return scrapeTarget;
-            })
-            .map(JsonObject::mapFrom)
-            .toList()
-            .map(JsonArray::new), resultHandler);
     }
 }

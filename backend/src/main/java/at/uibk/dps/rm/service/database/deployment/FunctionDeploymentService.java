@@ -12,7 +12,6 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
@@ -55,11 +54,4 @@ public interface FunctionDeploymentService extends DatabaseServiceInterface {
      * @param resultHandler receives nothing if the update was successful else an error
      */
     void saveExecTime(long id, int execTimeMs, String requestBody, Handler<AsyncResult<Void>> resultHandler);
-
-    /**
-     * Find all current scrape targets.
-     *
-     * @param resultHandler receives the found scrape targets as JsonArray
-     */
-    void findAllScrapeTargets(Handler<AsyncResult<JsonArray>> resultHandler);
 }

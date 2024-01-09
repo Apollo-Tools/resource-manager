@@ -1,25 +1,25 @@
 package at.uibk.dps.rm.handler.resource;
 
 import at.uibk.dps.rm.handler.ValidationHandler;
-import at.uibk.dps.rm.service.rxjava3.database.deployment.FunctionDeploymentService;
+import at.uibk.dps.rm.service.rxjava3.database.resource.ScrapeTargetService;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 
 public class ScrapeTargetHandler extends ValidationHandler {
 
-    private final FunctionDeploymentService functionDeploymentService;
+    private final ScrapeTargetService scrapeTargetService;
 
     /**
-     * Create an instance from the functionDeploymentService.
+     * Create an instance from the scrapeTargetService.
      *
-     * @param functionDeploymentService the service
+     * @param scrapeTargetService the service
      */
-    public ScrapeTargetHandler(FunctionDeploymentService functionDeploymentService) {
-        super(functionDeploymentService);
-        this.functionDeploymentService = functionDeploymentService;
+    public ScrapeTargetHandler(ScrapeTargetService scrapeTargetService) {
+        super(scrapeTargetService);
+        this.scrapeTargetService = scrapeTargetService;
     }
 
     public Single<JsonArray> getAllScrapeTargets() {
-        return functionDeploymentService.findAllScrapeTargets();
+        return scrapeTargetService.findAllScrapeTargets();
     }
 }
