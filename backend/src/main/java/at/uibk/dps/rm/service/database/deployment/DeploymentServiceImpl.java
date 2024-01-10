@@ -226,7 +226,8 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                     DeploymentStatusValue.DEPLOYED)
                 .andThen(Completable.defer(() -> repositoryProvider.getDeploymentRepository()
                     .setDeploymentFinishedTime(sm, request.getDeployment().getDeploymentId())));
-            return Completable.mergeArray(setFunctionUrls, setContainerUrls, updateDeploymentStatus);
+            return Completable.mergeArray(setFunctionUrls, setContainerUrls, updateDeploymentStatus)
+                .andThen(Completable.defer(sm::flush));
         });
 
         RxVertxHandler.handleSession(updateDeployment, resultHandler);

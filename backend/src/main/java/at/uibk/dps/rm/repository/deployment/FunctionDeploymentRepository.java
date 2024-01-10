@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.repository.deployment;
 
+import at.uibk.dps.rm.entity.deployment.output.TFOutputValue;
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
 import at.uibk.dps.rm.repository.Repository;
 import at.uibk.dps.rm.service.database.util.SessionManager;
@@ -56,17 +57,22 @@ public class FunctionDeploymentRepository extends Repository<FunctionDeployment>
      * @param sessionManager the database session manager
      * @param id the id of the resource deployment
      * @param rmTriggerUrl the new rm trigger url
-     * @param directTriggerUrl the new direct trigger url
+     * @param tfOutputValue the terraform output
      * @return a Completable
      */
     public Completable updateTriggerUrls(SessionManager sessionManager, long id, String rmTriggerUrl,
-            String directTriggerUrl) {
+            TFOutputValue tfOutputValue) {
         return Single.fromCompletionStage(sessionManager.getSession()
             .createQuery("update FunctionDeployment fd " +
-                "set rmTriggerUrl=:rmTriggerUrl, directTriggerUrl=:directTriggerUrl " +
+                "set rmTriggerUrl=:rmTriggerUrl, directTriggerUrl=:directTriggerUrl, baseUrl=:baseUrl , " +
+                "path=:path, metricsPort=:metricsPort, openfaasPort=:openFaasPort " +
                 "where fd.resourceDeploymentId=:id")
             .setParameter("rmTriggerUrl", rmTriggerUrl)
-            .setParameter("directTriggerUrl", directTriggerUrl)
+            .setParameter("directTriggerUrl", tfOutputValue.getFullUrl())
+            .setParameter("baseUrl", tfOutputValue.getBaseUrl())
+            .setParameter("path", tfOutputValue.getPath())
+            .setParameter("metricsPort", tfOutputValue.getMetricsPort())
+            .setParameter("openFaasPort", tfOutputValue.getOpenfaasPort())
             .setParameter("id", id)
             .executeUpdate()
         ).ignoreElement();

@@ -14,9 +14,9 @@ public class TFOutputValue {
 
     private String baseUrl;
 
-    private int metricsPort;
+    private Integer metricsPort;
 
-    private int openfaasPort;
+    private Integer openfaasPort;
 
     private String path;
 
