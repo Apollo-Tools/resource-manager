@@ -10,6 +10,7 @@ import at.uibk.dps.rm.service.database.util.SessionManager;
 import io.reactivex.rxjava3.core.Single;
 
 import java.util.List;
+import java.util.Set;
 
 public class ScrapeTargetRepository extends Repository<Resource> {
 
@@ -26,16 +27,19 @@ public class ScrapeTargetRepository extends Repository<Resource> {
      * @param sessionManager the database session
      * @return a Maybe that emits the resource if it exists, else null
      */
-    public Single<List<FindAllFunctionDeploymentScrapeTargetsDTO>> findAllFunctionDeploymentTargets(SessionManager sessionManager) {
+    public Single<Set<FindAllFunctionDeploymentScrapeTargetsDTO>> findAllFunctionDeploymentTargets(
+            SessionManager sessionManager) {
         return Single.fromCompletionStage(sessionManager.getSession()
-            .createQuery("select new at.uibk.dps.rm.entity.dto.resource.FindAllFunctionDeploymentScrapeTargetsDTO(" +
-                    "fd.resourceDeploymentId, fd.deployment.deploymentId, fd.resource.resourceId, fd.directTriggerUrl" +
-                    ") from FunctionDeployment fd " +
+            .createQuery("select distinct " +
+                    "new at.uibk.dps.rm.entity.dto.resource.FindAllFunctionDeploymentScrapeTargetsDTO(" +
+                    "fd.resourceDeploymentId, fd.deployment.deploymentId, fd.resource.resourceId, fd.baseUrl, " +
+                    "fd.metricsPort) from FunctionDeployment fd " +
                     "where fd.status.statusValue=:statusDeployed and fd.resource.platform.platform=:platformEc2",
                 FindAllFunctionDeploymentScrapeTargetsDTO.class)
             .setParameter("statusDeployed", DeploymentStatusValue.DEPLOYED.getValue())
             .setParameter("platformEc2", PlatformEnum.EC2.getValue())
             .getResultList()
+            .thenApply(Set::copyOf)
         );
     }
 

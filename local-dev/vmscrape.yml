@@ -5,4 +5,4 @@ scrape_configs:
         # See https://docs.victoriametrics.com/sd_configs.html#http-api-client-options
     http_sd_configs:
       # url must contain the URL from which the targets are fetched.
-      - url: "http://host.docker.internal:1080/urls"
+      - url: "http://host.docker.internal:8080/api/resources/scrape-targets"
