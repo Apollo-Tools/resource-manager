@@ -96,7 +96,8 @@ public class ComposeDeploymentDataUtility {
             OpenFaasDeploymentData deploymentData) {
         String functionIdentifier =  function.getFunctionDeploymentId();
         Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
-        String gatewayUrl = metricValues.get("gateway-url").getValueString();
+        String gatewayUrl = metricValues.get("base-url").getValueString() + ':' +
+            metricValues.get("openfaas-port").getValueNumber().intValue();
         deploymentData.appendValues(resource.getResourceId(), functionIdentifier, gatewayUrl,
             function.getTimeoutSeconds());
     }

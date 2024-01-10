@@ -63,7 +63,8 @@ public class ScrapeTargetServiceImpl extends DatabaseServiceProxy<Resource> impl
                 .flatMapObservable(Observable::fromIterable)
                 .map(functionDeployment -> {
                     ScrapeTargetDTO scrapeTarget = new ScrapeTargetDTO();
-                    scrapeTarget.setTargets(List.of(functionDeployment.getScrapeUrl()));
+                    scrapeTarget.setTargets(List.of(functionDeployment.getBaseUrl() + ':' +
+                        functionDeployment.getMetricsPort().intValue() + "/metrics"));
                     scrapeTarget.setLabels(Map.of("resource", Long.toString(functionDeployment.getResourceId())));
                     return scrapeTarget;
                 });
