@@ -21,12 +21,13 @@ sudo echo $'[Unit]
 Description=Node Exporter
 
 [Service]
-ExecStart=/usr/local/bin/node_exporter --collector.disable-defaults --web.disable-exporter-metrics \
-        --collector.cpu --collector.meminfo --collector.filesystem --collector.thermal_zone \
-        --collector.hwmon --collector.stat
+ExecStart=/usr/local/bin/node_exporter --web.listen-address=:{{PORT}} --collector.disable-defaults \
+        --web.disable-exporter-metrics --collector.cpu --collector.meminfo --collector.filesystem \
+        --collector.thermal_zone --collector.hwmon --collector.stat
 
 [Install]
 WantedBy=multi-user.target' | sudo tee /etc/systemd/system/node_exporter.service
+sudo sed -i "s/{{PORT}}/${metrics_port}/g" /etc/systemd/system/node_exporter.service
 
 # Install openfaas
 curl -sfL https://raw.githubusercontent.com/openfaas/faasd/master/hack/install.sh | bash -s -

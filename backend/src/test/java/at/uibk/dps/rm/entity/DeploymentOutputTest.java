@@ -44,7 +44,7 @@ public class DeploymentOutputTest {
     void fromJsonValid(JsonObject jsonObject, boolean isValid) {
         if (isValid) {
             DeploymentOutput expected = DeploymentOutput.fromJson(jsonObject);
-            assertThat(expected.getFunctionUrls().getValue().get("value")).isEqualTo("localhost");
+            assertThat(expected.getResourceOutput().getValue().get("value")).isEqualTo("localhost");
         } else {
             assertThrows(IllegalArgumentException.class, () -> DeploymentOutput.fromJson(jsonObject));
         }

@@ -25,6 +25,7 @@ module "ec2" {
   vpc_id         = "vpc-1234"
   subnet_id      = "subnet-1234"
   instance_types = ["t2.micro",]
+  metrics_port   = 9100
 }
 ```
 
@@ -66,13 +67,16 @@ module "ec2" {
 | vpc\_id         | VPC ID.                                      | `string` | n/a     |   yes    |
 | subnet\_id      | VPC Subnet ID to launch in.                  | `string` | n/a     |   yes    |
 | instance\_types | The instance types to use for the instances. | `list`   | n/a     |   yes    |
+| metrics\_port   | The metrics port of the node exporter.       | `number` | 9100    |    no    |
 
 ## Outputs
 
 THe output of the module is vm_props which is a list of objects with the following schema:
 
-| Name           | Description                  |
-|----------------|------------------------------|
-| auth\_password | The basic auth password.     |
-| gateway\_url   | The url of the faasd gateway |
+| Name           | Description                            |
+|----------------|----------------------------------------|
+| auth\_password | The basic auth password.               |
+| base\_url      | The base url of the resource           |
+| metrics\_port  | The metrics port of the node exporter. |
+| openfaas\_port | The port of the OpenFaaS gateway.      |
 <!-- END_TF_DOCS -->

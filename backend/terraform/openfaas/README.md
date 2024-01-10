@@ -22,7 +22,7 @@ module "openfaas" {
   name = "add"
   image = "duser/add"
   basic_auth_user = "admin"
-  vm_props = {gateway_url= "http://localhost:8080", auth_password= "11111"}
+  vm_props = {base_url= "http://localhost", metrics_port= 9100, openfaas_port= 8080, auth_password= "11111"}
   timeout = 30
 }
 ```
@@ -49,19 +49,19 @@ module "openfaas" {
 
 ## Inputs
 
-| Name                | Description                                                                 | Type     | Default | Required |
-|---------------------|-----------------------------------------------------------------------------|----------|---------|:--------:|
-| deployment_id       | The id of the deployment.                                                   | `number` | n/a     |   yes    |
-| name                | The name of the function.                                                   | `string` | n/a     |   yes    |
-| image               | The docker image to use.                                                    | `string` | n/a     |   yes    |
-| vm\_props           | A map containing the gateway url and auth password of the deployed resource | `object` | n/a     |   yes    |
-| basic_auth_user     | The basic auth user name.                                                   | `string` | "admin" |    no    |
-| openfaas_depends_on | A dependency to wait for. This can be used to wait for a vm startup.        | `any`    | 0       |    no    |
-| timeout             | The timeout of the function in seconds                                      | `number` | 5       |    no    |
+| Name                | Description                                                                                            | Type     | Default | Required |
+|---------------------|--------------------------------------------------------------------------------------------------------|----------|---------|:--------:|
+| deployment_id       | The id of the deployment.                                                                              | `number` | n/a     |   yes    |
+| name                | The name of the function.                                                                              | `string` | n/a     |   yes    |
+| image               | The docker image to use.                                                                               | `string` | n/a     |   yes    |
+| vm\_props           | A map containing the base url, metrics port, openfaas port and auth password of the deployed resource. | `object` | n/a     |   yes    |
+| basic_auth_user     | The basic auth user name.                                                                              | `string` | "admin" |    no    |
+| openfaas_depends_on | A dependency to wait for. This can be used to wait for a vm startup.                                   | `any`    | 0       |    no    |
+| timeout             | The timeout of the function in seconds                                                                 | `number` | 5       |    no    |
 
 ## Outputs
 
-| Name         | Description                      |
-|--------------|----------------------------------|
-| function_url | The trigger url of the function. |
+| Name            | Description                                                                                   |
+|-----------------|-----------------------------------------------------------------------------------------------|
+| resource_output | The output composed of the base url, openfaas port, metrics port, path and full function url. |
 <!-- END_TF_DOCS -->

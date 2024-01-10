@@ -29,13 +29,13 @@ public class TriggerUrlUtility {
      */
     public Completable setTriggerUrlsForFunctions(SessionManager sm,
             DeploymentOutput deploymentOutput, DeployResourcesDTO request) {
-        return Observable.fromIterable(deploymentOutput.getFunctionUrls().getValue().entrySet())
+        return Observable.fromIterable(deploymentOutput.getResourceOutput().getValue().entrySet())
             .flatMapCompletable(entry -> {
                 String[] entryInfo = entry.getKey().split("_");
                 long resourceId = Long.parseLong(entryInfo[0].substring(1));
                 String functionName = entryInfo[1], runtimeName = entryInfo[2];
                 return findFunctionDeploymentAndUpdateTriggerUrl(sm, request, resourceId, functionName,
-                    runtimeName, entry.getValue());
+                    runtimeName, entry.getValue().getFullUrl());
             });
     }
 

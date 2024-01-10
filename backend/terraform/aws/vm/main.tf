@@ -73,6 +73,7 @@ resource "aws_instance" "vm" {
   user_data_base64       = base64encode(templatefile("${path.module}/templates/startup.sh", {
                             basic_auth_user     = var.basic_auth_user
                             basic_auth_password = random_password.vm[count.index].result
+                            metrics_port = var.metrics_port
                           }))
   vpc_security_group_ids = [aws_security_group.vm.id]
   subnet_id              = var.subnet_id

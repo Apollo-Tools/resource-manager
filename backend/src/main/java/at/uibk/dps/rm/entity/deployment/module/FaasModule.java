@@ -34,6 +34,6 @@ public class FaasModule extends TerraformModule {
      * @return the functions string if present, else a blank string
      */
     public String getFunctionsString() {
-        return String.format("module.%s.function_urls,", this.getModuleName());
+        return String.format("module.%s.resource_output,", this.getModuleName());
     }
 }

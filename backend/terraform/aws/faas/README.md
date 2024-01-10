@@ -67,7 +67,7 @@ module "faas" {
 
 ## Outputs
 
-| Name           | Description               |
-|----------------|---------------------------|
-| function\_urls | The list of trigger urls. |
+| Name             | Description                     |
+|------------------|---------------------------------|
+| resource\_output | The list of full function urls. |
 <!-- END_TF_DOCS -->

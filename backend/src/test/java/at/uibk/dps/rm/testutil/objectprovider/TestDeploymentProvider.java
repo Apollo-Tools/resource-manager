@@ -78,7 +78,7 @@ public class TestDeploymentProvider {
         values.put("r1_foo1_" + runtime + "_1", "http://host:port/foo1");
         values.put("r3_foo2_" + runtime + "_1", "http://host:port/foo2");
         tfOutput.setValue(values);
-        output.setFunctionUrls(tfOutput);
+        output.setResourceOutput(tfOutput);
         return output;
     }
 }
