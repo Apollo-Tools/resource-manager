@@ -3,15 +3,17 @@ import {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 
 const InvocationDashboard = ({deploymentId, isActive = true}) => {
-  const [parameters] = useState(new Map());
+  const [parameters, setParameters] = useState([]);
   const [paramsInitialized, setParamsInitialized] = useState(false);
 
   useEffect(() => {
+    const newParameters = [];
     if (deploymentId != null) {
-      parameters.set('var-deploymentId', deploymentId.toString());
+      newParameters.push({'key': 'var-deploymentId', 'value': deploymentId.toString()});
       if (isActive) {
-        parameters.set('refresh', '5s');
+        newParameters.push({'key': 'refresh', 'value': '5s'});
       }
+      setParameters(() => newParameters);
       setParamsInitialized(true);
     }
   }, [deploymentId]);

@@ -2,19 +2,21 @@ import GrafanaIframe from './GrafanaIframe';
 import {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 
-const InvocationDashboard = ({resourceIds, isActive = true}) => {
-  const [parameters] = useState(new Map());
+const InvocationDashboard = ({resourceIds, deploymentId, isActive = true}) => {
+  const [parameters, setParameters] = useState([]);
   const [paramsInitialized, setParamsInitialized] = useState(false);
 
   useEffect(() => {
+    const newParameters = [];
     if (resourceIds != null) {
       resourceIds.forEach((resourceId) => {
-        parameters.set('var-resourceId', resourceId.toString());
+        newParameters.push({'key': 'var-resourceId', 'value': resourceId.toString()});
       });
-      parameters.set('var-interval', '2s');
-      parameters.set('var-job', 'apollo-rm-scrape');
-      parameters.set('refresh', '1s');
-      console.log(parameters);
+      newParameters.push({'key': 'var-deploymentId', 'value': deploymentId});
+      newParameters.push({'key': 'var-interval', 'value': '2s'});
+      newParameters.push({'key': 'var-job', 'value': 'apollo-rm-scrape'});
+      newParameters.push({'key': 'refresh', 'value': '1s'});
+      setParameters(() => newParameters);
       setParamsInitialized(true);
     }
   }, [resourceIds]);
@@ -33,6 +35,7 @@ const InvocationDashboard = ({resourceIds, isActive = true}) => {
 
 InvocationDashboard.propTypes = {
   resourceIds: PropTypes.arrayOf(PropTypes.number).isRequired,
+  deploymentId: PropTypes.number.isRequired,
   isActive: PropTypes.bool,
 };
 

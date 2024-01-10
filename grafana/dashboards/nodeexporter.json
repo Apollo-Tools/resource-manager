@@ -900,7 +900,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 155
+                "value": 165
               }
             ]
           },
@@ -949,7 +949,7 @@
             "uid": "RESOURCE_MANAGER_VM"
           },
           "editorMode": "code",
-          "expr": "sum(time() - node_boot_time_seconds{resource=~\"$resourceId\",job=~\"$job\"})by(resource, instance, job)",
+          "expr": "sum(time() - node_boot_time_seconds{resource=~\"$resourceId\",job=~\"$job\", deployment=~\"($deploymentId|)\"})by(resource, instance, job)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -963,7 +963,7 @@
             "uid": "RESOURCE_MANAGER_VM"
           },
           "editorMode": "code",
-          "expr": "node_memory_MemTotal_bytes{resource=~\"$resourceId\",job=~\"$job\"}-0",
+          "expr": "node_memory_MemTotal_bytes{resource=~\"$resourceId\",job=~\"$job\", deployment=~\"($deploymentId|)\"}-0",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -978,7 +978,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "count(node_cpu_seconds_total{resource=~\"$resourceId\",job=~\"$job\",mode='system'}) by (resource, instance, job)",
+          "expr": "count(node_cpu_seconds_total{resource=~\"$resourceId\",job=~\"$job\",mode='system', deployment=~\"($deploymentId|)\"}) by (resource, instance)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -995,7 +995,7 @@
           "disableTextWrap": false,
           "editorMode": "code",
           "exemplar": false,
-          "expr": "max(node_hwmon_temp_celsius{resource=~\"$resourceId\",job=~\"$job\"} or node_thermal_zone_temp{resource=~\"resourceId\",job=~\"$job\"}) by (resource, instance, job)",
+          "expr": "max(node_hwmon_temp_celsius{resource=~\"$resourceId\",job=~\"$job\", deployment=~\"($deploymentId|)\"} or node_thermal_zone_temp{resource=~\"resourceId\",job=~\"$job\", deployment=~\"($deploymentId|)\"}) by (resource, instance)",
           "format": "table",
           "fullMetaSearch": false,
           "hide": false,
@@ -1013,7 +1013,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "(1 - avg(rate(node_cpu_seconds_total{resource=~\"$resourceId\",job=~\"$job\",mode=\"idle\"}[$interval])) by (resource)) * 100",
+          "expr": "(1 - avg(rate(node_cpu_seconds_total{resource=~\"$resourceId\",job=~\"$job\",mode=\"idle\", deployment=~\"($deploymentId|)\"}[$interval])) by (resource, instance)) * 100",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1029,7 +1029,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "(1 - (node_memory_MemFree_bytes{resource=~\"$resourceId\",job=~\"$job\"} + node_memory_Buffers_bytes{resource=~\"$resourceId\",job=~\"$job\"} + node_memory_Cached_bytes{resource=~\"$resourceId\",job=~\"$job\"}) / node_memory_MemTotal_bytes{resource=~\"$resourceId\",job=~\"$job\"}) * 100",
+          "expr": "(1 - (node_memory_MemFree_bytes{resource=~\"$resourceId\",job=~\"$job\"} + node_memory_Buffers_bytes{resource=~\"$resourceId\",job=~\"$job\", deployment=~\"($deploymentId|)\"} + node_memory_Cached_bytes{resource=~\"$resourceId\",job=~\"$job\", deployment=~\"($deploymentId|)\"}) / node_memory_MemTotal_bytes{resource=~\"$resourceId\",job=~\"$job\", deployment=~\"($deploymentId|)\"}) * 100",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1044,7 +1044,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "label_del(node_filesystem_size_bytes{resource=~\"$resourceId\",job=~\"$job\",mountpoint=\"/\",fstype!=\"rootfs\"} - 0, \"device\", \"fstype\", \"mountpoint\")",
+          "expr": "label_del(node_filesystem_size_bytes{resource=~\"$resourceId\",job=~\"$job\",mountpoint=\"/\",fstype!=\"rootfs\", deployment=~\"($deploymentId|)\"} - 0, \"device\", \"fstype\", \"mountpoint\")",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1058,7 +1058,7 @@
             "uid": "RESOURCE_MANAGER_VM"
           },
           "editorMode": "code",
-          "expr": "label_del(100 - ((node_filesystem_avail_bytes{resource=~\"$resourceId\",job=~\"$job\",mountpoint=\"/\",fstype!=\"rootfs\"} * 100) / node_filesystem_size_bytes{resource=~\"$resourceId\",job=~\"$job\",mountpoint=\"/\",fstype!=\"rootfs\"}), \"device\", \"fstype\", \"mountpoint\")",
+          "expr": "label_del(100 - ((node_filesystem_avail_bytes{resource=~\"$resourceId\",job=~\"$job\",mountpoint=\"/\",fstype!=\"rootfs\", deployment=~\"($deploymentId|)\"} * 100) / node_filesystem_size_bytes{resource=~\"$resourceId\",job=~\"$job\",mountpoint=\"/\",fstype!=\"rootfs\", deployment=~\"($deploymentId|)\"}), \"device\", \"fstype\", \"mountpoint\")",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1073,7 +1073,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "up{resource=~\"$resourceId\",job=~\"$job\"} - 0",
+          "expr": "up{resource=~\"$resourceId\",job=~\"$job\", deployment=~\"($deploymentId|)\"} - 0",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1225,6 +1225,7 @@
               "Value #Up": false,
               "Value #Uptime": false,
               "__name__": true,
+              "deployment": true,
               "device": true,
               "domainname": true,
               "fstype": true,
@@ -1235,6 +1236,7 @@
               "nodename": true,
               "release": true,
               "resource": false,
+              "resource_deployment": true,
               "sysname": true,
               "version": true
             },
@@ -1394,7 +1396,7 @@
       },
       {
         "current": {
-          "selected": true,
+          "selected": false,
           "text": [
             "1",
             "13"
@@ -1424,6 +1426,44 @@
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "54",
+          "value": "54"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "RESOURCE_MANAGER_PROM"
+        },
+        "definition": "label_values(deployment)",
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "name": "deploymentId",
+        "options": [],
+        "query": {
+          "qryType": 1,
+          "query": "label_values(deployment)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "datasource": {
+          "type": "victoriametrics-datasource",
+          "uid": "RESOURCE_MANAGER_VM"
+        },
+        "filters": [],
+        "hide": 0,
+        "name": "Filters",
+        "skipUrlSync": false,
+        "type": "adhoc"
       }
     ]
   },
@@ -1459,6 +1499,6 @@
   "timezone": "browser",
   "title": "Node Exporter",
   "uid": "efa71f23-5850-4144-8b29-0ae9480eec94",
-  "version": 8,
+  "version": 12,
   "weekStart": ""
 }

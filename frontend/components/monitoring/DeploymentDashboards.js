@@ -16,11 +16,15 @@ const DeploymentDashboards = ({deploymentId, functionResourceIds, isActive = tru
                 <InvocationDashboard deploymentId={deploymentId} isActive={isActive} />
               </div>
             </Panel>
-            <Panel header="VM/Bare-Metal Devices" key={1} >
+            {isActive && <Panel header="VM/Bare-Metal Devices" key={1} >
               <div className="m-[-12px] mb-[-18px] mt-[0px]">
-                <NodeExporterDashboard resourceIds={functionResourceIds} isActive={isActive}/>
+                <NodeExporterDashboard
+                  resourceIds={functionResourceIds}
+                  isActive={isActive}
+                  deploymentId={deploymentId}
+                />
               </div>
-            </Panel>
+            </Panel>}
           </>)
         }
       </Collapse>
