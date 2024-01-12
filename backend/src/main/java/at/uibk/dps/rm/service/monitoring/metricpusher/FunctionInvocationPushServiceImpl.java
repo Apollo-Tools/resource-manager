@@ -28,10 +28,11 @@ public class FunctionInvocationPushServiceImpl extends ServiceProxy implements F
         return "function-invocation-pusher" + super.getServiceProxyAddress();
     }
 
-    public void composeAndPushMetric(double execTime, long resourceDeploymentId, long functionId, long resourceId,
-            String requestBody, Handler<AsyncResult<Void>> resultHandler) {
+    public void composeAndPushMetric(double execTime, long deploymentId, long resourceDeploymentId, long functionId,
+            long resourceId, String requestBody, Handler<AsyncResult<Void>> resultHandler) {
         OpenTSDBEntity metric = new OpenTSDBEntity("function_execution_duration_seconds", execTime,
-            Map.of("resource_deployment", Long.toString(resourceDeploymentId), "resource", Long.toString(resourceId),
+            Map.of("deployment", Long.toString(deploymentId), "resource_deployment",
+                Long.toString(resourceDeploymentId), "resource", Long.toString(resourceId),
                 "function", Long.toString(functionId), "requestBody", requestBody));
         monitoringPusher.pushMetrics(List.of(metric), resultHandler);
     }

@@ -143,6 +143,7 @@ public class ContainerStartupHandler {
                         body = invocationResponse.getBody();
                         processResponse = serviceProxyProvider.getFunctionInvocationPushService()
                             .composeAndPushMetric(invocationResponse.getMonitoringData().getExecutionTimeMs() / 1000.0,
+                                functionDeployment.getDeployment().getDeploymentId(),
                                 functionDeployment.getResourceDeploymentId(),
                                 functionDeployment.getFunction().getFunctionId(),
                                 functionDeployment.getResource().getResourceId(),

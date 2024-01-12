@@ -46,6 +46,6 @@ public interface FunctionInvocationPushService extends ServiceInterface {
      * @param requestBody the request body
      * @param resultHandler receives nothing if the saving was successful else an error
      */
-    void composeAndPushMetric(double execTime, long resourceDeploymentId, long functionId, long resourceId,
-        String requestBody, Handler<AsyncResult<Void>> resultHandler);
+    void composeAndPushMetric(double execTime, long deploymentId, long resourceDeploymentId, long functionId,
+        long resourceId, String requestBody, Handler<AsyncResult<Void>> resultHandler);
 }

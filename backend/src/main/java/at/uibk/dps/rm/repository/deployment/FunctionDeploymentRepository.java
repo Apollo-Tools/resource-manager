@@ -90,6 +90,7 @@ public class FunctionDeploymentRepository extends Repository<FunctionDeployment>
     public Maybe<FunctionDeployment> findByIdAndAccountId(SessionManager sessionManager, long id, long accountId) {
         return Maybe.fromCompletionStage(sessionManager.getSession()
             .createQuery("from FunctionDeployment fd " +
+                "left join fetch fd.deployment " +
                 "left join fetch fd.status " +
                 "left join fetch fd.function " +
                 "left join fetch fd.resource " +

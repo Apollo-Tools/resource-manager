@@ -46,3 +46,11 @@ datasources:
     # You can set only one default data source per organization.
     isDefault: false
     uid: RESOURCE_MANAGER_VM
+  - name: CSV
+    type: marcusolsson-csv-datasource
+    access: proxy
+    url: http://victoria-metrics:8428
+    jsonData:
+      storage: "http"
+    isDefault: false
+    uid: RESOURCE_MANAGER_CSV
