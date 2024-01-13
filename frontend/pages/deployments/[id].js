@@ -30,7 +30,8 @@ const DeploymentDetails = () => {
     isTerminated: false,
     isError: false,
   });
-  const [functionResourceIds, setFunctionResourceIds] = useState([]);
+  const [functionResourceIds, setFunctionResourceIds] = useState(new Set());
+  const [serviceResourceIds, setServiceResourceIds] = useState(new Set());
   const [lockedResources, setLockedResources] = useState([]);
   const router = useRouter();
   const id = parseInt(router.query.id);
@@ -89,8 +90,19 @@ const DeploymentDetails = () => {
   };
 
   const updateResourceIds = () => {
-    setFunctionResourceIds(() =>
-      deployment.function_resources?.map((functionResource) => functionResource.resource.resource_id));
+    setFunctionResourceIds(() => new Set(
+        deployment.function_resources?.map((functionResource) => functionResource.resource.resource_id),
+    ),
+    );
+    setServiceResourceIds(() => new Set(
+        deployment.service_resources?.map((serviceResource) => {
+          if (Object.hasOwn(serviceResource.resource, 'main_resource')) {
+            return serviceResource.resource.main_resource.resource_id;
+          }
+          return serviceResource.resource.resource_id;
+        }),
+    ),
+    );
   };
 
   const existResourceDeploymentsByStatusValue = (resourceDeployments, statusValue) => {
@@ -176,6 +188,7 @@ const DeploymentDetails = () => {
           deploymentId={id}
           isActive={deploymentStatus.isNew || deploymentStatus.isDeployed || deploymentStatus.isTerminating}
           functionResourceIds={functionResourceIds}
+          serviceResourceIds={serviceResourceIds}
         />
       </div>
     </>

@@ -2,7 +2,7 @@ import GrafanaIframe from './GrafanaIframe';
 import {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 
-const InvocationDashboard = ({resourceIds, deploymentId, isActive = true}) => {
+const K8sResourceDashboard = ({resourceIds, isActive = true}) => {
   const [parameters, setParameters] = useState([]);
   const [paramsInitialized, setParamsInitialized] = useState(false);
 
@@ -12,9 +12,8 @@ const InvocationDashboard = ({resourceIds, deploymentId, isActive = true}) => {
       resourceIds.forEach((resourceId) => {
         newParameters.push({'key': 'var-resourceId', 'value': resourceId.toString()});
       });
-      newParameters.push({'key': 'var-deploymentId', 'value': deploymentId});
+      newParameters.push({'key': 'var-mainResourceId', 'value': resourceIds.values().next().value});
       newParameters.push({'key': 'var-interval', 'value': '2s'});
-      newParameters.push({'key': 'var-job', 'value': 'apollo-rm-scrape'});
       newParameters.push({'key': 'refresh', 'value': '1s'});
       setParameters(() => newParameters);
       setParamsInitialized(true);
@@ -26,17 +25,16 @@ const InvocationDashboard = ({resourceIds, deploymentId, isActive = true}) => {
   }
 
   return (
-    <GrafanaIframe dashboardId='efa71f23-5850-4144-8b29-0ae9480eec94'
+    <GrafanaIframe dashboardId='b47a9eee-2299-40ec-9aec-ee2e826d3cfd'
       parameters={parameters}
-      className="w-full h-[450px]"
+      className="w-full h-[480px]"
     />
   );
 };
 
-InvocationDashboard.propTypes = {
+K8sResourceDashboard.propTypes = {
   resourceIds: PropTypes.instanceOf(Set).isRequired,
-  deploymentId: PropTypes.number.isRequired,
   isActive: PropTypes.bool,
 };
 
-export default InvocationDashboard;
+export default K8sResourceDashboard;
