@@ -23,8 +23,8 @@
   "panels": [
     {
       "datasource": {
-        "type": "marcusolsson-csv-datasource",
-        "uid": "RESOURCE_MANAGER_CSV"
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "RESOURCE_MANAGER_INFINITY"
       },
       "fieldConfig": {
         "defaults": {
@@ -35,7 +35,7 @@
             "axisBorderShow": true,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "Execution time",
+            "axisLabel": "",
             "axisPlacement": "left",
             "axisSoftMin": 0,
             "fillOpacity": 50,
@@ -122,7 +122,7 @@
         "x": 0,
         "y": 0
       },
-      "id": 8,
+      "id": 10,
       "options": {
         "barRadius": 0,
         "barWidth": 0.9,
@@ -141,47 +141,60 @@
           "mode": "multi",
           "sort": "none"
         },
-        "xField": "Resource Deployment",
+        "xField": "resource_deployment",
         "xTickLabelRotation": 0,
         "xTickLabelSpacing": 100
       },
       "pluginVersion": "10.2.2",
       "targets": [
         {
-          "datasource": {
-            "type": "marcusolsson-csv-datasource",
-            "uid": "RESOURCE_MANAGER_CSV"
-          },
-          "decimalSeparator": ".",
-          "delimiter": ",",
-          "header": false,
-          "ignoreUnknown": false,
-          "params": [
-            [
-              "format",
-              "resource_deployment,__value__"
-            ],
-            [
-              "match",
-              "function_execution_duration_seconds{deployment=~\"($deploymentId)\"}"
-            ]
-          ],
-          "path": "/api/v1/export/csv",
-          "refId": "A",
-          "schema": [
+          "columns": [
             {
-              "name": "Field 1",
-              "type": "string"
+              "selector": "resource_deployment",
+              "text": "resource_deployment",
+              "type": "number"
             },
             {
-              "name": "Field 2",
+              "selector": "value",
+              "text": "value",
               "type": "number"
             }
           ],
-          "skipRows": 0
+          "csv_options": {
+            "columns": "resource_deployment,value",
+            "delimiter": ","
+          },
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "RESOURCE_MANAGER_INFINITY"
+          },
+          "filters": [],
+          "format": "table",
+          "global_query_id": "",
+          "parser": "backend",
+          "refId": "A",
+          "root_selector": "",
+          "source": "url",
+          "type": "csv",
+          "uql": "parse-csv",
+          "url": "http://victoria-metrics:8428/api/v1/export/csv",
+          "url_options": {
+            "data": "",
+            "method": "GET",
+            "params": [
+              {
+                "key": "format",
+                "value": "resource_deployment,__value__"
+              },
+              {
+                "key": "match",
+                "value": "function_execution_duration_seconds{deployment=~\"($deploymentId)\"}"
+              }
+            ]
+          }
         }
       ],
-      "title": "Execution Times",
+      "title": "Execution Times by Resource Deployment",
       "transformations": [
         {
           "id": "organize",
@@ -190,7 +203,8 @@
             "indexByName": {},
             "renameByName": {
               "Field 1": "Resource Deployment",
-              "Field 2": "Max"
+              "Field 2": "Max",
+              "value": "Max"
             }
           }
         },
@@ -215,34 +229,6 @@
             "reduce": {
               "include": [
                 "Max"
-              ],
-              "reducer": "sum"
-            }
-          }
-        },
-        {
-          "disabled": true,
-          "id": "calculateField",
-          "options": {
-            "alias": "Mean",
-            "mode": "reduceRow",
-            "reduce": {
-              "include": [
-                "Execution Time Max"
-              ],
-              "reducer": "sum"
-            }
-          }
-        },
-        {
-          "disabled": true,
-          "id": "calculateField",
-          "options": {
-            "alias": "Min",
-            "mode": "reduceRow",
-            "reduce": {
-              "include": [
-                "Execution Time Max"
               ],
               "reducer": "sum"
             }
@@ -315,6 +301,10 @@
               "Resource Deployment": {
                 "aggregations": [],
                 "operation": "groupby"
+              },
+              "resource_deployment": {
+                "aggregations": [],
+                "operation": "groupby"
               }
             }
           }
@@ -326,7 +316,7 @@
             "sort": [
               {
                 "desc": false,
-                "field": "Resource Deployment"
+                "field": "resource_deployment"
               }
             ]
           }
@@ -337,7 +327,7 @@
             "conversions": [
               {
                 "destinationType": "enum",
-                "targetField": "Resource Deployment"
+                "targetField": "resource_deployment"
               }
             ],
             "fields": {}
@@ -348,8 +338,8 @@
     },
     {
       "datasource": {
-        "type": "marcusolsson-csv-datasource",
-        "uid": "RESOURCE_MANAGER_CSV"
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "RESOURCE_MANAGER_INFINITY"
       },
       "fieldConfig": {
         "defaults": {
@@ -417,7 +407,7 @@
         "x": 16,
         "y": 0
       },
-      "id": 7,
+      "id": 11,
       "options": {
         "barRadius": 0,
         "barWidth": 0.9,
@@ -439,64 +429,52 @@
           "mode": "multi",
           "sort": "none"
         },
-        "xField": "Resource Deployment",
+        "xField": "resource_deployment",
         "xTickLabelRotation": 0,
         "xTickLabelSpacing": 0
       },
       "pluginVersion": "10.2.2",
       "targets": [
         {
-          "datasource": {
-            "type": "marcusolsson-csv-datasource",
-            "uid": "RESOURCE_MANAGER_CSV"
-          },
-          "decimalSeparator": ".",
-          "delimiter": ",",
-          "header": false,
-          "ignoreUnknown": false,
-          "params": [
-            [
-              "format",
-              "resource_deployment"
-            ],
-            [
-              "match",
-              "function_execution_duration_seconds{deployment=~\"($deploymentId)\"}"
-            ]
-          ],
-          "path": "/api/v1/export/csv",
-          "refId": "A",
-          "schema": [
+          "columns": [
             {
-              "name": "Field 1",
+              "selector": "resource_deployment",
+              "text": "resource_deployment",
               "type": "string"
-            },
-            {
-              "name": "Field 2",
-              "type": "string"
-            },
-            {
-              "name": "Field 3",
-              "type": "string"
-            },
-            {
-              "name": "Field 4",
-              "type": "string"
-            },
-            {
-              "name": "Field 5",
-              "type": "string"
-            },
-            {
-              "name": "Field 6",
-              "type": "number"
-            },
-            {
-              "name": "Field 7",
-              "type": "time"
             }
           ],
-          "skipRows": 0
+          "csv_options": {
+            "columns": "resource_deployment",
+            "delimiter": ","
+          },
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "RESOURCE_MANAGER_INFINITY"
+          },
+          "filters": [],
+          "format": "table",
+          "global_query_id": "",
+          "parser": "backend",
+          "refId": "A",
+          "root_selector": "",
+          "source": "url",
+          "type": "csv",
+          "uql": "parse-csv",
+          "url": "http://victoria-metrics:8428/api/v1/export/csv",
+          "url_options": {
+            "data": "",
+            "method": "GET",
+            "params": [
+              {
+                "key": "format",
+                "value": "resource_deployment"
+              },
+              {
+                "key": "match",
+                "value": "function_execution_duration_seconds{deployment=~\"($deploymentId)\"}"
+              }
+            ]
+          }
         }
       ],
       "title": "Invocation amount",
@@ -504,11 +482,11 @@
         {
           "id": "calculateField",
           "options": {
-            "alias": "test",
+            "alias": "count",
             "binary": {
-              "left": "Field 1",
+              "left": "resource_deployment",
               "operator": "-",
-              "right": "Field 1"
+              "right": "resource_deployment"
             },
             "mode": "binary",
             "reduce": {
@@ -534,6 +512,16 @@
                   "count"
                 ]
               },
+              "count": {
+                "aggregations": [
+                  "count"
+                ],
+                "operation": "aggregate"
+              },
+              "resource_deployment": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
               "test": {
                 "aggregations": [
                   "count"
@@ -549,8 +537,8 @@
             "excludeByName": {},
             "indexByName": {},
             "renameByName": {
-              "Field 1": "Resource Deployment",
-              "test (count)": "Count"
+              "count (count)": "count",
+              "resource_deployment": ""
             }
           }
         },
@@ -560,7 +548,7 @@
             "fields": {},
             "sort": [
               {
-                "field": "Resource Deployment"
+                "field": "resource_deployment"
               }
             ]
           }
@@ -570,8 +558,8 @@
     },
     {
       "datasource": {
-        "type": "marcusolsson-csv-datasource",
-        "uid": "RESOURCE_MANAGER_CSV"
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "RESOURCE_MANAGER_INFINITY"
       },
       "fieldConfig": {
         "defaults": {
@@ -641,7 +629,7 @@
         "x": 0,
         "y": 8
       },
-      "id": 6,
+      "id": 9,
       "interval": "1s",
       "options": {
         "legend": {
@@ -658,88 +646,84 @@
       "pluginVersion": "10.2.2",
       "targets": [
         {
-          "datasource": {
-            "type": "marcusolsson-csv-datasource",
-            "uid": "RESOURCE_MANAGER_CSV"
-          },
-          "decimalSeparator": ".",
-          "delimiter": ",",
-          "header": false,
-          "ignoreUnknown": false,
-          "params": [
-            [
-              "format",
-              "deployment,function,resource,resource_deployment,requestBody,__value__,__timestamp__:rfc3339"
-            ],
-            [
-              "match",
-              "function_execution_duration_seconds"
-            ],
-            [
-              "start",
-              "$__from"
-            ],
-            [
-              "end",
-              "$__to"
-            ]
-          ],
-          "path": "/api/v1/export/csv",
-          "refId": "A",
-          "schema": [
+          "columns": [
             {
-              "name": "Field 1",
+              "selector": "resource_deployment",
+              "text": "resource_deployment",
               "type": "string"
             },
             {
-              "name": "Field 2",
-              "type": "string"
-            },
-            {
-              "name": "Field 3",
-              "type": "string"
-            },
-            {
-              "name": "Field 4",
-              "type": "string"
-            },
-            {
-              "name": "Field 5",
-              "type": "string"
-            },
-            {
-              "name": "Field 6",
+              "selector": "value",
+              "text": "execution time",
               "type": "number"
             },
             {
-              "name": "Field 7",
-              "type": "time"
+              "selector": "timestamp",
+              "text": "timestamp",
+              "type": "timestamp"
+            },
+            {
+              "selector": "requestBody",
+              "text": "requestBody",
+              "type": "string"
             }
           ],
-          "skipRows": 0,
-          "timezone": "UTC"
+          "computed_columns": [
+            {
+              "selector": "",
+              "text": "",
+              "type": "string"
+            }
+          ],
+          "csv_options": {
+            "columns": "resource_deployment,requestBody,value,timestamp",
+            "delimiter": ",",
+            "relax_column_count": false,
+            "skip_empty_lines": false,
+            "skip_lines_with_error": false
+          },
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "RESOURCE_MANAGER_INFINITY"
+          },
+          "filters": [],
+          "format": "table",
+          "global_query_id": "",
+          "parser": "backend",
+          "refId": "A",
+          "root_selector": "",
+          "source": "url",
+          "type": "csv",
+          "uql": "parse-csv",
+          "url": "http://victoria-metrics:8428/api/v1/export/csv",
+          "url_options": {
+            "body_content_type": "text/plain",
+            "body_type": "raw",
+            "data": "",
+            "method": "GET",
+            "params": [
+              {
+                "key": "format",
+                "value": "resource_deployment,requestBody,__value__,__timestamp__:rfc3339"
+              },
+              {
+                "key": "match",
+                "value": "function_execution_duration_seconds{deployment=~\"($deploymentId)\"}"
+              },
+              {
+                "key": "start",
+                "value": "$__from"
+              },
+              {
+                "key": "end",
+                "value": "$__to"
+              }
+            ]
+          }
         }
       ],
       "title": "Previous Execution Times (last 30 min)",
       "transformations": [
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Field 1": false
-            },
-            "indexByName": {},
-            "renameByName": {
-              "Field 1": "Deployment",
-              "Field 2": "Function",
-              "Field 3": "Resource",
-              "Field 4": "Resource Deployment",
-              "Field 5": "Request Body",
-              "Field 6": "Execution Time",
-              "Field 7": "Timestamp"
-            }
-          }
-        },
         {
           "id": "prepareTimeSeries",
           "options": {
@@ -758,8 +742,8 @@
       {
         "current": {
           "selected": false,
-          "text": "60",
-          "value": "60"
+          "text": "67",
+          "value": "67"
         },
         "datasource": {
           "type": "prometheus",

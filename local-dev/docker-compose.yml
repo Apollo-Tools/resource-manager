@@ -59,7 +59,7 @@ services:
     environment:
       # plugins
       GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: victoriametrics-datasource
-      GF_INSTALL_PLUGINS: https://github.com/VictoriaMetrics/grafana-datasource/releases/download/v0.5.0/victoriametrics-datasource-v0.5.0.zip;custom-plugin,marcusolsson-csv-datasource
+      GF_INSTALL_PLUGINS: https://github.com/VictoriaMetrics/grafana-datasource/releases/download/v0.5.0/victoriametrics-datasource-v0.5.0.zip;custom-plugin,yesoreyeram-infinity-datasource
       # security
       GF_SECURITY_ADMIN_EMAIL: admin@localhost
       GF_SECURITY_ADMIN_USER: admin
