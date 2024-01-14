@@ -45,13 +45,4 @@ public interface FunctionDeploymentService extends DatabaseServiceInterface {
      * @param resultHandler receives the entity as JsonObject if it exists else an exception
      */
     void findOneForInvocation(long id, long accountId, Handler<AsyncResult<JsonObject>> resultHandler);
-
-    /**
-     * Save the execution time of a function deployment.
-     *
-     * @param id the id of the function deployment
-     * @param execTimeMs the execution time
-     * @param resultHandler receives nothing if the update was successful else an error
-     */
-    void saveExecTime(long id, int execTimeMs, String requestBody, Handler<AsyncResult<Void>> resultHandler);
 }

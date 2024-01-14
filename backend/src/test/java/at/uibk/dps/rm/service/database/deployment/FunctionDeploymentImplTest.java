@@ -3,7 +3,6 @@ package at.uibk.dps.rm.service.database.deployment;
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
-import at.uibk.dps.rm.entity.model.FunctionDeploymentExecTime;
 import at.uibk.dps.rm.entity.model.ResourceDeploymentStatus;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;

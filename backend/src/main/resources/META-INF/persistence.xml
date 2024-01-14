@@ -15,7 +15,6 @@
         <class>at.uibk.dps.rm.entity.model.EnvVar</class>
         <class>at.uibk.dps.rm.entity.model.Function</class>
         <class>at.uibk.dps.rm.entity.model.FunctionDeployment</class>
-        <class>at.uibk.dps.rm.entity.model.FunctionDeploymentExecTime</class>
         <class>at.uibk.dps.rm.entity.model.FunctionType</class>
         <class>at.uibk.dps.rm.entity.model.K8sNamespace</class>
         <class>at.uibk.dps.rm.entity.model.K8sServiceType</class>

@@ -10,7 +10,8 @@ CREATE TABLE region_connectivity (
 );
 
 -- Create hypertable
-SELECT create_hypertable('region_connectivity','time');
+-- Remove hypertable statement after migrating away from flyway
+-- SELECT create_hypertable('region_connectivity','time');
 
 -- Create index
 CREATE INDEX ix_region_time ON region_connectivity (region_id, time DESC);

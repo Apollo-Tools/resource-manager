@@ -9,7 +9,8 @@ CREATE TABLE function_deployment_exec_time (
 );
 
 -- Create hypertable
-SELECT create_hypertable('function_deployment_exec_time','time');
+-- Remove hypertable statement after migrating away from flyway
+-- SELECT create_hypertable('function_deployment_exec_time','time');
 
 -- Create index
 CREATE INDEX ix_exec_time_time ON function_deployment_exec_time (resource_deployment_id, time DESC);
