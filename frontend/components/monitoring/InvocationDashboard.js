@@ -23,7 +23,7 @@ const InvocationDashboard = ({deploymentId, isActive = true}) => {
   }
 
   return (
-    <GrafanaIframe dashboardId='db738643-24c0-4975-8da7-76a2259e9479/deployment'
+    <GrafanaIframe dashboardId='db738643-24c0-4975-8da7-76a2259e9479/function-invocations'
       parameters={parameters}
       className="w-full h-[710px]"
     />

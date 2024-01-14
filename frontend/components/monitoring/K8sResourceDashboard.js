@@ -12,9 +12,14 @@ const K8sResourceDashboard = ({resourceIds, isActive = true}) => {
       resourceIds.forEach((resourceId) => {
         newParameters.push({'key': 'var-resourceId', 'value': resourceId.toString()});
       });
-      newParameters.push({'key': 'var-mainResourceId', 'value': resourceIds.values().next().value});
+      const firstMainResource = resourceIds.values().next().value;
+      if (firstMainResource !== 'All') {
+        newParameters.push({'key': 'var-mainResourceId', 'value': resourceIds.values().next().value});
+      } else {
+        newParameters.push({'key': 'var-mainResourceId', 'value': 'None'});
+      }
       newParameters.push({'key': 'var-interval', 'value': '2s'});
-      newParameters.push({'key': 'refresh', 'value': '1s'});
+      newParameters.push({'key': 'refresh', 'value': '2s'});
       setParameters(() => newParameters);
       setParamsInitialized(true);
     }
@@ -25,7 +30,7 @@ const K8sResourceDashboard = ({resourceIds, isActive = true}) => {
   }
 
   return (
-    <GrafanaIframe dashboardId='b47a9eee-2299-40ec-9aec-ee2e826d3cfd'
+    <GrafanaIframe dashboardId='b47a9eee-2299-40ec-9aec-ee2e826d3cfd/k8s-dashboard'
       parameters={parameters}
       className="w-full h-[480px]"
     />

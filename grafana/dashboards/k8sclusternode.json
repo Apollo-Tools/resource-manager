@@ -317,7 +317,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "resource"
+              "options": "Resource"
             },
             "properties": [
               {
@@ -534,11 +534,14 @@
               "version": 10
             },
             "renameByName": {
+              "Time": "",
+              "Value #CPU": "",
               "Value #Part util": "",
               "Value #Storage": "Storage",
               "Value #Temperature": "Temperature",
               "Value #Up": "Up",
-              "id": "Id"
+              "id": "Id",
+              "resource": "Resource"
             }
           }
         },
@@ -548,7 +551,7 @@
             "conversions": [
               {
                 "destinationType": "number",
-                "targetField": "resource"
+                "targetField": "Resource"
               }
             ],
             "fields": {}
@@ -561,7 +564,7 @@
             "sort": [
               {
                 "desc": false,
-                "field": "resource"
+                "field": "Resource"
               }
             ]
           }
@@ -814,7 +817,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "resource"
+              "options": "Resource"
             },
             "properties": [
               {
@@ -845,7 +848,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "node"
+              "options": "Node"
             },
             "properties": [
               {
@@ -1008,13 +1011,23 @@
               "Value #Storage": "Storage",
               "Value #Temperature": "Temperature",
               "Value #Up": "Up",
-              "id": "Id"
+              "id": "Id",
+              "node": "Node",
+              "resource": "Resource"
             }
           }
         },
         {
           "id": "convertFieldType",
-          "options": {}
+          "options": {
+            "conversions": [
+              {
+                "destinationType": "number",
+                "targetField": "Resource"
+              }
+            ],
+            "fields": {}
+          }
         },
         {
           "id": "sortBy",
@@ -1023,7 +1036,7 @@
             "sort": [
               {
                 "desc": false,
-                "field": "resource"
+                "field": "Resource"
               }
             ]
           }
@@ -1129,6 +1142,6 @@
   "timezone": "browser",
   "title": "K8s Dashboard",
   "uid": "b47a9eee-2299-40ec-9aec-ee2e826d3cfd",
-  "version": 9,
+  "version": 11,
   "weekStart": ""
 }

@@ -1,6 +1,6 @@
 scrape_configs:
   - job_name: apollo-rm-scrape
-    scrape_interval: 1s
+    scrape_interval: 2s
         # Additional HTTP API client options can be specified here.
         # See https://docs.victoriametrics.com/sd_configs.html#http-api-client-options
     http_sd_configs:

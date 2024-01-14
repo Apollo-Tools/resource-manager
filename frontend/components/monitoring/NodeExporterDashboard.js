@@ -14,8 +14,7 @@ const InvocationDashboard = ({resourceIds, deploymentId, isActive = true}) => {
       });
       newParameters.push({'key': 'var-deploymentId', 'value': deploymentId});
       newParameters.push({'key': 'var-interval', 'value': '2s'});
-      newParameters.push({'key': 'var-job', 'value': 'apollo-rm-scrape'});
-      newParameters.push({'key': 'refresh', 'value': '1s'});
+      newParameters.push({'key': 'refresh', 'value': '2s'});
       setParameters(() => newParameters);
       setParamsInitialized(true);
     }
@@ -26,7 +25,7 @@ const InvocationDashboard = ({resourceIds, deploymentId, isActive = true}) => {
   }
 
   return (
-    <GrafanaIframe dashboardId='efa71f23-5850-4144-8b29-0ae9480eec94'
+    <GrafanaIframe dashboardId='efa71f23-5850-4144-8b29-0ae9480eec94/node-exporter'
       parameters={parameters}
       className="w-full h-[450px]"
     />
