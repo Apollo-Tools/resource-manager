@@ -194,6 +194,9 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
             .switchIfEmpty(Maybe.error(new MonitoringException("cluster " + clusterName + " is not registered")))
             .flatMapCompletable(cluster -> {
                 data.setResourceId(cluster.getResourceId());
+                if (!data.getIsUp()) {
+                    return Completable.complete();
+                }
                 return updateUtility.updateClusterNodes(sm, cluster, data)
                     .andThen(updateUtility.updateCluster(sm, cluster, data));
             })

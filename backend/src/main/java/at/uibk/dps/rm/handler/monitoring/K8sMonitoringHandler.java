@@ -24,10 +24,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -116,14 +113,19 @@ public class K8sMonitoringHandler implements MonitoringHandler {
                 fileSystem.mkdirsBlocking(configDTO.getKubeConfigDirectory());
             }
             for (Map.Entry<String, String> entry: kubeConfigs.entrySet()) {
-                logger.info("Observe cluster: " + entry.getKey());
-                Path kubeconfigPath = Path.of(configDTO.getKubeConfigDirectory(), entry.getKey());
-                fileSystem.writeFileBlocking(kubeconfigPath.toString(), Buffer.buffer(entry.getValue()));
-                ApiClient externalClient = Config.fromConfig(kubeconfigPath.toAbsolutePath().toString());
-                Configuration.setDefaultApiClient(externalClient);
-                List<K8sNode> nodes = monitoringService.listNodes(kubeconfigPath, configDTO);
-                List<V1Namespace> namespaces = monitoringService.listNamespaces(kubeconfigPath, configDTO);
-                K8sMonitoringData k8sMonitoringData = new K8sMonitoringData(-1L, nodes, namespaces);
+                K8sMonitoringData k8sMonitoringData;
+                try {
+                    logger.info("Observe cluster: " + entry.getKey());
+                    Path kubeconfigPath = Path.of(configDTO.getKubeConfigDirectory(), entry.getKey());
+                    fileSystem.writeFileBlocking(kubeconfigPath.toString(), Buffer.buffer(entry.getValue()));
+                    ApiClient externalClient = Config.fromConfig(kubeconfigPath.toAbsolutePath().toString());
+                    Configuration.setDefaultApiClient(externalClient);
+                    List<K8sNode> nodes = monitoringService.listNodes(kubeconfigPath, configDTO);
+                    List<V1Namespace> namespaces = monitoringService.listNamespaces(kubeconfigPath, configDTO);
+                    k8sMonitoringData = new K8sMonitoringData(-1L, nodes, namespaces, true);
+                } catch (MonitoringException ex) {
+                    k8sMonitoringData = new K8sMonitoringData(-1L, List.of(), List.of(), false);
+                }
                 monitoringDataMap.put(entry.getKey(), k8sMonitoringData);
             }
             return monitoringDataMap;

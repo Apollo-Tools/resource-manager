@@ -90,7 +90,7 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
             return list.getItems();
         } catch (ApiException ex) {
             logger.error("Failed to list namespaces: " + ex.getMessage());
-            return List.of();
+            throw new MonitoringException("failed to list namespaces");
         }
     }
 
@@ -118,7 +118,7 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
                 .collect(Collectors.toList());
         } catch (ApiException ex) {
             logger.error("Scrape k8s nodes: " + ex.getMessage());
-            return List.of();
+            throw new MonitoringException("failed to list nodes");
         }
     }
 

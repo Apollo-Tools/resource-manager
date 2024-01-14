@@ -183,7 +183,7 @@
               },
               {
                 "id": "decimals",
-                "value": 2
+                "value": 1
               },
               {
                 "id": "custom.cellOptions",
@@ -242,7 +242,7 @@
               },
               {
                 "id": "decimals",
-                "value": 2
+                "value": 1
               },
               {
                 "id": "custom.cellOptions",
@@ -286,7 +286,7 @@
               },
               {
                 "id": "custom.width",
-                "value": 160
+                "value": 145
               }
             ]
           },
@@ -310,7 +310,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 160
+                "value": 145
               }
             ]
           },
@@ -365,6 +365,44 @@
               {
                 "id": "custom.width",
                 "value": 120
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Up"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 76
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "0": {
+                        "color": "red",
+                        "index": 0,
+                        "text": "Offline"
+                      },
+                      "1": {
+                        "color": "green",
+                        "index": 1,
+                        "text": "Online"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
               }
             ]
           }
@@ -432,7 +470,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "k8s_cpu_total{resource=~\"$resourceId\"} - k8s_cpu_available{resource=~\"$resourceId\"}",
+          "expr": "(k8s_cpu_total{resource=~\"$resourceId\"} - k8s_cpu_available{resource=~\"$resourceId\"}) / k8s_cpu_total{resource=~\"$resourceId\"} * 100",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -455,6 +493,21 @@
           "interval": "",
           "legendFormat": "Memory utilization",
           "refId": "Mem util"
+        },
+        {
+          "datasource": {
+            "type": "victoriametrics-datasource",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "k8s_up{resource=~\"$resourceId\"} - 0",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "Up"
         }
       ],
       "title": "K8s Cluster Resources",
@@ -671,7 +724,7 @@
               },
               {
                 "id": "decimals",
-                "value": 2
+                "value": 1
               },
               {
                 "id": "custom.cellOptions",
@@ -730,7 +783,7 @@
               },
               {
                 "id": "decimals",
-                "value": 2
+                "value": 1
               },
               {
                 "id": "custom.cellOptions",
@@ -774,7 +827,7 @@
               },
               {
                 "id": "custom.width",
-                "value": 130
+                "value": 145
               }
             ]
           },
@@ -786,7 +839,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 50
+                "value": 30
               }
             ]
           },
@@ -810,7 +863,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 130
+                "value": 145
               }
             ]
           },
@@ -853,7 +906,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 120
+                "value": 100
               },
               {
                 "id": "filterable"
@@ -1111,7 +1164,7 @@
     ]
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-1m",
     "to": "now"
   },
   "timepicker": {
@@ -1142,6 +1195,6 @@
   "timezone": "browser",
   "title": "K8s Dashboard",
   "uid": "b47a9eee-2299-40ec-9aec-ee2e826d3cfd",
-  "version": 11,
+  "version": 13,
   "weekStart": ""
 }

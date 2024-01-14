@@ -27,6 +27,8 @@ public class K8sMonitoringData implements K8sEntityData {
 
     private List<V1Namespace> namespaces;
 
+    private boolean isUp;
+
     /**
      * Create an instance with a JsonObject.
      *
@@ -37,6 +39,7 @@ public class K8sMonitoringData implements K8sEntityData {
         this.resourceId = request.getResourceId();
         this.nodes = request.getNodes();
         this.namespaces = request.getNamespaces();
+        this.isUp = request.getIsUp();
     }
 
     /**
