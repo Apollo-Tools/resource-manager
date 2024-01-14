@@ -14,7 +14,7 @@ const InvocationDashboard = ({resourceIds, deploymentId, isActive = true}) => {
       });
       newParameters.push({'key': 'var-deploymentId', 'value': deploymentId});
       newParameters.push({'key': 'var-interval', 'value': '2s'});
-      newParameters.push({'key': 'refresh', 'value': '2s'});
+      newParameters.push({'key': 'refresh', 'value': '5s'});
       setParameters(() => newParameters);
       setParamsInitialized(true);
     }
