@@ -31,11 +31,11 @@ public class PlatformMetric {
     @JoinColumn(name = "metric_id")
     private Metric metric;
 
-    private Boolean required;
-
     private Boolean isMainResourceMetric;
 
     private Boolean isSubResourceMetric;
+
+    private Boolean monitorDuringDeployment;
 
     @JsonProperty("is_monitored")
     private Boolean isMonitored;
