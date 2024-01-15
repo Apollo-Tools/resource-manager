@@ -3,7 +3,7 @@ package at.uibk.dps.rm.service.database.resource;
 import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.entity.dto.resource.SubResourceDTO;
 import at.uibk.dps.rm.entity.model.*;
-import at.uibk.dps.rm.entity.monitoring.K8sMonitoringData;
+import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sMonitoringData;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.MonitoringException;
 import at.uibk.dps.rm.exception.NotFoundException;

@@ -39,6 +39,7 @@ public class ConfigDTO {
     private List<String> kubeImagePullSecrets;
 
     private String monitoringPushUrl;
+    private String monitoringQueryUrl;
     private Double kubeMonitoringPeriod;
     private Double regionMonitoringPeriod;
     private Double awsPriceMonitoringPeriod;

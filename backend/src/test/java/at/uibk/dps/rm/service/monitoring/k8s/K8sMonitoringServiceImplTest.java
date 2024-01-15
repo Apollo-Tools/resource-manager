@@ -2,7 +2,7 @@ package at.uibk.dps.rm.service.monitoring.k8s;
 
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
-import at.uibk.dps.rm.entity.monitoring.K8sNode;
+import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sNode;
 import at.uibk.dps.rm.exception.MonitoringException;
 import at.uibk.dps.rm.service.deployment.executor.ProcessExecutor;
 import at.uibk.dps.rm.testutil.mockprovider.K8sObjectMockprovider;

@@ -2,7 +2,7 @@ package at.uibk.dps.rm.service.monitoring.metricpusher;
 
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
-import at.uibk.dps.rm.entity.monitoring.K8sMonitoringData;
+import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sMonitoringData;
 import at.uibk.dps.rm.service.ServiceInterface;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;

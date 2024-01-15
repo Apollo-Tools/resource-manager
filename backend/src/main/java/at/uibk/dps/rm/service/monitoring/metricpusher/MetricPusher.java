@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.service.monitoring.metricpusher;
 
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
-import at.uibk.dps.rm.entity.monitoring.opentsdb.OpenTSDBEntity;
+import at.uibk.dps.rm.entity.monitoring.OpenTSDBEntity;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.AsyncResult;

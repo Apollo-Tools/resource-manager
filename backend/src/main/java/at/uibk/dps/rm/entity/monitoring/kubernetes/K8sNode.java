@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.entity.monitoring;
+package at.uibk.dps.rm.entity.monitoring.kubernetes;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.kubernetes.client.custom.Quantity;

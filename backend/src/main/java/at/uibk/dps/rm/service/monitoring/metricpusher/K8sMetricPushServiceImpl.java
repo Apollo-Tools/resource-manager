@@ -1,8 +1,8 @@
 package at.uibk.dps.rm.service.monitoring.metricpusher;
 
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
-import at.uibk.dps.rm.entity.monitoring.K8sMonitoringData;
-import at.uibk.dps.rm.entity.monitoring.opentsdb.OpenTSDBEntity;
+import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sMonitoringData;
+import at.uibk.dps.rm.entity.monitoring.OpenTSDBEntity;
 import at.uibk.dps.rm.service.ServiceProxy;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;

@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.service.monitoring.k8s;
 
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
-import at.uibk.dps.rm.entity.monitoring.K8sNode;
+import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sNode;
 import io.kubernetes.client.openapi.models.V1Namespace;
 
 import java.nio.file.Path;

@@ -9,7 +9,7 @@ import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
 import at.uibk.dps.rm.entity.dto.ensemble.ResourceEnsembleStatus;
 import at.uibk.dps.rm.entity.dto.resource.ResourceId;
 import at.uibk.dps.rm.entity.model.*;
-import at.uibk.dps.rm.entity.monitoring.K8sMonitoringData;
+import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sMonitoringData;
 import at.uibk.dps.rm.service.database.util.*;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;

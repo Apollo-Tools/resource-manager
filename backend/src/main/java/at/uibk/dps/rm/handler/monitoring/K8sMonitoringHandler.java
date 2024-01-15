@@ -1,8 +1,8 @@
 package at.uibk.dps.rm.handler.monitoring;
 
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
-import at.uibk.dps.rm.entity.monitoring.K8sMonitoringData;
-import at.uibk.dps.rm.entity.monitoring.K8sNode;
+import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sMonitoringData;
+import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sNode;
 import at.uibk.dps.rm.exception.MonitoringException;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.service.monitoring.k8s.K8sMonitoringService;

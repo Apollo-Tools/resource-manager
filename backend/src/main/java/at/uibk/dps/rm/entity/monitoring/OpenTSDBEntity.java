@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.entity.monitoring.opentsdb;
+package at.uibk.dps.rm.entity.monitoring;
 
 import lombok.Getter;
 

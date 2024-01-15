@@ -1,4 +1,4 @@
-package at.uibk.dps.rm.entity.monitoring;
+package at.uibk.dps.rm.entity.monitoring.kubernetes;
 
 import at.uibk.dps.rm.entity.model.Metric;
 import lombok.AllArgsConstructor;

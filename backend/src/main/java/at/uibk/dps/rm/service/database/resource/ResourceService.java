@@ -2,7 +2,7 @@ package at.uibk.dps.rm.service.database.resource;
 
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.Resource;
-import at.uibk.dps.rm.entity.monitoring.K8sMonitoringData;
+import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sMonitoringData;
 import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;

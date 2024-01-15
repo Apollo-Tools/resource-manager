@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.testutil.objectprovider;
 
-import at.uibk.dps.rm.entity.monitoring.K8sNode;
+import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sNode;
 import io.kubernetes.client.custom.Quantity;
 import io.kubernetes.client.openapi.models.V1Namespace;
 import io.kubernetes.client.openapi.models.V1Node;
