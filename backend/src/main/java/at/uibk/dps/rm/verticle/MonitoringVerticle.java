@@ -8,6 +8,8 @@ import at.uibk.dps.rm.handler.monitoring.RegionMonitoringHandler;
 import at.uibk.dps.rm.service.ServiceProxyBinder;
 import at.uibk.dps.rm.service.monitoring.function.FunctionExecutionService;
 import at.uibk.dps.rm.service.monitoring.function.FunctionExecutionServiceImpl;
+import at.uibk.dps.rm.service.monitoring.metricquery.MetricQueryService;
+import at.uibk.dps.rm.service.monitoring.metricquery.MetricQueryServiceImpl;
 import at.uibk.dps.rm.service.monitoring.metricpusher.*;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -33,9 +35,9 @@ public class MonitoringVerticle extends AbstractVerticle {
     public Completable rxStart() {
         webClient = WebClient.create(vertx);
         ConfigDTO config = config().mapTo(ConfigDTO.class);
+        monitoringHandlers.add(new AWSPriceListMonitoringHandler(vertx, webClient, config));
         monitoringHandlers.add(new K8sMonitoringHandler(vertx, config));
         monitoringHandlers.add(new RegionMonitoringHandler(vertx, config));
-        monitoringHandlers.add(new AWSPriceListMonitoringHandler(vertx, webClient, config));
         return setupEventBus(config)
             .andThen(startMonitoringLoops());
     }
@@ -62,6 +64,7 @@ public class MonitoringVerticle extends AbstractVerticle {
             serviceProxyBinder.bind(FunctionInvocationPushService.class,
                 new FunctionInvocationPushServiceImpl(webClient, config));
             serviceProxyBinder.bind(K8sMetricPushService.class, new K8sMetricPushServiceImpl(webClient, config));
+            serviceProxyBinder.bind(MetricQueryService.class, new MetricQueryServiceImpl(webClient, config));
             serviceProxyBinder.bind(RegionMetricPushService.class, new RegionMetricPushServiceImpl(webClient, config));
             emitter.onComplete();
         });
