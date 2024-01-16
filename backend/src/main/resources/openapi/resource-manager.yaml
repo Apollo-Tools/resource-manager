@@ -900,9 +900,11 @@ paths:
                 type: object
                 required:
                   - metric_id
+                  - value
                 additionalProperties: false
                 properties:
                   metric_id:
+                    description: only metrics are allowed if they are not monitored for the resource's platform
                     type: integer
                     format: int64
                     example: 1
@@ -3527,14 +3529,8 @@ paths:
               schema:
                 type: array
                 items:
-                  type: object
-                  properties:
-                    metric:
-                      $ref: "#/components/schemas/Metric"
-                    required:
-                      description: whether the metric is required for a platform's resource or not
-                      type: boolean
-                      example: true
+                  $ref: '#/components/schemas/PlatformMetric'
+
         400:
           $ref: "#/components/responses/400"
         401:
@@ -3882,7 +3878,7 @@ components:
         metric:
           type: string
           example: availability
-        is_monitored:
+        is_slo:
           type: boolean
           example: false
         metricType:
@@ -3941,6 +3937,24 @@ components:
                 value_bool:
                   type: boolean
                   example: true
+    PlatformMetric:
+      type: object
+      properties:
+        platform_metric_id:
+          type: integer
+          format: int64
+          example: 1
+        metric:
+          $ref: "#/components/schemas/Metric"
+        is_main_resource_metric:
+          type: boolean
+          example: true
+        is_sub_resource_metric:
+          type: boolean
+          example: false
+        monitored_during_deployment:
+          type: boolean
+          example: false
     Deployment:
       type: object
       properties:

@@ -38,7 +38,7 @@ public class AWSPricePushServiceImpl extends ServiceProxy implements AWSPricePus
             .map(value -> ((JsonObject) value).mapTo(AWSPrice.class))
             .toArray(AWSPrice[]::new);
         List<OpenTSDBEntity> metrics = Arrays.stream(awsPriceList)
-            .map(awsPrice -> new OpenTSDBEntity("ec2_price_usd", awsPrice.getPrice().doubleValue(),
+            .map(awsPrice -> new OpenTSDBEntity("aws_price_usd", awsPrice.getPrice().doubleValue(),
                 Map.of("region", Long.toString(awsPrice.getRegion().getRegionId()),
                     "platform", Long.toString(awsPrice.getPlatform().getPlatformId()),
                     "instance_type", awsPrice.getInstanceType())))

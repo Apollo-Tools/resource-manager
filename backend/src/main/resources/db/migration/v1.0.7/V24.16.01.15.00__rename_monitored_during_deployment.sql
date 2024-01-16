@@ -1,0 +1,2 @@
+ALTER TABLE platform_metric
+RENAME COLUMN monitor_during_deployment TO monitored_during_deployment;

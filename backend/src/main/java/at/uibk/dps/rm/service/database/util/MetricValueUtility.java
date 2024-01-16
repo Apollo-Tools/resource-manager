@@ -1,10 +1,7 @@
 package at.uibk.dps.rm.service.database.util;
 
 import at.uibk.dps.rm.entity.dto.metric.MetricTypeEnum;
-import at.uibk.dps.rm.entity.model.Metric;
-import at.uibk.dps.rm.entity.model.MetricValue;
-import at.uibk.dps.rm.entity.model.PlatformMetric;
-import at.uibk.dps.rm.entity.model.Resource;
+import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
@@ -71,12 +68,15 @@ public class MetricValueUtility {
         Object value = jsonValue.getValue("value");
         boolean valueHasCorrectType = true;
         Metric metric = platformMetric.getMetric();
-        if (platformMetric.getIsMonitored() && value != null) {
+        if (metricValue.getResource() instanceof MainResource && !platformMetric.getIsMainResourceMetric()) {
+            throw new BadInputException("metric is not supported for main resources");
+        } else if (metricValue.getResource() instanceof SubResource && !platformMetric.getIsSubResourceMetric()){
+            throw new BadInputException("metric is not supported for sub resources");
+        }
+        if (platformMetric.getIsMonitored()) {
             throw new BadInputException("monitored metrics can't be set manually");
-        } else if (platformMetric.getIsMonitored()) {
-            setDefaultMonitoredMetricValue(metricValue, metric);
-        } else if (value == null) {
-            throw new BadInputException("value can't be empty for non monitored values");
+        }  else if (value == null) {
+            throw new BadInputException("value can't be empty");
         }
         else if (stringMetricHasStringValue(metric, value)) {
             metricValue.setValueString((String) value);
@@ -89,25 +89,6 @@ public class MetricValueUtility {
         }
         if (!valueHasCorrectType) {
             throw new BadInputException("invalid value type for metric (" + metric.getMetricId() + ")");
-        }
-    }
-
-    /**
-     * Set a default metric value depending on its type.
-     *
-     * @param metricValue the metric value
-     * @param metric the metric
-     */
-    private void setDefaultMonitoredMetricValue (MetricValue metricValue, Metric metric) {
-        switch (metric.getMetricType().getType()) {
-            case "number":
-                metricValue.setValueNumber(0.0);
-                break;
-            case "string":
-                metricValue.setValueString("");
-                break;
-            case "boolean":
-                metricValue.setValueBool(false);
         }
     }
 

@@ -35,7 +35,7 @@ public class PlatformMetric {
 
     private Boolean isSubResourceMetric;
 
-    private Boolean monitorDuringDeployment;
+    private Boolean monitoredDuringDeployment;
 
     @JsonProperty("is_monitored")
     private Boolean isMonitored;

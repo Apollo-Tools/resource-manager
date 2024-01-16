@@ -187,7 +187,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     @Override
     public void updateClusterResource(String clusterName, K8sMonitoringData data,
             Handler<AsyncResult<K8sMonitoringData>> resultHandler) {
-        K8sResourceUpdateUtility updateUtility = new K8sResourceUpdateUtility(metricRepository);
+        K8sResourceUpdateUtility updateUtility = new K8sResourceUpdateUtility();
         Single<K8sMonitoringData> updateClusterResource = smProvider.withTransactionSingle(sm -> repository
             .findClusterByName(sm, clusterName)
             // TODO: swap with NotFoundException and handle in Monitoring Verticle
@@ -197,8 +197,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
                 if (!data.getIsUp()) {
                     return Completable.complete();
                 }
-                return updateUtility.updateClusterNodes(sm, cluster, data)
-                    .andThen(updateUtility.updateCluster(sm, cluster, data));
+                return updateUtility.updateClusterNodes(sm, cluster, data);
             })
             .toSingle(() -> data)
         );
