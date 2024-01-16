@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Getter
-public class VmQuery {
+public class VmSingleQuery {
 
     private final String metric;
 
@@ -24,30 +24,44 @@ public class VmQuery {
 
     private boolean sortAsc = true;
 
-    public VmQuery setFilter(Map<String, List<String>> filter) {
+    private double multiplier = 1.0;
+
+    private double summand = 0.0;
+
+    public VmSingleQuery setFilter(Map<String, List<String>> filter) {
         this.filter = filter;
         return this;
     }
 
-    public VmQuery setTimeRange(String timeRange) {
+    public VmSingleQuery setTimeRange(String timeRange) {
         this.timeRange = timeRange;
         return this;
     }
 
-    public VmQuery setSortAsc(boolean sortAsc) {
+    public VmSingleQuery setSortAsc(boolean sortAsc) {
         this.sortAsc = sortAsc;
         return this;
     }
 
-    public VmQuery setSortByNumericLabels(String... sortByNumericLabels) {
+    public VmSingleQuery setSortByNumericLabels(String... sortByNumericLabels) {
         this.sortByNumericLabels = sortByNumericLabels;
         this.sortByLabels = new String[]{};
         return this;
     }
 
-    public VmQuery setSortByLabels(String... sortByLabels) {
+    public VmSingleQuery setSortByLabels(String... sortByLabels) {
         this.sortByLabels = sortByLabels;
         this.sortByNumericLabels = new String[]{};
+        return this;
+    }
+
+    public VmSingleQuery setMultiplier(Double multiplier) {
+        this.multiplier = multiplier;
+        return this;
+    }
+
+    public VmSingleQuery setSummand(Double summand) {
+        this.summand = summand;
         return this;
     }
 
@@ -58,7 +72,9 @@ public class VmQuery {
                 .map(entry -> entry.getKey() + "=~\"" + String.join("|", entry.getValue()) + "\"")
                 .collect(Collectors.joining(","))
             + "}" +
-            (timeRange == null ? "" : "[" + timeRange + "]");
+            (timeRange == null ? "" : "[" + timeRange + "]") +
+            (multiplier == 1.0 ? "" : " * " + multiplier) +
+            (summand == 0.0 ? "" : " + " + summand);
         String fullQuery;
         if (sortByNumericLabels.length > 0) {
             fullQuery = "sort_by_label_numeric" + (sortAsc ? "(" : "_desc(") + metricString + ',' +

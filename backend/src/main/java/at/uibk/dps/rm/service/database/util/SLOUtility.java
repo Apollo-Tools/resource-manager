@@ -5,12 +5,9 @@ import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.exception.BadInputException;
-import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.util.validation.SLOCompareUtility;
-import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import lombok.AllArgsConstructor;
@@ -38,22 +35,30 @@ public class SLOUtility {
      */
     public Single<List<Resource>> findAndFilterResourcesBySLOs(SessionManager sm,
             SLORequest sloRequest) {
-        Completable checkSLOs = Observable.fromIterable(sloRequest.getServiceLevelObjectives())
-            .map(slo -> metricRepository.findByMetricAndIsSLO(sm, slo.getName())
-                .switchIfEmpty(Maybe.error(new NotFoundException(ServiceLevelObjective.class)))
-                .flatMapCompletable(metric -> Completable.fromAction(() -> validateSLOType(slo, metric))))
-            .toList()
-            .flatMapCompletable(Completable::merge);
-        List<String> sloNames = sloRequest.getServiceLevelObjectives().stream()
-            .map(ServiceLevelObjective::getName)
-            .collect(Collectors.toList());
-        return checkSLOs
-            .andThen(Single.defer(() -> resourceRepository.findAllBySLOs(sm, sloNames,
+        Single<List<String>> checkSLOs = metricRepository
+            .findAllNonMonitoredBySLO(sm, sloRequest.getServiceLevelObjectives())
+            .flatMapObservable(metrics -> Observable.fromIterable(sloRequest.getServiceLevelObjectives())
+                .flatMap(slo -> Observable.fromIterable(metrics)
+                    .filter(metric -> metric.getMetric().equals(slo.getName()))
+                    .map(metric -> {
+                        validateSLOType(slo, metric);
+                        return metric;
+                })))
+            .map(Metric::getMetric)
+            .toList();
+        return checkSLOs.flatMap(metrics -> resourceRepository.findAllBySLOs(sm, metrics,
                 sloRequest.getEnvironments(), sloRequest.getResourceTypes(), sloRequest.getPlatforms(),
                 sloRequest.getRegions(), sloRequest.getProviders()))
-            )
-            .map(resources -> SLOCompareUtility.filterAndSortResourcesBySLOs(resources,
-                sloRequest.getServiceLevelObjectives()));
+            .flatMap(resources -> Observable.fromIterable(resources)
+                .map(resource -> resource.getResourceId().toString())
+                .collect(Collectors.joining("|"))
+                .flatMap(resourcesString -> {
+
+                    System.out.println(resourcesString);
+                    return Single.just(resourcesString);
+                })
+                .map(result -> SLOCompareUtility.filterAndSortResourcesBySLOs(resources,
+                    sloRequest.getServiceLevelObjectives())));
     }
 
     /**

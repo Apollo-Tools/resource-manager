@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.repository.metric;
 
+import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.repository.Repository;
 import at.uibk.dps.rm.service.database.util.SessionManager;
@@ -7,6 +8,8 @@ import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * Implements database operations for the metric entity.
  *
@@ -68,6 +71,31 @@ public class MetricRepository extends Repository<Metric> {
             .createQuery("from Metric m where m.metric=:metric and m.isSlo=true", entityClass)
             .setParameter("metric", metric)
             .getSingleResultOrNull()
+        );
+    }
+
+    public Maybe<Metric> findNonMonitoredBySLO(SessionManager sessionManager,
+            ServiceLevelObjective serviceLevelObjective) {
+        return Maybe.fromCompletionStage(sessionManager.getSession()
+            .createQuery("select distinct m from PlatformMetric pm " +
+                "left join pm.metric m " +
+                "where m.metric=:slo and m.isSlo=true and pm.isMonitored=false", entityClass)
+            .setParameter("slo", serviceLevelObjective.getName())
+            .getSingleResultOrNull()
+        );
+    }
+
+    public Single<List<Metric>> findAllNonMonitoredBySLO(SessionManager sessionManager,
+                                                         List<ServiceLevelObjective> serviceLevelObjectives) {
+        String mappedSlos = serviceLevelObjectives.stream()
+            .map(ServiceLevelObjective::getName)
+            .collect(Collectors.joining(","));
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery("select distinct m from PlatformMetric pm " +
+                "left join pm.metric m " +
+                "where m.metric in (:slos) and m.isSlo=true and pm.isMonitored=false", entityClass)
+            .setParameter("slos", mappedSlos)
+            .getResultList()
         );
     }
 }

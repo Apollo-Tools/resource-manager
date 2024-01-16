@@ -76,7 +76,7 @@ public class SLOCompareUtility {
      * @return the filtered and sorted resources as JsonArray
      */
     public static List<Resource> filterAndSortResourcesBySLOs(List<Resource> resources,
-                                                              List<ServiceLevelObjective> serviceLevelObjectives) {
+            List<ServiceLevelObjective> serviceLevelObjectives) {
         return resources.stream()
             .filter(resource -> resourceFilterBySLOValueType(resource, serviceLevelObjectives))
             .sorted((r1, r2) -> sortResourceBySLOs(r1, r2, serviceLevelObjectives))
