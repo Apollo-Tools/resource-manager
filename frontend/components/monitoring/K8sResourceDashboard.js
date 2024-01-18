@@ -18,7 +18,7 @@ const K8sResourceDashboard = ({resourceIds, isActive = true}) => {
       } else {
         newParameters.push({'key': 'var-mainResourceId', 'value': 'None'});
       }
-      newParameters.push({'key': 'var-interval', 'value': '2s'});
+      newParameters.push({'key': 'var-interval', 'value': '5s'});
       newParameters.push({'key': 'refresh', 'value': '5s'});
       setParameters(() => newParameters);
       setParamsInitialized(true);

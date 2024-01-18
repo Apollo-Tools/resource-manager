@@ -4,17 +4,17 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Getter
-public class VmSingleQuery {
+public class VmSingleQuery implements VmQuery {
 
     private final String metric;
 
-    private Map<String, List<String>> filter = Map.of();
+    private Map<String, Set<String>> filter = Map.of();
 
     private String timeRange = null;
 
@@ -28,7 +28,7 @@ public class VmSingleQuery {
 
     private double summand = 0.0;
 
-    public VmSingleQuery setFilter(Map<String, List<String>> filter) {
+    public VmSingleQuery setFilter(Map<String, Set<String>> filter) {
         this.filter = filter;
         return this;
     }
@@ -67,14 +67,17 @@ public class VmSingleQuery {
 
     @Override
     public String toString() {
-        String metricString = metric + "{" +
+        String metricString = metric +
+            (filter.isEmpty() ? "" :
+            "{" +
             filter.entrySet().stream()
                 .map(entry -> entry.getKey() + "=~\"" + String.join("|", entry.getValue()) + "\"")
                 .collect(Collectors.joining(","))
-            + "}" +
+            + "}"
+            ) +
             (timeRange == null ? "" : "[" + timeRange + "]") +
-            (multiplier == 1.0 ? "" : " * " + multiplier) +
-            (summand == 0.0 ? "" : " + " + summand);
+            (multiplier == 1.0 ? "" : "*" + multiplier) +
+            (summand == 0.0 ? "" : "+" + summand);
         String fullQuery;
         if (sortByNumericLabels.length > 0) {
             fullQuery = "sort_by_label_numeric" + (sortAsc ? "(" : "_desc(") + metricString + ',' +

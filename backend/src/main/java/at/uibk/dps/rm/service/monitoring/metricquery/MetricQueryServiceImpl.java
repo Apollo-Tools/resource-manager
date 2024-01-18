@@ -47,7 +47,7 @@ public class MetricQueryServiceImpl extends ServiceProxy implements MetricQueryS
                 } else {
                     VmQueryResult result = httpResponse.bodyAsJsonObject().mapTo(VmQueryResult.class);
                     if (result.getData().getResult().isEmpty()) {
-                        return Single.error(new NotFoundException("empty query: " + query));
+                        logger.info("empty query: " + query);
                     }
                     return Single.just(result.getData().getResult());
                 }

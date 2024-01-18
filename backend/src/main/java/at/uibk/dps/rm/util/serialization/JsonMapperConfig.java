@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.util.serialization;
 
+import at.uibk.dps.rm.util.misc.MetricPair;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
@@ -29,6 +30,7 @@ public class JsonMapperConfig {
         mapper.registerModule(new JavaTimeModule());
         SimpleModule customModule = new SimpleModule();
         customModule.addDeserializer(Quantity.class, new QuantityDeserializer());
+        customModule.addSerializer(MetricPair.class, new MetricPairSerializer());
         mapper.registerModule(customModule);
         // returns the ObjectMapper used by Vert.x when pretty printing JSON
         ObjectMapper prettyMapper = DatabindCodec.prettyMapper();

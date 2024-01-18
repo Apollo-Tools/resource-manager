@@ -53,12 +53,36 @@ public class SLOUtility {
                 .map(resource -> resource.getResourceId().toString())
                 .collect(Collectors.joining("|"))
                 .flatMap(resourcesString -> {
-
                     System.out.println(resourcesString);
                     return Single.just(resourcesString);
                 })
                 .map(result -> SLOCompareUtility.filterAndSortResourcesBySLOs(resources,
                     sloRequest.getServiceLevelObjectives())));
+    }
+
+    public Single<List<Resource>> findResourcesByNonMonitoredSLOs(SessionManager sm,
+            SLORequest sloRequest) {
+        Single<List<String>> checkSLOs = metricRepository
+            .findAllNonMonitoredBySLO(sm, sloRequest.getServiceLevelObjectives())
+            .flatMapObservable(metrics -> Observable.fromIterable(sloRequest.getServiceLevelObjectives())
+                .flatMap(slo -> Observable.fromIterable(metrics)
+                    .filter(metric -> metric.getMetric().equals(slo.getName()))
+                    .map(metric -> {
+                        validateSLOType(slo, metric);
+                        return metric;
+                })))
+            .map(Metric::getMetric)
+            .toList();
+        return checkSLOs.flatMap(metrics -> {
+            if (metrics.isEmpty() && sloRequest.getEnvironments().isEmpty() && sloRequest.getResourceTypes().isEmpty()
+                && sloRequest.getPlatforms().isEmpty() && sloRequest.getRegions().isEmpty() &&
+                sloRequest.getProviders().isEmpty()) {
+                return resourceRepository.findAllMainAndSubResourcesAndFetch(sm);
+            }
+            return resourceRepository.findAllBySLOs(sm, metrics,
+                    sloRequest.getEnvironments(), sloRequest.getResourceTypes(), sloRequest.getPlatforms(),
+                    sloRequest.getRegions(), sloRequest.getProviders());
+        });
     }
 
     /**

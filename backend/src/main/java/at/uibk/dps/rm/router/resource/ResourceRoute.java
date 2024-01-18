@@ -16,7 +16,8 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 public class ResourceRoute implements Route {
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
-        ResourceHandler resourceHandler = new ResourceHandler(serviceProxyProvider.getResourceService());
+        ResourceHandler resourceHandler = new ResourceHandler(serviceProxyProvider.getResourceService(),
+            serviceProxyProvider.getMetricQueryService());
         ResultHandler resultHandler = new ResultHandler(resourceHandler);
 
         router
@@ -36,7 +37,7 @@ public class ResourceRoute implements Route {
         router
             .operation("listResourcesBySLOs")
             .handler(ResourceSLOInputHandler::validateGetResourcesBySLOsRequest)
-            .handler(rc -> resultHandler.handleFindAllRequest(rc, resourceHandler.getAllBySLOs(rc)));
+            .handler(rc -> resultHandler.handleFindAllRequest(rc, resourceHandler.getAllByNonMonitoredSLOs(rc)));
 
         router.operation("listLockedResourcesByDeployment")
             .handler(rc -> resultHandler.handleFindAllRequest(rc, resourceHandler.getAllLockedByDeployment(rc)));

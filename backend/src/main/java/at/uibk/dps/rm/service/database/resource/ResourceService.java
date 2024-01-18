@@ -51,6 +51,8 @@ public interface ResourceService extends DatabaseServiceInterface {
      */
     void findAllBySLOs(JsonObject data, Handler<AsyncResult<JsonArray>> resultHandler);
 
+    void findAllByNonMonitoredSLOs(JsonObject data, Handler<AsyncResult<JsonArray>> resultHandler);
+
     /**
      * Find all sub resources by their main resource.
      *

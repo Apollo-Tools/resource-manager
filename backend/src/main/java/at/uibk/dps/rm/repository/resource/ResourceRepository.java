@@ -89,8 +89,8 @@ public class ResourceRepository extends Repository<Resource> {
     }
 
     /**
-     * Find all resources and fetch the resource type, platform, environment, region, metric values and
-     * resource provider.
+     * Find all resources and fetch the resource type, platform, environment, region, metric values
+     * and resource provider.
      *
      * @param sessionManager the database session manager
      * @return a Single that emits a list of all resources
@@ -105,6 +105,47 @@ public class ResourceRepository extends Repository<Resource> {
                 "left join fetch p.resourceType " +
                 "left join fetch r.subResources sr ", entityClass)
             .getResultList()
+        );
+    }
+
+    /**
+     * Find all main and sub resources and fetch the resource type, platform, environment, region,
+     * metric values and resource provider.
+     *
+     * @param sessionManager the database session manager
+     * @return a Single that emits a list of all resources
+     */
+    public Single<List<Resource>> findAllMainAndSubResourcesAndFetch(SessionManager sessionManager) {
+        String mainQuery = "select distinct r from MainResource r " +
+            "left join fetch r.metricValues mv " +
+            "left join fetch mv.metric m " +
+            "left join fetch r.region reg " +
+            "left join fetch reg.resourceProvider rp " +
+            "left join fetch rp.environment e " +
+            "left join fetch r.platform p " +
+            "left join fetch p.resourceType rt";
+
+        String subQuery = "select distinct r from SubResource r " +
+            "left join fetch r.metricValues mv " +
+            "left join fetch mv.metric m " +
+            "left join fetch r.mainResource mr " +
+            "left join fetch mr.region reg " +
+            "left join fetch reg.resourceProvider rp " +
+            "left join fetch rp.environment e " +
+            "left join fetch mr.platform p " +
+            "left join fetch p.resourceType rt";
+
+        Single<List<Resource>> getMainResources = Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery(mainQuery, entityClass).getResultList()
+        );
+        Single<List<Resource>> getSubResources = Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery(subQuery, entityClass).getResultList());
+        return Single.zip(getMainResources, getSubResources, (mainResources, subResources) -> {
+                ArrayList<Resource> resources = new ArrayList<>();
+                resources.addAll(mainResources);
+                resources.addAll(subResources);
+                return resources;
+            }
         );
     }
 

@@ -93,19 +93,19 @@ public class K8sNode implements K8sEntityData {
 
     @Override
     @JsonIgnore
-    public BigDecimal getAvailableCPU() {
-        return getTotalCPU().subtract(getCpuLoad().getNumber());
+    public BigDecimal getCPUUsed() {
+        return getCpuLoad().getNumber();
     }
 
     @Override
     @JsonIgnore
-    public BigDecimal getAvailableMemory() {
-        return getTotalMemory().subtract(getMemoryLoad().getNumber());
+    public BigDecimal getMemoryUsed() {
+        return getMemoryLoad().getNumber();
     }
 
     @Override
     @JsonIgnore
-    public BigDecimal getAvailableStorage() {
-        return getTotalStorage().subtract(getStorageLoad().getNumber());
+    public BigDecimal getStorageUsed() {
+        return getStorageLoad().getNumber();
     }
 }

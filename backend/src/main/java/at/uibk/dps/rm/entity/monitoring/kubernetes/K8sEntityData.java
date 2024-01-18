@@ -30,23 +30,23 @@ public interface K8sEntityData {
     BigDecimal getTotalStorage();
 
     /**
-     * Get the free cpu units of the k8s resource.
+     * Get the used cpu units of the k8s resource.
      *
-     * @return the free cpu units
+     * @return the used cpu units
      */
-    BigDecimal getAvailableCPU();
+    BigDecimal getCPUUsed();
 
     /**
-     * Get the free memory of the k8s resource.
+     * Get the used memory of the k8s resource.
      *
-     * @return the free memory in bytes
+     * @return the used memory in bytes
      */
-    BigDecimal getAvailableMemory();
+    BigDecimal getMemoryUsed();
 
     /**
-     * Get the free storage of the k8s resource.
+     * Get the used storage of the k8s resource.
      *
-     * @return the free storage in bytes
+     * @return the used storage in bytes
      */
-    BigDecimal getAvailableStorage();
+    BigDecimal getStorageUsed();
 }

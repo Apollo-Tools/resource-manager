@@ -92,6 +92,17 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
         RxVertxHandler.handleSession(findAll.map(this::mapResourceListToJsonArray), resultHandler);
     }
 
+    @Override
+    public void findAllByNonMonitoredSLOs(JsonObject data, Handler<AsyncResult<JsonArray>> resultHandler) {
+        SLORequest sloRequest = data.mapTo(SLORequest.class);
+        Single<List<Resource>> findAll = smProvider.withTransactionSingle(sm ->
+            new SLOUtility(repository, metricRepository).findResourcesByNonMonitoredSLOs(sm, sloRequest)
+                .flatMapObservable(Observable::fromIterable)
+                .map(this::getResourceLockState).toList()
+        );
+        RxVertxHandler.handleSession(findAll.map(this::mapResourceListToJsonArray), resultHandler);
+    }
+
     // TODO: remove main_resource
     @Override
     public void findAllSubResources(long resourceId, Handler<AsyncResult<JsonArray>> resultHandler) {

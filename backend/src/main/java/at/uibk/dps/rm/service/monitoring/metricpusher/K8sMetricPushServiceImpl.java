@@ -37,26 +37,26 @@ public class K8sMetricPushServiceImpl extends ServiceProxy implements K8sMetricP
                 Map.of("resource", Long.toString(data.getResourceId()))));
             openTSDBEntities.add(new OpenTSDBEntity("k8s_cpu_total", data.getTotalCPU().doubleValue(),
                 Map.of("resource", Long.toString(data.getResourceId()))));
-            openTSDBEntities.add(new OpenTSDBEntity("k8s_cpu_available", data.getAvailableCPU().doubleValue(),
+            openTSDBEntities.add(new OpenTSDBEntity("k8s_cpu_used", data.getCPUUsed().doubleValue(),
                 Map.of("resource", Long.toString(data.getResourceId()))));
             openTSDBEntities.add(new OpenTSDBEntity("k8s_memory_total_bytes", data.getTotalMemory().doubleValue(),
                 Map.of("resource", Long.toString(data.getResourceId()))));
-            openTSDBEntities.add(new OpenTSDBEntity("k8s_memory_available_bytes", data.getAvailableMemory().doubleValue(),
+            openTSDBEntities.add(new OpenTSDBEntity("k8s_memory_used_bytes", data.getMemoryUsed().doubleValue(),
                 Map.of("resource", Long.toString(data.getResourceId()))));
             data.getNodes().forEach(k8sNode -> {
                 openTSDBEntities.add(new OpenTSDBEntity("k8s_node_cpu_total", k8sNode.getTotalCPU().doubleValue(),
                     Map.of("main_resource", Long.toString(data.getResourceId()), "resource",
                         Long.toString(k8sNode.getResourceId()), "node", k8sNode.getName())));
-                openTSDBEntities.add(new OpenTSDBEntity("k8s_node_cpu_available",
-                    k8sNode.getAvailableCPU().doubleValue(), Map.of("main_resource",
+                openTSDBEntities.add(new OpenTSDBEntity("k8s_node_cpu_used",
+                    k8sNode.getCPUUsed().doubleValue(), Map.of("main_resource",
                     Long.toString(data.getResourceId()), "resource", Long.toString(k8sNode.getResourceId()), "node",
                     k8sNode.getName())));
                 openTSDBEntities.add(new OpenTSDBEntity("k8s_node_memory_total_bytes",
                     k8sNode.getTotalMemory().doubleValue(), Map.of("main_resource",
                     Long.toString(data.getResourceId()), "resource", Long.toString(k8sNode.getResourceId()), "node",
                     k8sNode.getName())));
-                openTSDBEntities.add(new OpenTSDBEntity("k8s_node_memory_available_bytes",
-                    k8sNode.getAvailableMemory().doubleValue(), Map.of("main_resource",
+                openTSDBEntities.add(new OpenTSDBEntity("k8s_node_memory_used_bytes",
+                    k8sNode.getMemoryUsed().doubleValue(), Map.of("main_resource",
                     Long.toString(data.getResourceId()), "resource", Long.toString(k8sNode.getResourceId()), "node",
                     k8sNode.getName())));
             });
@@ -64,7 +64,6 @@ public class K8sMetricPushServiceImpl extends ServiceProxy implements K8sMetricP
             openTSDBEntities.add(new OpenTSDBEntity("k8s_up", 0L,
                 Map.of("resource", Long.toString(data.getResourceId()))));
         }
-
 
         monitoringPusher.pushMetrics(openTSDBEntities, resultHandler);
     }

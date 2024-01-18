@@ -470,7 +470,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "(k8s_cpu_total{resource=~\"$resourceId\"} - k8s_cpu_available{resource=~\"$resourceId\"}) / k8s_cpu_total{resource=~\"$resourceId\"} * 100",
+          "expr": "k8s_cpu_used{resource=~\"$resourceId\"} / k8s_cpu_total{resource=~\"$resourceId\"} * 100",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -486,7 +486,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "(k8s_memory_total_bytes{resource=~\"$resourceId\"} - k8s_memory_available_bytes{resource=~\"$resourceId\"}) / k8s_memory_total_bytes{resource=~\"$resourceId\"} * 100",
+          "expr": "k8s_memory_used_bytes{resource=~\"$resourceId\"} / k8s_memory_total_bytes{resource=~\"$resourceId\"} * 100",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -977,7 +977,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "(k8s_node_cpu_total{main_resource=~\"$mainResourceId\", resource!=\"0\"} - k8s_node_cpu_available{main_resource=~\"$mainResourceId\", resource!=\"0\"}) / k8s_node_cpu_total{main_resource=~\"$mainResourceId\", resource!=\"0\"} * 100",
+          "expr": "(k8s_node_cpu_used{main_resource=~\"$mainResourceId\", resource!=\"0\"}) / k8s_node_cpu_total{main_resource=~\"$mainResourceId\", resource!=\"0\"} * 100",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -993,7 +993,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "(k8s_node_memory_total_bytes{main_resource=~\"$mainResourceId\", resource!=\"0\"} - k8s_node_memory_available_bytes{main_resource=~\"$mainResourceId\", resource!=\"0\"}) / k8s_node_memory_total_bytes{main_resource=~\"$mainResourceId\", resource!=\"0\"}",
+          "expr": "k8s_node_memory_used_bytes{main_resource=~\"$mainResourceId\", resource!=\"0\"} / k8s_node_memory_total_bytes{main_resource=~\"$mainResourceId\", resource!=\"0\"} * 100",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1137,8 +1137,8 @@
       {
         "current": {
           "selected": false,
-          "text": "3",
-          "value": "3"
+          "text": "4",
+          "value": "4"
         },
         "datasource": {
           "type": "prometheus",
@@ -1195,6 +1195,6 @@
   "timezone": "browser",
   "title": "K8s Dashboard",
   "uid": "b47a9eee-2299-40ec-9aec-ee2e826d3cfd",
-  "version": 13,
+  "version": 18,
   "weekStart": ""
 }

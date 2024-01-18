@@ -1,11 +1,11 @@
 package at.uibk.dps.rm.util.serialization;
 
 import at.uibk.dps.rm.entity.monitoring.victoriametrics.VmResult;
+import at.uibk.dps.rm.util.misc.MetricPair;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
 import java.util.*;
@@ -51,7 +51,7 @@ public class VmResultDeserializer extends StdDeserializer<VmResult> {
      */
     protected VmResult parse(JsonNode value) {
         Map<String, String> metricMap = parseMetricMap(value);
-        List<Pair<Long, Double>> valueList = new ArrayList<>();
+        List<MetricPair> valueList = new ArrayList<>();
         if (value.has("value")) {
             Iterator<JsonNode> iterator = value.get("value").elements();
             parseTimeValuePair(iterator, valueList);
@@ -77,10 +77,10 @@ public class VmResultDeserializer extends StdDeserializer<VmResult> {
         return metricMap;
     }
 
-    private void parseTimeValuePair(Iterator<JsonNode> iterator, List<Pair<Long, Double>> valueList) {
+    private void parseTimeValuePair(Iterator<JsonNode> iterator, List<MetricPair> valueList) {
         long timestamp = iterator.next().asLong();
         double metricValue = Double.parseDouble(iterator.next().textValue());
-        Pair<Long, Double> valuePair = Pair.of(timestamp, metricValue);
+        MetricPair valuePair = new MetricPair(timestamp, metricValue);
         valueList.add(valuePair);
     }
 }

@@ -1329,8 +1329,8 @@
         "auto_min": "10s",
         "current": {
           "selected": false,
-          "text": "2s",
-          "value": "2s"
+          "text": "5s",
+          "value": "5s"
         },
         "hide": 2,
         "label": "Interval",
@@ -1342,12 +1342,12 @@
             "value": "1s"
           },
           {
-            "selected": true,
+            "selected": false,
             "text": "2s",
             "value": "2s"
           },
           {
-            "selected": false,
+            "selected": true,
             "text": "5s",
             "value": "5s"
           },
@@ -1431,9 +1431,10 @@
       },
       {
         "current": {
+          "isNone": true,
           "selected": false,
-          "text": "74",
-          "value": "74"
+          "text": "None",
+          "value": ""
         },
         "datasource": {
           "type": "prometheus",
@@ -1490,6 +1491,6 @@
   "timezone": "browser",
   "title": "Node Exporter",
   "uid": "efa71f23-5850-4144-8b29-0ae9480eec94",
-  "version": 3,
+  "version": 4,
   "weekStart": ""
 }

@@ -78,25 +78,25 @@ public class K8sMonitoringData implements K8sEntityData {
 
     @Override
     @JsonIgnore
-    public BigDecimal getAvailableCPU() {
+    public BigDecimal getCPUUsed() {
         return nodes.stream()
-            .map(K8sNode::getAvailableCPU)
+            .map(K8sNode::getCPUUsed)
             .reduce(BigDecimal.valueOf(0), BigDecimal::add);
     }
 
     @Override
     @JsonIgnore
-    public BigDecimal getAvailableMemory() {
+    public BigDecimal getMemoryUsed() {
         return nodes.stream()
-            .map(K8sNode::getAvailableMemory)
+            .map(K8sNode::getMemoryUsed)
             .reduce(BigDecimal.valueOf(0), BigDecimal::add);
     }
 
     @Override
     @JsonIgnore
-    public BigDecimal getAvailableStorage() {
+    public BigDecimal getStorageUsed() {
         return nodes.stream()
-            .map(K8sNode::getAvailableStorage)
+            .map(K8sNode::getStorageUsed)
             .reduce(BigDecimal.valueOf(0), BigDecimal::add);
     }
 }

@@ -136,7 +136,7 @@ public class K8sNodeTest {
     void getAvailableCPU() {
         K8sNode k8sNode = new K8sNode(nValid, quantity, quantity, quantity);
 
-        BigDecimal result = k8sNode.getAvailableCPU();
+        BigDecimal result = k8sNode.getCPULoad();
 
         assertThat(result.compareTo(BigDecimal.valueOf(1.0))).isEqualTo(0);
     }
