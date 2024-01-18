@@ -12,7 +12,11 @@ public enum MonitoringMetricEnum {
     /**
      * CPU%
      */
-    CPU_UTIL("cpu%");
+    CPU_UTIL("cpu%"),
+    /**
+     * MEMORY%
+     */
+    MEMORY_UTIL("memory%");
 
     private final String name;
 

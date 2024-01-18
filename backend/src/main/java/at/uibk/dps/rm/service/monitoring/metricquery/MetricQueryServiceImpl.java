@@ -37,8 +37,10 @@ public class MetricQueryServiceImpl extends ServiceProxy implements MetricQueryS
     }
 
     public void collectInstantMetric(String query, Handler<AsyncResult<List<VmResult>>> resultHandler) {
+        // TODO: remove next line / change to debug
+        logger.info(query);
         Single<List<VmResult>> collectMetrics = webClient.getAbs(config.getMonitoringQueryUrl() +
-                "/api/v1/query?query=" + query)
+                "/api/v1/query?query=" + query.replace("+", "%2b"))
             .send()
             .flatMap(httpResponse -> {
                 if (httpResponse.statusCode() != 200) {
