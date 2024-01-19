@@ -25,20 +25,22 @@ public class VmConditionQuery implements VmQuery {
 
     @Override
     public String toString() {
-        return "(" + query + ")" + expressionType.getSymbol() +
-            comparators.stream()
-                .map(sloValue -> {
-                    switch (sloValue.getSloValueType()) {
-                        case NUMBER:
-                            return sloValue.getValueNumber().toString();
-                        case BOOLEAN:
-                            return sloValue.getValueBool() ? "1" : "0";
-                        case STRING:
-                        default:
-                            throw new BadInputException("string values not supported");
-                    }
-                })
-                .map(Object::toString).collect(Collectors.joining("%20or%20"))
+        return comparators.stream()
+            .map(sloValue -> {
+                String value;
+                switch (sloValue.getSloValueType()) {
+                    case NUMBER:
+                        value = sloValue.getValueNumber().toString();
+                        break;
+                    case BOOLEAN:
+                        value = sloValue.getValueBool() ? "1" : "0";
+                        break;
+                    case STRING:
+                    default:
+                        throw new BadInputException("value type is not supported");
+                }
+                return "((" + query + ")" + expressionType.getSymbol() + value + ")";
+            }).map(Object::toString).collect(Collectors.joining("%20or%20"))
             + "&step=" + stepMinutes + "m";
     }
 }

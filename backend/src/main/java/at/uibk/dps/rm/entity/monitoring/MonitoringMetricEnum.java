@@ -14,6 +14,10 @@ public enum MonitoringMetricEnum {
      */
     COST("cost"),
     /**
+     * CPU
+     */
+    CPU("cpu"),
+    /**
      * CPU%
      */
     CPU_UTIL("cpu%"),
