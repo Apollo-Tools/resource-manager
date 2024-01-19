@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Arrays;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -14,7 +13,7 @@ public class VmSingleQuery implements VmQuery {
 
     private final String metric;
 
-    private Map<String, Set<String>> filter = Map.of();
+    private Set<VmFilter> filter = Set.of();
 
     private String timeRange = null;
 
@@ -28,7 +27,7 @@ public class VmSingleQuery implements VmQuery {
 
     private double summand = 0.0;
 
-    public VmSingleQuery setFilter(Map<String, Set<String>> filter) {
+    public VmSingleQuery setFilter(Set<VmFilter> filter) {
         this.filter = filter;
         return this;
     }
@@ -70,8 +69,8 @@ public class VmSingleQuery implements VmQuery {
         String metricString = metric +
             (filter.isEmpty() ? "" :
             "{" +
-            filter.entrySet().stream()
-                .map(entry -> entry.getKey() + "=~\"" + String.join("|", entry.getValue()) + "\"")
+            filter.stream()
+                .map(entry -> entry.getLabel() + entry.getOperator() + "\"" + String.join("|", entry.getValues()) + "\"")
                 .collect(Collectors.joining(","))
             + "}"
             ) +

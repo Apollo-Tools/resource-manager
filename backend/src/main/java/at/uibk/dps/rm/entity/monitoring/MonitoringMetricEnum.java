@@ -42,6 +42,14 @@ public enum MonitoringMetricEnum {
      */
     NODE("node"),
     /**
+     * STORAGE
+     */
+    STORAGE("storage"),
+    /**
+     * STORAGE%
+     */
+    STORAGE_UTIL("storage%"),
+    /**
      * UP
      */
     UP("up");
