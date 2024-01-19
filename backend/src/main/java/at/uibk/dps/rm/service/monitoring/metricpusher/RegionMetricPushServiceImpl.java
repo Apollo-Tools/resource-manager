@@ -47,7 +47,7 @@ public class RegionMetricPushServiceImpl extends ServiceProxy implements RegionM
                         connectivity.getLatencySeconds(),
                         Map.of("region", Long.toString(connectivity.getRegion().getRegionId()))));
                 }
-                openTSDBEntities.add(new OpenTSDBEntity("region_online_bool",
+                openTSDBEntities.add(new OpenTSDBEntity("region_up",
                     BooleanUtils.toInteger(connectivity.getIsOnline()),
                     Map.of("region", Long.toString(connectivity.getRegion().getRegionId()))));
                 return openTSDBEntities;

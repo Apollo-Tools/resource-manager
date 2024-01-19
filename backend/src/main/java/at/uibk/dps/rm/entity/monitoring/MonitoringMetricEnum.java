@@ -10,6 +10,10 @@ import java.util.Arrays;
 @Getter
 public enum MonitoringMetricEnum {
     /**
+     * AVAILABILITY
+     */
+    AVAILABILITY("availability"),
+    /**
      * COST
      */
     COST("cost"),
@@ -32,7 +36,15 @@ public enum MonitoringMetricEnum {
     /**
      * MEMORY%
      */
-    MEMORY_UTIL("memory%");
+    MEMORY_UTIL("memory%"),
+    /**
+     * NODE
+     */
+    NODE("node"),
+    /**
+     * UP
+     */
+    UP("up");
 
     private final String name;
 

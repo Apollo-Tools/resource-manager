@@ -21,6 +21,28 @@ public class MetricQueryProvider {
             HashSetValuedHashMap<String, String> platformResources,
             HashSetValuedHashMap<String, String> instanceTypeResources) {
         switch (metricEnum) {
+            case AVAILABILITY:
+                // K8s Cluster
+                // K8s Cluster
+                VmSingleQuery k8sUpRange = new VmSingleQuery("k8s_up")
+                    .setFilter(Map.of("resource", resourceIds))
+                    .setTimeRange("30d");
+                VmFunctionQuery k8sAvailability = new VmFunctionQuery("avg_over_time", k8sUpRange);
+                // Node Exporter
+                VmSingleQuery nodeUpRange = new VmSingleQuery("up")
+                    .setFilter(Map.of("resource", resourceIds, "deployment", Set.of("-1|")))
+                    .setTimeRange("30d");
+                VmFunctionQuery nodeAvailability = new VmFunctionQuery("avg_over_time", nodeUpRange);
+                // lambda
+                // ec2
+                VmSingleQuery regionUpRange = new VmSingleQuery("region_up")
+                    .setFilter(Map.of("region", regionResources.keySet()))
+                    .setTimeRange("30d");
+                VmFunctionQuery regionAvailability = new VmFunctionQuery("avg_over_time", regionUpRange);
+
+                return Stream.of(k8sAvailability, nodeAvailability, regionAvailability)
+                    .map(query -> new VmConditionQuery(query, slo.getValue(), slo.getExpression()))
+                    .collect(Collectors.toList());
             case LATENCY:
                 // lambda, ec2
                 VmSingleQuery regionLatency = new VmSingleQuery("region_latency_seconds")
@@ -132,6 +154,23 @@ public class MetricQueryProvider {
                     .setMultiplier(-100);
 
                 return Stream.of(k8sMemoryUtil, k8sNodeMemoryUtil, nodeMemUtil)
+                    .map(query -> new VmConditionQuery(query, slo.getValue(), slo.getExpression()))
+                    .collect(Collectors.toList());
+            case UP:
+                // K8s Cluster
+                // K8s Cluster
+                VmSingleQuery k8sUp = new VmSingleQuery("k8s_up")
+                    .setFilter(Map.of("resource", resourceIds));
+                // Node Exporter
+                VmSingleQuery nodeUp = new VmSingleQuery("up")
+                    .setFilter(Map.of("resource", resourceIds, "deployment", Set.of("-1|")));
+                // lambda
+                // ec2
+                VmSingleQuery regionUp = new VmSingleQuery("region_up")
+                    .setFilter(Map.of("region", regionResources.keySet()));
+
+
+                return Stream.of(k8sUp, nodeUp, regionUp)
                     .map(query -> new VmConditionQuery(query, slo.getValue(), slo.getExpression()))
                     .collect(Collectors.toList());
 
