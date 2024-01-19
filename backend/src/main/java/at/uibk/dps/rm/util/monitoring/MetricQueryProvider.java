@@ -1,9 +1,11 @@
 package at.uibk.dps.rm.util.monitoring;
 
+import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.monitoring.MonitoringMetricEnum;
 import at.uibk.dps.rm.entity.monitoring.victoriametrics.*;
 import lombok.experimental.UtilityClass;
+import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 
 import java.util.List;
 import java.util.Map;
@@ -14,9 +16,30 @@ import java.util.stream.Stream;
 @UtilityClass
 public class MetricQueryProvider {
 
-    public static List<VmQuery> getMetricQuery(MonitoringMetricEnum metricEnum, ServiceLevelObjective slo,
-                                               Set<String> resourceIds) {
+    public static List<VmQuery> getMetricQuery(ConfigDTO config, MonitoringMetricEnum metricEnum,
+            ServiceLevelObjective slo, Set<String> resourceIds, HashSetValuedHashMap<String, String> regionResources,
+            HashSetValuedHashMap<String, String> platformResources,
+            HashSetValuedHashMap<String, String> instanceTypeResources) {
         switch (metricEnum) {
+            case LATENCY:
+                // lambda, ec2
+                VmSingleQuery regionLatency = new VmSingleQuery("region_latency_seconds")
+                    .setFilter(Map.of("region", regionResources.keySet()));
+
+                return Stream.of(regionLatency)
+                    .map(query -> new VmConditionQuery(query, slo.getValue(), slo.getExpression()))
+                    .collect(Collectors.toList());
+            case COST:
+                // lambda
+                // ec2
+                VmSingleQuery awsPrice = new VmSingleQuery("aws_price_usd")
+                    .setFilter(Map.of("region", regionResources.keySet(), "platform", platformResources.keySet(),
+                        "instance_type", instanceTypeResources.keySet()));
+
+                return Stream.of(awsPrice)
+                    .map(query -> new VmConditionQuery(query, slo.getValue(), slo.getExpression(),
+                        config.getAwsPriceMonitoringPeriod()))
+                    .collect(Collectors.toList());
             case CPU_UTIL:
                 // K8s Cluster
                 VmSingleQuery k8sCpuTotal = new VmSingleQuery("k8s_cpu_total")

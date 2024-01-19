@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.entity.model;
 
 import at.uibk.dps.rm.annotations.Generated;
+import at.uibk.dps.rm.entity.dto.resource.SubResourceDTO;
 import com.fasterxml.jackson.annotation.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -24,8 +25,9 @@ import java.util.Set;
 @JsonTypeInfo(use = JsonTypeInfo.Id.DEDUCTION)
 @JsonSubTypes({
     @JsonSubTypes.Type(value = MainResource.class, name = "MainResource"),
-    @JsonSubTypes.Type(value = SubResource.class, name = "SubResource")}
-)
+    @JsonSubTypes.Type(value = SubResource.class, name = "SubResource"),
+    @JsonSubTypes.Type(value = SubResourceDTO.class, name = "SubResourceDTO")
+})
 public abstract class Resource {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

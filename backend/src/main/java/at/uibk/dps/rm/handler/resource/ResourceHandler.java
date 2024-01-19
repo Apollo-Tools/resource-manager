@@ -1,18 +1,27 @@
 package at.uibk.dps.rm.handler.resource;
 
 import at.uibk.dps.rm.entity.dto.SLORequest;
+import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
+import at.uibk.dps.rm.entity.dto.resource.SubResourceDTO;
+import at.uibk.dps.rm.entity.model.MetricValue;
+import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.monitoring.MonitoringMetricEnum;
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
 import at.uibk.dps.rm.service.rxjava3.monitoring.metricquery.MetricQueryService;
+import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import at.uibk.dps.rm.util.misc.HttpHelper;
+import at.uibk.dps.rm.util.misc.MetricValueMapper;
 import at.uibk.dps.rm.util.monitoring.MetricQueryProvider;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.web.RoutingContext;
+import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -63,36 +72,75 @@ public class ResourceHandler extends ValidationHandler {
     public Single<JsonArray> getAllByNonMonitoredSLOs(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
         SLORequest sloRequest = requestBody.mapTo(SLORequest.class);
-        return resourceService.findAllByNonMonitoredSLOs(requestBody)
-            .flatMap(resources -> Observable.fromIterable(resources)
-                .map(resource -> ((JsonObject) resource))
-                .map(resource -> resource.getLong("resource_id").toString())
-                .collect(Collectors.toSet())
-                .flatMapObservable(resourceIds -> Observable.fromIterable(sloRequest.getServiceLevelObjectives())
-                    .filter(slo -> MonitoringMetricEnum.fromSLO(slo) != null)
-                    .flatMapSingle(slo -> {
-                        MonitoringMetricEnum metric = MonitoringMetricEnum.fromSLO(slo);
-                        return Observable.fromIterable(Objects.requireNonNull(MetricQueryProvider
-                                .getMetricQuery(metric, slo, resourceIds)))
-                            .flatMapSingle(query -> metricQueryService.collectInstantMetric(query.toString()))
-                            .flatMapSingle(vmResults -> Observable.fromIterable(vmResults)
-                                .map(vmResult -> vmResult.getMetric().get("resource"))
-                                .collect(Collectors.toSet()))
-                            .reduce((currSet, nextSet) -> {
-                                currSet.addAll(nextSet);
-                                return currSet;
-                            })
-                            .switchIfEmpty(Single.just(Set.of()));
-                    }))
-                .reduce((currSet, nextSet) -> {
-                    currSet.retainAll(nextSet);
-                    return currSet;
-                })
-                .switchIfEmpty(Single.just(Set.of()))
-                .map(result -> {
-                    System.out.println(result);
-                    return resources;
-                })
+        return new ConfigUtility(Vertx.currentContext().owner()).getConfigDTO()
+            .flatMap(configDTO -> resourceService.findAllByNonMonitoredSLOs(requestBody)
+                .flatMap(resources -> Observable.fromIterable(resources)
+                    .map(resource -> ((JsonObject) resource))
+                    .map(resource -> resource.mapTo(Resource.class))
+                    .collect(Collectors.toSet())
+                    .flatMapObservable(filteredResources -> {
+                        Set<String> resourceIds = filteredResources.stream()
+                            .map(resource -> resource.getResourceId().toString())
+                            .collect(Collectors.toSet());
+                        HashSetValuedHashMap<String, String> regionResources = new HashSetValuedHashMap<>();
+                        HashSetValuedHashMap<String, String> platformResources = new HashSetValuedHashMap<>();
+                        HashSetValuedHashMap<String, String> instanceTypeResources = new HashSetValuedHashMap<>();
+                        filteredResources.forEach(resource -> {
+                            Map<String, MetricValue> metricValues =
+                                MetricValueMapper.mapMetricValues(resource.getMetricValues());
+                            if (metricValues.containsKey("instance-type")) {
+                                instanceTypeResources.put(metricValues.get("instance-type").getValueString(),
+                                    resource.getResourceId().toString());
+                            }
+                            if (resource instanceof SubResourceDTO) {
+                                SubResourceDTO subResourceDTO = (SubResourceDTO) resource;
+                                regionResources.put(subResourceDTO.getRegion().getRegionId().toString(),
+                                    subResourceDTO.getResourceId().toString());
+                                platformResources.put(subResourceDTO.getPlatform().getPlatformId().toString(),
+                                    subResourceDTO.getResourceId().toString());
+                                if (subResourceDTO.getPlatform().getPlatform().equals(PlatformEnum.LAMBDA.getValue())) {
+                                    instanceTypeResources.put(PlatformEnum.LAMBDA.getValue(),
+                                        subResourceDTO.getResourceId().toString());
+                                }
+                            } else {
+                                regionResources.put(resource.getMain().getRegion().getRegionId().toString(),
+                                    resource.getResourceId().toString());
+                                platformResources.put(resource.getMain().getPlatform().getPlatformId().toString(),
+                                    resource.getResourceId().toString());
+                                if (resource.getMain().getPlatform().getPlatform().equals(PlatformEnum.LAMBDA.getValue())) {
+                                    instanceTypeResources.put(PlatformEnum.LAMBDA.getValue(),
+                                        resource.getResourceId().toString());
+                                }
+                            }
+                        });
+                        return Observable.fromIterable(sloRequest.getServiceLevelObjectives())
+                            .filter(slo -> MonitoringMetricEnum.fromSLO(slo) != null)
+                            .flatMapSingle(slo -> {
+                                MonitoringMetricEnum metric = MonitoringMetricEnum.fromSLO(slo);
+                                return Observable.fromIterable(Objects.requireNonNull(MetricQueryProvider
+                                        .getMetricQuery(configDTO, metric, slo, resourceIds, regionResources,
+                                            platformResources, instanceTypeResources)))
+                                    .flatMapSingle(query -> metricQueryService.collectInstantMetric(query.toString()))
+                                    .flatMapSingle(vmResults -> Observable.fromIterable(vmResults)
+                                        .map(vmResult -> vmResult.getMetric().get("resource"))
+                                        .collect(Collectors.toSet()))
+                                    .reduce((currSet, nextSet) -> {
+                                        currSet.addAll(nextSet);
+                                        return currSet;
+                                    })
+                                    .switchIfEmpty(Single.just(Set.of()));
+                            });
+                    })
+                    .reduce((currSet, nextSet) -> {
+                        currSet.retainAll(nextSet);
+                        return currSet;
+                    })
+                    .switchIfEmpty(Single.just(Set.of()))
+                    .map(result -> {
+                        System.out.println(result);
+                        return resources;
+                    })
+                )
             );
     }
 

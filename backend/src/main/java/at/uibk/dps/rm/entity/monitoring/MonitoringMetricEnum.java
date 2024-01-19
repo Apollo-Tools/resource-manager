@@ -10,9 +10,17 @@ import java.util.Arrays;
 @Getter
 public enum MonitoringMetricEnum {
     /**
+     * COST
+     */
+    COST("cost"),
+    /**
      * CPU%
      */
     CPU_UTIL("cpu%"),
+    /**
+     * LATENCY
+     */
+    LATENCY("latency"),
     /**
      * MEMORY%
      */

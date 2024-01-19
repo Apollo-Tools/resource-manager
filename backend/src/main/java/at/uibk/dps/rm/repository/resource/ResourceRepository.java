@@ -228,6 +228,81 @@ public class ResourceRepository extends Repository<Resource> {
     }
 
     /**
+     * Find all resources by their environment, resource types, platforms, regions and resource providers.
+     *
+     * @param sessionManager the database session manager
+     * @param environmentIds the ids of the environments
+     * @param resourceTypeIds the ids of the resource types
+     * @param platformIds the ids of the platforms
+     * @param regionIds the ids of the regions
+     * @param providerIds the ids of the resource providers
+     * @return a Single that emits a list of all resources
+     */
+    public Single<List<Resource>> findAllByNonMVSLOs(SessionManager sessionManager,
+        List<Long> environmentIds, List<Long> resourceTypeIds, List<Long> platformIds, List<Long> regionIds,
+            List<Long> providerIds) {
+        List<String> conditions = new ArrayList<>();
+        if (!environmentIds.isEmpty()) {
+            conditions.add("e.environmentId in (" +
+                environmentIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ")");
+        }
+        if (!resourceTypeIds.isEmpty()) {
+            conditions.add("rt.typeId in (" +
+                resourceTypeIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ")");
+        }
+        if (!platformIds.isEmpty()) {
+            conditions.add("p.platformId in (" +
+                platformIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ")");
+        }
+        if (!regionIds.isEmpty()) {
+            conditions.add("reg.regionId in (" +
+                regionIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ")");
+        }
+        if (!providerIds.isEmpty()) {
+            conditions.add("rp.providerId in (" +
+                providerIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ")");
+        }
+        String conditionString ="";
+        if (!conditions.isEmpty()) {
+            conditionString = "where " + String.join(" and ", conditions);
+        }
+
+        String mainQuery = "select distinct r from MainResource r " +
+            "left join fetch r.metricValues mv " +
+            "left join fetch mv.metric m " +
+            "left join fetch r.region reg " +
+            "left join fetch reg.resourceProvider rp " +
+            "left join fetch rp.environment e " +
+            "left join fetch r.platform p " +
+            "left join fetch p.resourceType rt " +
+            conditionString;
+
+        String subQuery = "select distinct r from SubResource r " +
+            "left join fetch r.metricValues mv " +
+            "left join fetch mv.metric m " +
+            "left join fetch r.mainResource mr " +
+            "left join fetch mr.region reg " +
+            "left join fetch reg.resourceProvider rp " +
+            "left join fetch rp.environment e " +
+            "left join fetch mr.platform p " +
+            "left join fetch p.resourceType rt " +
+            conditionString;
+
+        Single<List<Resource>> getMainResources = Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery(mainQuery, entityClass).getResultList()
+        );
+        Single<List<Resource>> getSubResources = Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery(subQuery, entityClass).getResultList());
+        return Single.zip(getMainResources, getSubResources, (mainResources, subResources) -> {
+                ArrayList<Resource> resources = new ArrayList<>();
+                resources.addAll(mainResources);
+                resources.addAll(subResources);
+                return resources;
+            }
+        );
+    }
+
+    /**
      * Find all resources by an ensemble and fetch the resource, resourceType, region,
      * resourceProvider, platform, environment, metricValues and metric.
      *

@@ -74,14 +74,14 @@ public class SLOUtility {
             .map(Metric::getMetric)
             .toList();
         return checkSLOs.flatMap(metrics -> {
-            if (metrics.isEmpty() && sloRequest.getEnvironments().isEmpty() && sloRequest.getResourceTypes().isEmpty()
+            if (sloRequest.getEnvironments().isEmpty() && sloRequest.getResourceTypes().isEmpty()
                 && sloRequest.getPlatforms().isEmpty() && sloRequest.getRegions().isEmpty() &&
                 sloRequest.getProviders().isEmpty()) {
                 return resourceRepository.findAllMainAndSubResourcesAndFetch(sm);
             }
-            return resourceRepository.findAllBySLOs(sm, metrics,
-                    sloRequest.getEnvironments(), sloRequest.getResourceTypes(), sloRequest.getPlatforms(),
-                    sloRequest.getRegions(), sloRequest.getProviders());
+            return resourceRepository.findAllByNonMVSLOs(sm, sloRequest.getEnvironments(),
+                sloRequest.getResourceTypes(), sloRequest.getPlatforms(), sloRequest.getRegions(),
+                sloRequest.getProviders());
         });
     }
 
