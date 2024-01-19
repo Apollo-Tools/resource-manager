@@ -86,20 +86,34 @@ public class MetricQueryProvider {
                 return Stream.of(k8sCpuUtil, k8sNodeCpuUtil, nodeCpuUtil)
                     .map(query -> new VmConditionQuery(query, slo.getValue(), slo.getExpression()))
                     .collect(Collectors.toList());
-            case MEMORY_UTIL:
+            case MEMORY:
                 // K8s Cluster
                 VmSingleQuery k8sMemoryTotal = new VmSingleQuery("k8s_memory_total_bytes")
                     .setFilter(Map.of("resource", resourceIds));
-                VmSingleQuery k8sMemoryUsed = new VmSingleQuery("k8s_memory_used_bytes")
-                    .setFilter(Map.of("resource", resourceIds));
-                VmCompoundQuery k8sMemoryUtil = new VmCompoundQuery(k8sMemoryUsed, k8sMemoryTotal, '/')
-                    .setMultiplier(100);
                 // K8s Cluster
                 VmSingleQuery k8sNodeMemoryTotal = new VmSingleQuery("k8s_node_memory_total_bytes")
                     .setFilter(Map.of("resource", resourceIds));
+                // Node Exporter
+                VmSingleQuery nodeMemTotal = new VmSingleQuery("node_memory_MemTotal_bytes")
+                    .setFilter(Map.of("resource", resourceIds, "deployment", Set.of("-1|")));
+
+                return Stream.of(k8sMemoryTotal, k8sNodeMemoryTotal, nodeMemTotal)
+                    .map(query -> new VmConditionQuery(query, slo.getValue(), slo.getExpression()))
+                    .collect(Collectors.toList());
+            case MEMORY_UTIL:
+                // K8s Cluster
+                VmSingleQuery k8sMemoryTotalUtil = new VmSingleQuery("k8s_memory_total_bytes")
+                    .setFilter(Map.of("resource", resourceIds));
+                VmSingleQuery k8sMemoryUsed = new VmSingleQuery("k8s_memory_used_bytes")
+                    .setFilter(Map.of("resource", resourceIds));
+                VmCompoundQuery k8sMemoryUtil = new VmCompoundQuery(k8sMemoryUsed, k8sMemoryTotalUtil, '/')
+                    .setMultiplier(100);
+                // K8s Cluster
+                VmSingleQuery k8sNodeMemoryTotalUtil = new VmSingleQuery("k8s_node_memory_total_bytes")
+                    .setFilter(Map.of("resource", resourceIds));
                 VmSingleQuery k8sNodeMemoryUsed = new VmSingleQuery("k8s_node_memory_used_bytes")
                     .setFilter(Map.of("resource", resourceIds));
-                VmCompoundQuery k8sNodeMemoryUtil = new VmCompoundQuery(k8sNodeMemoryUsed, k8sNodeMemoryTotal, '/')
+                VmCompoundQuery k8sNodeMemoryUtil = new VmCompoundQuery(k8sNodeMemoryUsed, k8sNodeMemoryTotalUtil, '/')
                     .setMultiplier(100);
                 // Node Exporter
                 VmSingleQuery nodeMemFree = new VmSingleQuery("node_memory_MemFree_bytes")
@@ -108,11 +122,11 @@ public class MetricQueryProvider {
                     .setFilter(Map.of("resource", resourceIds, "deployment", Set.of("-1|")));
                 VmSingleQuery nodeMemCached = new VmSingleQuery("node_memory_Cached_bytes")
                     .setFilter(Map.of("resource", resourceIds, "deployment", Set.of("-1|")));
-                VmSingleQuery nodeMemTotal = new VmSingleQuery("node_memory_MemTotal_bytes")
+                VmSingleQuery nodeMemTotalUtil = new VmSingleQuery("node_memory_MemTotal_bytes")
                     .setFilter(Map.of("resource", resourceIds, "deployment", Set.of("-1|")));
                 VmCompoundQuery nodeMemFreeBuffer = new VmCompoundQuery(nodeMemFree, nodeMemBuffer, '+');
                 VmCompoundQuery nodeMemUsedTotal = new VmCompoundQuery(nodeMemFreeBuffer, nodeMemCached, '+');
-                VmCompoundQuery nodeMemUtilAbsolute = new VmCompoundQuery(nodeMemUsedTotal, nodeMemTotal, '/')
+                VmCompoundQuery nodeMemUtilAbsolute = new VmCompoundQuery(nodeMemUsedTotal, nodeMemTotalUtil, '/')
                     .setSummand(-1);
                 VmSimpleQuery nodeMemUtil = new VmSimpleQuery(nodeMemUtilAbsolute)
                     .setMultiplier(-100);

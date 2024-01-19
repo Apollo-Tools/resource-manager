@@ -26,6 +26,10 @@ public enum MonitoringMetricEnum {
      */
     LATENCY("latency"),
     /**
+     * MEMORY
+     */
+    MEMORY("memory"),
+    /**
      * MEMORY%
      */
     MEMORY_UTIL("memory%");
