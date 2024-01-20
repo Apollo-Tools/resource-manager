@@ -42,7 +42,7 @@
             "mode": "thresholds"
           },
           "custom": {
-            "align": "right",
+            "align": "center",
             "cellOptions": {
               "type": "auto"
             },
@@ -120,7 +120,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Mem"
+              "options": "Value #Mem (max)"
             },
             "properties": [
               {
@@ -134,16 +134,13 @@
               {
                 "id": "decimals",
                 "value": 2
-              },
-              {
-                "id": "custom.align"
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #CPU"
+              "options": "Value #CPU (max)"
             },
             "properties": [
               {
@@ -155,22 +152,19 @@
                 "value": "short"
               },
               {
-                "id": "custom.align"
-              },
-              {
                 "id": "decimals",
                 "value": 0
               },
               {
                 "id": "custom.width",
-                "value": 50
+                "value": 150
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #CPU util"
+              "options": "Value #CPU util (max)"
             },
             "properties": [
               {
@@ -194,9 +188,6 @@
                 }
               },
               {
-                "id": "custom.align"
-              },
-              {
                 "id": "thresholds",
                 "value": {
                   "mode": "percentage",
@@ -229,7 +220,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Mem util"
+              "options": "Value #Mem util (max)"
             },
             "properties": [
               {
@@ -253,10 +244,6 @@
                 }
               },
               {
-                "id": "custom.align",
-                "value": "auto"
-              },
-              {
                 "id": "thresholds",
                 "value": {
                   "mode": "percentage",
@@ -286,31 +273,19 @@
               },
               {
                 "id": "custom.width",
-                "value": 145
+                "value": 250
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Mem"
+              "options": "Value #CPU util (max)"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 140
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Value #CPU util"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 145
+                "value": 250
               }
             ]
           },
@@ -322,7 +297,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 90
+                "value": 180
               },
               {
                 "id": "links",
@@ -341,42 +316,34 @@
               {
                 "id": "decimals",
                 "value": 0
+              },
+              {
+                "id": "custom.align",
+                "value": "center"
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Mem"
+              "options": "Value #Mem (max)"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 108
+                "value": 150
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Mem"
+              "options": "Value #Up (max)"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 120
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Up"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 76
+                "value": 150
               },
               {
                 "id": "mappings",
@@ -403,6 +370,33 @@
                 "value": {
                   "type": "color-text"
                 }
+              },
+              {
+                "id": "displayName",
+                "value": "Up"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #Availability (max)"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Availability (30d)"
+              },
+              {
+                "id": "custom.width"
+              },
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "decimals",
+                "value": 6
               }
             ]
           }
@@ -410,7 +404,7 @@
       },
       "gridPos": {
         "h": 12,
-        "w": 12,
+        "w": 24,
         "x": 0,
         "y": 0
       },
@@ -508,6 +502,21 @@
           "legendFormat": "__auto",
           "range": false,
           "refId": "Up"
+        },
+        {
+          "datasource": {
+            "type": "victoriametrics-datasource",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "avg_over_time(k8s_up{resource=~\"$resourceId\"}[30d])",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "Availability"
         }
       ],
       "title": "K8s Cluster Resources",
@@ -557,44 +566,84 @@
               "version": true
             },
             "indexByName": {
-              "Temperature": 21,
-              "Time": 2,
-              "Value #CPU": 13,
-              "Value #CPU util": 18,
-              "Value #Disk read": 22,
-              "Value #Disk write": 23,
-              "Value #Hostname": 11,
-              "Value #Load(5m)": 17,
-              "Value #Mem": 14,
-              "Value #Mem util": 19,
-              "Value #Part util": 20,
-              "Value #Receive": 26,
-              "Value #Storage": 15,
-              "Value #TCP_estab": 24,
-              "Value #TCP_tw": 25,
-              "Value #Transmit": 27,
+              "Time": 3,
+              "Value #Availability": 2,
+              "Value #CPU": 4,
+              "Value #CPU util": 6,
+              "Value #Mem": 5,
+              "Value #Mem util": 7,
               "Value #Up": 1,
-              "Value #Uptime": 12,
-              "__name__": 16,
-              "domainname": 3,
-              "instance": 4,
-              "job": 5,
-              "machine": 6,
-              "nodename": 7,
-              "release": 8,
-              "resource": 0,
-              "sysname": 9,
-              "version": 10
+              "resource": 0
             },
             "renameByName": {
               "Time": "",
+              "Value #Availability": "",
               "Value #CPU": "",
               "Value #Part util": "",
               "Value #Storage": "Storage",
               "Value #Temperature": "Temperature",
-              "Value #Up": "Up",
+              "Value #Up": "",
               "id": "Id",
               "resource": "Resource"
+            }
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "Availability (30d)": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              },
+              "Resource": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "Up": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #Availability": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #CPU": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #CPU util": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #Mem": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #Mem util": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #Up": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              }
             }
           }
         },
@@ -637,7 +686,7 @@
             "mode": "thresholds"
           },
           "custom": {
-            "align": "right",
+            "align": "center",
             "cellOptions": {
               "type": "auto"
             },
@@ -679,9 +728,6 @@
               {
                 "id": "decimals",
                 "value": 2
-              },
-              {
-                "id": "custom.align"
               }
             ]
           },
@@ -698,9 +744,6 @@
               {
                 "id": "unit",
                 "value": "short"
-              },
-              {
-                "id": "custom.align"
               },
               {
                 "id": "decimals",
@@ -733,9 +776,6 @@
                   "type": "gauge",
                   "valueDisplayMode": "text"
                 }
-              },
-              {
-                "id": "custom.align"
               },
               {
                 "id": "thresholds",
@@ -794,10 +834,6 @@
                 }
               },
               {
-                "id": "custom.align",
-                "value": "auto"
-              },
-              {
                 "id": "thresholds",
                 "value": {
                   "mode": "percentage",
@@ -827,7 +863,7 @@
               },
               {
                 "id": "custom.width",
-                "value": 145
+                "value": 250
               }
             ]
           },
@@ -839,19 +875,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 30
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Value #Mem"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 140
+                "value": 150
               }
             ]
           },
@@ -863,7 +887,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 145
+                "value": 250
               }
             ]
           },
@@ -875,7 +899,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 90
+                "value": 180
               },
               {
                 "id": "filterable"
@@ -894,7 +918,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 100
+                "value": 150
               }
             ]
           },
@@ -905,8 +929,7 @@
             },
             "properties": [
               {
-                "id": "custom.width",
-                "value": 100
+                "id": "custom.width"
               },
               {
                 "id": "filterable"
@@ -917,9 +940,9 @@
       },
       "gridPos": {
         "h": 12,
-        "w": 12,
-        "x": 12,
-        "y": 0
+        "w": 24,
+        "x": 0,
+        "y": 12
       },
       "hideTimeOverride": false,
       "id": 186,
@@ -1137,8 +1160,8 @@
       {
         "current": {
           "selected": false,
-          "text": "4",
-          "value": "4"
+          "text": "2",
+          "value": "2"
         },
         "datasource": {
           "type": "prometheus",
@@ -1195,6 +1218,6 @@
   "timezone": "browser",
   "title": "K8s Dashboard",
   "uid": "b47a9eee-2299-40ec-9aec-ee2e826d3cfd",
-  "version": 18,
+  "version": 24,
   "weekStart": ""
 }

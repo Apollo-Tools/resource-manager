@@ -32,7 +32,7 @@ const K8sResourceDashboard = ({resourceIds, isActive = true}) => {
   return (
     <GrafanaIframe dashboardId='b47a9eee-2299-40ec-9aec-ee2e826d3cfd/k8s-dashboard'
       parameters={parameters}
-      className="w-full h-[480px]"
+      className="w-full h-[940px]"
     />
   );
 };

@@ -32,7 +32,7 @@
             "mode": "thresholds"
           },
           "custom": {
-            "align": "auto",
+            "align": "center",
             "cellOptions": {
               "type": "auto"
             },
@@ -102,7 +102,7 @@
               },
               {
                 "id": "custom.width",
-                "value": 101
+                "value": 150
               }
             ]
           },
@@ -162,7 +162,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 100
+                "value": 150
               },
               {
                 "id": "filterable",
@@ -173,12 +173,12 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Availability (30 days)"
+              "options": "Availability (30d)"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 165
+                "value": 196
               },
               {
                 "id": "unit",
@@ -321,7 +321,7 @@
               "region": 0
             },
             "renameByName": {
-              "Value #A (sum)": "Availability (30 days)",
+              "Value #A (sum)": "Availability (30d)",
               "Value #Latency": "latency",
               "Value #Latency (sum)": "Latency",
               "Value #Up": "up",
@@ -350,6 +350,6 @@
   "timezone": "",
   "title": "Region Dashboard",
   "uid": "e32c5920-4a78-46e5-a5a1-c78f9ba640a7",
-  "version": 7,
+  "version": 9,
   "weekStart": ""
 }

@@ -23,7 +23,7 @@
     ]
   },
   "description": "Dasbhoard based on https://grafana.com/grafana/dashboards/15172",
-  "editable": false,
+  "editable": true,
   "fiscalYearStartMonth": 0,
   "gnetId": 15172,
   "graphTooltip": 0,
@@ -42,7 +42,7 @@
             "mode": "thresholds"
           },
           "custom": {
-            "align": "right",
+            "align": "center",
             "cellOptions": {
               "type": "auto"
             },
@@ -71,30 +71,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Hostname"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Hostname"
-              },
-              {
-                "id": "unit",
-                "value": "bytes"
-              },
-              {
-                "id": "decimals",
-                "value": 1
-              },
-              {
-                "id": "custom.align"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "instance"
+              "options": "instance (lastNotNull)"
             },
             "properties": [
               {
@@ -110,9 +87,6 @@
                 "value": 2
               },
               {
-                "id": "custom.align"
-              },
-              {
                 "id": "mappings",
                 "value": []
               },
@@ -124,7 +98,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Mem"
+              "options": "Value #Mem (max)"
             },
             "properties": [
               {
@@ -138,16 +112,13 @@
               {
                 "id": "decimals",
                 "value": 2
-              },
-              {
-                "id": "custom.align"
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #CPU"
+              "options": "Value #CPU (max)"
             },
             "properties": [
               {
@@ -159,9 +130,6 @@
                 "value": "short"
               },
               {
-                "id": "custom.align"
-              },
-              {
                 "id": "decimals",
                 "value": 0
               }
@@ -170,7 +138,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Uptime"
+              "options": "Value #Uptime (max)"
             },
             "properties": [
               {
@@ -184,16 +152,13 @@
               {
                 "id": "decimals",
                 "value": 2
-              },
-              {
-                "id": "custom.align"
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Part util"
+              "options": "Value #Part util (max)"
             },
             "properties": [
               {
@@ -217,9 +182,6 @@
                 }
               },
               {
-                "id": "custom.align"
-              },
-              {
                 "id": "thresholds",
                 "value": {
                   "mode": "percentage",
@@ -246,13 +208,17 @@
               {
                 "id": "max",
                 "value": 100
+              },
+              {
+                "id": "displayName",
+                "value": "Storage used"
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #CPU util"
+              "options": "Value #CPU util (max)"
             },
             "properties": [
               {
@@ -276,9 +242,6 @@
                 }
               },
               {
-                "id": "custom.align"
-              },
-              {
                 "id": "thresholds",
                 "value": {
                   "mode": "percentage",
@@ -311,7 +274,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Mem util"
+              "options": "Value #Mem util (max)"
             },
             "properties": [
               {
@@ -335,10 +298,6 @@
                 }
               },
               {
-                "id": "custom.align",
-                "value": "auto"
-              },
-              {
                 "id": "thresholds",
                 "value": {
                   "mode": "percentage",
@@ -371,321 +330,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Disk read"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Disk read"
-              },
-              {
-                "id": "unit",
-                "value": "Bps"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-background"
-                }
-              },
-              {
-                "id": "custom.align"
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "rgba(50, 172, 45, 0.97)",
-                      "value": null
-                    },
-                    {
-                      "color": "rgba(237, 129, 40, 0.89)",
-                      "value": 10485760
-                    },
-                    {
-                      "color": "rgba(245, 54, 54, 0.9)",
-                      "value": 20485760
-                    }
-                  ]
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Value #Disk write"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Disk write"
-              },
-              {
-                "id": "unit",
-                "value": "Bps"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-background"
-                }
-              },
-              {
-                "id": "custom.align"
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "rgba(50, 172, 45, 0.97)",
-                      "value": null
-                    },
-                    {
-                      "color": "rgba(237, 129, 40, 0.89)",
-                      "value": 10485760
-                    },
-                    {
-                      "color": "rgba(245, 54, 54, 0.9)",
-                      "value": 20485760
-                    }
-                  ]
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Value #Receive"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Receive"
-              },
-              {
-                "id": "unit",
-                "value": "bps"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-background"
-                }
-              },
-              {
-                "id": "custom.align"
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "rgba(50, 172, 45, 0.97)",
-                      "value": null
-                    },
-                    {
-                      "color": "rgba(237, 129, 40, 0.89)",
-                      "value": 30485760
-                    },
-                    {
-                      "color": "rgba(245, 54, 54, 0.9)",
-                      "value": 104857600
-                    }
-                  ]
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Value #Transmit"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Transmit"
-              },
-              {
-                "id": "unit",
-                "value": "bps"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-background"
-                }
-              },
-              {
-                "id": "custom.align"
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "rgba(50, 172, 45, 0.97)",
-                      "value": null
-                    },
-                    {
-                      "color": "rgba(237, 129, 40, 0.89)",
-                      "value": 30485760
-                    },
-                    {
-                      "color": "rgba(245, 54, 54, 0.9)",
-                      "value": 104857600
-                    }
-                  ]
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Value #Load(5m)"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Load(5m)"
-              },
-              {
-                "id": "unit",
-                "value": "short"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              },
-              {
-                "id": "custom.align"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Value #TCP_estab"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "TCP_estab"
-              },
-              {
-                "id": "unit",
-                "value": "short"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-background"
-                }
-              },
-              {
-                "id": "custom.align"
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "rgba(50, 172, 45, 0.97)",
-                      "value": null
-                    },
-                    {
-                      "color": "rgba(237, 129, 40, 0.89)",
-                      "value": 1000
-                    },
-                    {
-                      "color": "rgba(245, 54, 54, 0.9)",
-                      "value": 1500
-                    }
-                  ]
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Value #TCP_tw"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "TCP_tw"
-              },
-              {
-                "id": "unit",
-                "value": "short"
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-background"
-                }
-              },
-              {
-                "id": "custom.align",
-                "value": "center"
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "rgba(50, 172, 45, 0.97)",
-                      "value": null
-                    },
-                    {
-                      "color": "rgba(237, 129, 40, 0.89)",
-                      "value": 5000
-                    },
-                    {
-                      "color": "rgba(245, 54, 54, 0.9)",
-                      "value": 20000
-                    }
-                  ]
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Value #Temperature"
+              "options": "Value #Temperature (max)"
             },
             "properties": [
               {
@@ -731,37 +376,17 @@
               {
                 "id": "max",
                 "value": 100
+              },
+              {
+                "id": "displayName",
+                "value": "Temperature"
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "Id"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 67
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byType",
-              "options": "number"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 150
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Value #Storage"
+              "options": "Value #Storage (max)"
             },
             "properties": [
               {
@@ -771,6 +396,10 @@
               {
                 "id": "decimals",
                 "value": 2
+              },
+              {
+                "id": "displayName",
+                "value": "Storage"
               }
             ]
           },
@@ -825,7 +454,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Resource"
+              "options": "resource"
             },
             "properties": [
               {
@@ -838,13 +467,17 @@
               {
                 "id": "decimals",
                 "value": 0
+              },
+              {
+                "id": "displayName",
+                "value": "Resource"
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "Up"
+              "options": "Value #Up (max)"
             },
             "properties": [
               {
@@ -876,6 +509,10 @@
               {
                 "id": "custom.width",
                 "value": 73
+              },
+              {
+                "id": "displayName",
+                "value": "Up"
               }
             ]
           },
@@ -906,24 +543,44 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "IP"
+              "options": "instance (lastNotNull)"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 165
+                "value": 120
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "Temperature"
+              "options": "Value #Temperature (max)"
             },
             "properties": [
               {
                 "id": "custom.width",
                 "value": 145
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #Availability (max)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "decimals",
+                "value": 6
+              },
+              {
+                "id": "displayName",
+                "value": "Availability (30d)"
               }
             ]
           }
@@ -1024,7 +681,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "(1 - avg(rate(node_cpu_seconds_total{resource=~\"$resourceId\",mode=\"idle\", deployment=~\"($deploymentId|)\"}[$interval])) by (resource, instance)) * 100",
+          "expr": "clamp_min((1 - avg(rate(node_cpu_seconds_total{resource=~\"$resourceId\",mode=\"idle\", deployment=~\"($deploymentId|)\"}[$interval])) by (resource, instance)) * 100, 0)",
           "format": "table",
           "hide": false,
           "instant": true,
@@ -1203,6 +860,21 @@
           "interval": "",
           "legendFormat": "Hostname",
           "refId": "Hostname"
+        },
+        {
+          "datasource": {
+            "type": "victoriametrics-datasource",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "avg_over_time(up{resource=~\"$resourceId\", deployment=~\"($deploymentId|)\"}[30d])",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "Availability"
         }
       ],
       "title": "VM/Bare-Metal Resources",
@@ -1240,7 +912,7 @@
               "device": true,
               "domainname": true,
               "fstype": true,
-              "instance": false,
+              "instance": true,
               "job": true,
               "machine": true,
               "mountpoint": true,
@@ -1252,42 +924,127 @@
               "version": true
             },
             "indexByName": {
-              "Temperature": 21,
-              "Time": 2,
-              "Value #CPU": 13,
-              "Value #CPU util": 18,
-              "Value #Disk read": 22,
-              "Value #Disk write": 23,
-              "Value #Hostname": 11,
-              "Value #Load(5m)": 17,
-              "Value #Mem": 14,
-              "Value #Mem util": 19,
-              "Value #Part util": 20,
-              "Value #Receive": 26,
-              "Value #Storage": 15,
-              "Value #TCP_estab": 24,
-              "Value #TCP_tw": 25,
-              "Value #Transmit": 27,
-              "Value #Up": 1,
-              "Value #Uptime": 12,
-              "__name__": 16,
-              "domainname": 3,
-              "instance": 4,
+              "Time": 4,
+              "Value #Availability": 3,
+              "Value #CPU": 7,
+              "Value #CPU util": 10,
+              "Value #Mem": 8,
+              "Value #Mem util": 11,
+              "Value #Part util": 12,
+              "Value #Storage": 9,
+              "Value #Temperature": 13,
+              "Value #Up": 2,
+              "Value #Uptime": 6,
+              "instance": 1,
               "job": 5,
-              "machine": 6,
-              "nodename": 7,
-              "release": 8,
-              "resource": 0,
-              "sysname": 9,
-              "version": 10
+              "resource": 0
             },
             "renameByName": {
               "Value #Part util": "",
-              "Value #Storage": "Storage",
-              "Value #Temperature": "Temperature",
-              "Value #Up": "Up",
+              "Value #Storage": "",
+              "Value #Temperature": "",
+              "Value #Up": "",
               "id": "Id",
-              "resource": "Resource"
+              "resource": ""
+            }
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "Resource": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "Storage": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              },
+              "Temperature": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              },
+              "Up": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #Availability": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #CPU": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #CPU util": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #Mem": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #Mem util": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #Part util": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #Storage": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #Temperature": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #Up": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #Uptime": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              },
+              "instance": {
+                "aggregations": [
+                  "lastNotNull"
+                ],
+                "operation": "aggregate"
+              },
+              "resource": {
+                "aggregations": [],
+                "operation": "groupby"
+              }
             }
           }
         },
@@ -1297,7 +1054,7 @@
             "conversions": [
               {
                 "destinationType": "number",
-                "targetField": "Resource"
+                "targetField": "resource"
               }
             ],
             "fields": {}
@@ -1309,7 +1066,7 @@
             "fields": {},
             "sort": [
               {
-                "field": "Resource"
+                "field": "resource"
               }
             ]
           }
@@ -1491,6 +1248,6 @@
   "timezone": "browser",
   "title": "Node Exporter",
   "uid": "efa71f23-5850-4144-8b29-0ae9480eec94",
-  "version": 4,
+  "version": 7,
   "weekStart": ""
 }
