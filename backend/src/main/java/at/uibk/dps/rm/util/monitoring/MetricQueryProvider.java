@@ -48,6 +48,8 @@ public class MetricQueryProvider {
         K8sNodeVmQueryProvider k8sNodeQueryProvider = new K8sNodeVmQueryProvider(resourceFilter);
         NodeVmQueryProvider nodeQueryProvider = new NodeVmQueryProvider(resourceFilter, noDeploymentFilter,
             mountPointFilter, fsTypeFilter);
+        RegionVmQueryProvider regionQueryProvider = new RegionVmQueryProvider(regionFilter, platformIds,
+            instanceTypeResources.keySet());
         boolean includeSubResources = false;
         double stepMinutes = 5;
         switch (metricEnum) {
@@ -58,22 +60,36 @@ public class MetricQueryProvider {
                 // Node Exporter
                 VmQuery nodeAvailability = nodeQueryProvider.getAvailability();
                 // Lambda, EC2
-                VmSingleQuery regionUpRange = new VmSingleQuery("region_up")
-                    .setFilter(Set.of(regionFilter))
-                    .setTimeRange("30d");
-                VmFunctionQuery regionAvailability = new VmFunctionQuery("avg_over_time", regionUpRange)
-                    .setMultiplier(100.0);
+                VmQuery regionAvailability = regionQueryProvider.getAvailability();
 
                 metricQueryObservable = Observable.fromArray(k8sAvailability, nodeAvailability, regionAvailability);
                 break;
             case COST:
                 // Lambda, EC2
-                VmSingleQuery awsPrice = new VmSingleQuery("aws_price_usd")
-                    .setFilter(Set.of(regionFilter, new VmFilter("platform", "=~", platformIds),
-                        new VmFilter("instance_type", "=~", instanceTypeResources.keySet())));
+                VmQuery awsPrice = regionQueryProvider.getCost();
+
+                VmConditionQuery awsPriceQuery = new VmConditionQuery(awsPrice, slo.getValue(), slo.getExpression(),
+                    config.getAwsPriceMonitoringPeriod() + 60);
 
                 stepMinutes = config.getAwsPriceMonitoringPeriod();
-                metricQueryObservable = Observable.fromArray(awsPrice);
+                staticMetricObservable = queryService.collectInstantMetric(awsPriceQuery.toString())
+                    .flatMapObservable(Observable::fromIterable)
+                    .flatMap(vmResult -> {
+                        MonitoredMetricValue monitoredMetricValue = new MonitoredMetricValue(metricEnum);
+                        monitoredMetricValue.setValueNumber(vmResult.getValues().get(0).getValue());
+                        return Observable.fromIterable(instanceTypeResources.get(vmResult.getMetric().get(
+                            "instance_type")))
+                            .map(resources::get)
+                            .filter(resource -> regionResources.get(vmResult.getMetric().get("region"))
+                                .contains(resource.getResourceId().toString()))
+                            .map(resource -> {
+                                resource.getMonitoredMetricValues().add(monitoredMetricValue);
+                                return resource;
+                            });
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet())
+                    .toObservable();
                 break;
             case CPU:
                 // K8s Cluster
@@ -100,8 +116,7 @@ public class MetricQueryProvider {
                 break;
             case LATENCY:
                 // Lambda, EC2
-                VmSingleQuery regionLatency = new VmSingleQuery("region_latency_seconds")
-                    .setFilter(Set.of(regionFilter));
+                VmQuery regionLatency = regionQueryProvider.getLatency();
                 // TODO: Add k8s, openfaas
                 includeSubResources = true;
 
@@ -171,8 +186,7 @@ public class MetricQueryProvider {
                 // Node Exporter
                 VmQuery nodeUp = nodeQueryProvider.getUp();
                 // Lambda, EC2
-                VmSingleQuery regionUp = new VmSingleQuery("region_up")
-                    .setFilter(Set.of(regionFilter));
+                VmQuery regionUp = regionQueryProvider.getUp();
 
                 metricQueryObservable = Observable.fromArray(k8sUp, nodeUp, regionUp);
                 break;

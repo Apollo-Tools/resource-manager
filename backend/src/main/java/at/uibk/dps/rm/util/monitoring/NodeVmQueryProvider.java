@@ -27,6 +27,11 @@ public class NodeVmQueryProvider implements VmQueryProvider {
     }
 
     @Override
+    public VmQuery getCost() {
+        throw new NotImplementedException();
+    }
+
+    @Override
     public VmQuery getCpu() {
         VmSingleQuery nodeCpuSecondsTotal = new VmSingleQuery("node_cpu_seconds_total")
             .setFilter(Set.of(resourceFilter, noDeploymentFilter,

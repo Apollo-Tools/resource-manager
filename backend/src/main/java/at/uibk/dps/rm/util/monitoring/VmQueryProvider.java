@@ -6,6 +6,8 @@ public interface VmQueryProvider {
 
     VmQuery getAvailability();
 
+    VmQuery getCost();
+
     VmQuery getCpu();
 
     VmQuery getCpuUtil();

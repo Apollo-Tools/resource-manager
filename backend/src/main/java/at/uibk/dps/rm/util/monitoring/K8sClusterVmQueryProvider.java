@@ -21,6 +21,11 @@ public class K8sClusterVmQueryProvider implements VmQueryProvider {
     }
 
     @Override
+    public VmQuery getCost() {
+        throw new NotImplementedException();
+    }
+
+    @Override
      public VmQuery getCpu() {
         return new VmSingleQuery("k8s_cpu_total").setFilter(Set.of(resourceFilter));
     }
