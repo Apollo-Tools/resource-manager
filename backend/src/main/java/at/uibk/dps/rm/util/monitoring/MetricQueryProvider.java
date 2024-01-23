@@ -44,6 +44,8 @@ public class MetricQueryProvider {
         Set<String> platformIds = platformResources.keySet().stream()
             .map(Pair::getKey)
             .collect(Collectors.toSet());
+        K8sClusterVmQueryProvider clusterQueryProvider = new K8sClusterVmQueryProvider(resourceFilter);
+        K8sNodeVmQueryProvider nodeQueryProvider = new K8sNodeVmQueryProvider(resourceFilter);
         boolean includeSubResources = false;
         double stepMinutes = 5;
         switch (metricEnum) {
@@ -51,11 +53,7 @@ public class MetricQueryProvider {
                 // K8s Cluster
                 // K8s Node
                 includeSubResources = true;
-                VmSingleQuery k8sUpRange = new VmSingleQuery("k8s_up")
-                    .setFilter(Set.of(resourceFilter))
-                    .setTimeRange("30d");
-                VmFunctionQuery k8sAvailability = new VmFunctionQuery("avg_over_time", k8sUpRange)
-                    .setMultiplier(100.0);
+                VmQuery k8sAvailability = clusterQueryProvider.getAvailability();
                 // Node Exporter
                 VmSingleQuery nodeUpRange = new VmSingleQuery("up")
                     .setFilter(Set.of(resourceFilter, noDeploymentFilter))
@@ -84,11 +82,9 @@ public class MetricQueryProvider {
                 break;
             case CPU:
                 // K8s Cluster
-                VmSingleQuery k8sCpuTotal = new VmSingleQuery("k8s_cpu_total")
-                    .setFilter(Set.of(resourceFilter));
+                VmQuery k8sCpuTotal = clusterQueryProvider.getCpu();
                 // K8s Node
-                VmSingleQuery k8sNodeCpuTotal = new VmSingleQuery("k8s_node_cpu_total")
-                    .setFilter(Set.of(resourceFilter));
+                VmQuery k8sNodeCpuTotal = nodeQueryProvider.getCpu();
                 // Node Exporter
                 VmSingleQuery nodeCpuSecondsTotal = new VmSingleQuery("node_cpu_seconds_total")
                     .setFilter(Set.of(resourceFilter, noDeploymentFilter,
@@ -103,19 +99,9 @@ public class MetricQueryProvider {
                 break;
             case CPU_UTIL:
                 // K8s Cluster
-                VmSingleQuery k8sCpuTotalUtil = new VmSingleQuery("k8s_cpu_total")
-                    .setFilter(Set.of(resourceFilter));
-                VmSingleQuery k8sCpuUsed = new VmSingleQuery("k8s_cpu_used")
-                    .setFilter(Set.of(resourceFilter));
-                VmCompoundQuery k8sCpuUtil = new VmCompoundQuery(k8sCpuUsed, k8sCpuTotalUtil, '/')
-                    .setMultiplier(100);
+                VmQuery k8sCpuUtil = clusterQueryProvider.getCpuUtil();
                 // K8s Node
-                VmSingleQuery k8sNodeCpuTotalUtil = new VmSingleQuery("k8s_node_cpu_total")
-                    .setFilter(Set.of(resourceFilter));
-                VmSingleQuery k8sNodeCpuUsed = new VmSingleQuery("k8s_node_cpu_used")
-                    .setFilter(Set.of(resourceFilter));
-                VmCompoundQuery k8sNodeCpuUtil = new VmCompoundQuery(k8sNodeCpuUsed, k8sNodeCpuTotalUtil, '/')
-                    .setMultiplier(100);
+                VmQuery k8sNodeCpuUtil = nodeQueryProvider.getCpuUtil();
                 // Node Exporter
                 VmSingleQuery nodeCpuSecondsTotalUtil = new VmSingleQuery("node_cpu_seconds_total")
                     .setFilter(Set.of(resourceFilter, noDeploymentFilter,
@@ -141,11 +127,9 @@ public class MetricQueryProvider {
                 break;
             case MEMORY:
                 // K8s Cluster
-                VmSingleQuery k8sMemoryTotal = new VmSingleQuery("k8s_memory_total_bytes")
-                    .setFilter(Set.of(resourceFilter));
+                VmQuery k8sMemoryTotal = clusterQueryProvider.getMemory();
                 // K8s Node
-                VmSingleQuery k8sNodeMemoryTotal = new VmSingleQuery("k8s_node_memory_total_bytes")
-                    .setFilter(Set.of(resourceFilter));
+                VmQuery k8sNodeMemoryTotal = nodeQueryProvider.getMemory();
                 // Node Exporter
                 VmSingleQuery nodeMemTotal = new VmSingleQuery("node_memory_MemTotal_bytes")
                     .setFilter(Set.of(resourceFilter, noDeploymentFilter));
@@ -157,19 +141,9 @@ public class MetricQueryProvider {
                 break;
             case MEMORY_UTIL:
                 // K8s Cluster
-                VmSingleQuery k8sMemoryTotalUtil = new VmSingleQuery("k8s_memory_total_bytes")
-                    .setFilter(Set.of(resourceFilter));
-                VmSingleQuery k8sMemoryUsed = new VmSingleQuery("k8s_memory_used_bytes")
-                    .setFilter(Set.of(resourceFilter));
-                VmCompoundQuery k8sMemoryUtil = new VmCompoundQuery(k8sMemoryUsed, k8sMemoryTotalUtil, '/')
-                    .setMultiplier(100);
+                VmQuery k8sMemoryUtil = clusterQueryProvider.getMemoryUtil();
                 // K8s Node
-                VmSingleQuery k8sNodeMemoryTotalUtil = new VmSingleQuery("k8s_node_memory_total_bytes")
-                    .setFilter(Set.of(resourceFilter));
-                VmSingleQuery k8sNodeMemoryUsed = new VmSingleQuery("k8s_node_memory_used_bytes")
-                    .setFilter(Set.of(resourceFilter));
-                VmCompoundQuery k8sNodeMemoryUtil = new VmCompoundQuery(k8sNodeMemoryUsed, k8sNodeMemoryTotalUtil, '/')
-                    .setMultiplier(100);
+                VmQuery k8sNodeMemoryUtil = nodeQueryProvider.getMemoryUtil();
                 // Node Exporter
                 VmSingleQuery nodeMemFree = new VmSingleQuery("node_memory_MemFree_bytes")
                     .setFilter(Set.of(resourceFilter, noDeploymentFilter));
@@ -193,8 +167,7 @@ public class MetricQueryProvider {
                 Set<String> nodeNames = slo.getValue().stream()
                     .map(SLOValue::getValueString)
                     .collect(Collectors.toSet());
-                VmSingleQuery k8sNode = new VmSingleQuery("k8s_node_cpu_total")
-                    .setFilter(Set.of(resourceFilter, new VmFilter("node", "=~", nodeNames)));
+                VmQuery k8sNode = nodeQueryProvider.getResourcesByNodeName(nodeNames);
 
                 staticMetricObservable = queryService.collectInstantMetric(k8sNode.toString())
                     .flatMapObservable(Observable::fromIterable)
@@ -235,8 +208,7 @@ public class MetricQueryProvider {
                 // K8s Cluster
                 // K8s Node
                 includeSubResources = true;
-                VmSingleQuery k8sUp = new VmSingleQuery("k8s_up")
-                    .setFilter(Set.of(resourceFilter));
+                VmQuery k8sUp = clusterQueryProvider.getUp();
                 // Node Exporter
                 VmSingleQuery nodeUp = new VmSingleQuery("up")
                     .setFilter(Set.of(resourceFilter, noDeploymentFilter));
