@@ -1,34 +1,56 @@
 package at.uibk.dps.rm.util.monitoring;
 
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
+import at.uibk.dps.rm.entity.dto.metric.MonitoredMetricValue;
+import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
+import at.uibk.dps.rm.entity.dto.resource.SubResourceDTO;
 import at.uibk.dps.rm.entity.dto.slo.SLOValue;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
+import at.uibk.dps.rm.entity.model.MetricValue;
+import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.monitoring.MonitoringMetricEnum;
 import at.uibk.dps.rm.entity.monitoring.victoriametrics.*;
-import lombok.experimental.UtilityClass;
+import at.uibk.dps.rm.service.rxjava3.monitoring.metricquery.MetricQueryService;
+import at.uibk.dps.rm.util.misc.MetricValueMapper;
+import at.uibk.dps.rm.util.validation.SLOCompareUtility;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Single;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-@UtilityClass
+@RequiredArgsConstructor
 public class MetricQueryProvider {
 
-    public static List<VmQuery> getMetricQuery(ConfigDTO config, MonitoringMetricEnum metricEnum,
-            ServiceLevelObjective slo, Set<String> resourceIds, HashSetValuedHashMap<String, String> regionResources,
-            HashSetValuedHashMap<String, String> platformResources,
+    private final MetricQueryService queryService;
+
+
+    public Single<Set<Resource>> getMetricQuery(ConfigDTO config, MonitoringMetricEnum metricEnum,
+            ServiceLevelObjective slo, Map<String, Resource> resources, Set<String> resourceIds,
+            HashSetValuedHashMap<String, String> regionResources,
+            HashSetValuedHashMap<Pair<String, String>, String> platformResources,
             HashSetValuedHashMap<String, String> instanceTypeResources) {
         VmFilter resourceFilter = new VmFilter("resource", "=~", resourceIds);
         VmFilter regionFilter = new VmFilter("region", "=~", regionResources.keySet());
         VmFilter noDeploymentFilter = new VmFilter("deployment", "=~", Set.of("-1|"));
         VmFilter mountPointFilter = new VmFilter("mountpoint", "=", Set.of("/"));
         VmFilter fsTypeFilter = new VmFilter("fstype", "!=", Set.of("rootfs"));
+        Observable<VmQuery> metricQueryObservable = Observable.fromArray();
+        Observable<Set<Resource>> staticMetricObservable = Observable.fromArray();
+        Set<String> platformIds = platformResources.keySet().stream()
+            .map(Pair::getKey)
+            .collect(Collectors.toSet());
+        boolean includeSubResources = false;
+        double stepMinutes = 5;
         switch (metricEnum) {
             case AVAILABILITY:
                 // K8s Cluster
                 // K8s Node
+                includeSubResources = true;
                 VmSingleQuery k8sUpRange = new VmSingleQuery("k8s_up")
                     .setFilter(Set.of(resourceFilter))
                     .setTimeRange("30d");
@@ -48,20 +70,18 @@ public class MetricQueryProvider {
                 VmFunctionQuery regionAvailability = new VmFunctionQuery("avg_over_time", regionUpRange)
                     .setMultiplier(100.0);
 
-                return Stream.of(k8sAvailability, nodeAvailability, regionAvailability)
-                    .map(query -> new VmConditionQuery(query, slo.getValue(), slo.getExpression()))
-                    .collect(Collectors.toList());
+                metricQueryObservable = Observable.fromArray(k8sAvailability, nodeAvailability, regionAvailability);
+                break;
             case COST:
                 // lambda
                 // ec2
                 VmSingleQuery awsPrice = new VmSingleQuery("aws_price_usd")
-                    .setFilter(Set.of(regionFilter, new VmFilter("platform", "=~", platformResources.keySet()),
+                    .setFilter(Set.of(regionFilter, new VmFilter("platform", "=~", platformIds),
                         new VmFilter("instance_type", "=~", instanceTypeResources.keySet())));
 
-                return Stream.of(awsPrice)
-                    .map(query -> new VmConditionQuery(query, slo.getValue(), slo.getExpression(),
-                        config.getAwsPriceMonitoringPeriod()))
-                    .collect(Collectors.toList());
+                stepMinutes = config.getAwsPriceMonitoringPeriod();
+                metricQueryObservable = Observable.fromArray(awsPrice);
+                break;
             case CPU:
                 // K8s Cluster
                 VmSingleQuery k8sCpuTotal = new VmSingleQuery("k8s_cpu_total")
@@ -75,10 +95,12 @@ public class MetricQueryProvider {
                         new VmFilter("mode", "=", Set.of("system"))));
                 VmFunctionQuery nodeCount = new VmFunctionQuery("count", nodeCpuSecondsTotal)
                     .setGroupBy(Set.of("resource", "instance"));
+                // EC 2
+                staticMetricObservable = filterAndMapStaticMetricToEC2Resource(resources, platformResources,
+                    metricEnum, slo);
 
-                return Stream.of(k8sCpuTotal, k8sNodeCpuTotal, nodeCount)
-                    .map(query -> new VmConditionQuery(query, slo.getValue(), slo.getExpression()))
-                    .collect(Collectors.toList());
+                metricQueryObservable = Observable.fromArray(k8sCpuTotal, k8sNodeCpuTotal, nodeCount);
+                break;
             case CPU_UTIL:
                 // K8s Cluster
                 VmSingleQuery k8sCpuTotalUtil = new VmSingleQuery("k8s_cpu_total")
@@ -106,17 +128,17 @@ public class MetricQueryProvider {
                 VmSimpleQuery nodeCpuUtil = new VmSimpleQuery(nodeAvg)
                     .setMultiplier(-100);
 
-                return Stream.of(k8sCpuUtil, k8sNodeCpuUtil, nodeCpuUtil)
-                    .map(query -> new VmConditionQuery(query, slo.getValue(), slo.getExpression()))
-                    .collect(Collectors.toList());
+                metricQueryObservable = Observable.fromArray(k8sCpuUtil, k8sNodeCpuUtil, nodeCpuUtil);
+                break;
             case LATENCY:
                 // lambda, ec2
                 VmSingleQuery regionLatency = new VmSingleQuery("region_latency_seconds")
                     .setFilter(Set.of(regionFilter));
+                // TODO: Add k8s, openfaas
+                includeSubResources = true;
 
-                return Stream.of(regionLatency)
-                    .map(query -> new VmConditionQuery(query, slo.getValue(), slo.getExpression()))
-                    .collect(Collectors.toList());
+                metricQueryObservable = Observable.fromArray(regionLatency);
+                break;
             case MEMORY:
                 // K8s Cluster
                 VmSingleQuery k8sMemoryTotal = new VmSingleQuery("k8s_memory_total_bytes")
@@ -127,10 +149,12 @@ public class MetricQueryProvider {
                 // Node Exporter
                 VmSingleQuery nodeMemTotal = new VmSingleQuery("node_memory_MemTotal_bytes")
                     .setFilter(Set.of(resourceFilter, noDeploymentFilter));
+                // EC 2
+                staticMetricObservable = filterAndMapStaticMetricToEC2Resource(resources, platformResources,
+                    metricEnum, slo);
 
-                return Stream.of(k8sMemoryTotal, k8sNodeMemoryTotal, nodeMemTotal)
-                    .map(query -> new VmConditionQuery(query, slo.getValue(), slo.getExpression()))
-                    .collect(Collectors.toList());
+                metricQueryObservable = Observable.fromArray(k8sMemoryTotal, k8sNodeMemoryTotal, nodeMemTotal);
+                break;
             case MEMORY_UTIL:
                 // K8s Cluster
                 VmSingleQuery k8sMemoryTotalUtil = new VmSingleQuery("k8s_memory_total_bytes")
@@ -162,9 +186,8 @@ public class MetricQueryProvider {
                 VmSimpleQuery nodeMemUtil = new VmSimpleQuery(nodeMemUtilAbsolute)
                     .setMultiplier(-100);
 
-                return Stream.of(k8sMemoryUtil, k8sNodeMemoryUtil, nodeMemUtil)
-                    .map(query -> new VmConditionQuery(query, slo.getValue(), slo.getExpression()))
-                    .collect(Collectors.toList());
+                metricQueryObservable = Observable.fromArray(k8sMemoryUtil, k8sNodeMemoryUtil, nodeMemUtil);
+                break;
             case NODE:
                 // K8s Node
                 Set<String> nodeNames = slo.getValue().stream()
@@ -172,15 +195,30 @@ public class MetricQueryProvider {
                     .collect(Collectors.toSet());
                 VmSingleQuery k8sNode = new VmSingleQuery("k8s_node_cpu_total")
                     .setFilter(Set.of(resourceFilter, new VmFilter("node", "=~", nodeNames)));
-                return List.of(k8sNode);
+
+                staticMetricObservable = queryService.collectInstantMetric(k8sNode.toString())
+                    .flatMapObservable(Observable::fromIterable)
+                    .map(vmResult -> {
+                        MonitoredMetricValue monitoredMetricValue = new MonitoredMetricValue(metricEnum);
+                        monitoredMetricValue.setValueString(vmResult.getMetric().get("node"));
+                        Resource resource = resources.get(vmResult.getMetric().get("resource"));
+                        resource.getMonitoredMetricValues().add(monitoredMetricValue);
+                        return resource;
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet())
+                    .toObservable();
+                break;
             case STORAGE:
                 // Node Exporter
                 VmSingleQuery nodeStorageTotal = new VmSingleQuery("node_filesystem_size_bytes")
                     .setFilter(Set.of(resourceFilter, noDeploymentFilter, mountPointFilter, fsTypeFilter));
+                // EC 2
+                staticMetricObservable = filterAndMapStaticMetricToEC2Resource(resources, platformResources,
+                    metricEnum, slo);
 
-                return Stream.of(nodeStorageTotal)
-                    .map(query -> new VmConditionQuery(query, slo.getValue(), slo.getExpression()))
-                    .collect(Collectors.toList());
+                metricQueryObservable = Observable.fromArray(nodeStorageTotal);
+                break;
             case STORAGE_UTIL:
                 // Node Exporter
                 VmSingleQuery nodeStorageAvail = new VmSingleQuery("node_filesystem_avail_bytes")
@@ -191,12 +229,12 @@ public class MetricQueryProvider {
                 VmCompoundQuery nodeStoragePercent = new VmCompoundQuery(nodeStorageAvail, nodeStorageTotalUtil, '/')
                     .setSummand(100);
 
-                return Stream.of(nodeStoragePercent)
-                    .map(query -> new VmConditionQuery(query, slo.getValue(), slo.getExpression()))
-                    .collect(Collectors.toList());
+                metricQueryObservable = Observable.fromArray(nodeStoragePercent);
+                break;
             case UP:
                 // K8s Cluster
                 // K8s Node
+                includeSubResources = true;
                 VmSingleQuery k8sUp = new VmSingleQuery("k8s_up")
                     .setFilter(Set.of(resourceFilter));
                 // Node Exporter
@@ -207,13 +245,102 @@ public class MetricQueryProvider {
                 VmSingleQuery regionUp = new VmSingleQuery("region_up")
                     .setFilter(Set.of(regionFilter));
 
-
-                return Stream.of(k8sUp, nodeUp, regionUp)
-                    .map(query -> new VmConditionQuery(query, slo.getValue(), slo.getExpression()))
-                    .collect(Collectors.toList());
-
+                metricQueryObservable = Observable.fromArray(k8sUp, nodeUp, regionUp);
+                break;
         }
-        return null;
+        boolean finalIncludeSubResources = includeSubResources;
+        double finalStepMinutes = stepMinutes;
+        return Observable.merge(metricQueryObservable
+                .map(query -> new VmConditionQuery(query, slo.getValue(), slo.getExpression(), finalStepMinutes))
+                .flatMapSingle(query -> queryService.collectInstantMetric(query.toString()))
+                .flatMapSingle(vmResults -> mapMonitoredMetricToResources(metricEnum, resources, regionResources,
+                    vmResults, finalIncludeSubResources)),
+                staticMetricObservable)
+            .reduce((currSet, nextSet) -> {
+                currSet.addAll(nextSet);
+                return currSet;
+            })
+            .switchIfEmpty(Single.just(new HashSet<>()));
+    }
+
+    private Observable<Set<Resource>> filterAndMapStaticMetricToEC2Resource(Map<String, Resource> resources,
+            HashSetValuedHashMap<Pair<String, String>, String> platformResources,
+            MonitoringMetricEnum metricEnum, ServiceLevelObjective slo) {
+        return Observable.fromIterable(platformResources.keySet())
+            .filter(platform -> platform.getValue().equals(PlatformEnum.EC2.getValue()))
+            .first(new ImmutablePair<>("", ""))
+            .flatMapObservable(pair -> Observable.fromIterable(platformResources.get(pair)))
+            .map(resources::get)
+            .filter(resource -> {
+                Map<String, MetricValue> metricValueMap = MetricValueMapper
+                    .mapMetricValues(resource.getMetricValues());
+                MetricValue metricValue = metricValueMap.get(metricEnum.getName());
+                if (metricValue != null && SLOCompareUtility.compareMetricValueWithSLO(metricValue, slo)) {
+                    MonitoredMetricValue monitoredMetricValue = new MonitoredMetricValue(metricEnum);
+                    monitoredMetricValue.setValueNumber(metricValue.getValueNumber().doubleValue());
+                    monitoredMetricValue.setValueString(metricValue.getValueString());
+                    monitoredMetricValue.setValueBool(metricValue.getValueBool());
+                    resource.getMonitoredMetricValues().add(monitoredMetricValue);
+                    return true;
+                }
+                return false;
+            })
+            .collect(Collectors.toSet())
+            .toObservable();
+    }
+
+    private Single<Set<Resource>> mapMonitoredMetricToResources(MonitoringMetricEnum metricEnum,
+            Map<String, Resource> resources, HashSetValuedHashMap<String, String> regionResources,
+            List<VmResult> vmResults, boolean includeSubResources) {
+        return Observable.fromIterable(vmResults)
+            .map(vmResult -> {
+                MonitoredMetricValue metricValue = new MonitoredMetricValue(metricEnum);
+                metricValue.setValueNumber(vmResult.getValues().get(0).getValue());
+                if (vmResult.getMetric().containsKey("resource")) {
+                    Set<Resource> resourceSet = new HashSet<>();
+                    Resource resource = resources.get(vmResult.getMetric().get("resource"));
+                    resource.getMonitoredMetricValues().add(metricValue);
+                    resourceSet.add(resource);
+                    return resourceSet;
+                }
+                return regionResources.get(vmResult.getMetric().get("region"))
+                    .stream()
+                    .map(resources::get)
+                    .peek(resource -> resource.getMonitoredMetricValues().add(metricValue))
+                    .collect(Collectors.toSet());
+            })
+            .collectInto(new HashSet<Resource>(), Set::addAll)
+            .flatMap(updatedResources -> {
+                if (!includeSubResources) {
+                    return Single.just(updatedResources);
+                }
+                return addSubResourcesToFilteredResources(updatedResources, resources, metricEnum);
+            });
+    }
+
+    private Single<Set<Resource>> addSubResourcesToFilteredResources(Set<Resource> updatedResources,
+            Map<String, Resource> resources, MonitoringMetricEnum metricEnum) {
+        return Observable.fromIterable(updatedResources)
+            .flatMapSingle(mainResource -> Observable.fromIterable(resources.values())
+                .filter(resource -> {
+                    if (!(resource instanceof SubResourceDTO)) {
+                        return false;
+                    }
+                    SubResourceDTO subResource = (SubResourceDTO) resource;
+                    if (subResource.getMainResourceId() != mainResource.getResourceId()) {
+                        return false;
+                    }
+                    Map<String, MonitoredMetricValue> metricValueMap = MetricValueMapper
+                        .mapMonitoredMetricValues(mainResource.getMonitoredMetricValues());
+                    subResource.getMonitoredMetricValues().add(metricValueMap.get(metricEnum.getName()));
+                    return true;
+                })
+                .collect(Collectors.toSet())
+            )
+            .reduce(new HashSet<>(updatedResources), (currSet, nextSet) -> {
+                currSet.addAll(nextSet);
+                return currSet;
+            });
     }
 
 }

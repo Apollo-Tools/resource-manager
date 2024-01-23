@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.dto.resource.SubResourceDTO;
 import at.uibk.dps.rm.entity.model.MetricValue;
+import at.uibk.dps.rm.entity.model.Platform;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.monitoring.MonitoringMetricEnum;
 import at.uibk.dps.rm.handler.ValidationHandler;
@@ -20,9 +21,10 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -77,15 +79,14 @@ public class ResourceHandler extends ValidationHandler {
                 .flatMap(resources -> Observable.fromIterable(resources)
                     .map(resource -> ((JsonObject) resource))
                     .map(resource -> resource.mapTo(Resource.class))
-                    .collect(Collectors.toSet())
+                    .collect(Collectors.toMap(resource -> resource.getResourceId().toString(), resource -> resource))
                     .flatMapObservable(filteredResources -> {
-                        Set<String> resourceIds = filteredResources.stream()
-                            .map(resource -> resource.getResourceId().toString())
-                            .collect(Collectors.toSet());
+                        Set<String> resourceIds = filteredResources.keySet();
                         HashSetValuedHashMap<String, String> regionResources = new HashSetValuedHashMap<>();
-                        HashSetValuedHashMap<String, String> platformResources = new HashSetValuedHashMap<>();
+                        HashSetValuedHashMap<Pair<String, String>, String> platformResources =
+                            new HashSetValuedHashMap<>();
                         HashSetValuedHashMap<String, String> instanceTypeResources = new HashSetValuedHashMap<>();
-                        filteredResources.forEach(resource -> {
+                        filteredResources.values().forEach(resource -> {
                             Map<String, MetricValue> metricValues =
                                 MetricValueMapper.mapMetricValues(resource.getMetricValues());
                             if (metricValues.containsKey("instance-type")) {
@@ -96,8 +97,9 @@ public class ResourceHandler extends ValidationHandler {
                                 SubResourceDTO subResourceDTO = (SubResourceDTO) resource;
                                 regionResources.put(subResourceDTO.getRegion().getRegionId().toString(),
                                     subResourceDTO.getResourceId().toString());
-                                platformResources.put(subResourceDTO.getPlatform().getPlatformId().toString(),
-                                    subResourceDTO.getResourceId().toString());
+                                Platform platform = subResourceDTO.getPlatform();
+                                platformResources.put(new ImmutablePair<>(platform.getPlatformId().toString(),
+                                        platform.getPlatform()), subResourceDTO.getResourceId().toString());
                                 if (subResourceDTO.getPlatform().getPlatform().equals(PlatformEnum.LAMBDA.getValue())) {
                                     instanceTypeResources.put(PlatformEnum.LAMBDA.getValue(),
                                         subResourceDTO.getResourceId().toString());
@@ -105,30 +107,23 @@ public class ResourceHandler extends ValidationHandler {
                             } else {
                                 regionResources.put(resource.getMain().getRegion().getRegionId().toString(),
                                     resource.getResourceId().toString());
-                                platformResources.put(resource.getMain().getPlatform().getPlatformId().toString(),
-                                    resource.getResourceId().toString());
+                                Platform platform = resource.getMain().getPlatform();
+                                platformResources.put(new ImmutablePair<>(platform.getPlatformId().toString(),
+                                        platform.getPlatform()), resource.getResourceId().toString());
                                 if (resource.getMain().getPlatform().getPlatform().equals(PlatformEnum.LAMBDA.getValue())) {
                                     instanceTypeResources.put(PlatformEnum.LAMBDA.getValue(),
                                         resource.getResourceId().toString());
                                 }
                             }
                         });
+                        MetricQueryProvider queryProvider = new MetricQueryProvider(metricQueryService);
                         return Observable.fromIterable(sloRequest.getServiceLevelObjectives())
                             .filter(slo -> MonitoringMetricEnum.fromSLO(slo) != null)
                             .flatMapSingle(slo -> {
+                                // TODO: fix deployment
                                 MonitoringMetricEnum metric = MonitoringMetricEnum.fromSLO(slo);
-                                return Observable.fromIterable(Objects.requireNonNull(MetricQueryProvider
-                                        .getMetricQuery(configDTO, metric, slo, resourceIds, regionResources,
-                                            platformResources, instanceTypeResources)))
-                                    .flatMapSingle(query -> metricQueryService.collectInstantMetric(query.toString()))
-                                    .flatMapSingle(vmResults -> Observable.fromIterable(vmResults)
-                                        .map(vmResult -> vmResult.getMetric().get("resource"))
-                                        .collect(Collectors.toSet()))
-                                    .reduce((currSet, nextSet) -> {
-                                        currSet.addAll(nextSet);
-                                        return currSet;
-                                    })
-                                    .switchIfEmpty(Single.just(Set.of()));
+                                return queryProvider.getMetricQuery(configDTO, metric, slo, filteredResources,
+                                    resourceIds, regionResources, platformResources, instanceTypeResources);
                             });
                     })
                     .reduce((currSet, nextSet) -> {
