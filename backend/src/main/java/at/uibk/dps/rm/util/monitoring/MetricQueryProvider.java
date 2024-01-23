@@ -28,7 +28,6 @@ public class MetricQueryProvider {
 
     private final MetricQueryService queryService;
 
-
     public Single<Set<Resource>> getMetricQuery(ConfigDTO config, MonitoringMetricEnum metricEnum,
             ServiceLevelObjective slo, Map<String, Resource> resources, Set<String> resourceIds,
             HashSetValuedHashMap<String, String> regionResources,

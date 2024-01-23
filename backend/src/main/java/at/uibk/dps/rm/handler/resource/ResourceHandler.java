@@ -1,11 +1,10 @@
 package at.uibk.dps.rm.handler.resource;
 
 import at.uibk.dps.rm.entity.dto.SLORequest;
+import at.uibk.dps.rm.entity.dto.resource.FindResourceBySloDTO;
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.dto.resource.SubResourceDTO;
-import at.uibk.dps.rm.entity.model.MetricValue;
-import at.uibk.dps.rm.entity.model.Platform;
-import at.uibk.dps.rm.entity.model.Resource;
+import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.monitoring.MonitoringMetricEnum;
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
@@ -131,10 +130,21 @@ public class ResourceHandler extends ValidationHandler {
                         return currSet;
                     })
                     .switchIfEmpty(Single.just(Set.of()))
-                    .map(result -> {
-                        System.out.println(result);
-                        return resources;
+                    .flatMapObservable(Observable::fromIterable)
+                    .map(resource -> {
+                        FindResourceBySloDTO result;
+                        if (resource instanceof SubResourceDTO) {
+                            result = new FindResourceBySloDTO((SubResourceDTO) resource);
+                        } else if (resource instanceof MainResource) {
+                            result = new FindResourceBySloDTO((MainResource) resource);
+                        } else {
+                            result = new FindResourceBySloDTO((SubResource) resource);
+                        }
+                        return result;
                     })
+                    .map(JsonObject::mapFrom)
+                    .toList()
+                    .map(JsonArray::new)
                 )
             );
     }
