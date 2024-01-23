@@ -31,6 +31,11 @@ public class K8sNodeVmQueryProvider implements VmQueryProvider {
     }
 
     @Override
+    public VmQuery getLatency() {
+        throw new NotImplementedException();
+    }
+
+    @Override
     public VmQuery getMemory() {
         return new VmSingleQuery("k8s_node_memory_total_bytes").setFilter(Set.of(resourceFilter));
     }
@@ -42,6 +47,16 @@ public class K8sNodeVmQueryProvider implements VmQueryProvider {
             .setFilter(Set.of(resourceFilter));
         return new VmCompoundQuery(k8sNodeMemoryUsed, k8sNodeMemoryTotal, '/')
             .setMultiplier(100);
+    }
+
+    @Override
+    public VmQuery getStorage() {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public VmQuery getStorageUtil() {
+        throw new NotImplementedException();
     }
 
     @Override

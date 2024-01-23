@@ -44,24 +44,20 @@ public class MetricQueryProvider {
         Set<String> platformIds = platformResources.keySet().stream()
             .map(Pair::getKey)
             .collect(Collectors.toSet());
-        K8sClusterVmQueryProvider clusterQueryProvider = new K8sClusterVmQueryProvider(resourceFilter);
-        K8sNodeVmQueryProvider nodeQueryProvider = new K8sNodeVmQueryProvider(resourceFilter);
+        K8sClusterVmQueryProvider ks8ClusterQueryProvider = new K8sClusterVmQueryProvider(resourceFilter);
+        K8sNodeVmQueryProvider k8sNodeQueryProvider = new K8sNodeVmQueryProvider(resourceFilter);
+        NodeVmQueryProvider nodeQueryProvider = new NodeVmQueryProvider(resourceFilter, noDeploymentFilter,
+            mountPointFilter, fsTypeFilter);
         boolean includeSubResources = false;
         double stepMinutes = 5;
         switch (metricEnum) {
             case AVAILABILITY:
-                // K8s Cluster
-                // K8s Node
+                // K8s Cluster, K8s Node
                 includeSubResources = true;
-                VmQuery k8sAvailability = clusterQueryProvider.getAvailability();
+                VmQuery k8sAvailability = ks8ClusterQueryProvider.getAvailability();
                 // Node Exporter
-                VmSingleQuery nodeUpRange = new VmSingleQuery("up")
-                    .setFilter(Set.of(resourceFilter, noDeploymentFilter))
-                    .setTimeRange("30d");
-                VmFunctionQuery nodeAvailability = new VmFunctionQuery("avg_over_time", nodeUpRange)
-                    .setMultiplier(100.0);
-                // lambda
-                // ec2
+                VmQuery nodeAvailability = nodeQueryProvider.getAvailability();
+                // Lambda, EC2
                 VmSingleQuery regionUpRange = new VmSingleQuery("region_up")
                     .setFilter(Set.of(regionFilter))
                     .setTimeRange("30d");
@@ -71,8 +67,7 @@ public class MetricQueryProvider {
                 metricQueryObservable = Observable.fromArray(k8sAvailability, nodeAvailability, regionAvailability);
                 break;
             case COST:
-                // lambda
-                // ec2
+                // Lambda, EC2
                 VmSingleQuery awsPrice = new VmSingleQuery("aws_price_usd")
                     .setFilter(Set.of(regionFilter, new VmFilter("platform", "=~", platformIds),
                         new VmFilter("instance_type", "=~", instanceTypeResources.keySet())));
@@ -82,16 +77,12 @@ public class MetricQueryProvider {
                 break;
             case CPU:
                 // K8s Cluster
-                VmQuery k8sCpuTotal = clusterQueryProvider.getCpu();
+                VmQuery k8sCpuTotal = ks8ClusterQueryProvider.getCpu();
                 // K8s Node
-                VmQuery k8sNodeCpuTotal = nodeQueryProvider.getCpu();
+                VmQuery k8sNodeCpuTotal = k8sNodeQueryProvider.getCpu();
                 // Node Exporter
-                VmSingleQuery nodeCpuSecondsTotal = new VmSingleQuery("node_cpu_seconds_total")
-                    .setFilter(Set.of(resourceFilter, noDeploymentFilter,
-                        new VmFilter("mode", "=", Set.of("system"))));
-                VmFunctionQuery nodeCount = new VmFunctionQuery("count", nodeCpuSecondsTotal)
-                    .setGroupBy(Set.of("resource", "instance"));
-                // EC 2
+                VmQuery nodeCount = nodeQueryProvider.getCpu();
+                // EC2
                 staticMetricObservable = filterAndMapStaticMetricToEC2Resource(resources, platformResources,
                     metricEnum, slo);
 
@@ -99,25 +90,16 @@ public class MetricQueryProvider {
                 break;
             case CPU_UTIL:
                 // K8s Cluster
-                VmQuery k8sCpuUtil = clusterQueryProvider.getCpuUtil();
+                VmQuery k8sCpuUtil = ks8ClusterQueryProvider.getCpuUtil();
                 // K8s Node
-                VmQuery k8sNodeCpuUtil = nodeQueryProvider.getCpuUtil();
+                VmQuery k8sNodeCpuUtil = k8sNodeQueryProvider.getCpuUtil();
                 // Node Exporter
-                VmSingleQuery nodeCpuSecondsTotalUtil = new VmSingleQuery("node_cpu_seconds_total")
-                    .setFilter(Set.of(resourceFilter, noDeploymentFilter,
-                        new VmFilter("mode", "=", Set.of("idle"))))
-                    .setTimeRange("5s");
-                VmFunctionQuery nodeRate = new VmFunctionQuery("rate", nodeCpuSecondsTotalUtil);
-                VmFunctionQuery nodeAvg = new VmFunctionQuery("avg", nodeRate)
-                    .setGroupBy(Set.of("resource", "instance"))
-                    .setSummand(-1.0);
-                VmSimpleQuery nodeCpuUtil = new VmSimpleQuery(nodeAvg)
-                    .setMultiplier(-100);
+                VmQuery nodeCpuUtil = nodeQueryProvider.getCpuUtil();
 
                 metricQueryObservable = Observable.fromArray(k8sCpuUtil, k8sNodeCpuUtil, nodeCpuUtil);
                 break;
             case LATENCY:
-                // lambda, ec2
+                // Lambda, EC2
                 VmSingleQuery regionLatency = new VmSingleQuery("region_latency_seconds")
                     .setFilter(Set.of(regionFilter));
                 // TODO: Add k8s, openfaas
@@ -127,13 +109,12 @@ public class MetricQueryProvider {
                 break;
             case MEMORY:
                 // K8s Cluster
-                VmQuery k8sMemoryTotal = clusterQueryProvider.getMemory();
+                VmQuery k8sMemoryTotal = ks8ClusterQueryProvider.getMemory();
                 // K8s Node
-                VmQuery k8sNodeMemoryTotal = nodeQueryProvider.getMemory();
+                VmQuery k8sNodeMemoryTotal = k8sNodeQueryProvider.getMemory();
                 // Node Exporter
-                VmSingleQuery nodeMemTotal = new VmSingleQuery("node_memory_MemTotal_bytes")
-                    .setFilter(Set.of(resourceFilter, noDeploymentFilter));
-                // EC 2
+                VmQuery nodeMemTotal = nodeQueryProvider.getMemory();
+                // EC2
                 staticMetricObservable = filterAndMapStaticMetricToEC2Resource(resources, platformResources,
                     metricEnum, slo);
 
@@ -141,24 +122,11 @@ public class MetricQueryProvider {
                 break;
             case MEMORY_UTIL:
                 // K8s Cluster
-                VmQuery k8sMemoryUtil = clusterQueryProvider.getMemoryUtil();
+                VmQuery k8sMemoryUtil = ks8ClusterQueryProvider.getMemoryUtil();
                 // K8s Node
-                VmQuery k8sNodeMemoryUtil = nodeQueryProvider.getMemoryUtil();
+                VmQuery k8sNodeMemoryUtil = k8sNodeQueryProvider.getMemoryUtil();
                 // Node Exporter
-                VmSingleQuery nodeMemFree = new VmSingleQuery("node_memory_MemFree_bytes")
-                    .setFilter(Set.of(resourceFilter, noDeploymentFilter));
-                VmSingleQuery nodeMemBuffer = new VmSingleQuery("node_memory_Buffers_bytes")
-                    .setFilter(Set.of(resourceFilter, noDeploymentFilter));
-                VmSingleQuery nodeMemCached = new VmSingleQuery("node_memory_Cached_bytes")
-                    .setFilter(Set.of(resourceFilter, noDeploymentFilter));
-                VmSingleQuery nodeMemTotalUtil = new VmSingleQuery("node_memory_MemTotal_bytes")
-                    .setFilter(Set.of(resourceFilter, noDeploymentFilter));
-                VmCompoundQuery nodeMemFreeBuffer = new VmCompoundQuery(nodeMemFree, nodeMemBuffer, '+');
-                VmCompoundQuery nodeMemUsedTotal = new VmCompoundQuery(nodeMemFreeBuffer, nodeMemCached, '+');
-                VmCompoundQuery nodeMemUtilAbsolute = new VmCompoundQuery(nodeMemUsedTotal, nodeMemTotalUtil, '/')
-                    .setSummand(-1);
-                VmSimpleQuery nodeMemUtil = new VmSimpleQuery(nodeMemUtilAbsolute)
-                    .setMultiplier(-100);
+                VmQuery nodeMemUtil = nodeQueryProvider.getMemoryUtil();
 
                 metricQueryObservable = Observable.fromArray(k8sMemoryUtil, k8sNodeMemoryUtil, nodeMemUtil);
                 break;
@@ -167,7 +135,7 @@ public class MetricQueryProvider {
                 Set<String> nodeNames = slo.getValue().stream()
                     .map(SLOValue::getValueString)
                     .collect(Collectors.toSet());
-                VmQuery k8sNode = nodeQueryProvider.getResourcesByNodeName(nodeNames);
+                VmQuery k8sNode = k8sNodeQueryProvider.getResourcesByNodeName(nodeNames);
 
                 staticMetricObservable = queryService.collectInstantMetric(k8sNode.toString())
                     .flatMapObservable(Observable::fromIterable)
@@ -184,9 +152,8 @@ public class MetricQueryProvider {
                 break;
             case STORAGE:
                 // Node Exporter
-                VmSingleQuery nodeStorageTotal = new VmSingleQuery("node_filesystem_size_bytes")
-                    .setFilter(Set.of(resourceFilter, noDeploymentFilter, mountPointFilter, fsTypeFilter));
-                // EC 2
+                VmQuery nodeStorageTotal = nodeQueryProvider.getStorage();
+                // EC2
                 staticMetricObservable = filterAndMapStaticMetricToEC2Resource(resources, platformResources,
                     metricEnum, slo);
 
@@ -194,26 +161,16 @@ public class MetricQueryProvider {
                 break;
             case STORAGE_UTIL:
                 // Node Exporter
-                VmSingleQuery nodeStorageAvail = new VmSingleQuery("node_filesystem_avail_bytes")
-                    .setFilter(Set.of(resourceFilter, noDeploymentFilter, mountPointFilter, fsTypeFilter))
-                    .setMultiplier(-100.0);
-                VmSingleQuery nodeStorageTotalUtil = new VmSingleQuery("node_filesystem_size_bytes")
-                    .setFilter(Set.of(resourceFilter, noDeploymentFilter, mountPointFilter, fsTypeFilter));
-                VmCompoundQuery nodeStoragePercent = new VmCompoundQuery(nodeStorageAvail, nodeStorageTotalUtil, '/')
-                    .setSummand(100);
-
+                VmQuery nodeStoragePercent = nodeQueryProvider.getStorageUtil();
                 metricQueryObservable = Observable.fromArray(nodeStoragePercent);
                 break;
             case UP:
-                // K8s Cluster
-                // K8s Node
+                // K8s Cluster, K8s Node
                 includeSubResources = true;
-                VmQuery k8sUp = clusterQueryProvider.getUp();
+                VmQuery k8sUp = ks8ClusterQueryProvider.getUp();
                 // Node Exporter
-                VmSingleQuery nodeUp = new VmSingleQuery("up")
-                    .setFilter(Set.of(resourceFilter, noDeploymentFilter));
-                // lambda
-                // ec2
+                VmQuery nodeUp = nodeQueryProvider.getUp();
+                // Lambda, EC2
                 VmSingleQuery regionUp = new VmSingleQuery("region_up")
                     .setFilter(Set.of(regionFilter));
 

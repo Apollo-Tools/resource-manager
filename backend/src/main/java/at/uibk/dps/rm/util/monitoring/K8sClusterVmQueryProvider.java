@@ -2,6 +2,7 @@ package at.uibk.dps.rm.util.monitoring;
 
 import at.uibk.dps.rm.entity.monitoring.victoriametrics.*;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.Set;
 
@@ -34,6 +35,11 @@ public class K8sClusterVmQueryProvider implements VmQueryProvider {
     }
 
     @Override
+    public VmQuery getLatency() {
+        throw new NotImplementedException();
+    }
+
+    @Override
      public VmQuery getMemory() {
         return new VmSingleQuery("k8s_memory_total_bytes").setFilter(Set.of(resourceFilter));
     }
@@ -45,6 +51,16 @@ public class K8sClusterVmQueryProvider implements VmQueryProvider {
             .setFilter(Set.of(resourceFilter));
         return new VmCompoundQuery(k8sMemoryUsed, k8sMemoryTotal, '/')
             .setMultiplier(100);
+    }
+
+    @Override
+    public VmQuery getStorage() {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public VmQuery getStorageUtil() {
+        throw new NotImplementedException();
     }
 
     @Override
