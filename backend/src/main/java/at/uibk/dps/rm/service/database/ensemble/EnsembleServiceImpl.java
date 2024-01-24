@@ -23,7 +23,7 @@ import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.Set;
 
 /**
  * This is the implementation of the {@link EnsembleService}.
@@ -142,18 +142,13 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
     }
 
     @Override
-    public void validateCreateEnsembleRequest(JsonObject data, Handler<AsyncResult<Void>> resultHandler) {
-        SLOUtility sloUtility = new SLOUtility(repositoryProvider.getResourceRepository(),
-            repositoryProvider.getMetricRepository());
+    public void validateCreateEnsembleRequest(JsonObject data, Set<Long> validResourceIds,
+            Handler<AsyncResult<Void>> resultHandler) {
         CreateEnsembleRequest requestDTO = data.mapTo(CreateEnsembleRequest.class);
         List<ResourceId> resourceIds = requestDTO.getResources();
-        Completable validateRequest = smProvider.withTransactionCompletable(sm -> sloUtility
-            .findAndFilterResourcesBySLOs(sm, requestDTO)
-            .flatMap(resources -> Observable.fromIterable(resourceIds)
-                .map(ResourceId::getResourceId)
-                .all(resourceId -> resources.stream()
-                    .anyMatch(resource -> Objects.equals(resource.getResourceId(), resourceId))
-                ))
+        Completable validateRequest = smProvider.withTransactionCompletable(sm -> Observable
+            .fromIterable(resourceIds)
+            .all(resourceId -> validResourceIds.contains(resourceId.getResourceId()))
             .flatMapCompletable(requestFulfillsSLOs -> {
                 if (!requestFulfillsSLOs) {
                     return Completable.error(new BadInputException("slo mismatch"));

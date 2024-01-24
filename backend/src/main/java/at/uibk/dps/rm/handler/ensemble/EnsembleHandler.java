@@ -1,13 +1,24 @@
 package at.uibk.dps.rm.handler.ensemble;
 
+import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
+import at.uibk.dps.rm.entity.dto.SLORequest;
+import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.EnsembleService;
+import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
+import at.uibk.dps.rm.service.rxjava3.monitoring.metricquery.MetricQueryService;
+import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import at.uibk.dps.rm.util.misc.HttpHelper;
+import at.uibk.dps.rm.util.validation.SLOValidator;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.web.RoutingContext;
+
+import java.util.stream.Collectors;
 
 /**
  * Processes the http requests that concern the ensemble entity.
@@ -17,14 +28,22 @@ import io.vertx.rxjava3.ext.web.RoutingContext;
 public class EnsembleHandler extends ValidationHandler {
 
     private final EnsembleService ensembleService;
+
+    private final ResourceService resourceService;
+
+    private final MetricQueryService metricQueryService;
+
     /**
      * Create an instance from the ensembleService.
      *
      * @param ensembleService the service
      */
-    public EnsembleHandler(EnsembleService ensembleService) {
+    public EnsembleHandler(EnsembleService ensembleService, ResourceService resourceService,
+            MetricQueryService metricQueryService) {
         super(ensembleService);
         this.ensembleService = ensembleService;
+        this.resourceService = resourceService;
+        this.metricQueryService = metricQueryService;
     }
 
     @Override
@@ -39,7 +58,18 @@ public class EnsembleHandler extends ValidationHandler {
      */
     public Completable validateNewResourceEnsembleSLOs(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
-        return ensembleService.validateCreateEnsembleRequest(requestBody);
+        SLORequest requestDTO = requestBody.mapTo(CreateEnsembleRequest.class);
+        return new ConfigUtility(Vertx.currentContext().owner()).getConfigDTO()
+            .flatMap(configDTO -> resourceService.findAllByNonMonitoredSLOs(requestBody)
+                .flatMap(resources -> {
+                    SLOValidator sloValidator = new SLOValidator(metricQueryService, requestDTO, configDTO);
+                    return sloValidator.filterResourcesByMonitoredMetrics(resources);
+                }))
+            .flatMapObservable(Observable::fromIterable)
+            .map(Resource::getResourceId)
+            .collect(Collectors.toSet())
+            .flatMapCompletable(filteredResourceIds -> ensembleService.validateCreateEnsembleRequest(requestBody,
+                filteredResourceIds));
     }
 
     /**

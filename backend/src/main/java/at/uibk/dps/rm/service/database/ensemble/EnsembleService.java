@@ -15,6 +15,8 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
+import java.util.Set;
+
 /**
  * The interface of the service proxy for the ensemble entity.
  *
@@ -46,13 +48,8 @@ public interface EnsembleService extends DatabaseServiceInterface {
      */
     void findOneByIdAndAccountId(long id, long accountId, Handler<AsyncResult<JsonObject>> resultHandler);
 
-    /**
-     * Check if all resources from a create ensemble request fulfill its service level objectives.
-     *
-     * @param data the request data
-     * @param resultHandler receives nothing if the check was successful else an error
-     */
-    void validateCreateEnsembleRequest(JsonObject data, Handler<AsyncResult<Void>> resultHandler);
+    void validateCreateEnsembleRequest(JsonObject data, Set<Long> validResourceIds,
+        Handler<AsyncResult<Void>> resultHandler);
 
     /**
      * Check if all resources from an existing ensemble fulfill its service level objectives.

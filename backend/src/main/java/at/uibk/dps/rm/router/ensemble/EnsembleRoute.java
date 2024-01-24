@@ -17,7 +17,8 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 public class EnsembleRoute implements Route {
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
-        EnsembleHandler ensembleHandler = new EnsembleHandler(serviceProxyProvider.getEnsembleService());
+        EnsembleHandler ensembleHandler = new EnsembleHandler(serviceProxyProvider.getEnsembleService(),
+            serviceProxyProvider.getResourceService(), serviceProxyProvider.getMetricQueryService());
         PrivateEntityResultHandler resultHandler = new PrivateEntityResultHandler(ensembleHandler);
 
         router

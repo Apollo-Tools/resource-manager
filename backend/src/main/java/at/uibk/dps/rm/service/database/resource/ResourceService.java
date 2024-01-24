@@ -43,14 +43,6 @@ public interface ResourceService extends DatabaseServiceInterface {
         return new ResourceServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(Resource.class));
     }
 
-    /**
-     * Find all resources by service level objectives.
-     *
-     * @param data the data containing all service level objectives
-     * @param resultHandler receives the found resources as JsonArray
-     */
-    void findAllBySLOs(JsonObject data, Handler<AsyncResult<JsonArray>> resultHandler);
-
     void findAllByNonMonitoredSLOs(JsonObject data, Handler<AsyncResult<JsonArray>> resultHandler);
 
     /**
