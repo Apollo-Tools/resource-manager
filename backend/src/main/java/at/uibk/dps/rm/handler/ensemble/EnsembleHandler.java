@@ -2,8 +2,10 @@ package at.uibk.dps.rm.handler.ensemble;
 
 import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
 import at.uibk.dps.rm.entity.dto.SLORequest;
+import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.handler.ValidationHandler;
+import at.uibk.dps.rm.service.database.util.EnsembleUtility;
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.EnsembleService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
 import at.uibk.dps.rm.service.rxjava3.monitoring.metricquery.MetricQueryService;
@@ -81,7 +83,22 @@ public class EnsembleHandler extends ValidationHandler {
     public Single<JsonArray> validateExistingEnsemble(RoutingContext rc) {
         long accountId = rc.user().principal().getLong("account_id");
         return HttpHelper.getLongPathParam(rc, "id")
-        .flatMap(id -> ensembleService.validateExistingEnsemble(accountId, id));
+        .flatMap(id -> {
+            ensembleService.findOneByIdAndAccountId(accountId, id)
+                .flatMap(ensemble -> {
+                    GetOneEnsemble getOneEnsemble = ensemble.mapTo(GetOneEnsemble.class);
+                    return resourceService.findAllByNonMonitoredSLOs(ensemble)
+                        .flatMapObservable(Observable::fromIterable)
+                        .map(resource -> ((JsonObject) resource).mapTo(Resource.class))
+                        .toList()
+                        .map(validResources -> EnsembleUtility.getResourceEnsembleStatus(validResources,
+                            getOneEnsemble.getResources()));
+                });
+
+
+
+            return ensembleService.validateExistingEnsemble(accountId, id);
+        });
     }
 
     /**

@@ -152,7 +152,7 @@ public class EnsembleUtility {
      * @return the List of pairs of resource_ids and their validation status being true for valid
      * and false for invalid
      */
-    public List<ResourceEnsembleStatus> getResourceEnsembleStatus(List<Resource> validResources,
+    public static List<ResourceEnsembleStatus> getResourceEnsembleStatus(List<Resource> validResources,
             List<Resource> ensembleResources) {
         return ensembleResources.stream()
             .map(Resource::getResourceId)
