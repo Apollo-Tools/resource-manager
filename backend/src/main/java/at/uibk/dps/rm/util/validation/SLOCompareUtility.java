@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.util.validation;
 
+import at.uibk.dps.rm.entity.dto.metric.MonitoredMetricValue;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.SLOValue;
 import at.uibk.dps.rm.entity.dto.slo.SLOValueType;
@@ -10,7 +11,7 @@ import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.entity.model.Resource;
 import lombok.experimental.UtilityClass;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -145,6 +146,18 @@ public class SLOCompareUtility {
         return validRegion && validResourceProvider && validResourceType && validPlatforms && validEnvironments;
     }
 
+    public static List<MonitoredMetricValue> sortMonitoredMetricValuesBySLOs(Set<MonitoredMetricValue> metricValues,
+        List<ServiceLevelObjective> serviceLevelObjectives) {
+        Map<String, Integer> indexMap = new HashMap<>();
+        for (int i = 0; i < serviceLevelObjectives.size(); i++) {
+            indexMap.put(serviceLevelObjectives.get(i).getName(), i);
+        }
+        List<MonitoredMetricValue> sortedList = new ArrayList<>(metricValues);
+        sortedList.sort(Comparator.comparingInt(metricValue -> indexMap.get(metricValue.getMetric())));
+
+        return sortedList;
+    }
+
     /**
      * The sorting condition for resources based on the serviceLevelObjectives
      *
@@ -153,22 +166,22 @@ public class SLOCompareUtility {
      * @param serviceLevelObjectives the service level objectives
      * @return a positive value if r1 should be ranked higher than r2 else a negative value
      */
-    private static int sortResourceBySLOs(Resource r1, Resource r2,
+    public static int sortResourceBySLOs(Resource r1, Resource r2,
             List<ServiceLevelObjective> serviceLevelObjectives) {
         for (int i = 0; i < serviceLevelObjectives.size(); i++) {
             ServiceLevelObjective slo = serviceLevelObjectives.get(i);
             if (slo.getValue().get(0).getSloValueType() != SLOValueType.NUMBER) {
                 continue;
             }
-            for (MetricValue metricValue1 : r1.getMetricValues()) {
-                Metric metric1 = metricValue1.getMetric();
-                if (metric1.getMetric().equals(slo.getName())) {
-                    for (MetricValue metricValue2 : r2.getMetricValues()) {
-                        Metric metric2 = metricValue2.getMetric();
-                        if (metric2.getMetric().equals(slo.getName())) {
+            for (MonitoredMetricValue metricValue1 : r1.getMonitoredMetricValues()) {
+                String metric1 = metricValue1.getMetric();
+                if (metric1.equals(slo.getName())) {
+                    for (MonitoredMetricValue metricValue2 : r2.getMonitoredMetricValues()) {
+                        String metric2 = metricValue2.getMetric();
+                        if (metric2.equals(slo.getName())) {
                             int compareValue = ExpressionType.compareValues(slo.getExpression(),
-                                metricValue1.getValueNumber().doubleValue(),
-                                metricValue2.getValueNumber().doubleValue());
+                                metricValue1.getValueNumber(),
+                                metricValue2.getValueNumber());
                             if (compareValue != 0 || i == serviceLevelObjectives.size() - 1) {
                                 return compareValue;
                             }

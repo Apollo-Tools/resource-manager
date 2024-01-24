@@ -2,13 +2,15 @@ package at.uibk.dps.rm.entity.dto.resource;
 
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.dto.metric.MonitoredMetricValue;
+import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.MainResource;
 import at.uibk.dps.rm.entity.model.SubResource;
+import at.uibk.dps.rm.util.validation.SLOCompareUtility;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.sql.Timestamp;
-import java.util.Set;
+import java.util.List;
 
 @Getter
 @Setter
@@ -22,6 +24,8 @@ public class FindResourceBySloDTO {
 
     private final boolean isLocked;
 
+    private final boolean isMainResource;
+
     private final long regionId;
 
     private final long providerId;
@@ -32,45 +36,49 @@ public class FindResourceBySloDTO {
 
     private final long resourceTypeId;
 
-    private final Set<MonitoredMetricValue> monitoredMetricValues;
+    private final List<MonitoredMetricValue> monitoredMetricValues;
 
     private final Timestamp createdAt;
 
     private final Timestamp updatedAt;
 
-    public FindResourceBySloDTO(SubResourceDTO subResource) {
+    public FindResourceBySloDTO(SubResourceDTO subResource, List<ServiceLevelObjective> serviceLevelObjectives) {
         this.resourceId = subResource.getResourceId();
         this.name = subResource.getName();
         this.isLockable = subResource.getIsLockable();
         this.isLocked = subResource.getIsLocked();
+        this.isMainResource = false;
         this.regionId = subResource.getRegion().getRegionId();
         this.providerId = subResource.getRegion().getResourceProvider().getProviderId();
         this.environmentId = subResource.getRegion().getResourceProvider().getEnvironment().getEnvironmentId();
         this.platformId = subResource.getPlatform().getPlatformId();
         this.resourceTypeId = subResource.getPlatform().getResourceType().getTypeId();
-        this.monitoredMetricValues = subResource.getMonitoredMetricValues();
         this.createdAt = subResource.getCreatedAt();
         this.updatedAt = subResource.getUpdatedAt();
+        this.monitoredMetricValues = SLOCompareUtility.sortMonitoredMetricValuesBySLOs(
+            subResource.getMonitoredMetricValues(), serviceLevelObjectives);
     }
 
-    public FindResourceBySloDTO(SubResource subResource) {
-        this(subResource.getMainResource());
+    public FindResourceBySloDTO(SubResource subResource, List<ServiceLevelObjective> serviceLevelObjectives) {
+        this(subResource.getMainResource(), serviceLevelObjectives);
     }
 
 
-    public FindResourceBySloDTO(MainResource mainResource) {
+    public FindResourceBySloDTO(MainResource mainResource, List<ServiceLevelObjective> serviceLevelObjectives) {
         this.resourceId = mainResource.getResourceId();
         this.name = mainResource.getName();
         this.isLockable = mainResource.getIsLockable();
         this.isLocked = mainResource.getIsLocked();
+        this.isMainResource = true;
         this.regionId = mainResource.getRegion().getRegionId();
         this.providerId = mainResource.getRegion().getResourceProvider().getProviderId();
         this.environmentId = mainResource.getRegion().getResourceProvider().getEnvironment().getEnvironmentId();
         this.platformId = mainResource.getPlatform().getPlatformId();
         this.resourceTypeId = mainResource.getPlatform().getResourceType().getTypeId();
-        this.monitoredMetricValues = mainResource.getMonitoredMetricValues();
         this.createdAt = mainResource.getCreatedAt();
         this.updatedAt = mainResource.getUpdatedAt();
+        this.monitoredMetricValues = SLOCompareUtility.sortMonitoredMetricValuesBySLOs(
+            mainResource.getMonitoredMetricValues(), serviceLevelObjectives);
     }
 
 

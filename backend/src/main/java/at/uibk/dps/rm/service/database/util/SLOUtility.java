@@ -7,7 +7,6 @@ import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
-import at.uibk.dps.rm.util.validation.SLOCompareUtility;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import lombok.AllArgsConstructor;
@@ -56,8 +55,9 @@ public class SLOUtility {
                     System.out.println(resourcesString);
                     return Single.just(resourcesString);
                 })
-                .map(result -> SLOCompareUtility.filterAndSortResourcesBySLOs(resources,
-                    sloRequest.getServiceLevelObjectives())));
+                .map(result -> resources));
+                //.map(result -> SLOCompareUtility.filterAndSortResourcesBySLOs(resources,
+                //    sloRequest.getServiceLevelObjectives())));
     }
 
     public Single<List<Resource>> findResourcesByNonMonitoredSLOs(SessionManager sm,

@@ -13,6 +13,7 @@ import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import at.uibk.dps.rm.util.misc.HttpHelper;
 import at.uibk.dps.rm.util.misc.MetricValueMapper;
 import at.uibk.dps.rm.util.monitoring.MetricQueryProvider;
+import at.uibk.dps.rm.util.validation.SLOCompareUtility;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
@@ -131,14 +132,19 @@ public class ResourceHandler extends ValidationHandler {
                     })
                     .switchIfEmpty(Single.just(Set.of()))
                     .flatMapObservable(Observable::fromIterable)
+                    .sorted((resource1, resource2) -> SLOCompareUtility.sortResourceBySLOs(resource1, resource2,
+                        sloRequest.getServiceLevelObjectives()))
                     .map(resource -> {
                         FindResourceBySloDTO result;
                         if (resource instanceof SubResourceDTO) {
-                            result = new FindResourceBySloDTO((SubResourceDTO) resource);
+                            result = new FindResourceBySloDTO((SubResourceDTO) resource,
+                                sloRequest.getServiceLevelObjectives());
                         } else if (resource instanceof MainResource) {
-                            result = new FindResourceBySloDTO((MainResource) resource);
+                            result = new FindResourceBySloDTO((MainResource) resource,
+                                sloRequest.getServiceLevelObjectives());
                         } else {
-                            result = new FindResourceBySloDTO((SubResource) resource);
+                            result = new FindResourceBySloDTO((SubResource) resource,
+                                sloRequest.getServiceLevelObjectives());
                         }
                         return result;
                     })
