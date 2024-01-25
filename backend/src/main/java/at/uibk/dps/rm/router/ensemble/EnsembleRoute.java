@@ -6,6 +6,8 @@ import at.uibk.dps.rm.handler.ensemble.*;
 import at.uibk.dps.rm.router.Route;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 
@@ -15,6 +17,9 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
  * @author matthi-g
  */
 public class EnsembleRoute implements Route {
+
+    private static final Logger logger = LoggerFactory.getLogger(EnsembleRoute.class);
+
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         EnsembleHandler ensembleHandler = new EnsembleHandler(serviceProxyProvider.getEnsembleService(),
@@ -51,7 +56,11 @@ public class EnsembleRoute implements Route {
         new ConfigUtility(vertx).getConfigDTO()
             .map(config -> {
                 long period = Double.valueOf(config.getEnsembleValidationPeriod() * 60 * 1000).longValue();
-                return vertx.setPeriodic(period, id -> ensembleHandler.validateAllExistingEnsembles().subscribe());
+                return vertx.setPeriodic(period, id -> {
+                    logger.info("Started: validate existing ensembles");
+                    ensembleHandler.validateAllExistingEnsembles().subscribe(() -> logger.info("Finished: validate " +
+                        "existing ensembles"));
+                });
             })
             .subscribe();
     }

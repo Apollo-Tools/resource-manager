@@ -23,6 +23,21 @@ public class EnsembleRepository extends Repository<Ensemble> {
     }
 
     /**
+     * Find all ensembles and fetch the creator.
+     *
+     * @param sessionManager the database session manager
+     * @return a Single that emits a list of all ensembles
+     */
+    public Single<List<Ensemble>> findAllAndFetch(SessionManager sessionManager) {
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery("select distinct e from Ensemble e " +
+                "left join fetch e.createdBy cb " +
+                "order by e.ensembleId", entityClass)
+            .getResultList()
+        );
+    }
+
+    /**
      * Find all ensembles by their creator.
      *
      * @param sessionManager the database session manager

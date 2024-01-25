@@ -2,6 +2,7 @@ package at.uibk.dps.rm.handler.ensemble;
 
 import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
 import at.uibk.dps.rm.entity.dto.SLORequest;
+import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
 import at.uibk.dps.rm.entity.dto.ensemble.ResourceEnsembleStatus;
 import at.uibk.dps.rm.entity.model.Resource;
@@ -88,25 +89,7 @@ public class EnsembleHandler extends ValidationHandler {
         long accountId = rc.user().principal().getLong("account_id");
         return new ConfigUtility(Vertx.currentContext().owner()).getConfigDTO()
             .flatMap(configDTO -> HttpHelper.getLongPathParam(rc, "id")
-                .flatMap(id -> ensembleService.findOneByIdAndAccountId(accountId, id)
-                    .flatMap(ensemble -> {
-                        GetOneEnsemble getOneEnsemble = ensemble.mapTo(GetOneEnsemble.class);
-                        return resourceService.findAllByNonMonitoredSLOs(ensemble)
-                            .flatMap(resources -> {
-                                SLOValidator sloValidator = new SLOValidator(metricQueryService, getOneEnsemble, configDTO);
-                                return sloValidator.filterResourcesByMonitoredMetrics(resources);
-                            })
-                            .map(ArrayList::new)
-                            .map(validResources -> {
-                                List<ResourceEnsembleStatus> statusValues = EnsembleUtility
-                                    .getResourceEnsembleStatus(validResources, getOneEnsemble.getResources());
-                                return new JsonArray(Json.encode(statusValues));
-                            })
-                            .flatMap(statusValues -> ensembleService
-                                .updateEnsembleStatus(id, statusValues)
-                                .andThen(Single.defer(() -> Single.just(statusValues)))
-                            );
-                    }))
+                .flatMap(id -> validateEnsembleStatus(accountId, id, configDTO))
             );
     }
 
@@ -116,6 +99,38 @@ public class EnsembleHandler extends ValidationHandler {
      * @return A Completable
      */
     public Completable validateAllExistingEnsembles() {
-        return ensembleService.validateAllExistingEnsembles();
+        return new ConfigUtility(Vertx.currentContext().owner()).getConfigDTO()
+            .flatMapCompletable(configDTO -> ensembleService.findAll()
+                .flatMapObservable(Observable::fromIterable)
+                .map(ensemble -> (JsonObject) ensemble)
+                .flatMapCompletable(ensemble -> {
+                    long ensembleId = ensemble.getLong("ensemble_id");
+                    long accountId = ensemble.getJsonObject("created_by").getLong("account_id");
+                    return validateEnsembleStatus(accountId, ensembleId, configDTO)
+                        .ignoreElement();
+                })
+            );
+    }
+
+    private Single<JsonArray> validateEnsembleStatus(long accountId, long ensembleId, ConfigDTO configDTO) {
+        return ensembleService.findOneByIdAndAccountId(accountId, ensembleId)
+            .flatMap(ensemble -> {
+                GetOneEnsemble getOneEnsemble = ensemble.mapTo(GetOneEnsemble.class);
+                return resourceService.findAllByNonMonitoredSLOs(ensemble)
+                    .flatMap(resources -> {
+                        SLOValidator sloValidator = new SLOValidator(metricQueryService, getOneEnsemble, configDTO);
+                        return sloValidator.filterResourcesByMonitoredMetrics(resources);
+                    })
+                    .map(ArrayList::new)
+                    .map(validResources -> {
+                        List<ResourceEnsembleStatus> statusValues = EnsembleUtility
+                            .getResourceEnsembleStatus(validResources, getOneEnsemble.getResources());
+                        return new JsonArray(Json.encode(statusValues));
+                    })
+                    .flatMap(statusValues -> ensembleService
+                        .updateEnsembleStatus(ensembleId, statusValues)
+                        .andThen(Single.defer(() -> Single.just(statusValues)))
+                    );
+            });
     }
 }

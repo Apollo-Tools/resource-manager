@@ -49,7 +49,7 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
     public void findAll(Handler<AsyncResult<JsonArray>> resultHandler) {
         Single<List<Ensemble>> findAll = smProvider.withTransactionSingle(sm -> repositoryProvider
             .getEnsembleRepository()
-            .findAll(sm));
+            .findAllAndFetch(sm));
         RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }
 
