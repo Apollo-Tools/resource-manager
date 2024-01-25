@@ -3,6 +3,7 @@ package at.uibk.dps.rm.handler.ensemble;
 import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
 import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
+import at.uibk.dps.rm.entity.dto.ensemble.ResourceEnsembleStatus;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.service.database.util.EnsembleUtility;
@@ -15,11 +16,14 @@ import at.uibk.dps.rm.util.validation.SLOValidator;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -82,23 +86,28 @@ public class EnsembleHandler extends ValidationHandler {
      */
     public Single<JsonArray> validateExistingEnsemble(RoutingContext rc) {
         long accountId = rc.user().principal().getLong("account_id");
-        return HttpHelper.getLongPathParam(rc, "id")
-        .flatMap(id -> {
-            ensembleService.findOneByIdAndAccountId(accountId, id)
-                .flatMap(ensemble -> {
-                    GetOneEnsemble getOneEnsemble = ensemble.mapTo(GetOneEnsemble.class);
-                    return resourceService.findAllByNonMonitoredSLOs(ensemble)
-                        .flatMapObservable(Observable::fromIterable)
-                        .map(resource -> ((JsonObject) resource).mapTo(Resource.class))
-                        .toList()
-                        .map(validResources -> EnsembleUtility.getResourceEnsembleStatus(validResources,
-                            getOneEnsemble.getResources()));
-                });
-
-
-
-            return ensembleService.validateExistingEnsemble(accountId, id);
-        });
+        return new ConfigUtility(Vertx.currentContext().owner()).getConfigDTO()
+            .flatMap(configDTO -> HttpHelper.getLongPathParam(rc, "id")
+                .flatMap(id -> ensembleService.findOneByIdAndAccountId(accountId, id)
+                    .flatMap(ensemble -> {
+                        GetOneEnsemble getOneEnsemble = ensemble.mapTo(GetOneEnsemble.class);
+                        return resourceService.findAllByNonMonitoredSLOs(ensemble)
+                            .flatMap(resources -> {
+                                SLOValidator sloValidator = new SLOValidator(metricQueryService, getOneEnsemble, configDTO);
+                                return sloValidator.filterResourcesByMonitoredMetrics(resources);
+                            })
+                            .map(ArrayList::new)
+                            .map(validResources -> {
+                                List<ResourceEnsembleStatus> statusValues = EnsembleUtility
+                                    .getResourceEnsembleStatus(validResources, getOneEnsemble.getResources());
+                                return new JsonArray(Json.encode(statusValues));
+                            })
+                            .flatMap(statusValues -> ensembleService
+                                .updateEnsembleStatus(id, statusValues)
+                                .andThen(Single.defer(() -> Single.just(statusValues)))
+                            );
+                    }))
+            );
     }
 
     /**

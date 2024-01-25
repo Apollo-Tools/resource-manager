@@ -51,6 +51,8 @@ public interface EnsembleService extends DatabaseServiceInterface {
     void validateCreateEnsembleRequest(JsonObject data, Set<Long> validResourceIds,
         Handler<AsyncResult<Void>> resultHandler);
 
+    void updateEnsembleStatus(long ensembleId, JsonArray statusValues, Handler<AsyncResult<Void>> resultHandler);
+
     /**
      * Check if all resources from an existing ensemble fulfill its service level objectives.
      *

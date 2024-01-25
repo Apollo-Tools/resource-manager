@@ -4,7 +4,6 @@ import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
 import at.uibk.dps.rm.entity.dto.ListResourcesBySLOsRequest;
 import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
-import at.uibk.dps.rm.entity.dto.resource.ResourceDTO;
 import at.uibk.dps.rm.entity.dto.resource.ResourceId;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.SLOType;
@@ -103,7 +102,7 @@ public class SLORequestDeserializer extends StdDeserializer<SLORequest> {
         List<Resource> resources = new ArrayList<>();
         for (JsonNode node : nodes) {
             try (JsonParser subParser = node.traverse(jsonParser.getCodec())) {
-                resources.add(subParser.readValueAs(ResourceDTO.class));
+                resources.add(subParser.readValueAs(Resource.class));
             }
         }
         return resources;

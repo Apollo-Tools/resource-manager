@@ -24,6 +24,7 @@ import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * This is the implementation of the {@link EnsembleService}.
@@ -156,6 +157,18 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
                 return Completable.complete();
             })
         );
+        RxVertxHandler.handleSession(validateRequest, resultHandler);
+    }
+
+    @Override
+    public void updateEnsembleStatus(long ensembleId, JsonArray statusValues,
+            Handler<AsyncResult<Void>> resultHandler) {
+        EnsembleValidationUtility validationUtility = new EnsembleValidationUtility(repositoryProvider);
+        List<ResourceEnsembleStatus> statusValueList = statusValues.stream()
+            .map(statusValue -> ((JsonObject) statusValue).mapTo(ResourceEnsembleStatus.class))
+            .collect(Collectors.toList());
+        Completable validateRequest = smProvider.withTransactionCompletable(sm ->
+            validationUtility.updateResourceEnsembleStatuses(sm, ensembleId, statusValueList));
         RxVertxHandler.handleSession(validateRequest, resultHandler);
     }
 
