@@ -24,6 +24,7 @@ import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,6 +46,7 @@ public class SLOValidator {
             .collect(Collectors.toMap(resource -> resource.getResourceId().toString(), resource -> resource))
             .flatMapObservable(filteredResources -> {
                 Set<String> resourceIds = filteredResources.keySet();
+                Set<String> mainResourceIds = new HashSet<>(resourceIds);
                 HashSetValuedHashMap<String, String> regionResources = new HashSetValuedHashMap<>();
                 HashSetValuedHashMap<Pair<String, String>, String> platformResources =
                     new HashSetValuedHashMap<>();
@@ -66,6 +68,8 @@ public class SLOValidator {
                         if (subResourceDTO.getPlatform().getPlatform().equals(PlatformEnum.LAMBDA.getValue())) {
                             instanceTypeResources.put(PlatformEnum.LAMBDA.getValue(),
                                 subResourceDTO.getResourceId().toString());
+                        } else if (subResourceDTO.getPlatform().getPlatform().equals(PlatformEnum.K8S.getValue())) {
+                            mainResourceIds.add(String.valueOf(subResourceDTO.getMainResourceId()));
                         }
                     } else {
                         regionResources.put(resource.getMain().getRegion().getRegionId().toString(),
@@ -86,7 +90,7 @@ public class SLOValidator {
                         // TODO: fix deployment
                         MonitoringMetricEnum metric = MonitoringMetricEnum.fromSLO(slo);
                         return queryProvider.getMetricQuery(configDTO, metric, slo, filteredResources,
-                            resourceIds, regionResources, platformResources, instanceTypeResources);
+                            resourceIds, mainResourceIds, regionResources, platformResources, instanceTypeResources);
                     });
             })
             .reduce((currSet, nextSet) -> {

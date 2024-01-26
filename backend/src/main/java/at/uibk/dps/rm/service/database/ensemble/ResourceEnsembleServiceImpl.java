@@ -4,16 +4,12 @@ import at.uibk.dps.rm.entity.model.Ensemble;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.model.ResourceEnsemble;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
-import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.EnsembleRepositoryProvider;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
-import at.uibk.dps.rm.util.misc.ServiceLevelObjectiveMapper;
-import at.uibk.dps.rm.util.validation.SLOCompareUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
-import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -58,19 +54,6 @@ public class ResourceEnsembleServiceImpl  extends DatabaseServiceProxy<ResourceE
             .switchIfEmpty(Single.error(new NotFoundException(Resource.class)))
             .flatMap(resource -> {
                 resourceEnsemble.setResource(resource);
-                return repositoryProvider.getEnsembleSLORepository().findAllByEnsembleId(sm, ensembleId);
-            })
-            .flatMapObservable(Observable::fromIterable)
-            .map(ServiceLevelObjectiveMapper::mapEnsembleSLO)
-            .toList()
-            .flatMap(slos -> {
-                boolean isValidByMetrics = SLOCompareUtility
-                    .resourceFilterBySLOValueType(resourceEnsemble.getResource(), slos);
-                boolean isValidByNonMetrics = SLOCompareUtility
-                    .resourceValidByNonMetricSLOS(resourceEnsemble.getResource(), resourceEnsemble.getEnsemble());
-                if (!isValidByMetrics || !isValidByNonMetrics) {
-                    return Single.error(new BadInputException("resource does not fulfill service level objectives"));
-                }
                 return sm.persist(resourceEnsemble);
             })
         );

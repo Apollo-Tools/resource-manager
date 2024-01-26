@@ -11,10 +11,12 @@ public class K8sClusterVmQueryProvider implements VmQueryProvider {
 
     private final VmFilter resourceFilter;
 
+    private final VmFilter mainResourceFilter;
+
     @Override
      public VmQuery getAvailability() {
         VmSingleQuery k8sUpRange = new VmSingleQuery("k8s_up")
-            .setFilter(Set.of(resourceFilter))
+            .setFilter(Set.of(mainResourceFilter))
             .setTimeRange("30d");
         return new VmFunctionQuery("avg_over_time", k8sUpRange)
             .setMultiplier(100.0);
@@ -70,6 +72,6 @@ public class K8sClusterVmQueryProvider implements VmQueryProvider {
 
     @Override
      public VmQuery getUp() {
-        return new VmSingleQuery("k8s_up").setFilter(Set.of(resourceFilter));
+        return new VmSingleQuery("k8s_up").setFilter(Set.of(mainResourceFilter));
     }
 }

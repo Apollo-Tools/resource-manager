@@ -6,6 +6,7 @@ import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.dto.resource.SubResourceDTO;
 import at.uibk.dps.rm.entity.dto.slo.SLOValue;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
+import at.uibk.dps.rm.entity.model.MainResource;
 import at.uibk.dps.rm.entity.model.MetricValue;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.monitoring.MonitoringMetricEnum;
@@ -30,10 +31,11 @@ public class MetricQueryProvider {
 
     public Single<Set<Resource>> getMetricQuery(ConfigDTO config, MonitoringMetricEnum metricEnum,
             ServiceLevelObjective slo, Map<String, Resource> resources, Set<String> resourceIds,
-            HashSetValuedHashMap<String, String> regionResources,
+            Set<String> mainResourceIds, HashSetValuedHashMap<String, String> regionResources,
             HashSetValuedHashMap<Pair<String, String>, String> platformResources,
             HashSetValuedHashMap<String, String> instanceTypeResources) {
         VmFilter resourceFilter = new VmFilter("resource", "=~", resourceIds);
+        VmFilter mainResourceFilter = new VmFilter("resource", "=~", mainResourceIds);
         VmFilter regionFilter = new VmFilter("region", "=~", regionResources.keySet());
         VmFilter noDeploymentFilter = new VmFilter("deployment", "=~", Set.of("-1|"));
         VmFilter mountPointFilter = new VmFilter("mountpoint", "=", Set.of("/"));
@@ -43,7 +45,8 @@ public class MetricQueryProvider {
         Set<String> platformIds = platformResources.keySet().stream()
             .map(Pair::getKey)
             .collect(Collectors.toSet());
-        K8sClusterVmQueryProvider ks8ClusterQueryProvider = new K8sClusterVmQueryProvider(resourceFilter);
+        K8sClusterVmQueryProvider ks8ClusterQueryProvider = new K8sClusterVmQueryProvider(resourceFilter,
+            mainResourceFilter);
         K8sNodeVmQueryProvider k8sNodeQueryProvider = new K8sNodeVmQueryProvider(resourceFilter);
         NodeVmQueryProvider nodeQueryProvider = new NodeVmQueryProvider(resourceFilter, noDeploymentFilter,
             mountPointFilter, fsTypeFilter);
@@ -239,8 +242,13 @@ public class MetricQueryProvider {
                 MonitoredMetricValue metricValue = new MonitoredMetricValue(metricEnum);
                 metricValue.setValueNumber(vmResult.getValues().get(0).getValue());
                 if (vmResult.getMetric().containsKey("resource")) {
+                    String resourceId = vmResult.getMetric().get("resource");
+                    Resource resource = resources.get(resourceId);
+                    if (resource == null) {
+                        resource = new MainResource();
+                        resource.setResourceId(Long.valueOf(resourceId));
+                    }
                     Set<Resource> resourceSet = new HashSet<>();
-                    Resource resource = resources.get(vmResult.getMetric().get("resource"));
                     resource.getMonitoredMetricValues().add(metricValue);
                     resourceSet.add(resource);
                     return resourceSet;
@@ -257,7 +265,10 @@ public class MetricQueryProvider {
                     return Single.just(updatedResources);
                 }
                 return addSubResourcesToFilteredResources(updatedResources, resources, metricEnum);
-            });
+            })
+            .flatMapObservable(Observable::fromIterable)
+            .filter(resource -> resources.containsKey(resource.getResourceId().toString()))
+            .collect(Collectors.toSet());
     }
 
     private Single<Set<Resource>> addSubResourcesToFilteredResources(Set<Resource> updatedResources,

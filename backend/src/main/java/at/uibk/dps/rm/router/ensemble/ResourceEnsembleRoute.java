@@ -16,7 +16,8 @@ public class ResourceEnsembleRoute implements Route {
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         ResourceEnsembleHandler ensembleResourceHandler = new ResourceEnsembleHandler(serviceProxyProvider
-            .getResourceEnsembleService());
+            .getResourceEnsembleService(), serviceProxyProvider.getEnsembleService(),
+            serviceProxyProvider.getResourceService(), serviceProxyProvider.getMetricQueryService());
         ResultHandler resultHandler = new ResultHandler(ensembleResourceHandler);
 
         router
