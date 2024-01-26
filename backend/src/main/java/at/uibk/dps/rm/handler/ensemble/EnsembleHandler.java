@@ -113,7 +113,7 @@ public class EnsembleHandler extends ValidationHandler {
     }
 
     private Single<JsonArray> validateEnsembleStatus(long accountId, long ensembleId, ConfigDTO configDTO) {
-        return ensembleService.findOneByIdAndAccountId(accountId, ensembleId)
+        return ensembleService.findOneByIdAndAccountId(ensembleId, accountId)
             .flatMap(ensemble -> {
                 GetOneEnsemble getOneEnsemble = ensemble.mapTo(GetOneEnsemble.class);
                 return resourceService.findAllByNonMonitoredSLOs(ensemble)

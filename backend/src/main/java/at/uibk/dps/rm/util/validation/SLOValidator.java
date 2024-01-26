@@ -44,7 +44,7 @@ public class SLOValidator {
             .map(resource -> ((JsonObject) resource))
             .map(resource -> resource.mapTo(Resource.class))
             .collect(Collectors.toMap(resource -> resource.getResourceId().toString(), resource -> resource))
-            .flatMapObservable(filteredResources -> {
+            .flatMap(filteredResources -> {
                 Set<String> resourceIds = filteredResources.keySet();
                 Set<String> mainResourceIds = new HashSet<>(resourceIds);
                 HashSetValuedHashMap<String, String> regionResources = new HashSetValuedHashMap<>();
@@ -86,18 +86,26 @@ public class SLOValidator {
                 MetricQueryProvider queryProvider = new MetricQueryProvider(metricQueryService);
                 return Observable.fromIterable(sloRequest.getServiceLevelObjectives())
                     .filter(slo -> MonitoringMetricEnum.fromSLO(slo) != null)
-                    .flatMapSingle(slo -> {
-                        // TODO: fix deployment
-                        MonitoringMetricEnum metric = MonitoringMetricEnum.fromSLO(slo);
-                        return queryProvider.getMetricQuery(configDTO, metric, slo, filteredResources,
-                            resourceIds, mainResourceIds, regionResources, platformResources, instanceTypeResources);
+                    .toList()
+                    .flatMap(monitoredSLOs -> {
+                        if (monitoredSLOs.isEmpty()) {
+                            return Single.just(new HashSet<>(filteredResources.values()));
+                        } else {
+                            return Observable.fromIterable(monitoredSLOs)
+                                .flatMapSingle(slo -> {
+                                    // TODO: fix deployment
+                                    MonitoringMetricEnum metric = MonitoringMetricEnum.fromSLO(slo);
+                                    return queryProvider.getMetricQuery(configDTO, metric, slo, filteredResources,
+                                        resourceIds, mainResourceIds, regionResources, platformResources, instanceTypeResources);
+                                })
+                                .reduce((currSet, nextSet) -> {
+                                    currSet.retainAll(nextSet);
+                                    return currSet;
+                                })
+                                .switchIfEmpty(Single.just(Set.of()));
+                        }
                     });
-            })
-            .reduce((currSet, nextSet) -> {
-                currSet.retainAll(nextSet);
-                return currSet;
-            })
-            .switchIfEmpty(Single.just(Set.of()));
+            });
     }
 
     /**
