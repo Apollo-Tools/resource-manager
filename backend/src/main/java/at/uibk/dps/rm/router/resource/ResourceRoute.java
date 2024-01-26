@@ -17,7 +17,7 @@ public class ResourceRoute implements Route {
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         ResourceHandler resourceHandler = new ResourceHandler(serviceProxyProvider.getResourceService(),
-            serviceProxyProvider.getMetricQueryService());
+            serviceProxyProvider.getMetricService(), serviceProxyProvider.getMetricQueryService());
         ResultHandler resultHandler = new ResultHandler(resourceHandler);
 
         router

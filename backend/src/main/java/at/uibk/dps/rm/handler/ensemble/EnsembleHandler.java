@@ -9,6 +9,7 @@ import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.service.database.util.EnsembleUtility;
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.EnsembleService;
+import at.uibk.dps.rm.service.rxjava3.database.metric.MetricService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
 import at.uibk.dps.rm.service.rxjava3.monitoring.metricquery.MetricQueryService;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
@@ -38,6 +39,8 @@ public class EnsembleHandler extends ValidationHandler {
 
     private final ResourceService resourceService;
 
+    private final MetricService metricService;
+
     private final MetricQueryService metricQueryService;
 
     /**
@@ -46,10 +49,11 @@ public class EnsembleHandler extends ValidationHandler {
      * @param ensembleService the service
      */
     public EnsembleHandler(EnsembleService ensembleService, ResourceService resourceService,
-            MetricQueryService metricQueryService) {
+            MetricService metricService, MetricQueryService metricQueryService) {
         super(ensembleService);
         this.ensembleService = ensembleService;
         this.resourceService = resourceService;
+        this.metricService = metricService;
         this.metricQueryService = metricQueryService;
     }
 
@@ -67,11 +71,13 @@ public class EnsembleHandler extends ValidationHandler {
         JsonObject requestBody = rc.body().asJsonObject();
         SLORequest requestDTO = requestBody.mapTo(CreateEnsembleRequest.class);
         return new ConfigUtility(Vertx.currentContext().owner()).getConfigDTO()
-            .flatMap(configDTO -> resourceService.findAllByNonMonitoredSLOs(requestBody)
+            .flatMap(configDTO -> metricService.checkMetricTypeForSLOs(requestBody)
+                .andThen(resourceService.findAllByNonMonitoredSLOs(requestBody))
                 .flatMap(resources -> {
                     SLOValidator sloValidator = new SLOValidator(metricQueryService, requestDTO, configDTO);
                     return sloValidator.filterResourcesByMonitoredMetrics(resources);
-                }))
+                })
+            )
             .flatMapObservable(Observable::fromIterable)
             .map(Resource::getResourceId)
             .collect(Collectors.toSet())

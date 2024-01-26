@@ -5,6 +5,7 @@ import at.uibk.dps.rm.entity.dto.resource.FindResourceBySloDTO;
 import at.uibk.dps.rm.entity.dto.resource.SubResourceDTO;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.handler.ValidationHandler;
+import at.uibk.dps.rm.service.rxjava3.database.metric.MetricService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
 import at.uibk.dps.rm.service.rxjava3.monitoring.metricquery.MetricQueryService;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
@@ -26,6 +27,8 @@ public class ResourceHandler extends ValidationHandler {
 
     private final ResourceService resourceService;
 
+    private final MetricService metricService;
+
     private final MetricQueryService metricQueryService;
 
     /**
@@ -33,9 +36,11 @@ public class ResourceHandler extends ValidationHandler {
      *
      * @param resourceService the service
      */
-    public ResourceHandler(ResourceService resourceService, MetricQueryService metricQueryService) {
+    public ResourceHandler(ResourceService resourceService, MetricService metricService,
+            MetricQueryService metricQueryService) {
         super(resourceService);
         this.resourceService = resourceService;
+        this.metricService = metricService;
         this.metricQueryService = metricQueryService;
     }
 
@@ -54,7 +59,8 @@ public class ResourceHandler extends ValidationHandler {
         JsonObject requestBody = rc.body().asJsonObject();
         SLORequest sloRequest = requestBody.mapTo(SLORequest.class);
         return new ConfigUtility(Vertx.currentContext().owner()).getConfigDTO()
-            .flatMap(configDTO -> resourceService.findAllByNonMonitoredSLOs(requestBody)
+            .flatMap(configDTO -> metricService.checkMetricTypeForSLOs(requestBody)
+                .andThen(resourceService.findAllByNonMonitoredSLOs(requestBody))
                 .flatMap(resources -> {
                     SLOValidator sloValidator = new SLOValidator(metricQueryService, sloRequest, configDTO);
                     return sloValidator.filterResourcesByMonitoredMetrics(resources)

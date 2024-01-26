@@ -23,7 +23,8 @@ public class EnsembleRoute implements Route {
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
         EnsembleHandler ensembleHandler = new EnsembleHandler(serviceProxyProvider.getEnsembleService(),
-            serviceProxyProvider.getResourceService(), serviceProxyProvider.getMetricQueryService());
+            serviceProxyProvider.getResourceService(), serviceProxyProvider.getMetricService(),
+            serviceProxyProvider.getMetricQueryService());
         PrivateEntityResultHandler resultHandler = new PrivateEntityResultHandler(ensembleHandler);
 
         router
