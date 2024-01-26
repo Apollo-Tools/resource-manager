@@ -178,7 +178,7 @@ public class PlatformMetricRepositoryTest extends DatabaseTest {
     void countMissingRequiredMetricValuesByResourceId(long resourceId, boolean isMainResource, long count,
             VertxTestContext testContext) {
         smProvider.withTransactionSingle(sessionManager -> repository
-                .countMissingRequiredMetricValuesByResourceId(sessionManager, resourceId, isMainResource))
+                .countMissingCustomMetricValuesByResourceId(sessionManager, resourceId, isMainResource))
             .subscribe(result -> testContext.verify(() -> {
                 assertThat(result).isEqualTo(count);
                 testContext.completeNow();

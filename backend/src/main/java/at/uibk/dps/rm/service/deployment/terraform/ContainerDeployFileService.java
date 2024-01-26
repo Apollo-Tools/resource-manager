@@ -72,21 +72,18 @@ public class ContainerDeployFileService extends TerraformFileService {
         String identifier = getServiceDeploymentIdentifier();
         Map<String, MetricValue> mainMetricValues =
             MetricValueMapper.mapMetricValues(resource.getMain().getMetricValues());
-        Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
-
         String externalIp = "";
         if (mainMetricValues.containsKey("external-ip")) {
-            externalIp = mainMetricValues.get("external-ip").getValueString();
+            externalIp = mainMetricValues.get("external-ip").getValueString().strip();
         }
-
         String configPath = Path.of(config.getKubeConfigDirectory(), resource.getMain().getName())
             .toAbsolutePath().toString().replace("\\", "/");
         String ports = service.getPorts().stream()
             .map(portEntry -> String.format("{container_port = %s, service_port = %s}", portEntry.split(":")[0],
                 portEntry.split(":")[1]))
             .collect(Collectors.joining(","));
-        String hostname = metricValues.containsKey("hostname") ?
-            "\"" + metricValues.get("hostname").getValueString() + "\"" : "null";
+        String nodeName = resource.getMain().getResourceId().equals(resource.getResourceId()) ?
+            "null" : "\"" + resource.getName() + "\"";
         String imagePullSecrets = config.getKubeImagePullSecrets().stream()
             .map(secret -> "\"" + secret + "\"").collect(Collectors.joining(","));
         String volumeMounts = service.getVolumeMounts().stream()
@@ -120,7 +117,7 @@ public class ContainerDeployFileService extends TerraformFileService {
             "}\n", identifier, configPath, serviceDeployment.getContext(),
             serviceDeployment.getNamespace(), service.getName(), service.getImage(), deploymentId,
             service.getReplicas(), service.getCpu(), service.getMemory(), ports,
-            service.getK8sServiceType().getName(), externalIp, hostname, imagePullSecrets, volumeMounts, envVars));
+            service.getK8sServiceType().getName(), externalIp, nodeName, imagePullSecrets, volumeMounts, envVars));
         return containerString.toString();
     }
 

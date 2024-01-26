@@ -127,12 +127,12 @@ public class DeploymentValidationUtilityTest {
             .thenReturn(testCase.equals("missingVPC") ? Maybe.empty() : Maybe.just(vpc));
         if (testCase.equals("missingMetrics")) {
             when(repositoryMock.getPlatformMetricRepository()
-                .countMissingRequiredMetricValuesByResourceId(eq(sessionManager), anyLong(), anyBoolean()))
+                .countMissingCustomMetricValuesByResourceId(eq(sessionManager), anyLong(), anyBoolean()))
                 .thenReturn(Single.just(0L))
                 .thenReturn(Single.just(10L));
         } else {
             when(repositoryMock.getPlatformMetricRepository()
-                .countMissingRequiredMetricValuesByResourceId(eq(sessionManager), anyLong(), anyBoolean()))
+                .countMissingCustomMetricValuesByResourceId(eq(sessionManager), anyLong(), anyBoolean()))
                 .thenReturn(Single.just(0L));
         }
     }

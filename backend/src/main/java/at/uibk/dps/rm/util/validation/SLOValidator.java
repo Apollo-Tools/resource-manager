@@ -93,7 +93,6 @@ public class SLOValidator {
                         } else {
                             return Observable.fromIterable(monitoredSLOs)
                                 .flatMapSingle(slo -> {
-                                    // TODO: fix deployment
                                     MonitoringMetricEnum metric = MonitoringMetricEnum.fromSLO(slo);
                                     return queryProvider.getMetricQuery(configDTO, metric, slo, filteredResources,
                                         resourceIds, mainResourceIds, regionResources, platformResources, instanceTypeResources);

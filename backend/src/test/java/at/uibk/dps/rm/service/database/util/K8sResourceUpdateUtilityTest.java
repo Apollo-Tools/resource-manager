@@ -2,7 +2,6 @@ package at.uibk.dps.rm.service.database.util;
 
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sMonitoringData;
-import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sMonitoringMetricEnum;
 import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sNode;
 import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.testutil.objectprovider.TestMetricProvider;
