@@ -1,5 +1,5 @@
 import {Radio, Select, Space} from 'antd';
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import SLOValue from './SLOValue';
 import PropTypes from 'prop-types';
 import TooltipIcon from '../TooltipIcon';
@@ -16,10 +16,6 @@ const SLOEntry = ({metrics, selectedMetrics, slo, selectables, updateMetric, upd
     string: ['=='],
     selectable: ['=='],
   };
-
-  useEffect(() => {
-    console.log(selectables);
-  }, [selectables]);
 
   const onChangeMetric = (value) => {
     updateMetric?.(value, slo.id);

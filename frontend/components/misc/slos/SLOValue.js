@@ -11,7 +11,11 @@ const SLOValue = ({expression, metricType, selectables, onChange}) => {
   }, [values]);
 
   useEffect(() => {
-    setValues([undefined]);
+    if (metricType === 'boolean') {
+      setValues([true]);
+    } else {
+      setValues([undefined]);
+    }
   }, [expression]);
 
   const onChangeValue = (newValue, valueIdx) => {
@@ -56,7 +60,6 @@ const SLOValue = ({expression, metricType, selectables, onChange}) => {
           key={idx}
           checkedChildren={<CheckOutlined />}
           unCheckedChildren={<CloseOutlined />}
-          defaultChecked
           checked={value}
           onChange={(value) => onChangeValue(value, idx)}
         />;
