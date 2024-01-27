@@ -33,8 +33,7 @@ public class EnsembleValidationUtility {
     public Single<List<ResourceEnsembleStatus>> validateAndUpdateEnsemble(SessionManager sm, long ensembleId,
             long accountId) {
         EnsembleUtility ensembleUtility = new EnsembleUtility(repositoryProvider);
-        SLOUtility sloUtility = new SLOUtility(repositoryProvider.getResourceRepository(),
-            repositoryProvider.getMetricRepository());
+        SLOUtility sloUtility = new SLOUtility(repositoryProvider.getResourceRepository());
         return repositoryProvider.getEnsembleRepository().findByIdAndAccountId(sm, ensembleId, accountId)
             .switchIfEmpty(Single.error(new NotFoundException(Ensemble.class)))
             .flatMap(ensemble -> ensembleUtility.fetchAndPopulateEnsemble(sm, ensembleId, accountId))

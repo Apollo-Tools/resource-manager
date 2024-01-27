@@ -7,7 +7,6 @@ import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sMonitoringData;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.MonitoringException;
 import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
@@ -37,7 +36,6 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
 
     private final ResourceRepository repository;
     private final RegionRepository regionRepository;
-    private final MetricRepository metricRepository;
 
     /**
      * Create an instance from the resourceRepository.
@@ -45,11 +43,10 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
      * @param repository the resource repository
      */
     public ResourceServiceImpl(ResourceRepository repository, RegionRepository regionRepository,
-            MetricRepository metricRepository, SessionManagerProvider smProvider) {
+            SessionManagerProvider smProvider) {
         super(repository, Resource.class, smProvider);
         this.repository = repository;
         this.regionRepository = regionRepository;
-        this.metricRepository = metricRepository;
     }
 
     @Override
@@ -85,7 +82,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     public void findAllByNonMonitoredSLOs(JsonObject data, Handler<AsyncResult<JsonArray>> resultHandler) {
         SLORequest sloRequest = data.mapTo(SLORequest.class);
         Single<List<Resource>> findAll = smProvider.withTransactionSingle(sm ->
-            new SLOUtility(repository, metricRepository).findResourcesByNonMonitoredSLOs(sm, sloRequest)
+            new SLOUtility(repository).findResourcesByNonMonitoredSLOs(sm, sloRequest)
                 .flatMapObservable(Observable::fromIterable)
                 .map(this::getResourceLockState).toList()
         );

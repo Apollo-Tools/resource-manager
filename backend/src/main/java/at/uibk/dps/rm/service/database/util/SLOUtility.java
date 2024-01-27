@@ -5,9 +5,7 @@ import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.exception.BadInputException;
-import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
-import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import lombok.AllArgsConstructor;
 
@@ -20,9 +18,8 @@ import java.util.List;
  */
 @AllArgsConstructor
 public class SLOUtility {
-    private final ResourceRepository resourceRepository;
 
-    private final MetricRepository metricRepository;
+    private final ResourceRepository resourceRepository;
 
     /*
      * Find, filter and sort resources by service level objectives from the sloRequest.
@@ -33,27 +30,14 @@ public class SLOUtility {
      */
     public Single<List<Resource>> findResourcesByNonMonitoredSLOs(SessionManager sm,
             SLORequest sloRequest) {
-        Single<List<String>> checkSLOs = metricRepository
-            .findAllNonMonitoredBySLO(sm, sloRequest.getServiceLevelObjectives())
-            .flatMapObservable(metrics -> Observable.fromIterable(sloRequest.getServiceLevelObjectives())
-                .flatMap(slo -> Observable.fromIterable(metrics)
-                    .filter(metric -> metric.getMetric().equals(slo.getName()))
-                    .map(metric -> {
-                        validateSLOType(slo, metric);
-                        return metric;
-                })))
-            .map(Metric::getMetric)
-            .toList();
-        return checkSLOs.flatMap(metrics -> {
-            if (sloRequest.getEnvironments().isEmpty() && sloRequest.getResourceTypes().isEmpty()
-                && sloRequest.getPlatforms().isEmpty() && sloRequest.getRegions().isEmpty() &&
-                sloRequest.getProviders().isEmpty()) {
-                return resourceRepository.findAllMainAndSubResourcesAndFetch(sm);
-            }
-            return resourceRepository.findAllByNonMVSLOs(sm, sloRequest.getEnvironments(),
-                sloRequest.getResourceTypes(), sloRequest.getPlatforms(), sloRequest.getRegions(),
-                sloRequest.getProviders());
-        });
+        if (sloRequest.getEnvironments().isEmpty() && sloRequest.getResourceTypes().isEmpty()
+            && sloRequest.getPlatforms().isEmpty() && sloRequest.getRegions().isEmpty() &&
+            sloRequest.getProviders().isEmpty()) {
+            return resourceRepository.findAllMainAndSubResourcesAndFetch(sm);
+        }
+        return resourceRepository.findAllByNonMVSLOs(sm, sloRequest.getEnvironments(),
+            sloRequest.getResourceTypes(), sloRequest.getPlatforms(), sloRequest.getRegions(),
+            sloRequest.getProviders());
     }
 
     /**

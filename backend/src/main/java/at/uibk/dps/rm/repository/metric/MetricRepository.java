@@ -41,28 +41,14 @@ public class MetricRepository extends Repository<Metric> {
         );
     }
 
-    public Single<List<Metric>> findAllNonMonitoredBySLO(SessionManager sessionManager,
-            List<ServiceLevelObjective> serviceLevelObjectives) {
-        String mappedSLOs = serviceLevelObjectives.stream()
-            .map(ServiceLevelObjective::getName)
-            .collect(Collectors.joining(","));
-        return Single.fromCompletionStage(sessionManager.getSession()
-            .createQuery("select distinct m from PlatformMetric pm " +
-                "left join pm.metric m " +
-                "where m.metric in (:slos) and m.isSlo=true and pm.isMonitored=false", entityClass)
-            .setParameter("slos", mappedSLOs)
-            .getResultList()
-        );
-    }
-
     public Single<List<Metric>> findAllBySLOs(SessionManager sessionManager,
             Collection<ServiceLevelObjective> serviceLevelObjectives) {
-        String mappedSLOs = serviceLevelObjectives.stream()
+        List<String> mappedSLOs = serviceLevelObjectives.stream()
             .map(ServiceLevelObjective::getName)
-            .collect(Collectors.joining(","));
+            .collect(Collectors.toList());
         return Single.fromCompletionStage(sessionManager.getSession()
             .createQuery("select m from Metric m " +
-                "where m.metric in (:slos) and m.isSlo=true", entityClass)
+                "where m.metric in :slos and m.isSlo=true", entityClass)
             .setParameter("slos", mappedSLOs)
             .getResultList()
         );
