@@ -62,6 +62,7 @@ public class ScrapeTargetServiceImpl extends DatabaseServiceProxy<Resource> impl
                 });
             Observable<ScrapeTargetDTO> findOpenFaasResources = scrapeTargetRepository.findAllOpenFaaSTargets(sm)
                 .flatMapObservable(Observable::fromIterable)
+                .filter(scrapeTarget -> scrapeTarget.getBaseUrl() != null && scrapeTarget.getMetricsPort() != null)
                 .map(functionDeployment -> {
                     ScrapeTargetDTO scrapeTarget = new ScrapeTargetDTO();
                     scrapeTarget.setTargets(List.of(functionDeployment.getBaseUrl() + ':' +

@@ -51,13 +51,14 @@ public class ScrapeTargetRepository extends Repository<Resource> {
      */
     public Single<List<FindAllOpenFaaSScrapeTargetsDTO>> findAllOpenFaaSTargets(SessionManager sessionManager) {
         return Single.fromCompletionStage(sessionManager.getSession()
-            .createQuery("select new at.uibk.dps.rm.entity.dto.resource.FindAllOpenFaaSScrapeTargetsDTO(" +
+            .createQuery("select distinct new at.uibk.dps.rm.entity.dto.resource.FindAllOpenFaaSScrapeTargetsDTO(" +
                     "r.resourceId, " +
                     "(select mv.valueString from MetricValue mv where mv.metric.metric='base-url' " +
                         "and mv.resource.resourceId=r.resourceId), " +
                     "(select mv.valueNumber from MetricValue mv where mv.metric.metric='metrics-port' " +
                         "and mv.resource.resourceId=r.resourceId) " +
                     ") from Resource r " +
+                    "left join r.metricValues mv " +
                     "where r.platform.platform=:platformOpenFaaS",
                 FindAllOpenFaaSScrapeTargetsDTO.class)
             .setParameter("platformOpenFaaS", PlatformEnum.OPENFAAS.getValue())
