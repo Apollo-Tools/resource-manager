@@ -59,6 +59,8 @@ public interface ResourceService extends DatabaseServiceInterface {
      */
     void findAllByResourceIds(List<Long> resourceIds, Handler<AsyncResult<JsonArray>> resultHandler);
 
+    void findAllByPlatform(String platform, Handler<AsyncResult<JsonArray>> resultHandler);
+
     /**
      * Find all resources that are locked by a deployment.
      *

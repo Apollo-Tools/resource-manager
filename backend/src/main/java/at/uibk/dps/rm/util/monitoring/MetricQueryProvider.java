@@ -121,10 +121,11 @@ public class MetricQueryProvider {
                 VmQuery regionLatency = regionQueryProvider.getLatency();
                 // K8s
                 VmQuery k8sLatency = k8sClusterQueryProvider.getLatency();
-                // TODO: Add openfaas
+                // OpenFaas
+                VmQuery openfaasLatency = nodeQueryProvider.getLatency();
 
                 includeSubResources = true;
-                metricQueryObservable = Observable.fromArray(regionLatency, k8sLatency);
+                metricQueryObservable = Observable.fromArray(regionLatency, k8sLatency, openfaasLatency);
                 break;
             case MEMORY:
                 // K8s Cluster

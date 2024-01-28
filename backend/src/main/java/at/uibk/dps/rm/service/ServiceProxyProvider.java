@@ -79,6 +79,7 @@ public class ServiceProxyProvider {
     private final FunctionInvocationPushService functionInvocationPushService;
     private final K8sMetricPushService k8sMetricPushService;
     private final MetricQueryService metricQueryService;
+    private final OpenFaasMetricPushService openFaasMetricPushService;
     private final RegionMetricPushService regionMetricPushService;
 
 
@@ -125,6 +126,7 @@ public class ServiceProxyProvider {
         functionInvocationPushService = FunctionInvocationPushService.createProxy(vertx);
         k8sMetricPushService = K8sMetricPushService.createProxy(vertx);
         metricQueryService = MetricQueryService.createProxy(vertx);
+        openFaasMetricPushService = OpenFaasMetricPushService.createProxy(vertx);
         regionMetricPushService = RegionMetricPushService.createProxy(vertx);
     }
 }

@@ -122,7 +122,7 @@ public class K8sMonitoringHandler implements MonitoringHandler {
                 return Single.just(monitoringData);
             }
             String pingUrl = LatencyMonitoringUtility
-                .getPingUrlFromK8sBasePath(monitoringData.getBasePath());
+                .getPingUrl(monitoringData.getBasePath());
             return LatencyMonitoringUtility.monitorLatency(5, pingUrl)
                 .map(processOutput -> {
                     if (processOutput.getProcess().exitValue() == 0) {

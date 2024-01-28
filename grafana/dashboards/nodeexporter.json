@@ -23,7 +23,7 @@
     ]
   },
   "description": "Dasbhoard based on https://grafana.com/grafana/dashboards/15172",
-  "editable": true,
+  "editable": false,
   "fiscalYearStartMonth": 0,
   "gnetId": 15172,
   "graphTooltip": 0,
@@ -98,7 +98,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Mem (max)"
+              "options": "Value #Mem (lastNotNull)"
             },
             "properties": [
               {
@@ -118,7 +118,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #CPU (max)"
+              "options": "Value #CPU (lastNotNull)"
             },
             "properties": [
               {
@@ -138,7 +138,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Uptime (max)"
+              "options": "Value #Uptime (lastNotNull)"
             },
             "properties": [
               {
@@ -158,7 +158,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Part util (max)"
+              "options": "Value #Part util (lastNotNull)"
             },
             "properties": [
               {
@@ -212,13 +212,17 @@
               {
                 "id": "displayName",
                 "value": "Storage used"
+              },
+              {
+                "id": "custom.width",
+                "value": 140
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #CPU util (max)"
+              "options": "Value #CPU util (lastNotNull)"
             },
             "properties": [
               {
@@ -274,7 +278,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Mem util (max)"
+              "options": "Value #Mem util (lastNotNull)"
             },
             "properties": [
               {
@@ -330,7 +334,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Temperature (max)"
+              "options": "Value #Temperature (lastNotNull)"
             },
             "properties": [
               {
@@ -386,7 +390,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Storage (max)"
+              "options": "Value #Storage (lastNotNull)"
             },
             "properties": [
               {
@@ -406,7 +410,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": " Uptime"
+              "options": "Value #Uptime (lastNotNull)"
             },
             "properties": [
               {
@@ -418,19 +422,19 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "CPU"
+              "options": "Value #CPU (lastNotNull)"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 66
+                "value": 50
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Mem"
+              "options": "Value #Mem util (lastNotNull)"
             },
             "properties": [
               {
@@ -442,12 +446,12 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #CPU util"
+              "options": "Value #CPU util (lastNotNull)"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 145
+                "value": 140
               }
             ]
           },
@@ -459,7 +463,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 113
+                "value": 80
               },
               {
                 "id": "filterable"
@@ -477,7 +481,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Up (max)"
+              "options": "Value #Up (lastNotNull)"
             },
             "properties": [
               {
@@ -519,24 +523,24 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Storage"
+              "options": "Value #Storage (lastNotNull)"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 99
+                "value": 90
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "Mem"
+              "options": "Value #Mem (lastNotNull)"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 108
+                "value": 90
               }
             ]
           },
@@ -555,7 +559,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Temperature (max)"
+              "options": "Value #Temperature (lastNotNull)"
             },
             "properties": [
               {
@@ -567,7 +571,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Availability (max)"
+              "options": "Value #Availability (lastNotNull)"
             },
             "properties": [
               {
@@ -581,6 +585,66 @@
               {
                 "id": "displayName",
                 "value": "Availability (30d)"
+              },
+              {
+                "id": "custom.width",
+                "value": 130
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #Latency (lastNotNull)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "lcd",
+                  "type": "gauge",
+                  "valueDisplayMode": "text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "#EAB839",
+                      "value": 0.1
+                    },
+                    {
+                      "color": "red",
+                      "value": 0.15
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 0.2
+              },
+              {
+                "id": "displayName",
+                "value": "Latency"
+              },
+              {
+                "id": "custom.width",
+                "value": 140
               }
             ]
           }
@@ -875,6 +939,21 @@
           "legendFormat": "__auto",
           "range": false,
           "refId": "Availability"
+        },
+        {
+          "datasource": {
+            "type": "victoriametrics-datasource",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "openfaas_latency_seconds{resource=~\"$resourceId\"}",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "Latency"
         }
       ],
       "title": "VM/Bare-Metal Resources",
@@ -924,19 +1003,21 @@
               "version": true
             },
             "indexByName": {
-              "Time": 4,
+              "Time": 5,
               "Value #Availability": 3,
-              "Value #CPU": 7,
-              "Value #CPU util": 10,
-              "Value #Mem": 8,
-              "Value #Mem util": 11,
-              "Value #Part util": 12,
-              "Value #Storage": 9,
-              "Value #Temperature": 13,
+              "Value #CPU": 8,
+              "Value #CPU util": 11,
+              "Value #Latency": 4,
+              "Value #Mem": 9,
+              "Value #Mem util": 12,
+              "Value #Part util": 13,
+              "Value #Storage": 10,
+              "Value #Temperature": 14,
               "Value #Up": 2,
-              "Value #Uptime": 6,
+              "Value #Uptime": 7,
+              "__name__": 15,
               "instance": 1,
-              "job": 5,
+              "job": 6,
               "resource": 0
             },
             "renameByName": {
@@ -959,79 +1040,85 @@
               },
               "Storage": {
                 "aggregations": [
-                  "max"
+                  "lastNotNull"
                 ],
                 "operation": "aggregate"
               },
               "Temperature": {
                 "aggregations": [
-                  "max"
+                  "lastNotNull"
                 ],
                 "operation": "aggregate"
               },
               "Up": {
                 "aggregations": [
-                  "max"
+                  "lastNotNull"
                 ],
                 "operation": "aggregate"
               },
               "Value #Availability": {
                 "aggregations": [
-                  "max"
+                  "lastNotNull"
                 ],
                 "operation": "aggregate"
               },
               "Value #CPU": {
                 "aggregations": [
-                  "max"
+                  "lastNotNull"
                 ],
                 "operation": "aggregate"
               },
               "Value #CPU util": {
                 "aggregations": [
-                  "max"
+                  "lastNotNull"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #Latency": {
+                "aggregations": [
+                  "lastNotNull"
                 ],
                 "operation": "aggregate"
               },
               "Value #Mem": {
                 "aggregations": [
-                  "max"
+                  "lastNotNull"
                 ],
                 "operation": "aggregate"
               },
               "Value #Mem util": {
                 "aggregations": [
-                  "max"
+                  "lastNotNull"
                 ],
                 "operation": "aggregate"
               },
               "Value #Part util": {
                 "aggregations": [
-                  "max"
+                  "lastNotNull"
                 ],
                 "operation": "aggregate"
               },
               "Value #Storage": {
                 "aggregations": [
-                  "max"
+                  "lastNotNull"
                 ],
                 "operation": "aggregate"
               },
               "Value #Temperature": {
                 "aggregations": [
-                  "max"
+                  "lastNotNull"
                 ],
                 "operation": "aggregate"
               },
               "Value #Up": {
                 "aggregations": [
-                  "max"
+                  "lastNotNull"
                 ],
                 "operation": "aggregate"
               },
               "Value #Uptime": {
                 "aggregations": [
-                  "max"
+                  "lastNotNull"
                 ],
                 "operation": "aggregate"
               },
@@ -1248,6 +1335,6 @@
   "timezone": "browser",
   "title": "Node Exporter",
   "uid": "efa71f23-5850-4144-8b29-0ae9480eec94",
-  "version": 7,
+  "version": 6,
   "weekStart": ""
 }

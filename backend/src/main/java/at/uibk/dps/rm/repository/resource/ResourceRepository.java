@@ -109,6 +109,24 @@ public class ResourceRepository extends Repository<Resource> {
     }
 
     /**
+     * Find all main resources by platform and fetch the metric values.
+     *
+     * @param sessionManager the database session manager
+     * @param platform the platform
+     * @return a Single that emits a list of all resources
+     */
+    public Single<List<Resource>> findAllMainResourcesByPlatform(SessionManager sessionManager, String platform) {
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery("select distinct r from MainResource r " +
+                "left join fetch r.metricValues mv " +
+                "left join fetch mv.metric m " +
+                "where r.platform.platform=:platform", entityClass)
+                .setParameter("platform", platform)
+            .getResultList()
+        );
+    }
+
+    /**
      * Find all main and sub resources and fetch the resource type, platform, environment, region,
      * metric values and resource provider.
      *

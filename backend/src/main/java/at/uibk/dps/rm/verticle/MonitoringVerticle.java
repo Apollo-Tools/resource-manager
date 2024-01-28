@@ -1,10 +1,7 @@
 package at.uibk.dps.rm.verticle;
 
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
-import at.uibk.dps.rm.handler.monitoring.AWSPriceListMonitoringHandler;
-import at.uibk.dps.rm.handler.monitoring.K8sMonitoringHandler;
-import at.uibk.dps.rm.handler.monitoring.MonitoringHandler;
-import at.uibk.dps.rm.handler.monitoring.RegionMonitoringHandler;
+import at.uibk.dps.rm.handler.monitoring.*;
 import at.uibk.dps.rm.service.ServiceProxyBinder;
 import at.uibk.dps.rm.service.monitoring.function.FunctionExecutionService;
 import at.uibk.dps.rm.service.monitoring.function.FunctionExecutionServiceImpl;
@@ -37,6 +34,7 @@ public class MonitoringVerticle extends AbstractVerticle {
         ConfigDTO config = config().mapTo(ConfigDTO.class);
         monitoringHandlers.add(new AWSPriceListMonitoringHandler(vertx, webClient, config));
         monitoringHandlers.add(new K8sMonitoringHandler(vertx, config));
+        monitoringHandlers.add(new OpenFaasMonitoringHandler(vertx, config));
         monitoringHandlers.add(new RegionMonitoringHandler(vertx, config));
         return setupEventBus(config)
             .andThen(startMonitoringLoops());
@@ -65,6 +63,8 @@ public class MonitoringVerticle extends AbstractVerticle {
                 new FunctionInvocationPushServiceImpl(webClient, config));
             serviceProxyBinder.bind(K8sMetricPushService.class, new K8sMetricPushServiceImpl(webClient, config));
             serviceProxyBinder.bind(MetricQueryService.class, new MetricQueryServiceImpl(webClient, config));
+            serviceProxyBinder.bind(OpenFaasMetricPushService.class,
+                new OpenFaasMetricPushServiceImpl(webClient, config));
             serviceProxyBinder.bind(RegionMetricPushService.class, new RegionMetricPushServiceImpl(webClient, config));
             emitter.onComplete();
         });

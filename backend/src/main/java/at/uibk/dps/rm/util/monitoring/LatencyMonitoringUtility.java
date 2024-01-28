@@ -33,8 +33,8 @@ public class LatencyMonitoringUtility {
         return "ec2." + region.getName() + ".amazonaws.com";
     }
 
-    public static String getPingUrlFromK8sBasePath(String k8sBasePath) throws URISyntaxException {
-        URI uri = new URI(k8sBasePath);
+    public static String getPingUrl(String urlWithPath) throws URISyntaxException {
+        URI uri = new URI(urlWithPath);
         return uri.getHost();
     }
 }

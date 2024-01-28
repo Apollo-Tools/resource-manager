@@ -56,7 +56,7 @@ public class NodeVmQueryProvider implements VmQueryProvider {
 
     @Override
     public VmQuery getLatency() {
-        throw new NotImplementedException();
+        return new VmSingleQuery("openfaas_latency_seconds").setFilter(Set.of(resourceFilter));
     }
 
     @Override

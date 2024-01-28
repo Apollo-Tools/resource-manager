@@ -130,6 +130,14 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     }
 
     @Override
+    public void findAllByPlatform(String platform, Handler<AsyncResult<JsonArray>> resultHandler) {
+        Single<List<Resource>> findAll = smProvider.withTransactionSingle(sm -> repository
+            .findAllMainResourcesByPlatform(sm, platform)
+        );
+        RxVertxHandler.handleSession(findAll.map(this::mapResourceListToJsonArray), resultHandler);
+    }
+
+    @Override
     public void save(JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
         String name = data.getString("name");
         long regionId = data.getJsonObject("region").getLong("region_id");
