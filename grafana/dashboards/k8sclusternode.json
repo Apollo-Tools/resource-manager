@@ -70,29 +70,6 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Hostname"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Hostname"
-              },
-              {
-                "id": "unit",
-                "value": "bytes"
-              },
-              {
-                "id": "decimals",
-                "value": 1
-              },
-              {
-                "id": "custom.align"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
               "options": "instance"
             },
             "properties": [
@@ -120,7 +97,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Mem (max)"
+              "options": "Value #Mem (lastNotNull)"
             },
             "properties": [
               {
@@ -140,7 +117,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #CPU (max)"
+              "options": "Value #CPU (lastNotNull)"
             },
             "properties": [
               {
@@ -164,7 +141,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #CPU util (max)"
+              "options": "Value #CPU util (lastNotNull)"
             },
             "properties": [
               {
@@ -220,7 +197,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Mem util (max)"
+              "options": "Value #Mem util (lastNotNull)"
             },
             "properties": [
               {
@@ -273,7 +250,7 @@
               },
               {
                 "id": "custom.width",
-                "value": 250
+                "value": 200
               }
             ]
           },
@@ -285,7 +262,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 250
+                "value": 200
               }
             ]
           },
@@ -326,7 +303,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Mem (max)"
+              "options": "Value #Mem (lastNotNull)"
             },
             "properties": [
               {
@@ -338,7 +315,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Up (max)"
+              "options": "Value #Up (lastNotNull)"
             },
             "properties": [
               {
@@ -380,7 +357,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Availability (max)"
+              "options": "Value #Availability (lastNotNull)"
             },
             "properties": [
               {
@@ -397,6 +374,62 @@
               {
                 "id": "decimals",
                 "value": 6
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #Latency (lastNotNull)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "lcd",
+                  "type": "gauge",
+                  "valueDisplayMode": "text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "#EAB839",
+                      "value": 0.1
+                    },
+                    {
+                      "color": "red",
+                      "value": 0.15
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 0.2
+              },
+              {
+                "id": "displayName",
+                "value": "Latency"
+              },
+              {
+                "id": "custom.width",
+                "value": 150
               }
             ]
           }
@@ -517,6 +550,21 @@
           "legendFormat": "__auto",
           "range": false,
           "refId": "Availability"
+        },
+        {
+          "datasource": {
+            "type": "victoriametrics-datasource",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "k8s_latency_seconds{resource=~\"$resourceId\"}",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "Latency"
         }
       ],
       "title": "K8s Cluster Resources",
@@ -566,13 +614,15 @@
               "version": true
             },
             "indexByName": {
-              "Time": 3,
+              "Time": 4,
               "Value #Availability": 2,
-              "Value #CPU": 4,
-              "Value #CPU util": 6,
-              "Value #Mem": 5,
-              "Value #Mem util": 7,
+              "Value #CPU": 5,
+              "Value #CPU util": 7,
+              "Value #Latency": 3,
+              "Value #Mem": 6,
+              "Value #Mem util": 8,
               "Value #Up": 1,
+              "__name__": 9,
               "resource": 0
             },
             "renameByName": {
@@ -610,37 +660,43 @@
               },
               "Value #Availability": {
                 "aggregations": [
-                  "max"
+                  "lastNotNull"
                 ],
                 "operation": "aggregate"
               },
               "Value #CPU": {
                 "aggregations": [
-                  "max"
+                  "lastNotNull"
                 ],
                 "operation": "aggregate"
               },
               "Value #CPU util": {
                 "aggregations": [
-                  "max"
+                  "lastNotNull"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #Latency": {
+                "aggregations": [
+                  "lastNotNull"
                 ],
                 "operation": "aggregate"
               },
               "Value #Mem": {
                 "aggregations": [
-                  "max"
+                  "lastNotNull"
                 ],
                 "operation": "aggregate"
               },
               "Value #Mem util": {
                 "aggregations": [
-                  "max"
+                  "lastNotNull"
                 ],
                 "operation": "aggregate"
               },
               "Value #Up": {
                 "aggregations": [
-                  "max"
+                  "lastNotNull"
                 ],
                 "operation": "aggregate"
               }
@@ -1160,8 +1216,8 @@
       {
         "current": {
           "selected": false,
-          "text": "2",
-          "value": "2"
+          "text": "12",
+          "value": "12"
         },
         "datasource": {
           "type": "prometheus",
@@ -1218,6 +1274,6 @@
   "timezone": "browser",
   "title": "K8s Dashboard",
   "uid": "b47a9eee-2299-40ec-9aec-ee2e826d3cfd",
-  "version": 24,
+  "version": 6,
   "weekStart": ""
 }

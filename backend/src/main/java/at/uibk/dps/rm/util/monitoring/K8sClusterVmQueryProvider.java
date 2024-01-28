@@ -43,7 +43,7 @@ public class K8sClusterVmQueryProvider implements VmQueryProvider {
 
     @Override
     public VmQuery getLatency() {
-        throw new NotImplementedException();
+        return new VmSingleQuery("k8s_latency_seconds").setFilter(Set.of(mainResourceFilter));
     }
 
     @Override

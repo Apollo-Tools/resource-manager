@@ -35,6 +35,10 @@ public class K8sMetricPushServiceImpl extends ServiceProxy implements K8sMetricP
         if (data.getIsUp()) {
             openTSDBEntities.add(new OpenTSDBEntity("k8s_up", 1L,
                 Map.of("resource", Long.toString(data.getResourceId()))));
+            if (data.getLatencySeconds() != null) {
+                openTSDBEntities.add(new OpenTSDBEntity("k8s_latency_seconds", data.getLatencySeconds(),
+                    Map.of("resource", Long.toString(data.getResourceId()))));
+            }
             openTSDBEntities.add(new OpenTSDBEntity("k8s_cpu_total", data.getTotalCPU().doubleValue(),
                 Map.of("resource", Long.toString(data.getResourceId()))));
             openTSDBEntities.add(new OpenTSDBEntity("k8s_cpu_used", data.getCPUUsed().doubleValue(),

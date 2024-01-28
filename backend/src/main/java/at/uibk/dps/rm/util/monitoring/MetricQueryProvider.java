@@ -45,7 +45,7 @@ public class MetricQueryProvider {
         Set<String> platformIds = platformResources.keySet().stream()
             .map(Pair::getKey)
             .collect(Collectors.toSet());
-        K8sClusterVmQueryProvider ks8ClusterQueryProvider = new K8sClusterVmQueryProvider(resourceFilter,
+        K8sClusterVmQueryProvider k8sClusterQueryProvider = new K8sClusterVmQueryProvider(resourceFilter,
             mainResourceFilter);
         K8sNodeVmQueryProvider k8sNodeQueryProvider = new K8sNodeVmQueryProvider(resourceFilter);
         NodeVmQueryProvider nodeQueryProvider = new NodeVmQueryProvider(resourceFilter, noDeploymentFilter,
@@ -58,7 +58,7 @@ public class MetricQueryProvider {
             case AVAILABILITY:
                 // K8s Cluster, K8s Node
                 includeSubResources = true;
-                VmQuery k8sAvailability = ks8ClusterQueryProvider.getAvailability();
+                VmQuery k8sAvailability = k8sClusterQueryProvider.getAvailability();
                 // Node Exporter
                 VmQuery nodeAvailability = nodeQueryProvider.getAvailability();
                 // Lambda, EC2
@@ -95,7 +95,7 @@ public class MetricQueryProvider {
                 break;
             case CPU:
                 // K8s Cluster
-                VmQuery k8sCpuTotal = ks8ClusterQueryProvider.getCpu();
+                VmQuery k8sCpuTotal = k8sClusterQueryProvider.getCpu();
                 // K8s Node
                 VmQuery k8sNodeCpuTotal = k8sNodeQueryProvider.getCpu();
                 // Node Exporter
@@ -108,7 +108,7 @@ public class MetricQueryProvider {
                 break;
             case CPU_UTIL:
                 // K8s Cluster
-                VmQuery k8sCpuUtil = ks8ClusterQueryProvider.getCpuUtil();
+                VmQuery k8sCpuUtil = k8sClusterQueryProvider.getCpuUtil();
                 // K8s Node
                 VmQuery k8sNodeCpuUtil = k8sNodeQueryProvider.getCpuUtil();
                 // Node Exporter
@@ -119,14 +119,16 @@ public class MetricQueryProvider {
             case LATENCY:
                 // Lambda, EC2
                 VmQuery regionLatency = regionQueryProvider.getLatency();
-                // TODO: Add k8s, openfaas
-                includeSubResources = true;
+                // K8s
+                VmQuery k8sLatency = k8sClusterQueryProvider.getLatency();
+                // TODO: Add openfaas
 
-                metricQueryObservable = Observable.fromArray(regionLatency);
+                includeSubResources = true;
+                metricQueryObservable = Observable.fromArray(regionLatency, k8sLatency);
                 break;
             case MEMORY:
                 // K8s Cluster
-                VmQuery k8sMemoryTotal = ks8ClusterQueryProvider.getMemory();
+                VmQuery k8sMemoryTotal = k8sClusterQueryProvider.getMemory();
                 // K8s Node
                 VmQuery k8sNodeMemoryTotal = k8sNodeQueryProvider.getMemory();
                 // Node Exporter
@@ -139,7 +141,7 @@ public class MetricQueryProvider {
                 break;
             case MEMORY_UTIL:
                 // K8s Cluster
-                VmQuery k8sMemoryUtil = ks8ClusterQueryProvider.getMemoryUtil();
+                VmQuery k8sMemoryUtil = k8sClusterQueryProvider.getMemoryUtil();
                 // K8s Node
                 VmQuery k8sNodeMemoryUtil = k8sNodeQueryProvider.getMemoryUtil();
                 // Node Exporter
@@ -184,7 +186,7 @@ public class MetricQueryProvider {
             case UP:
                 // K8s Cluster, K8s Node
                 includeSubResources = true;
-                VmQuery k8sUp = ks8ClusterQueryProvider.getUp();
+                VmQuery k8sUp = k8sClusterQueryProvider.getUp();
                 // Node Exporter
                 VmQuery nodeUp = nodeQueryProvider.getUp();
                 // Lambda, EC2

@@ -5,7 +5,7 @@ import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
 import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.entity.monitoring.RegionConnectivity;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
-import at.uibk.dps.rm.service.deployment.executor.ProcessExecutor;
+import at.uibk.dps.rm.util.monitoring.LatencyMonitoringUtility;
 import io.reactivex.rxjava3.core.Observable;
 import io.vertx.core.Handler;
 import io.vertx.core.impl.logging.Logger;
@@ -15,9 +15,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
 import lombok.RequiredArgsConstructor;
-
-import java.nio.file.Path;
-import java.util.List;
 
 /**
  * This monitoring handler monitors registered regions. This includes checking if a regions is
@@ -53,21 +50,9 @@ public class RegionMonitoringHandler implements MonitoringHandler {
                 return resourceProvider.equals(ResourceProviderEnum.AWS);
             })
             .flatMapSingle(region -> {
-                int numberRequests = 5;
                 logger.info("Monitor latency: " + region.getName());
-                String pingUrl = "ec2." + region.getName() + ".amazonaws.com";
-                Path scriptsPath = Path.of("monitoring").toAbsolutePath();
-                String scriptArgs = " -c " + numberRequests + " -w " + pingUrl;
-                List<String> commands;
-                if (System.getProperty("os.name").toLowerCase().contains("windows")) {
-                    Path scriptPath = Path.of(scriptsPath.toString(), "latencytest.bat");
-                    commands = List.of("cmd.exe", "/c", scriptPath + scriptArgs);
-                } else {
-                    Path scriptPath = Path.of(scriptsPath.toString(), "latencytest.sh");
-                    commands = List.of("bash", "-c", scriptPath + scriptArgs);
-                }
-                ProcessExecutor processExecutor = new ProcessExecutor(scriptsPath, commands);
-                return processExecutor.executeCli()
+                String pingUrl = LatencyMonitoringUtility.getPingUrlFromAwsRegion(region);
+                return LatencyMonitoringUtility.monitorLatency(5, pingUrl)
                     .map(processOutput -> {
                         RegionConnectivity connectivity = new RegionConnectivity();
                         connectivity.setRegion(region);

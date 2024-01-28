@@ -21,6 +21,10 @@ import java.util.List;
 @DataObject
 public class K8sMonitoringData implements K8sEntityData {
 
+    private String name;
+
+    private String basePath;
+
     private long resourceId;
 
     private List<K8sNode> nodes;
@@ -29,6 +33,8 @@ public class K8sMonitoringData implements K8sEntityData {
 
     private boolean isUp;
 
+    private Double latencySeconds;
+
     /**
      * Create an instance with a JsonObject.
      *
@@ -36,10 +42,13 @@ public class K8sMonitoringData implements K8sEntityData {
      */
     public K8sMonitoringData(JsonObject jsonObject) {
         K8sMonitoringData request = jsonObject.mapTo(K8sMonitoringData.class);
+        this.name = request.getName();
+        this.basePath = request.getBasePath();
         this.resourceId = request.getResourceId();
         this.nodes = request.getNodes();
         this.namespaces = request.getNamespaces();
         this.isUp = request.getIsUp();
+        this.latencySeconds = request.getLatencySeconds();
     }
 
     /**
