@@ -7,7 +7,7 @@ locals {
   init_containers = [
     for image_name in var.images:
     {
-      name = "pre-puller-${index(var.images, image_name) + 1}"
+      name = "prepuller-${index(var.images, image_name) + 1}"
       # Set the image you want to pull
       image = image_name
       # Use a known command that will exit successfully immediately
@@ -19,7 +19,7 @@ locals {
       ]
     }
   ]
-  name = "pre-puller-${var.deployment_id}${var.hostname != null ? var.hostname : ""}-${formatdate("YYYY-MM-DD-hh-mm-ss", timestamp())}"
+  name = "prepuller-${var.deployment_id}${var.hostname != null ? var.hostname : ""}-${formatdate("YYYY-MM-DD-hh-mm-ss", timestamp())}"
   image_pull_secrets = [
     for secret in var.image_pull_secrets:
     {
@@ -47,6 +47,9 @@ resource "kubernetes_manifest" "pre_puller" {
         "metadata" = {
           "labels" = {
             "name" = local.name
+            "source" = "apollo-rm-deployment"
+            "deployment" = var.deployment_id
+            "apollo-type" = "prepuller"
           }
         }
         "spec" = {
