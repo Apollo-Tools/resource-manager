@@ -32,41 +32,48 @@ public class K8sMetricPushServiceImpl extends ServiceProxy implements K8sMetricP
 
     public void composeAndPushMetrics(K8sMonitoringData data, Handler<AsyncResult<Void>> resultHandler) {
         List<OpenTSDBEntity> openTSDBEntities = new ArrayList<>();
+        String mainResource = Long.toString(data.getResourceId());
         if (data.getIsUp()) {
             openTSDBEntities.add(new OpenTSDBEntity("k8s_up", 1L,
-                Map.of("resource", Long.toString(data.getResourceId()))));
+                Map.of("resource", mainResource)));
             if (data.getLatencySeconds() != null) {
                 openTSDBEntities.add(new OpenTSDBEntity("k8s_latency_seconds", data.getLatencySeconds(),
-                    Map.of("resource", Long.toString(data.getResourceId()))));
+                    Map.of("resource", mainResource)));
             }
+            data.getPods().entries().forEach(entry -> {
+                String deployment = entry.getKey();
+                String resourceDeployment = Long.toString(entry.getValue().getResourceDeploymentId());
+                openTSDBEntities.add(new OpenTSDBEntity("k8s_pod_cpu_used", entry.getValue().getCPUUsed().doubleValue(),
+                    Map.of("resource", Long.toString(data.getResourceId()), "deployment", deployment,
+                        "resource_deployment", resourceDeployment)));
+                openTSDBEntities.add(new OpenTSDBEntity("k8s_pod_memory_used_bytes",
+                    entry.getValue().getMemoryUsed().doubleValue(),
+                    Map.of("resource", mainResource, "deployment", deployment, "resource_deployment",
+                        resourceDeployment)));
+            });
             openTSDBEntities.add(new OpenTSDBEntity("k8s_cpu_total", data.getTotalCPU().doubleValue(),
-                Map.of("resource", Long.toString(data.getResourceId()))));
+                Map.of("resource", mainResource)));
             openTSDBEntities.add(new OpenTSDBEntity("k8s_cpu_used", data.getCPUUsed().doubleValue(),
-                Map.of("resource", Long.toString(data.getResourceId()))));
+                Map.of("resource", mainResource)));
             openTSDBEntities.add(new OpenTSDBEntity("k8s_memory_total_bytes", data.getTotalMemory().doubleValue(),
-                Map.of("resource", Long.toString(data.getResourceId()))));
+                Map.of("resource", mainResource)));
             openTSDBEntities.add(new OpenTSDBEntity("k8s_memory_used_bytes", data.getMemoryUsed().doubleValue(),
-                Map.of("resource", Long.toString(data.getResourceId()))));
+                Map.of("resource", mainResource)));
             data.getNodes().forEach(k8sNode -> {
+                String resource = Long.toString(k8sNode.getResourceId());
                 openTSDBEntities.add(new OpenTSDBEntity("k8s_node_cpu_total", k8sNode.getTotalCPU().doubleValue(),
-                    Map.of("main_resource", Long.toString(data.getResourceId()), "resource",
-                        Long.toString(k8sNode.getResourceId()), "node", k8sNode.getName())));
-                openTSDBEntities.add(new OpenTSDBEntity("k8s_node_cpu_used",
-                    k8sNode.getCPUUsed().doubleValue(), Map.of("main_resource",
-                    Long.toString(data.getResourceId()), "resource", Long.toString(k8sNode.getResourceId()), "node",
-                    k8sNode.getName())));
+                    Map.of("main_resource", mainResource, "resource", resource, "node", k8sNode.getName())));
+                openTSDBEntities.add(new OpenTSDBEntity("k8s_node_cpu_used", k8sNode.getCPUUsed().doubleValue(),
+                    Map.of("main_resource", mainResource, "resource", resource, "node", k8sNode.getName())));
                 openTSDBEntities.add(new OpenTSDBEntity("k8s_node_memory_total_bytes",
-                    k8sNode.getTotalMemory().doubleValue(), Map.of("main_resource",
-                    Long.toString(data.getResourceId()), "resource", Long.toString(k8sNode.getResourceId()), "node",
-                    k8sNode.getName())));
+                    k8sNode.getTotalMemory().doubleValue(), Map.of("main_resource", mainResource, "resource",
+                    mainResource, "node", k8sNode.getName())));
                 openTSDBEntities.add(new OpenTSDBEntity("k8s_node_memory_used_bytes",
-                    k8sNode.getMemoryUsed().doubleValue(), Map.of("main_resource",
-                    Long.toString(data.getResourceId()), "resource", Long.toString(k8sNode.getResourceId()), "node",
-                    k8sNode.getName())));
+                    k8sNode.getMemoryUsed().doubleValue(), Map.of("main_resource", mainResource, "resource",
+                    mainResource, "node", k8sNode.getName())));
             });
         } else {
-            openTSDBEntities.add(new OpenTSDBEntity("k8s_up", 0L,
-                Map.of("resource", Long.toString(data.getResourceId()))));
+            openTSDBEntities.add(new OpenTSDBEntity("k8s_up", 0L, Map.of("resource", mainResource)));
         }
 
         monitoringPusher.pushMetrics(openTSDBEntities, resultHandler);

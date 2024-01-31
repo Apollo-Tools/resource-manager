@@ -2,7 +2,9 @@ package at.uibk.dps.rm.service.monitoring.k8s;
 
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sNode;
+import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sPod;
 import io.kubernetes.client.openapi.models.V1Namespace;
+import org.apache.commons.collections4.MultiValuedMap;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -39,4 +41,6 @@ public interface K8sMonitoringService {
      * @return a List of all found nodes
      */
     List<K8sNode> listNodes(Path kubeConfigPath, ConfigDTO config);
+
+    MultiValuedMap<String, K8sPod> getCurrentPodAllocation(String namespace);
 }

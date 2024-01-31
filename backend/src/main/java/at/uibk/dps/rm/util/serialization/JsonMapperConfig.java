@@ -10,6 +10,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.kubernetes.client.custom.Quantity;
 import io.vertx.core.json.jackson.DatabindCodec;
 import lombok.experimental.UtilityClass;
+import org.apache.commons.collections4.MultiValuedMap;
 
 /**
  * Used to configure the global json mapper.
@@ -31,6 +32,8 @@ public class JsonMapperConfig {
         SimpleModule customModule = new SimpleModule();
         customModule.addDeserializer(Quantity.class, new QuantityDeserializer());
         customModule.addSerializer(MetricPair.class, new MetricPairSerializer());
+        customModule.addSerializer(new MultiValuedMapSerializer());
+        customModule.addDeserializer(MultiValuedMap.class, new MultiValuedMapDeserializer());
         mapper.registerModule(customModule);
         // returns the ObjectMapper used by Vert.x when pretty printing JSON
         ObjectMapper prettyMapper = DatabindCodec.prettyMapper();

@@ -2,10 +2,13 @@ package at.uibk.dps.rm.service.monitoring.k8s;
 
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sNode;
+import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sPod;
 import at.uibk.dps.rm.exception.MonitoringException;
+import at.uibk.dps.rm.util.misc.MultiValuedMapCollector;
 import at.uibk.dps.rm.verticle.MonitoringVerticle;
 import io.kubernetes.client.Metrics;
 import io.kubernetes.client.custom.NodeMetrics;
+import io.kubernetes.client.custom.PodMetrics;
 import io.kubernetes.client.custom.Quantity;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
@@ -15,6 +18,7 @@ import io.kubernetes.client.openapi.models.*;
 import io.kubernetes.client.util.Config;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
+import org.apache.commons.collections4.MultiValuedMap;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -120,6 +124,40 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
             logger.error("Scrape k8s nodes: " + ex.getMessage());
             throw new MonitoringException("failed to list nodes");
         }
+    }
+
+    @Override
+    public MultiValuedMap<String, K8sPod> getCurrentPodAllocation(String namespace) {
+        List<PodMetrics> podMetricsList;
+        try {
+            podMetricsList = new Metrics().getPodMetrics(namespace).getItems();
+        } catch (ApiException ex) {
+            logger.error("Scrape k8s pods: " + ex.getMessage());
+            throw new MonitoringException("failed to scrape pod metrics");
+        }
+        return podMetricsList.stream()
+            .filter(podMetrics -> {
+                Map<String, String> labels = podMetrics.getMetadata().getLabels() == null ? Map.of() :
+                    podMetrics.getMetadata().getLabels();
+                return labels.containsKey("source") && labels.containsKey("apollo-type") &&
+                    labels.get("source").equals("apollo-rm-deployment") && labels.get("apollo-type").equals("pod");
+            })
+            .collect(new MultiValuedMapCollector<>(podMetrics -> podMetrics.getMetadata().getLabels().get("deployment"),
+                podMetrics -> {
+                    Map<String, String> labels = podMetrics.getMetadata().getLabels();
+                    K8sPod k8sPod = new K8sPod();
+                    k8sPod.setDeploymentId(Long.parseLong(labels.get("deployment")));
+                    k8sPod.setResourceDeploymentId(Long.parseLong(labels.get("resource-deployment")));
+                    k8sPod.setCpuLoad(podMetrics.getContainers().stream()
+                        .map(container -> container.getUsage().get("cpu"))
+                        .reduce((a, b) -> new Quantity(a.getNumber().add(b.getNumber()), a.getFormat()))
+                        .orElse(new Quantity("0")));
+                    k8sPod.setMemoryLoad(podMetrics.getContainers().stream()
+                        .map(container -> container.getUsage().get("memory"))
+                        .reduce((a, b) -> new Quantity(a.getNumber().add(b.getNumber()), a.getFormat()))
+                        .orElse(new Quantity("0")));
+                    return k8sPod;
+                }));
     }
 
     private Map<String, Map<String, Quantity>> getCurrentNodeAllocation() throws ApiException {
