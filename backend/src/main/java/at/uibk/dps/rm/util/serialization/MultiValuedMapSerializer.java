@@ -1,6 +1,5 @@
 package at.uibk.dps.rm.util.serialization;
 
-import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sPod;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
@@ -9,7 +8,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 
-public class MultiValuedMapSerializer extends StdSerializer<MultiValuedMap<String, K8sPod>> {
+public class MultiValuedMapSerializer<V> extends StdSerializer<MultiValuedMap<String, V>> {
 
     private static final long serialVersionUID = 190033535439232237L;
 
@@ -24,19 +23,19 @@ public class MultiValuedMapSerializer extends StdSerializer<MultiValuedMap<Strin
     /**
      * Create an instance from the multiValuedMapClass.
      *
-     * @param multiValuedMapClass the class of the SLOValue
+     * @param multiValuedMapClass the class of the multivalued map
      */
-    public MultiValuedMapSerializer(Class<MultiValuedMap<String, K8sPod>> multiValuedMapClass) {
+    public MultiValuedMapSerializer(Class<MultiValuedMap<String, V>> multiValuedMapClass) {
         super(multiValuedMapClass);
     }
 
 
     @Override
-    public void serialize(MultiValuedMap<String, K8sPod> value, JsonGenerator gen, SerializerProvider serializers)
+    public void serialize(MultiValuedMap<String, V> value, JsonGenerator gen, SerializerProvider serializers)
             throws IOException {
         gen.writeStartObject();
 
-        for (Map.Entry<String, Collection<K8sPod>> entry : value.asMap().entrySet()) {
+        for (Map.Entry<String, Collection<V>> entry : value.asMap().entrySet()) {
             gen.writeFieldName(entry.getKey());
             gen.writeObject(entry.getValue());
         }

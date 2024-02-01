@@ -1,6 +1,5 @@
 package at.uibk.dps.rm.util.serialization;
 
-import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sPod;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -11,9 +10,11 @@ import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import java.io.IOException;
 import java.util.*;
 
-public class MultiValuedMapDeserializer extends StdDeserializer<MultiValuedMap<String, K8sPod>> {
+public class MultiValuedMapDeserializer<V> extends StdDeserializer<MultiValuedMap<String, V>> {
 
     private static final long serialVersionUID = 2489015244524901705L;
+
+    private final Class<V> valueClass; // Add this field
 
     /**
      * The serialization throws an error if this constructor is not present
@@ -28,13 +29,14 @@ public class MultiValuedMapDeserializer extends StdDeserializer<MultiValuedMap<S
      *
      * @param valueClass the value class
      */
-    public MultiValuedMapDeserializer(Class<?> valueClass) {
+    public MultiValuedMapDeserializer(Class<V> valueClass) {
         super(valueClass);
+        this.valueClass = valueClass;
     }
 
     @Override
-    public MultiValuedMap<String, K8sPod> deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-        MultiValuedMap<String, K8sPod> map = new ArrayListValuedHashMap<>();
+    public MultiValuedMap<String, V> deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+        MultiValuedMap<String, V> map = new ArrayListValuedHashMap<>();
         JsonNode node = p.readValueAsTree();
 
         Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
@@ -43,14 +45,15 @@ public class MultiValuedMapDeserializer extends StdDeserializer<MultiValuedMap<S
             String key = entry.getKey();
             JsonNode valueNode = entry.getValue();
             for (JsonNode element : valueNode) {
-                K8sPod k8sPod;
-                try (JsonParser subParser = element.traverse(p.getCodec())) {
-                    k8sPod = subParser.readValueAs(K8sPod.class);
+                if (!element.isNull()) {
+                    V value;
+                    try (JsonParser subParser = element.traverse(p.getCodec())) {
+                        value = subParser.readValueAs(valueClass);
+                    }
+                    map.put(key, value);
                 }
-                map.put(key, k8sPod);
             }
         }
-
         return map;
     }
 }
