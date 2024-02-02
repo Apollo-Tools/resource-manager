@@ -2,6 +2,7 @@ package at.uibk.dps.rm.entity.monitoring.kubernetes;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.kubernetes.client.custom.Quantity;
+import io.kubernetes.client.openapi.models.V1Pod;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,11 +16,15 @@ import java.math.BigDecimal;
 @Setter
 public class K8sPod implements K8sEntityData {
 
-    private long resourceId;
+    private String name;
 
     private long deploymentId;
 
     private long resourceDeploymentId;
+
+    private long serviceId;
+
+    private V1Pod v1Pod;
 
     private Quantity cpuLoad;
 
@@ -31,13 +36,21 @@ public class K8sPod implements K8sEntityData {
     @Override
     @JsonIgnore
     public BigDecimal getTotalCPU() {
-        return BigDecimal.ZERO;
+        if (v1Pod.getSpec() != null && !v1Pod.getSpec().getContainers().isEmpty() &&
+                v1Pod.getSpec().getContainers().get(0).getResources() != null) {
+            return  v1Pod.getSpec().getContainers().get(0).getResources().getLimits().get("cpu").getNumber();
+        }
+        throw new NullPointerException();
     }
 
     @Override
     @JsonIgnore
     public BigDecimal getTotalMemory() {
-        return BigDecimal.ZERO;
+        if (v1Pod.getSpec() != null && !v1Pod.getSpec().getContainers().isEmpty() &&
+                v1Pod.getSpec().getContainers().get(0).getResources() != null) {
+            return  v1Pod.getSpec().getContainers().get(0).getResources().getLimits().get("memory").getNumber();
+        }
+        throw new NullPointerException();
     }
 
     @Override

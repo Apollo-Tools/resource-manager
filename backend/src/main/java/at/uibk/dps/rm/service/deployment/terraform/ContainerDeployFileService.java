@@ -105,6 +105,7 @@ public class ContainerDeployFileService extends TerraformFileService {
             "  image = \"%s\"\n" +
             "  deployment_id = %s\n" +
             "  resource_deployment_id = %s\n" +
+            "  service_id = %s\n" +
             "  replicas = %s\n" +
             "  cpu = \"%s\"\n" +
             "  memory = \"%sM\"\n" +
@@ -117,8 +118,9 @@ public class ContainerDeployFileService extends TerraformFileService {
             "  env_vars = [%s]\n" +
             "}\n", identifier, configPath, serviceDeployment.getContext(),
             serviceDeployment.getNamespace(), service.getName(), service.getImage(), deploymentId,
-            serviceDeployment.getResourceDeploymentId(), service.getReplicas(), service.getCpu(), service.getMemory(),
-            ports, service.getK8sServiceType().getName(), externalIp, nodeName, imagePullSecrets, volumeMounts, envVars));
+            serviceDeployment.getResourceDeploymentId(), service.getServiceId(), service.getReplicas(),
+            service.getCpu(), service.getMemory(), ports, service.getK8sServiceType().getName(), externalIp, nodeName,
+            imagePullSecrets, volumeMounts, envVars));
         return containerString.toString();
     }
 

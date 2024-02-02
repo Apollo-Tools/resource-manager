@@ -9,6 +9,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -26,6 +29,8 @@ public class K8sNode implements K8sEntityData {
 
     private V1Node node;
 
+    private Map<String, K8sPod> pods = new HashMap<>();
+
     private Quantity cpuLoad;
 
     private Quantity memoryLoad;
@@ -39,6 +44,16 @@ public class K8sNode implements K8sEntityData {
      */
     public K8sNode(V1Node node) {
         this.node = node;
+    }
+
+    @JsonIgnore
+    public void addPod(K8sPod k8sPod) {
+        pods.put(Objects.requireNonNull(k8sPod.getV1Pod().getMetadata()).getName(), k8sPod);
+    }
+
+    @JsonIgnore
+    public void addAllPods(List<K8sPod> k8sPod) {
+        k8sPod.forEach(this::addPod);
     }
 
     /**

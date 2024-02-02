@@ -8,8 +8,9 @@ import at.uibk.dps.rm.exception.MonitoringException;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.service.monitoring.k8s.K8sMonitoringService;
 import at.uibk.dps.rm.service.monitoring.k8s.K8sMonitoringServiceImpl;
-import at.uibk.dps.rm.util.misc.MultiValuedMapCollector;
 import at.uibk.dps.rm.util.monitoring.LatencyMonitoringUtility;
+import io.kubernetes.client.custom.PodMetrics;
+import io.kubernetes.client.custom.Quantity;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.models.V1Namespace;
@@ -24,8 +25,6 @@ import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.file.FileSystem;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.collections4.MultiValuedMap;
-import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -118,7 +117,7 @@ public class K8sMonitoringHandler implements MonitoringHandler {
         .flatMapSingle(entry -> vertx.executeBlocking(fut ->
                 fut.complete(observeK8sAPI(entry.getKey(), entry.getValue())))
             .switchIfEmpty(Single.just(new K8sMonitoringData(entry.getKey(), "", -1L, List.of(),
-                List.of(), new ArrayListValuedHashMap<>(), false, null)))
+                List.of(), false, null)))
         )
         .map(monitoringData -> (K8sMonitoringData) monitoringData)
         .flatMapSingle(monitoringData -> {
@@ -152,16 +151,30 @@ public class K8sMonitoringHandler implements MonitoringHandler {
             Configuration.setDefaultApiClient(externalClient);
             List<K8sNode> nodes = monitoringService.listNodes(kubeconfigPath, configDTO);
             List<V1Namespace> namespaces = monitoringService.listNamespaces(kubeconfigPath, configDTO);
-            MultiValuedMap<String, K8sPod> k8sPodsMap = namespaces.stream()
-                .flatMap(namespace -> monitoringService
-                    .getCurrentPodAllocation(Objects.requireNonNull(namespace.getMetadata()).getName())
-                    .entries().stream())
-                .collect(new MultiValuedMapCollector<>(Map.Entry::getKey, Map.Entry::getValue));
-            k8sMonitoringData = new K8sMonitoringData(clusterName, externalClient.getBasePath(),
-                -1L, nodes, namespaces, k8sPodsMap,  true, null);
+            Map<String, PodMetrics> podMetricsMap = monitoringService.getCurrentPodUtilisation(kubeconfigPath,
+                configDTO);
+            nodes.forEach(node -> {
+                List<K8sPod> pods = monitoringService.listPodsByNode(node.getName(), kubeconfigPath, configDTO);
+                pods.forEach(pod -> {
+                    PodMetrics podMetrics = podMetricsMap.get(pod.getName());
+                    if (podMetrics == null) {
+                        return;
+                    }
+                    pod.setCpuLoad(podMetrics.getContainers().stream()
+                        .map(container -> container.getUsage().get("cpu"))
+                        .reduce((a, b) -> new Quantity(a.getNumber().add(b.getNumber()), a.getFormat()))
+                        .orElse(new Quantity("0")));
+                    pod.setMemoryLoad(podMetrics.getContainers().stream()
+                        .map(container -> container.getUsage().get("memory"))
+                        .reduce((a, b) -> new Quantity(a.getNumber().add(b.getNumber()), a.getFormat()))
+                        .orElse(new Quantity("0")));
+                });
+                node.addAllPods(pods);
+            });
+            k8sMonitoringData = new K8sMonitoringData(clusterName, externalClient.getBasePath(), -1L,
+                nodes, namespaces,  true, null);
         } catch (MonitoringException | IOException ex) {
-            k8sMonitoringData = new K8sMonitoringData(clusterName, "", -1L, List.of(), List.of(),
-                new ArrayListValuedHashMap<>(), false, null);
+            k8sMonitoringData = new K8sMonitoringData(clusterName, "", -1L, List.of(), List.of(), false, null);
         }
         return k8sMonitoringData;
     }

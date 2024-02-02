@@ -5,7 +5,6 @@ import io.kubernetes.client.openapi.models.V1Namespace;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import lombok.*;
-import org.apache.commons.collections4.MultiValuedMap;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -32,8 +31,6 @@ public class K8sMonitoringData implements K8sEntityData {
 
     private List<V1Namespace> namespaces;
 
-    private MultiValuedMap<String, K8sPod> pods;
-
     private boolean isUp;
 
     private Double latencySeconds;
@@ -50,7 +47,6 @@ public class K8sMonitoringData implements K8sEntityData {
         this.resourceId = request.getResourceId();
         this.nodes = request.getNodes();
         this.namespaces = request.getNamespaces();
-        this.pods = request.getPods();
         this.isUp = request.getIsUp();
         this.latencySeconds = request.getLatencySeconds();
     }
