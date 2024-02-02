@@ -3,6 +3,7 @@ import NodeExporterDashboard from './NodeExporterDashboard';
 import PropTypes from 'prop-types';
 import {Collapse} from 'antd';
 import K8sResourceDashboard from './K8sResourceDashboard';
+import K8sPodDashboard from './K8sPodDashboard';
 const {Panel} = Collapse;
 
 
@@ -29,14 +30,22 @@ const DeploymentDashboards = ({deploymentId, functionResourceIds, serviceResourc
           </>)
         }
         {serviceResourceIds != null && serviceResourceIds.size !== 0 && isActive &&
-          (<Panel header="K8s Resources" key={2} >
-            <div className="m-[-12px] mb-[-18px] mt-[0px]">
-              <K8sResourceDashboard
-                resourceIds={serviceResourceIds}
-                isActive={isActive}
-              />
-            </div>
-          </Panel>)
+          (<>
+            <Panel header="K8s Resources" key={2} >
+              <div className="m-[-12px] mb-[-18px] mt-[0px]">
+                <K8sPodDashboard
+                  deploymentId={deploymentId}
+                  isActive={isActive}
+                />
+              </div>
+              <div className="m-[-12px] mb-[-18px] mt-[0px]">
+                <K8sResourceDashboard
+                  resourceIds={serviceResourceIds}
+                  isActive={isActive}
+                />
+              </div>
+            </Panel>
+          </>)
         }
       </Collapse>
     </>

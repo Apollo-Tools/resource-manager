@@ -58,10 +58,10 @@ public class K8sMetricPushServiceImpl extends ServiceProxy implements K8sMetricP
             Map.of("main_resource", mainResource, "resource", resource, "node", k8sNode.getName())));
         openTSDBEntities.add(new OpenTSDBEntity("k8s_node_memory_total_bytes",
             k8sNode.getTotalMemory().doubleValue(), Map.of("main_resource", mainResource, "resource",
-            mainResource, "node", k8sNode.getName())));
+            resource, "node", k8sNode.getName())));
         openTSDBEntities.add(new OpenTSDBEntity("k8s_node_memory_used_bytes",
             k8sNode.getMemoryUsed().doubleValue(), Map.of("main_resource", mainResource, "resource",
-            mainResource, "node", k8sNode.getName())));
+            resource, "node", k8sNode.getName())));
     }
 
     private void composeClusterMetrics(K8sMonitoringData data, List<OpenTSDBEntity> openTSDBEntities,

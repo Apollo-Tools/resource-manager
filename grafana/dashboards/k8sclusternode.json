@@ -770,7 +770,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Mem"
+              "options": "Value #Mem util (lastNotNull)"
             },
             "properties": [
               {
@@ -790,7 +790,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #CPU"
+              "options": "Value #CPU (lastNotNull)"
             },
             "properties": [
               {
@@ -810,7 +810,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #CPU util"
+              "options": "Value #CPU util (lastNotNull)"
             },
             "properties": [
               {
@@ -866,7 +866,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Mem util"
+              "options": "Value #Mem util (lastNotNull)"
             },
             "properties": [
               {
@@ -926,7 +926,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #CPU"
+              "options": "Value #CPU (lastNotNull)"
             },
             "properties": [
               {
@@ -938,7 +938,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #CPU util"
+              "options": "Value #CPU util (lastNotNull)"
             },
             "properties": [
               {
@@ -969,19 +969,27 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Value #Mem"
+              "options": "Value #Mem (lastNotNull)"
             },
             "properties": [
               {
                 "id": "custom.width",
                 "value": 150
+              },
+              {
+                "id": "displayName",
+                "value": "Mem"
+              },
+              {
+                "id": "unit",
+                "value": "bytes"
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "Node"
+              "options": "Node (lastNotNull)"
             },
             "properties": [
               {
@@ -1150,6 +1158,47 @@
           }
         },
         {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "Node": {
+                "aggregations": [
+                  "lastNotNull"
+                ],
+                "operation": "aggregate"
+              },
+              "Resource": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "Value #CPU": {
+                "aggregations": [
+                  "lastNotNull"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #CPU util": {
+                "aggregations": [
+                  "lastNotNull"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #Mem": {
+                "aggregations": [
+                  "lastNotNull"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #Mem util": {
+                "aggregations": [
+                  "lastNotNull"
+                ],
+                "operation": "aggregate"
+              }
+            }
+          }
+        },
+        {
           "id": "convertFieldType",
           "options": {
             "conversions": [
@@ -1184,7 +1233,7 @@
     "list": [
       {
         "current": {
-          "selected": true,
+          "selected": false,
           "text": [
             "All"
           ],
@@ -1216,8 +1265,8 @@
       {
         "current": {
           "selected": false,
-          "text": "12",
-          "value": "12"
+          "text": "4",
+          "value": "4"
         },
         "datasource": {
           "type": "prometheus",
@@ -1274,6 +1323,6 @@
   "timezone": "browser",
   "title": "K8s Dashboard",
   "uid": "b47a9eee-2299-40ec-9aec-ee2e826d3cfd",
-  "version": 6,
+  "version": 28,
   "weekStart": ""
 }
