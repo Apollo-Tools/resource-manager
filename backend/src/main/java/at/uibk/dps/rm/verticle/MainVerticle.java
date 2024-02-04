@@ -29,9 +29,9 @@ public class MainVerticle extends AbstractVerticle {
 
         return deployMigrationVerticle
             .flatMap(res -> deployDatabaseVerticle)
+            .flatMap(res -> deployMonitoringVerticle)
             .flatMap(res -> deployDeploymentVerticle)
             .flatMap(res -> deployApiVerticle)
-            .flatMap(res -> deployMonitoringVerticle)
             .ignoreElement();
     }
 }
