@@ -1,16 +1,13 @@
 package at.uibk.dps.rm.repository.metric;
 
-import at.uibk.dps.rm.entity.model.Metric;
 import at.uibk.dps.rm.testutil.integration.DatabaseTest;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,10 +32,13 @@ public class MetricRepositoryTest extends DatabaseTest {
             Arguments.of(99L, false, List.of())
         );
     }
+
+/*
     @ParameterizedTest
     @MethodSource("providePlatformMetrics")
     void findAllByPlatformId(long platformId, boolean required, List<String> metrics,
             VertxTestContext testContext) {
+        // remove
         smProvider.withTransactionSingle(sessionManager -> repository.findAllByPlatformId(sessionManager,
                 platformId, required))
             .subscribe(result -> testContext.verify(() -> {
@@ -46,7 +46,7 @@ public class MetricRepositoryTest extends DatabaseTest {
                     .isEqualTo(metrics);
                 testContext.completeNow();
             }), throwable -> testContext.failNow("method has thrown exception"));
-    }
+    }*/
 
     @ParameterizedTest
     @CsvSource({
@@ -70,6 +70,7 @@ public class MetricRepositoryTest extends DatabaseTest {
             });
     }
 
+
     @ParameterizedTest
     @CsvSource({
         "availability, true, 1",
@@ -77,7 +78,8 @@ public class MetricRepositoryTest extends DatabaseTest {
         "nonexistent, false, -1"
     })
     void findByMetricAndIsSLO(String metric, boolean exists, long id, VertxTestContext testContext) {
-        smProvider.withTransactionMaybe(sessionManager -> repository.findByMetricAndIsSLO(sessionManager, metric))
+        // swap with findAllBySLO
+        smProvider.withTransactionMaybe(sessionManager -> repository.findByMetric(sessionManager, metric))
             .subscribe(result -> testContext.verify(() -> {
                 if (exists) {
                     assertThat(result.getMetricId()).isEqualTo(id);

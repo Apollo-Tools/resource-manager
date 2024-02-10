@@ -1,7 +1,9 @@
 package at.uibk.dps.rm.handler.resource;
 
 import at.uibk.dps.rm.entity.model.Resource;
+import at.uibk.dps.rm.service.rxjava3.database.metric.MetricService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
+import at.uibk.dps.rm.service.rxjava3.monitoring.metricquery.MetricQueryService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
@@ -37,6 +39,12 @@ public class ResourceHandlerTest {
     private ResourceService resourceService;
 
     @Mock
+    private MetricService metricService;
+
+    @Mock
+    private MetricQueryService metricQueryService;
+
+    @Mock
     private RoutingContext rc;
 
     private Resource rMain, rSub1, rSub2;
@@ -44,7 +52,7 @@ public class ResourceHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        resourceHandler = new ResourceHandler(resourceService);
+        resourceHandler = new ResourceHandler(resourceService, metricService, metricQueryService);
         rMain = TestResourceProvider.createClusterWithoutNodes(1L, "main");
         rSub1 = TestResourceProvider.createSubResource(2L, "sub1", rMain.getMain());
         rSub2 = TestResourceProvider.createSubResource(3L, "sub2", rMain.getMain());
@@ -72,9 +80,9 @@ public class ResourceHandlerTest {
             JsonObject.mapFrom(rSub2)));
 
         RoutingContextMockHelper.mockBody(rc, body);
-        when(resourceService.findAllBySLOs(body)).thenReturn(Single.just(jsonResult));
+        when(resourceService.findAllByNonMonitoredSLOs(body)).thenReturn(Single.just(jsonResult));
 
-        resourceHandler.getAllBySLOs(rc)
+        resourceHandler.getAllByNonMonitoredSLOs(rc)
             .subscribe(result -> testContext.verify(() -> {
                 assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
                 assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);

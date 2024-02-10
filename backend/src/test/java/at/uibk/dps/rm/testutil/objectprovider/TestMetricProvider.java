@@ -112,7 +112,6 @@ public class TestMetricProvider {
         platformMetric.setMetric(metric);
         platformMetric.setIsMainResourceMetric(true);
         platformMetric.setIsSubResourceMetric(true);
-        platformMetric.setRequired(true);
         platformMetric.setIsMonitored(isMonitored);
         return platformMetric;
     }

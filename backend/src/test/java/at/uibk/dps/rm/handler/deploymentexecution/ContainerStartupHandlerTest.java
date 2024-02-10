@@ -223,8 +223,7 @@ public class ContainerStartupHandlerTest {
         when(response.setStatusCode(200)).thenReturn(response);
         doReturn(Completable.complete()).when(response).end(argThat((String result) -> result.equals(responseBody)));
         if (!body.equals("nullBody") && !body.equals("nullBuffer") && !invocationResult.equals("invocationresult")) {
-            when(functionDeploymentService.saveExecTime(2L, 235, "{\"arg\":1}"))
-                .thenReturn(Completable.complete());
+            // swap to metrics pusher when(functionDeploymentService.saveExecTime(2L, 235, "{\"arg\":1}")).thenReturn(Completable.complete());
         }
 
         handler.invokeFunction(rc)

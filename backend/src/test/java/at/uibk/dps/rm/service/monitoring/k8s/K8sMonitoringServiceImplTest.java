@@ -4,10 +4,8 @@ import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sNode;
 import at.uibk.dps.rm.exception.MonitoringException;
-import at.uibk.dps.rm.service.deployment.executor.ProcessExecutor;
 import at.uibk.dps.rm.testutil.mockprovider.K8sObjectMockprovider;
 import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
-import at.uibk.dps.rm.testutil.mockprovider.ProcessExecutorMockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestK8sProvider;
@@ -33,13 +31,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
 
 /**
  * Implements tests for the {@link K8sMonitoringServiceImpl} class.
@@ -211,55 +207,7 @@ public class K8sMonitoringServiceImplTest {
         }
     }
 
-    @Test
-    void getCurrentNodeLocationWindows() {
-        System.setProperty("os.name", "Windows");
-        List<String> commands = List.of("powershell.exe", "kubectl describe node " + k8sNode.getName() + " " +
-            "--kubeconfig '" + kubeConfigPath.toAbsolutePath() + "'");
-
-        try(MockedConstruction<ProcessExecutor> ignorePe = ProcessExecutorMockprovider
-                    .mockProcessExecutor(Paths.get("").toAbsolutePath(), processOutput, commands);
-                MockedStatic<K8sDescribeParser> outputParser = Mockito.mockStatic(K8sDescribeParser.class)) {
-            outputParser.when(() -> K8sDescribeParser.parseContent(processOutput.getOutput(), k8sNode))
-                .then(invocation -> null);
-            monitoringService.getCurrentNodeAllocation(k8sNode, kubeConfigPath, config);
-            outputParser.verify(() -> K8sDescribeParser.parseContent(processOutput.getOutput(), k8sNode));
-        }
-    }
-
-    @Test
-    void getCurrentNodeLocationLinux() {
-        System.setProperty("os.name", "Linux");
-        List<String> commands = List.of("bash", "-c", "kubectl describe node " + k8sNode.getName() + " --kubeconfig '" +
-            kubeConfigPath.toAbsolutePath() + "'");
-
-        try(MockedConstruction<ProcessExecutor> ignorePe = ProcessExecutorMockprovider
-            .mockProcessExecutor(Paths.get("").toAbsolutePath(), processOutput, commands);
-            MockedStatic<K8sDescribeParser> outputParser = Mockito.mockStatic(K8sDescribeParser.class)) {
-            outputParser.when(() -> K8sDescribeParser.parseContent(processOutput.getOutput(), k8sNode))
-                .then(invocation -> null);
-
-            monitoringService.getCurrentNodeAllocation(k8sNode, kubeConfigPath, config);
-
-            outputParser.verify(() -> K8sDescribeParser.parseContent(processOutput.getOutput(), k8sNode));
-        }
-    }
-
-    @Test
-    void getCurrentNodeLocationProcessFailed() {
-        System.setProperty("os.name", "Linux");
-        List<String> commands = List.of("bash", "-c", "kubectl describe node " + k8sNode.getName() + " --kubeconfig '" +
-            kubeConfigPath.toAbsolutePath() + "'");
-
-        try(MockedConstruction<ProcessExecutor> ignorePe = ProcessExecutorMockprovider
-                .mockProcessExecutor(Paths.get("").toAbsolutePath(), processOutput, commands)) {
-            when(process.exitValue()).thenReturn(-1);
-
-            MonitoringException exception = assertThrows(MonitoringException.class,
-                () -> monitoringService.getCurrentNodeAllocation(k8sNode, kubeConfigPath, config));
-            assertThat(exception.getMessage()).isEqualTo("Retrieving node allocation failed");
-        }
-    }
+    // TODO: add tests
 
     @Test
     void setupLocalClientIOException() {

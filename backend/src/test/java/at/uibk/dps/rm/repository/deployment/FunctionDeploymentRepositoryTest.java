@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.repository.deployment;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
+import at.uibk.dps.rm.entity.deployment.output.TFOutputValue;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.model.Runtime;
 import at.uibk.dps.rm.testutil.integration.DatabaseTest;
@@ -150,14 +151,16 @@ public class FunctionDeploymentRepositoryTest extends DatabaseTest {
         "2, localhost123, edgeurl",
         "4, localhost4, url"
     })
-    void updateTriggerUrls(long resourceDeploymentId, String triggerUrl, String directTriggerUrl,
+    void updateTriggerUrls(long resourceDeploymentId, String triggerUrl, String fullUrl,
             VertxTestContext testContext) {
+        TFOutputValue tfOutputValue = TestDeploymentProvider.createTFOutputValue(fullUrl,
+            "foo1", "http://host", 3001, 8080);
         smProvider.withTransactionMaybe(sessionManager -> repository
-                .updateTriggerUrls(sessionManager, resourceDeploymentId, triggerUrl, directTriggerUrl)
+                .updateTriggerUrls(sessionManager, resourceDeploymentId, triggerUrl, tfOutputValue)
                 .andThen(Maybe.defer(() -> sessionManager.find(FunctionDeployment.class, resourceDeploymentId))))
             .subscribe(result -> testContext.verify(() -> {
                 assertThat(result.getRmTriggerUrl()).isEqualTo(triggerUrl);
-                assertThat(result.getDirectTriggerUrl()).isEqualTo(directTriggerUrl);
+                assertThat(result.getDirectTriggerUrl()).isEqualTo(fullUrl);
                 testContext.completeNow();
             }), throwable -> testContext.failNow("method has thrown exception"));
     }

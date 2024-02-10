@@ -56,11 +56,11 @@ public class TriggerUrlUtilityTest {
 
         when(repositoryMock.getFunctionDeploymentRepository()
             .updateTriggerUrls(sessionManager, 1L, "/function-deployments/1/invoke",
-                "http://host:port/foo1"))
+                output.getResourceOutput().getValue().get("r1_foo1_python38_1")))
             .thenReturn(Completable.complete());
         when(repositoryMock.getFunctionDeploymentRepository()
             .updateTriggerUrls(sessionManager, 4L, "/function-deployments/4/invoke",
-                "http://host:port/foo2"))
+                output.getResourceOutput().getValue().get("r1_foo2_python38_2")))
             .thenReturn(Completable.complete());
 
         utility.setTriggerUrlsForFunctions(sessionManager, output, deployResourcesDTO)

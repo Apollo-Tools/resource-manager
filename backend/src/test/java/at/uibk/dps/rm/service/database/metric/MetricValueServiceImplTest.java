@@ -181,7 +181,6 @@ public class MetricValueServiceImplTest {
         String valueString = null;
         Double valueNumber = null;
         Boolean valueBool = null;
-        boolean isExternalSource = true;
         switch (type) {
             case "string":
                 metricValue = mvString;
@@ -198,7 +197,6 @@ public class MetricValueServiceImplTest {
                 metricValue = mvBool;
                 platformMetric = pmBool;
                 valueBool = false;
-                isExternalSource = false;
                 break;
         }
         metric = metricValue.getMetric();
@@ -210,7 +208,7 @@ public class MetricValueServiceImplTest {
             .thenReturn(Maybe.just(platformMetric));
 
         metricValueService.updateByResourceAndMetric(r1.getResourceId(), metric.getMetricId(), valueString,
-            valueNumber, valueBool, isExternalSource, testContext.succeeding(result -> testContext.verify(() -> {
+            valueNumber, valueBool, testContext.succeeding(result -> testContext.verify(() -> {
                 switch (type) {
                     case "string":
                         assertThat(metricValue.getValueString()).isEqualTo("TempleOS");
@@ -265,7 +263,7 @@ public class MetricValueServiceImplTest {
             .thenReturn(Maybe.just(platformMetric));
 
         metricValueService.updateByResourceAndMetric(r1.getResourceId(), metric.getMetricId(), valueString,
-            valueNumber, valueBool, isExternalSource, testContext.failing(throwable -> testContext.verify(() -> {
+            valueNumber, valueBool, testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(BadInputException.class);
                 assertThat(throwable.getMessage()).isEqualTo("invalid metric type");
                 testContext.completeNow();
@@ -281,8 +279,7 @@ public class MetricValueServiceImplTest {
             mBool.getMetricId())).thenReturn(Maybe.just(pmBool));
 
         metricValueService.updateByResourceAndMetric(r1.getResourceId(), mBool.getMetricId(), null,
-            null, true, true,
-            testContext.failing(throwable -> testContext.verify(() -> {
+            null, true, testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(BadInputException.class);
                 assertThat(throwable.getMessage()).isEqualTo("monitored metrics can't be updated manually");
                 testContext.completeNow();

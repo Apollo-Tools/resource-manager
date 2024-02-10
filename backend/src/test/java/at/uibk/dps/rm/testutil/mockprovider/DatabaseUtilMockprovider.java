@@ -41,10 +41,7 @@ public class DatabaseUtilMockprovider {
     public static MockedConstruction<K8sResourceUpdateUtility> mockK8sResourceUpdateUtility(SessionManager sm,
                                                                                             MainResource cluster, K8sMonitoringData data) {
         return Mockito.mockConstruction(K8sResourceUpdateUtility.class,
-            (mock, context) -> {
-                given(mock.updateClusterNodes(sm, cluster, data)).willReturn(Completable.complete());
-                given(mock.updateCluster(sm, cluster, data)).willReturn(Completable.complete());
-            });
+            (mock, context) -> given(mock.updateClusterNodes(sm, cluster, data)).willReturn(Completable.complete()));
     }
 
     public static MockedConstruction<EnsembleUtility> mockEnsembleUtilityFetch(SessionManager sm, long ensembleId,
@@ -58,6 +55,7 @@ public class DatabaseUtilMockprovider {
                                                                                           List<ResourceEnsembleStatus> validateResult) {
         return Mockito.mockConstruction(EnsembleUtility.class, (mock, context) -> {
             given(mock.fetchAndPopulateEnsemble(sm, ensembleId, accountId)).willReturn(Single.just(fetchResult));
+            // TODO: fix
             given(mock.getResourceEnsembleStatus(validResources, fetchResult.getResources()))
                 .willReturn(validateResult);
         });
@@ -65,8 +63,9 @@ public class DatabaseUtilMockprovider {
 
     public static MockedConstruction<SLOUtility> mockSLOUtilityFindAndFilterResources(SessionManager sm,
                                                                                       List<Resource> result) {
+        // TODO: fix
         return Mockito.mockConstruction(SLOUtility.class, (mock, context) ->
-            given(mock.findAndFilterResourcesBySLOs(eq(sm), any(SLORequest.class))).willReturn(Single.just(result)));
+            given(mock.findResourcesByNonMonitoredSLOs(eq(sm), any(SLORequest.class))).willReturn(Single.just(result)));
     }
 
     public static MockedConstruction<EnsembleValidationUtility> mockEnsembleValidationUtility(SessionManager sm,

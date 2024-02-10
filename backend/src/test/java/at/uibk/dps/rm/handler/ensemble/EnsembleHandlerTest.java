@@ -5,6 +5,9 @@ import at.uibk.dps.rm.entity.dto.ensemble.ResourceEnsembleStatus;
 import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.entity.model.Ensemble;
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.EnsembleService;
+import at.uibk.dps.rm.service.rxjava3.database.metric.MetricService;
+import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
+import at.uibk.dps.rm.service.rxjava3.monitoring.metricquery.MetricQueryService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
@@ -24,6 +27,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -44,6 +48,15 @@ public class EnsembleHandlerTest {
     private EnsembleService ensembleService;
 
     @Mock
+    private ResourceService resourceService;
+
+    @Mock
+    private MetricService metricService;
+
+    @Mock
+    private MetricQueryService metricQueryService;
+
+    @Mock
     private RoutingContext rc;
 
     private long ensembleId, accountId;
@@ -53,7 +66,7 @@ public class EnsembleHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        ensembleHandler = new EnsembleHandler(ensembleService);
+        ensembleHandler = new EnsembleHandler(ensembleService, resourceService, metricService, metricQueryService);
         ensembleId = 1L;
         accountId = 2L;
         account = TestAccountProvider.createAccount(accountId);
@@ -82,7 +95,7 @@ public class EnsembleHandlerTest {
         JsonObject body = JsonObject.mapFrom(request);
 
         RoutingContextMockHelper.mockBody(rc, body);
-        when(ensembleService.validateCreateEnsembleRequest(body))
+        when(ensembleService.validateCreateEnsembleRequest(body, Set.of()))
             .thenReturn(Completable.complete());
 
         ensembleHandler.validateNewResourceEnsembleSLOs(rc)

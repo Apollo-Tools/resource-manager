@@ -14,7 +14,6 @@ import at.uibk.dps.rm.testutil.objectprovider.TestDeploymentProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestFunctionProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Maybe;
-import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
@@ -29,7 +28,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.when;
 
 /**
@@ -111,34 +109,6 @@ public class FunctionDeploymentImplTest {
             .thenReturn(Maybe.empty());
 
         service.findOneForInvocation(resourceDeploymentId, accountId,
-            testContext.failing(throwable -> testContext.verify(() -> {
-                assertThat(throwable).isInstanceOf(NotFoundException.class);
-                testContext.completeNow();
-            })));
-    }
-
-    @Test
-    void saveExecTime(VertxTestContext testContext) {
-        SessionMockHelper.mockCompletable(smProvider, sessionManager);
-
-        when(sessionManager.find(FunctionDeployment.class, resourceDeploymentId))
-            .thenReturn(Maybe.just(fd1));
-        when(sessionManager.persist(argThat((FunctionDeploymentExecTime execTime) ->
-            execTime.getFunctionDeployment().equals(fd1) && execTime.getRequest_body().equals("body")
-            && execTime.getExecTimeMs().equals(250)))).thenReturn(Single.just(new FunctionDeploymentExecTime()));
-
-        service.saveExecTime(fd1.getResourceDeploymentId(), 250, "body",
-            testContext.succeeding(res -> testContext.completeNow()));
-    }
-
-    @Test
-    void saveExecTimeNotFound(VertxTestContext testContext) {
-        SessionMockHelper.mockCompletable(smProvider, sessionManager);
-
-        when(sessionManager.find(FunctionDeployment.class, resourceDeploymentId))
-            .thenReturn(Maybe.empty());
-
-        service.saveExecTime(fd1.getResourceDeploymentId(), 250, "body",
             testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(NotFoundException.class);
                 testContext.completeNow();

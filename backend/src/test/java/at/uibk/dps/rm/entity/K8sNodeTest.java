@@ -26,12 +26,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @ExtendWith(VertxExtension.class)
 public class K8sNodeTest {
 
+    private long resourceId;
+
     private V1Node nValid, nInvalid;
 
     private Quantity quantity;
 
     @BeforeEach
     void initTest() {
+        resourceId = 1L;
         V1ObjectMeta mdValid = new V1ObjectMeta();
         mdValid.setName("nodeName");
         mdValid.setLabels(Map.of("kubernetes.io/hostname", "node"));
@@ -133,28 +136,28 @@ public class K8sNodeTest {
     }
 
     @Test
-    void getAvailableCPU() {
-        K8sNode k8sNode = new K8sNode(nValid, quantity, quantity, quantity);
+    void getUsedCPU() {
+        K8sNode k8sNode = new K8sNode(resourceId, nValid, Map.of(), quantity, quantity, quantity);
 
-        BigDecimal result = k8sNode.getCPULoad();
+        BigDecimal result = k8sNode.getCPUUsed();
 
         assertThat(result.compareTo(BigDecimal.valueOf(1.0))).isEqualTo(0);
     }
 
     @Test
-    void getAvailableMemory() {
-        K8sNode k8sNode = new K8sNode(nValid, quantity, quantity, quantity);
+    void getUsedMemory() {
+        K8sNode k8sNode = new K8sNode(resourceId, nValid, Map.of(), quantity, quantity, quantity);
 
-        BigDecimal result = k8sNode.getAvailableMemory();
+        BigDecimal result = k8sNode.getMemoryUsed();
 
         assertThat(result.compareTo(BigDecimal.valueOf(2.0))).isEqualTo(0);
     }
 
     @Test
-    void getAvailableStorage() {
-        K8sNode k8sNode = new K8sNode(nValid, quantity, quantity, quantity);
+    void getUsedStorage() {
+        K8sNode k8sNode = new K8sNode(resourceId, nValid, Map.of(), quantity, quantity, quantity);
 
-        BigDecimal result = k8sNode.getAvailableStorage();
+        BigDecimal result = k8sNode.getStorageUsed();
 
         assertThat(result.compareTo(BigDecimal.valueOf(3.0))).isEqualTo(0);
     }

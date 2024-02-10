@@ -3,7 +3,10 @@ package at.uibk.dps.rm.handler.ensemble;
 import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.entity.model.Ensemble;
 import at.uibk.dps.rm.entity.model.ResourceEnsemble;
+import at.uibk.dps.rm.service.rxjava3.database.ensemble.EnsembleService;
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.ResourceEnsembleService;
+import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
+import at.uibk.dps.rm.service.rxjava3.monitoring.metricquery.MetricQueryService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestEnsembleProvider;
@@ -40,6 +43,15 @@ public class ResourceEnsembleHandlerTest {
     private ResourceEnsembleService resourceEnsembleService;
 
     @Mock
+    private EnsembleService ensembleService;
+
+    @Mock
+    private ResourceService resourceService;
+
+    @Mock
+    private MetricQueryService metricQueryService;
+
+    @Mock
     private RoutingContext rc;
 
     private long ensembleId, accountId, resourceId;
@@ -49,7 +61,8 @@ public class ResourceEnsembleHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        resourceEnsembleHandler = new ResourceEnsembleHandler(resourceEnsembleService);
+        resourceEnsembleHandler = new ResourceEnsembleHandler(resourceEnsembleService, ensembleService,
+            resourceService, metricQueryService);
         ensembleId = 1L;
         accountId = 2L;
         resourceId = 3L;

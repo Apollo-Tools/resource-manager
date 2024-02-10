@@ -30,6 +30,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -260,9 +261,10 @@ public class EnsembleServiceImplTest {
         CreateEnsembleRequest request = TestDTOProvider.createCreateEnsembleRequest(r1.getResourceId());
         SessionMockHelper.mockCompletable(smProvider, sessionManager);
 
+        // TODO: fix
         try (MockedConstruction<SLOUtility> ignored = DatabaseUtilMockprovider.mockSLOUtilityFindAndFilterResources(
             sessionManager, List.of(r1, r2))) {
-            ensembleService.validateCreateEnsembleRequest(JsonObject.mapFrom(request),
+            ensembleService.validateCreateEnsembleRequest(JsonObject.mapFrom(request), Set.of(),
                 testContext.succeeding(result -> testContext.verify(testContext::completeNow)));
         }
     }
@@ -272,9 +274,10 @@ public class EnsembleServiceImplTest {
         CreateEnsembleRequest request = TestDTOProvider.createCreateEnsembleRequest(r1.getResourceId());
         SessionMockHelper.mockCompletable(smProvider, sessionManager);
 
+        // TODO: fix
         try (MockedConstruction<SLOUtility> ignored = DatabaseUtilMockprovider.mockSLOUtilityFindAndFilterResources(
             sessionManager, List.of(r2))) {
-            ensembleService.validateCreateEnsembleRequest(JsonObject.mapFrom(request),
+            ensembleService.validateCreateEnsembleRequest(JsonObject.mapFrom(request), Set.of(),
                 testContext.failing(throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(BadInputException.class);
                     assertThat(throwable.getMessage()).isEqualTo("slo mismatch");

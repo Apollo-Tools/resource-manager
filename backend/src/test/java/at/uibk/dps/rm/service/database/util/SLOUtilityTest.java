@@ -7,7 +7,6 @@ import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.testutil.objectprovider.*;
-import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -39,9 +38,6 @@ public class SLOUtilityTest {
     private ResourceRepository resourceRepository;
 
     @Mock
-    private MetricRepository metricRepository;
-
-    @Mock
     private Stage.Session session;
 
     private SessionManager sessionManager;
@@ -62,7 +58,7 @@ public class SLOUtilityTest {
 
     @BeforeEach
     void initTest() {
-        utility = new SLOUtility(resourceRepository, metricRepository);
+        utility = new SLOUtility(resourceRepository);
         sessionManager = new SessionManager(session);
         eCloud = TestResourceProviderProvider.createEnvironment(1L, "cloud");
         rtContainer = TestResourceProvider.createResourceTypeFaas(5L);
@@ -87,18 +83,17 @@ public class SLOUtilityTest {
         r3.getMetricValues().add(mv3);
     }
 
+    // TODO: fix
     @Test
-    void findAndFilterResourcesBySLOs(VertxTestContext testContext) {
+    void findResourcesByNonMonitoredSLOs(VertxTestContext testContext) {
         SLORequest sloRequest = TestDTOProvider.createSLORequest();
 
-        when(metricRepository.findByMetricAndIsSLO(sessionManager, "availability"))
-            .thenReturn(Maybe.just(mAvailabilityNumber));
-        when(resourceRepository.findAllBySLOs(sessionManager, List.of("availability"),
-            List.of(eCloud.getEnvironmentId()), List.of(rtContainer.getTypeId()), List.of(pLambda.getPlatformId(),
+        when(resourceRepository.findAllByNonMVSLOs(sessionManager,List.of(eCloud.getEnvironmentId()),
+            List.of(rtContainer.getTypeId()), List.of(pLambda.getPlatformId(),
                 pEc2.getPlatformId()), List.of(reg1.getRegionId(), reg2.getRegionId()), List.of(rpAWS.getProviderId())))
             .thenReturn(Single.just(List.of(r1, r2, r3)));
 
-        utility.findAndFilterResourcesBySLOs(sessionManager, sloRequest)
+        utility.findResourcesByNonMonitoredSLOs(sessionManager, sloRequest)
             .subscribe(resources -> testContext.verify(() -> {
                     assertThat(resources.size()).isEqualTo(2);
                     assertThat(resources.get(0).getResourceId()).isEqualTo(3L);
@@ -109,18 +104,17 @@ public class SLOUtilityTest {
             );
     }
 
+    // TODO: fix
     @Test
-    void findAndFilterResourcesBySLOsNoneMatch(VertxTestContext testContext) {
+    void findResourcesByNonMonitoredSLOsNoneMatch(VertxTestContext testContext) {
         SLORequest sloRequest = TestDTOProvider.createSLORequest();
 
-        when(metricRepository.findByMetricAndIsSLO(sessionManager, "availability"))
-            .thenReturn(Maybe.just(mAvailabilityNumber));
         when(resourceRepository.findAllBySLOs(sessionManager, List.of("availability"),
             List.of(eCloud.getEnvironmentId()), List.of(rtContainer.getTypeId()), List.of(pLambda.getPlatformId(),
                 pEc2.getPlatformId()), List.of(reg1.getRegionId(), reg2.getRegionId()), List.of(rpAWS.getProviderId())))
             .thenReturn(Single.just(List.of()));
 
-        utility.findAndFilterResourcesBySLOs(sessionManager, sloRequest)
+        utility.findResourcesByNonMonitoredSLOs(sessionManager, sloRequest)
             .subscribe(resources -> testContext.verify(() -> {
                     assertThat(resources.size()).isEqualTo(0);
                     testContext.completeNow();
@@ -129,14 +123,12 @@ public class SLOUtilityTest {
             );
     }
 
+    // TODO: fix
     @Test
-    void findAndFilterResourcesBySLOsBadInputType(VertxTestContext testContext) {
+    void findResourcesByNonMonitoredSLOsBadInputType(VertxTestContext testContext) {
         SLORequest sloRequest = TestDTOProvider.createSLORequest();
 
-        when(metricRepository.findByMetricAndIsSLO(sessionManager, "availability"))
-            .thenReturn(Maybe.just(mAvailabilityString));
-
-        utility.findAndFilterResourcesBySLOs(sessionManager, sloRequest)
+        utility.findResourcesByNonMonitoredSLOs(sessionManager, sloRequest)
             .subscribe(resources -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(BadInputException.class);
@@ -147,14 +139,12 @@ public class SLOUtilityTest {
             );
     }
 
+    // TODO: fix
     @Test
     void findAndFilterResourcesBySLOsMetricNotFound(VertxTestContext testContext) {
         SLORequest sloRequest = TestDTOProvider.createSLORequest();
 
-        when(metricRepository.findByMetricAndIsSLO(sessionManager, "availability"))
-            .thenReturn(Maybe.empty());
-
-        utility.findAndFilterResourcesBySLOs(sessionManager, sloRequest)
+        utility.findResourcesByNonMonitoredSLOs(sessionManager, sloRequest)
             .subscribe(resources -> testContext.verify(() -> fail("method did not throw exception")),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
