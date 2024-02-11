@@ -31,7 +31,7 @@ import java.util.Map;
 @ExtendWith(VertxExtension.class)
 public abstract class DatabaseTest {
 
-    public static DockerImageName myImage = DockerImageName.parse("timescale/timescaledb:latest-pg14")
+    public static DockerImageName myImage = DockerImageName.parse("postgres:14.10-alpine")
             .asCompatibleSubstituteFor("postgres");
 
     @Container

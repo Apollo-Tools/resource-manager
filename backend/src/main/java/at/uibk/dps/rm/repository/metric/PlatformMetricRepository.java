@@ -49,7 +49,7 @@ public class PlatformMetricRepository extends Repository<PlatformMetric> {
      * @return a Maybe that emits the platform metric if it exists else null
      */
     public Maybe<PlatformMetric> findByPlatformAndMetric(SessionManager sessionManager, long platformId,
-                                                         long metricId) {
+            long metricId) {
         return Maybe.fromCompletionStage(sessionManager.getSession()
             .createQuery("from PlatformMetric pm " +
                 "left join fetch pm.metric m " +

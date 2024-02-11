@@ -50,10 +50,10 @@ public class ServiceDeploymentRepositoryTest extends DatabaseTest {
             Resource r1 = TestResourceProvider.createResource(null, "r1", p1, reg1);
             Resource r2 = TestResourceProvider.createResource(null, "r2", p1, reg2);
             SubResource sr1 = TestResourceProvider.createSubResourceWithoutMVs(null, "r3", (MainResource) r1);
-            Metric mAvailability = TestMetricProvider.createMetric(1L);
-            Metric mHostname = TestMetricProvider.createMetric(21L);
-            MetricValue mv1 = TestMetricProvider.createMetricValue(null, mAvailability, r1, 0.99);
-            MetricValue mv2 = TestMetricProvider.createMetricValue(null, mHostname, sr1, "node1");
+            Metric mClusterUrl = TestMetricProvider.createMetric(12L);
+            Metric mExternalIp = TestMetricProvider.createMetric(16L);
+            MetricValue mv1 = TestMetricProvider.createMetricValue(null, mClusterUrl, r1, "http://localhost:4443");
+            MetricValue mv2 = TestMetricProvider.createMetricValue(null, mExternalIp, r1, "localhost");
             ResourceDeploymentStatus rds1 = TestDeploymentProvider.createResourceDeploymentStatus(1L,
                 DeploymentStatusValue.NEW);
             ResourceDeploymentStatus rds2 = TestDeploymentProvider.createResourceDeploymentStatus(2L,
@@ -124,14 +124,15 @@ public class ServiceDeploymentRepositoryTest extends DatabaseTest {
         return Stream.of(
             Arguments.of(1L, List.of(1L, 2L, 3L), List.of(1L, 2L, 1L),
                 List.of("notype", "notype", "notype"), List.of("NodePort", "NoService", "NodePort"),
-                List.of("r1", "r3", "r2"), List.of(List.of("availability"), List.of("hostname"), List.of()),
-                List.of(List.of("availability"), List.of("availability"), List.of()),
+                List.of("r1", "r3", "r2"), List.of(List.of("cluster-url", "external-ip"), List.of(), List.of()),
+                List.of(List.of("cluster-url", "external-ip"), List.of("cluster-url", "external-ip"), List.of()),
                 List.of("k8s", "k8s", "k8s"), List.of("container", "container", "container"),
                 List.of("us-east-1", "us-east-1", "edge"), List.of("aws", "aws", "custom-edge"),
                 List.of("cloud", "cloud", "edge"), List.of("NEW", "ERROR", "DEPLOYED")),
             Arguments.of(2L, List.of(4L, 5L), List.of(1L, 2L),
                 List.of("notype", "notype"), List.of("NodePort", "NoService"), List.of("r1", "r2"),
-                List.of(List.of("availability"), List.of()), List.of(List.of("availability"), List.of()),
+                List.of(List.of("cluster-url", "external-ip"), List.of()),
+                List.of(List.of("cluster-url", "external-ip"), List.of()),
                 List.of("k8s", "k8s"), List.of("container", "container"), List.of("us-east-1", "edge"),
                 List.of("aws", "custom-edge"), List.of("cloud", "edge"), List.of("TERMINATING", "TERMINATED")),
             Arguments.of(3L, List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(),
