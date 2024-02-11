@@ -88,9 +88,9 @@ public class TestDeploymentProvider {
         TFOutput tfOutput = new TFOutput();
         Map<String, TFOutputValue> values = new HashMap<>();
         values.put("r1_foo1_" + runtime + "_1", createTFOutputValue("http://host:8080/foo1", "foo1",
-            "http://host", 3001, 8080));
+            "http://host", 9100, 8080));
         values.put("r3_foo2_" + runtime + "_1", createTFOutputValue("http://host:8080/foo2", "foo2",
-            "http://host", 3001, 8080));
+            "http://host", 9100, 8080));
         tfOutput.setValue(values);
         output.setResourceOutput(tfOutput);
         return output;

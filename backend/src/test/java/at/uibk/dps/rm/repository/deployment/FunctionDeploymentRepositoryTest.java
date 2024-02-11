@@ -154,7 +154,7 @@ public class FunctionDeploymentRepositoryTest extends DatabaseTest {
     void updateTriggerUrls(long resourceDeploymentId, String triggerUrl, String fullUrl,
             VertxTestContext testContext) {
         TFOutputValue tfOutputValue = TestDeploymentProvider.createTFOutputValue(fullUrl,
-            "foo1", "http://host", 3001, 8080);
+            "foo1", "http://host", 9100, 8080);
         smProvider.withTransactionMaybe(sessionManager -> repository
                 .updateTriggerUrls(sessionManager, resourceDeploymentId, triggerUrl, tfOutputValue)
                 .andThen(Maybe.defer(() -> sessionManager.find(FunctionDeployment.class, resourceDeploymentId))))

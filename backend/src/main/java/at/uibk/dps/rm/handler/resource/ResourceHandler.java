@@ -55,7 +55,7 @@ public class ResourceHandler extends ValidationHandler {
             .flatMap(resourceService::findAllSubResources);
     }
 
-    public Single<JsonArray> getAllByNonMonitoredSLOs(RoutingContext rc) {
+    public Single<JsonArray> getAllBySLOs(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
         SLORequest sloRequest = requestBody.mapTo(SLORequest.class);
         return new ConfigUtility(Vertx.currentContext().owner()).getConfigDTO()
@@ -76,7 +76,7 @@ public class ResourceHandler extends ValidationHandler {
                                 result = new FindResourceBySloDTO((MainResource) resource,
                                     sloRequest.getServiceLevelObjectives());
                             } else {
-                                result = new FindResourceBySloDTO((SubResource) resource,
+                                result = new FindResourceBySloDTO(new SubResourceDTO((SubResource) resource),
                                     sloRequest.getServiceLevelObjectives());
                             }
                             return result;

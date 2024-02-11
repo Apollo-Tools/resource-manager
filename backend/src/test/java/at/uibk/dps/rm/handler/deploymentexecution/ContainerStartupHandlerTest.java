@@ -11,6 +11,8 @@ import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.service.rxjava3.database.deployment.FunctionDeploymentService;
 import at.uibk.dps.rm.service.rxjava3.database.deployment.ServiceDeploymentService;
 import at.uibk.dps.rm.service.rxjava3.monitoring.function.FunctionExecutionService;
+import at.uibk.dps.rm.service.rxjava3.monitoring.metricpusher.ContainerStartupTerminationPushService;
+import at.uibk.dps.rm.service.rxjava3.monitoring.metricpusher.FunctionInvocationPushService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.*;
 import at.uibk.dps.rm.util.misc.MultiMapUtility;
@@ -68,6 +70,12 @@ public class ContainerStartupHandlerTest {
     private FunctionExecutionService functionExecutionService;
 
     @Mock
+    private ContainerStartupTerminationPushService containerMetricPushService;
+
+    @Mock
+    private FunctionInvocationPushService functionInvocationPushService;
+
+    @Mock
     private RoutingContext rc;
 
     @Mock
@@ -84,6 +92,10 @@ public class ContainerStartupHandlerTest {
         lenient().when(serviceProxyProvider.getServiceDeploymentService()).thenReturn(serviceDeploymentService);
         lenient().when(serviceProxyProvider.getFunctionDeploymentService()).thenReturn(functionDeploymentService);
         lenient().when(serviceProxyProvider.getFunctionExecutionService()).thenReturn(functionExecutionService);
+        lenient().when(serviceProxyProvider.getFunctionInvocationPushService())
+            .thenReturn(functionInvocationPushService);
+        lenient().when(serviceProxyProvider.getContainerStartupTerminationPushService())
+            .thenReturn(containerMetricPushService);
         account = TestAccountProvider.createAccount(1L);
         Deployment d1 = TestDeploymentProvider.createDeployment(1L);
         Resource r1 = TestResourceProvider.createResource(3L);
@@ -113,8 +125,12 @@ public class ContainerStartupHandlerTest {
             account.getAccountId())).thenReturn(Single.just(JsonObject.mapFrom(serviceDeployment)));
         if (!isStartup && successDeploymentTermination) {
             when(rc.response()).thenReturn(response);
-            when(response.setStatusCode(204)).thenReturn(response);
-            when(response.end()).thenReturn(Completable.complete());
+            when(response.setStatusCode(200)).thenReturn(response);
+            when(response.end(argThat((String response) -> {
+                JsonObject body = new JsonObject(response);
+                return body.containsKey("termination_time_seconds") &&
+                    body.getDouble("termination_time_seconds") > 0.0;
+            }))).thenReturn(Completable.complete());
         }
         if (isStartup && successDeploymentTermination) {
             when(rc.response()).thenReturn(response);
@@ -137,15 +153,21 @@ public class ContainerStartupHandlerTest {
             completable = handler.terminateContainer(rc);
         }
 
+        if (successDeploymentTermination) {
+            when(containerMetricPushService.composeAndPushMetric(anyDouble(), eq(2L), eq(3L),
+                eq(22L), eq(isStartup)))
+                .thenReturn(Completable.complete());
+        }
+
         completable.subscribe(() -> testContext.verify(() -> {
                 if (!successDeploymentTermination) {
-                    testContext.failNow("methods did not throw exception");
+                    testContext.failNow("method did not throw exception");
                 }
                 testContext.completeNow();
             }),
                 throwable -> testContext.verify(() -> {
                     if (successDeploymentTermination) {
-                        testContext.failNow("methods has thrown exception");
+                        testContext.failNow("method has thrown exception");
                     }
                     assertThat(throwable).isInstanceOf(BadInputException.class);
                     assertThat(throwable.getMessage())
@@ -223,7 +245,9 @@ public class ContainerStartupHandlerTest {
         when(response.setStatusCode(200)).thenReturn(response);
         doReturn(Completable.complete()).when(response).end(argThat((String result) -> result.equals(responseBody)));
         if (!body.equals("nullBody") && !body.equals("nullBuffer") && !invocationResult.equals("invocationresult")) {
-            // swap to metrics pusher when(functionDeploymentService.saveExecTime(2L, 235, "{\"arg\":1}")).thenReturn(Completable.complete());
+            when(functionInvocationPushService.composeAndPushMetric(0.235d, 1L,
+                2L, 22L, 3L, "{\"arg\":1}"))
+            .thenReturn(Completable.complete());
         }
 
         handler.invokeFunction(rc)

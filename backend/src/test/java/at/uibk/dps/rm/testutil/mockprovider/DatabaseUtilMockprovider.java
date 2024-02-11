@@ -24,6 +24,7 @@ import java.util.Map;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
 
 /**
  * Utility class to mock (mocked construction) database util objects for tests.
@@ -58,6 +59,13 @@ public class DatabaseUtilMockprovider {
             // TODO: fix
             given(mock.getResourceEnsembleStatus(validResources, fetchResult.getResources()))
                 .willReturn(validateResult);
+        });
+    }
+
+    public static MockedConstruction<EnsembleUtility> mockEnsembleUtilityGetResourceEnsembleStatus(
+            List<Resource> validResources, GetOneEnsemble fetchResult, List<ResourceEnsembleStatus> validateResult) {
+        return Mockito.mockConstruction(EnsembleUtility.class, (mock, context) -> {
+            when(mock.getResourceEnsembleStatus(validResources, fetchResult.getResources())).thenReturn(validateResult);
         });
     }
 

@@ -37,7 +37,7 @@ public class ResourceRoute implements Route {
         router
             .operation("listResourcesBySLOs")
             .handler(ResourceSLOInputHandler::validateGetResourcesBySLOsRequest)
-            .handler(rc -> resultHandler.handleFindAllRequest(rc, resourceHandler.getAllByNonMonitoredSLOs(rc)));
+            .handler(rc -> resultHandler.handleFindAllRequest(rc, resourceHandler.getAllBySLOs(rc)));
 
         router.operation("listLockedResourcesByDeployment")
             .handler(rc -> resultHandler.handleFindAllRequest(rc, resourceHandler.getAllLockedByDeployment(rc)));

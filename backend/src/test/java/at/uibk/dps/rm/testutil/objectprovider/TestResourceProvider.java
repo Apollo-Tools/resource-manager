@@ -1,9 +1,6 @@
 package at.uibk.dps.rm.testutil.objectprovider;
 
-import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
-import at.uibk.dps.rm.entity.dto.resource.ResourceDTO;
-import at.uibk.dps.rm.entity.dto.resource.ResourceId;
-import at.uibk.dps.rm.entity.dto.resource.ResourceTypeEnum;
+import at.uibk.dps.rm.entity.dto.resource.*;
 import at.uibk.dps.rm.entity.model.*;
 import lombok.experimental.UtilityClass;
 
