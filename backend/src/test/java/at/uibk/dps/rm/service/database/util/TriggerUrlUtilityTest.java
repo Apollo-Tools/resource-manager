@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.service.database.util;
 
 import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
+import at.uibk.dps.rm.entity.deployment.output.TFOutputValue;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.testutil.mockprovider.DeploymentRepositoryProviderMock;
@@ -19,6 +20,8 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 /**
@@ -55,12 +58,12 @@ public class TriggerUrlUtilityTest {
         DeployResourcesDTO deployResourcesDTO = TestRequestProvider.createDeployRequest();
 
         when(repositoryMock.getFunctionDeploymentRepository()
-            .updateTriggerUrls(sessionManager, 1L, "/function-deployments/1/invoke",
-                output.getResourceOutput().getValue().get("r1_foo1_python38_1")))
+            .updateTriggerUrls(eq(sessionManager), eq(1L), eq("/function-deployments/1/invoke"),
+                argThat((TFOutputValue tfOutputValue) -> tfOutputValue.getFullUrl().equals("http://host:8080/foo1"))))
             .thenReturn(Completable.complete());
         when(repositoryMock.getFunctionDeploymentRepository()
-            .updateTriggerUrls(sessionManager, 4L, "/function-deployments/4/invoke",
-                output.getResourceOutput().getValue().get("r1_foo2_python38_2")))
+            .updateTriggerUrls(eq(sessionManager), eq(4L), eq("/function-deployments/4/invoke"),
+                argThat((TFOutputValue tfOutputValue) -> tfOutputValue.getFullUrl().equals("http://host:8080/foo2"))))
             .thenReturn(Completable.complete());
 
         utility.setTriggerUrlsForFunctions(sessionManager, output, deployResourcesDTO)

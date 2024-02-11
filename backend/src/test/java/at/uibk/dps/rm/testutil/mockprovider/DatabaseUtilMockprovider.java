@@ -52,37 +52,25 @@ public class DatabaseUtilMockprovider {
     }
 
     public static MockedConstruction<EnsembleUtility> mockEnsembleUtilityFetchAndValidate(SessionManager sm,
-                                                                                          long ensembleId, long accountId, GetOneEnsemble fetchResult, List<Resource> validResources,
-                                                                                          List<ResourceEnsembleStatus> validateResult) {
-        return Mockito.mockConstruction(EnsembleUtility.class, (mock, context) -> {
-            given(mock.fetchAndPopulateEnsemble(sm, ensembleId, accountId)).willReturn(Single.just(fetchResult));
-            // TODO: fix
-            given(mock.getResourceEnsembleStatus(validResources, fetchResult.getResources()))
-                .willReturn(validateResult);
-        });
-    }
-
-    public static MockedConstruction<EnsembleUtility> mockEnsembleUtilityGetResourceEnsembleStatus(
-            List<Resource> validResources, GetOneEnsemble fetchResult, List<ResourceEnsembleStatus> validateResult) {
+            long ensembleId, long accountId, GetOneEnsemble fetchResult) {
         return Mockito.mockConstruction(EnsembleUtility.class, (mock, context) ->
-            when(mock.getResourceEnsembleStatus(validResources, fetchResult.getResources())).thenReturn(validateResult));
+            given(mock.fetchAndPopulateEnsemble(sm, ensembleId, accountId)).willReturn(Single.just(fetchResult)));
     }
 
     public static MockedConstruction<SLOUtility> mockSLOUtilityFindAndFilterResources(SessionManager sm,
-                                                                                      List<Resource> result) {
-        // TODO: fix
+            List<Resource> result) {
         return Mockito.mockConstruction(SLOUtility.class, (mock, context) ->
             given(mock.findResourcesByNonMonitoredSLOs(eq(sm), any(SLORequest.class))).willReturn(Single.just(result)));
     }
 
     public static MockedConstruction<EnsembleValidationUtility> mockEnsembleValidationUtility(SessionManager sm,
-                                                                                              long ensembleId, long accountId, List<ResourceEnsembleStatus> result) {
+            long ensembleId, long accountId, List<ResourceEnsembleStatus> result) {
         return Mockito.mockConstruction(EnsembleValidationUtility.class, (mock, context) ->
             given(mock.validateAndUpdateEnsemble(sm, ensembleId, accountId)).willReturn(Single.just(result)));
     }
 
     public static MockedConstruction<EnsembleValidationUtility> mockEnsembleValidationUtilityList(SessionManager sm,
-                                                                                                  long accountId, Map<Ensemble, List<ResourceEnsembleStatus>> result) {
+            long accountId, Map<Ensemble, List<ResourceEnsembleStatus>> result) {
         return Mockito.mockConstruction(EnsembleValidationUtility.class, (mock, context) ->
             result.forEach((key, value) -> given(mock.validateAndUpdateEnsemble(sm, key.getEnsembleId(), accountId))
                 .willReturn(Single.just(value))));

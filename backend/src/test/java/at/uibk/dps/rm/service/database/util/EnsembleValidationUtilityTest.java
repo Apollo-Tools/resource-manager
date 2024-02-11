@@ -19,12 +19,14 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 /**
@@ -71,10 +73,13 @@ public class EnsembleValidationUtilityTest {
         when(repositoryMock.getEnsembleRepository().updateValidity(sessionManager, ensembleId, type.equals("valid")))
             .thenReturn(Completable.complete());
         try(MockedConstruction<EnsembleUtility> ignoreEnsemble = DatabaseUtilMockprovider
-                .mockEnsembleUtilityFetchAndValidate(sessionManager, ensembleId, accountId, getOneEnsemble,
-                    List.of(r1, r2), List.of(r1es, r2es));
+                .mockEnsembleUtilityFetchAndValidate(sessionManager, ensembleId, accountId, getOneEnsemble);
                 MockedConstruction<SLOUtility> ignoreSLO = DatabaseUtilMockprovider
-                    .mockSLOUtilityFindAndFilterResources(sessionManager, List.of(r1, r2))) {
+                    .mockSLOUtilityFindAndFilterResources(sessionManager, List.of(r1, r2));
+                MockedStatic<EnsembleUtility> mockEnsembleUtil = mockStatic(EnsembleUtility.class)) {
+            mockEnsembleUtil.when(() -> EnsembleUtility.getResourceEnsembleStatus(List.of(r1, r2),
+                    getOneEnsemble.getResources())).thenReturn(List.of(r1es, r2es));
+
             validationUtility.validateAndUpdateEnsemble(sessionManager, ensembleId, accountId)
                 .subscribe(result -> testContext.verify(() -> {
                         assertThat(result.size()).isEqualTo(2);

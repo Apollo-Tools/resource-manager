@@ -87,36 +87,27 @@ public class MetricValueUtilityTest {
     @Test
     void checkAddMetricListValid(VertxTestContext testContext) {
         Resource r1 = TestResourceProvider.createResource(1L, pLambda);
-        JsonObject v1 = new JsonObject("{\"metric_id\": 1}");
         JsonObject v2 = new JsonObject("{\"metric_id\": 2, \"value\": 2}");
-        JsonObject v3 = new JsonObject("{\"metric_id\": 3}");
         JsonObject v4 = new JsonObject("{\"metric_id\": 4, \"value\": \"value\"}");
-        JsonObject v5 = new JsonObject("{\"metric_id\": 5}");
         JsonObject v6 = new JsonObject("{\"metric_id\": 6, \"value\": true}");
-        JsonArray values = new JsonArray(List.of(v1, v2, v3, v4, v5, v6));
+        JsonArray values = new JsonArray(List.of(v2, v4, v6));
 
         when(metricValueRepository.findByResourceAndMetric(eq(sessionManager), eq(r1.getResourceId()), anyLong()))
             .thenReturn(Maybe.empty());
         when(platformMetricRepository.findByPlatformAndMetric(sessionManager, pLambda.getPlatformId(),
-            m1.getMetricId())).thenReturn(Maybe.just(pmNumberMonitored));
-        when(platformMetricRepository.findByPlatformAndMetric(sessionManager, pLambda.getPlatformId(),
             m2.getMetricId())).thenReturn(Maybe.just(pmNumberManual));
         when(platformMetricRepository.findByPlatformAndMetric(sessionManager, pLambda.getPlatformId(),
-            m3.getMetricId())).thenReturn(Maybe.just(pmStringMonitored));
-        when(platformMetricRepository.findByPlatformAndMetric(sessionManager, pLambda.getPlatformId(),
             m4.getMetricId())).thenReturn(Maybe.just(pmStringManual));
-        when(platformMetricRepository.findByPlatformAndMetric(sessionManager, pLambda.getPlatformId(),
-            m5.getMetricId())).thenReturn(Maybe.just(pmBoolMonitored));
         when(platformMetricRepository.findByPlatformAndMetric(sessionManager, pLambda.getPlatformId(),
             m6.getMetricId())).thenReturn(Maybe.just(pmBoolManual));
         when(session.persist(any(MetricValue.class))).thenReturn(CompletionStages.voidFuture());
 
         utility.checkAddMetricList(sessionManager, r1, values)
             .blockingSubscribe(() -> testContext.verify(() -> {
-                    verify(session, times(6)).persist(any(MetricValue.class));
+                    verify(session, times(3)).persist(any(MetricValue.class));
                     testContext.completeNow();
                 }),
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
+                throwable -> testContext.failNow("method has thrown exception")
             );
     }
 
@@ -157,7 +148,7 @@ public class MetricValueUtilityTest {
             m1.getMetricId())).thenReturn(Maybe.just(pmNumberMonitored));
 
         utility.checkAddMetricList(sessionManager, r1, values)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
+            .blockingSubscribe(() -> testContext.failNow("method did not throw exception"),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(BadInputException.class);
                     assertThat(throwable.getMessage()).isEqualTo("monitored metrics can't be set manually");
@@ -180,10 +171,10 @@ public class MetricValueUtilityTest {
             m1.getMetricId())).thenReturn(Maybe.just(pmNumberManual));
 
         utility.checkAddMetricList(sessionManager, r1, values)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
+            .blockingSubscribe(() -> testContext.failNow("method did not throw exception"),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(BadInputException.class);
-                    assertThat(throwable.getMessage()).isEqualTo("value can't be empty for non monitored values");
+                    assertThat(throwable.getMessage()).isEqualTo("value can't be empty");
                     testContext.completeNow();
                 })
             );
@@ -203,7 +194,7 @@ public class MetricValueUtilityTest {
             m1.getMetricId())).thenReturn(Maybe.empty());
 
         utility.checkAddMetricList(sessionManager, r1, values)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
+            .blockingSubscribe(() -> testContext.failNow("method did not throw exception"),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
@@ -225,7 +216,7 @@ public class MetricValueUtilityTest {
             m1.getMetricId())).thenReturn(Maybe.empty());
 
         utility.checkAddMetricList(sessionManager, r1, values)
-            .blockingSubscribe(() -> testContext.verify(() -> fail("method did not throw exception")),
+            .blockingSubscribe(() -> testContext.failNow("method did not throw exception"),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
                     testContext.completeNow();

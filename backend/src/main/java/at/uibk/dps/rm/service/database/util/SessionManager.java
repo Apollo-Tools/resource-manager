@@ -72,7 +72,7 @@ public class SessionManager {
     /**
      * See {@link Session#remove(Object...)}
      */
-    public Completable remove(Object... entities) {
+    public Completable remove(Object[] entities) {
         return Completable.fromCompletionStage(session.remove(entities));
     }
 
