@@ -325,6 +325,7 @@ public class DeploymentServiceImplTest {
             deploymentId, DeploymentStatusValue.DEPLOYED)).thenReturn(Completable.complete());
         when(repositoryMock.getDeploymentRepository().setDeploymentFinishedTime(sessionManager, deploymentId))
             .thenReturn(Completable.complete());
+        when(sessionManager.flush()).thenReturn(Completable.complete());
 
         try(MockedConstruction<TriggerUrlUtility> ignored = DatabaseUtilMockprovider.mockTriggerUrlUtility(sessionManager)) {
             deploymentService.handleDeploymentSuccessful(JsonObject.mapFrom(deploymentOutput), deployResourcesDTO,

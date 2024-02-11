@@ -13,6 +13,7 @@ import at.uibk.dps.rm.testutil.objectprovider.TestDeploymentProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestServiceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
@@ -27,7 +28,10 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
@@ -77,6 +81,7 @@ public class ServiceDeploymentImplTest {
 
         Handler<AsyncResult<JsonObject>> handler;
         if (valid) {
+            when(sessionManager.fetch(any())).thenReturn(Single.just(List.of()));
             handler = testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.getLong("resource_deployment_id")).isEqualTo(resourceDeploymentId);
                 testContext.completeNow();

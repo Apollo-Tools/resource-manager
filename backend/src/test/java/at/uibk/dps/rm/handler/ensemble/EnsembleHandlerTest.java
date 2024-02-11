@@ -122,8 +122,6 @@ public class EnsembleHandlerTest {
         RoutingContextMockHelper.mockBody(rc, body);
         when(metricService.checkMetricTypeForSLOs(body)).thenReturn(Completable.complete());
         when(resourceService.findAllByNonMonitoredSLOs(body)).thenReturn(Single.just(filterResources));
-        when(ensembleService.validateCreateEnsembleRequest(body, Set.of(1L, 2L)))
-            .thenReturn(Completable.complete());
 
         try (MockedStatic<Vertx> mockedVertx = mockStatic(Vertx.class);
                 MockedConstruction<ConfigUtility> ignoreConfig = Mockprovider.mockConfig(config);

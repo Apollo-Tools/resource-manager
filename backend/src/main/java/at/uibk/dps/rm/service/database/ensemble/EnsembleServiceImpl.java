@@ -3,10 +3,8 @@ package at.uibk.dps.rm.service.database.ensemble;
 import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
 import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
 import at.uibk.dps.rm.entity.dto.ensemble.ResourceEnsembleStatus;
-import at.uibk.dps.rm.entity.dto.resource.ResourceId;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
-import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.EnsembleRepositoryProvider;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
@@ -23,7 +21,6 @@ import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -140,24 +137,6 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
             }),
             resultHandler
         );
-    }
-
-    @Override
-    public void validateCreateEnsembleRequest(JsonObject data, Set<Long> validResourceIds,
-            Handler<AsyncResult<Void>> resultHandler) {
-        CreateEnsembleRequest requestDTO = data.mapTo(CreateEnsembleRequest.class);
-        List<ResourceId> resourceIds = requestDTO.getResources();
-        Completable validateRequest = smProvider.withTransactionCompletable(sm -> Observable
-            .fromIterable(resourceIds)
-            .all(resourceId -> validResourceIds.contains(resourceId.getResourceId()))
-            .flatMapCompletable(requestFulfillsSLOs -> {
-                if (!requestFulfillsSLOs) {
-                    return Completable.error(new BadInputException("slo mismatch"));
-                }
-                return Completable.complete();
-            })
-        );
-        RxVertxHandler.handleSession(validateRequest, resultHandler);
     }
 
     @Override

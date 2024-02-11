@@ -138,14 +138,14 @@ public class ResourceServiceImplTest {
     }
 
     @Test
-    void findAllBySLOs(VertxTestContext testContext) {
+    void findAllByNonMonitoredSLOs(VertxTestContext testContext) {
         ServiceLevelObjective slo1 = new ServiceLevelObjective("instance-type", ExpressionType.EQ,
             TestDTOProvider.createSLOValueList("t2.micro"));
         SLORequest sloRequest = TestDTOProvider.createSLORequest(List.of(slo1));
 
-        // TODO: fix
         SessionMockHelper.mockSingle(smProvider, sessionManager);
-        try (MockedConstruction<SLOUtility> ignored = DatabaseUtilMockprovider.mockSLOUtilityFindAndFilterResources(sessionManager, List.of(r1, r2))) {
+        try (MockedConstruction<SLOUtility> ignored = DatabaseUtilMockprovider
+                .mockSLOUtilityFindAndFilterResources(sessionManager, List.of(r1, r2))) {
             resourceService.findAllByNonMonitoredSLOs(JsonObject.mapFrom(sloRequest),
                 testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
@@ -320,18 +320,29 @@ public class ResourceServiceImplTest {
 
     @Test
     void updateClusterResource(VertxTestContext testContext) {
-        SessionMockHelper.mockCompletable(smProvider, sessionManager);
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(resourceRepository.findClusterByName(sessionManager, cr1.getName())).thenReturn(Maybe.just(cr1));
+
         try (MockedConstruction<K8sResourceUpdateUtility> ignored = DatabaseUtilMockprovider.mockK8sResourceUpdateUtility(
-            sessionManager, cr1, monitoringData)) {
+                sessionManager, cr1, monitoringData)) {
             resourceService.updateClusterResource(cr1.getName(), monitoringData,
                 testContext.succeeding(result -> testContext.verify(testContext::completeNow)));
         }
     }
 
     @Test
+    void updateClusterResourceNotUp(VertxTestContext testContext) {
+        monitoringData.setIsUp(false);
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
+        when(resourceRepository.findClusterByName(sessionManager, cr1.getName())).thenReturn(Maybe.just(cr1));
+
+        resourceService.updateClusterResource(cr1.getName(), monitoringData, testContext
+            .succeeding(result -> testContext.verify(testContext::completeNow)));
+    }
+
+    @Test
     void updateClusterResourceNotFound(VertxTestContext testContext) {
-        SessionMockHelper.mockCompletable(smProvider, sessionManager);
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(resourceRepository.findClusterByName(sessionManager, cr1.getName())).thenReturn(Maybe.empty());
 
         resourceService.updateClusterResource(cr1.getName(), monitoringData,

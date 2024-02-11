@@ -1,11 +1,11 @@
 package at.uibk.dps.rm.handler.ensemble;
 
 import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
-import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
 import at.uibk.dps.rm.entity.dto.ensemble.ResourceEnsembleStatus;
 import at.uibk.dps.rm.entity.model.Resource;
+import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.service.database.util.EnsembleUtility;
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.EnsembleService;
@@ -69,7 +69,7 @@ public class EnsembleHandler extends ValidationHandler {
      */
     public Completable validateNewResourceEnsembleSLOs(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
-        SLORequest requestDTO = requestBody.mapTo(CreateEnsembleRequest.class);
+        CreateEnsembleRequest requestDTO = requestBody.mapTo(CreateEnsembleRequest.class);
         return new ConfigUtility(Vertx.currentContext().owner()).getConfigDTO()
             .flatMap(configDTO -> metricService.checkMetricTypeForSLOs(requestBody)
                 .andThen(resourceService.findAllByNonMonitoredSLOs(requestBody))
@@ -81,8 +81,14 @@ public class EnsembleHandler extends ValidationHandler {
             .flatMapObservable(Observable::fromIterable)
             .map(Resource::getResourceId)
             .collect(Collectors.toSet())
-            .flatMapCompletable(filteredResourceIds -> ensembleService.validateCreateEnsembleRequest(requestBody,
-                filteredResourceIds));
+            .flatMapCompletable(filteredResourceIds -> Observable.fromIterable(requestDTO.getResources())
+                .all(resourceId -> filteredResourceIds.contains(resourceId.getResourceId()))
+                .flatMapCompletable(requestFulfillsSLOs -> {
+                    if (!requestFulfillsSLOs) {
+                        return Completable.error(new BadInputException("slo mismatch"));
+                    }
+                    return Completable.complete();
+                }));
     }
 
     /**

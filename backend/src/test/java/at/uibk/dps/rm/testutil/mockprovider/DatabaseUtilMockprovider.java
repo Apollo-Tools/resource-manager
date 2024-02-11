@@ -40,7 +40,7 @@ public class DatabaseUtilMockprovider {
     }
 
     public static MockedConstruction<K8sResourceUpdateUtility> mockK8sResourceUpdateUtility(SessionManager sm,
-                                                                                            MainResource cluster, K8sMonitoringData data) {
+            MainResource cluster, K8sMonitoringData data) {
         return Mockito.mockConstruction(K8sResourceUpdateUtility.class,
             (mock, context) -> given(mock.updateClusterNodes(sm, cluster, data)).willReturn(Completable.complete()));
     }
@@ -64,9 +64,8 @@ public class DatabaseUtilMockprovider {
 
     public static MockedConstruction<EnsembleUtility> mockEnsembleUtilityGetResourceEnsembleStatus(
             List<Resource> validResources, GetOneEnsemble fetchResult, List<ResourceEnsembleStatus> validateResult) {
-        return Mockito.mockConstruction(EnsembleUtility.class, (mock, context) -> {
-            when(mock.getResourceEnsembleStatus(validResources, fetchResult.getResources())).thenReturn(validateResult);
-        });
+        return Mockito.mockConstruction(EnsembleUtility.class, (mock, context) ->
+            when(mock.getResourceEnsembleStatus(validResources, fetchResult.getResources())).thenReturn(validateResult));
     }
 
     public static MockedConstruction<SLOUtility> mockSLOUtilityFindAndFilterResources(SessionManager sm,
@@ -115,10 +114,10 @@ public class DatabaseUtilMockprovider {
 
     public static MockedConstruction<TriggerUrlUtility> mockTriggerUrlUtility(SessionManager sm) {
         return Mockito.mockConstruction(TriggerUrlUtility.class, (mock, context) -> {
-            given(mock.setTriggerUrlsForFunctions(eq(sm), any(DeploymentOutput.class), any(DeployResourcesDTO.class)))
-                .willReturn(Completable.complete());
-            given(mock.setTriggerUrlForContainers(eq(sm), any(DeployResourcesDTO.class)))
-                .willReturn(Completable.complete());
+            when(mock.setTriggerUrlsForFunctions(eq(sm), any(DeploymentOutput.class), any(DeployResourcesDTO.class)))
+                .thenReturn(Completable.complete());
+            when(mock.setTriggerUrlForContainers(eq(sm), any(DeployResourcesDTO.class)))
+                .thenReturn(Completable.complete());
         });
     }
 
