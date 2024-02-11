@@ -34,9 +34,10 @@ public class TestConfigProvider {
         configDTO.setKubeApiTimeoutSeconds(10);
         configDTO.setKubeImagePullSecrets(List.of("regcred"));
 
-        configDTO.setKubeMonitoringPeriod(5.0);
-        configDTO.setRegionMonitoringPeriod(5.0);
         configDTO.setAwsPriceMonitoringPeriod(5.0);
+        configDTO.setKubeMonitoringPeriod(5.0);
+        configDTO.setOpenfaasMonitoringPeriod(5.0);
+        configDTO.setRegionMonitoringPeriod(5.0);
         return configDTO;
     }
 }
