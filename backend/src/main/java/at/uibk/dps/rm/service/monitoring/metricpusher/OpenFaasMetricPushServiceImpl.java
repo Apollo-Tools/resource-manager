@@ -24,6 +24,12 @@ public class OpenFaasMetricPushServiceImpl extends ServiceProxy implements OpenF
 
     private final MetricPusher monitoringPusher;
 
+    /**
+     * Create a new instance from a webClient and config.
+     *
+     * @param webClient the web client
+     * @param config the config
+     */
     public OpenFaasMetricPushServiceImpl(WebClient webClient, ConfigDTO config) {
         monitoringPusher = new MetricPusher(webClient, config);
     }
@@ -33,6 +39,7 @@ public class OpenFaasMetricPushServiceImpl extends ServiceProxy implements OpenF
         return "openfaas-metric-pusher" + super.getServiceProxyAddress();
     }
 
+    @Override
     public void composeAndPushMetrics(JsonArray connectivities, Handler<AsyncResult<Void>> resultHandler) {
         OpenFaasConnectivity[] connectivityList = connectivities.stream()
             .map(value -> ((JsonObject) value).mapTo(OpenFaasConnectivity.class))

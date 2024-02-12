@@ -46,14 +46,24 @@ public class K8sNode implements K8sEntityData {
         this.node = node;
     }
 
+    /**
+     * Add a pod to the node.
+     *
+     * @param k8sPod the pod
+     */
     @JsonIgnore
     public void addPod(K8sPod k8sPod) {
         pods.put(Objects.requireNonNull(k8sPod.getV1Pod().getMetadata()).getName(), k8sPod);
     }
 
+    /**
+     * Add multiple pods to the node.
+     *
+     * @param k8sPods the pods
+     */
     @JsonIgnore
-    public void addAllPods(List<K8sPod> k8sPod) {
-        k8sPod.forEach(this::addPod);
+    public void addAllPods(List<K8sPod> k8sPods) {
+        k8sPods.forEach(this::addPod);
     }
 
     /**

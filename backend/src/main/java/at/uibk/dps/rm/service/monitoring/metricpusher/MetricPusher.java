@@ -30,6 +30,12 @@ public class MetricPusher {
 
     private final ConfigDTO config;
 
+    /**
+     * Push a list of metrics to the external monitoring system.
+     *
+     * @param metrics the metrics to push
+     * @param resultHandler receives nothing if the push was successful else an error
+     */
     protected void pushMetrics(List<OpenTSDBEntity> metrics, Handler<AsyncResult<Void>> resultHandler) {
         String requestBody = Json.encode(metrics);
         Completable pushMetrics = webClient.postAbs(config.getMonitoringPushUrl() + "/api/put")

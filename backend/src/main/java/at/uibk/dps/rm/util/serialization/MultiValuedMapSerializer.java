@@ -8,6 +8,11 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 
+/**
+ * This class can be used to serialize MultiValuedMap objects where the key is a string.
+ *
+ * @author matthi-g
+ */
 public class MultiValuedMapSerializer<V> extends StdSerializer<MultiValuedMap<String, V>> {
 
     private static final long serialVersionUID = 190033535439232237L;

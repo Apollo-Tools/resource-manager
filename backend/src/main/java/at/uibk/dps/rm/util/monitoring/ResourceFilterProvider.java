@@ -24,12 +24,31 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * This class is used to filter resources by monitored metrics.
+ *
+ * @author matthi-g
+ */
 @RequiredArgsConstructor
-public class MetricQueryProvider {
+public class ResourceFilterProvider {
 
     private final MetricQueryService queryService;
 
-    public Single<Set<Resource>> getMetricQuery(ConfigDTO config, MonitoringMetricEnum metricEnum,
+    /**
+     * Filter resources from the external monitoring system based on a service level objective
+     *
+     * @param config the global config
+     * @param metricEnum the metric that corresponds to the service level objective
+     * @param slo the service level objective
+     * @param resources the resources to filter
+     * @param resourceIds the ids of the resources
+     * @param mainResourceIds the ids of the main resources
+     * @param regionResources the resources grouped by their region
+     * @param platformResources the resources grouped by their platform
+     * @param instanceTypeResources the resources grouped by their instance types
+     * @return a Single that emits a Set of the filtered resources
+     */
+    public Single<Set<Resource>> filterResourcesByMonitoredMetrics(ConfigDTO config, MonitoringMetricEnum metricEnum,
             ServiceLevelObjective slo, Map<String, Resource> resources, Set<String> resourceIds,
             Set<String> mainResourceIds, HashSetValuedHashMap<String, String> regionResources,
             HashSetValuedHashMap<Pair<String, String>, String> platformResources,

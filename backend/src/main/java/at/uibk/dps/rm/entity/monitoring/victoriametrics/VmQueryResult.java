@@ -6,6 +6,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Represents the result of a {@link VmQuery}.
+ *
+ * @author matthi-g
+ */
 @Getter
 @Setter
 @AllArgsConstructor

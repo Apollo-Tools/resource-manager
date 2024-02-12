@@ -26,6 +26,12 @@ public class RegionMetricPushServiceImpl extends ServiceProxy implements RegionM
 
     private final MetricPusher monitoringPusher;
 
+    /**
+     * Create a new instance from a webClient and config.
+     *
+     * @param webClient the web client
+     * @param config the config
+     */
     public RegionMetricPushServiceImpl(WebClient webClient, ConfigDTO config) {
         monitoringPusher = new MetricPusher(webClient, config);
     }
@@ -35,6 +41,7 @@ public class RegionMetricPushServiceImpl extends ServiceProxy implements RegionM
         return "region-metric-pusher" + super.getServiceProxyAddress();
     }
 
+    @Override
     public void composeAndPushMetrics(JsonArray regionConnectivity, Handler<AsyncResult<Void>> resultHandler) {
         RegionConnectivity[] regionConnectivityList = regionConnectivity.stream()
             .map(value -> ((JsonObject) value).mapTo(RegionConnectivity.class))

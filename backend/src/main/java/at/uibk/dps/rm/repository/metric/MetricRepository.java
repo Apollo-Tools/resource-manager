@@ -30,7 +30,7 @@ public class MetricRepository extends Repository<Metric> {
      *
      * @param sessionManager the database session manager
      * @param metric the name of the metric
-     * @return a CompletionStage that emits the metric if it exists, else null
+     * @return a Maybe that emits the metric if it exists, else null
      */
     public Maybe<Metric> findByMetric(SessionManager sessionManager, String metric) {
         return Maybe.fromCompletionStage(sessionManager.getSession()
@@ -41,6 +41,13 @@ public class MetricRepository extends Repository<Metric> {
         );
     }
 
+    /**
+     * Find all metrics that correspond to the serviceLevelObjectives.
+     *
+     * @param sessionManager the database session manager
+     * @param serviceLevelObjectives the list of service level objectives
+     * @return a Single that emits a list of the corresponding metrics
+     */
     public Single<List<Metric>> findAllBySLOs(SessionManager sessionManager,
             Collection<ServiceLevelObjective> serviceLevelObjectives) {
         List<String> mappedSLOs = serviceLevelObjectives.stream()

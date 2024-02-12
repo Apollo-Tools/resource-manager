@@ -55,6 +55,13 @@ public class ResourceHandler extends ValidationHandler {
             .flatMap(resourceService::findAllSubResources);
     }
 
+    /**
+     * Find all resources that match a list of service level objectives.
+     *
+     * @param rc the RoutingContext of the request
+     * @return a Single that emits all found resources as JsonArray that match the specified
+     * service level objectives
+     */
     public Single<JsonArray> getAllBySLOs(RoutingContext rc) {
         JsonObject requestBody = rc.body().asJsonObject();
         SLORequest sloRequest = requestBody.mapTo(SLORequest.class);

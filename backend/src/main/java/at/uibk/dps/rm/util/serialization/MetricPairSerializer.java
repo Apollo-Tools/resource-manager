@@ -7,6 +7,11 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
 
+/**
+ * This class can be used to serialize MetricPair objects.
+ *
+ * @author matthi-g
+ */
 public class MetricPairSerializer extends StdSerializer<MetricPair> {
 
     private static final long serialVersionUID = 190033535439232237L;

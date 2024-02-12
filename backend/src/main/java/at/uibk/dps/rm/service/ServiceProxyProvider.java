@@ -16,7 +16,6 @@ import at.uibk.dps.rm.service.rxjava3.database.function.FunctionService;
 import at.uibk.dps.rm.service.rxjava3.database.function.RuntimeService;
 import at.uibk.dps.rm.service.rxjava3.database.log.LogService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.PlatformService;
-import at.uibk.dps.rm.service.rxjava3.database.resource.ScrapeTargetService;
 import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.*;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
@@ -66,7 +65,6 @@ public class ServiceProxyProvider {
     private final ResourceTypeService resourceTypeService;
     private final PlatformMetricService platformMetricService;
     private final RuntimeService runtimeService;
-    private final ScrapeTargetService scrapeTargetService;
     private final ServiceDeploymentService serviceDeploymentService;
     private final ServiceService serviceService;
     private final ServiceTypeService serviceTypeService;
@@ -74,7 +72,7 @@ public class ServiceProxyProvider {
     private final DeploymentExecutionService deploymentExecutionService;
     /* Monitoring Service */
     private final AWSPricePushService awsPricePushService;
-    private final ContainerStartupTerminationPushService containerStartupTerminationPushService;
+    private final ContainerStartupTerminationPushService containerStartTermPushService;
     private final FunctionExecutionService functionExecutionService;
     private final FunctionInvocationPushService functionInvocationPushService;
     private final K8sMetricPushService k8sMetricPushService;
@@ -113,7 +111,6 @@ public class ServiceProxyProvider {
         resourceDeploymentService = ResourceDeploymentService.createProxy(vertx);
         resourceTypeService = ResourceTypeService.createProxy(vertx);
         runtimeService = RuntimeService.createProxy(vertx);
-        scrapeTargetService = ScrapeTargetService.createProxy(vertx);
         serviceDeploymentService = ServiceDeploymentService.createProxy(vertx);
         serviceService = ServiceService.createProxy(vertx);
         serviceTypeService = ServiceTypeService.createProxy(vertx);
@@ -121,7 +118,7 @@ public class ServiceProxyProvider {
         deploymentExecutionService = DeploymentExecutionService.createProxy(vertx);
         /* Monitoring Service */
         awsPricePushService = AWSPricePushService.createProxy(vertx);
-        containerStartupTerminationPushService = ContainerStartupTerminationPushService.createProxy(vertx);
+        containerStartTermPushService = ContainerStartupTerminationPushService.createProxy(vertx);
         functionExecutionService = FunctionExecutionService.createProxy(vertx);
         functionInvocationPushService = FunctionInvocationPushService.createProxy(vertx);
         k8sMetricPushService = K8sMetricPushService.createProxy(vertx);

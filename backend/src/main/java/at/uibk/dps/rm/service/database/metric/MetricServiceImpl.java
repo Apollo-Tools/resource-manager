@@ -37,6 +37,7 @@ public class MetricServiceImpl extends DatabaseServiceProxy<Metric> implements M
         this.repository = repository;
     }
 
+    @Override
     public void checkMetricTypeForSLOs(JsonObject request, Handler<AsyncResult<Void>> resultHandler) {
         SLORequest sloRequest = request.mapTo(SLORequest.class);
         List<ServiceLevelObjective> serviceLevelObjectives = sloRequest.getServiceLevelObjectives();

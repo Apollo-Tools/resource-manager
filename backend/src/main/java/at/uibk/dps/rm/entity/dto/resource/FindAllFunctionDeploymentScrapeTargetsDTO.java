@@ -7,6 +7,12 @@ import lombok.Setter;
 
 import java.util.Objects;
 
+/**
+ * Represents the database result of the ScrapeTargetRepository.findAllFunctionDeploymentTargets
+ * method.
+ *
+ * @author matthi-g
+ */
 @Getter
 @Setter
 @AllArgsConstructor

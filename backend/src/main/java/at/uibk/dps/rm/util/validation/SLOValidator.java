@@ -14,7 +14,7 @@ import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.entity.monitoring.MonitoringMetricEnum;
 import at.uibk.dps.rm.service.rxjava3.monitoring.metricquery.MetricQueryService;
 import at.uibk.dps.rm.util.misc.MetricValueMapper;
-import at.uibk.dps.rm.util.monitoring.MetricQueryProvider;
+import at.uibk.dps.rm.util.monitoring.ResourceFilterProvider;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
@@ -30,6 +30,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Provides methods to filter and sort resource by service level objectives.
+ *
+ * @author matthi-g
+ */
 @RequiredArgsConstructor
 public class SLOValidator {
 
@@ -39,6 +44,12 @@ public class SLOValidator {
 
     private final ConfigDTO configDTO;
 
+    /**
+     * Filter resources by monitored metrics.
+     *
+     * @param resources the resources
+     * @return the filtered resources
+     */
     public Single<Set<Resource>> filterResourcesByMonitoredMetrics(JsonArray resources) {
         return Observable.fromIterable(resources)
             .map(resource -> ((JsonObject) resource))
@@ -83,7 +94,7 @@ public class SLOValidator {
                         }
                     }
                 });
-                MetricQueryProvider queryProvider = new MetricQueryProvider(metricQueryService);
+                ResourceFilterProvider queryProvider = new ResourceFilterProvider(metricQueryService);
                 return Observable.fromIterable(sloRequest.getServiceLevelObjectives())
                     .filter(slo -> MonitoringMetricEnum.fromSLO(slo) != null)
                     .toList()
@@ -94,7 +105,7 @@ public class SLOValidator {
                             return Observable.fromIterable(monitoredSLOs)
                                 .flatMapSingle(slo -> {
                                     MonitoringMetricEnum metric = MonitoringMetricEnum.fromSLO(slo);
-                                    return queryProvider.getMetricQuery(configDTO, metric, slo, filteredResources,
+                                    return queryProvider.filterResourcesByMonitoredMetrics(configDTO, metric, slo, filteredResources,
                                         resourceIds, mainResourceIds, regionResources, platformResources, instanceTypeResources);
                                 })
                                 .reduce((currSet, nextSet) -> {

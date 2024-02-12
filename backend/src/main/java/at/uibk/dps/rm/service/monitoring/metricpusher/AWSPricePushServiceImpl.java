@@ -24,6 +24,12 @@ public class AWSPricePushServiceImpl extends ServiceProxy implements AWSPricePus
 
     private final MetricPusher monitoringPusher;
 
+    /**
+     * Create a new instance from a webClient and config.
+     *
+     * @param webClient the web client
+     * @param config the config
+     */
     public AWSPricePushServiceImpl(WebClient webClient, ConfigDTO config) {
         monitoringPusher = new MetricPusher(webClient, config);
     }
@@ -33,6 +39,7 @@ public class AWSPricePushServiceImpl extends ServiceProxy implements AWSPricePus
         return "aws-price-pusher" + super.getServiceProxyAddress();
     }
 
+    @Override
     public void composeAndPushMetrics(JsonArray awsPriceArray, Handler<AsyncResult<Void>> resultHandler) {
         AWSPrice[] awsPriceList = awsPriceArray.stream()
             .map(value -> ((JsonObject) value).mapTo(AWSPrice.class))

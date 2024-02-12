@@ -77,7 +77,7 @@ public class ContainerStartupHandler {
                         .flatMapCompletable(result -> {
                             long endTime = System.nanoTime();
                             double startupTime = (endTime - startTime) / 1_000_000_000.0;
-                            serviceProxyProvider.getContainerStartupTerminationPushService()
+                            serviceProxyProvider.getContainerStartTermPushService()
                                 .composeAndPushMetric(startupTime, serviceDeployment.getResourceDeploymentId(),
                                     serviceDeployment.getResource().getResourceId(),
                                     serviceDeployment.getService().getServiceId(), true)
@@ -91,7 +91,7 @@ public class ContainerStartupHandler {
                         .flatMapCompletable(res -> {
                             long endTime = System.nanoTime();
                             double terminationTime = (endTime - startTime) / 1_000_000_000.0;
-                            serviceProxyProvider.getContainerStartupTerminationPushService()
+                            serviceProxyProvider.getContainerStartTermPushService()
                                 .composeAndPushMetric(terminationTime, serviceDeployment.getResourceDeploymentId(),
                                     serviceDeployment.getResource().getResourceId(),
                                     serviceDeployment.getService().getServiceId(), false)

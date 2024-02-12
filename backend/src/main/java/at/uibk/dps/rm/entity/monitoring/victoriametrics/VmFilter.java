@@ -5,6 +5,12 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.Set;
 
+/**
+ * Implements a <a href=https://victoriametrics.com/>VictoriaMetrics</a> metric filter that
+ * can bes used for {@link VmSingleQuery}.
+ *
+ * @author matthi-g
+ */
 @RequiredArgsConstructor
 @Getter
 public class VmFilter {

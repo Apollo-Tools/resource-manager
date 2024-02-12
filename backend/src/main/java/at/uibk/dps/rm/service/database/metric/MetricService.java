@@ -36,5 +36,12 @@ public interface MetricService extends DatabaseServiceInterface {
         return new MetricServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(Metric.class));
     }
 
+    /**
+     * Check if the value type for service level objectives matches the metric type of the
+     * corresponding metric.
+     *
+     * @param request the request data
+     * @param resultHandler receives nothing if all types match else an error
+     */
     void checkMetricTypeForSLOs(JsonObject request, Handler<AsyncResult<Void>> resultHandler);
 }

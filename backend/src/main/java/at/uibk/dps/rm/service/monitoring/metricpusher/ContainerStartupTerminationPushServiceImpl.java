@@ -20,6 +20,12 @@ public class ContainerStartupTerminationPushServiceImpl extends ServiceProxy imp
 
     private final MetricPusher monitoringPusher;
 
+    /**
+     * Create a new instance from a webClient and config.
+     *
+     * @param webClient the web client
+     * @param config the config
+     */
     public ContainerStartupTerminationPushServiceImpl(WebClient webClient, ConfigDTO config) {
         monitoringPusher = new MetricPusher(webClient, config);
     }
@@ -29,6 +35,7 @@ public class ContainerStartupTerminationPushServiceImpl extends ServiceProxy imp
         return "container-startup-pusher" + super.getServiceProxyAddress();
     }
 
+    @Override
     public void composeAndPushMetric(double startupTime, long resourceDeploymentId, long resourceId,
             long serviceId, boolean isStartup, Handler<AsyncResult<Void>> resultHandler) {
         String metricName = "container_" + (isStartup ? "startup" : "termination" ) + "_time_seconds";

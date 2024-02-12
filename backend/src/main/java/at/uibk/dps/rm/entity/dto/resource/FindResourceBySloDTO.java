@@ -4,7 +4,6 @@ import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.dto.metric.MonitoredMetricValue;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.MainResource;
-import at.uibk.dps.rm.entity.model.SubResource;
 import at.uibk.dps.rm.util.validation.SLOCompareUtility;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,6 +11,11 @@ import lombok.Setter;
 import java.sql.Timestamp;
 import java.util.List;
 
+/**
+ * Represents a single resource entry of the listResourcesBySLOs response.
+ *
+ * @author matthi-g
+ */
 @Getter
 @Setter
 public class FindResourceBySloDTO {
@@ -42,6 +46,13 @@ public class FindResourceBySloDTO {
 
     private final Timestamp updatedAt;
 
+    /**
+     * Create a new instance from a subResource and sort the metric values by the
+     * serviceLevelObjectives.
+     *
+     * @param subResource the subresource
+     * @param serviceLevelObjectives the service level objectives
+     */
     public FindResourceBySloDTO(SubResourceDTO subResource, List<ServiceLevelObjective> serviceLevelObjectives) {
         this.resourceId = subResource.getResourceId();
         this.name = subResource.getName();
@@ -59,11 +70,13 @@ public class FindResourceBySloDTO {
             subResource.getMonitoredMetricValues(), serviceLevelObjectives);
     }
 
-    public FindResourceBySloDTO(SubResource subResource, List<ServiceLevelObjective> serviceLevelObjectives) {
-        this(subResource.getMainResource(), serviceLevelObjectives);
-    }
-
-
+    /**
+     * Create a new instance from a mainResource and sort the metric values by the
+     * serviceLevelObjectives.
+     *
+     * @param mainResource the subresource
+     * @param serviceLevelObjectives the service level objectives
+     */
     public FindResourceBySloDTO(MainResource mainResource, List<ServiceLevelObjective> serviceLevelObjectives) {
         this.resourceId = mainResource.getResourceId();
         this.name = mainResource.getName();

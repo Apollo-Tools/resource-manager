@@ -23,6 +23,12 @@ public class K8sMetricPushServiceImpl extends ServiceProxy implements K8sMetricP
 
     private final MetricPusher monitoringPusher;
 
+    /**
+     * Create a new instance from a webClient and config.
+     *
+     * @param webClient the web client
+     * @param config the config
+     */
     public K8sMetricPushServiceImpl(WebClient webClient, ConfigDTO config) {
         monitoringPusher = new MetricPusher(webClient, config);
     }
@@ -32,6 +38,7 @@ public class K8sMetricPushServiceImpl extends ServiceProxy implements K8sMetricP
         return "k8s-metric-pusher" + super.getServiceProxyAddress();
     }
 
+    @Override
     public void composeAndPushMetrics(K8sMonitoringData data, Handler<AsyncResult<Void>> resultHandler) {
         List<OpenTSDBEntity> openTSDBEntities = new ArrayList<>();
         String mainResource = Long.toString(data.getResourceId());

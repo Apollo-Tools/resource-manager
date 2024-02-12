@@ -106,6 +106,12 @@ public class K8sMonitoringHandler implements MonitoringHandler {
     }
 
     // TODO: retrieve configs from k8s secret volume
+    /**
+     * Collect existing nodes, namespaces, pods and metrics for all registered k8s clusters.
+     *
+     * @return a Single that emits a list of the resulting monitoring data for all registered
+     * k8s clusters.
+     */
     private Single<List<K8sMonitoringData>> monitorK8s() {
     FileSystem fileSystem = vertx.fileSystem();
     K8sMonitoringService monitoringService = new K8sMonitoringServiceImpl();
@@ -126,7 +132,7 @@ public class K8sMonitoringHandler implements MonitoringHandler {
             }
             String pingUrl = LatencyMonitoringUtility
                 .getPingUrl(monitoringData.getBasePath());
-            return LatencyMonitoringUtility.monitorLatency(5, pingUrl)
+            return LatencyMonitoringUtility.measureLatency(5, pingUrl)
                 .map(processOutput -> {
                     if (processOutput.getProcess().exitValue() == 0) {
                         monitoringData.setLatencySeconds(Double.parseDouble(processOutput.getOutput()) / 1000);
@@ -140,7 +146,14 @@ public class K8sMonitoringHandler implements MonitoringHandler {
         .toList();
     }
 
-    public K8sMonitoringData observeK8sAPI(String clusterName, String kubeConfig) {
+    /**
+     * Collect existing nodes, namespaces, pods and metrics for the cluster with clusterName.
+     *
+     * @param clusterName the name of the cluster
+     * @param kubeConfig the kube config for the cluster
+     * @return the resulting monitoring data
+     */
+    private K8sMonitoringData observeK8sAPI(String clusterName, String kubeConfig) {
         FileSystem fileSystem = vertx.fileSystem();
         K8sMonitoringData k8sMonitoringData;
         try {

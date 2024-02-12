@@ -46,6 +46,14 @@ public class EnsembleValidationUtility {
             );
     }
 
+    /**
+     * Update the status values of a resource ensemble.
+     *
+     * @param sm the database session manager
+     * @param ensembleId the id of the ensemble
+     * @param statusValues the new status values
+     * @return a Completable
+     */
     public Completable updateResourceEnsembleStatuses(SessionManager sm, long ensembleId,
             List<ResourceEnsembleStatus> statusValues) {
         return Observable.fromIterable(statusValues)

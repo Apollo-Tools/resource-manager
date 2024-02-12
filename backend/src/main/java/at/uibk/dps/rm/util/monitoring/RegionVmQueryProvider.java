@@ -6,6 +6,12 @@ import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.Set;
 
+
+/**
+ * Provides {@link VmQuery}s for regions.
+ *
+ * @author matthi-g
+ */
 @RequiredArgsConstructor
 public class RegionVmQueryProvider implements VmQueryProvider {
 

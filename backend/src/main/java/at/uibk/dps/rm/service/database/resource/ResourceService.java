@@ -41,6 +41,13 @@ public interface ResourceService extends DatabaseServiceInterface {
         return new ResourceServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(Resource.class));
     }
 
+    /**
+     * Find all resources by non monitored service level objectives that are part of an
+     * {@link at.uibk.dps.rm.entity.dto.SLORequest}
+     *
+     * @param data the request data
+     * @param resultHandler receives the found resources as JsonArray
+     */
     void findAllByNonMonitoredSLOs(JsonObject data, Handler<AsyncResult<JsonArray>> resultHandler);
 
     /**
@@ -59,6 +66,12 @@ public interface ResourceService extends DatabaseServiceInterface {
      */
     void findAllByResourceIds(List<Long> resourceIds, Handler<AsyncResult<JsonArray>> resultHandler);
 
+    /**
+     * Find all resources by their platform.
+     *
+     * @param platform the platform
+     * @param resultHandler receives the found resources as JsonArray
+     */
     void findAllByPlatform(String platform, Handler<AsyncResult<JsonArray>> resultHandler);
 
     /**
@@ -86,4 +99,11 @@ public interface ResourceService extends DatabaseServiceInterface {
      * @param resultHandler receives nothing if unlocking resources was successful else an error
      */
     void unlockLockedResourcesByDeploymentId(long deploymentId, Handler<AsyncResult<Void>> resultHandler);
+
+    /**
+     * Find all current scrape targets.
+     *
+     * @param resultHandler receives the found scrape targets as JsonArray
+     */
+    void findAllScrapeTargets(Handler<AsyncResult<JsonArray>> resultHandler);
 }

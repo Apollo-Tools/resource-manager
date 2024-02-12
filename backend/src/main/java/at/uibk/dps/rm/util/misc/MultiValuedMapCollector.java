@@ -11,12 +11,22 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 
+/**
+ * The MultiValuedMapCollector class is a custom implementation of the Java Collector interface
+ * for MultiValuedMap.
+ */
 public class MultiValuedMapCollector<T, K, V> implements Collector<T, MultiValuedMap<K, V>,
     MultiValuedMap<K, V>> {
 
     private final Function<T, K> keyMapper;
     private final Function<T, V> valueMapper;
 
+    /**
+     * Create a new instance with the keyMapper and valueMappers.
+     *
+     * @param keyMapper the key mapper
+     * @param valueMapper the function mapper
+     */
     public MultiValuedMapCollector(Function<T, K> keyMapper, Function<T, V> valueMapper) {
         this.keyMapper = keyMapper;
         this.valueMapper = valueMapper;

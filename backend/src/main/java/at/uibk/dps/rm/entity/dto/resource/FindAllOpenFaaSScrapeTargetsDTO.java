@@ -6,6 +6,12 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 
+/**
+ * Represents the database result of the ScrapeTargetRepository.findAllOpenFaaSTargets
+ * method.
+ *
+ * @author matthi-g
+ */
 @Getter
 @Setter
 @AllArgsConstructor

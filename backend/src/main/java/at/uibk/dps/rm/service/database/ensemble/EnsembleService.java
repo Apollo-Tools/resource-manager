@@ -46,6 +46,13 @@ public interface EnsembleService extends DatabaseServiceInterface {
      */
     void findOneByIdAndAccountId(long id, long accountId, Handler<AsyncResult<JsonObject>> resultHandler);
 
+    /**
+     * Update the status values of a resource ensemble.
+     *
+     * @param ensembleId the id of the ensemble
+     * @param statusValues the status values
+     * @param resultHandler receives nothing if the update was successful else an error
+     */
     void updateEnsembleStatus(long ensembleId, JsonArray statusValues, Handler<AsyncResult<Void>> resultHandler);
 
     /**

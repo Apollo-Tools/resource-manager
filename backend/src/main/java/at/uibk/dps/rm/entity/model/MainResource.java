@@ -25,7 +25,6 @@ public class MainResource extends Resource {
     @JoinColumn(name = "platform_id")
     private Platform platform;
 
-
     @OneToMany(mappedBy = "mainResource")
     private List<SubResource> subResources = new ArrayList<>();
 }

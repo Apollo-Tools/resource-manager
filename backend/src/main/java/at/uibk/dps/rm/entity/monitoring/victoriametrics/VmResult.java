@@ -13,6 +13,11 @@ import lombok.Setter;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Represents the
+ *
+ * @author matthi-g
+ */
 @Getter
 @Setter
 @AllArgsConstructor

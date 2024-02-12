@@ -17,7 +17,6 @@ import at.uibk.dps.rm.repository.deployment.*;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resource.PlatformRepository;
 import at.uibk.dps.rm.repository.resource.ResourceTypeRepository;
-import at.uibk.dps.rm.repository.resource.ScrapeTargetRepository;
 import at.uibk.dps.rm.repository.resourceprovider.*;
 import at.uibk.dps.rm.repository.service.ServiceRepository;
 import at.uibk.dps.rm.repository.service.K8sServiceTypeRepository;
@@ -157,8 +156,6 @@ public class DatabaseVerticle extends AbstractVerticle {
                 new ResourceDeploymentServiceImpl(new ResourceDeploymentRepository(), smProvider));
             serviceProxyBinder.bind(ResourceTypeService.class,
                 new ResourceTypeServiceImpl(new ResourceTypeRepository(), smProvider));
-            serviceProxyBinder.bind(ScrapeTargetService.class,
-                new ScrapeTargetServiceImpl(new ResourceRepository(), new ScrapeTargetRepository(), smProvider));
             serviceProxyBinder.bind(PlatformMetricService.class,
                 new PlatformMetricServiceImpl(new PlatformMetricRepository(), smProvider));
             serviceProxyBinder.bind(RuntimeService.class,

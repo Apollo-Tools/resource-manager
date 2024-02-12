@@ -10,6 +10,11 @@ import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * This class can be used to deserialize MultiValuedMap objects where the key is a string.
+ *
+ * @author matthi-g
+ */
 public class MultiValuedMapDeserializer<V> extends StdDeserializer<MultiValuedMap<String, V>> {
 
     private static final long serialVersionUID = 2489015244524901705L;
@@ -35,9 +40,10 @@ public class MultiValuedMapDeserializer<V> extends StdDeserializer<MultiValuedMa
     }
 
     @Override
-    public MultiValuedMap<String, V> deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+    public MultiValuedMap<String, V> deserialize(JsonParser jsonParser, DeserializationContext ctxt)
+            throws IOException {
         MultiValuedMap<String, V> map = new ArrayListValuedHashMap<>();
-        JsonNode node = p.readValueAsTree();
+        JsonNode node = jsonParser.readValueAsTree();
 
         Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
         while (fields.hasNext()) {
@@ -47,7 +53,7 @@ public class MultiValuedMapDeserializer<V> extends StdDeserializer<MultiValuedMa
             for (JsonNode element : valueNode) {
                 if (!element.isNull()) {
                     V value;
-                    try (JsonParser subParser = element.traverse(p.getCodec())) {
+                    try (JsonParser subParser = element.traverse(jsonParser.getCodec())) {
                         value = subParser.readValueAs(valueClass);
                     }
                     map.put(key, value);

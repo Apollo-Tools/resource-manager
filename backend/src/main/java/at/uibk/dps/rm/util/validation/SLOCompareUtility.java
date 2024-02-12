@@ -64,6 +64,14 @@ public class SLOCompareUtility {
         return false;
     }
 
+    /**
+     * Transform a set of monitored metric values into a list and sort them in the same order
+     * as the corresponding service level objectives.
+     *
+     * @param metricValues the monitored metric values
+     * @param serviceLevelObjectives the service level objectives
+     * @return a sorte list of monitored metric values
+     */
     public static List<MonitoredMetricValue> sortMonitoredMetricValuesBySLOs(Set<MonitoredMetricValue> metricValues,
         List<ServiceLevelObjective> serviceLevelObjectives) {
         Map<String, Integer> indexMap = new HashMap<>();

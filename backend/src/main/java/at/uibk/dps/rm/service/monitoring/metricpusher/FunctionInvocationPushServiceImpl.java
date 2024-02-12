@@ -19,6 +19,12 @@ public class FunctionInvocationPushServiceImpl extends ServiceProxy implements F
 
     private final MetricPusher monitoringPusher;
 
+    /**
+     * Create a new instance from a webClient and config.
+     *
+     * @param webClient the web client
+     * @param config the config
+     */
     public FunctionInvocationPushServiceImpl(WebClient webClient, ConfigDTO config) {
         monitoringPusher = new MetricPusher(webClient, config);
     }
@@ -28,6 +34,7 @@ public class FunctionInvocationPushServiceImpl extends ServiceProxy implements F
         return "function-invocation-pusher" + super.getServiceProxyAddress();
     }
 
+    @Override
     public void composeAndPushMetric(double execTime, long deploymentId, long resourceDeploymentId, long functionId,
             long resourceId, String requestBody, Handler<AsyncResult<Void>> resultHandler) {
         OpenTSDBEntity metric = new OpenTSDBEntity("function_execution_duration_seconds", execTime,

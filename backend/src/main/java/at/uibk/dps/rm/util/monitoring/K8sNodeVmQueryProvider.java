@@ -6,6 +6,11 @@ import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.Set;
 
+/**
+ * Provides {@link VmQuery}s for k8s node resources.
+ *
+ * @author matthi-g
+ */
 @RequiredArgsConstructor
 public class K8sNodeVmQueryProvider implements VmQueryProvider {
 
@@ -69,6 +74,12 @@ public class K8sNodeVmQueryProvider implements VmQueryProvider {
         throw new NotImplementedException();
     }
 
+    /**
+     * Get a {@link VmQuery} that queries the resource by their names.
+     *
+     * @param nodeNames the names of the resources
+     * @return the resources by name query
+     */
     public VmQuery getResourcesByNodeName(Set<String> nodeNames) {
         return new VmSingleQuery("k8s_node_cpu_total")
             .setFilter(Set.of(resourceFilter, new VmFilter("node", "=~", nodeNames)));

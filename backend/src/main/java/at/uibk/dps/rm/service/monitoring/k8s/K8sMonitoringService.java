@@ -42,7 +42,23 @@ public interface K8sMonitoringService {
      */
     List<K8sNode> listNodes(Path kubeConfigPath, ConfigDTO config);
 
-    List<K8sPod> listPodsByNode(String nodeName, Path kubeConfig, ConfigDTO config);
+    /**
+     * List all pods of a node of a k8s resource.
+     *
+     * @param nodeName the name of the node
+     * @param kubeConfigPath the path to kube config to access to the k8s resource
+     * @param config the vertx config
+     * @return a List of all found pods
+     */
+    List<K8sPod> listPodsByNode(String nodeName, Path kubeConfigPath, ConfigDTO config);
 
-    Map<String, PodMetrics> getCurrentPodUtilisation(Path kubeConfig, ConfigDTO config);
+    /**
+     * Get the current resource utilisation all pods of a k8s resource.
+     *
+     * @param kubeConfigPath the path to kube config to access to the k8s resource
+     * @param config the vertx config
+     * @return a Map where the key is the name of the node where the pod is running and the value
+     * are the pod metrics
+     */
+    Map<String, PodMetrics> getCurrentPodUtilisation(Path kubeConfigPath, ConfigDTO config);
 }

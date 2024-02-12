@@ -13,6 +13,12 @@ import java.beans.ConstructorProperties;
 @Data
 public class ResourceEnsembleStatus {
 
+    /**
+     * Create an instance from the resourceId and isValid.
+     *
+     * @param resourceId the resource id
+     * @param isValid the validity of the resource
+     */
     @ConstructorProperties({"resource_id", "is_valid"})
     public ResourceEnsembleStatus(long resourceId, boolean isValid) {
         this.resourceId = resourceId;

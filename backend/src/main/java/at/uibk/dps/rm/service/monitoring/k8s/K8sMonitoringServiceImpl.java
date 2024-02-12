@@ -130,10 +130,10 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
     }
 
     @Override
-    public List<K8sPod> listPodsByNode(String nodeName, Path kubeConfig, ConfigDTO config) {
+    public List<K8sPod> listPodsByNode(String nodeName, Path kubeConfigPath, ConfigDTO config) {
         String fieldSelector = "spec.nodeName=" + nodeName;
         try {
-            CoreV1Api api = setUpExternalClient(kubeConfig);
+            CoreV1Api api = setUpExternalClient(kubeConfigPath);
             V1PodList list = api.listPodForAllNamespaces(null, null, fieldSelector,
                 POD_LABEL_SELECTOR, null, null, null, null,
                 config.getKubeApiTimeoutSeconds(), false);
@@ -160,10 +160,10 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
     }
 
     @Override
-    public Map<String, PodMetrics> getCurrentPodUtilisation(Path kubeConfig, ConfigDTO config) {
+    public Map<String, PodMetrics> getCurrentPodUtilisation(Path kubeConfigPath, ConfigDTO config) {
         List<PodMetrics> podMetricsList;
         try {
-            CoreV1Api api = setUpExternalClient(kubeConfig);
+            CoreV1Api api = setUpExternalClient(kubeConfigPath);
             podMetricsList = getPodMetricsByNode(api.getApiClient(), config).getItems();
         } catch (ApiException ex) {
             logger.error("Scrape k8s pods: " + ex.getMessage());
@@ -174,13 +174,25 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
                 podMetrics -> podMetrics));
     }
 
+    /**
+     * Get the current node utilisation.
+     *
+     * @return a Map where the key is the name of the node and the value is the node metrics data
+     * @throws ApiException if an error occurs during the retrieval of the metrics
+     */
     private Map<String, Map<String, Quantity>> getCurrentNodeUtilisation() throws ApiException {
         List<NodeMetrics> nodeMetricsList = new Metrics().getNodeMetrics().getItems();
         return new HashMap<>(nodeMetricsList.stream().collect(
             Collectors.toMap(nodeMetrics -> nodeMetrics.getMetadata().getName(), NodeMetrics::getUsage)));
     }
 
-    public PodMetricsList getPodMetricsByNode(ApiClient apiClient, ConfigDTO config)
+    /**
+     * Get the current pod utilisation by node.
+     *
+     * @return a list of pod metrics
+     * @throws ApiException if an error occurs during the retrieval of the metrics
+     */
+    private PodMetricsList getPodMetricsByNode(ApiClient apiClient, ConfigDTO config)
             throws ApiException {
         GenericKubernetesApi<PodMetrics, PodMetricsList> metricsClient = new GenericKubernetesApi<>(PodMetrics.class,
             PodMetricsList.class, "metrics.k8s.io", "v1beta1", "pods", apiClient);

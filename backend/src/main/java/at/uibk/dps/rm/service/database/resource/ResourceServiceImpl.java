@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.service.database.resource;
 
 import at.uibk.dps.rm.entity.dto.SLORequest;
+import at.uibk.dps.rm.entity.dto.resource.ScrapeTargetDTO;
 import at.uibk.dps.rm.entity.dto.resource.SubResourceDTO;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sMonitoringData;
@@ -243,5 +244,38 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
             }
         }
         return new JsonArray(objects);
+    }
+
+    @Override
+    public void findAllScrapeTargets(Handler<AsyncResult<JsonArray>> resultHandler) {
+        Single<List<ScrapeTargetDTO>> findAll = smProvider.withTransactionSingle(sm -> {
+            Observable<ScrapeTargetDTO> findEc2Resources = repository.findAllFunctionDeploymentTargets(sm)
+                .flatMapObservable(Observable::fromIterable)
+                .map(findScrapeTarget -> {
+                    ScrapeTargetDTO scrapeTarget = new ScrapeTargetDTO();
+                    scrapeTarget.setTargets(List.of(findScrapeTarget.getBaseUrl() + ':' +
+                        findScrapeTarget.getMetricsPort() + "/metrics"));
+                    scrapeTarget.setLabels(Map.of("resource", Long.toString(findScrapeTarget.getResourceId()),
+                        "resource_deployment", Long.toString(findScrapeTarget.getResourceDeploymentId()),
+                        "deployment", Long.toString(findScrapeTarget.getDeploymentId()))
+                    );
+                    return scrapeTarget;
+                });
+            Observable<ScrapeTargetDTO> findOpenFaasResources = repository.findAllOpenFaaSTargets(sm)
+                .flatMapObservable(Observable::fromIterable)
+                .filter(scrapeTarget -> scrapeTarget.getBaseUrl() != null && scrapeTarget.getMetricsPort() != null)
+                .map(functionDeployment -> {
+                    ScrapeTargetDTO scrapeTarget = new ScrapeTargetDTO();
+                    scrapeTarget.setTargets(List.of(functionDeployment.getBaseUrl() + ':' +
+                        functionDeployment.getMetricsPort().intValue() + "/metrics"));
+                    scrapeTarget.setLabels(Map.of("resource", Long.toString(functionDeployment.getResourceId())));
+                    return scrapeTarget;
+                });
+            return Observable.merge(findEc2Resources, findOpenFaasResources).toList();
+        });
+        RxVertxHandler.handleSession(findAll.flatMapObservable(Observable::fromIterable)
+            .map(JsonObject::mapFrom)
+            .toList()
+            .map(JsonArray::new), resultHandler);
     }
 }

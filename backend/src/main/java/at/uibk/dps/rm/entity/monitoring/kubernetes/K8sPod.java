@@ -10,6 +10,11 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 
+/**
+ * Implements the monitored {@link K8sEntityData} for a k8s pod.
+ *
+ * @author matthi-g
+ */
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter

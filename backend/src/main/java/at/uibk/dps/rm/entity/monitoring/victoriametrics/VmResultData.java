@@ -8,6 +8,11 @@ import lombok.Setter;
 
 import java.util.List;
 
+/**
+ * Represents the result data of a {@link VmQuery}.
+ *
+ * @author matthi-g
+ */
 @Getter
 @Setter
 @AllArgsConstructor

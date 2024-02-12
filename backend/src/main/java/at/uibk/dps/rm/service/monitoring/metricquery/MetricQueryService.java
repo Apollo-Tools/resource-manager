@@ -15,6 +15,11 @@ import io.vertx.rxjava3.ext.web.client.WebClient;
 
 import java.util.List;
 
+/**
+ * Implements methods to query metrics from the external monitoring system.
+ *
+ * @author matthi-g
+ */
 @ProxyGen
 @VertxGen
 public interface MetricQueryService extends ServiceInterface {
@@ -33,5 +38,11 @@ public interface MetricQueryService extends ServiceInterface {
             "metric-collector"));
     }
 
+    /**
+     * Collect a single instant metric that matches the query.
+     *
+     * @param query the query
+     * @param resultHandler receives the result of the query
+     */
     void collectInstantMetric(String query, Handler<AsyncResult<List<VmResult>>> resultHandler);
 }

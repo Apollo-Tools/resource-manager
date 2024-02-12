@@ -20,6 +20,14 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.Map;
 
+/**
+ * This monitoring handler monitors OpenFaaS resources. Most of the valuable metrics are
+ * monitored by the external monitoring system but the latency is not part of it.
+ * This handler implements the measurement of the network latency between OpenFaaS resources and
+ * the Resource Manager.
+ *
+ * @author matthi-g
+ */
 @RequiredArgsConstructor
 public class OpenFaasMonitoringHandler implements MonitoringHandler {
     private static final Logger logger = LoggerFactory.getLogger(OpenFaasMonitoringHandler.class);
@@ -51,7 +59,7 @@ public class OpenFaasMonitoringHandler implements MonitoringHandler {
                 logger.info("Monitor latency: " + resource.getName());
                 Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
                 String pingUrl = LatencyMonitoringUtility.getPingUrl(metricValues.get("base-url").getValueString());
-                return LatencyMonitoringUtility.monitorLatency(5, pingUrl)
+                return LatencyMonitoringUtility.measureLatency(5, pingUrl)
                     .map(processOutput -> {
                         OpenFaasConnectivity connectivity = new OpenFaasConnectivity();
                         connectivity.setResourceId(resource.getResourceId());

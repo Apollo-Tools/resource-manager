@@ -6,6 +6,11 @@ import lombok.Getter;
 
 import java.util.Arrays;
 
+/**
+ * Represents the all monitored metrics.
+ *
+ * @author matthi-g
+ */
 @AllArgsConstructor
 @Getter
 public enum MonitoringMetricEnum {

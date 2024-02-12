@@ -21,12 +21,12 @@ public class SLOUtility {
 
     private final ResourceRepository resourceRepository;
 
-    /*
-     * Find, filter and sort resources by service level objectives from the sloRequest.
+    /**
+     * Find resources by non monitored service level objectives from the sloRequest.
      *
      * @param sm the database session manager
      * @param sloRequest the slo request
-     * @return a CompletableFuture that emits a list of the filtered and sorted resources
+     * @return a Single that emits a list of the filtered resources
      */
     public Single<List<Resource>> findResourcesByNonMonitoredSLOs(SessionManager sm,
             SLORequest sloRequest) {

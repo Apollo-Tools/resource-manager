@@ -6,6 +6,11 @@ import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.Set;
 
+/**
+ * Provides {@link VmQuery}s for k8s cluster resources.
+ *
+ * @author matthi-g
+ */
 @RequiredArgsConstructor
 public class K8sClusterVmQueryProvider implements VmQueryProvider {
 

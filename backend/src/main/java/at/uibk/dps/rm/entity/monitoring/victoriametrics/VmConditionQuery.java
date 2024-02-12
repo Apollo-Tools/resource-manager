@@ -10,6 +10,12 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Implements a condition <a href=https://victoriametrics.com/>VictoriaMetrics</a> query that
+ * adds a codition to a {@link VmQuery}.
+ *
+ * @author matthi-g
+ */
 @AllArgsConstructor
 @RequiredArgsConstructor
 @Getter
