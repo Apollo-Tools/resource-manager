@@ -1,17 +1,17 @@
 package at.uibk.dps.rm.service.monitoring.k8s;
 
-import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sNode;
 import at.uibk.dps.rm.exception.MonitoringException;
 import at.uibk.dps.rm.testutil.mockprovider.K8sObjectMockprovider;
 import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
 import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
-import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestK8sProvider;
-import at.uibk.dps.rm.testutil.objectprovider.TestMonitoringDataProvider;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
+import io.kubernetes.client.Metrics;
+import io.kubernetes.client.custom.NodeMetrics;
+import io.kubernetes.client.custom.NodeMetricsList;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -51,19 +51,14 @@ public class K8sMonitoringServiceImplTest {
     @Mock
     private ApiClient apiClient;
 
-    @Mock
-    private Process process;
-
     private V1SecretList secretList;
     private V1Secret s1;
     private V1NamespaceList namespaceList;
     private V1Namespace ns1, ns2;
     private V1NodeList nodeList;
     private V1Node node1, node2;
-    private K8sNode k8sNode;
     private ConfigDTO config;
     private Path kubeConfigPath;
-    private ProcessOutput processOutput;
 
     @BeforeEach
     void initTest() {
@@ -78,8 +73,6 @@ public class K8sMonitoringServiceImplTest {
         nodeList = new V1NodeList();
         node1 = TestK8sProvider.createNode("node1");
         node2 = TestK8sProvider.createNode("node2");
-        k8sNode = TestMonitoringDataProvider.createK8sNode("node1");
-        processOutput = TestDTOProvider.createProcessOutput(process, "output");
         kubeConfigPath = Path.of("path", "to", "config");
     }
 
@@ -177,18 +170,29 @@ public class K8sMonitoringServiceImplTest {
     @Test
     void listNodes() {
         nodeList.setItems(List.of(node1, node2));
+        NodeMetrics nm1 = TestK8sProvider.createNodeMetrics("node1", 3.25, 45000200);
+        NodeMetrics nm2 = TestK8sProvider.createNodeMetrics("node2", 1.2, 34000200);
+        NodeMetricsList nodeMetricsList = new NodeMetricsList();
+        nodeMetricsList.setItems(List.of(nm1, nm2));
 
         try(MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
                 MockedStatic<Config> k8sConfig = Mockito.mockStatic(Config.class);
                 MockedStatic<Configuration> k8sConfiguration = Mockito.mockStatic(Configuration.class);
-                MockedConstruction<CoreV1Api> ignore = K8sObjectMockprovider.mockCoreV1ApiListNodes(config, nodeList)) {
+                MockedConstruction<CoreV1Api> ignoreApi = K8sObjectMockprovider
+                    .mockCoreV1ApiListNodes(config, nodeList);
+                MockedConstruction<Metrics> ignoreMetrics = K8sObjectMockprovider
+                    .mockMetricsNodeUtilisation(nodeMetricsList)) {
             k8sConfig.when(() -> Config.fromConfig(kubeConfigPath.toAbsolutePath().toString())).thenReturn(apiClient);
             k8sConfiguration.when(() -> Configuration.setDefaultApiClient(apiClient)).then(invocation -> null);
 
             List<K8sNode> nodes = monitoringService.listNodes(kubeConfigPath, config);
             assertThat(nodes.size()).isEqualTo(2);
             assertThat(nodes.get(0).getNode()).isEqualTo(node1);
+            assertThat(nodes.get(0).getCpuLoad().getNumber().doubleValue()).isEqualTo(3.25);
+            assertThat(nodes.get(0).getMemoryLoad().getNumber().doubleValue()).isEqualTo(45000200);
             assertThat(nodes.get(1).getNode()).isEqualTo(node2);
+            assertThat(nodes.get(1).getCpuLoad().getNumber().doubleValue()).isEqualTo(1.2);
+            assertThat(nodes.get(1).getMemoryLoad().getNumber().doubleValue()).isEqualTo(34000200);
         }
     }
 

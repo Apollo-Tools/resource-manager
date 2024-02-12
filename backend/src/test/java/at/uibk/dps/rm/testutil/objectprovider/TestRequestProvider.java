@@ -58,7 +58,7 @@ public class TestRequestProvider {
         Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime, false);
         Resource r1 = TestResourceProvider.createResourceLambda(1L, region);
         Resource r2 = TestResourceProvider.createResourceEC2(2L, region, "t2.micro");
-        Resource r3 = TestResourceProvider.createResourceOpenFaas(3L, region, "http://localhost:8080",
+        Resource r3 = TestResourceProvider.createResourceOpenFaas(3L, region, "http://localhost",
             "user", "pw");
         Resource r4 = TestResourceProvider.createResourceContainer(3L, "https://localhost", true);
         ResourceDeploymentStatus rdsNew = TestDeploymentProvider.createResourceDeploymentStatusDeployed();
