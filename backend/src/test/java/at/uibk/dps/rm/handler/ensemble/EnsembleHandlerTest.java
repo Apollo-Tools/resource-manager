@@ -37,6 +37,7 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -195,8 +196,8 @@ public class EnsembleHandlerTest {
         when(ensembleService.findOneByIdAndAccountId(2L, 2L)).thenReturn(Single.just(getOneEnsembleJson2));
         when(resourceService.findAllByNonMonitoredSLOs(getOneEnsembleJson1)).thenReturn(Single.just(filterResources1));
         when(resourceService.findAllByNonMonitoredSLOs(getOneEnsembleJson2)).thenReturn(Single.just(filterResources2));
-        doReturn(Completable.complete()).when(ensembleService).updateEnsembleStatus(1L, jsonResult1);
-        doReturn(Completable.complete()).when(ensembleService).updateEnsembleStatus(2L, jsonResult2);
+        when(ensembleService.updateEnsembleStatusMap(Map.of("1", jsonResult1, "2", jsonResult2)))
+            .thenReturn(Completable.complete());
 
         try (MockedStatic<Vertx> mockedVertx = mockStatic(Vertx.class);
              MockedConstruction<ConfigUtility> ignoreConfig = Mockprovider.mockConfig(config);

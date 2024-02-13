@@ -21,6 +21,7 @@ import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -148,6 +149,20 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
             .collect(Collectors.toList());
         Completable validateRequest = smProvider.withTransactionCompletable(sm ->
             validationUtility.updateResourceEnsembleStatuses(sm, ensembleId, statusValueList));
+        RxVertxHandler.handleSession(validateRequest, resultHandler);
+    }
+
+    @Override
+    public void updateEnsembleStatusMap(Map<String, JsonArray> statusValues, Handler<AsyncResult<Void>> resultHandler) {
+        EnsembleValidationUtility validationUtility = new EnsembleValidationUtility(repositoryProvider);
+        Completable validateRequest = smProvider.withTransactionCompletable(sm -> Observable
+            .fromIterable(statusValues.entrySet())
+            .flatMapCompletable(entrySet -> Observable.fromIterable(entrySet.getValue())
+                .map(statusValue -> ((JsonObject) statusValue).mapTo(ResourceEnsembleStatus.class))
+                .collect(Collectors.toList())
+                .flatMapCompletable(statusValueList -> validationUtility.updateResourceEnsembleStatuses(sm,
+                    Long.parseLong(entrySet.getKey()), statusValueList)))
+        );
         RxVertxHandler.handleSession(validateRequest, resultHandler);
     }
 

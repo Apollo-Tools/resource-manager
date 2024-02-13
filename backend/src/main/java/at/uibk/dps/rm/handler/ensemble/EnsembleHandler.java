@@ -23,6 +23,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.web.RoutingContext;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -101,7 +102,10 @@ public class EnsembleHandler extends ValidationHandler {
         long accountId = rc.user().principal().getLong("account_id");
         return new ConfigUtility(Vertx.currentContext().owner()).getConfigDTO()
             .flatMap(configDTO -> HttpHelper.getLongPathParam(rc, "id")
-                .flatMap(id -> validateEnsembleStatus(accountId, id, configDTO))
+                .flatMap(ensembleId -> validateEnsembleStatus(accountId, ensembleId, configDTO)
+                    .flatMap(statusValues -> ensembleService.updateEnsembleStatus(ensembleId, statusValues)
+                        .andThen(Single.defer(() -> Single.just(statusValues))))
+                )
             );
     }
 
@@ -115,12 +119,14 @@ public class EnsembleHandler extends ValidationHandler {
             .flatMapCompletable(configDTO -> ensembleService.findAll()
                 .flatMapObservable(Observable::fromIterable)
                 .map(ensemble -> (JsonObject) ensemble)
-                .flatMapCompletable(ensemble -> {
+                .flatMapSingle(ensemble -> {
                     long ensembleId = ensemble.getLong("ensemble_id");
                     long accountId = ensemble.getJsonObject("created_by").getLong("account_id");
                     return validateEnsembleStatus(accountId, ensembleId, configDTO)
-                        .ignoreElement();
+                        .map(statusValues -> Pair.of(String.valueOf(ensembleId), statusValues));
                 })
+                .collect(Collectors.toMap(Pair::getKey, Pair::getValue))
+                .flatMapCompletable(ensembleService::updateEnsembleStatusMap)
             );
     }
 
@@ -138,11 +144,7 @@ public class EnsembleHandler extends ValidationHandler {
                         List<ResourceEnsembleStatus> statusValues = EnsembleUtility
                             .getResourceEnsembleStatus(validResources, getOneEnsemble.getResources());
                         return new JsonArray(Json.encode(statusValues));
-                    })
-                    .flatMap(statusValues -> ensembleService
-                        .updateEnsembleStatus(ensembleId, statusValues)
-                        .andThen(Single.defer(() -> Single.just(statusValues)))
-                    );
+                    });
             });
     }
 }
