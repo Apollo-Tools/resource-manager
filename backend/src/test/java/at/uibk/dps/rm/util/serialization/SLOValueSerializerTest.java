@@ -41,6 +41,7 @@ public class SLOValueSerializerTest {
                 Arguments.of(TestDTOProvider.createSLOValue(false), "[false]")
         );
     }
+
     @ParameterizedTest
     @MethodSource("provideSLOValue")
     void serialize(SLOValue sloValue, String expectedValue) {

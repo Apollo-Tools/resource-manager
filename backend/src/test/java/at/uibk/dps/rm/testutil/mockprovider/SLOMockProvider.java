@@ -15,6 +15,11 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
+/**
+ * Utility class to mock (mocked construction) slo validator objects for tests.
+ *
+ * @author matthi-g
+ */
 @UtilityClass
 public class SLOMockProvider {
 

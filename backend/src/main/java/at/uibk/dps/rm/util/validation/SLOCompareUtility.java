@@ -79,7 +79,8 @@ public class SLOCompareUtility {
             indexMap.put(serviceLevelObjectives.get(i).getName(), i);
         }
         List<MonitoredMetricValue> sortedList = new ArrayList<>(metricValues);
-        sortedList.sort(Comparator.comparingInt(metricValue -> indexMap.get(metricValue.getMetric())));
+        sortedList.sort(Comparator.comparingInt(metricValue -> indexMap
+            .getOrDefault(metricValue.getMetric(), indexMap.size())));
 
         return sortedList;
     }

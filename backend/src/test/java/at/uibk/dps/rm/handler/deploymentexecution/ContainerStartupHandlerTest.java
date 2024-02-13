@@ -94,7 +94,7 @@ public class ContainerStartupHandlerTest {
         lenient().when(serviceProxyProvider.getFunctionExecutionService()).thenReturn(functionExecutionService);
         lenient().when(serviceProxyProvider.getFunctionInvocationPushService())
             .thenReturn(functionInvocationPushService);
-        lenient().when(serviceProxyProvider.getContainerStartupTerminationPushService())
+        lenient().when(serviceProxyProvider.getContainerStartTermPushService())
             .thenReturn(containerMetricPushService);
         account = TestAccountProvider.createAccount(1L);
         Deployment d1 = TestDeploymentProvider.createDeployment(1L);
