@@ -8,15 +8,19 @@ import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import io.vertx.rxjava3.core.Context;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.web.client.WebClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import static org.mockito.Mockito.lenient;
 
 /**
  * This abstract class can be used for tests which need a running instance of the resource manager.
@@ -34,6 +38,10 @@ public abstract class RouterTest extends DatabaseTest {
 
     public static int API_PORT = 8888;
 
+
+    @Mock
+    private Context context;
+
     /**
      * Start up the resource manager using the given vertx instance.
      *
@@ -50,9 +58,12 @@ public abstract class RouterTest extends DatabaseTest {
         config.setApiPort(API_PORT);
         config.setDbPassword("root");
         config.setJwtAlgorithm("HS256");
+
         try (MockedConstruction<ConfigUtility> ignore = Mockprovider.mockConfig(config);
                 MockedStatic<Vertx> vertxMock = Mockito.mockStatic(Vertx.class)) {
             vertxMock.when(Vertx::vertx).thenReturn(vertx);
+            vertxMock.when(Vertx::currentContext).thenReturn(context);
+            lenient().when(context.owner()).thenReturn(vertx);
             Main.main(null);
             if (!isInitialized) {
                 WebClient client = WebClient.create(vertx);
