@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import {siteTitle} from '../components/misc/Sidebar';
-import Link from 'next/link';
+import HomeOverview from '../components/misc/HomeOverview';
 
 const Home = () => {
   return (
@@ -8,20 +8,9 @@ const Home = () => {
       <Head>
         <title>{siteTitle}</title>
       </Head>
-      <section>
-        <h2>Welcome</h2>
-        <ul>
-          <li>
-            <Link href={`/resources/resources`}>Resources</Link>
-          </li>
-          <li>
-            <Link href={`/deployments/deployments`}>Deployments</Link>
-          </li>
-          <li>
-            <Link href={`/accounts/profile`}>Profile</Link>
-          </li>
-        </ul>
-      </section>
+      <div className="default-card">
+        <HomeOverview />
+      </div>
     </>
   );
 };

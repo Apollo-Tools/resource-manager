@@ -101,14 +101,21 @@ public class TestFunctionProvider {
 
 
     public static FunctionDeployment createFunctionDeployment(Long id, Function function, Resource resource,
-            Deployment deployment, ResourceDeploymentStatus deploymentStatus) {
+            Deployment deployment, ResourceDeploymentStatus deploymentStatus, String directTriggerUrl) {
         FunctionDeployment functionDeployment = new FunctionDeployment();
         functionDeployment.setResourceDeploymentId(id);
         functionDeployment.setFunction(function);
         functionDeployment.setResource(resource);
         functionDeployment.setStatus(deploymentStatus);
         functionDeployment.setDeployment(deployment);
+        functionDeployment.setDirectTriggerUrl(directTriggerUrl);
         return functionDeployment;
+    }
+
+    public static FunctionDeployment createFunctionDeployment(Long id, Function function, Resource resource,
+            Deployment deployment, ResourceDeploymentStatus deploymentStatus) {
+        return createFunctionDeployment(id, function, resource, deployment, deploymentStatus,
+            "https://localhost:8080/foo1");
     }
 
 
@@ -118,9 +125,27 @@ public class TestFunctionProvider {
         return createFunctionDeployment(id, function, resource, deployment, status);
     }
 
+
+    public static FunctionDeployment createFunctionDeployment(Long id, Function function, Resource resource,
+            Deployment deployment, String directTriggerUrl) {
+        ResourceDeploymentStatus status = TestDeploymentProvider.createResourceDeploymentStatusNew();
+        return createFunctionDeployment(id, function, resource, deployment, status, directTriggerUrl);
+    }
+
     public static FunctionDeployment createFunctionDeployment(long id, Resource resource, Deployment deployment) {
         Function function = createFunction(22L, "func-test", "false");
         return createFunctionDeployment(id, function, resource, deployment);
+    }
+
+    public static FunctionDeployment createFunctionDeployment(long id, long resourceId, Deployment deployment) {
+        Resource resource = TestResourceProvider.createResourceContainer(resourceId, "localhost", true);
+        return createFunctionDeployment(id, resource, deployment);
+    }
+
+    public static FunctionDeployment createFunctionDeployment(long id, Resource resource, Deployment deployment,
+            String directTriggerUrl) {
+        Function function = createFunction(22L, "func-test", "false");
+        return createFunctionDeployment(id, function, resource, deployment, directTriggerUrl);
     }
 
     public static FunctionDeployment createFunctionDeployment(long id, Resource resource, Deployment deployment,

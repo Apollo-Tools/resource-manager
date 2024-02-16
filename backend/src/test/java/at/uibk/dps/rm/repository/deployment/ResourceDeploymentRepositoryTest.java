@@ -127,10 +127,10 @@ public class ResourceDeploymentRepositoryTest extends DatabaseTest {
     })
     void updateTriggerUrl(long resourceDeploymentId, String triggerUrl, VertxTestContext testContext) {
         smProvider.withTransactionMaybe(sessionManager -> repository
-                .updateTriggerUrl(sessionManager, resourceDeploymentId, triggerUrl)
+                .updateRmTriggerUrl(sessionManager, resourceDeploymentId, triggerUrl)
                 .andThen(Maybe.defer(() -> sessionManager.find(ResourceDeployment.class, resourceDeploymentId))))
             .subscribe(result -> testContext.verify(() -> {
-                assertThat(result.getTriggerUrl()).isEqualTo(triggerUrl);
+                assertThat(result.getRmTriggerUrl()).isEqualTo(triggerUrl);
                 testContext.completeNow();
             }), throwable -> testContext.failNow("method has thrown exception"));
     }

@@ -145,7 +145,7 @@ public class RegionFaasFileService extends TerraformFileService {
         StringBuilder outputString = new StringBuilder();
         String lambdaUrls = "{}", openFaasUrls = "{}";
         if (this.lambdaDeploymentData.getFunctionCount() > 0) {
-            lambdaUrls = "module.lambda.function_urls";
+            lambdaUrls = "module.lambda.resource_output";
         }
         if (this.ec2DeploymentData.getFunctionCount() > 0 || this.openFaasDeploymentData.getFunctionCount() > 0) {
             StringBuilder vmUrls = new StringBuilder(), vmFunctionIds = new StringBuilder();
@@ -155,7 +155,7 @@ public class RegionFaasFileService extends TerraformFileService {
                 String functionIdentifier = function.getFunctionDeploymentId();
                 PlatformEnum platformEnum = PlatformEnum.fromPlatform(resource.getMain().getPlatform());
                 if (platformEnum.equals(PlatformEnum.EC2) || platformEnum.equals(PlatformEnum.OPENFAAS)) {
-                    vmUrls.append(String.format("module.r%s_%s.function_url,",
+                    vmUrls.append(String.format("module.r%s_%s.resource_output,",
                         resource.getResourceId(), functionIdentifier));
                     vmFunctionIds.append(String.format("\"r%s_%s_%s\",",
                         resource.getResourceId(), functionIdentifier, deploymentId));
@@ -164,7 +164,7 @@ public class RegionFaasFileService extends TerraformFileService {
             openFaasUrls = String.format("zipmap([%s], [%s])", vmFunctionIds, vmUrls);
         }
         outputString.append(String.format(
-            "output \"function_urls\" {\n" +
+            "output \"resource_output\" {\n" +
                 "  value = merge(%s, %s)\n" +
                 "}\n", lambdaUrls, openFaasUrls
         ));

@@ -64,12 +64,11 @@ public class ContainerPullFileService extends TerraformFileService {
             Service service = serviceDeployment.getService();
             Map<String, MetricValue> mainMetricValues =
                 MetricValueMapper.mapMetricValues(resource.getMain().getMetricValues());
-            Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
-            String hostname = metricValues.containsKey("hostname") ?
-                "\"" + metricValues.get("hostname").getValueString() + "\"" : null;
+            String nodeName = resource.getMain().getResourceId().equals(resource.getResourceId()) ?
+                null : "\"" + resource.getName() + "\"";
             PrePullGroup pullGroup = new PrePullGroup(resource.getResourceId(), serviceDeployment.getContext(),
                 serviceDeployment.getNamespace(), mainMetricValues.get("pre-pull-timeout").getValueNumber().longValue(),
-                hostname, resource.getMain().getName());
+                nodeName, resource.getMain().getName());
             if (!prePullGroups.containsKey(pullGroup)) {
                 imageSet = new HashSet<>();
                 prePullGroups.put(pullGroup, imageSet);
@@ -97,7 +96,7 @@ public class ContainerPullFileService extends TerraformFileService {
                     "  image_pull_secrets = [%s]\n" +
                     "}\n", prePullGroup.getResourceId(), deploymentId, configPath, prePullGroup.getNamespace(),
                 prePullGroup.getContext(), String.join(",", imageSet), prePullGroup.getTimeout(),
-                prePullGroup.getHostname(), imagePullSecrets
+                prePullGroup.getNodeName(), imagePullSecrets
             ));
         });
         return functionsString.toString();

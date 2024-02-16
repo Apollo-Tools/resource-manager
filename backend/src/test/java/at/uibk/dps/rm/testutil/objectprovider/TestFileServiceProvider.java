@@ -47,7 +47,7 @@ public class TestFileServiceProvider {
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
         Resource r1 = TestResourceProvider.createResourceLambda(1L, region);
         Resource r2 = TestResourceProvider.createResourceEC2(2L, region, "t2.micro");
-        Resource r3 = TestResourceProvider.createResourceOpenFaas(3L, region, "http://localhost:8080",
+        Resource r3 = TestResourceProvider.createResourceOpenFaas(3L, region, "http://localhost",
             "user", "pw");
         return createRegionFaasFileService(fileSystem, r1, r2, r3, runtime, region, resourceProviderEnum);
     }
@@ -103,7 +103,7 @@ public class TestFileServiceProvider {
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "python3.8");
         Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime, false);
         Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime, false);
-        Resource r1 = TestResourceProvider.createResourceOpenFaas(1L,  region, "http://localhost:8081",
+        Resource r1 = TestResourceProvider.createResourceOpenFaas(1L,  region, "http://localhost",
             "user1", "pw1");
         Resource r2 = TestResourceProvider.createResourceEC2(2L, region, "t2.micro");
         return createFunctionFileService(vertx, r1, r2, f1, f2,  needsOpenFaasBuild ? Set.of(f1, f2) : Set.of());
@@ -115,7 +115,7 @@ public class TestFileServiceProvider {
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "invalid");
         Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime, false);
         Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime, false);
-        Resource r1 = TestResourceProvider.createResourceOpenFaas(1L,  region, "http://localhost:8081",
+        Resource r1 = TestResourceProvider.createResourceOpenFaas(1L,  region, "http://localhost",
             "user1", "pw1");
         Resource r2 = TestResourceProvider.createResourceEC2(2L, region, "t2.micro");
         return createFunctionFileService(vertx, r1, r2, f1, f2, Set.of(f1, f2));
@@ -126,7 +126,7 @@ public class TestFileServiceProvider {
         Region region = TestResourceProviderProvider.createRegion(1L, "us-east-1", resourceProvider);
         Runtime runtime = TestFunctionProvider.createRuntime(1L, "python3.8");
         Function f1 = TestFunctionProvider.createFunction(1L, "foo1", "true", runtime, false);
-        Resource r1 = TestResourceProvider.createResourceOpenFaas(1L,  region, "http://localhost:8081",
+        Resource r1 = TestResourceProvider.createResourceOpenFaas(1L,  region, "http://localhost",
             "user1", "pw1");
         Resource r2 = TestResourceProvider.createResourceEC2(2L, region, "t2.micro");
         return createFunctionFileService(vertx, r1, r2, f1, f1, Set.of(f1));

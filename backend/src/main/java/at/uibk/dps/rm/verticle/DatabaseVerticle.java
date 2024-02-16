@@ -17,10 +17,7 @@ import at.uibk.dps.rm.repository.deployment.*;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resource.PlatformRepository;
 import at.uibk.dps.rm.repository.resource.ResourceTypeRepository;
-import at.uibk.dps.rm.repository.resourceprovider.EnvironmentRepository;
-import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
-import at.uibk.dps.rm.repository.resourceprovider.ResourceProviderRepository;
-import at.uibk.dps.rm.repository.resourceprovider.VPCRepository;
+import at.uibk.dps.rm.repository.resourceprovider.*;
 import at.uibk.dps.rm.repository.service.ServiceRepository;
 import at.uibk.dps.rm.repository.service.K8sServiceTypeRepository;
 import at.uibk.dps.rm.service.database.account.*;
@@ -41,12 +38,7 @@ import at.uibk.dps.rm.service.database.log.DeploymentLogServiceImpl;
 import at.uibk.dps.rm.service.database.deployment.*;
 import at.uibk.dps.rm.service.database.deployment.DeploymentService;
 import at.uibk.dps.rm.service.database.deployment.DeploymentServiceImpl;
-import at.uibk.dps.rm.service.database.resource.ResourceService;
-import at.uibk.dps.rm.service.database.resource.ResourceServiceImpl;
-import at.uibk.dps.rm.service.database.resource.ResourceTypeService;
-import at.uibk.dps.rm.service.database.resource.ResourceTypeServiceImpl;
-import at.uibk.dps.rm.service.database.resource.PlatformService;
-import at.uibk.dps.rm.service.database.resource.PlatformServiceImpl;
+import at.uibk.dps.rm.service.database.resource.*;
 import at.uibk.dps.rm.service.database.resourceprovider.*;
 import at.uibk.dps.rm.service.database.metric.MetricService;
 import at.uibk.dps.rm.service.database.metric.MetricServiceImpl;
@@ -131,6 +123,8 @@ public class DatabaseVerticle extends AbstractVerticle {
                 smProvider));
             serviceProxyBinder.bind(EnvironmentService.class,
                 new EnvironmentServiceImpl(new EnvironmentRepository(), smProvider));
+            serviceProxyBinder.bind(FunctionDeploymentService.class,
+                new FunctionDeploymentServiceImpl(new FunctionDeploymentRepository(), smProvider));
             serviceProxyBinder.bind(FunctionService.class,
                 new FunctionServiceImpl(new FunctionRepository(), smProvider));
             serviceProxyBinder.bind(FunctionTypeService.class,
@@ -155,9 +149,7 @@ public class DatabaseVerticle extends AbstractVerticle {
             serviceProxyBinder.bind(ResourceEnsembleService.class,
                 new ResourceEnsembleServiceImpl(new EnsembleRepositoryProvider(), smProvider));
             serviceProxyBinder.bind(ResourceService.class,
-                new ResourceServiceImpl(new ResourceRepository(),
-                    new RegionRepository(), new MetricRepository(),
-                    smProvider));
+                new ResourceServiceImpl(new ResourceRepository(), new RegionRepository(), smProvider));
             serviceProxyBinder.bind(ResourceProviderService.class,
                 new ResourceProviderServiceImpl(new ResourceProviderRepository(), smProvider));
             serviceProxyBinder.bind(ResourceDeploymentService.class,

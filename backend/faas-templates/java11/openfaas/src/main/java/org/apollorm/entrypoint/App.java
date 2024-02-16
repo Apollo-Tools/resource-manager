@@ -12,36 +12,47 @@ import org.apollorm.model.exception.FunctionException;
 
 import java.util.Optional;
 
+/**
+ * Entrypoint class to set up a web server for an Openfaas function.
+ *
+ * @author matthi-g
+ */
 public class App {
-  public static void main(String[] args) {
-    Vertx vertx = Vertx.vertx();
-    int httpPort = Integer.parseInt(Optional.ofNullable(System.getenv("PORT")).orElse("8082"));
-    HttpServer server = vertx.createHttpServer();
-    Router router = Router.router(vertx);
 
-    Handler<RoutingContext> handler = new RequestHandler();
-    router.route()
+    /**
+     * Sets up the web server for an Openfaas function including a failure handler.
+     *
+     * @param args the program arguments
+     */
+    public static void main(String[] args) {
+        Vertx vertx = Vertx.vertx();
+        int httpPort = Integer.parseInt(Optional.ofNullable(System.getenv("PORT")).orElse("8082"));
+        HttpServer server = vertx.createHttpServer();
+        Router router = Router.router(vertx);
+
+        Handler<RoutingContext> handler = new RequestHandler();
+        router.route()
             .failureHandler(rc -> {
-              String message  = "internal server error";
-              int statusCode = 500;
-              if (rc.failure() != null && rc.failure() instanceof FunctionException){
-                message = rc.failure().getMessage();
-                statusCode = 400;
-              }
-              rc.response()
-                      .putHeader("Content-type", "text/plain; charset=utf-8")
-                      .setStatusCode(statusCode)
-                      .end(message);
+                String message = "internal server error";
+                int statusCode = 500;
+                if (rc.failure() != null && rc.failure() instanceof FunctionException) {
+                    message = rc.failure().getMessage();
+                    statusCode = 400;
+                }
+                rc.response()
+                    .putHeader("Content-type", "text/plain; charset=utf-8")
+                    .setStatusCode(statusCode)
+                    .end(message);
             })
             .handler(BodyHandler.create())
             .handler(handler);
 
-    server.requestHandler(router).listen(httpPort, result -> {
-      if(result.succeeded()) {
-        System.out.println("Listening on port " + httpPort);
-      } else {
-        System.out.println("Unable to start server: " + result.cause().getMessage());
-      }
-    });
-  }
+        server.requestHandler(router).listen(httpPort, result -> {
+            if (result.succeeded()) {
+                System.out.println("Listening on port " + httpPort);
+            } else {
+                System.out.println("Unable to start server: " + result.cause().getMessage());
+            }
+        });
+    }
 }

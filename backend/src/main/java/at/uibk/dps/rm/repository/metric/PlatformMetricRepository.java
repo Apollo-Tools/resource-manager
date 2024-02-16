@@ -49,7 +49,7 @@ public class PlatformMetricRepository extends Repository<PlatformMetric> {
      * @return a Maybe that emits the platform metric if it exists else null
      */
     public Maybe<PlatformMetric> findByPlatformAndMetric(SessionManager sessionManager, long platformId,
-                                                         long metricId) {
+            long metricId) {
         return Maybe.fromCompletionStage(sessionManager.getSession()
             .createQuery("from PlatformMetric pm " +
                 "left join fetch pm.metric m " +
@@ -92,13 +92,13 @@ public class PlatformMetricRepository extends Repository<PlatformMetric> {
      * @param resourceId the id of  the resource
      * @return a Single that emits the amount of missing required metrics
      */
-    public Single<Long> countMissingRequiredMetricValuesByResourceId(SessionManager sessionManager, long resourceId,
+    public Single<Long> countMissingCustomMetricValuesByResourceId(SessionManager sessionManager, long resourceId,
             boolean isMainResource) {
         Single<Long> getMissingMetrics = Single.fromCompletionStage(sessionManager.getSession()
             .createQuery("select count(pm) from PlatformMetric pm " +
                 "where pm.platform.platformId in (" +
                 "   select mr.platform.platformId from MainResource mr where mr.resourceId=:resourceId " +
-                ") and pm.required=true and pm.isMainResourceMetric=true " +
+                ") and pm.isMonitored=false and pm.isMainResourceMetric=true " +
                 "and not exists ( " +
                 "  select mv.metric.metricId from Resource r left join r.metricValues mv " +
                 "  where r.resourceId=:resourceId and mv.metric.metricId=pm.metric.metricId" +
@@ -110,7 +110,7 @@ public class PlatformMetricRepository extends Repository<PlatformMetric> {
             .createQuery("select count(pm) from PlatformMetric pm " +
                 "where pm.platform.platformId in (" +
                 "   select sr.mainResource.platform.platformId from SubResource sr where sr.resourceId=:resourceId " +
-                ") and pm.required=true and pm.isMainResourceMetric=true " +
+                ") and pm.isMonitored=false and pm.isMainResourceMetric=true " +
                 "and not exists ( " +
                 "  select mv.metric.metricId from SubResource sr left join sr.mainResource.metricValues mv " +
                 "  where sr.resourceId=:resourceId and mv.metric.metricId=pm.metric.metricId" +
@@ -122,7 +122,7 @@ public class PlatformMetricRepository extends Repository<PlatformMetric> {
             .createQuery("select count(pm) from PlatformMetric pm " +
                 "where pm.platform.platformId in (" +
                 "   select sr.mainResource.platform.platformId from SubResource sr where sr.resourceId=:resourceId " +
-                ") and pm.required=true and pm.isSubResourceMetric=true " +
+                ") and pm.isMonitored=false and pm.isSubResourceMetric=true " +
                 "and not exists ( " +
                 "  select mv.metric.metricId from Resource r left join r.metricValues mv " +
                 "  where r.resourceId=:resourceId and mv.metric.metricId=pm.metric.metricId" +

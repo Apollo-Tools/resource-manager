@@ -28,3 +28,9 @@ variable "instance_types" {
   description = "The instance types to use for the instances."
   type        = list(string)
 }
+
+variable "metrics_port" {
+  description = "The metrics port of the node exporter."
+  type = number
+  default = 8082
+}

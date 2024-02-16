@@ -30,7 +30,7 @@ public class ResourceDeploymentRouteTest extends RouterTest {
     @Test
     void startResourceDeployment(Vertx vertx, VertxTestContext testContext) {
         WebClient client = WebClient.create(vertx);
-        client.post(API_PORT, API_URL, "/api/deployments/1/2/startup")
+        client.post(API_PORT, API_URL, "/api/service-deployments/2/startup")
             .putHeader("Authorization", jwtAdmin)
             .send()
             .subscribe(result -> {

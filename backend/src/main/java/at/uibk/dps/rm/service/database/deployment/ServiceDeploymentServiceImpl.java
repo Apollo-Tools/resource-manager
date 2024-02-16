@@ -2,6 +2,8 @@ package at.uibk.dps.rm.service.database.deployment;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
+import at.uibk.dps.rm.exception.BadInputException;
+import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.deployment.ServiceDeploymentRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
@@ -9,6 +11,7 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
+import io.vertx.core.json.JsonObject;
 
 /**
  * This is the implementation of the {@link ServiceDeploymentService}.
@@ -31,13 +34,23 @@ public class ServiceDeploymentServiceImpl extends DatabaseServiceProxy<ServiceDe
     }
 
     @Override
-    public void existsReadyForContainerStartupAndTermination(long deploymentId, long resourceDeploymentId,
-            long accountId, Handler<AsyncResult<Boolean>> resultHandler) {
-        Single<Boolean> existsOne = smProvider.withTransactionSingle(sm -> repository
-            .countByDeploymentStatus(sm, deploymentId, resourceDeploymentId, accountId,
-                DeploymentStatusValue.DEPLOYED)
-            .map(count -> count == 1)
+    public void findOneForDeploymentAndTermination(long resourceDeploymentId, long accountId,
+            Handler<AsyncResult<JsonObject>> resultHandler) {
+        Single<ServiceDeployment> findOne = smProvider.withTransactionSingle(sm -> repository
+            .findByIdAndAccountId(sm, resourceDeploymentId, accountId)
+            .switchIfEmpty(Single.error(new NotFoundException(ServiceDeployment.class)))
+            .flatMap(serviceDeployment ->  {
+                DeploymentStatusValue status = DeploymentStatusValue
+                    .fromDeploymentStatus(serviceDeployment.getStatus());
+                if (!status.equals(DeploymentStatusValue.DEPLOYED)) {
+                    return Single.error(new BadInputException("Service Deployment is not ready for " +
+                        "startup/termination"));
+                }
+                return sm.fetch(serviceDeployment.getService().getEnvVars())
+                    .flatMap(res -> sm.fetch(serviceDeployment.getService().getVolumeMounts()))
+                    .map(res -> serviceDeployment);
+            })
         );
-        RxVertxHandler.handleSession(existsOne, resultHandler);
+        RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
     }
 }

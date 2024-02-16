@@ -26,12 +26,6 @@ const getMetricDescription = (metrics, form, name) => {
       ?.metric.description;
 };
 
-const checkMetricIsMonitored = (metrics, form, name) => {
-  return getMetricById(metrics,
-      form.getFieldValue('metricValues')[name]?.metric)
-      ?.is_monitored;
-};
-
 const checkMetricIsSelected = (metrics, form, name) => {
   return getMetricById(metrics, form.getFieldValue('metricValues')[name]?.metric) != null;
 };
@@ -63,16 +57,16 @@ const AddMetricValuesForm = ({
             const includeMetric = excludeMetricIds != null ?
               !excludeMetricIds.includes(metric.metric.metric_id) : true;
             if (resource == null || !isNewResource || !Object.hasOwn(resource, 'main_resource_id')) {
-              return metric.is_main_resource_metric && includeMetric;
+              return metric.is_main_resource_metric && includeMetric && !metric.is_monitored;
             } else {
-              return metric.is_sub_resource_metric && includeMetric;
+              return metric.is_sub_resource_metric && includeMetric && !metric.is_monitored;
             }
-          });
+          })
+          .sort((a, b) => a.metric.metric.localeCompare(b.metric.metric));
       return filtered
           .map((metric) => {
             return {
               metric: metric.metric,
-              required: metric.required,
               is_main_resource_metric: metric.is_main_resource_metric,
               is_sub_resource_metric: metric.is_sub_resource_metric,
               isSelected: false};
@@ -82,7 +76,7 @@ const AddMetricValuesForm = ({
 
   useEffect(() => {
     setRequiredSelected(filteredMetrics
-        .filter((metric) => metric.required && !metric.isSelected)
+        .filter((metric) => !metric.isSelected)
         .length === 0);
   }, [filteredMetrics]);
 
@@ -121,7 +115,6 @@ const AddMetricValuesForm = ({
         const isSelected = selectedMetrics.includes(metric.metric.metric_id);
         return {
           metric: metric.metric,
-          required: metric.required,
           is_main_resource_metric: metric.is_main_resource_metric,
           is_sub_resource_metric: metric.is_sub_resource_metric,
           isSelected: isSelected};
@@ -173,7 +166,7 @@ const AddMetricValuesForm = ({
                             value={metric.metric.metric_id}
                             key={metric.metric.metric_id}
                           >
-                            {metric.required ? metric.metric.metric + ' *' : metric.metric.metric}
+                            {metric.metric.metric}
                           </Select.Option>
                         );
                       })}
@@ -187,13 +180,11 @@ const AddMetricValuesForm = ({
                     className="w-40 mb-0"
                     rules={[
                       {
-                        required: !checkMetricType(metrics, form, name, 'boolean') &&
-                                                    !checkMetricIsMonitored(metrics, form, name),
+                        required: !checkMetricType(metrics, form, name, 'boolean'),
                         message: 'Missing value',
                       },
                     ]}
-                    hidden={checkMetricIsMonitored(metrics, form, name) ||
-                                            !checkMetricIsSelected(metrics, form, name)}
+                    hidden={!checkMetricIsSelected(metrics, form, name)}
                   >
                     {checkMetricType(metrics, form, name, 'boolean') ?
                       <Checkbox className="w-full">
@@ -203,7 +194,6 @@ const AddMetricValuesForm = ({
                           <InputNumber placeholder='0.00' controls={false} className="w-full"/>:
                           <Input placeholder='value' className="w-full"/>
                       )
-
                     }
 
                   </Form.Item>

@@ -1,13 +1,13 @@
 package at.uibk.dps.rm.service.database.resource;
 
 import at.uibk.dps.rm.entity.dto.SLORequest;
+import at.uibk.dps.rm.entity.dto.resource.ScrapeTargetDTO;
 import at.uibk.dps.rm.entity.dto.resource.SubResourceDTO;
 import at.uibk.dps.rm.entity.model.*;
-import at.uibk.dps.rm.entity.monitoring.K8sMonitoringData;
+import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sMonitoringData;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.MonitoringException;
 import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
@@ -37,7 +37,6 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
 
     private final ResourceRepository repository;
     private final RegionRepository regionRepository;
-    private final MetricRepository metricRepository;
 
     /**
      * Create an instance from the resourceRepository.
@@ -45,11 +44,10 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
      * @param repository the resource repository
      */
     public ResourceServiceImpl(ResourceRepository repository, RegionRepository regionRepository,
-            MetricRepository metricRepository, SessionManagerProvider smProvider) {
+            SessionManagerProvider smProvider) {
         super(repository, Resource.class, smProvider);
         this.repository = repository;
         this.regionRepository = regionRepository;
-        this.metricRepository = metricRepository;
     }
 
     @Override
@@ -82,10 +80,10 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     }
 
     @Override
-    public void findAllBySLOs(JsonObject data, Handler<AsyncResult<JsonArray>> resultHandler) {
+    public void findAllByNonMonitoredSLOs(JsonObject data, Handler<AsyncResult<JsonArray>> resultHandler) {
         SLORequest sloRequest = data.mapTo(SLORequest.class);
         Single<List<Resource>> findAll = smProvider.withTransactionSingle(sm ->
-            new SLOUtility(repository, metricRepository).findAndFilterResourcesBySLOs(sm, sloRequest)
+            new SLOUtility(repository).findResourcesByNonMonitoredSLOs(sm, sloRequest)
                 .flatMapObservable(Observable::fromIterable)
                 .map(this::getResourceLockState).toList()
         );
@@ -93,7 +91,6 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     }
 
     // TODO: remove main_resource
-
     @Override
     public void findAllSubResources(long resourceId, Handler<AsyncResult<JsonArray>> resultHandler) {
         Single<List<SubResource>> findAll = smProvider.withTransactionSingle(sm ->
@@ -129,6 +126,14 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
             .findAllByResourceIdsAndFetch(sm, resourceIds)
             .flatMapObservable(Observable::fromIterable)
             .map(this::getResourceLockState).toList()
+        );
+        RxVertxHandler.handleSession(findAll.map(this::mapResourceListToJsonArray), resultHandler);
+    }
+
+    @Override
+    public void findAllByPlatform(String platform, Handler<AsyncResult<JsonArray>> resultHandler) {
+        Single<List<Resource>> findAll = smProvider.withTransactionSingle(sm -> repository
+            .findAllMainResourcesByPlatform(sm, platform)
         );
         RxVertxHandler.handleSession(findAll.map(this::mapResourceListToJsonArray), resultHandler);
     }
@@ -186,14 +191,20 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
 
     @Override
     public void updateClusterResource(String clusterName, K8sMonitoringData data,
-            Handler<AsyncResult<Void>> resultHandler) {
-        K8sResourceUpdateUtility updateUtility = new K8sResourceUpdateUtility(metricRepository);
-        Completable updateClusterResource = smProvider.withTransactionCompletable(sm -> repository
+            Handler<AsyncResult<K8sMonitoringData>> resultHandler) {
+        K8sResourceUpdateUtility updateUtility = new K8sResourceUpdateUtility();
+        Single<K8sMonitoringData> updateClusterResource = smProvider.withTransactionSingle(sm -> repository
             .findClusterByName(sm, clusterName)
             // TODO: swap with NotFoundException and handle in Monitoring Verticle
             .switchIfEmpty(Maybe.error(new MonitoringException("cluster " + clusterName + " is not registered")))
-            .flatMapCompletable(cluster -> updateUtility.updateClusterNodes(sm, cluster, data)
-                .andThen(updateUtility.updateCluster(sm, cluster, data)))
+            .flatMapCompletable(cluster -> {
+                data.setResourceId(cluster.getResourceId());
+                if (!data.getIsUp()) {
+                    return Completable.complete();
+                }
+                return updateUtility.updateClusterNodes(sm, cluster, data);
+            })
+            .toSingle(() -> data)
         );
         RxVertxHandler.handleSession(updateClusterResource, resultHandler);
     }
@@ -233,5 +244,38 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
             }
         }
         return new JsonArray(objects);
+    }
+
+    @Override
+    public void findAllScrapeTargets(Handler<AsyncResult<JsonArray>> resultHandler) {
+        Single<List<ScrapeTargetDTO>> findAll = smProvider.withTransactionSingle(sm -> {
+            Observable<ScrapeTargetDTO> findEc2Resources = repository.findAllFunctionDeploymentTargets(sm)
+                .flatMapObservable(Observable::fromIterable)
+                .map(findScrapeTarget -> {
+                    ScrapeTargetDTO scrapeTarget = new ScrapeTargetDTO();
+                    scrapeTarget.setTargets(List.of(findScrapeTarget.getBaseUrl() + ':' +
+                        findScrapeTarget.getMetricsPort() + "/metrics"));
+                    scrapeTarget.setLabels(Map.of("resource", Long.toString(findScrapeTarget.getResourceId()),
+                        "resource_deployment", Long.toString(findScrapeTarget.getResourceDeploymentId()),
+                        "deployment", Long.toString(findScrapeTarget.getDeploymentId()))
+                    );
+                    return scrapeTarget;
+                });
+            Observable<ScrapeTargetDTO> findOpenFaasResources = repository.findAllOpenFaaSTargets(sm)
+                .flatMapObservable(Observable::fromIterable)
+                .filter(scrapeTarget -> scrapeTarget.getBaseUrl() != null && scrapeTarget.getMetricsPort() != null)
+                .map(functionDeployment -> {
+                    ScrapeTargetDTO scrapeTarget = new ScrapeTargetDTO();
+                    scrapeTarget.setTargets(List.of(functionDeployment.getBaseUrl() + ':' +
+                        functionDeployment.getMetricsPort().intValue() + "/metrics"));
+                    scrapeTarget.setLabels(Map.of("resource", Long.toString(functionDeployment.getResourceId())));
+                    return scrapeTarget;
+                });
+            return Observable.merge(findEc2Resources, findOpenFaasResources).toList();
+        });
+        RxVertxHandler.handleSession(findAll.flatMapObservable(Observable::fromIterable)
+            .map(JsonObject::mapFrom)
+            .toList()
+            .map(JsonArray::new), resultHandler);
     }
 }

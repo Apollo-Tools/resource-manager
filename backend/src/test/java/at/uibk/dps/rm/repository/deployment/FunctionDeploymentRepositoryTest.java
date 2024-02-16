@@ -1,17 +1,21 @@
 package at.uibk.dps.rm.repository.deployment;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
+import at.uibk.dps.rm.entity.deployment.output.TFOutputValue;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.model.Runtime;
 import at.uibk.dps.rm.testutil.integration.DatabaseTest;
 import at.uibk.dps.rm.testutil.objectprovider.*;
+import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -32,7 +36,7 @@ public class FunctionDeploymentRepositoryTest extends DatabaseTest {
 
         smProvider.withTransactionSingle(sessionManager -> {
             Deployment d1 = TestDeploymentProvider.createDeployment(null, accountAdmin);
-            Deployment d2 = TestDeploymentProvider.createDeployment(null, accountAdmin);
+            Deployment d2 = TestDeploymentProvider.createDeployment(null, accountDefault);
             Runtime rtPython = TestFunctionProvider.createRuntime(1L);
             FunctionType ft1 = TestFunctionProvider.createFunctionType(1L, "notype");
             Function f1 = TestFunctionProvider.createFunction(null, ft1, "foo1",
@@ -139,5 +143,54 @@ public class FunctionDeploymentRepositoryTest extends DatabaseTest {
                     .collect(Collectors.toList())).isEqualTo(statusList);
                 testContext.completeNow();
             }), throwable -> testContext.failNow("method has thrown exception"));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "1, localhost, awsurl",
+        "2, localhost123, edgeurl",
+        "4, localhost4, url"
+    })
+    void updateTriggerUrls(long resourceDeploymentId, String triggerUrl, String fullUrl,
+            VertxTestContext testContext) {
+        TFOutputValue tfOutputValue = TestDeploymentProvider.createTFOutputValue(fullUrl,
+            "foo1", "http://host", 9100, 8080);
+        smProvider.withTransactionMaybe(sessionManager -> repository
+                .updateTriggerUrls(sessionManager, resourceDeploymentId, triggerUrl, tfOutputValue)
+                .andThen(Maybe.defer(() -> sessionManager.find(FunctionDeployment.class, resourceDeploymentId))))
+            .subscribe(result -> testContext.verify(() -> {
+                assertThat(result.getRmTriggerUrl()).isEqualTo(triggerUrl);
+                assertThat(result.getDirectTriggerUrl()).isEqualTo(fullUrl);
+                testContext.completeNow();
+            }), throwable -> testContext.failNow("method has thrown exception"));
+    }
+
+
+    @ParameterizedTest
+    @CsvSource({
+        "1, 1, true, NEW",
+        "1, 2, false, NEW",
+        "4, 1, false, NEW",
+        "4, 2, true, TERMINATING",
+        "10, 1, false, NEW",
+    })
+    void findByIdAndAccountId(long resourceDeploymentId, long accountId, boolean exists, String status,
+            VertxTestContext testContext) {
+        DeploymentStatusValue statusValue = DeploymentStatusValue.valueOf(status);
+        smProvider.withTransactionMaybe(sessionManager -> repository
+                .findByIdAndAccountId(sessionManager, resourceDeploymentId, accountId))
+            .subscribe(result -> testContext.verify(() -> {
+                if (exists) {
+                    assertThat(result.getResourceDeploymentId()).isEqualTo(resourceDeploymentId);
+                    assertThat(DeploymentStatusValue.fromDeploymentStatus(result.getStatus())).isEqualTo(statusValue);
+                    testContext.completeNow();
+                } else {
+                    testContext.failNow("method did not throw exception");
+                }
+            }), throwable -> {
+                assertThat(exists).isEqualTo(false);
+                assertThat(throwable.getCause()).isInstanceOf(NoSuchElementException.class);
+                testContext.completeNow();
+            });
     }
 }

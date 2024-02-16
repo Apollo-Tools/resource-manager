@@ -59,7 +59,6 @@ public class MetricValueHandler extends ValidationHandler {
             );
     }
 
-
     /**
      * Submit the update of a metric value.
      *
@@ -69,16 +68,14 @@ public class MetricValueHandler extends ValidationHandler {
      * @return a Completable
      */
     private Completable submitUpdateMetricValue(long resourceId, long metricId, String value) {
-        return metricValueService.updateByResourceAndMetric(resourceId, metricId, value, null,
-            null, true);
+        return metricValueService.updateByResourceAndMetric(resourceId, metricId, value, null, null);
     }
 
     /**
      * @see #submitUpdateMetricValue(long, long, String)
      */
     private Completable submitUpdateMetricValue(long resourceId, long metricId, Double value) {
-        return metricValueService.updateByResourceAndMetric(resourceId, metricId, null, value, null,
-            true);
+        return metricValueService.updateByResourceAndMetric(resourceId, metricId, null, value, null);
     }
 
     /**
@@ -86,7 +83,7 @@ public class MetricValueHandler extends ValidationHandler {
      */
     private Completable submitUpdateMetricValue(long resourceId, long metricId, Boolean value) {
         return metricValueService.updateByResourceAndMetric(resourceId, metricId, null, null,
-            value, true);
+            value);
     }
 
     /**

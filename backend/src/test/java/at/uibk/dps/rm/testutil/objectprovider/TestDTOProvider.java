@@ -8,6 +8,9 @@ import at.uibk.dps.rm.entity.dto.ListResourcesBySLOsRequest;
 import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
+import at.uibk.dps.rm.entity.dto.function.InvocationMonitoringDTO;
+import at.uibk.dps.rm.entity.dto.function.InvocationResponseBodyDTO;
+import at.uibk.dps.rm.entity.dto.function.InvokeFunctionDTO;
 import at.uibk.dps.rm.entity.dto.function.UpdateFunctionDTO;
 import at.uibk.dps.rm.entity.dto.resource.ResourceId;
 import at.uibk.dps.rm.entity.dto.service.K8sServiceTypeId;
@@ -238,5 +241,27 @@ public class TestDTOProvider {
         k8sServiceTypeId.setServiceTypeId(1L);
         return createUpdateServiceDTO(1, ports, BigDecimal.valueOf(13.37), 128, k8sServiceTypeId,
             envVars, volumeMounts, true);
+    }
+
+    public static InvocationMonitoringDTO createInvocationMonitoringDTO(double executionTime, long timestamp) {
+        InvocationMonitoringDTO invocationMonitoringDTO = new InvocationMonitoringDTO();
+        invocationMonitoringDTO.setExecutionTimeMs(executionTime);
+        invocationMonitoringDTO.setStartTimestamp(timestamp);
+        return invocationMonitoringDTO;
+    }
+
+    public static InvocationResponseBodyDTO createInvocationResponseDTO(InvocationMonitoringDTO monitoringData,
+                                                                        String body) {
+        InvocationResponseBodyDTO invocationResponseDTO = new InvocationResponseBodyDTO();
+        invocationResponseDTO.setMonitoringData(monitoringData);
+        invocationResponseDTO.setBody(body);
+        return invocationResponseDTO;
+    }
+
+    public static InvokeFunctionDTO createInvokeFunctionDTO(String body, int statusCode) {
+        InvokeFunctionDTO invokeFunctionDTO = new InvokeFunctionDTO();
+        invokeFunctionDTO.setBody(body);
+        invokeFunctionDTO.setStatusCode(statusCode);
+        return invokeFunctionDTO;
     }
 }

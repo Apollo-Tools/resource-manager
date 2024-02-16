@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.service.database.util;
 
 import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
+import at.uibk.dps.rm.entity.deployment.output.TFOutputValue;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.testutil.mockprovider.DeploymentRepositoryProviderMock;
@@ -19,6 +20,8 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 /**
@@ -37,6 +40,7 @@ public class TriggerUrlUtilityTest {
     @Mock
     private Stage.Session session;
 
+    @Mock
     private SessionManager sessionManager;
 
 
@@ -53,15 +57,17 @@ public class TriggerUrlUtilityTest {
         DeploymentOutput output = TestDeploymentProvider.createDeploymentOutput("python38");
         DeployResourcesDTO deployResourcesDTO = TestRequestProvider.createDeployRequest();
 
-        when(repositoryMock.getResourceDeploymentRepository()
-            .updateTriggerUrl(sessionManager, 1L, "http://host:port/foo1"))
+        when(repositoryMock.getFunctionDeploymentRepository()
+            .updateTriggerUrls(eq(sessionManager), eq(1L), eq("/function-deployments/1/invoke"),
+                argThat((TFOutputValue tfOutputValue) -> tfOutputValue.getFullUrl().equals("http://host:8080/foo1"))))
             .thenReturn(Completable.complete());
-        when(repositoryMock.getResourceDeploymentRepository()
-            .updateTriggerUrl(sessionManager, 4L, "http://host:port/foo2"))
+        when(repositoryMock.getFunctionDeploymentRepository()
+            .updateTriggerUrls(eq(sessionManager), eq(4L), eq("/function-deployments/4/invoke"),
+                argThat((TFOutputValue tfOutputValue) -> tfOutputValue.getFullUrl().equals("http://host:8080/foo2"))))
             .thenReturn(Completable.complete());
 
         utility.setTriggerUrlsForFunctions(sessionManager, output, deployResourcesDTO)
-            .blockingSubscribe(() -> testContext.verify(testContext::completeNow),
+            .blockingSubscribe(testContext::completeNow,
                 throwable -> testContext.failNow("method has thrown exception"));
     }
 
@@ -103,18 +109,17 @@ public class TriggerUrlUtilityTest {
         DeployResourcesDTO deployResourcesDTO = TestRequestProvider.createDeployRequest();
 
         when(repositoryMock.getResourceDeploymentRepository()
-            .updateTriggerUrl(sessionManager, 4L, "/deployments/1/4/startup"))
+            .updateRmTriggerUrl(sessionManager, 4L, "/service-deployments/4/startup"))
             .thenReturn(Completable.complete());
         when(repositoryMock.getResourceDeploymentRepository()
-            .updateTriggerUrl(sessionManager, 5L, "/deployments/1/5/startup"))
+            .updateRmTriggerUrl(sessionManager, 5L, "/service-deployments/5/startup"))
             .thenReturn(Completable.complete());
         when(repositoryMock.getResourceDeploymentRepository()
-            .updateTriggerUrl(sessionManager, 6L, "/deployments/1/6/startup"))
+            .updateRmTriggerUrl(sessionManager, 6L, "/service-deployments/6/startup"))
             .thenReturn(Completable.complete());
 
         utility.setTriggerUrlForContainers(sessionManager, deployResourcesDTO)
             .blockingSubscribe(() -> testContext.verify(testContext::completeNow),
-                throwable -> testContext.verify(() -> fail("method has thrown exception"))
-            );
+                throwable -> testContext.failNow("method has thrown exception"));
     }
 }

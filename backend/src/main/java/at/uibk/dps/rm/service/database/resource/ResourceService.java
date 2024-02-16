@@ -2,8 +2,7 @@ package at.uibk.dps.rm.service.database.resource;
 
 import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.model.Resource;
-import at.uibk.dps.rm.entity.monitoring.K8sMonitoringData;
-import at.uibk.dps.rm.repository.metric.MetricRepository;
+import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sMonitoringData;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
@@ -33,8 +32,7 @@ public interface ResourceService extends DatabaseServiceInterface {
     @Generated
     @GenIgnore
     static ResourceService create(SessionManagerProvider smProvider) {
-        return new ResourceServiceImpl(new ResourceRepository(), new RegionRepository(), new MetricRepository(),
-            smProvider);
+        return new ResourceServiceImpl(new ResourceRepository(), new RegionRepository(), smProvider);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
@@ -44,12 +42,13 @@ public interface ResourceService extends DatabaseServiceInterface {
     }
 
     /**
-     * Find all resources by service level objectives.
+     * Find all resources by non monitored service level objectives that are part of an
+     * {@link at.uibk.dps.rm.entity.dto.SLORequest}
      *
-     * @param data the data containing all service level objectives
+     * @param data the request data
      * @param resultHandler receives the found resources as JsonArray
      */
-    void findAllBySLOs(JsonObject data, Handler<AsyncResult<JsonArray>> resultHandler);
+    void findAllByNonMonitoredSLOs(JsonObject data, Handler<AsyncResult<JsonArray>> resultHandler);
 
     /**
      * Find all sub resources by their main resource.
@@ -68,6 +67,14 @@ public interface ResourceService extends DatabaseServiceInterface {
     void findAllByResourceIds(List<Long> resourceIds, Handler<AsyncResult<JsonArray>> resultHandler);
 
     /**
+     * Find all resources by their platform.
+     *
+     * @param platform the platform
+     * @param resultHandler receives the found resources as JsonArray
+     */
+    void findAllByPlatform(String platform, Handler<AsyncResult<JsonArray>> resultHandler);
+
+    /**
      * Find all resources that are locked by a deployment.
      *
      * @param deploymentId the id of the deployment
@@ -78,11 +85,12 @@ public interface ResourceService extends DatabaseServiceInterface {
     /**
      * Update a cluster resource using the contents of the data object.
      *
-     * @param resourceName the name of the cluster resource
+     * @param clusterName the name of the cluster resource
      * @param data the monitoring data
      * @param resultHandler receives nothing if the update was successful else an error
      */
-    void updateClusterResource(String resourceName, K8sMonitoringData data, Handler<AsyncResult<Void>> resultHandler);
+    void updateClusterResource(String clusterName, K8sMonitoringData data,
+        Handler<AsyncResult<K8sMonitoringData>> resultHandler);
 
     /**
      * Unlock all resources that are locked by a deployment.
@@ -91,4 +99,11 @@ public interface ResourceService extends DatabaseServiceInterface {
      * @param resultHandler receives nothing if unlocking resources was successful else an error
      */
     void unlockLockedResourcesByDeploymentId(long deploymentId, Handler<AsyncResult<Void>> resultHandler);
+
+    /**
+     * Find all current scrape targets.
+     *
+     * @param resultHandler receives the found scrape targets as JsonArray
+     */
+    void findAllScrapeTargets(Handler<AsyncResult<JsonArray>> resultHandler);
 }

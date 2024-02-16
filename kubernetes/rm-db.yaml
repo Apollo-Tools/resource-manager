@@ -38,7 +38,7 @@ spec:
     spec:
       containers:
         - name: rm-db
-          image: postgres:latest
+          image: postgres:14.10-alpine
           env:
             # Modify user credentials to your needs
             - name: POSTGRES_USER

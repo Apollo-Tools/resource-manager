@@ -26,6 +26,12 @@
   "kube_config_secrets_namespace": "default",
   "kube_config_directory": "/kubeconfig",
   "kube_api_timeout_seconds": 30,
+  "kube_image_pull_secrets": ["regcred"],
+
+  "monitoring_push_url": "http://localhost:4242",
+  "monitoring_query_url": "http://localhost:8428",
   "kube_monitoring_period": 5,
-  "kube_image_pull_secrets": ["regcred"]
+  "openfaas_monitoring_period": 5,
+  "region_monitoring_period": 5,
+  "aws_price_monitoring_period": 1440
 }

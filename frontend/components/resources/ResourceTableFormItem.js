@@ -1,6 +1,6 @@
-import ResourceTable from './ResourceTable';
 import {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
+import ResourceTable from './ResourceTable';
 
 
 const ResourceTableFormItem = ({onChange, resources}) => {
@@ -22,7 +22,7 @@ const ResourceTableFormItem = ({onChange, resources}) => {
     onChange?.(changedValue);
   };
 
-  return <ResourceTable resources={resources} rowSelection={rowSelection} hasActions/>;
+  return <ResourceTable resources={resources} rowSelection={rowSelection} hasActions resourceType='ensemble' />;
 };
 
 ResourceTableFormItem.propTypes = {

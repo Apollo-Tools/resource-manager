@@ -1,5 +1,8 @@
 package at.uibk.dps.rm.repository.resource;
 
+import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
+import at.uibk.dps.rm.entity.dto.resource.FindAllFunctionDeploymentScrapeTargetsDTO;
+import at.uibk.dps.rm.entity.dto.resource.FindAllOpenFaaSScrapeTargetsDTO;
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.model.MainResource;
 import at.uibk.dps.rm.entity.model.Resource;
@@ -89,8 +92,8 @@ public class ResourceRepository extends Repository<Resource> {
     }
 
     /**
-     * Find all resources and fetch the resource type, platform, environment, region, metric values and
-     * resource provider.
+     * Find all resources and fetch the resource type, platform, environment, region, metric values
+     * and resource provider.
      *
      * @param sessionManager the database session manager
      * @return a Single that emits a list of all resources
@@ -105,6 +108,65 @@ public class ResourceRepository extends Repository<Resource> {
                 "left join fetch p.resourceType " +
                 "left join fetch r.subResources sr ", entityClass)
             .getResultList()
+        );
+    }
+
+    /**
+     * Find all main resources by platform and fetch the metric values.
+     *
+     * @param sessionManager the database session manager
+     * @param platform the platform
+     * @return a Single that emits a list of all resources
+     */
+    public Single<List<Resource>> findAllMainResourcesByPlatform(SessionManager sessionManager, String platform) {
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery("select distinct r from MainResource r " +
+                "left join fetch r.metricValues mv " +
+                "left join fetch mv.metric m " +
+                "where r.platform.platform=:platform", entityClass)
+                .setParameter("platform", platform)
+            .getResultList()
+        );
+    }
+
+    /**
+     * Find all main and sub resources and fetch the resource type, platform, environment, region,
+     * metric values and resource provider.
+     *
+     * @param sessionManager the database session manager
+     * @return a Single that emits a list of all resources
+     */
+    public Single<List<Resource>> findAllMainAndSubResourcesAndFetch(SessionManager sessionManager) {
+        String mainQuery = "select distinct r from MainResource r " +
+            "left join fetch r.metricValues mv " +
+            "left join fetch mv.metric m " +
+            "left join fetch r.region reg " +
+            "left join fetch reg.resourceProvider rp " +
+            "left join fetch rp.environment e " +
+            "left join fetch r.platform p " +
+            "left join fetch p.resourceType rt";
+
+        String subQuery = "select distinct r from SubResource r " +
+            "left join fetch r.metricValues mv " +
+            "left join fetch mv.metric m " +
+            "left join fetch r.mainResource mr " +
+            "left join fetch mr.region reg " +
+            "left join fetch reg.resourceProvider rp " +
+            "left join fetch rp.environment e " +
+            "left join fetch mr.platform p " +
+            "left join fetch p.resourceType rt";
+
+        Single<List<Resource>> getMainResources = Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery(mainQuery, entityClass).getResultList()
+        );
+        Single<List<Resource>> getSubResources = Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery(subQuery, entityClass).getResultList());
+        return Single.zip(getMainResources, getSubResources, (mainResources, subResources) -> {
+                ArrayList<Resource> resources = new ArrayList<>();
+                resources.addAll(mainResources);
+                resources.addAll(subResources);
+                return resources;
+            }
         );
     }
 
@@ -145,6 +207,81 @@ public class ResourceRepository extends Repository<Resource> {
         if (!metrics.isEmpty()) {
             conditions.add("m.metric in (" +
                 metrics.stream().map(metric -> "'" + metric + "'").collect(Collectors.joining(",")) + ")");
+        }
+        String conditionString ="";
+        if (!conditions.isEmpty()) {
+            conditionString = "where " + String.join(" and ", conditions);
+        }
+
+        String mainQuery = "select distinct r from MainResource r " +
+            "left join fetch r.metricValues mv " +
+            "left join fetch mv.metric m " +
+            "left join fetch r.region reg " +
+            "left join fetch reg.resourceProvider rp " +
+            "left join fetch rp.environment e " +
+            "left join fetch r.platform p " +
+            "left join fetch p.resourceType rt " +
+            conditionString;
+
+        String subQuery = "select distinct r from SubResource r " +
+            "left join fetch r.metricValues mv " +
+            "left join fetch mv.metric m " +
+            "left join fetch r.mainResource mr " +
+            "left join fetch mr.region reg " +
+            "left join fetch reg.resourceProvider rp " +
+            "left join fetch rp.environment e " +
+            "left join fetch mr.platform p " +
+            "left join fetch p.resourceType rt " +
+            conditionString;
+
+        Single<List<Resource>> getMainResources = Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery(mainQuery, entityClass).getResultList()
+        );
+        Single<List<Resource>> getSubResources = Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery(subQuery, entityClass).getResultList());
+        return Single.zip(getMainResources, getSubResources, (mainResources, subResources) -> {
+                ArrayList<Resource> resources = new ArrayList<>();
+                resources.addAll(mainResources);
+                resources.addAll(subResources);
+                return resources;
+            }
+        );
+    }
+
+    /**
+     * Find all resources by their environment, resource types, platforms, regions and resource providers.
+     *
+     * @param sessionManager the database session manager
+     * @param environmentIds the ids of the environments
+     * @param resourceTypeIds the ids of the resource types
+     * @param platformIds the ids of the platforms
+     * @param regionIds the ids of the regions
+     * @param providerIds the ids of the resource providers
+     * @return a Single that emits a list of all resources
+     */
+    public Single<List<Resource>> findAllByNonMVSLOs(SessionManager sessionManager,
+        List<Long> environmentIds, List<Long> resourceTypeIds, List<Long> platformIds, List<Long> regionIds,
+            List<Long> providerIds) {
+        List<String> conditions = new ArrayList<>();
+        if (!environmentIds.isEmpty()) {
+            conditions.add("e.environmentId in (" +
+                environmentIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ")");
+        }
+        if (!resourceTypeIds.isEmpty()) {
+            conditions.add("rt.typeId in (" +
+                resourceTypeIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ")");
+        }
+        if (!platformIds.isEmpty()) {
+            conditions.add("p.platformId in (" +
+                platformIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ")");
+        }
+        if (!regionIds.isEmpty()) {
+            conditions.add("reg.regionId in (" +
+                regionIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ")");
+        }
+        if (!providerIds.isEmpty()) {
+            conditions.add("rp.providerId in (" +
+                providerIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ")");
         }
         String conditionString ="";
         if (!conditions.isEmpty()) {
@@ -370,6 +507,51 @@ public class ResourceRepository extends Repository<Resource> {
                 }
                 return mainResource;
             })
+        );
+    }
+
+    /**
+     * Find all function deployment scrape targets.
+     *
+     * @param sessionManager the database session
+     * @return a Maybe that emits the resource if it exists, else null
+     */
+    public Single<Set<FindAllFunctionDeploymentScrapeTargetsDTO>> findAllFunctionDeploymentTargets(
+        SessionManager sessionManager) {
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery("select distinct " +
+                    "new at.uibk.dps.rm.entity.dto.resource.FindAllFunctionDeploymentScrapeTargetsDTO(" +
+                    "fd.resourceDeploymentId, fd.deployment.deploymentId, fd.resource.resourceId, fd.baseUrl, " +
+                    "fd.metricsPort) from FunctionDeployment fd " +
+                    "where fd.status.statusValue=:statusDeployed and fd.resource.platform.platform=:platformEc2",
+                FindAllFunctionDeploymentScrapeTargetsDTO.class)
+            .setParameter("statusDeployed", DeploymentStatusValue.DEPLOYED.getValue())
+            .setParameter("platformEc2", PlatformEnum.EC2.getValue())
+            .getResultList()
+            .thenApply(Set::copyOf)
+        );
+    }
+
+    /**
+     * Find all OpenFaaS scrape targets.
+     *
+     * @param sessionManager the database session
+     * @return a Maybe that emits the resource if it exists, else null
+     */
+    public Single<List<FindAllOpenFaaSScrapeTargetsDTO>> findAllOpenFaaSTargets(SessionManager sessionManager) {
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery("select distinct new at.uibk.dps.rm.entity.dto.resource.FindAllOpenFaaSScrapeTargetsDTO(" +
+                    "r.resourceId, " +
+                    "(select mv.valueString from MetricValue mv where mv.metric.metric='base-url' " +
+                    "and mv.resource.resourceId=r.resourceId), " +
+                    "(select mv.valueNumber from MetricValue mv where mv.metric.metric='metrics-port' " +
+                    "and mv.resource.resourceId=r.resourceId) " +
+                    ") from Resource r " +
+                    "left join r.metricValues mv " +
+                    "where r.platform.platform=:platformOpenFaaS",
+                FindAllOpenFaaSScrapeTargetsDTO.class)
+            .setParameter("platformOpenFaaS", PlatformEnum.OPENFAAS.getValue())
+            .getResultList()
         );
     }
 }

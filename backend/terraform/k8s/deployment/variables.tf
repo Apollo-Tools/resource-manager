@@ -9,6 +9,16 @@ variable "deployment_id" {
   type        = number
 }
 
+variable "resource_deployment_id" {
+  description = "The id of the resource deployment."
+  type        = number
+}
+
+variable "service_id" {
+  description = "The id of the service."
+  type        = number
+}
+
 variable "namespace" {
   description = "The k8s namespace that should be used."
   type        = string

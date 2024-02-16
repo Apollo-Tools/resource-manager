@@ -68,7 +68,7 @@ public interface MetricValueService extends DatabaseServiceInterface {
      * @param resultHandler receives nothing if the update was successful else an error
      */
     void updateByResourceAndMetric(long resourceId, long metricId, String valueString, Double valueNumber,
-        Boolean valueBool, boolean isExternalSource, Handler<AsyncResult<Void>> resultHandler);
+        Boolean valueBool, Handler<AsyncResult<Void>> resultHandler);
 
     /**
      * Delete a metric value by its resource and metric.

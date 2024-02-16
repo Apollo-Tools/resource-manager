@@ -1,17 +1,16 @@
 package at.uibk.dps.rm.repository.metric;
 
-import at.uibk.dps.rm.entity.model.Metric;
+import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
+import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.testutil.integration.DatabaseTest;
+import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
 import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,30 +22,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class MetricRepositoryTest extends DatabaseTest {
 
     private final MetricRepository repository = new MetricRepository();
-
-    private static Stream<Arguments> providePlatformMetrics() {
-        return Stream.of(
-            Arguments.of(1L, true, List.of("deployment-role")),
-            Arguments.of(1L, false, List.of("availability", "latency", "online", "cost", "time-to-live")),
-            Arguments.of(2L, true, List.of("memory-size", "instance-type", "docker-architecture")),
-            Arguments.of(2L, false, List.of("availability", "latency", "online", "cpu", "cost",
-                "time-to-live")),
-            Arguments.of(99L, true, List.of()),
-            Arguments.of(99L, false, List.of())
-        );
-    }
-    @ParameterizedTest
-    @MethodSource("providePlatformMetrics")
-    void findAllByPlatformId(long platformId, boolean required, List<String> metrics,
-            VertxTestContext testContext) {
-        smProvider.withTransactionSingle(sessionManager -> repository.findAllByPlatformId(sessionManager,
-                platformId, required))
-            .subscribe(result -> testContext.verify(() -> {
-                assertThat(result.stream().map(Metric::getMetric).collect(Collectors.toList()))
-                    .isEqualTo(metrics);
-                testContext.completeNow();
-            }), throwable -> testContext.failNow("method has thrown exception"));
-    }
 
     @ParameterizedTest
     @CsvSource({
@@ -70,25 +45,21 @@ public class MetricRepositoryTest extends DatabaseTest {
             });
     }
 
-    @ParameterizedTest
-    @CsvSource({
-        "availability, true, 1",
-        "deployment-role, false, 20",
-        "nonexistent, false, -1"
-    })
-    void findByMetricAndIsSLO(String metric, boolean exists, long id, VertxTestContext testContext) {
-        smProvider.withTransactionMaybe(sessionManager -> repository.findByMetricAndIsSLO(sessionManager, metric))
+
+    @Test
+    void findAllBySLOs(VertxTestContext testContext) {
+        ServiceLevelObjective slo1 = TestDTOProvider.createServiceLevelObjective("availability", ExpressionType.EQ,
+            0.99);
+        ServiceLevelObjective slo2 = TestDTOProvider.createServiceLevelObjective("openfaas-user", ExpressionType.EQ,
+            "user");
+        ServiceLevelObjective slo3 = TestDTOProvider.createServiceLevelObjective("notexisting", ExpressionType.EQ,
+           false);
+        smProvider.withTransactionSingle(sessionManager -> repository.findAllBySLOs(sessionManager,
+                List.of(slo1, slo2, slo3)))
             .subscribe(result -> testContext.verify(() -> {
-                if (exists) {
-                    assertThat(result.getMetricId()).isEqualTo(id);
-                    testContext.completeNow();
-                } else {
-                    testContext.failNow("method did not throw exception");
-                }
-            }), throwable -> {
-                assertThat(exists).isEqualTo(false);
-                assertThat(throwable.getCause()).isInstanceOf(NoSuchElementException.class);
+                assertThat(result.size()).isEqualTo(1);
+                assertThat(result.get(0).getMetricId()).isEqualTo(1L);
                 testContext.completeNow();
-            });
+            }), throwable -> testContext.failNow("method has thrown exception"));
     }
 }

@@ -1,0 +1,1340 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "$$hashKey": "object:2875",
+        "builtIn": 1,
+        "datasource": {
+          "type": "datasource",
+          "uid": "grafana"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Dasbhoard based on https://grafana.com/grafana/dashboards/15172",
+  "editable": false,
+  "fiscalYearStartMonth": 0,
+  "gnetId": 15172,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "victoriametrics-datasource",
+        "uid": "RESOURCE_MANAGER_VM"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "center",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": false,
+            "inspect": false
+          },
+          "decimals": 2,
+          "displayName": "",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "instance (lastNotNull)"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "IP"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "mappings",
+                "value": []
+              },
+              {
+                "id": "filterable"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #Mem (lastNotNull)"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Mem"
+              },
+              {
+                "id": "unit",
+                "value": "bytes"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #CPU (lastNotNull)"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "CPU"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #Uptime (lastNotNull)"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": " Uptime"
+              },
+              {
+                "id": "unit",
+                "value": "dthms"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #Part util (lastNotNull)"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Storage used"
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "lcd",
+                  "type": "gauge",
+                  "valueDisplayMode": "text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "percentage",
+                  "steps": [
+                    {
+                      "color": "rgba(50, 172, 45, 0.97)",
+                      "value": null
+                    },
+                    {
+                      "color": "rgba(237, 129, 40, 0.89)",
+                      "value": 70
+                    },
+                    {
+                      "color": "rgba(245, 54, 54, 0.9)",
+                      "value": 85
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "displayName",
+                "value": "Storage used"
+              },
+              {
+                "id": "custom.width",
+                "value": 140
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #CPU util (lastNotNull)"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "CPU used"
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "lcd",
+                  "type": "gauge",
+                  "valueDisplayMode": "text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "percentage",
+                  "steps": [
+                    {
+                      "color": "rgba(50, 172, 45, 0.97)",
+                      "value": null
+                    },
+                    {
+                      "color": "rgba(237, 129, 40, 0.89)",
+                      "value": 70
+                    },
+                    {
+                      "color": "rgba(245, 54, 54, 0.9)",
+                      "value": 85
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 100
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #Mem util (lastNotNull)"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Mem used"
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "lcd",
+                  "type": "gauge",
+                  "valueDisplayMode": "text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "percentage",
+                  "steps": [
+                    {
+                      "color": "rgba(50, 172, 45, 0.97)",
+                      "value": null
+                    },
+                    {
+                      "color": "rgba(237, 129, 40, 0.89)",
+                      "value": 70
+                    },
+                    {
+                      "color": "rgba(245, 54, 54, 0.9)",
+                      "value": 85
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 100
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #Temperature (lastNotNull)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "celsius"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 70
+                    },
+                    {
+                      "color": "red",
+                      "value": 85
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "lcd",
+                  "type": "gauge",
+                  "valueDisplayMode": "text"
+                }
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "min",
+                "value": 20
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "displayName",
+                "value": "Temperature"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #Storage (lastNotNull)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "decbytes"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "displayName",
+                "value": "Storage"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #Uptime (lastNotNull)"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 82
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #CPU (lastNotNull)"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 50
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #Mem util (lastNotNull)"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 140
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #CPU util (lastNotNull)"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 140
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "resource"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 80
+              },
+              {
+                "id": "filterable"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "displayName",
+                "value": "Resource"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #Up (lastNotNull)"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "0": {
+                        "color": "red",
+                        "index": 1,
+                        "text": "Offline"
+                      },
+                      "1": {
+                        "color": "green",
+                        "index": 0,
+                        "text": "Online"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 73
+              },
+              {
+                "id": "displayName",
+                "value": "Up"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #Storage (lastNotNull)"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #Mem (lastNotNull)"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "instance (lastNotNull)"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 120
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #Temperature (lastNotNull)"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 145
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #Availability (lastNotNull)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "decimals",
+                "value": 6
+              },
+              {
+                "id": "displayName",
+                "value": "Availability (30d)"
+              },
+              {
+                "id": "custom.width",
+                "value": 130
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #Latency (lastNotNull)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "lcd",
+                  "type": "gauge",
+                  "valueDisplayMode": "text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "#EAB839",
+                      "value": 0.1
+                    },
+                    {
+                      "color": "red",
+                      "value": 0.15
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 0.2
+              },
+              {
+                "id": "displayName",
+                "value": "Latency"
+              },
+              {
+                "id": "custom.width",
+                "value": 140
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "hideTimeOverride": false,
+      "id": 185,
+      "interval": "1s",
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "enablePagination": true,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "10.2.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "expr": "sum(time() - node_boot_time_seconds{resource=~\"$resourceId\", deployment=~\"($deploymentId|)\"})by(resource, instance, job)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "Uptime",
+          "refId": "Uptime"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "expr": "node_memory_MemTotal_bytes{resource=~\"$resourceId\", deployment=~\"($deploymentId|)\"}-0",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "Mem",
+          "refId": "Mem"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "count(node_cpu_seconds_total{resource=~\"$resourceId\",mode='system', deployment=~\"($deploymentId|)\"}) by (resource, instance)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "CPU",
+          "range": false,
+          "refId": "CPU"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "max(node_hwmon_temp_celsius{resource=~\"$resourceId\", deployment=~\"($deploymentId|)\"} or node_thermal_zone_temp{resource=~\"resourceId\", deployment=~\"($deploymentId|)\"}) by (resource, instance)",
+          "format": "table",
+          "fullMetaSearch": false,
+          "hide": false,
+          "includeNullMetadata": true,
+          "instant": true,
+          "legendFormat": "Temperature",
+          "range": false,
+          "refId": "Temperature",
+          "useBackend": false
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "clamp_min((1 - avg(rate(node_cpu_seconds_total{resource=~\"$resourceId\",mode=\"idle\", deployment=~\"($deploymentId|)\"}[$interval])) by (resource, instance)) * 100, 0)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "CPU utilization",
+          "range": false,
+          "refId": "CPU util"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "exemplar": true,
+          "expr": "(1 - (node_memory_MemFree_bytes{resource=~\"$resourceId\"} + node_memory_Buffers_bytes{resource=~\"$resourceId\", deployment=~\"($deploymentId|)\"} + node_memory_Cached_bytes{resource=~\"$resourceId\", deployment=~\"($deploymentId|)\"}) / node_memory_MemTotal_bytes{resource=~\"$resourceId\", deployment=~\"($deploymentId|)\"}) * 100",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "Memory utilization",
+          "refId": "Mem util"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "label_del(node_filesystem_size_bytes{resource=~\"$resourceId\",mountpoint=\"/\",fstype!=\"rootfs\", deployment=~\"($deploymentId|)\"} - 0, \"device\", \"fstype\", \"mountpoint\")",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "Storage"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "expr": "label_del(100 - ((node_filesystem_avail_bytes{resource=~\"$resourceId\",mountpoint=\"/\",fstype!=\"rootfs\", deployment=~\"($deploymentId|)\"} * 100) / node_filesystem_size_bytes{resource=~\"$resourceId\",mountpoint=\"/\",fstype!=\"rootfs\", deployment=~\"($deploymentId|)\"}), \"device\", \"fstype\", \"mountpoint\")",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "Partition utilization",
+          "refId": "Part util"
+        },
+        {
+          "datasource": {
+            "type": "victoriametrics-datasource",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "up{resource=~\"$resourceId\", deployment=~\"($deploymentId|)\"} - 0",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "Up"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "expr": "max(rate(node_disk_read_bytes_total{resource=~\"$resourceId\"}[$interval])) by (resource)",
+          "format": "table",
+          "hide": true,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "Maximum read",
+          "refId": "Disk read"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "expr": "max(rate(node_disk_written_bytes_total{resource=~\"$resourceId\"}[$interval])) by (resource)",
+          "format": "table",
+          "hide": true,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "Maximum write",
+          "refId": "Disk write"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "expr": "node_netstat_Tcp_CurrEstab{resource=~\"$resourceId\"} - 0",
+          "format": "table",
+          "hide": true,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "TCP connections",
+          "refId": "TCP_estab"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "expr": "node_sockstat_TCP_tw{resource=~\"$resourceId\"} - 0",
+          "format": "table",
+          "hide": true,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "TCP time wait",
+          "refId": "TCP_tw"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "expr": "max(rate(node_network_receive_bytes_total{resource=~\"$resourceId\"}[$interval])*8) by (resource)",
+          "format": "table",
+          "hide": true,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "Download bandwidth",
+          "refId": "Receive"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "expr": "max(rate(node_network_transmit_bytes_total{resource=~\"$resourceId\"}[$interval])*8) by (resource)",
+          "format": "table",
+          "hide": true,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "Upload bandwidth",
+          "refId": "Transmit"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "expr": "node_load5{resource=~\"$resourceId\"}",
+          "format": "table",
+          "hide": true,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "Load(5m)",
+          "refId": "Load(5m)"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "expr": "label_del(node_uname_info{resource=~\"$resourceId\"} -0, \"domainname\", \"machine\", \"nodename\", \"release\", \"sysname\", \"version\")",
+          "format": "table",
+          "hide": true,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "Hostname",
+          "refId": "Hostname"
+        },
+        {
+          "datasource": {
+            "type": "victoriametrics-datasource",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "avg_over_time(up{resource=~\"$resourceId\", deployment=~\"($deploymentId|)\"}[30d])",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "Availability"
+        },
+        {
+          "datasource": {
+            "type": "victoriametrics-datasource",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "openfaas_latency_seconds{resource=~\"$resourceId\"}",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "Latency"
+        }
+      ],
+      "title": "VM/Bare-Metal Resources",
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {
+            "reducers": []
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Temperature": false,
+              "Time": true,
+              "Value #CPU": false,
+              "Value #CPU util": false,
+              "Value #Disk read": true,
+              "Value #Disk write": true,
+              "Value #Hostname": true,
+              "Value #Load(5m)": true,
+              "Value #Mem": false,
+              "Value #Mem util": false,
+              "Value #Part util": false,
+              "Value #Receive": true,
+              "Value #Storage": false,
+              "Value #TCP_estab": true,
+              "Value #TCP_tw": true,
+              "Value #Transmit": true,
+              "Value #Up": false,
+              "Value #Uptime": false,
+              "__name__": true,
+              "deployment": true,
+              "device": true,
+              "domainname": true,
+              "fstype": true,
+              "instance": true,
+              "job": true,
+              "machine": true,
+              "mountpoint": true,
+              "nodename": true,
+              "release": true,
+              "resource": false,
+              "resource_deployment": true,
+              "sysname": true,
+              "version": true
+            },
+            "indexByName": {
+              "Time": 5,
+              "Value #Availability": 3,
+              "Value #CPU": 8,
+              "Value #CPU util": 11,
+              "Value #Latency": 4,
+              "Value #Mem": 9,
+              "Value #Mem util": 12,
+              "Value #Part util": 13,
+              "Value #Storage": 10,
+              "Value #Temperature": 14,
+              "Value #Up": 2,
+              "Value #Uptime": 7,
+              "__name__": 15,
+              "instance": 1,
+              "job": 6,
+              "resource": 0
+            },
+            "renameByName": {
+              "Value #Part util": "",
+              "Value #Storage": "",
+              "Value #Temperature": "",
+              "Value #Up": "",
+              "id": "Id",
+              "resource": ""
+            }
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "Resource": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "Storage": {
+                "aggregations": [
+                  "lastNotNull"
+                ],
+                "operation": "aggregate"
+              },
+              "Temperature": {
+                "aggregations": [
+                  "lastNotNull"
+                ],
+                "operation": "aggregate"
+              },
+              "Up": {
+                "aggregations": [
+                  "lastNotNull"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #Availability": {
+                "aggregations": [
+                  "lastNotNull"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #CPU": {
+                "aggregations": [
+                  "lastNotNull"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #CPU util": {
+                "aggregations": [
+                  "lastNotNull"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #Latency": {
+                "aggregations": [
+                  "lastNotNull"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #Mem": {
+                "aggregations": [
+                  "lastNotNull"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #Mem util": {
+                "aggregations": [
+                  "lastNotNull"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #Part util": {
+                "aggregations": [
+                  "lastNotNull"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #Storage": {
+                "aggregations": [
+                  "lastNotNull"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #Temperature": {
+                "aggregations": [
+                  "lastNotNull"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #Up": {
+                "aggregations": [
+                  "lastNotNull"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #Uptime": {
+                "aggregations": [
+                  "lastNotNull"
+                ],
+                "operation": "aggregate"
+              },
+              "instance": {
+                "aggregations": [
+                  "lastNotNull"
+                ],
+                "operation": "aggregate"
+              },
+              "resource": {
+                "aggregations": [],
+                "operation": "groupby"
+              }
+            }
+          }
+        },
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "destinationType": "number",
+                "targetField": "resource"
+              }
+            ],
+            "fields": {}
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "resource"
+              }
+            ]
+          }
+        }
+      ],
+      "type": "table"
+    }
+  ],
+  "refresh": "1s",
+  "schemaVersion": 38,
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "auto": false,
+        "auto_count": 100,
+        "auto_min": "10s",
+        "current": {
+          "selected": false,
+          "text": "5s",
+          "value": "5s"
+        },
+        "hide": 2,
+        "label": "Interval",
+        "name": "interval",
+        "options": [
+          {
+            "selected": false,
+            "text": "1s",
+            "value": "1s"
+          },
+          {
+            "selected": false,
+            "text": "2s",
+            "value": "2s"
+          },
+          {
+            "selected": true,
+            "text": "5s",
+            "value": "5s"
+          },
+          {
+            "selected": false,
+            "text": "15s",
+            "value": "15s"
+          },
+          {
+            "selected": false,
+            "text": "30s",
+            "value": "30s"
+          },
+          {
+            "selected": false,
+            "text": "1m",
+            "value": "1m"
+          },
+          {
+            "selected": false,
+            "text": "2m",
+            "value": "2m"
+          },
+          {
+            "selected": false,
+            "text": "3m",
+            "value": "3m"
+          },
+          {
+            "selected": false,
+            "text": "5m",
+            "value": "5m"
+          },
+          {
+            "selected": false,
+            "text": "10m",
+            "value": "10m"
+          },
+          {
+            "selected": false,
+            "text": "30m",
+            "value": "30m"
+          }
+        ],
+        "query": "1s,2s,5s,15s,30s,1m,2m,3m,5m,10m,30m",
+        "queryValue": "",
+        "refresh": 2,
+        "skipUrlSync": false,
+        "type": "interval"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "RESOURCE_MANAGER_PROM"
+        },
+        "definition": "label_values(id)",
+        "hide": 2,
+        "includeAll": true,
+        "multi": true,
+        "name": "resourceId",
+        "options": [],
+        "query": {
+          "qryType": 1,
+          "query": "label_values(resource)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "isNone": true,
+          "selected": false,
+          "text": "None",
+          "value": ""
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "RESOURCE_MANAGER_PROM"
+        },
+        "definition": "label_values(deployment)",
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "name": "deploymentId",
+        "options": [],
+        "query": {
+          "qryType": 1,
+          "query": "label_values(deployment)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-5m",
+    "to": "now"
+  },
+  "timepicker": {
+    "hidden": true,
+    "now": true,
+    "refresh_intervals": [
+      "1s",
+      "5s",
+      "15s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d"
+    ]
+  },
+  "timezone": "browser",
+  "title": "Node Exporter",
+  "uid": "efa71f23-5850-4144-8b29-0ae9480eec94",
+  "version": 6,
+  "weekStart": ""
+}

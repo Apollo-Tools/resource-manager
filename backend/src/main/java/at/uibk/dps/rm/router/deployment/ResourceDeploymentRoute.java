@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.router.deployment;
 
+import at.uibk.dps.rm.handler.ResultHandler;
 import at.uibk.dps.rm.handler.deploymentexecution.DeploymentExecutionChecker;
 import at.uibk.dps.rm.handler.deploymentexecution.ContainerStartupHandler;
 import at.uibk.dps.rm.router.Route;
@@ -14,18 +15,25 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 public class ResourceDeploymentRoute implements Route {
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
-        DeploymentExecutionChecker deploymentChecker = new DeploymentExecutionChecker(serviceProxyProvider
-            .getDeploymentExecutionService(), serviceProxyProvider.getLogService(), serviceProxyProvider
-            .getDeploymentLogService());
-        ContainerStartupHandler startupHandler = new ContainerStartupHandler(deploymentChecker,
-            serviceProxyProvider.getServiceDeploymentService());
+        DeploymentExecutionChecker deploymentChecker = new DeploymentExecutionChecker(serviceProxyProvider);
+        ContainerStartupHandler startupHandler = new ContainerStartupHandler(deploymentChecker, serviceProxyProvider);
 
         router
-            .operation("startResourceDeployment")
-            .handler(startupHandler::deployContainer);
+            .operation("startServiceDeployment")
+            .handler(rc -> startupHandler.deployContainer(rc)
+                .subscribe(() -> {}, throwable -> ResultHandler.handleRequestError(rc, throwable))
+            );
 
         router
-            .operation("stopResourceDeployment")
-            .handler(startupHandler::terminateContainer);
+            .operation("stopServiceDeployment")
+            .handler(rc -> startupHandler.terminateContainer(rc)
+                .subscribe(() -> {}, throwable -> ResultHandler.handleRequestError(rc, throwable))
+            );
+
+        router
+            .operation("invokeFunctionDeployment")
+            .handler(rc -> startupHandler.invokeFunction(rc)
+                .subscribe(() -> {}, throwable -> ResultHandler.handleRequestError(rc, throwable))
+            );
     }
 }

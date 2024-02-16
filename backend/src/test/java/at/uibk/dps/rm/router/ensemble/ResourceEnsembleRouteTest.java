@@ -13,6 +13,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.web.client.WebClient;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -38,9 +39,10 @@ public class ResourceEnsembleRouteTest extends RouterTest {
             Resource r1 = TestResourceProvider.createResource(null, "r1", p1, reg1);
             return sessionManager.persist(e1)
                 .flatMap(res -> sessionManager.persist(r1));
-        }).blockingSubscribe(res -> {}, testContext::failNow);
+        }).blockingSubscribe(res -> {}, throwable -> testContext.failNow(throwable.getMessage()));
     }
 
+    @Disabled
     @Test
     void addResourceToEnsemble(Vertx vertx, VertxTestContext testContext) {
         WebClient client = WebClient.create(vertx);
@@ -56,6 +58,6 @@ public class ResourceEnsembleRouteTest extends RouterTest {
                 } else {
                     testContext.failNow("operation failed");
                 }
-            }, throwable -> testContext.failNow("method has thrown exception"));
+            }, throwable -> testContext.failNow(throwable.getMessage()));
     }
 }

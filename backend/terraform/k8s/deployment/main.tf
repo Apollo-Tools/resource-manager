@@ -12,6 +12,12 @@ resource "kubernetes_service_v1" "service" {
   metadata {
     name = local.name
     namespace = var.namespace
+    labels = {
+      source = "apollo-rm-deployment"
+      deployment = var.deployment_id
+      resource_deployment = var.resource_deployment_id
+      service = var.service_id
+    }
   }
   spec {
     selector = {
@@ -36,6 +42,10 @@ resource "kubernetes_deployment_v1" "deployment" {
     name = local.name
     labels = {
       app = local.name
+      source = "apollo-rm-deployment"
+      deployment = var.deployment_id
+      resource_deployment = var.resource_deployment_id
+      service = var.service_id
     }
     namespace = var.namespace
   }
@@ -51,6 +61,11 @@ resource "kubernetes_deployment_v1" "deployment" {
       metadata {
         labels = {
           app = local.name
+          source = "apollo-rm-deployment"
+          deployment = var.deployment_id
+          resource-deployment = var.resource_deployment_id
+          service = var.service_id
+          apollo-type = "pod"
         }
       }
       spec {

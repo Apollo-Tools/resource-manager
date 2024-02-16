@@ -135,7 +135,7 @@ public class MainFileService extends TerraformFileService {
         }
 
         return String.format(
-            "output \"function_urls\" {\n" +
+            "output \"resource_output\" {\n" +
                 "   value = merge(%s)\n" +
                 "}\n", functionsOutput
         );

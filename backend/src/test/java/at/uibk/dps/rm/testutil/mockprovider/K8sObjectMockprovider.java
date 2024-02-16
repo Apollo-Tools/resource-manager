@@ -1,6 +1,8 @@
 package at.uibk.dps.rm.testutil.mockprovider;
 
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
+import io.kubernetes.client.Metrics;
+import io.kubernetes.client.custom.NodeMetricsList;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1NamespaceList;
@@ -70,5 +72,10 @@ public class K8sObjectMockprovider {
                 null, null, null, null, config.getKubeApiTimeoutSeconds(),
                 false))
             .willThrow(ApiException.class));
+    }
+
+    public static MockedConstruction<Metrics> mockMetricsNodeUtilisation(NodeMetricsList nodeMetricsList) {
+        return Mockito.mockConstruction(Metrics.class, (mock, context) ->
+            given(mock.getNodeMetrics()).willReturn(nodeMetricsList));
     }
 }

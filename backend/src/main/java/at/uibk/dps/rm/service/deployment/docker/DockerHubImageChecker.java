@@ -5,6 +5,8 @@ import at.uibk.dps.rm.entity.model.Function;
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.web.client.WebClient;
@@ -23,6 +25,8 @@ import java.util.stream.Collectors;
  */
 @RequiredArgsConstructor
 public class DockerHubImageChecker implements DockerImageChecker {
+
+    private static final Logger logger = LoggerFactory.getLogger(DockerHubImageChecker.class);
 
     private final Vertx vertx;
 
@@ -57,9 +61,8 @@ public class DockerHubImageChecker implements DockerImageChecker {
     @Override
     public Single<Boolean> isUpToDate(String imageName, String tag, Date lastFunctionUpdate) {
         WebClient client = WebClient.create(vertx);
-        String API_HOST = "hub.docker.com";
-        String API_PATH = "/v2/repositories/";
-        return client.get(API_HOST, API_PATH + imageName + "/tags/" + tag)
+        String repoUrl = "https://hub.docker.com/v2/repositories/" + imageName + "/tags/" + tag;
+        return client.getAbs(repoUrl)
             .send()
             .map(response -> {
                 client.close();
@@ -73,6 +76,10 @@ public class DockerHubImageChecker implements DockerImageChecker {
                 Date lastPushed = Date.from(Instant.parse(lastPushedTimeStamp));
                 int isUpToDate = lastPushed.compareTo(lastFunctionUpdate);
                 return isUpToDate > 0;
+            })
+            .onErrorReturn(throwable -> {
+                logger.warn(throwable.getMessage());
+                return false;
             });
     }
 

@@ -5,7 +5,6 @@ import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import TooltipIcon from '../misc/TooltipIcon';
-import BoolValueDisplay from '../misc/BoolValueDisplay';
 import DateColumnRender from '../misc/DateColumnRender';
 
 const {Column} = Table;
@@ -56,9 +55,7 @@ const MetricValuesTable = ({resourceId, metricValues, setMetricValues}) => {
         render={(_, metric) => {
           return <>{metric.metric.metric} <TooltipIcon text={metric.metric.description} /></>;
         }}
-      />
-      <Column title="Is monitored" dataIndex='is_monitored' key="is_monitored"
-        render={(isMonitored) => <BoolValueDisplay value={isMonitored} />}
+        defaultSortOrder="ascend"
       />
       <Column title="Value" dataIndex="value" key="value" />
       <Column title="Created at" dataIndex="created_at" key="created_at"

@@ -24,7 +24,7 @@ const ResourceTable = ({
   const [platformFilter, setPlatformFilter] = useState([]);
 
   useEffect(() => {
-    if (['sub', 'all'].includes(resourceType)) {
+    if (['sub', 'all', 'ensemble'].includes(resourceType)) {
       return;
     }
     setEnvFilter(() =>
@@ -143,7 +143,7 @@ ResourceTable.propTypes={
   rowSelection: PropTypes.object,
   customButton: PropTypes.shape({onClick: PropTypes.func, icon: PropTypes.node, tooltip: PropTypes.node}),
   getRowClassname: PropTypes.func,
-  resourceType: PropTypes.oneOf(['main', 'sub', 'all']),
+  resourceType: PropTypes.oneOf(['main', 'sub', 'all', 'ensemble']),
 };
 
 

@@ -104,7 +104,7 @@ public class MetricValueHandlerTest {
         when(rc.pathParam("metricId")).thenReturn(String.valueOf(metricId));
         when(metricValueService.updateByResourceAndMetric(1L, 2L,
             value.equals("\"eight\"") ? "eight" : null, value.equals("8") ? 8.0 : null,
-            value.equals("true") ? true : null, true))
+                value.equals("true") ? true : null))
             .thenReturn(Completable.complete());
 
         metricValueHandler.updateOne(rc)

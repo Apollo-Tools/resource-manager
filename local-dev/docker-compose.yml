@@ -1,8 +1,13 @@
-version: '3.1'
+version: '3.8'
+
+volumes:
+  postgres-data: {}
+  grafana-data: {}
+  victoria-metrics-data: {}
 
 services:
   db:
-    image: postgres:14.3
+    image: postgres:14.10-alpine
     restart: always
     environment:
       POSTGRES_DB: resource-manager
@@ -10,6 +15,67 @@ services:
       POSTGRES_PASSWORD: root
       TZ: 'UTC'
       PGTZ: 'UTC'
-
+    networks:
+      - my-network
     ports:
       - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+  victoria-metrics:
+    image: victoriametrics/victoria-metrics:v1.96.0
+    depends_on:
+      - db
+    ports:
+      - "8428:8428"
+      - "8089:8089"
+      - "8089:8089/udp"
+      - "2003:2003"
+      - "2003:2003/udp"
+      - "4242:4242"
+    volumes:
+      - victoria-metrics-data:/victoria-metrics-data
+      -  ./:/configs
+    command:
+      - "--promscrape.config=/configs/vmscrape.yml"
+      - "--promscrape.httpSDCheckInterval=1m"
+      - "--storageDataPath=/victoria-metrics-data"
+      - "--graphiteListenAddr=:2003"
+      - "--opentsdbListenAddr=:4242"
+      - "--httpListenAddr=:8428"
+      - "--influxListenAddr=:8089"
+      - "--search.latencyOffset=1s"
+    networks:
+      - my-network
+  grafana:
+    image: grafana/grafana:10.2.2
+    depends_on:
+      - db
+      - victoria-metrics
+    ports:
+      - '3001:3000'
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ../grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ../grafana/datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - my-network
+    environment:
+      # plugins
+      GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: victoriametrics-datasource
+      GF_INSTALL_PLUGINS: https://github.com/VictoriaMetrics/grafana-datasource/releases/download/v0.5.0/victoriametrics-datasource-v0.5.0.zip;custom-plugin,yesoreyeram-infinity-datasource
+      # security
+      GF_SECURITY_ADMIN_EMAIL: admin@localhost
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ALLOW_EMBEDDING: true
+      GF_SECURITY_COOKIE_SAMESITE: none
+      # auth
+      GF_AUTH_ANONYMOUS_ENABLED: true
+      GF_AUTH_ANONYMOUS_ORG_NAME: Main Org.
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      # theming
+      GF_USERS_DEFAULT_THEME: light
+      # dashboards
+      GF_DASHBOARDS_MIN_REFRESH_INTERVAL: 1s
+networks:
+  my-network:

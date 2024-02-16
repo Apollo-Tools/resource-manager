@@ -180,8 +180,9 @@ public class MainFileServiceTest {
         String result = service.getOutputsFileContent();
 
         assertThat(result).isEqualTo(
-            "output \"function_urls\" {\n" +
-                "   value = merge(module.aws_r1.function_urls,module.aws_r2.function_urls,module.custom-edge_r3.function_urls,)\n" +
+            "output \"resource_output\" {\n" +
+                "   value = merge(module.aws_r1.resource_output,module.aws_r2.resource_output," +
+                "module.custom-edge_r3.resource_output,)\n" +
                 "}\n");
     }
 
@@ -192,7 +193,7 @@ public class MainFileServiceTest {
         String result = service.getOutputsFileContent();
 
         assertThat(result).isEqualTo(
-            "output \"function_urls\" {\n" +
+            "output \"resource_output\" {\n" +
                 "   value = merge()\n" +
                 "}\n");
     }

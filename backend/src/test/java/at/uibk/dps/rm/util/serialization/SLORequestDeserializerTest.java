@@ -45,8 +45,7 @@ public class SLORequestDeserializerTest {
             .put("slos", List.of(sloAvailability, regions, providers, resourceTypes, platforms, environments))
             .put("ensemble_id", 1L)
             .put("name", "ensemble")
-            .put("resources", List.of(JsonObject.mapFrom(TestResourceProvider
-                .createResourceDTO(TestResourceProvider.createResource(1L)))));
+            .put("resources", List.of(JsonObject.mapFrom(TestResourceProvider.createResource(1L))));
         JsonObject createEnsemble = new JsonObject()
             .put("slos", List.of(sloAvailability, regions, providers, resourceTypes, platforms, environments))
             .put("name", "ensemble")

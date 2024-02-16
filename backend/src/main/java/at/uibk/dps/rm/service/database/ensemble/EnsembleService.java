@@ -15,6 +15,8 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
+import java.util.Map;
+
 /**
  * The interface of the service proxy for the ensemble entity.
  *
@@ -47,12 +49,21 @@ public interface EnsembleService extends DatabaseServiceInterface {
     void findOneByIdAndAccountId(long id, long accountId, Handler<AsyncResult<JsonObject>> resultHandler);
 
     /**
-     * Check if all resources from a create ensemble request fulfill its service level objectives.
+     * Update the status values of a resource ensemble.
      *
-     * @param data the request data
-     * @param resultHandler receives nothing if the check was successful else an error
+     * @param ensembleId the id of the ensemble
+     * @param statusValues the status values
+     * @param resultHandler receives nothing if the update was successful else an error
      */
-    void validateCreateEnsembleRequest(JsonObject data, Handler<AsyncResult<Void>> resultHandler);
+    void updateEnsembleStatus(long ensembleId, JsonArray statusValues, Handler<AsyncResult<Void>> resultHandler);
+
+    /**
+     * Update the status values of a resource ensemble.
+     *
+     * @param statusValues the status values grouped by the ensemble id
+     * @param resultHandler receives nothing if the update was successful else an error
+     */
+    void updateEnsembleStatusMap(Map<String, JsonArray> statusValues, Handler<AsyncResult<Void>> resultHandler);
 
     /**
      * Check if all resources from an existing ensemble fulfill its service level objectives.

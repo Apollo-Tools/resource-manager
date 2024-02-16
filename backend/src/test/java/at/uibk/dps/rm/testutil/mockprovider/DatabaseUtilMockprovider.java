@@ -9,7 +9,7 @@ import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
 import at.uibk.dps.rm.entity.dto.ensemble.ResourceEnsembleStatus;
 import at.uibk.dps.rm.entity.dto.resource.ResourceId;
 import at.uibk.dps.rm.entity.model.*;
-import at.uibk.dps.rm.entity.monitoring.K8sMonitoringData;
+import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sMonitoringData;
 import at.uibk.dps.rm.service.database.util.*;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -24,6 +24,7 @@ import java.util.Map;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
 
 /**
  * Utility class to mock (mocked construction) database util objects for tests.
@@ -39,12 +40,9 @@ public class DatabaseUtilMockprovider {
     }
 
     public static MockedConstruction<K8sResourceUpdateUtility> mockK8sResourceUpdateUtility(SessionManager sm,
-                                                                                            MainResource cluster, K8sMonitoringData data) {
+            MainResource cluster, K8sMonitoringData data) {
         return Mockito.mockConstruction(K8sResourceUpdateUtility.class,
-            (mock, context) -> {
-                given(mock.updateClusterNodes(sm, cluster, data)).willReturn(Completable.complete());
-                given(mock.updateCluster(sm, cluster, data)).willReturn(Completable.complete());
-            });
+            (mock, context) -> given(mock.updateClusterNodes(sm, cluster, data)).willReturn(Completable.complete()));
     }
 
     public static MockedConstruction<EnsembleUtility> mockEnsembleUtilityFetch(SessionManager sm, long ensembleId,
@@ -54,29 +52,25 @@ public class DatabaseUtilMockprovider {
     }
 
     public static MockedConstruction<EnsembleUtility> mockEnsembleUtilityFetchAndValidate(SessionManager sm,
-                                                                                          long ensembleId, long accountId, GetOneEnsemble fetchResult, List<Resource> validResources,
-                                                                                          List<ResourceEnsembleStatus> validateResult) {
-        return Mockito.mockConstruction(EnsembleUtility.class, (mock, context) -> {
-            given(mock.fetchAndPopulateEnsemble(sm, ensembleId, accountId)).willReturn(Single.just(fetchResult));
-            given(mock.getResourceEnsembleStatus(validResources, fetchResult.getResources()))
-                .willReturn(validateResult);
-        });
+            long ensembleId, long accountId, GetOneEnsemble fetchResult) {
+        return Mockito.mockConstruction(EnsembleUtility.class, (mock, context) ->
+            given(mock.fetchAndPopulateEnsemble(sm, ensembleId, accountId)).willReturn(Single.just(fetchResult)));
     }
 
     public static MockedConstruction<SLOUtility> mockSLOUtilityFindAndFilterResources(SessionManager sm,
-                                                                                      List<Resource> result) {
+            List<Resource> result) {
         return Mockito.mockConstruction(SLOUtility.class, (mock, context) ->
-            given(mock.findAndFilterResourcesBySLOs(eq(sm), any(SLORequest.class))).willReturn(Single.just(result)));
+            given(mock.findResourcesByNonMonitoredSLOs(eq(sm), any(SLORequest.class))).willReturn(Single.just(result)));
     }
 
     public static MockedConstruction<EnsembleValidationUtility> mockEnsembleValidationUtility(SessionManager sm,
-                                                                                              long ensembleId, long accountId, List<ResourceEnsembleStatus> result) {
+            long ensembleId, long accountId, List<ResourceEnsembleStatus> result) {
         return Mockito.mockConstruction(EnsembleValidationUtility.class, (mock, context) ->
             given(mock.validateAndUpdateEnsemble(sm, ensembleId, accountId)).willReturn(Single.just(result)));
     }
 
     public static MockedConstruction<EnsembleValidationUtility> mockEnsembleValidationUtilityList(SessionManager sm,
-                                                                                                  long accountId, Map<Ensemble, List<ResourceEnsembleStatus>> result) {
+            long accountId, Map<Ensemble, List<ResourceEnsembleStatus>> result) {
         return Mockito.mockConstruction(EnsembleValidationUtility.class, (mock, context) ->
             result.forEach((key, value) -> given(mock.validateAndUpdateEnsemble(sm, key.getEnsembleId(), accountId))
                 .willReturn(Single.just(value))));
@@ -108,10 +102,10 @@ public class DatabaseUtilMockprovider {
 
     public static MockedConstruction<TriggerUrlUtility> mockTriggerUrlUtility(SessionManager sm) {
         return Mockito.mockConstruction(TriggerUrlUtility.class, (mock, context) -> {
-            given(mock.setTriggerUrlsForFunctions(eq(sm), any(DeploymentOutput.class), any(DeployResourcesDTO.class)))
-                .willReturn(Completable.complete());
-            given(mock.setTriggerUrlForContainers(eq(sm), any(DeployResourcesDTO.class)))
-                .willReturn(Completable.complete());
+            when(mock.setTriggerUrlsForFunctions(eq(sm), any(DeploymentOutput.class), any(DeployResourcesDTO.class)))
+                .thenReturn(Completable.complete());
+            when(mock.setTriggerUrlForContainers(eq(sm), any(DeployResourcesDTO.class)))
+                .thenReturn(Completable.complete());
         });
     }
 

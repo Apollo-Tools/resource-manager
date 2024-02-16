@@ -10,9 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -42,12 +40,9 @@ public class ContainerPullFileServiceTest {
     @Test
     void getMainFileContent(Vertx vertx) {
         Resource r1 = TestResourceProvider.createResourceContainer(1L, "localhost", true);
-        Resource r2 = TestResourceProvider.createResourceContainer(2L, "10.0.0.1", true);
-        Metric metric = TestMetricProvider.createMetric(11L, "hostname");
-        MetricValue metricValue = TestMetricProvider.createMetricValue(11L, metric, "node1");
-        Set<MetricValue> metricValues = new HashSet<>(r1.getMetricValues());
-        metricValues.add(metricValue);
-        r1.setMetricValues(metricValues);
+        Resource mainResource = TestResourceProvider
+            .createResourceContainer(2L, "10.0.0.1", true);
+        Resource r2 = TestResourceProvider.createSubResource(3L, "node1", (MainResource) mainResource);
         Service s1 = TestServiceProvider.createService(1L, "test1");
         Service s2 = TestServiceProvider.createService(1L, "test2");
         ServiceDeployment sr1 = TestServiceProvider.createServiceDeployment(1L, s1, r1);
@@ -70,10 +65,10 @@ public class ContainerPullFileServiceTest {
                 "  config_context = \"k8s-context\"\n" +
                 "  images = [\"test2:latest\",\"test1:latest\"]\n" +
                 "  timeout = \"2m\"\n" +
-                "  hostname = \"node1\"\n" +
+                "  hostname = null\n" +
                 "  image_pull_secrets = [\"regcred\"]\n" +
                 "}\n" +
-                "module \"pre_pull_2\" {\n" +
+                "module \"pre_pull_3\" {\n" +
                 "  source = \"../../../terraform/k8s/prepull\"\n" +
                 "  deployment_id = 1\n" +
                 "  config_path = \"" + configPath + "2\"\n" +
@@ -81,7 +76,7 @@ public class ContainerPullFileServiceTest {
                 "  config_context = \"k8s-context\"\n" +
                 "  images = [\"test1:latest\"]\n" +
                 "  timeout = \"2m\"\n" +
-                "  hostname = null\n" +
+                "  hostname = \"node1\"\n" +
                 "  image_pull_secrets = [\"regcred\"]\n" +
                 "}\n"
         );

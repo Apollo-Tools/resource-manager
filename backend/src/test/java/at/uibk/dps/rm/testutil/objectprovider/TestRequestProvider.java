@@ -58,19 +58,21 @@ public class TestRequestProvider {
         Function f2 = TestFunctionProvider.createFunction(2L, "foo2", "false", runtime, false);
         Resource r1 = TestResourceProvider.createResourceLambda(1L, region);
         Resource r2 = TestResourceProvider.createResourceEC2(2L, region, "t2.micro");
-        Resource r3 = TestResourceProvider.createResourceOpenFaas(3L, region, "http://localhost:8080",
+        Resource r3 = TestResourceProvider.createResourceOpenFaas(3L, region, "http://localhost",
             "user", "pw");
         Resource r4 = TestResourceProvider.createResourceContainer(3L, "https://localhost", true);
-        FunctionDeployment fd1 = TestFunctionProvider.createFunctionDeployment(1L, f1, r1);
-        FunctionDeployment fd2 = TestFunctionProvider.createFunctionDeployment(2L, f1, r2);
-        FunctionDeployment fd3 = TestFunctionProvider.createFunctionDeployment(3L, f1, r3);
-        FunctionDeployment fd4 = TestFunctionProvider.createFunctionDeployment(4L, f2, r3);
+        ResourceDeploymentStatus rdsNew = TestDeploymentProvider.createResourceDeploymentStatusDeployed();
+        Deployment d1 = TestDeploymentProvider.createDeployment(1L);
+        FunctionDeployment fd1 = TestFunctionProvider.createFunctionDeployment(1L, f1, r1, d1, rdsNew);
+        FunctionDeployment fd2 = TestFunctionProvider.createFunctionDeployment(2L, f1, r2, d1, rdsNew);
+        FunctionDeployment fd3 = TestFunctionProvider.createFunctionDeployment(3L, f1, r3, d1, rdsNew);
+        FunctionDeployment fd4 = TestFunctionProvider.createFunctionDeployment(4L, f2, r3, d1, rdsNew);
         List<FunctionDeployment> functionDeployments = List.of(fd1, fd2, fd3, fd4);
         deployRequest.setFunctionDeployments(functionDeployments);
         Service s1 = TestServiceProvider.createService(1L, "s1");
         Service s2 = TestServiceProvider.createService(2L, "s2");
-        ServiceDeployment sd1 = TestServiceProvider.createServiceDeployment(5L, s1, r4);
-        ServiceDeployment sd2 = TestServiceProvider.createServiceDeployment(6L, s2, r4);
+        ServiceDeployment sd1 = TestServiceProvider.createServiceDeployment(5L, s1, r4, d1, rdsNew);
+        ServiceDeployment sd2 = TestServiceProvider.createServiceDeployment(6L, s2, r4, d1, rdsNew);
         List<ServiceDeployment> serviceDeployments = List.of(sd1, sd2);
         deployRequest.setServiceDeployments(serviceDeployments);
         Credentials c1 = TestAccountProvider.createCredentials(1L, region.getResourceProvider());

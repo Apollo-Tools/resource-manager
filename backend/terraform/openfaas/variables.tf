@@ -14,9 +14,11 @@ variable "image" {
 }
 
 variable "vm_props" {
-  description = "A map containing the gateway url and auth password of the deployed resource"
+  description = "A map containing the base url, metrics port, openfaas port and auth password of the deployed resource."
   type       = object({
-    gateway_url = string
+    base_url = string
+    metrics_port = number,
+    openfaas_port = number,
     auth_password = string
   })
 }

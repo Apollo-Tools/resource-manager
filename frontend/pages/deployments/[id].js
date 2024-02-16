@@ -13,6 +13,7 @@ import {siteTitle} from '../../components/misc/Sidebar';
 import {listLockedResources} from '../../lib/api/ResourceService';
 import ResourceTable from '../../components/resources/ResourceTable';
 import DeploymentDetailsCard from '../../components/deployments/DeploymentDetailsCard';
+import DeploymentDashboards from '../../components/monitoring/DeploymentDashboards';
 
 const {confirm} = Modal;
 
@@ -29,9 +30,11 @@ const DeploymentDetails = () => {
     isTerminated: false,
     isError: false,
   });
+  const [functionResourceIds, setFunctionResourceIds] = useState(new Set());
+  const [serviceResourceIds, setServiceResourceIds] = useState(new Set());
   const [lockedResources, setLockedResources] = useState([]);
   const router = useRouter();
-  const {id} = router.query;
+  const id = parseInt(router.query.id);
 
   useEffect(() => {
     if (!checkTokenExpired() && id !== undefined) {
@@ -50,6 +53,7 @@ const DeploymentDetails = () => {
   useEffect(() => {
     if (deployment != null) {
       checkDeploymentStatus();
+      updateResourceIds();
     }
   }, [deployment]);
 
@@ -83,6 +87,22 @@ const DeploymentDetails = () => {
         isError: existResourceDeploymentsByStatusValue(resourceDeployments, 'ERROR'),
       };
     });
+  };
+
+  const updateResourceIds = () => {
+    setFunctionResourceIds(() => new Set(
+        deployment.function_resources?.map((functionResource) => functionResource.resource.resource_id),
+    ),
+    );
+    setServiceResourceIds(() => new Set(
+        deployment.service_resources?.map((serviceResource) => {
+          if (Object.hasOwn(serviceResource.resource, 'main_resource')) {
+            return serviceResource.resource.main_resource.resource_id;
+          }
+          return serviceResource.resource.resource_id;
+        }),
+    ),
+    );
   };
 
   const existResourceDeploymentsByStatusValue = (resourceDeployments, statusValue) => {
@@ -163,11 +183,13 @@ const DeploymentDetails = () => {
         <Typography.Title level={3}>Logs</Typography.Title>
         <LogsDisplay logs={logs}/>
         <Divider />
-        {/* TODO: insert monitoring data*/}
         <Typography.Title level={3}>Monitoring</Typography.Title>
-        <div>
-        TODO display monitoring data
-        </div>
+        <DeploymentDashboards
+          deploymentId={id}
+          isActive={deploymentStatus.isNew || deploymentStatus.isDeployed || deploymentStatus.isTerminating}
+          functionResourceIds={functionResourceIds}
+          serviceResourceIds={serviceResourceIds}
+        />
       </div>
     </>
   );

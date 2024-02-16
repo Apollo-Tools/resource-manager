@@ -44,12 +44,19 @@ const ResourceDetails = () => {
   }, [resource]);
 
   useEffect(() => {
-    if (!checkTokenExpired() && subresources != null) {
+    if (!checkTokenExpired() && subresources != null && resource != null) {
       setSelectedSegment('Details');
-      setSegments(subresources.length ?
-        ['Details', 'Subresources', 'Metric Values'] : ['Details', 'Metric Values']);
+      setSegments(() => {
+        if (subresources.length) {
+          return ['Details', 'Subresources', 'Metric Values'];
+        } else if (!resource.main_resource_id) {
+          return ['Details', 'Metric Values'];
+        } else {
+          return ['Details'];
+        }
+      });
     }
-  }, [subresources]);
+  }, [subresources, resource]);
 
   useEffect(() => {
     if (metricValues != null) {
@@ -131,23 +138,22 @@ const ResourceDetails = () => {
           selectedSegment === 'Details' && resource != null &&
           <ResourceDetailsCard resource={resource} setResource={setResource}/>
         }
-        {
-          selectedSegment === 'Metric Values' && resource != null && (
-            <>
-              <div>
-                <MetricValuesTable
-                  resourceId={id}
-                  metricValues={mappedMetricValues}
-                  setMetricValues={setMappedMetricValues}
-                />
-              </div>
-              <Divider />
-              <AddMetricValuesForm
-                resource={resource}
-                excludeMetricIds={mappedMetricValues.map((metricValue) => metricValue.metric.metric_id)}
-                setFinished={setFinished}
+        {selectedSegment === 'Metric Values' && resource != null && (
+          <>
+            <div>
+              <MetricValuesTable
+                resourceId={id}
+                metricValues={mappedMetricValues}
+                setMetricValues={setMappedMetricValues}
               />
-            </>)
+            </div>
+            <Divider />
+            <AddMetricValuesForm
+              resource={resource}
+              excludeMetricIds={mappedMetricValues.map((metricValue) => metricValue.metric.metric_id)}
+              setFinished={setFinished}
+            />
+          </>)
         }
         {
           selectedSegment === 'Subresources' && subresources != null && (

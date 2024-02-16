@@ -1,9 +1,6 @@
 package at.uibk.dps.rm.testutil.objectprovider;
 
-import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
-import at.uibk.dps.rm.entity.dto.resource.ResourceDTO;
-import at.uibk.dps.rm.entity.dto.resource.ResourceId;
-import at.uibk.dps.rm.entity.dto.resource.ResourceTypeEnum;
+import at.uibk.dps.rm.entity.dto.resource.*;
 import at.uibk.dps.rm.entity.model.*;
 import lombok.experimental.UtilityClass;
 
@@ -155,7 +152,7 @@ public class TestResourceProvider {
         return resource;
     }
 
-    public static Resource createResourceOpenFaas(long id, Region region, String gatewayUrl, String openfaasUser,
+    public static Resource createResourceOpenFaas(long id, Region region, String baseUrl, String openfaasUser,
             String openfaasPw) {
         MainResource resource = new MainResource();
         resource.setResourceId(id);
@@ -163,14 +160,19 @@ public class TestResourceProvider {
         resource.setRegion(region);
         Platform platform = TestPlatformProvider.createPlatformFaas(1L, PlatformEnum.OPENFAAS.getValue());
         resource.setPlatform(platform);
-        MetricType mt1 = TestMetricProvider.createMetricTypeString();
-        Metric m1 = TestMetricProvider.createMetric(1L, "gateway-url", mt1);
-        Metric m2 = TestMetricProvider.createMetric(2L, "openfaas-user", mt1);
-        Metric m3 = TestMetricProvider.createMetric(3L, "openfaas-pw", mt1);
-        MetricValue mv1 = TestMetricProvider.createMetricValue(3L, m1, gatewayUrl);
+        MetricType mtString = TestMetricProvider.createMetricTypeString();
+        MetricType mtNumber = TestMetricProvider.createMetricTypeNumber();
+        Metric m1 = TestMetricProvider.createMetric(1L, "base-url", mtString);
+        Metric m2 = TestMetricProvider.createMetric(2L, "openfaas-user", mtString);
+        Metric m3 = TestMetricProvider.createMetric(3L, "openfaas-pw", mtString);
+        Metric m4 = TestMetricProvider.createMetric(4L, "openfaas-port", mtNumber);
+        Metric m5 = TestMetricProvider.createMetric(5L, "metrics-port", mtNumber);
+        MetricValue mv1 = TestMetricProvider.createMetricValue(3L, m1, baseUrl);
         MetricValue mv2 = TestMetricProvider.createMetricValue(4L, m2, openfaasUser);
         MetricValue mv3 = TestMetricProvider.createMetricValue(5L, m3, openfaasPw);
-        resource.setMetricValues(Set.of(mv1, mv2, mv3));
+        MetricValue mv4 = TestMetricProvider.createMetricValue(6L, m4, 8080);
+        MetricValue mv5 = TestMetricProvider.createMetricValue(7L, m5, 9100);
+        resource.setMetricValues(Set.of(mv1, mv2, mv3, mv4, mv5));
         resource.setIsLockable(false);
         return resource;
     }

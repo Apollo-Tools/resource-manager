@@ -28,8 +28,19 @@ public class ExpressionValidator {
         return Single.just(slos)
             .map(items -> {
                 for (int i = 0; i < items.size(); i++) {
-                    if (!ExpressionType.symbolExists(items.getJsonObject(i).getString("expression"))) {
+                    String expressionSymbol = items.getJsonObject(i).getString("expression");
+                    JsonArray value = items.getJsonObject(i).getJsonArray("value");
+                    if (!ExpressionType.symbolExists(expressionSymbol)) {
                         throw new Throwable("expression is not supported");
+                    }
+                    ExpressionType expressionType = ExpressionType.fromString(expressionSymbol);
+                    if (!expressionType.equals(ExpressionType.EQ) && value.size() != 1) {
+                        throw new Throwable("expression type only supports single value");
+                    }
+                    Object firstValue = value.getValue(0);
+                    if (!expressionType.equals(ExpressionType.EQ) && (firstValue instanceof Boolean ||
+                        firstValue instanceof String)) {
+                        throw new Throwable("expression does not support value type");
                     }
                 }
                 return Optional.empty();

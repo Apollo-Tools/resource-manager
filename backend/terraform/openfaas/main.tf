@@ -1,5 +1,10 @@
+locals {
+  gateway_url = "${var.vm_props.base_url}:${var.vm_props.openfaas_port}"
+  path = "/function/${var.name}"
+}
+
 provider "openfaas" {
-  uri = var.vm_props.gateway_url
+  uri = "${var.vm_props.base_url}:${var.vm_props.openfaas_port}"
   user_name = var.basic_auth_user
   password = var.vm_props.auth_password
 }

@@ -13,6 +13,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -49,10 +50,10 @@ public class ServiceDeploymentRepositoryTest extends DatabaseTest {
             Resource r1 = TestResourceProvider.createResource(null, "r1", p1, reg1);
             Resource r2 = TestResourceProvider.createResource(null, "r2", p1, reg2);
             SubResource sr1 = TestResourceProvider.createSubResourceWithoutMVs(null, "r3", (MainResource) r1);
-            Metric mAvailability = TestMetricProvider.createMetric(1L);
-            Metric mHostname = TestMetricProvider.createMetric(21L);
-            MetricValue mv1 = TestMetricProvider.createMetricValue(null, mAvailability, r1, 0.99);
-            MetricValue mv2 = TestMetricProvider.createMetricValue(null, mHostname, sr1, "node1");
+            Metric mClusterUrl = TestMetricProvider.createMetric(12L);
+            Metric mExternalIp = TestMetricProvider.createMetric(16L);
+            MetricValue mv1 = TestMetricProvider.createMetricValue(null, mClusterUrl, r1, "http://localhost:4443");
+            MetricValue mv2 = TestMetricProvider.createMetricValue(null, mExternalIp, r1, "localhost");
             ResourceDeploymentStatus rds1 = TestDeploymentProvider.createResourceDeploymentStatus(1L,
                 DeploymentStatusValue.NEW);
             ResourceDeploymentStatus rds2 = TestDeploymentProvider.createResourceDeploymentStatus(2L,
@@ -90,18 +91,48 @@ public class ServiceDeploymentRepositoryTest extends DatabaseTest {
         }).blockingSubscribe(res -> {}, testContext::failNow);
     }
 
+    @ParameterizedTest
+    @CsvSource({
+        "1, 1, true, 1, NEW",
+        "1, 2, false, -1, NEW",
+        "4, 1, false, -1, NEW",
+        "4, 2, true, 2, TERMINATING",
+        "10, 1, false, -1, NEW",
+    })
+    void findByIdAndAccountId(long resourceDeploymentId, long accountId, boolean exists, long deploymentId,
+            String status, VertxTestContext testContext) {
+        DeploymentStatusValue statusValue = DeploymentStatusValue.valueOf(status);
+        smProvider.withTransactionMaybe(sessionManager -> repository
+                .findByIdAndAccountId(sessionManager, resourceDeploymentId, accountId))
+            .subscribe(result -> testContext.verify(() -> {
+                if (exists) {
+                    assertThat(result.getResourceDeploymentId()).isEqualTo(resourceDeploymentId);
+                    assertThat(result.getDeployment().getDeploymentId()).isEqualTo(deploymentId);
+                    assertThat(DeploymentStatusValue.fromDeploymentStatus(result.getStatus())).isEqualTo(statusValue);
+                    testContext.completeNow();
+                } else {
+                    testContext.failNow("method did not throw exception");
+                }
+            }), throwable -> {
+                assertThat(exists).isEqualTo(false);
+                assertThat(throwable.getCause()).isInstanceOf(NoSuchElementException.class);
+                testContext.completeNow();
+            });
+    }
+
     private static Stream<Arguments> provideFindAllByDeploymentId() {
         return Stream.of(
             Arguments.of(1L, List.of(1L, 2L, 3L), List.of(1L, 2L, 1L),
                 List.of("notype", "notype", "notype"), List.of("NodePort", "NoService", "NodePort"),
-                List.of("r1", "r3", "r2"), List.of(List.of("availability"), List.of("hostname"), List.of()),
-                List.of(List.of("availability"), List.of("availability"), List.of()),
+                List.of("r1", "r3", "r2"), List.of(List.of("cluster-url", "external-ip"), List.of(), List.of()),
+                List.of(List.of("cluster-url", "external-ip"), List.of("cluster-url", "external-ip"), List.of()),
                 List.of("k8s", "k8s", "k8s"), List.of("container", "container", "container"),
                 List.of("us-east-1", "us-east-1", "edge"), List.of("aws", "aws", "custom-edge"),
                 List.of("cloud", "cloud", "edge"), List.of("NEW", "ERROR", "DEPLOYED")),
             Arguments.of(2L, List.of(4L, 5L), List.of(1L, 2L),
                 List.of("notype", "notype"), List.of("NodePort", "NoService"), List.of("r1", "r2"),
-                List.of(List.of("availability"), List.of()), List.of(List.of("availability"), List.of()),
+                List.of(List.of("cluster-url", "external-ip"), List.of()),
+                List.of(List.of("cluster-url", "external-ip"), List.of()),
                 List.of("k8s", "k8s"), List.of("container", "container"), List.of("us-east-1", "edge"),
                 List.of("aws", "custom-edge"), List.of("cloud", "edge"), List.of("TERMINATING", "TERMINATED")),
             Arguments.of(3L, List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(),
@@ -150,30 +181,6 @@ public class ServiceDeploymentRepositoryTest extends DatabaseTest {
                     .isEqualTo(environments);
                 assertThat(result.stream().map(serviceDeployment -> serviceDeployment.getStatus().getStatusValue())
                     .collect(Collectors.toList())).isEqualTo(statusList);
-                testContext.completeNow();
-            }), throwable -> testContext.failNow("method has thrown exception"));
-    }
-
-    @ParameterizedTest
-    @CsvSource({
-        "1, 1, 1, NEW, 1",
-        "1, 2, 1, NEW, 0",
-        "1, 1, 2, NEW, 0",
-        "1, 3, 1, NEW, 0",
-        "1, 2, 1, ERROR, 1",
-        "1, 3, 1, DEPLOYED, 1",
-        "2, 1, 1, TERMINATING, 0",
-        "2, 4, 1, TERMINATING, 0",
-        "2, 4, 2, TERMINATING, 1",
-        "3, 1, 1, NEW, 0",
-    })
-    void countByDeploymentStatus(long deploymentId, long resourceDeploymentId, long accountId, String status, int count,
-            VertxTestContext testContext) {
-        DeploymentStatusValue statusValue = DeploymentStatusValue.valueOf(status);
-        smProvider.withTransactionSingle(sessionManager -> repository
-                .countByDeploymentStatus(sessionManager, deploymentId, resourceDeploymentId, accountId, statusValue))
-            .subscribe(result -> testContext.verify(() -> {
-                assertThat(result).isEqualTo(count);
                 testContext.completeNow();
             }), throwable -> testContext.failNow("method has thrown exception"));
     }

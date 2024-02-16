@@ -1,9 +1,8 @@
 package at.uibk.dps.rm.testutil.objectprovider;
 
-import io.kubernetes.client.openapi.models.V1Namespace;
-import io.kubernetes.client.openapi.models.V1Node;
-import io.kubernetes.client.openapi.models.V1ObjectMeta;
-import io.kubernetes.client.openapi.models.V1Secret;
+import io.kubernetes.client.custom.NodeMetrics;
+import io.kubernetes.client.custom.Quantity;
+import io.kubernetes.client.openapi.models.*;
 
 import java.util.HashMap;
 
@@ -37,5 +36,23 @@ public class TestK8sProvider {
         metadata.setName(name);
         node.setMetadata(metadata);
         return node;
+    }
+
+    public static V1Pod createPod(String name) {
+        V1Pod v1Pod = new V1Pod();
+        V1ObjectMeta podMetadata = new V1ObjectMeta();
+        podMetadata.setName(name);
+        v1Pod.setMetadata(podMetadata);
+        return v1Pod;
+    }
+
+    public static NodeMetrics createNodeMetrics(String name, double cpuUsage, double memoryUsage) {
+        NodeMetrics nodeMetrics = new NodeMetrics();
+        V1ObjectMeta metadata = new V1ObjectMeta();
+        metadata.setName(name);
+        nodeMetrics.setMetadata(metadata);
+        nodeMetrics.getUsage().put("cpu", new Quantity(String.valueOf(cpuUsage)));
+        nodeMetrics.getUsage().put("memory", new Quantity(String.valueOf(memoryUsage)));
+        return nodeMetrics;
     }
 }

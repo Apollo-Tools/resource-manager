@@ -45,17 +45,15 @@ public class RegionRepositoryTest extends DatabaseTest {
             Metric mAvailability = TestMetricProvider.createMetric(1L);
             Metric mClusterUrl = TestMetricProvider.createMetric(12L);
             Metric mPrePullTimeout = TestMetricProvider.createMetric(17L);
-            Metric mHostname = TestMetricProvider.createMetric(21L);
             MetricValue mv1 = TestMetricProvider.createMetricValue(null, mAvailability, r1, 0.99);
             MetricValue mv2 = TestMetricProvider.createMetricValue(null, mClusterUrl, r1, "localhost");
             MetricValue mv3 = TestMetricProvider.createMetricValue(null, mPrePullTimeout, r1, 2.0);
             MetricValue mv5 = TestMetricProvider.createMetricValue(null, mAvailability, r2, 0.99);
-            MetricValue mv6 = TestMetricProvider.createMetricValue(null, mHostname, sr1, "node1");
             return sessionManager.persist(r1)
                 .flatMap(res -> sessionManager.persist(r2))
                 .flatMap(res -> sessionManager.persist(sr1))
                 .flatMap(res -> sessionManager.persist(sr2))
-                .flatMapCompletable(res -> sessionManager.persist(new MetricValue[]{mv1, mv2, mv3, mv5, mv6}));
+                .flatMapCompletable(res -> sessionManager.persist(new MetricValue[]{mv1, mv2, mv3, mv5}));
         }).blockingSubscribe(() -> {}, testContext::failNow);
     }
 

@@ -16,17 +16,17 @@ import at.uibk.dps.rm.service.rxjava3.database.function.FunctionService;
 import at.uibk.dps.rm.service.rxjava3.database.function.RuntimeService;
 import at.uibk.dps.rm.service.rxjava3.database.log.LogService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.PlatformService;
-import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.EnvironmentService;
-import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.RegionService;
-import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.ResourceProviderService;
+import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.*;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricValueService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceService;
 import at.uibk.dps.rm.service.rxjava3.database.resource.ResourceTypeService;
-import at.uibk.dps.rm.service.rxjava3.database.resourceprovider.VPCService;
 import at.uibk.dps.rm.service.rxjava3.database.service.ServiceService;
 import at.uibk.dps.rm.service.rxjava3.database.service.K8sServiceTypeService;
 import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentExecutionService;
+import at.uibk.dps.rm.service.rxjava3.monitoring.function.FunctionExecutionService;
+import at.uibk.dps.rm.service.rxjava3.monitoring.metricquery.MetricQueryService;
+import at.uibk.dps.rm.service.rxjava3.monitoring.metricpusher.*;
 import at.uibk.dps.rm.verticle.DatabaseVerticle;
 import io.vertx.rxjava3.core.Vertx;
 import lombok.Getter;
@@ -40,11 +40,13 @@ import lombok.Getter;
  */
 @Getter
 public class ServiceProxyProvider {
+    /* Database services */
     private final AccountNamespaceService accountNamespaceService;
     private final AccountService accountService;
     private final CredentialsService credentialsService;
     private final EnsembleService ensembleService;
     private final EnvironmentService environmentService;
+    private final FunctionDeploymentService functionDeploymentService;
     private final FunctionService functionService;
     private final FunctionTypeService functionTypeService;
     private final LogService logService;
@@ -68,6 +70,16 @@ public class ServiceProxyProvider {
     private final ServiceTypeService serviceTypeService;
     private final VPCService vpcService;
     private final DeploymentExecutionService deploymentExecutionService;
+    /* Monitoring Service */
+    private final AWSPricePushService awsPricePushService;
+    private final ContainerStartupTerminationPushService containerStartTermPushService;
+    private final FunctionExecutionService functionExecutionService;
+    private final FunctionInvocationPushService functionInvocationPushService;
+    private final K8sMetricPushService k8sMetricPushService;
+    private final MetricQueryService metricQueryService;
+    private final OpenFaasMetricPushService openFaasMetricPushService;
+    private final RegionMetricPushService regionMetricPushService;
+
 
     /**
      * Create an instance from vertx. All client proxies get setup in this method.
@@ -80,6 +92,7 @@ public class ServiceProxyProvider {
         credentialsService = CredentialsService.createProxy(vertx);
         ensembleService = EnsembleService.createProxy(vertx);
         environmentService = EnvironmentService.createProxy(vertx);
+        functionDeploymentService = FunctionDeploymentService.createProxy(vertx);
         functionService = FunctionService.createProxy(vertx);
         functionTypeService = FunctionTypeService.createProxy(vertx);
         k8sServiceTypeService = K8sServiceTypeService.createProxy(vertx);
@@ -103,5 +116,14 @@ public class ServiceProxyProvider {
         serviceTypeService = ServiceTypeService.createProxy(vertx);
         vpcService = VPCService.createProxy(vertx);
         deploymentExecutionService = DeploymentExecutionService.createProxy(vertx);
+        /* Monitoring Service */
+        awsPricePushService = AWSPricePushService.createProxy(vertx);
+        containerStartTermPushService = ContainerStartupTerminationPushService.createProxy(vertx);
+        functionExecutionService = FunctionExecutionService.createProxy(vertx);
+        functionInvocationPushService = FunctionInvocationPushService.createProxy(vertx);
+        k8sMetricPushService = K8sMetricPushService.createProxy(vertx);
+        metricQueryService = MetricQueryService.createProxy(vertx);
+        openFaasMetricPushService = OpenFaasMetricPushService.createProxy(vertx);
+        regionMetricPushService = RegionMetricPushService.createProxy(vertx);
     }
 }

@@ -4,12 +4,11 @@ import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.*;
-import at.uibk.dps.rm.entity.monitoring.K8sMonitoringData;
-import at.uibk.dps.rm.entity.monitoring.K8sNode;
+import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sMonitoringData;
+import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sNode;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
 import at.uibk.dps.rm.exception.MonitoringException;
 import at.uibk.dps.rm.exception.NotFoundException;
-import at.uibk.dps.rm.repository.metric.MetricRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
 import at.uibk.dps.rm.service.database.util.*;
@@ -61,9 +60,6 @@ public class ResourceServiceImplTest {
     private RegionRepository regionRepository;
 
     @Mock
-    private MetricRepository metricRepository;
-
-    @Mock
     private SessionManagerProvider smProvider;
 
     @Mock
@@ -81,8 +77,7 @@ public class ResourceServiceImplTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        resourceService = new ResourceServiceImpl(resourceRepository, regionRepository, metricRepository,
-            smProvider);
+        resourceService = new ResourceServiceImpl(resourceRepository, regionRepository, smProvider);
         data = new JsonObject("{\"name\": \"new_r\", \"region\": {\"region_id\": 1}, \"platform\": " +
             "{\"platform_id\":  2}, \"is_lockable\": true}");
         reg1 = TestResourceProviderProvider.createRegion(1L, "us-east");
@@ -95,7 +90,8 @@ public class ResourceServiceImplTest {
         K8sNode k8sn1 = TestMonitoringDataProvider.createK8sNode("n1", 10.0, 8.75,
             1000, 500, 10000, 5000);
         V1Namespace namespace = TestMonitoringDataProvider.createV1Namespace("default");
-        monitoringData = new K8sMonitoringData(List.of(k8sn1), List.of(namespace));
+        monitoringData = new K8sMonitoringData("cluster", "http://clusterurl:9999", 1L,
+            List.of(k8sn1), List.of(namespace), true, 0.15);
         deployment = TestDeploymentProvider.createDeployment(1L);
     }
 
@@ -142,14 +138,16 @@ public class ResourceServiceImplTest {
     }
 
     @Test
-    void findAllBySLOs(VertxTestContext testContext) {
+    void findAllByNonMonitoredSLOs(VertxTestContext testContext) {
         ServiceLevelObjective slo1 = new ServiceLevelObjective("instance-type", ExpressionType.EQ,
             TestDTOProvider.createSLOValueList("t2.micro"));
         SLORequest sloRequest = TestDTOProvider.createSLORequest(List.of(slo1));
 
         SessionMockHelper.mockSingle(smProvider, sessionManager);
-        try (MockedConstruction<SLOUtility> ignored = DatabaseUtilMockprovider.mockSLOUtilityFindAndFilterResources(sessionManager, List.of(r1, r2))) {
-            resourceService.findAllBySLOs(JsonObject.mapFrom(sloRequest), testContext.succeeding(result -> testContext.verify(() -> {
+        try (MockedConstruction<SLOUtility> ignored = DatabaseUtilMockprovider
+                .mockSLOUtilityFindAndFilterResources(sessionManager, List.of(r1, r2))) {
+            resourceService.findAllByNonMonitoredSLOs(JsonObject.mapFrom(sloRequest),
+                testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
                 assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
                 assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
@@ -322,18 +320,29 @@ public class ResourceServiceImplTest {
 
     @Test
     void updateClusterResource(VertxTestContext testContext) {
-        SessionMockHelper.mockCompletable(smProvider, sessionManager);
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(resourceRepository.findClusterByName(sessionManager, cr1.getName())).thenReturn(Maybe.just(cr1));
+
         try (MockedConstruction<K8sResourceUpdateUtility> ignored = DatabaseUtilMockprovider.mockK8sResourceUpdateUtility(
-            sessionManager, cr1, monitoringData)) {
+                sessionManager, cr1, monitoringData)) {
             resourceService.updateClusterResource(cr1.getName(), monitoringData,
                 testContext.succeeding(result -> testContext.verify(testContext::completeNow)));
         }
     }
 
     @Test
+    void updateClusterResourceNotUp(VertxTestContext testContext) {
+        monitoringData.setIsUp(false);
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
+        when(resourceRepository.findClusterByName(sessionManager, cr1.getName())).thenReturn(Maybe.just(cr1));
+
+        resourceService.updateClusterResource(cr1.getName(), monitoringData, testContext
+            .succeeding(result -> testContext.verify(testContext::completeNow)));
+    }
+
+    @Test
     void updateClusterResourceNotFound(VertxTestContext testContext) {
-        SessionMockHelper.mockCompletable(smProvider, sessionManager);
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(resourceRepository.findClusterByName(sessionManager, cr1.getName())).thenReturn(Maybe.empty());
 
         resourceService.updateClusterResource(cr1.getName(), monitoringData,

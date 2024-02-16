@@ -20,6 +20,8 @@ public class TestResourceProviderProvider {
     public static ResourceProvider createResourceProvider(long providerId, String provider) {
         ResourceProvider resourceProvider = createResourceProvider(providerId);
         resourceProvider.setProvider(provider);
+        Environment environment = createEnvironment(1L, "cloud");
+        resourceProvider.setEnvironment(environment);
         return resourceProvider;
     }
 

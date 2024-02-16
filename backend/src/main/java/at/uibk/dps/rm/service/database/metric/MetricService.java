@@ -8,11 +8,14 @@ import at.uibk.dps.rm.service.database.DatabaseServiceInterface;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
+import io.vertx.core.json.JsonObject;
 
 /**
- * The interface of the service proxy for te metric entity.
+ * The interface of the service proxy for the metric entity.
  *
  * @author matthi-g
  */
@@ -32,4 +35,13 @@ public interface MetricService extends DatabaseServiceInterface {
     static MetricService createProxy(Vertx vertx) {
         return new MetricServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(Metric.class));
     }
+
+    /**
+     * Check if the value type for service level objectives matches the metric type of the
+     * corresponding metric.
+     *
+     * @param request the request data
+     * @param resultHandler receives nothing if all types match else an error
+     */
+    void checkMetricTypeForSLOs(JsonObject request, Handler<AsyncResult<Void>> resultHandler);
 }

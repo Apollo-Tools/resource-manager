@@ -5,7 +5,6 @@ import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
 import at.uibk.dps.rm.entity.dto.ensemble.ResourceEnsembleStatus;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
-import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.database.util.*;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
@@ -78,7 +77,8 @@ public class EnsembleServiceImplTest {
     @Test
     void findAll(VertxTestContext testContext) {
         SessionMockHelper.mockSingle(smProvider, sessionManager);
-        when(repositoryMock.getEnsembleRepository().findAll(sessionManager)).thenReturn(Single.just(List.of(e1, e2)));
+        when(repositoryMock.getEnsembleRepository().findAllAndFetch(sessionManager))
+            .thenReturn(Single.just(List.of(e1, e2)));
 
         ensembleService.findAll(testContext.succeeding(result -> testContext.verify(() -> {
             assertThat(result.size()).isEqualTo(2);
@@ -253,34 +253,6 @@ public class EnsembleServiceImplTest {
                 assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
                 testContext.completeNow();
             })));
-    }
-
-    @Test
-    void validateCreateEnsembleRequest(VertxTestContext testContext) {
-        CreateEnsembleRequest request = TestDTOProvider.createCreateEnsembleRequest(r1.getResourceId());
-        SessionMockHelper.mockCompletable(smProvider, sessionManager);
-
-        try (MockedConstruction<SLOUtility> ignored = DatabaseUtilMockprovider.mockSLOUtilityFindAndFilterResources(
-            sessionManager, List.of(r1, r2))) {
-            ensembleService.validateCreateEnsembleRequest(JsonObject.mapFrom(request),
-                testContext.succeeding(result -> testContext.verify(testContext::completeNow)));
-        }
-    }
-
-    @Test
-    void validateCreateEnsembleRequestSLOMismatch(VertxTestContext testContext) {
-        CreateEnsembleRequest request = TestDTOProvider.createCreateEnsembleRequest(r1.getResourceId());
-        SessionMockHelper.mockCompletable(smProvider, sessionManager);
-
-        try (MockedConstruction<SLOUtility> ignored = DatabaseUtilMockprovider.mockSLOUtilityFindAndFilterResources(
-            sessionManager, List.of(r2))) {
-            ensembleService.validateCreateEnsembleRequest(JsonObject.mapFrom(request),
-                testContext.failing(throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(BadInputException.class);
-                    assertThat(throwable.getMessage()).isEqualTo("slo mismatch");
-                    testContext.completeNow();
-                })));
-        }
     }
 
     @Test

@@ -1,6 +1,8 @@
 package at.uibk.dps.rm.entity.model;
 
 import at.uibk.dps.rm.annotations.Generated;
+import at.uibk.dps.rm.entity.dto.metric.MonitoredMetricValue;
+import at.uibk.dps.rm.entity.dto.resource.SubResourceDTO;
 import com.fasterxml.jackson.annotation.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -8,6 +10,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -24,8 +27,9 @@ import java.util.Set;
 @JsonTypeInfo(use = JsonTypeInfo.Id.DEDUCTION)
 @JsonSubTypes({
     @JsonSubTypes.Type(value = MainResource.class, name = "MainResource"),
-    @JsonSubTypes.Type(value = SubResource.class, name = "SubResource")}
-)
+    @JsonSubTypes.Type(value = SubResource.class, name = "SubResource"),
+    @JsonSubTypes.Type(value = SubResourceDTO.class, name = "SubResourceDTO")
+})
 public abstract class Resource {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -52,6 +56,9 @@ public abstract class Resource {
 
     @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, mappedBy = "resource")
     private Set<MetricValue> metricValues;
+
+    @Transient
+    private Set<MonitoredMetricValue> monitoredMetricValues = new HashSet<>();
 
     @Override
     @Generated

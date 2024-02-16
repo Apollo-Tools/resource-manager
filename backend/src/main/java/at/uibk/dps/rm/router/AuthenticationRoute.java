@@ -16,6 +16,5 @@ public interface AuthenticationRoute {
      * @param router the router of the api
      * @param serviceProxyProvider the service proxy provider
      */
-    void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider,
-                            JWTAuthProvider jwtAuthProvider);
+    void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider, JWTAuthProvider jwtAuthProvider);
 }

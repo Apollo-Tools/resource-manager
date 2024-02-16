@@ -2,6 +2,7 @@ package at.uibk.dps.rm.entity.deployment;
 
 import at.uibk.dps.rm.annotations.Generated;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -12,27 +13,8 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@RequiredArgsConstructor
 public class PrePullGroup {
-
-    /**
-     * Create an instance from the resourceId, context, namespace and timeout.
-     *
-     * @param resourceId the id of the resource
-     * @param context the k8s context
-     * @param namespace the k8s namespace
-     * @param timeout the timeout of the pre-pull deployment
-     * @param hostname the hostname label of the node
-     * @param mainResourceName the name of the main resource
-     */
-    public PrePullGroup(Long resourceId, String context, String namespace, long timeout, String hostname,
-            String mainResourceName) {
-        this.resourceId = resourceId;
-        this.context = context;
-        this.namespace = namespace;
-        this.timeout = timeout;
-        this.hostname = hostname;
-        this.mainResourceName = mainResourceName;
-    }
 
     private final Long resourceId;
 
@@ -42,7 +24,7 @@ public class PrePullGroup {
 
     private final long timeout;
 
-    private final String hostname;
+    private final String nodeName;
 
     private final String mainResourceName;
 

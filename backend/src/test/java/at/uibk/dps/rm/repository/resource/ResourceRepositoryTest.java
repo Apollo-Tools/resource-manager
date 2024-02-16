@@ -48,12 +48,10 @@ public class ResourceRepositoryTest extends DatabaseTest {
             Metric mAvailability = TestMetricProvider.createMetric(1L);
             Metric mClusterUrl = TestMetricProvider.createMetric(12L);
             Metric mPrePullTimeout = TestMetricProvider.createMetric(17L);
-            Metric mHostname = TestMetricProvider.createMetric(21L);
             MetricValue mv1 = TestMetricProvider.createMetricValue(null, mAvailability, r1, 0.99);
             MetricValue mv2 = TestMetricProvider.createMetricValue(null, mClusterUrl, r1, "localhost");
             MetricValue mv3 = TestMetricProvider.createMetricValue(null, mPrePullTimeout, r1, 2.0);
             MetricValue mv5 = TestMetricProvider.createMetricValue(null, mAvailability, r2, 0.99);
-            MetricValue mv6 = TestMetricProvider.createMetricValue(null, mHostname, sr1, "node1");
             Ensemble e1 = TestEnsembleProvider.createEnsemble(null, 1L, "e1");
             Ensemble e2 = TestEnsembleProvider.createEnsemble(null, 2L, "e2");
             ResourceEnsemble re1 = TestEnsembleProvider.createResourceEnsemble(null, e1, r1);
@@ -71,7 +69,7 @@ public class ResourceRepositoryTest extends DatabaseTest {
                 .flatMap(res -> sessionManager.persist(re1))
                 .flatMap(res -> sessionManager.persist(re2))
                 .flatMap(res -> sessionManager.persist(re3))
-                .flatMapCompletable(res -> sessionManager.persist(new MetricValue[]{mv1, mv2, mv3, mv5, mv6}));
+                .flatMapCompletable(res -> sessionManager.persist(new MetricValue[]{mv1, mv2, mv3, mv5}));
         }).blockingSubscribe(() -> {}, testContext::failNow);
     }
 
@@ -103,7 +101,7 @@ public class ResourceRepositoryTest extends DatabaseTest {
     private static Stream<Arguments> provideFindByIdAndFetch() {
         List<String> r1Metrics = List.of("availability", "cluster-url", "pre-pull-timeout");
         List<String> r2Metrics = List.of("availability");
-        List<String> r3Metrics = List.of("hostname");
+        List<String> r3Metrics = List.of();
         String rpAws = "aws";
         String rpCustomEdge = "custom-edge";
         String eEdge = "edge";
@@ -251,7 +249,7 @@ public class ResourceRepositoryTest extends DatabaseTest {
             Arguments.of(List.of("availability"), emptyList, emptyList, emptyList, emptyList, emptyList,
                 List.of(1L, 2L)),
             Arguments.of(List.of("hostname"), emptyList, emptyList, emptyList, emptyList, emptyList,
-                List.of(4L)),
+                List.of()),
             Arguments.of(List.of("availability, latency"), emptyList, emptyList, emptyList, emptyList, emptyList,
                 emptyList),
             Arguments.of(List.of(), List.of(1L), emptyList, emptyList, emptyList, emptyList, List.of(1L, 3L, 4L)),
@@ -296,7 +294,7 @@ public class ResourceRepositoryTest extends DatabaseTest {
                 List.of("us-east-1", "edge"), List.of("aws", "custom-edge"), List.of("cloud", "edge"),
                 List.of("k8s", "k8s"), List.of("container", "container")),
             Arguments.of(2L, List.of(4L),
-                List.of(List.of("hostname")), List.of("us-east-1"), List.of("aws"), List.of("cloud"),
+                List.of(List.of()), List.of("us-east-1"), List.of("aws"), List.of("cloud"),
                 List.of("k8s"), List.of("container"))
         );
     }
@@ -376,7 +374,7 @@ public class ResourceRepositoryTest extends DatabaseTest {
     private static Stream<Arguments> provideFindAllByResourceIdsAndFetch() {
         return Stream.of(
             Arguments.of(List.of(1L, 2L, 3L, 4L, 5L), List.of(1L, 2L, 3L, 4L, 5L),
-                List.of(3, 1, 0, 1, 0), List.of("us-east-1", "edge", "us-east-1", "us-east-1", "edge"),
+                List.of(3, 1, 0, 0, 0), List.of("us-east-1", "edge", "us-east-1", "us-east-1", "edge"),
                 List.of("aws", "custom-edge", "aws", "aws", "custom-edge"),
                 List.of("cloud", "edge", "cloud", "cloud", "edge"), List.of("k8s", "k8s", "lambda", "k8s", "k8s"),
                 List.of("container", "container", "faas", "container", "container")),
@@ -415,7 +413,7 @@ public class ResourceRepositoryTest extends DatabaseTest {
 
     private static Stream<Arguments> provideFindAllSubresources() {
         return Stream.of(
-            Arguments.of(1L, 4L, List.of("hostname")),
+            Arguments.of(1L, 4L, List.of()),
             Arguments.of(2L, 5L, List.of()),
             Arguments.of(3L, -1L, List.of()),
             Arguments.of(7L, -1L, List.of())
@@ -443,7 +441,7 @@ public class ResourceRepositoryTest extends DatabaseTest {
     private static Stream<Arguments> provideFindClusterByName() {
         return Stream.of(
             Arguments.of("r1", true, 1L, List.of("availability", "cluster-url", "pre-pull-timeout"), 4L,
-                List.of("hostname")),
+                List.of()),
             Arguments.of("r2", true, 2L, List.of("availability"), 5L, List.of()),
             Arguments.of("r3", false, -1L, List.of(), -1L, List.of()),
             Arguments.of("sr1", false, -1L, List.of(), -1L, List.of()),

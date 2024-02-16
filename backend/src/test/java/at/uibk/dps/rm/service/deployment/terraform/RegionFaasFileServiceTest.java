@@ -112,7 +112,9 @@ public class RegionFaasFileServiceTest {
             "  image = \"testuser/foo1_python38\"\n" +
             "  basic_auth_user = var.openfaas_login_data[\"r3\"].auth_user\n" +
             "  vm_props = {\n" +
-            "    gateway_url = \"http://localhost:8080\"\n" +
+            "    base_url = \"http://localhost\"\n" +
+            "    metrics_port = 9100\n" +
+            "    openfaas_port = 8080\n" +
             "    auth_password = var.openfaas_login_data[\"r3\"].auth_pw\n" +
             "  }\n" +
             "  timeout = 60\n" +
@@ -162,10 +164,10 @@ public class RegionFaasFileServiceTest {
         String result = service.getOutputsFileContent();
 
         assertThat(result).isEqualTo(
-            "output \"function_urls\" {\n" +
-            "  value = merge(module.lambda.function_urls, zipmap([\"r2_foo1_python38_1\",\"r2_foo2_python38_1\"," +
-                "\"r3_foo1_python38_1\",], [module.r2_foo1_python38.function_url,module.r2_foo2_python38.function_url," +
-                "module.r3_foo1_python38.function_url,]))\n" +
+            "output \"resource_output\" {\n" +
+            "  value = merge(module.lambda.resource_output, zipmap([\"r2_foo1_python38_1\",\"r2_foo2_python38_1\"," +
+                "\"r3_foo1_python38_1\",], [module.r2_foo1_python38.resource_output,module.r2_foo2_python38.resource_output," +
+                "module.r3_foo1_python38.resource_output,]))\n" +
             "}\n"
         );
     }
@@ -186,7 +188,7 @@ public class RegionFaasFileServiceTest {
         if (blankLambda && !blankOpenFaas && !blankEc2) {
             r1 = TestResourceProvider.createResourceEC2(1L, region, "t2.micro");
             r2 = TestResourceProvider.createResourceEC2(2L, region, "t2.micro");
-            r3 = TestResourceProvider.createResourceOpenFaas(3L, region, "http://localhost:8080",
+            r3 = TestResourceProvider.createResourceOpenFaas(3L, region, "http://localhost",
                 "user", "pw");
         } else if (!blankLambda && blankOpenFaas && !blankEc2) {
             r1 = TestResourceProvider.createResourceLambda(1L, region);
@@ -194,14 +196,14 @@ public class RegionFaasFileServiceTest {
             r3 = TestResourceProvider.createResourceLambda(3L, region);
         } else if (!blankLambda && !blankOpenFaas && blankEc2) {
             r1 = TestResourceProvider.createResourceLambda(1L, region);
-            r2 = TestResourceProvider.createResourceOpenFaas(2L, region, "http://localhost:8080",
+            r2 = TestResourceProvider.createResourceOpenFaas(2L, region, "http://localhost",
                 "user", "pw");
-            r3 = TestResourceProvider.createResourceOpenFaas(3L, region, "http://localhost:8080",
+            r3 = TestResourceProvider.createResourceOpenFaas(3L, region, "http://localhost",
                 "user", "pw");
         } else {
             r1 = TestResourceProvider.createResourceLambda(1L, region);
             r2 = TestResourceProvider.createResourceEC2(2L, region, "t2.micro");
-            r3 = TestResourceProvider.createResourceOpenFaas(3L, region, "http://localhost:8080",
+            r3 = TestResourceProvider.createResourceOpenFaas(3L, region, "http://localhost",
                 "user", "pw");
         }
         RegionFaasFileService service = TestFileServiceProvider.createRegionFaasFileService(vertx.fileSystem(), r1, r2,
@@ -213,32 +215,32 @@ public class RegionFaasFileServiceTest {
 
         if (blankLambda && !blankOpenFaas && !blankEc2) {
             assertThat(result).isEqualTo(
-                "output \"function_urls\" {\n" +
+                "output \"resource_output\" {\n" +
                     "  value = merge({}, zipmap([\"r1_foo1_python38_1\",\"r2_foo1_python38_1\"," +
-                    "\"r2_foo2_python38_1\",\"r3_foo1_python38_1\",], [module.r1_foo1_python38.function_url," +
-                    "module.r2_foo1_python38.function_url,module.r2_foo2_python38.function_url," +
-                    "module.r3_foo1_python38.function_url,]))\n" +
+                    "\"r2_foo2_python38_1\",\"r3_foo1_python38_1\",], [module.r1_foo1_python38.resource_output," +
+                    "module.r2_foo1_python38.resource_output,module.r2_foo2_python38.resource_output," +
+                    "module.r3_foo1_python38.resource_output,]))\n" +
                     "}\n"
             );
         } else if (!blankLambda && blankOpenFaas && !blankEc2) {
             assertThat(result).isEqualTo(
-                "output \"function_urls\" {\n" +
-                    "  value = merge(module.lambda.function_urls, zipmap([\"r2_foo1_python38_1\"," +
-                    "\"r2_foo2_python38_1\",], [module.r2_foo1_python38.function_url," +
-                    "module.r2_foo2_python38.function_url,]))\n" +
+                "output \"resource_output\" {\n" +
+                    "  value = merge(module.lambda.resource_output, zipmap([\"r2_foo1_python38_1\"," +
+                    "\"r2_foo2_python38_1\",], [module.r2_foo1_python38.resource_output," +
+                    "module.r2_foo2_python38.resource_output,]))\n" +
                     "}\n"
             );
         } else if (!blankLambda && !blankOpenFaas && blankEc2) {
             assertThat(result).isEqualTo(
-                "output \"function_urls\" {\n" +
-                    "  value = merge(module.lambda.function_urls, zipmap([\"r2_foo1_python38_1\"," +
-                    "\"r2_foo2_python38_1\",\"r3_foo1_python38_1\",], [module.r2_foo1_python38.function_url," +
-                    "module.r2_foo2_python38.function_url,module.r3_foo1_python38.function_url,]))\n" +
+                "output \"resource_output\" {\n" +
+                    "  value = merge(module.lambda.resource_output, zipmap([\"r2_foo1_python38_1\"," +
+                    "\"r2_foo2_python38_1\",\"r3_foo1_python38_1\",], [module.r2_foo1_python38.resource_output," +
+                    "module.r2_foo2_python38.resource_output,module.r3_foo1_python38.resource_output,]))\n" +
                     "}\n"
             );
         } else {
             assertThat(result).isEqualTo(
-                "output \"function_urls\" {\n" +
+                "output \"resource_output\" {\n" +
                     "  value = merge({}, {})\n" +
                     "}\n"
             );
@@ -308,7 +310,9 @@ public class RegionFaasFileServiceTest {
             "  image = \"testuser/foo1_python38\"\n" +
             "  basic_auth_user = var.openfaas_login_data[\"r3\"].auth_user\n" +
             "  vm_props = {\n" +
-            "    gateway_url = \"http://localhost:8080\"\n" +
+            "    base_url = \"http://localhost\"\n" +
+            "    metrics_port = 9100\n" +
+            "    openfaas_port = 8080\n" +
             "    auth_password = var.openfaas_login_data[\"r3\"].auth_pw\n" +
             "  }\n" +
             "  timeout = 60\n" +

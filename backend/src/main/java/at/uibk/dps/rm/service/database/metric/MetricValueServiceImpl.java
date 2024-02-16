@@ -92,7 +92,7 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
 
     @Override
     public void updateByResourceAndMetric(long resourceId, long metricId, String valueString,
-            Double valueNumber, Boolean valueBool, boolean isExternalSource, Handler<AsyncResult<Void>> resultHandler) {
+            Double valueNumber, Boolean valueBool, Handler<AsyncResult<Void>> resultHandler) {
         Completable update = smProvider.withTransactionCompletable(sm -> repository
             .findByResourceAndMetricAndFetch(sm, resourceId, metricId)
             .switchIfEmpty(Maybe.error(new NotFoundException(MetricValue.class)))
@@ -100,8 +100,8 @@ public class MetricValueServiceImpl extends DatabaseServiceProxy<MetricValue> im
                 .findByResourceAndMetric(sm, resourceId, metricId)
                 .switchIfEmpty(Maybe.error(new NotFoundException(PlatformMetric.class)))
                 .flatMapCompletable(platformMetric -> {
-                    if (platformMetric.getIsMonitored() && isExternalSource) {
-                        return Completable.error(new BadInputException("monitored metrics can't be updated manually"));
+                    if (platformMetric.getIsMonitored()) {
+                        return Completable.error(new BadInputException("monitored metrics can't be updated"));
                     }
                     MetricTypeEnum metricType = MetricTypeEnum.fromMetricType(metricValue.getMetric().getMetricType());
                     if (!MetricValueUtility.metricTypeMatchesValue(metricType, valueString) &&

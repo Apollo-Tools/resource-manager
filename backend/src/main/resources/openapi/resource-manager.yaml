@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  version: "1.0.6"
+  version: "1.0.7"
   title: "Resource Manager"
   description: |
     This is the API specification for the Apollo Resource Manager. The api provides various routes to 
@@ -9,24 +9,26 @@ info:
     
     ## Resource Types
     - **faas**: Resources of this type support the deployment of functions (serverless functions).
-    - **container**: Container resources support the deployment of docker images.
+    - **container**: Container resources support the deployment of services (docker images).
     
     ## Platforms
-    - **lambda**: AWS Lambda is a serverless compute platform hosted by Amazon Web Services. This platform supports 
-      the deployment of **faas** resources.
-    - **ec2**: AWC EC2 (Elastic Compute Cloud) offers virtual machines for rental to users and is hosted by Amazon 
-      Web Services. This platform supports the deployment of **faas** resources.
+    - **lambda**: [AWS Lambda](https://aws.amazon.com/lambda/) is a serverless compute platform hosted by Amazon Web
+      Services. This platform supports the deployment of **faas** resources.
+    - **ec2**: [Amazon EC2 (Elastic Compute Cloud)](https://aws.amazon.com/de/ec2/) offers virtual machines for rental
+      to users and is hosted by Amazon Web Services. This platform supports the deployment of **faas** resources.
     - **openfaas**: [OpenFaaS](https://www.openfaas.com/) is a serverless framework that can be self-hosted on 
-      kubernetes or faasd. If this platform is selected for a resource, it is required that the concerning resource has
-      an up and running instannce of OpenFaaS. This platform supports the deployment of **faas** resources.
+      kubernetes or [faasd](https://github.com/openfaas/faasd). If this platform is selected for a resource, it is 
+      required that the concerning resource has an up and running instance of OpenFaaS. This platform supports the
+      deployment of **faas** resources.
     - **k8s**: [Kubernetes](https://kubernetes.io) is a container orchestration system that is expected to be 
-    self-hosted by the user. This platform supports the deployment of **container** resources.
+      self-hosted by the user. This platform supports the deployment of **container** resources.
     
     ## Metrics
-    Metrics are associated with resources and are used for deployment and monitoring. There are two types of metrics:
-    - **monitored**: Monitored resources are automatically updated by the monitoring service of the RM. Examples of 
-    this type of metric are price, availability and the heartbeat of a resource.
-    - **non monitored**: These are user-set properties that are used primarily for resource deployment. Examples
+    Metrics are associated with resources and are used for the deployment and monitoring. There are two types of 
+    metrics:
+    - **monitored**: Monitored metrics are automatically collected by the monitoring system of the RM. Examples of 
+    this type of metric are price, availability, latency and cpu utilisation of a resource.
+    - **non-monitored**: These are user-set properties that are used primarily for resource deployment. Examples
     for this type of metric are the memory required for serverless functions or the instance type of a virtual machine.
     
     Not all platforms support/require the same metrics. The /platforms/{id}/metrics route can be used to get all 
@@ -34,26 +36,28 @@ info:
     *boolean*.
     
     ## Resources
-    Resources consist of a platform and a region. It is also possible to add metrics to resources in the form of metric
-    values (see /resources/metrics). For future deployments, it is necessary for a resource to have a metric value for 
-    all metrics that are required by the resource's platform. Otherwise the deployment will fail.
+    Resources consist of a platform and a region and whether a resource can be locked by a deployment or not (see 
+    deployments section for mere details on resource locking). It is also necessary to set the non-monitored metrics of
+    a resource (see /resources/metrics). For future deployments a resource must define all non-monitored metrics of its
+    platform. Otherwise the deployment will fail.
     
-    It also possible for resources to have sub-resources. This is currently only supported for container resources.
-    A subresource in the context of a container resource would be one node of a k8s cluster. If a container resource
-    is set up correctly on the resource manager including a valid kube config that is readable by the monitoring 
-    system, sub resources are added, updated and delete automatically. *Sub-resources can not have another set of 
-    sub-resources.*
+    It also possible for resources to have sub-resources. This type of resource hierarchy is currently only supported 
+    for container resources. A subresource in the context of a container resource would be a node of a k8s cluster. 
+    If a container resource is set up correctly on the resource manager including a valid kube config that is readable
+    by the monitoring system, sub resources are added, updated and deleted automatically. *Sub-resources can not have
+    another set of sub-resources and it is not possible to register them manually.*
     
     ### Setting up container resources
     For each resource of type *container*, a valid kube config must be provided. It has to be set up in a way
-    that it can be accessed with e.g. **kubectl** on the same resource as the resource manager is running. To do this,
-    `kubectl apply`can be used with k8s deployment file [rm-kube-secret](kubernetes/rm-kube-secret.yaml). The structure
-    of this file is very simple and only the **data** field has to be updated to your needs:
-    - Each entry represents a separate container resource
+    that it can be accessed with e.g. **kubectl** on the same resource as the resource manager is running. To make 
+    this possible, `kubectl apply`can be used with k8s deployment file [rm-kube-secret](kubernetes/rm-kube-secret.yaml).
+    The structure of this file is very simple and only the **data** field has to be updated to your needs:
+    - Each entry of the **data** field represents a separate container resource
     - The key is the name of the resource. Make sure that you use the same name as in the registration of the 
-    resource at the resource manager.
-    - The value is the content of the kube config in base64 encoding.
-    > It is important that these secrets are readable by the same service account, that is set in the [rm-api]
+      resource at the resource manager.
+    - The value is the content of the kube config in base64 encoding. Ensure that the clusters, contexts, and users 
+      sections contain the required data, and verify that current-context is not left empty.
+    > It is important that the k8s secrets are readable by the same service account, that is set in the [rm-api]
     > (kubernetes/rm-api.yaml) deployment file.
     
     The kube config must meet some specific requirements:
@@ -63,50 +67,62 @@ info:
       need to also base64 encode the two whole files as values and use *client-certificate-data* and *client-key-data*
       as keys. Using only the certificate or secret string won't work. It is recommended to test the kube config with
       kubectl before using it with the resource manager, to make sure it is valid.
+      4. The current-context must be set.
     
-    A sample kube config looks like this:
+    A sample kube config could look like this:
     ```
     apiVersion: v1
     clusters:
       - cluster:
-          certificate-authority-data: <b64-encdoded-cert-authority-data>
+          certificate-authority-data: <b64-encoded-cert-authority-data>
           server: <cluster-url>
-        name: clustername
+        name: <cluster-name>
     contexts:
       - context:
-          cluster: clustername
+          cluster: <cluster-name>
           namespace: <your-namespace>
-          user: username
+          user: <user-name>
         name: <context-name>
+    current-context: <context-name>
     kind: Config
     preferences: {}
     users:
-      - name: username
+      - name: <user-name>
         user:
           client-certificate-data: <b64-encoded-cert>
           client-key-data: <b64-encoded-key>
     ```
     
+  
+    ### Scrape Targets
+    For the automatic metric scraping and the persistence of collected metric values 
+    [VictoriaMetrics](https://victoriametrics.com/) is used. Because resources are deployed and terminated irregularly
+    it is necessary to provide an interface to the monitoring system to let it know about the resources that have to be 
+    monitored (scrape targets). The listScrapeTargets operation implements a method to list all resources that are 
+    ready to be scraped and it's route must be defined as 
+    [http service discovery url](https://docs.victoriametrics.com/sd_configs/#http_sd_configs) in the monitoring 
+    system's configuration.
+    
     ## Service Level Objectives and Resource Ensembles
     It is possible to retrieve resources filtered by service level objectives (see resources/slo). If you  are 
-    satisfied with the resulting resources or if you only need a subset of the retrieved resources you can store them 
-    with a name and the service level objectives as a *resource ensemble* (see /ensemble). The resources of the 
-    ensemble can be validated with /ensembles/{id}/validate. Supported metrics as service level objectives are all 
+    satisfied with the resulting resources, you can store all of them or a subset with a name and the specified service 
+    level objectives as a *resource ensemble* (see /ensemble). The resources of the ensemble can be validated anytime 
+    with /ensembles/{id}/validate. Supported metrics as service level objectives are all 
     metrics that are managed by the RM and where the field **is_slo** is set to `true` as well as the non metric 
     properties resource_type, platform, region, resource_provider and environment. For the latter five properties
-    the values must be the ids of the entities. For example the service level objective for all resource types of type
-    container would look like this if the *resource_type_id* of the *container* resource type equals 4:    
+    the values must be the ids of the corresponding entities. For example the service level objective for all resource 
+    types of type container would look like this if the *resource_type_id* of the *container* resource type equals 4:    
     ```
     {
       name: resource_type,
       expression: "==",
       value: [4]
     }
-    ```    
-    
+    ```        
     As you can see the type of the value property of the service level objective is an array. Therefore, it is possible 
     for service level objectives with the expression '==' to specify multiple values as valid options. For '<' or '>' 
     expressions the value array must be of size one. 
+    
     > - Providing multiple values inside the value array acts as a logical OR.
     > - Providing multiple service level objectives acts as a logical AND.
     
@@ -115,14 +131,15 @@ info:
     similar but not the the same structure and are only available for deployments on predefined platforms as described 
     in the platforms section. They also are always linked to a function type or service type. A type is the abstract
     description of the functionality while the function or service is a specific implementation of the type. Functions
-    and Services both are always coupled to the account that created the specific entity. Hence only the creator of a
+    and Services both are always coupled to the account that created the specific entity. Only the creator of a
     Function or Service is allowed to modify it but they can still be used for deployments by other users if public 
-    access is enabled by setting the *is_public* field to `true`.
+    access is granted. The public access can be enabled by setting the *is_public* field to `true`.
     - **functions**: Function entities consist of a function type, name, a runtime, a minimum timeout, required memory 
     and function code that can be executed by that runtime. Currently python 3.8 and java 11 are the supported runtimes.
     In general function code has to be uploaded as a zip file. Templates (backend/faas-templates) and 
     examples (backend/faas-examples) for all available runtimes can be found at the git repository of the RM. For 
-    python functions it is also possible to directly save the function code to the Function entity.
+    python functions it is also possible to directly save the function code to the Function entity. This comes with the
+    downside that no external dependencies can be specified.
     - **services**: Service entities consist of a service type, name, the title of the docker image, the number of
     replicas for that service, the ports that should be exposed, the required cpu amount, the required memory amount
     and the k8s service type. Currently *ClusterIP*, *NodePort*, *LoadBalancer*, *NoService* are supported k8s service 
@@ -136,30 +153,48 @@ info:
     ## Deployment
     Deployments consist of mappings of functions and services to resources and the necessary credentials. 
     - **Credentials**: If a deployment to a cloud provider is part of the deploy resources request, credentials (access 
-    token, secret token, session token) must be stored to the account (see /credentials). In addition if the 
-    request contains resources of platform *EC2* or *OpenFaaS*, docker credentials to a registry that is reachable by
-    all resources must also be included in the request. The reason for that is that OpenFaaS uses docker images 
-    which must first be pushed to a docker repository and then pulled on the concerning resources. Make sure to 
-    generate a docker access token with read and write permissions for this purpose that can be invalidated after the
-    deployment was successful.
+      token, secret token, session token) must be stored to the account (see /credentials). This currently true for 
+      deployments of *AWS Lambda* and *Amazon EC2* resources. In addition if the request contains resources of
+      *Amazon EC2* or *OpenFaaS* resources, docker credentials to a registry that is reachable by all resources must 
+      also be included in the request. The reason for that is that OpenFaaS uses docker images which must first be 
+      pushed to a docker repository and then pulled on the concerning resources. Make sure to generate a docker access
+      token with read and write permissions for this purpose that can be invalidated after the deployment was
+      successful.
     
-    - **Virtual Private Clouds**: In order to deploy virtual machines on AWS EC2 a Virtual Private Cloud (VPC) must be 
-    registered (see /vpcs) prior to submitting a deployment request for each region in which a virtual machine will
+    - **Virtual Private Clouds**: In order to deploy virtual machines on *Amazon EC2* a Virtual Private Cloud (VPC) must
+    be registered (see /vpcs) prior to submitting a deployment request for each region in which a virtual machine will
     be deployed. 
+    - **Locked Resources**: Deployments may lock lock resources by specifying them in the creation of the deployment.
+      This functionality is only supported for resources, where the *is_lockable* property is set to true. If a new 
+      deployment attempts to lock a resource that is already locked by an active deployment, the request will not be 
+      accepted, regardless of whether the new deployment intends to lock the resource or not. All resources that are
+      locked by a deployment stay in this state until the deployment is canceled all resources have been terminated.
     - **Output and Status**: After successfully submitting a deploy resources request, a deployment will be created 
-    with the status *NEW*. This indicates that the deployment of resources has started but is still in progress. After 
-    the RM has completed all tasks associated with the new deployment, the status is changed to **DEPLOYED** and 
-    the trigger url is set for all deployed resources. All function-resources and service-resources associated to the 
-    deployment can be retrieved with the GET /deployments/{id} request where the newly set trigger urls can be found. 
-    For function deployments the trigger url is the function's entrypoint. For service deployments the trigger url 
-    starts up the container. The trigger url for service deployments is a endpoint of the RM 
-    /deployments/{deploymentId}/{resourceDeploymentId}/start. It is also possible to stop the container with 
-    the endpoint /deployments/{deploymentId}/{resourceDeploymentId}/stop. 
-    When a deployment is cancelled, the status is changed to *TERMINATING*. After the termination 
-    of all the resources associated with the deployment is finished, the status changes to *TERMINATED*. If an error 
-    occurs in any of these steps, the status is set to *ERROR*. In order to observe what has happened during the 
-    deployment and termination, it is possible to retrieve logs for each deployment using the 
-    /deployments/{id}/logs endpoint.
+      with the status *NEW*. This indicates that the deployment of resources has started but is still in progress. 
+      After the RM has completed all tasks associated with the new deployment, the status is changed to **DEPLOYED** 
+      and the trigger url is set for all deployed resources. All function-resources and service-resources associated to
+      the deployment can be retrieved with the GET /deployments/{id} request where the newly set trigger urls can be
+      found. 
+    
+      For function deployments two different trigger urls are set. The *rm_trigger_url* is an endpoint of the 
+      resource manager's API (/function-deployments/{id}/invoke). With this url the resource manager acts as a proxy 
+      and forwards the request to the entrypoint of the function. Because all functions are deployed with a monitoring
+      wrapper, the RM is able to collect monitoring data, measured during the function execution. After receiving the
+      result of the function invocation, the RM forwards it back to the client. To avoid the overhead that is 
+      introduced by this procedure, function deployments also expose the *direct_trigger_url*. 
+    
+      For service deployments only the *rm_trigger_url* is set. Calling this trigger url starts up the 
+      corresponding containers. Similar to the trigger url of function deployments, the trigger url for service 
+      deployments is also endpoint of the RM's API (/service-deployments/{resourceDeploymentId}/startup). It is 
+      also possible to stop the containers with the endpoint /service-deployments/{resourceDeploymentId}/terminate. 
+    
+      When a deployment is cancelled, the status is changed to *TERMINATING*. After the termination of all the 
+      resources associated with the deployment is finished, the status changes to *TERMINATED*. 
+    
+    > If an error occurs in any of the deployments steps, the status is set to *ERROR*. In order to observe the 
+    > problem that occurred during the deployment and termination, it is possible to retrieve logs for each deployment 
+    > using the /deployments/{id}/logs endpoint. The presence of an *ERROR* immediately terminates all resources that
+    > have been deployed before the error occurred and a new deployment has to be created.
     
     ## Authentication
     The RM uses **Bearer tokens** for authentication because of it's simplicity. 
@@ -206,6 +241,7 @@ tags:
   - name: metrics
   - name: platforms
   - name: regions
+  - name: resourceDeployments
   - name: resourceTypes
   - name: resourceProviders
   - name: resources
@@ -899,9 +935,11 @@ paths:
                 type: object
                 required:
                   - metric_id
+                  - value
                 additionalProperties: false
                 properties:
                   metric_id:
+                    description: only metrics are allowed if they are not monitored for the resource's platform
                     type: integer
                     format: int64
                     example: 1
@@ -1087,6 +1125,29 @@ paths:
           $ref: "#/components/responses/401"
         404:
           $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /resources/scrape-targets:
+    get:
+      description: Return all scrape targets in a format which conforms to [Victoria Metrics' HTTP-based service discovery](https://docs.victoriametrics.com/sd_configs.html#http_sd_configs)
+      operationId: listScrapeTargets
+      security: [ ]
+      tags:
+        - resources
+      responses:
+        200:
+          description: Successful pull of all scrape targets
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ScrapeTarget"
         500:
           $ref: "#/components/responses/500"
 
@@ -2142,31 +2203,71 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /deployments/{deploymentId}/{resourceDeploymentId}/startup:
-    post:
-      description: Start up a service container from an existing deployment.
-      operationId: startResourceDeployment
+  /deployments/{id}/logs:
+    get:
+      description: Return all logs linked to a deployment
+      operationId: listDeploymentLogs
+      security:
+        - bearerAuth: []
+      tags:
+        - deployments
+        - logs
+      parameters:
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        200:
+          description: Successful pull of all logs
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Log"
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /deployments/{id}/cancel:
+    patch:
+      description: Cancel a deployment and terminate all resources from that deployment.
+      operationId: cancelDeployment
       security:
         - bearerAuth: []
       tags:
         - deployments
       parameters:
-        - name: deploymentId
-          in: path
-          description: ID of the deployment
-          required: true
-          schema:
-            type: integer
-            format: int64
-            example: 1
-        - name: resourceDeploymentId
-          in: path
-          description: ID of the resource deployment
-          required: true
-          schema:
-            type: integer
-            format: int64
-            example: 1
+        - $ref: "#/components/parameters/idParam"
+      responses:
+        204:
+          description: Successful cancellation of a deployment
+        400:
+          $ref: "#/components/responses/400"
+        401:
+          $ref: "#/components/responses/401"
+        404:
+          $ref: "#/components/responses/404"
+        500:
+          $ref: "#/components/responses/500"
+
+  /service-deployments/{id}/startup:
+    post:
+      description: Start up a service container from an existing deployment.
+      operationId: startServiceDeployment
+      security:
+        - bearerAuth: []
+      tags:
+        - resourceDeployments
+      parameters:
+        - $ref: "#/components/parameters/idParam"
       responses:
         200:
           description: Successful start up of a container
@@ -2234,31 +2335,16 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /deployments/{deploymentId}/{resourceDeploymentId}/terminate:
+  /service-deployments/{id}/terminate:
     post:
       description: Stop a service container from an existing deployment
-      operationId: stopResourceDeployment
+      operationId: stopServiceDeployment
       security:
         - bearerAuth: []
       tags:
-        - deployments
+        - resourceDeployments
       parameters:
-        - name: deploymentId
-          in: path
-          description: ID of the deployment
-          required: true
-          schema:
-            type: integer
-            format: int64
-            example: 1
-        - name: resourceDeploymentId
-          in: path
-          description: ID of the resource deployment
-          required: true
-          schema:
-            type: integer
-            format: int64
-            example: 1
+        - $ref: "#/components/parameters/idParam"
       responses:
         204:
           description: Successful stop of a container
@@ -2271,52 +2357,23 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /deployments/{id}/logs:
-    get:
-      description: Return all logs linked to a deployment
-      operationId: listDeploymentLogs
+  /function-deployments/{id}/invoke:
+    post:
+      description: Invoke a function deployment.
+      operationId: invokeFunctionDeployment
       security:
         - bearerAuth: []
       tags:
-        - deployments
-        - logs
+        - resourceDeployments
       parameters:
         - $ref: "#/components/parameters/idParam"
       responses:
         200:
-          description: Successful pull of all logs
-          headers:
-            content-length:
-              schema:
-                type: integer
+          description: Successful invocation of the function
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Log"
-        400:
-          $ref: "#/components/responses/400"
-        401:
-          $ref: "#/components/responses/401"
-        404:
-          $ref: "#/components/responses/404"
-        500:
-          $ref: "#/components/responses/500"
-
-  /deployments/{id}/cancel:
-    patch:
-      description: Cancel a deployment and terminate all resources from that deployment.
-      operationId: cancelDeployment
-      security:
-        - bearerAuth: []
-      tags:
-        - deployments
-      parameters:
-        - $ref: "#/components/parameters/idParam"
-      responses:
-        204:
-          description: Successful cancellation of a deployment
+                type: object
         400:
           $ref: "#/components/responses/400"
         401:
@@ -2995,7 +3052,7 @@ paths:
           $ref: "#/components/responses/500"
 
     patch:
-      description: | 
+      description: |
         Update details about a service managed by the resource manager that is owned by the logged in user.
       operationId: updateService
       security:
@@ -3507,14 +3564,8 @@ paths:
               schema:
                 type: array
                 items:
-                  type: object
-                  properties:
-                    metric:
-                      $ref: "#/components/schemas/Metric"
-                    required:
-                      description: whether the metric is required for a platform's resource or not
-                      type: boolean
-                      example: true
+                  $ref: '#/components/schemas/PlatformMetric'
+
         400:
           $ref: "#/components/responses/400"
         401:
@@ -3772,6 +3823,19 @@ components:
                 type: integer
                 format: int64
                 example: 1679496667103
+    ScrapeTarget:
+      type: object
+      properties:
+        targets:
+          type: array
+          items:
+            description: "The scrape url of the target"
+            type: string
+        labels:
+          type: object
+          description: "The labels associated to the target"
+          additionalProperties:
+            type: string
     Ensemble:
       type: object
       properties:
@@ -3849,7 +3913,7 @@ components:
         metric:
           type: string
           example: availability
-        is_monitored:
+        is_slo:
           type: boolean
           example: false
         metricType:
@@ -3892,22 +3956,40 @@ components:
               format: int64
               example: 1679496667103
         - oneOf:
-          - type: object
-            properties:
-              value_number:
-                type: integer
-                format: int64
-                example: 0
-          - type: object
-            properties:
-              value_string:
-                type: string
-                example: ubuntu
-          - type: object
-            properties:
-              value_bool:
-                type: boolean
-                example: true
+            - type: object
+              properties:
+                value_number:
+                  type: integer
+                  format: int64
+                  example: 0
+            - type: object
+              properties:
+                value_string:
+                  type: string
+                  example: ubuntu
+            - type: object
+              properties:
+                value_bool:
+                  type: boolean
+                  example: true
+    PlatformMetric:
+      type: object
+      properties:
+        platform_metric_id:
+          type: integer
+          format: int64
+          example: 1
+        metric:
+          $ref: "#/components/schemas/Metric"
+        is_main_resource_metric:
+          type: boolean
+          example: true
+        is_sub_resource_metric:
+          type: boolean
+          example: false
+        monitored_during_deployment:
+          type: boolean
+          example: false
     Deployment:
       type: object
       properties:
@@ -3938,6 +4020,9 @@ components:
                     properties:
                       function:
                         $ref: '#/components/schemas/Function'
+                      direct_trigger_url:
+                        type: string
+                        example: http://localhost:8080/foo
             service_resources:
               type: array
               items:
@@ -3947,6 +4032,13 @@ components:
                     properties:
                       service:
                         $ref: '#/components/schemas/Service'
+                      namespace:
+                        type: string
+                        example: default
+                      context:
+                        type: string
+                        example: default-context
+
     ResourceDeployment:
       type: object
       properties:
@@ -3954,7 +4046,7 @@ components:
           type: integer
           format: int64
           example: 1
-        trigger_url:
+        rm_trigger_url:
           type: string
           example: https://localhost:9000/function/invoke
         resource:
@@ -4287,7 +4379,7 @@ components:
             example: ">"
           value:
             description: |
-              The value is allways an array because for == expressions multiple different values are allowed which 
+              The value is always an array because for == expressions multiple different values are allowed which 
               represents an OR operator. For other expressions this is not supported.
             oneOf:
               - $ref: '#/components/schemas/stringValues'

@@ -99,7 +99,7 @@ public class DeploymentValidationUtility {
             })
             .flatMap(resources -> {
                 Completable checkResources = checkResourcesForDeployment(sm, resources, deployResources);
-                Completable checkMetrics = checkMissingRequiredMetrics(sm, resources);
+                Completable checkMetrics = checkMissingCustomMetrics(sm, resources);
                 return Completable.mergeArray(checkResources, checkMetrics)
                     .andThen(Single.defer(() -> Single.just(resources)));
             });
@@ -206,19 +206,19 @@ public class DeploymentValidationUtility {
     }
 
     /**
-     * Check resources miss required metrics
+     * Check if resources miss custom metrics
      *
      * @param sm the database session manager
      * @param resources the list of resources
      * @return a Completable that indicates an error if at least one resource has a missing
      *         required metric
      */
-    private Completable checkMissingRequiredMetrics(SessionManager sm, List<Resource> resources) {
+    private Completable checkMissingCustomMetrics(SessionManager sm, List<Resource> resources) {
         return Observable.fromIterable(resources)
             .flatMapCompletable(resource -> {
                 boolean isMainResource = resource.getMain().equals(resource);
                 return repositoryProvider.getPlatformMetricRepository()
-                    .countMissingRequiredMetricValuesByResourceId(sm, resource.getResourceId(),
+                    .countMissingCustomMetricValuesByResourceId(sm, resource.getResourceId(),
                         isMainResource)
                     .flatMapCompletable(missingRequiredMetrics -> {
                         if (missingRequiredMetrics > 0) {

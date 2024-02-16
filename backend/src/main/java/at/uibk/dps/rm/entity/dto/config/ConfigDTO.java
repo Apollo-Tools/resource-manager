@@ -36,6 +36,12 @@ public class ConfigDTO {
     private String kubeConfigSecretsNamespace;
     private String kubeConfigDirectory;
     private Integer kubeApiTimeoutSeconds;
-    private Double kubeMonitoringPeriod;
     private List<String> kubeImagePullSecrets;
+
+    private String monitoringPushUrl;
+    private String monitoringQueryUrl;
+    private Double kubeMonitoringPeriod;
+    private Double openfaasMonitoringPeriod;
+    private Double regionMonitoringPeriod;
+    private Double awsPriceMonitoringPeriod;
 }

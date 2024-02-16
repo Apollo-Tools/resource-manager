@@ -14,5 +14,5 @@ import java.util.Map;
 @NoArgsConstructor
 public class TFOutput {
 
-    private Map<String, String> value;
+    private Map<String, TFOutputValue> value;
 }

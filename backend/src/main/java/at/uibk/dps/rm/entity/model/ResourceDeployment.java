@@ -24,7 +24,7 @@ public abstract class ResourceDeployment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long resourceDeploymentId;
 
-    private String triggerUrl = "";
+    private String rmTriggerUrl = "";
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resource_id")

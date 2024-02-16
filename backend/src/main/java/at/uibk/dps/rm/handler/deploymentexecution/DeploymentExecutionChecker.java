@@ -6,20 +6,15 @@ import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
-import at.uibk.dps.rm.entity.model.Deployment;
-import at.uibk.dps.rm.entity.model.DeploymentLog;
-import at.uibk.dps.rm.entity.model.FunctionDeployment;
-import at.uibk.dps.rm.entity.model.Log;
+import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
-import at.uibk.dps.rm.service.rxjava3.database.log.DeploymentLogService;
-import at.uibk.dps.rm.service.rxjava3.database.log.LogService;
+import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.service.deployment.docker.LambdaJavaBuildService;
 import at.uibk.dps.rm.service.deployment.docker.LambdaLayerService;
 import at.uibk.dps.rm.service.deployment.docker.OpenFaasImageService;
 import at.uibk.dps.rm.service.deployment.executor.MainTerraformExecutor;
 import at.uibk.dps.rm.service.deployment.executor.TerraformExecutor;
 import at.uibk.dps.rm.service.deployment.terraform.TerraformFileService;
-import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentExecutionService;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import at.uibk.dps.rm.util.misc.ConsoleOutputUtility;
 import io.reactivex.rxjava3.core.Completable;
@@ -27,6 +22,7 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
+import lombok.RequiredArgsConstructor;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -36,27 +32,11 @@ import java.util.List;
  *
  * @author matthi-g
  */
+@RequiredArgsConstructor
 public class DeploymentExecutionChecker {
 
-    private final DeploymentExecutionService deploymentService;
+    private final ServiceProxyProvider serviceProxyProvider;
 
-    private final LogService logService;
-
-    private final DeploymentLogService deploymentLogService;
-
-    /**
-    * Create an instance from the deploymentService, logService and deploymentLogService.
-    *
-    * @param deploymentService the deployment service
-    * @param logService the log service
-    * @param deploymentLogService the deployment log service
-    */
-    public DeploymentExecutionChecker(DeploymentExecutionService deploymentService, LogService logService,
-      DeploymentLogService deploymentLogService) {
-    this.deploymentService = deploymentService;
-    this.logService = logService;
-    this.deploymentLogService = deploymentLogService;
-    }
 
     /**
      * Deploy all resources from the deployResources object. The
@@ -72,7 +52,8 @@ public class DeploymentExecutionChecker {
         return new ConfigUtility(vertx).getConfigDTO()
             .flatMap(config -> {
                 DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
-                return deploymentService.packageFunctionsCode(deployResources)
+                return serviceProxyProvider.getDeploymentExecutionService()
+                    .packageFunctionsCode(deployResources)
                     .flatMapCompletable(functionsToDeploy -> buildAndPushOpenFaasImages(vertx,
                             deployResources.getDeploymentCredentials().getDockerCredentials(), functionsToDeploy,
                             deploymentPath)
@@ -83,7 +64,7 @@ public class DeploymentExecutionChecker {
                         .andThen(buildLambdaLayers(deployResources.getFunctionDeployments(), deploymentPath,
                             config.getDindDirectory()))
                         .flatMapCompletable(dockerOutput -> persistLogs(dockerOutput, deployResources.getDeployment())))
-                    .andThen(deploymentService.setUpTFModules(deployResources))
+                    .andThen(serviceProxyProvider.getDeploymentExecutionService().setUpTFModules(deployResources))
                     .flatMap(deploymentCredentials -> {
                         TerraformExecutor terraformExecutor = new MainTerraformExecutor(deploymentCredentials);
                         return initialiseAllContainerModules(deployResources, deploymentPath)
@@ -170,13 +151,13 @@ public class DeploymentExecutionChecker {
         Log log = new Log();
         String output = ConsoleOutputUtility.escapeConsoleOutput(processOutput.getOutput());
         log.setLogValue(output);
-        return logService.save(JsonObject.mapFrom(log))
+        return serviceProxyProvider.getLogService().save(JsonObject.mapFrom(log))
             .map(logResult -> {
                 Log logStored = logResult.mapTo(Log.class);
                 DeploymentLog deploymentLog = new DeploymentLog();
                 deploymentLog.setDeployment(deployment);
                 deploymentLog.setLog(logStored);
-                return deploymentLogService.save(JsonObject.mapFrom(deploymentLog));
+                return serviceProxyProvider.getDeploymentLogService().save(JsonObject.mapFrom(deploymentLog));
             })
             .flatMapCompletable(res -> {
                 if (processOutput.getProcess().exitValue() != 0) {
@@ -199,7 +180,8 @@ public class DeploymentExecutionChecker {
             .flatMapCompletable(config -> {
                 DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
                 return terminateAllContainerResources(terminateResources, deploymentPath)
-                    .andThen(deploymentService.getNecessaryCredentials(terminateResources))
+                    .andThen(serviceProxyProvider.getDeploymentExecutionService()
+                        .getNecessaryCredentials(terminateResources))
                     .map(MainTerraformExecutor::new)
                     .flatMap(terraformExecutor -> terraformExecutor.destroy(deploymentPath.getRootFolder()))
                     .flatMapCompletable(terminateOutput -> persistLogs(terminateOutput, terminateResources.getDeployment()));
@@ -227,20 +209,19 @@ public class DeploymentExecutionChecker {
     /**
      * Start a container from a deployment.
      *
-     * @param deploymentId the id of the deployment
-     * @param resourceDeploymentId the id of the resource deployment
+     * @param serviceDeployment the service deployment
      * @return a Completable
      */
-    public Single<JsonObject> startContainer(long deploymentId, long resourceDeploymentId) {
+    public Single<JsonObject> startContainer(ServiceDeployment serviceDeployment) {
         Vertx vertx = Vertx.currentContext().owner();
         Deployment deployment = new Deployment();
-        deployment.setDeploymentId(deploymentId);
+        deployment.setDeploymentId(serviceDeployment.getDeployment().getDeploymentId());
         return new ConfigUtility(vertx).getConfigDTO()
             .flatMap(config -> {
                 TerraformExecutor terraformExecutor = new TerraformExecutor();
-                DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
+                DeploymentPath deploymentPath = new DeploymentPath(deployment.getDeploymentId(), config);
                 Path containerPath = Path.of(deploymentPath.getRootFolder().toString(), "container",
-                    String.valueOf(resourceDeploymentId));
+                    String.valueOf(serviceDeployment.getResourceDeploymentId()));
                 return terraformExecutor.apply(containerPath)
                     .flatMapCompletable(applyOutput -> persistLogs(applyOutput, deployment))
                     .andThen(terraformExecutor.getOutput(containerPath))
@@ -256,20 +237,19 @@ public class DeploymentExecutionChecker {
     /**
      * Stop a container from a deployment.
      *
-     * @param deploymentId the id of the deployment
-     * @param resourceDeploymentId the id of the resource deployment
+     * @param serviceDeployment the service deployment
      * @return a Completable
      */
-    public Completable stopContainer(long deploymentId, long resourceDeploymentId) {
+    public Completable stopContainer(ServiceDeployment serviceDeployment) {
         Vertx vertx = Vertx.currentContext().owner();
         Deployment deployment = new Deployment();
-        deployment.setDeploymentId(deploymentId);
+        deployment.setDeploymentId(serviceDeployment.getDeployment().getDeploymentId());
         return new ConfigUtility(vertx).getConfigDTO()
             .flatMapCompletable(config -> {
                 TerraformExecutor terraformExecutor = new TerraformExecutor();
-                DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
+                DeploymentPath deploymentPath = new DeploymentPath(deployment.getDeploymentId(), config);
                 Path containerPath = Path.of(deploymentPath.getRootFolder().toString(), "container",
-                    String.valueOf(resourceDeploymentId));
+                    String.valueOf(serviceDeployment.getResourceDeploymentId()));
                 return terraformExecutor.destroy(containerPath)
                     .flatMapCompletable(destroyOutput -> persistLogs(destroyOutput, deployment));
             });

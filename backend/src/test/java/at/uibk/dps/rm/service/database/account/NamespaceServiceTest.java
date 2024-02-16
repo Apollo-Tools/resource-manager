@@ -135,8 +135,8 @@ public class NamespaceServiceTest {
                 if (expectedRemoveElements > 0) {
                     ArgumentCaptor<Object[]> deleteArgs = ArgumentCaptor.forClass(Object[].class);
                     verify(sessionManager).remove(deleteArgs.capture());
-                    var deleteCap = deleteArgs.getAllValues();
-                    assertThat(deleteCap.size()).isEqualTo(expectedRemoveElements);
+                    List<Object[]> deleteCap = deleteArgs.getAllValues();
+                    assertThat(deleteCap.get(0).length).isEqualTo(expectedRemoveElements);
                 }
                 testContext.completeNow();
             }))

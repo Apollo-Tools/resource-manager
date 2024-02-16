@@ -35,25 +35,30 @@ spec:
       containers:
         - name: rm-api
           # Pull latest image
-          image: matthigas/rm-api:latest
+          image: matthigas/rm-api:1.0.7
           imagePullPolicy: Always
           env:
-            # The host url of the db
+            # The host url of the PostgreSQL database
             - name: db_host
               value: rm-db-service
-            # The port of the db
+            # The port of the PostgreSQL database
             - name: db_port
               value: "5433"
             # The login credentials for the db
             - name: db_user
               value: root
-            - name: db_pw
+            # The password to access the PostgreSQL database
+            - name: db_password
               value: root
             # Retry policy for database operations
             - name: max_retries
               value: "5"
+            # The time span in milliseconds to wait until a database operation is called again after a serialization error occurred
             - name: retry_delay_millis
               value: "1000"
+            # The api port
+            - name: api_port
+              value: "8080"
             # The path of the build directory
             - name: build_directory
               value: build
@@ -75,7 +80,7 @@ spec:
             # The time until a newly created token expires
             - name: token_minutes_valid
               value: "10080"
-            # The period of time between each validation performed on all existing ensembles in minutes
+            # The time period between each validation performed on all existing ensembles in minutes
             - name: ensemble_validation_period
               value: "60"
             # The insecure registries that are accessed for openfaas and ec2 deployments
@@ -83,37 +88,55 @@ spec:
               value: "[]"
             # The k8s secrets that contain the kubeconfigs for all monitored k8s resources
             - name: kube_config_secrets_name
-              value: "rm_kubeconfigs"
-            # The path of the directory where the kube configs to access registered k8s resources are stored
-            - name: kube_config_directory
-              value: "build/kubeconfig"
+              value: "rm-kubeconfigs"
             # The namespace where the kube config secrets are stored
             - name: kube_config_secrets_namespace
               value: "default"
+            # The path of the directory where the kube configs to access registered k8s resources are stored
+            - name: kube_config_directory
+              value: "k8s/kubeconfigs"
             # The timeout of k8s api requests in seconds
             - name: kube_api_timeout_seconds
               value: "10"
-            # The period of time between each monitoring run performed on all existing k8s resources in minutes
-            - name: kube_monitoring_period
-              value: "5"
             # The secrets that contain credentials to private repositories
             - name: kube_image_pull_secrets
               value: "[\"regcred\"]"
+            # The push url of the external monitoring system (VictoriaMetrics)
+            - name: monitoring_push_url
+              value: "http://rm-monitoring-vm:8890"
+            # The query url of the external monitoring system (VictoriaMetrics)
+            - name: monitoring_query_url
+              value: "http://rm-monitoring-vm:8889"
+            # The time period between each monitoring update for all registered k8s resources in minutes
+            - name: kube_monitoring_period
+              value: "0.25"
+            # The time period between each monitoring update for all registered OpenFaaS resources in minutes
+            - name: openfaas_monitoring_period
+              value: "0.1"
+            # The time period between each monitoring update for all registered regions in minutes
+            - name: region_monitoring_period
+              value: "0.1"
+            # The time period between each monitoring update the aws price list api in minutes
+            - name: aws_price_monitoring_period
+              value: "1440"
           resources:
             # The resource limits
             limits:
               memory: "1000Mi"
               cpu: "1.5"
           ports:
-            # The internal port of the api
+            # The internal port of the api, must match api_port env variable
             - containerPort: 8080
           securityContext:
             # Necessary for docker-in-docker
             privileged: true
           volumeMounts:
-            # The volume where all build data (terraform files, filed to build images) is stored
+            # The volume where all build data (terraform files, files to build images) is stored
             - name: rm-api-storage
               mountPath: /build
+            # The volume where k8s configs are stored
+            - name: rm-k8s-storage
+              mountPath: /k8s
             # The path to the docker.sock used by docker-in-docker
             - name: dind-storage
               mountPath: /var/run/docker.sock
@@ -124,5 +147,8 @@ spec:
         - name: rm-api-storage
           hostPath:
             path: /var/lib/apollo-rm/build
+        - name: rm-k8s-storage
+          emptyDir:
+            sizeLimit: 100Mi
       # Define service account with cluster role binding
       serviceAccountName: <service-account>

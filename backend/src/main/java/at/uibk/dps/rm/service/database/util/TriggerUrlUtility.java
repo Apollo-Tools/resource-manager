@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.service.database.util;
 
 import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
+import at.uibk.dps.rm.entity.deployment.output.TFOutputValue;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
 import at.uibk.dps.rm.exception.NotFoundException;
@@ -29,13 +30,13 @@ public class TriggerUrlUtility {
      */
     public Completable setTriggerUrlsForFunctions(SessionManager sm,
             DeploymentOutput deploymentOutput, DeployResourcesDTO request) {
-        return Observable.fromIterable(deploymentOutput.getFunctionUrls().getValue().entrySet())
+        return Observable.fromIterable(deploymentOutput.getResourceOutput().getValue().entrySet())
             .flatMapCompletable(entry -> {
                 String[] entryInfo = entry.getKey().split("_");
                 long resourceId = Long.parseLong(entryInfo[0].substring(1));
                 String functionName = entryInfo[1], runtimeName = entryInfo[2];
-                return findFunctionDeploymentAndUpdateTriggerUrl(sm, request, resourceId, functionName,
-                    runtimeName, entry.getValue());
+                return findFunctionDeploymentAndUpdateTriggerUrl(sm, request, resourceId, functionName, runtimeName,
+                    entry.getValue());
             });
     }
 
@@ -46,19 +47,24 @@ public class TriggerUrlUtility {
      * @param resourceId the id of the resource
      * @param functionName the name of the function
      * @param runtimeName the name of the runtime
-     * @param triggerUrl the trigger url
+     * @param tfOutputValue the terraform output
      * @return a Completable
      */
-    private Completable findFunctionDeploymentAndUpdateTriggerUrl(SessionManager sm,
-            DeployResourcesDTO request, long resourceId, String functionName, String runtimeName, String triggerUrl) {
+    private Completable findFunctionDeploymentAndUpdateTriggerUrl(SessionManager sm, DeployResourcesDTO request,
+            long resourceId, String functionName, String runtimeName, TFOutputValue tfOutputValue) {
         return Observable.fromIterable(request.getFunctionDeployments())
             .filter(functionDeployment -> matchesFunctionDeployment(resourceId, functionName, runtimeName,
                 functionDeployment))
             .firstElement()
             .switchIfEmpty(Single.error(new NotFoundException("trigger url could not be set up for function " +
                 "deployment")))
-            .flatMapCompletable(functionDeployment -> repositoryProvider.getResourceDeploymentRepository()
-                .updateTriggerUrl(sm, functionDeployment.getResourceDeploymentId(), triggerUrl));
+            .flatMapCompletable(functionDeployment -> {
+                String rmTriggerUrl = String.format("/function-deployments/%s/invoke",
+                    functionDeployment.getResourceDeploymentId());
+                functionDeployment.setRmTriggerUrl(rmTriggerUrl);
+                return repositoryProvider.getFunctionDeploymentRepository().updateTriggerUrls(sm,
+                    functionDeployment.getResourceDeploymentId(), rmTriggerUrl, tfOutputValue);
+            });
     }
 
     /**
@@ -87,11 +93,10 @@ public class TriggerUrlUtility {
     public Completable setTriggerUrlForContainers(SessionManager sm, DeployResourcesDTO request) {
         return Observable.fromIterable(request.getServiceDeployments())
             .flatMapCompletable(serviceDeployment -> {
-                String triggerUrl = String.format("/deployments/%s/%s/startup",
-                    request.getDeployment().getDeploymentId(),
+                String rmTriggerUrl = String.format("/service-deployments/%s/startup",
                     serviceDeployment.getResourceDeploymentId()) ;
                 return repositoryProvider.getResourceDeploymentRepository()
-                    .updateTriggerUrl(sm, serviceDeployment.getResourceDeploymentId(), triggerUrl);
+                    .updateRmTriggerUrl(sm, serviceDeployment.getResourceDeploymentId(), rmTriggerUrl);
             });
     }
 }

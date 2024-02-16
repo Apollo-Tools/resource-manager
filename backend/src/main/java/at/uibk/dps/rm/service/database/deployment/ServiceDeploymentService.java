@@ -12,6 +12,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
+import io.vertx.core.json.JsonObject;
 
 /**
  * The interface of the service proxy for the service_deployment entity.
@@ -37,14 +38,13 @@ public interface ServiceDeploymentService extends DatabaseServiceInterface {
     }
 
     /**
-     * Check if a service deployment is ready for startup or termination
+     * Find a service deployment that is ready for startup or termination by its id and creator.
      *
-     * @param deploymentId the id of the deployment
-     * @param resourceDeploymentId the id of the resource deployment
+     * @param resourceDeploymentId the id of the service deployment
      * @param accountId the account id of the creator
-     * @param resultHandler receives true if the container is ready for startup and termination
-     *                      else false
+     * @param resultHandler receives the service deployment if it exists and is ready for startup
+     *                      and termination else an error
      */
-    void existsReadyForContainerStartupAndTermination(long deploymentId, long resourceDeploymentId, long accountId,
-        Handler<AsyncResult<Boolean>> resultHandler);
+    void findOneForDeploymentAndTermination(long resourceDeploymentId, long accountId,
+        Handler<AsyncResult<JsonObject>> resultHandler);
 }

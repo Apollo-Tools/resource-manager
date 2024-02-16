@@ -31,7 +31,6 @@ public class Region {
     @Column(insertable = false, updatable = false)
     private @Setter(AccessLevel.NONE) Timestamp createdAt;
 
-
     @Override
     @Generated
     public boolean equals(Object obj) {

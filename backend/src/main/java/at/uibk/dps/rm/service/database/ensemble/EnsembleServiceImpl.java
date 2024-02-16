@@ -3,10 +3,8 @@ package at.uibk.dps.rm.service.database.ensemble;
 import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
 import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
 import at.uibk.dps.rm.entity.dto.ensemble.ResourceEnsembleStatus;
-import at.uibk.dps.rm.entity.dto.resource.ResourceId;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
-import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.EnsembleRepositoryProvider;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
@@ -23,7 +21,8 @@ import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * This is the implementation of the {@link EnsembleService}.
@@ -48,7 +47,7 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
     public void findAll(Handler<AsyncResult<JsonArray>> resultHandler) {
         Single<List<Ensemble>> findAll = smProvider.withTransactionSingle(sm -> repositoryProvider
             .getEnsembleRepository()
-            .findAll(sm));
+            .findAllAndFetch(sm));
         RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }
 
@@ -142,24 +141,27 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
     }
 
     @Override
-    public void validateCreateEnsembleRequest(JsonObject data, Handler<AsyncResult<Void>> resultHandler) {
-        SLOUtility sloUtility = new SLOUtility(repositoryProvider.getResourceRepository(),
-            repositoryProvider.getMetricRepository());
-        CreateEnsembleRequest requestDTO = data.mapTo(CreateEnsembleRequest.class);
-        List<ResourceId> resourceIds = requestDTO.getResources();
-        Completable validateRequest = smProvider.withTransactionCompletable(sm -> sloUtility
-            .findAndFilterResourcesBySLOs(sm, requestDTO)
-            .flatMap(resources -> Observable.fromIterable(resourceIds)
-                .map(ResourceId::getResourceId)
-                .all(resourceId -> resources.stream()
-                    .anyMatch(resource -> Objects.equals(resource.getResourceId(), resourceId))
-                ))
-            .flatMapCompletable(requestFulfillsSLOs -> {
-                if (!requestFulfillsSLOs) {
-                    return Completable.error(new BadInputException("slo mismatch"));
-                }
-                return Completable.complete();
-            })
+    public void updateEnsembleStatus(long ensembleId, JsonArray statusValues,
+            Handler<AsyncResult<Void>> resultHandler) {
+        EnsembleValidationUtility validationUtility = new EnsembleValidationUtility(repositoryProvider);
+        List<ResourceEnsembleStatus> statusValueList = statusValues.stream()
+            .map(statusValue -> ((JsonObject) statusValue).mapTo(ResourceEnsembleStatus.class))
+            .collect(Collectors.toList());
+        Completable validateRequest = smProvider.withTransactionCompletable(sm ->
+            validationUtility.updateResourceEnsembleStatuses(sm, ensembleId, statusValueList));
+        RxVertxHandler.handleSession(validateRequest, resultHandler);
+    }
+
+    @Override
+    public void updateEnsembleStatusMap(Map<String, JsonArray> statusValues, Handler<AsyncResult<Void>> resultHandler) {
+        EnsembleValidationUtility validationUtility = new EnsembleValidationUtility(repositoryProvider);
+        Completable validateRequest = smProvider.withTransactionCompletable(sm -> Observable
+            .fromIterable(statusValues.entrySet())
+            .flatMapCompletable(entrySet -> Observable.fromIterable(entrySet.getValue())
+                .map(statusValue -> ((JsonObject) statusValue).mapTo(ResourceEnsembleStatus.class))
+                .collect(Collectors.toList())
+                .flatMapCompletable(statusValueList -> validationUtility.updateResourceEnsembleStatuses(sm,
+                    Long.parseLong(entrySet.getKey()), statusValueList)))
         );
         RxVertxHandler.handleSession(validateRequest, resultHandler);
     }

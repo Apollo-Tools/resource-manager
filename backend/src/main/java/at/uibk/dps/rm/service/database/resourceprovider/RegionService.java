@@ -51,5 +51,4 @@ public interface RegionService extends DatabaseServiceInterface {
      * @param resultHandler receives the found regions as JsonArray
      */
     void findAllByPlatformId(long platformId, Handler<AsyncResult<JsonArray>> resultHandler);
-
 }

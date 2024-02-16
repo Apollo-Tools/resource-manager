@@ -1,0 +1,166 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rm-monitoring-vm
+spec:
+  type: LoadBalancer
+  selector:
+    app: rm-monitoring-vm
+  ports:
+    - name: http
+      port: 8889
+      targetPort: 8428
+    - name: opentsdb
+      port: 8890
+      targetPort: 4242
+  externalIPs:
+    # Swap with cluster ip
+    - <cluster-IP>
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rm-monitoring-vm
+spec:
+  serviceName: rm-monitoring-vm-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rm-monitoring-vm
+  template:
+    metadata:
+      labels:
+        app: rm-monitoring-vm
+    spec:
+      containers:
+        - name: rm-monitoring-vm
+          image: victoriametrics/victoria-metrics:v1.96.0
+          ports:
+            - containerPort: 8428
+            - containerPort: 4242
+          volumeMounts:
+            - name: vm-storage
+              mountPath: /victoria-metrics-data
+            - name: config
+              mountPath: /configs
+          args:
+            - "--promscrape.config=/configs/vmscrape.yml"
+            - "--promscrape.httpSDCheckInterval=1m"
+            - "--storageDataPath=/victoria-metrics-data"
+            - "--opentsdbListenAddr=:4242"
+            - "--httpListenAddr=:8428"
+            - "--search.latencyOffset=1s"
+          resources:
+            # The resource requests
+            requests:
+              memory: "500Mi"
+              cpu: "100m"
+            # The resource limits
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+      volumes:
+        - name: config
+          configMap:
+            name: rm-monitoring-vm-config
+  volumeClaimTemplates:
+    - metadata:
+        name: vm-storage
+      spec:
+        storageClassName: manual
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            # Change size to your needs
+            storage: 5Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rm-monitoring-grafana
+spec:
+  type: LoadBalancer
+  selector:
+    app: rm-monitoring-grafana
+  ports:
+    - name: http
+      port: 8891
+      targetPort: 3000
+  externalIPs:
+    # Swap with cluster ip
+    - <cluster-IP>
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rm-monitoring-grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rm-monitoring-grafana
+  template:
+    metadata:
+      labels:
+        app: rm-monitoring-grafana
+    spec:
+      containers:
+        - name: rm-monitoring-grafana
+          image: grafana/grafana:10.2.2
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - name: grafana-storage
+              mountPath: /var/lib/grafana
+            - name: dashboards-config
+              mountPath: /etc/grafana/provisioning/dashboards
+            - name: datasources-config
+              mountPath: /etc/grafana/provisioning/datasources
+          env:
+            - name: GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS
+              value: victoriametrics-datasource
+            - name: GF_INSTALL_PLUGINS
+              value: https://github.com/VictoriaMetrics/grafana-datasource/releases/download/v0.5.0/victoriametrics-datasource-v0.5.0.zip;custom-plugin,yesoreyeram-infinity-datasource
+            - name: GF_SECURITY_ADMIN_EMAIL
+              value: admin@localhost
+            - name: GF_SECURITY_ADMIN_USER
+              value: admin
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              value: admin
+            - name: GF_SECURITY_ALLOW_EMBEDDING
+              value: "true"
+            - name: GF_SECURITY_COOKIE_SAMESITE
+              value: "none"
+            - name: GF_AUTH_ANONYMOUS_ENABLED
+              value: "true"
+            - name: GF_AUTH_ANONYMOUS_ORG_NAME
+              value: Main Org.
+            - name: GF_AUTH_ANONYMOUS_ORG_ROLE
+              value: Viewer
+            - name: GF_USERS_DEFAULT_THEME
+              value: light
+            - name: GF_DASHBOARDS_MIN_REFRESH_INTERVAL
+              value: "1s"
+          resources:
+            # The resource requests
+            requests:
+              memory: "500Mi"
+              cpu: "100m"
+            # The resource limits
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+      volumes:
+        - name: grafana-storage
+          emptyDir:
+            sizeLimit: 1Gi
+        - name: dashboards-config
+          configMap:
+            name: rm-monitoring-grafana-dashboards
+        - name: datasources-config
+          configMap:
+            name: rm-monitoring-grafana-datasources
+      # Define service account with cluster role binding
+      serviceAccountName: <service-account>
+
+

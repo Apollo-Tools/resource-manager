@@ -35,12 +35,15 @@ spec:
       containers:
         - name: rm-gui
           # Pull latest image
-          image: matthigas/rm-gui:latest
+          image: matthigas/rm-gui:1.0.7
           imagePullPolicy: Always
           env:
             # The external url of the api
             - name: NEXT_PUBLIC_API_URL
               value: http://localhost:8888/api
+            # The url of grafana dashboard
+            - name: NEXT_PUBLIC_GRAFANA_URL
+              value: http://rm-monitoring-grafana:8891
           resources:
             # The resource limits
             limits:

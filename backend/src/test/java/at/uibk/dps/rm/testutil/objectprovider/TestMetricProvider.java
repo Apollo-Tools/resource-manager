@@ -1,6 +1,8 @@
 package at.uibk.dps.rm.testutil.objectprovider;
 
+import at.uibk.dps.rm.entity.dto.metric.MonitoredMetricValue;
 import at.uibk.dps.rm.entity.model.*;
+import at.uibk.dps.rm.entity.monitoring.MonitoringMetricEnum;
 import lombok.experimental.UtilityClass;
 
 /**
@@ -112,7 +114,6 @@ public class TestMetricProvider {
         platformMetric.setMetric(metric);
         platformMetric.setIsMainResourceMetric(true);
         platformMetric.setIsSubResourceMetric(true);
-        platformMetric.setRequired(true);
         platformMetric.setIsMonitored(isMonitored);
         return platformMetric;
     }
@@ -125,5 +126,23 @@ public class TestMetricProvider {
     public static PlatformMetric createPlatformMetric(long platformMetricId, long metricId) {
         Metric metric = createMetric(metricId, "metric" + metricId);
         return createPlatformMetric(platformMetricId, metric);
+    }
+
+    public static MonitoredMetricValue createMonitoredMetricValue(MonitoringMetricEnum metricEnum, double value) {
+        MonitoredMetricValue metricValue = new MonitoredMetricValue(metricEnum);
+        metricValue.setValueNumber(value);
+        return metricValue;
+    }
+
+    public static MonitoredMetricValue createMonitoredMetricValue(MonitoringMetricEnum metricEnum, String value) {
+        MonitoredMetricValue metricValue = new MonitoredMetricValue(metricEnum);
+        metricValue.setValueString(value);
+        return metricValue;
+    }
+
+    public static MonitoredMetricValue createMonitoredMetricValue(MonitoringMetricEnum metricEnum, boolean value) {
+        MonitoredMetricValue metricValue = new MonitoredMetricValue(metricEnum);
+        metricValue.setValueBool(value);
+        return metricValue;
     }
 }

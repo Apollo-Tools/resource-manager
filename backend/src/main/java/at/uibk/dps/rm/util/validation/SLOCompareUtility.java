@@ -1,17 +1,13 @@
 package at.uibk.dps.rm.util.validation;
 
+import at.uibk.dps.rm.entity.dto.metric.MonitoredMetricValue;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.SLOValue;
-import at.uibk.dps.rm.entity.dto.slo.SLOValueType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
-import at.uibk.dps.rm.entity.model.Ensemble;
-import at.uibk.dps.rm.entity.model.Metric;
-import at.uibk.dps.rm.entity.model.MetricValue;
-import at.uibk.dps.rm.entity.model.Resource;
+import at.uibk.dps.rm.entity.model.*;
 import lombok.experimental.UtilityClass;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.*;
 
 /**
  * This utility class is used to compare service level objectives.
@@ -24,7 +20,7 @@ public class SLOCompareUtility {
     /**
      * Compare a metric value with a service level objective.
      *
-     * @param metricValue the metric valu
+     * @param metricValue the metric value
      * @param slo the service level objective
      * @return true if the metric value fulfills the service level objective else false
      */
@@ -69,114 +65,23 @@ public class SLOCompareUtility {
     }
 
     /**
-     * Filter and sort resources based on the service Level Objectives.
+     * Transform a set of monitored metric values into a list and sort them in the same order
+     * as the corresponding service level objectives.
      *
-     * @param resources the resources
-     * @param serviceLevelObjectives the service level objectives used for filtering and sorting
-     * @return the filtered and sorted resources as JsonArray
-     */
-    public static List<Resource> filterAndSortResourcesBySLOs(List<Resource> resources,
-                                                              List<ServiceLevelObjective> serviceLevelObjectives) {
-        return resources.stream()
-            .filter(resource -> resourceFilterBySLOValueType(resource, serviceLevelObjectives))
-            .sorted((r1, r2) -> sortResourceBySLOs(r1, r2, serviceLevelObjectives))
-            .collect(Collectors.toList());
-    }
-
-    /**
-     * The filter condition for a resource based on the serviceLevelObjectives.
-     *
-     * @param resource the resource
-     * @param slos the service level objectives
-     * @return true if all service level objectives are adhered else false
-     */
-    public static boolean resourceFilterBySLOValueType(Resource resource, List<ServiceLevelObjective> slos) {
-        boolean sloFulfilled;
-        for (ServiceLevelObjective slo : slos) {
-            sloFulfilled = false;
-            for (MetricValue metricValue : resource.getMetricValues()) {
-                Metric metric = metricValue.getMetric();
-                if (metric.getMetric().equals(slo.getName())) {
-                    if (!SLOCompareUtility.compareMetricValueWithSLO(metricValue, slo)) {
-                        return false;
-                    } else {
-                        sloFulfilled = true;
-                        break;
-                    }
-                }
-            }
-            if (!sloFulfilled) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Check if a resource fulfills the non-metric service level objectives (region,
-     * resource provider, resource type) from an ensemble.
-     *
-     * @param resource the resource
-     * @param ensemble the ensemble
-     * @return true if the resource fulfills all non-metric service level objectives, else false
-     */
-    public static boolean resourceValidByNonMetricSLOS(Resource resource, Ensemble ensemble) {
-        boolean validRegion = true, validResourceProvider = true, validResourceType = true, validPlatforms = true,
-            validEnvironments = true;
-        if (!ensemble.getRegions().isEmpty()) {
-            validRegion = ensemble.getRegions().contains(resource.getMain().getRegion().getRegionId());
-        }
-        if (!ensemble.getProviders().isEmpty()) {
-            validResourceProvider = ensemble.getProviders()
-                .contains(resource.getMain().getRegion().getResourceProvider().getProviderId());
-        }
-        if (!ensemble.getResource_types().isEmpty()) {
-            validResourceType = ensemble.getResource_types()
-                .contains(resource.getMain().getPlatform().getResourceType().getTypeId());
-        }
-        if (!ensemble.getPlatforms().isEmpty()) {
-            validPlatforms = ensemble.getPlatforms()
-                .contains(resource.getMain().getPlatform().getPlatformId());
-        }
-        if (!ensemble.getEnvironments().isEmpty()) {
-            validEnvironments = ensemble.getEnvironments()
-                .contains(resource.getMain().getRegion().getResourceProvider().getEnvironment().getEnvironmentId());
-        }
-        return validRegion && validResourceProvider && validResourceType && validPlatforms && validEnvironments;
-    }
-
-    /**
-     * The sorting condition for resources based on the serviceLevelObjectives
-     *
-     * @param r1 the first resource to compare
-     * @param r2 the second resource to compare
+     * @param metricValues the monitored metric values
      * @param serviceLevelObjectives the service level objectives
-     * @return a positive value if r1 should be ranked higher than r2 else a negative value
+     * @return a sorte list of monitored metric values
      */
-    private static int sortResourceBySLOs(Resource r1, Resource r2,
-            List<ServiceLevelObjective> serviceLevelObjectives) {
+    public static List<MonitoredMetricValue> sortMonitoredMetricValuesBySLOs(Set<MonitoredMetricValue> metricValues,
+        List<ServiceLevelObjective> serviceLevelObjectives) {
+        Map<String, Integer> indexMap = new HashMap<>();
         for (int i = 0; i < serviceLevelObjectives.size(); i++) {
-            ServiceLevelObjective slo = serviceLevelObjectives.get(i);
-            if (slo.getValue().get(0).getSloValueType() != SLOValueType.NUMBER) {
-                continue;
-            }
-            for (MetricValue metricValue1 : r1.getMetricValues()) {
-                Metric metric1 = metricValue1.getMetric();
-                if (metric1.getMetric().equals(slo.getName())) {
-                    for (MetricValue metricValue2 : r2.getMetricValues()) {
-                        Metric metric2 = metricValue2.getMetric();
-                        if (metric2.getMetric().equals(slo.getName())) {
-                            int compareValue = ExpressionType.compareValues(slo.getExpression(),
-                                metricValue1.getValueNumber().doubleValue(),
-                                metricValue2.getValueNumber().doubleValue());
-                            if (compareValue != 0 || i == serviceLevelObjectives.size() - 1) {
-                                return compareValue;
-                            }
-                        }
-                    }
-                }
-            }
+            indexMap.put(serviceLevelObjectives.get(i).getName(), i);
         }
-        return 0;
+        List<MonitoredMetricValue> sortedList = new ArrayList<>(metricValues);
+        sortedList.sort(Comparator.comparingInt(metricValue -> indexMap
+            .getOrDefault(metricValue.getMetric(), indexMap.size())));
+
+        return sortedList;
     }
 }

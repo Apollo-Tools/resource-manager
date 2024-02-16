@@ -127,7 +127,7 @@ public class SessionManagerTest {
         Resource entity2 = TestResourceProvider.createResource(2L);
         when(session.remove(entity, entity2)).thenReturn(CompletionStages.voidFuture());
 
-        sessionManager.remove(entity, entity2)
+        sessionManager.remove(new Resource[]{entity, entity2})
             .subscribe(() -> testContext.verify(testContext::completeNow),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );

@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.model.Account;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.MultiMap;
+import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import io.vertx.rxjava3.ext.auth.User;
 import io.vertx.rxjava3.ext.web.FileUpload;
@@ -50,6 +51,27 @@ public class RoutingContextMockHelper {
     }
 
     /**
+     * Mock the request body of the routing context.
+     *
+     * @param rc the routing context
+     * @param requestBody the request body
+     */
+    public static void mockBody(RoutingContext rc, Buffer requestBody) {
+        RequestBody mockBody = mock(RequestBody.class);
+        when(rc.body()).thenReturn(mockBody);
+        when(mockBody.buffer()).thenReturn(requestBody);
+    }
+
+    /**
+     * Mock an empty request body of the routing context.
+     *
+     * @param rc the routing context
+     */
+    public static void mockNullBody(RoutingContext rc) {
+        when(rc.body()).thenReturn(null);
+    }
+
+    /**
      * Mock the form attributes of a multiform request.
      *
      * @param rc the routing context
@@ -74,6 +96,12 @@ public class RoutingContextMockHelper {
     }
 
     public static void mockHeaders(RoutingContext rc, HttpServerRequest request, MultiMap headers) {
+        when(rc.request()).thenReturn(request);
+        when(request.headers()).thenReturn(headers);
+    }
+
+    public static void mockHeaders(RoutingContext rc, MultiMap headers) {
+        HttpServerRequest request = mock(HttpServerRequest.class);
         when(rc.request()).thenReturn(request);
         when(request.headers()).thenReturn(headers);
     }

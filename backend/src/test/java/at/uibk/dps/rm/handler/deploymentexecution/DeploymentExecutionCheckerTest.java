@@ -7,8 +7,11 @@ import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
+import at.uibk.dps.rm.entity.model.Deployment;
+import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
 import at.uibk.dps.rm.exception.NotFoundException;
+import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.service.deployment.docker.LambdaJavaBuildService;
 import at.uibk.dps.rm.service.deployment.docker.LambdaLayerService;
 import at.uibk.dps.rm.service.deployment.docker.OpenFaasImageService;
@@ -21,10 +24,7 @@ import at.uibk.dps.rm.service.rxjava3.deployment.DeploymentExecutionService;
 import at.uibk.dps.rm.testutil.mockprovider.DeploymentPrepareMockprovider;
 import at.uibk.dps.rm.testutil.mockprovider.Mockprovider;
 import at.uibk.dps.rm.testutil.mockprovider.TerraformExecutorMockprovider;
-import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
-import at.uibk.dps.rm.testutil.objectprovider.TestDTOProvider;
-import at.uibk.dps.rm.testutil.objectprovider.TestLogProvider;
-import at.uibk.dps.rm.testutil.objectprovider.TestRequestProvider;
+import at.uibk.dps.rm.testutil.objectprovider.*;
 import at.uibk.dps.rm.util.configuration.ConfigUtility;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
@@ -55,8 +55,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Implements tests for the {@link DeploymentExecutionChecker} class.
@@ -73,6 +72,9 @@ public class DeploymentExecutionCheckerTest {
     private DeploymentExecutionChecker deploymentChecker;
 
     private final ConfigDTO config = TestConfigProvider.getConfigDTO();
+
+    @Mock
+    private ServiceProxyProvider serviceProxyProvider;
 
     @Mock
     private DeploymentExecutionService deploymentExecutionService;
@@ -96,7 +98,10 @@ public class DeploymentExecutionCheckerTest {
     void initTest() {
         rtoc.vertx();
         JsonMapperConfig.configJsonMapper();
-        deploymentChecker = new DeploymentExecutionChecker(deploymentExecutionService, logService, deploymentLogService);
+        deploymentChecker = new DeploymentExecutionChecker(serviceProxyProvider);
+        lenient().when(serviceProxyProvider.getDeploymentExecutionService()).thenReturn(deploymentExecutionService);
+        lenient().when(serviceProxyProvider.getLogService()).thenReturn(logService);
+        lenient().when(serviceProxyProvider.getDeploymentLogService()).thenReturn(deploymentLogService);
     }
 
     @ParameterizedTest
@@ -268,6 +273,8 @@ public class DeploymentExecutionCheckerTest {
         ProcessOutput processOutput = TestDTOProvider.createProcessOutput(processContainer,
             "{\"deployment_data\": {\"value\": {\"result\": \"test\"}}}");
         JsonObject log = JsonObject.mapFrom(TestLogProvider.createLog(1L));
+        Deployment d1 = TestDeploymentProvider.createDeployment(deploymentId);
+        ServiceDeployment sd1 = TestServiceProvider.createServiceDeployment(2L, 3L, d1);
 
         when(processContainer.exitValue()).thenReturn(isValid ? 0 : -1);
         when(logService.save(any())).thenReturn(Single.just(log));
@@ -277,7 +284,7 @@ public class DeploymentExecutionCheckerTest {
             MockedConstruction<TerraformExecutor> ignoredTFE = TerraformExecutorMockprovider.mockTerraformExecutor(deploymentPath,
                 resourceDeploymentId, processOutput, testCase, "output")
         ) {
-            Single<JsonObject> single = deploymentChecker.startContainer(deploymentId, resourceDeploymentId);
+            Single<JsonObject> single = deploymentChecker.startContainer(sd1);
             single.subscribe(result -> testContext.verify(() -> {
                 if (!isValid) {
                     fail("method did not throw exception");
@@ -309,6 +316,8 @@ public class DeploymentExecutionCheckerTest {
         DeploymentPath deploymentPath = new DeploymentPath(deploymentId, config);
         ProcessOutput processOutput = TestDTOProvider.createProcessOutput(processContainer, testCase);
         JsonObject log = JsonObject.mapFrom(TestLogProvider.createLog(1L));
+        Deployment d1 = TestDeploymentProvider.createDeployment(deploymentId);
+        ServiceDeployment sd1 = TestServiceProvider.createServiceDeployment(2L, 3L, d1);
 
         when(processContainer.exitValue()).thenReturn(isValid ? 0 : -1);
         when(logService.save(any())).thenReturn(Single.just(log));
@@ -318,7 +327,7 @@ public class DeploymentExecutionCheckerTest {
             MockedConstruction<TerraformExecutor> ignoredTFE = TerraformExecutorMockprovider.mockTerraformExecutor(deploymentPath,
                 resourceDeploymentId, processOutput, testCase)
         ) {
-            Completable completable = deploymentChecker.stopContainer(deploymentId, resourceDeploymentId);
+            Completable completable = deploymentChecker.stopContainer(sd1);
             completable.blockingSubscribe(() -> testContext.verify(() -> {
                 if (!isValid) {
                     fail("method did not throw exception");

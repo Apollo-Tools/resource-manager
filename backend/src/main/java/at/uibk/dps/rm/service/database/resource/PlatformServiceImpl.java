@@ -35,4 +35,11 @@ public class PlatformServiceImpl extends DatabaseServiceProxy<Platform> implemen
         Single<List<Platform>> findAll = smProvider.withTransactionSingle(repository::findAllAndFetch);
         RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }
+
+    @Override
+    public void findAllByResourceProvider(String resourceProvider, Handler<AsyncResult<JsonArray>> resultHandler) {
+        Single<List<Platform>> findAll = smProvider.withTransactionSingle(sessionManager -> repository
+            .findAllByResourceProvider(sessionManager, resourceProvider));
+        RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
+    }
 }

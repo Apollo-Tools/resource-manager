@@ -1,17 +1,19 @@
 # K8s Pre Pull
 
-This Terraform Module can be used to create a daemon set that pre pulls images and keeps them for 
+This Terraform Module can be used to create a daemon set that pre pulls images and keeps them for
 later usage.
 
 ## What's a Terraform Module?
 
-A Terraform Module refers to a self-contained packages of Terraform configurations that are managed as a group. This repo
-is a Terraform Module and contains many "submodules" which can be composed together to create useful infrastructure patterns.
+A Terraform Module refers to a self-contained packages of Terraform configurations that are managed
+as a group. This repo is a Terraform Module and contains many "submodules" which can be composed
+together to create useful infrastructure patterns.
 
 ## How do you use this module?
 
-This directory defines a [Terraform module](https://www.terraform.io/docs/modules/usage.html), which you can use in your
-code by adding a `module` configuration and setting its `source` parameter to the path of this directory:
+This directory defines a [Terraform module](https://www.terraform.io/docs/modules/usage.html),
+which you can use in your code by adding a `module` configuration and setting its `source`
+parameter to the path of this directory:
 
 ```hcl
 module "k8s_pre_pull" {
@@ -28,6 +30,7 @@ module "k8s_pre_pull" {
 ```
 
 <!-- BEGIN_TF_DOCS -->
+
 ## Requirements
 
 | Name       | Version   |

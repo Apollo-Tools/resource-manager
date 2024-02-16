@@ -16,7 +16,8 @@ import io.vertx.rxjava3.ext.web.openapi.RouterBuilder;
 public class ResourceRoute implements Route {
     @Override
     public void init(RouterBuilder router, ServiceProxyProvider serviceProxyProvider) {
-        ResourceHandler resourceHandler = new ResourceHandler(serviceProxyProvider.getResourceService());
+        ResourceHandler resourceHandler = new ResourceHandler(serviceProxyProvider.getResourceService(),
+            serviceProxyProvider.getMetricService(), serviceProxyProvider.getMetricQueryService());
         ResultHandler resultHandler = new ResultHandler(resourceHandler);
 
         router
