@@ -55,6 +55,8 @@ public class ResourceEnsembleRouteTest extends RouterTest {
                     assertThat(resultBody.getLong("resource_id")).isEqualTo(1L);
                     testContext.completeNow();
                 } else {
+                    System.out.println(result.statusCode());
+                    System.out.println(result.bodyAsString());
                     testContext.failNow("operation failed");
                 }
             }, throwable -> testContext.failNow(throwable.getMessage()));
