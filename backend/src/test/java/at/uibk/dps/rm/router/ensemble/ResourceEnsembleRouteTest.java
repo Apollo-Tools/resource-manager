@@ -49,6 +49,7 @@ public class ResourceEnsembleRouteTest extends RouterTest {
             .send()
             .subscribe(result -> {
                 if (result.statusCode() == 201) {
+                    System.out.println(result.bodyAsString());
                     JsonObject resultBody = result.bodyAsJsonObject();
                     assertThat(resultBody.getLong("ensemble_id")).isEqualTo(1L);
                     assertThat(resultBody.getLong("resource_id")).isEqualTo(1L);
@@ -56,6 +57,6 @@ public class ResourceEnsembleRouteTest extends RouterTest {
                 } else {
                     testContext.failNow("operation failed");
                 }
-            }, throwable -> testContext.failNow("method has thrown exception"));
+            }, throwable -> testContext.failNow(throwable.getMessage()));
     }
 }
