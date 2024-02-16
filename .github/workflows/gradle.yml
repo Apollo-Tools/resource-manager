@@ -27,7 +27,7 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build with Gradle
-        run: ./gradlew build -x pmdMain -x pmdTest --stacktrace
+        run: ./gradlew build -x pmdMain -x pmdTest --stacktrace --scan --debug
       - name: Generate the test report
         run: ./gradlew jacocotestreport
       - name: Run codacy-coverage-reporter

@@ -38,7 +38,7 @@ public class ResourceEnsembleRouteTest extends RouterTest {
             Resource r1 = TestResourceProvider.createResource(null, "r1", p1, reg1);
             return sessionManager.persist(e1)
                 .flatMap(res -> sessionManager.persist(r1));
-        }).blockingSubscribe(res -> {}, testContext::failNow);
+        }).blockingSubscribe(res -> {}, throwable -> testContext.failNow(throwable.getMessage()));
     }
 
     @Test
