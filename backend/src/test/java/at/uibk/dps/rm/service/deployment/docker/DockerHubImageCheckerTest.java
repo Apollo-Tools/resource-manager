@@ -118,12 +118,11 @@ public class DockerHubImageCheckerTest {
         try(MockedConstruction<WebClient> ignore = Mockprovider
             .mockWebClientDockerHubCheck(List.of("func1"), List.of("latest"), httpRequest)) {
             checker.isUpToDate("func1", "latest", new Timestamp(1690000000000L))
-                .subscribe(result ->testContext.failNow("method did not throw exception"),
-                throwable -> testContext.verify(() -> {
-                   assertThat(throwable).isInstanceOf(RuntimeException.class);
-                   assertThat(throwable.getMessage()).isEqualTo("docker image validation failed");
-                   testContext.completeNow();
-                }));
+                .subscribe(result -> testContext.verify(() -> {
+                    assertThat(result).isEqualTo(false);
+                    testContext.completeNow();
+                }),
+                throwable -> testContext.failNow("method has thrown exception"));
         }
     }
 }

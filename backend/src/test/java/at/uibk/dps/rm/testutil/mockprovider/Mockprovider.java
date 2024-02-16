@@ -45,7 +45,7 @@ public class Mockprovider {
             HttpRequest<Buffer> requestMock) {
         return Mockito.mockConstruction(WebClient.class, (mock, context) -> {
             for(int i = 0; i < imageNames.size(); i++) {
-                given(mock.get("hub.docker.com", "/v2/repositories/" + imageNames.get(i) + "/tags/" +
+                given(mock.getAbs("https://hub.docker.com/v2/repositories/" + imageNames.get(i) + "/tags/" +
                     tags.get(i))).willReturn(requestMock);
             }
         });

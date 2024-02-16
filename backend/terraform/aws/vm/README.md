@@ -25,7 +25,7 @@ module "ec2" {
   vpc_id         = "vpc-1234"
   subnet_id      = "subnet-1234"
   instance_types = ["t2.micro",]
-  metrics_port   = 9100
+  metrics_port   = 8082
 }
 ```
 
@@ -67,7 +67,7 @@ module "ec2" {
 | vpc\_id         | VPC ID.                                      | `string` | n/a     |   yes    |
 | subnet\_id      | VPC Subnet ID to launch in.                  | `string` | n/a     |   yes    |
 | instance\_types | The instance types to use for the instances. | `list`   | n/a     |   yes    |
-| metrics\_port   | The metrics port of the node exporter.       | `number` | 9100    |    no    |
+| metrics\_port   | The metrics port of the node exporter.       | `number` | 8082    |    no    |
 
 ## Outputs
 

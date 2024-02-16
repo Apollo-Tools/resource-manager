@@ -24,15 +24,13 @@ RUN  apk update \
 RUN curl -sSL https://cli.openfaas.com | sh
 
 # Install terraform
-RUN apk add terraform --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community
+RUN wget https://releases.hashicorp.com/terraform/1.4.5/terraform_1.4.5_linux_amd64.zip
+RUN unzip terraform_1.4.5_linux_amd64.zip && rm terraform_1.4.5_linux_amd64.zip
+RUN mv terraform /usr/bin/terraform
 
 # Fix sigsev error thrown by netty see: https://github.com/micrometer-metrics/micrometer/issues/2776
 RUN apk --no-cache add gcompat
 ENV LD_PRELOAD=/lib/libgcompat.so.0
-
-# Install kubectl
-RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-RUN install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
 EXPOSE 8080
 
@@ -61,6 +59,7 @@ ENV upload_persist_directory="build/upload/"
 ENV upload_temp_directory="build/upload/temp/"
 ENV max_file_size=10000000
 ENV jwt_secret="**secret**"
+ENV jwt_algorithm="HS256"
 ENV token_minutes_valid=1080
 ENV ensemble_validation_period=60
 ENV docker_insecure_registries=[]
@@ -70,8 +69,11 @@ ENV kube_config_directory="build/kubeconfig",
 ENV kube_api_timeout_seconds=10
 ENV kube_image_pull_secrets=["regcred"]
 
-ENV kube_monitoring_period=5
-ENV region_monitoring_period=5
+ENV monitoring_push_url="http://rm-monitoring-vm:8890"
+ENV monitoring_query_url="http://rm-monitoring-vm:8889"
+ENV kube_monitoring_period=0.25
+ENV openfaas_monitoring_period=0.1
+ENV region_monitoring_period=0.1
 ENV aws_price_monitoring_period=1440
 
 ENTRYPOINT ["java", "-jar" ,"/app/rm-api.jar"]

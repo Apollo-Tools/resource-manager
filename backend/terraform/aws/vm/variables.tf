@@ -32,5 +32,5 @@ variable "instance_types" {
 variable "metrics_port" {
   description = "The metrics port of the node exporter."
   type = number
-  default = 9100
+  default = 8082
 }

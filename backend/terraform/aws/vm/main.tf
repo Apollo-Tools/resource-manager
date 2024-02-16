@@ -50,8 +50,8 @@ resource "aws_security_group" "vm" {
     cidr_blocks = [
       "0.0.0.0/0"
     ]
-    from_port = 9100
-    to_port   = 9100
+    from_port = var.metrics_port
+    to_port   = var.metrics_port
     protocol  = "tcp"
   }
 

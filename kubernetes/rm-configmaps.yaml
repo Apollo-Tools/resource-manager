@@ -1,0 +1,4528 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rm-monitoring-vm-config
+data:
+  vmscrape.yml: |
+    scrape_configs:
+      - job_name: apollo-rm-scrape
+        scrape_interval: 15s
+        http_sd_configs:
+          - url: "http://rm-api:8888/api/resources/scrape-targets"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rm-monitoring-grafana-dashboards
+data:
+  dashboards.yml: |
+    apiVersion: 1
+    providers:
+      # <string> an unique provider name. Required
+      - name: 'ResourceManager'
+        # <int> Org id. Default to 1
+        orgId: 1
+        # <string> name of the dashboard folder.
+        #folder: ''
+        # <string> folder UID. will be automatically generated if not specified
+        #folderUid: ''
+        # <string> provider type. Default to 'file'
+        type: file
+        # <bool> disable dashboard deletion
+        disableDeletion: false
+        # <int> how often Grafana will scan for changed dashboards
+        updateIntervalSeconds: 10
+        # <bool> allow updating provisioned dashboards from the UI
+        allowUiUpdates: false
+        options:
+          # <string, required> path to dashboard files on disk. Required when using the 'file' type
+          path: '/etc/grafana/provisioning/dashboards'
+          # <bool> use folder names from filesystem to create folders in Grafana
+          foldersFromFilesStructure: true
+  functioninvocation.json: |
+    {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": {
+              "type": "grafana",
+              "uid": "-- Grafana --"
+            },
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "type": "dashboard"
+          }
+        ]
+      },
+      "editable": false,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 0,
+      "links": [],
+      "liveNow": false,
+      "panels": [
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "RESOURCE_MANAGER_INFINITY"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "axisBorderShow": true,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "left",
+                "axisSoftMin": 0,
+                "fillOpacity": 50,
+                "gradientMode": "hue",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineWidth": 1,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "decimals": 3,
+              "fieldMinMax": false,
+              "mappings": [],
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "s"
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Max (max)"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "fixedColor": "dark-red",
+                      "mode": "fixed"
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Min (min)"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "fixedColor": "super-light-green",
+                      "mode": "fixed"
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Mean (mean)"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "fixedColor": "dark-blue",
+                      "mode": "fixed"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 16,
+            "x": 0,
+            "y": 0
+          },
+          "id": 10,
+          "options": {
+            "barRadius": 0,
+            "barWidth": 0.9,
+            "fullHighlight": false,
+            "groupWidth": 0.5,
+            "legend": {
+              "calcs": [],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": false
+            },
+            "orientation": "vertical",
+            "showValue": "never",
+            "stacking": "none",
+            "tooltip": {
+              "mode": "multi",
+              "sort": "none"
+            },
+            "xField": "resource_deployment",
+            "xTickLabelRotation": 0,
+            "xTickLabelSpacing": 100
+          },
+          "pluginVersion": "10.2.2",
+          "targets": [
+            {
+              "columns": [
+                {
+                  "selector": "resource_deployment",
+                  "text": "resource_deployment",
+                  "type": "number"
+                },
+                {
+                  "selector": "value",
+                  "text": "value",
+                  "type": "number"
+                }
+              ],
+              "csv_options": {
+                "columns": "resource_deployment,value",
+                "delimiter": ","
+              },
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "RESOURCE_MANAGER_INFINITY"
+              },
+              "filters": [],
+              "format": "table",
+              "global_query_id": "",
+              "parser": "backend",
+              "refId": "A",
+              "root_selector": "",
+              "source": "url",
+              "type": "csv",
+              "uql": "parse-csv",
+              "url": "http://rm-monitoring-vm:8889/api/v1/export/csv",
+              "url_options": {
+                "data": "",
+                "method": "GET",
+                "params": [
+                  {
+                    "key": "format",
+                    "value": "resource_deployment,__value__"
+                  },
+                  {
+                    "key": "match",
+                    "value": "function_execution_duration_seconds{deployment=~\"($deploymentId)\"}"
+                  }
+                ]
+              }
+            }
+          ],
+          "title": "Execution Times by Resource Deployment",
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {},
+                "indexByName": {},
+                "renameByName": {
+                  "Field 1": "Resource Deployment",
+                  "Field 2": "Max",
+                  "value": "Max"
+                }
+              }
+            },
+            {
+              "id": "calculateField",
+              "options": {
+                "alias": "Mean",
+                "mode": "reduceRow",
+                "reduce": {
+                  "include": [
+                    "Max"
+                  ],
+                  "reducer": "sum"
+                }
+              }
+            },
+            {
+              "id": "calculateField",
+              "options": {
+                "alias": "Min",
+                "mode": "reduceRow",
+                "reduce": {
+                  "include": [
+                    "Max"
+                  ],
+                  "reducer": "sum"
+                }
+              }
+            },
+            {
+              "id": "groupBy",
+              "options": {
+                "fields": {
+                  "Execution Lower Median": {
+                    "aggregations": [],
+                    "operation": "aggregate"
+                  },
+                  "Execution Min": {
+                    "aggregations": [
+                      "min"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Execution Time Max": {
+                    "aggregations": [
+                      "max"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Execution Time Mean": {
+                    "aggregations": [
+                      "mean"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Execution Time Median": {
+                    "aggregations": [],
+                    "operation": "aggregate"
+                  },
+                  "Execution Time Upper Quartile": {
+                    "aggregations": [
+                      "mean"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Field 1": {
+                    "aggregations": [],
+                    "operation": "groupby"
+                  },
+                  "Field 2": {
+                    "aggregations": [
+                      "max"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Max": {
+                    "aggregations": [
+                      "max"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Mean": {
+                    "aggregations": [
+                      "mean"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Min": {
+                    "aggregations": [
+                      "min"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Resource Deployment": {
+                    "aggregations": [],
+                    "operation": "groupby"
+                  },
+                  "resource_deployment": {
+                    "aggregations": [],
+                    "operation": "groupby"
+                  }
+                }
+              }
+            },
+            {
+              "id": "sortBy",
+              "options": {
+                "fields": {},
+                "sort": [
+                  {
+                    "desc": false,
+                    "field": "resource_deployment"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "convertFieldType",
+              "options": {
+                "conversions": [
+                  {
+                    "destinationType": "enum",
+                    "targetField": "resource_deployment"
+                  }
+                ],
+                "fields": {}
+              }
+            }
+          ],
+          "type": "barchart"
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "RESOURCE_MANAGER_INFINITY"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "fixedColor": "orange",
+                "mode": "fixed"
+              },
+              "custom": {
+                "axisBorderShow": true,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisGridShow": true,
+                "axisLabel": "",
+                "axisPlacement": "left",
+                "axisSoftMin": 0,
+                "fillOpacity": 40,
+                "gradientMode": "hue",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineWidth": 1,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "decimals": 0,
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "blue",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "none"
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "8"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "fixedColor": "#191746",
+                      "mode": "fixed"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 16,
+            "y": 0
+          },
+          "id": 11,
+          "options": {
+            "barRadius": 0,
+            "barWidth": 0.9,
+            "fullHighlight": false,
+            "groupWidth": 0.7,
+            "legend": {
+              "calcs": [],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": false
+            },
+            "orientation": "vertical",
+            "showValue": "always",
+            "stacking": "none",
+            "text": {
+              "valueSize": 0
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "none"
+            },
+            "xField": "resource_deployment",
+            "xTickLabelRotation": 0,
+            "xTickLabelSpacing": 0
+          },
+          "pluginVersion": "10.2.2",
+          "targets": [
+            {
+              "columns": [
+                {
+                  "selector": "resource_deployment",
+                  "text": "resource_deployment",
+                  "type": "string"
+                }
+              ],
+              "csv_options": {
+                "columns": "resource_deployment",
+                "delimiter": ","
+              },
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "RESOURCE_MANAGER_INFINITY"
+              },
+              "filters": [],
+              "format": "table",
+              "global_query_id": "",
+              "parser": "backend",
+              "refId": "A",
+              "root_selector": "",
+              "source": "url",
+              "type": "csv",
+              "uql": "parse-csv",
+              "url": "http://rm-monitoring-vm:8889/api/v1/export/csv",
+              "url_options": {
+                "data": "",
+                "method": "GET",
+                "params": [
+                  {
+                    "key": "format",
+                    "value": "resource_deployment"
+                  },
+                  {
+                    "key": "match",
+                    "value": "function_execution_duration_seconds{deployment=~\"($deploymentId)\"}"
+                  }
+                ]
+              }
+            }
+          ],
+          "title": "Invocation amount",
+          "transformations": [
+            {
+              "id": "calculateField",
+              "options": {
+                "alias": "count",
+                "binary": {
+                  "left": "resource_deployment",
+                  "operator": "-",
+                  "right": "resource_deployment"
+                },
+                "mode": "binary",
+                "reduce": {
+                  "reducer": "lastNotNull"
+                },
+                "replaceFields": false,
+                "unary": {
+                  "fieldName": "Field 1",
+                  "operator": "abs"
+                }
+              }
+            },
+            {
+              "id": "groupBy",
+              "options": {
+                "fields": {
+                  "Field 1": {
+                    "aggregations": [],
+                    "operation": "groupby"
+                  },
+                  "Row": {
+                    "aggregations": [
+                      "count"
+                    ]
+                  },
+                  "count": {
+                    "aggregations": [
+                      "count"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "resource_deployment": {
+                    "aggregations": [],
+                    "operation": "groupby"
+                  },
+                  "test": {
+                    "aggregations": [
+                      "count"
+                    ],
+                    "operation": "aggregate"
+                  }
+                }
+              }
+            },
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {},
+                "indexByName": {},
+                "renameByName": {
+                  "count (count)": "count",
+                  "resource_deployment": ""
+                }
+              }
+            },
+            {
+              "id": "sortBy",
+              "options": {
+                "fields": {},
+                "sort": [
+                  {
+                    "field": "resource_deployment"
+                  }
+                ]
+              }
+            }
+          ],
+          "type": "barchart"
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "RESOURCE_MANAGER_INFINITY"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": true,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "axisSoftMin": 0,
+                "barAlignment": 0,
+                "drawStyle": "points",
+                "fillOpacity": 100,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 7,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "always",
+                "spanNulls": true,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "decimals": 3,
+              "mappings": [
+                {
+                  "options": {
+                    "Null": {
+                      "index": 0
+                    }
+                  },
+                  "type": "value"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "s"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 10,
+            "w": 24,
+            "x": 0,
+            "y": 8
+          },
+          "id": 9,
+          "interval": "1s",
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "10.2.2",
+          "targets": [
+            {
+              "columns": [
+                {
+                  "selector": "resource_deployment",
+                  "text": "resource_deployment",
+                  "type": "string"
+                },
+                {
+                  "selector": "value",
+                  "text": "execution time",
+                  "type": "number"
+                },
+                {
+                  "selector": "timestamp",
+                  "text": "timestamp",
+                  "type": "timestamp"
+                },
+                {
+                  "selector": "requestBody",
+                  "text": "requestBody",
+                  "type": "string"
+                }
+              ],
+              "computed_columns": [
+                {
+                  "selector": "",
+                  "text": "",
+                  "type": "string"
+                }
+              ],
+              "csv_options": {
+                "columns": "resource_deployment,requestBody,value,timestamp",
+                "delimiter": ",",
+                "relax_column_count": false,
+                "skip_empty_lines": false,
+                "skip_lines_with_error": false
+              },
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "RESOURCE_MANAGER_INFINITY"
+              },
+              "filters": [],
+              "format": "table",
+              "global_query_id": "",
+              "parser": "backend",
+              "refId": "A",
+              "root_selector": "",
+              "source": "url",
+              "type": "csv",
+              "uql": "parse-csv",
+              "url": "http://rm-monitoring-vm:8889/api/v1/export/csv",
+              "url_options": {
+                "body_content_type": "text/plain",
+                "body_type": "raw",
+                "data": "",
+                "method": "GET",
+                "params": [
+                  {
+                    "key": "format",
+                    "value": "resource_deployment,requestBody,__value__,__timestamp__:rfc3339"
+                  },
+                  {
+                    "key": "match",
+                    "value": "function_execution_duration_seconds{deployment=~\"($deploymentId)\"}"
+                  },
+                  {
+                    "key": "start",
+                    "value": "$__from"
+                  },
+                  {
+                    "key": "end",
+                    "value": "$__to"
+                  }
+                ]
+              }
+            }
+          ],
+          "title": "Previous Execution Times (last 30 min)",
+          "transformations": [
+            {
+              "id": "prepareTimeSeries",
+              "options": {
+                "format": "multi"
+              }
+            }
+          ],
+          "type": "timeseries"
+        }
+      ],
+      "refresh": "5s",
+      "schemaVersion": 38,
+      "tags": [],
+      "templating": {
+        "list": [
+          {
+            "current": {
+              "selected": false,
+              "text": "67",
+              "value": "67"
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "RESOURCE_MANAGER_PROM"
+            },
+            "definition": "label_values(deployment)",
+            "hide": 2,
+            "includeAll": false,
+            "multi": false,
+            "name": "deploymentId",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values(deployment)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 0,
+            "type": "query"
+          }
+        ]
+      },
+      "time": {
+        "from": "now-30m",
+        "to": "now"
+      },
+      "timepicker": {
+        "hidden": true,
+        "refresh_intervals": [
+          "1s",
+          "2s",
+          "5s",
+          "10s",
+          "30s",
+          "1m",
+          "5m",
+          "15m",
+          "30m",
+          "1h",
+          "2h",
+          "1d"
+        ]
+      },
+      "timezone": "",
+      "title": "Function Invocations",
+      "uid": "db738643-24c0-4975-8da7-76a2259e9479",
+      "version": 3,
+      "weekStart": ""
+    }
+  k8sclusternode.json: |
+    {
+      "annotations": {
+        "list": [
+          {
+            "$$hashKey": "object:2875",
+            "builtIn": 1,
+            "datasource": {
+              "type": "datasource",
+              "uid": "grafana"
+            },
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "target": {
+              "limit": 100,
+              "matchAny": false,
+              "tags": [],
+              "type": "dashboard"
+            },
+            "type": "dashboard"
+          }
+        ]
+      },
+      "description": "Dasbhoard based on https://grafana.com/grafana/dashboards/15172",
+      "editable": false,
+      "fiscalYearStartMonth": 0,
+      "gnetId": 15172,
+      "graphTooltip": 0,
+      "links": [],
+      "liveNow": false,
+      "panels": [
+        {
+          "datasource": {
+            "type": "victoriametrics-datasource",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "description": "",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "center",
+                "cellOptions": {
+                  "type": "auto"
+                },
+                "inspect": false
+              },
+              "decimals": 2,
+              "displayName": "",
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "instance"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "IP"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "short"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 2
+                  },
+                  {
+                    "id": "custom.align"
+                  },
+                  {
+                    "id": "mappings",
+                    "value": []
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Mem (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Mem"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "bytes"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 2
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #CPU (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "CPU"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "short"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 0
+                  },
+                  {
+                    "id": "custom.width",
+                    "value": 150
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #CPU util (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "CPU used"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "percent"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 1
+                  },
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "mode": "lcd",
+                      "type": "gauge",
+                      "valueDisplayMode": "text"
+                    }
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "percentage",
+                      "steps": [
+                        {
+                          "color": "rgba(50, 172, 45, 0.97)",
+                          "value": null
+                        },
+                        {
+                          "color": "rgba(237, 129, 40, 0.89)",
+                          "value": 70
+                        },
+                        {
+                          "color": "rgba(245, 54, 54, 0.9)",
+                          "value": 85
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "min",
+                    "value": 0
+                  },
+                  {
+                    "id": "max",
+                    "value": 100
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Mem util (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Mem used"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "percent"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 1
+                  },
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "mode": "lcd",
+                      "type": "gauge",
+                      "valueDisplayMode": "text"
+                    }
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "percentage",
+                      "steps": [
+                        {
+                          "color": "rgba(50, 172, 45, 0.97)",
+                          "value": null
+                        },
+                        {
+                          "color": "rgba(237, 129, 40, 0.89)",
+                          "value": 70
+                        },
+                        {
+                          "color": "rgba(245, 54, 54, 0.9)",
+                          "value": 85
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "min",
+                    "value": 0
+                  },
+                  {
+                    "id": "max",
+                    "value": 100
+                  },
+                  {
+                    "id": "custom.width",
+                    "value": 200
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #CPU util (max)"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 200
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Resource"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 180
+                  },
+                  {
+                    "id": "links",
+                    "value": [
+                      {
+                        "targetBlank": false,
+                        "title": "",
+                        "url": "d/b47a9eee-2299-40ec-9aec-ee2e826d3cfd/k8s-dashboard?orgId=1﻿&var-mainResourceId=﻿${__value.numeric}﻿﻿&refresh=5s&${resourceId:queryparam}"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "filterable",
+                    "value": false
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 0
+                  },
+                  {
+                    "id": "custom.align",
+                    "value": "center"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Mem (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 150
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Up (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 150
+                  },
+                  {
+                    "id": "mappings",
+                    "value": [
+                      {
+                        "options": {
+                          "0": {
+                            "color": "red",
+                            "index": 0,
+                            "text": "Offline"
+                          },
+                          "1": {
+                            "color": "green",
+                            "index": 1,
+                            "text": "Online"
+                          }
+                        },
+                        "type": "value"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "type": "color-text"
+                    }
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "Up"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Availability (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Availability (30d)"
+                  },
+                  {
+                    "id": "custom.width"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "percentunit"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 6
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Latency (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "s"
+                  },
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "mode": "lcd",
+                      "type": "gauge",
+                      "valueDisplayMode": "text"
+                    }
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green",
+                          "value": null
+                        },
+                        {
+                          "color": "#EAB839",
+                          "value": 0.1
+                        },
+                        {
+                          "color": "red",
+                          "value": 0.15
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "min",
+                    "value": 0
+                  },
+                  {
+                    "id": "max",
+                    "value": 0.2
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "Latency"
+                  },
+                  {
+                    "id": "custom.width",
+                    "value": 150
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 12,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "hideTimeOverride": false,
+          "id": 185,
+          "interval": "1s",
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "enablePagination": true,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true,
+            "sortBy": []
+          },
+          "pluginVersion": "10.2.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "k8s_cpu_total{resource=~\"$resourceId\"}-0",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "interval": "",
+              "legendFormat": "CPU",
+              "range": false,
+              "refId": "CPU"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "expr": "k8s_memory_total_bytes{resource=~\"$resourceId\"}-0",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "interval": "",
+              "legendFormat": "Mem",
+              "refId": "Mem"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "k8s_cpu_used{resource=~\"$resourceId\"} / k8s_cpu_total{resource=~\"$resourceId\"} * 100",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "interval": "",
+              "legendFormat": "CPU utilization",
+              "range": false,
+              "refId": "CPU util"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "exemplar": true,
+              "expr": "k8s_memory_used_bytes{resource=~\"$resourceId\"} / k8s_memory_total_bytes{resource=~\"$resourceId\"} * 100",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "interval": "",
+              "legendFormat": "Memory utilization",
+              "refId": "Mem util"
+            },
+            {
+              "datasource": {
+                "type": "victoriametrics-datasource",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "k8s_up{resource=~\"$resourceId\"} - 0",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "legendFormat": "__auto",
+              "range": false,
+              "refId": "Up"
+            },
+            {
+              "datasource": {
+                "type": "victoriametrics-datasource",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "avg_over_time(k8s_up{resource=~\"$resourceId\"}[30d])",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "legendFormat": "__auto",
+              "range": false,
+              "refId": "Availability"
+            },
+            {
+              "datasource": {
+                "type": "victoriametrics-datasource",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "k8s_latency_seconds{resource=~\"$resourceId\"}",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "legendFormat": "__auto",
+              "range": false,
+              "refId": "Latency"
+            }
+          ],
+          "title": "K8s Cluster Resources",
+          "transformations": [
+            {
+              "id": "merge",
+              "options": {
+                "reducers": []
+              }
+            },
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Temperature": false,
+                  "Time": true,
+                  "Value #CPU": false,
+                  "Value #CPU util": false,
+                  "Value #Disk read": true,
+                  "Value #Disk write": true,
+                  "Value #Hostname": true,
+                  "Value #Load(5m)": true,
+                  "Value #Mem": false,
+                  "Value #Mem util": false,
+                  "Value #Part util": false,
+                  "Value #Receive": true,
+                  "Value #Storage": false,
+                  "Value #TCP_estab": true,
+                  "Value #TCP_tw": true,
+                  "Value #Transmit": true,
+                  "Value #Up": false,
+                  "Value #Uptime": false,
+                  "__name__": true,
+                  "deployment": true,
+                  "device": true,
+                  "domainname": true,
+                  "fstype": true,
+                  "instance": false,
+                  "job": true,
+                  "machine": true,
+                  "mountpoint": true,
+                  "nodename": true,
+                  "release": true,
+                  "resource": false,
+                  "resource_deployment": true,
+                  "sysname": true,
+                  "version": true
+                },
+                "indexByName": {
+                  "Time": 4,
+                  "Value #Availability": 2,
+                  "Value #CPU": 5,
+                  "Value #CPU util": 7,
+                  "Value #Latency": 3,
+                  "Value #Mem": 6,
+                  "Value #Mem util": 8,
+                  "Value #Up": 1,
+                  "__name__": 9,
+                  "resource": 0
+                },
+                "renameByName": {
+                  "Time": "",
+                  "Value #Availability": "",
+                  "Value #CPU": "",
+                  "Value #Part util": "",
+                  "Value #Storage": "Storage",
+                  "Value #Temperature": "Temperature",
+                  "Value #Up": "",
+                  "id": "Id",
+                  "resource": "Resource"
+                }
+              }
+            },
+            {
+              "id": "groupBy",
+              "options": {
+                "fields": {
+                  "Availability (30d)": {
+                    "aggregations": [
+                      "max"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Resource": {
+                    "aggregations": [],
+                    "operation": "groupby"
+                  },
+                  "Up": {
+                    "aggregations": [
+                      "max"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Value #Availability": {
+                    "aggregations": [
+                      "lastNotNull"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Value #CPU": {
+                    "aggregations": [
+                      "lastNotNull"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Value #CPU util": {
+                    "aggregations": [
+                      "lastNotNull"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Value #Latency": {
+                    "aggregations": [
+                      "lastNotNull"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Value #Mem": {
+                    "aggregations": [
+                      "lastNotNull"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Value #Mem util": {
+                    "aggregations": [
+                      "lastNotNull"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Value #Up": {
+                    "aggregations": [
+                      "lastNotNull"
+                    ],
+                    "operation": "aggregate"
+                  }
+                }
+              }
+            },
+            {
+              "id": "convertFieldType",
+              "options": {
+                "conversions": [
+                  {
+                    "destinationType": "number",
+                    "targetField": "Resource"
+                  }
+                ],
+                "fields": {}
+              }
+            },
+            {
+              "id": "sortBy",
+              "options": {
+                "fields": {},
+                "sort": [
+                  {
+                    "desc": false,
+                    "field": "Resource"
+                  }
+                ]
+              }
+            }
+          ],
+          "type": "table"
+        },
+        {
+          "datasource": {
+            "type": "victoriametrics-datasource",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "description": "",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "center",
+                "cellOptions": {
+                  "type": "auto"
+                },
+                "inspect": false
+              },
+              "decimals": 2,
+              "displayName": "",
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Mem util (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Mem"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "bytes"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 2
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #CPU (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "CPU"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "short"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 0
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #CPU util (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "CPU used"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "percent"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 1
+                  },
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "mode": "lcd",
+                      "type": "gauge",
+                      "valueDisplayMode": "text"
+                    }
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "percentage",
+                      "steps": [
+                        {
+                          "color": "rgba(50, 172, 45, 0.97)",
+                          "value": null
+                        },
+                        {
+                          "color": "rgba(237, 129, 40, 0.89)",
+                          "value": 70
+                        },
+                        {
+                          "color": "rgba(245, 54, 54, 0.9)",
+                          "value": 85
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "min",
+                    "value": 0
+                  },
+                  {
+                    "id": "max",
+                    "value": 100
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Mem util (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Mem used"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "percent"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 1
+                  },
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "mode": "lcd",
+                      "type": "gauge",
+                      "valueDisplayMode": "text"
+                    }
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "percentage",
+                      "steps": [
+                        {
+                          "color": "rgba(50, 172, 45, 0.97)",
+                          "value": null
+                        },
+                        {
+                          "color": "rgba(237, 129, 40, 0.89)",
+                          "value": 70
+                        },
+                        {
+                          "color": "rgba(245, 54, 54, 0.9)",
+                          "value": 85
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "min",
+                    "value": 0
+                  },
+                  {
+                    "id": "max",
+                    "value": 100
+                  },
+                  {
+                    "id": "custom.width",
+                    "value": 250
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #CPU (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 150
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #CPU util (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 250
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Resource"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 180
+                  },
+                  {
+                    "id": "filterable"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 0
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Mem (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 150
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "Mem"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "bytes"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Node (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width"
+                  },
+                  {
+                    "id": "filterable"
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 12,
+            "w": 24,
+            "x": 0,
+            "y": 12
+          },
+          "hideTimeOverride": false,
+          "id": 186,
+          "interval": "1s",
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "enablePagination": true,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true,
+            "sortBy": []
+          },
+          "pluginVersion": "10.2.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "k8s_node_cpu_total{main_resource=~\"$mainResourceId\", resource!=\"0\"}-0",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "interval": "",
+              "legendFormat": "CPU",
+              "range": false,
+              "refId": "CPU"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "expr": "k8s_node_memory_total_bytes{main_resource=~\"$mainResourceId\", resource!=\"0\"}-0",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "interval": "",
+              "legendFormat": "Mem",
+              "refId": "Mem"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "(k8s_node_cpu_used{main_resource=~\"$mainResourceId\", resource!=\"0\"}) / k8s_node_cpu_total{main_resource=~\"$mainResourceId\", resource!=\"0\"} * 100",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "interval": "",
+              "legendFormat": "CPU utilization",
+              "range": false,
+              "refId": "CPU util"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "exemplar": true,
+              "expr": "k8s_node_memory_used_bytes{main_resource=~\"$mainResourceId\", resource!=\"0\"} / k8s_node_memory_total_bytes{main_resource=~\"$mainResourceId\", resource!=\"0\"} * 100",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "interval": "",
+              "legendFormat": "Memory utilization",
+              "refId": "Mem util"
+            }
+          ],
+          "title": "K8s Nodes ($mainResourceId)",
+          "transformations": [
+            {
+              "id": "merge",
+              "options": {
+                "reducers": []
+              }
+            },
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Temperature": false,
+                  "Time": true,
+                  "Value #CPU": false,
+                  "Value #CPU util": false,
+                  "Value #Disk read": true,
+                  "Value #Disk write": true,
+                  "Value #Hostname": true,
+                  "Value #Load(5m)": true,
+                  "Value #Mem": false,
+                  "Value #Mem util": false,
+                  "Value #Part util": false,
+                  "Value #Receive": true,
+                  "Value #Storage": false,
+                  "Value #TCP_estab": true,
+                  "Value #TCP_tw": true,
+                  "Value #Transmit": true,
+                  "Value #Up": false,
+                  "Value #Uptime": false,
+                  "__name__": true,
+                  "deployment": true,
+                  "device": true,
+                  "domainname": true,
+                  "fstype": true,
+                  "instance": false,
+                  "job": true,
+                  "machine": true,
+                  "main_resource": true,
+                  "mountpoint": true,
+                  "nodename": true,
+                  "release": true,
+                  "resource": false,
+                  "resource_deployment": true,
+                  "sysname": true,
+                  "version": true
+                },
+                "indexByName": {
+                  "Time": 7,
+                  "Value #CPU": 2,
+                  "Value #CPU util": 4,
+                  "Value #Mem": 3,
+                  "Value #Mem util": 5,
+                  "main_resource": 6,
+                  "node": 1,
+                  "resource": 0
+                },
+                "renameByName": {
+                  "Value #Part util": "",
+                  "Value #Storage": "Storage",
+                  "Value #Temperature": "Temperature",
+                  "Value #Up": "Up",
+                  "id": "Id",
+                  "node": "Node",
+                  "resource": "Resource"
+                }
+              }
+            },
+            {
+              "id": "groupBy",
+              "options": {
+                "fields": {
+                  "Node": {
+                    "aggregations": [
+                      "lastNotNull"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Resource": {
+                    "aggregations": [],
+                    "operation": "groupby"
+                  },
+                  "Value #CPU": {
+                    "aggregations": [
+                      "lastNotNull"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Value #CPU util": {
+                    "aggregations": [
+                      "lastNotNull"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Value #Mem": {
+                    "aggregations": [
+                      "lastNotNull"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Value #Mem util": {
+                    "aggregations": [
+                      "lastNotNull"
+                    ],
+                    "operation": "aggregate"
+                  }
+                }
+              }
+            },
+            {
+              "id": "convertFieldType",
+              "options": {
+                "conversions": [
+                  {
+                    "destinationType": "number",
+                    "targetField": "Resource"
+                  }
+                ],
+                "fields": {}
+              }
+            },
+            {
+              "id": "sortBy",
+              "options": {
+                "fields": {},
+                "sort": [
+                  {
+                    "desc": false,
+                    "field": "Resource"
+                  }
+                ]
+              }
+            }
+          ],
+          "type": "table"
+        }
+      ],
+      "refresh": "5s",
+      "schemaVersion": 38,
+      "tags": [],
+      "templating": {
+        "list": [
+          {
+            "current": {
+              "selected": false,
+              "text": [
+                "All"
+              ],
+              "value": [
+                "$__all"
+              ]
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "RESOURCE_MANAGER_PROM"
+            },
+            "definition": "label_values(id)",
+            "hide": 2,
+            "includeAll": true,
+            "multi": true,
+            "name": "resourceId",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values(resource)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 0,
+            "type": "query"
+          },
+          {
+            "current": {
+              "selected": false,
+              "text": "4",
+              "value": "4"
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "RESOURCE_MANAGER_PROM"
+            },
+            "definition": "label_values(main_resource)",
+            "hide": 2,
+            "includeAll": false,
+            "multi": false,
+            "name": "mainResourceId",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values(main_resource)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 0,
+            "type": "query"
+          }
+        ]
+      },
+      "time": {
+        "from": "now-1m",
+        "to": "now"
+      },
+      "timepicker": {
+        "hidden": true,
+        "now": true,
+        "refresh_intervals": [
+          "1s",
+          "5s",
+          "15s",
+          "30s",
+          "1m",
+          "5m",
+          "15m",
+          "30m"
+        ],
+        "time_options": [
+          "5m",
+          "15m",
+          "1h",
+          "6h",
+          "12h",
+          "24h",
+          "2d",
+          "7d",
+          "30d"
+        ]
+      },
+      "timezone": "browser",
+      "title": "K8s Dashboard",
+      "uid": "b47a9eee-2299-40ec-9aec-ee2e826d3cfd",
+      "version": 28,
+      "weekStart": ""
+    }
+  k8spods.json: |
+    {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": {
+              "type": "grafana",
+              "uid": "-- Grafana --"
+            },
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "type": "dashboard"
+          }
+        ]
+      },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 0,
+      "links": [],
+      "liveNow": false,
+      "panels": [
+        {
+          "datasource": {
+            "type": "victoriametrics-datasource",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "description": "",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "center",
+                "cellOptions": {
+                  "type": "auto"
+                },
+                "inspect": false
+              },
+              "decimals": 2,
+              "displayName": "",
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Mem"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Mem"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "bytes"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 2
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #CPU"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "CPU"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "short"
+                  },
+                  {
+                    "id": "decimals"
+                  },
+                  {
+                    "id": "custom.width",
+                    "value": 150
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #CPU util"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "CPU used"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "percent"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 1
+                  },
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "mode": "lcd",
+                      "type": "gauge",
+                      "valueDisplayMode": "text"
+                    }
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "percentage",
+                      "steps": [
+                        {
+                          "color": "rgba(50, 172, 45, 0.97)",
+                          "value": null
+                        },
+                        {
+                          "color": "rgba(237, 129, 40, 0.89)",
+                          "value": 70
+                        },
+                        {
+                          "color": "rgba(245, 54, 54, 0.9)",
+                          "value": 85
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "min",
+                    "value": 0
+                  },
+                  {
+                    "id": "max",
+                    "value": 100
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Mem util"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Mem used"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "percent"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 1
+                  },
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "mode": "lcd",
+                      "type": "gauge",
+                      "valueDisplayMode": "text"
+                    }
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "percentage",
+                      "steps": [
+                        {
+                          "color": "rgba(50, 172, 45, 0.97)",
+                          "value": null
+                        },
+                        {
+                          "color": "rgba(237, 129, 40, 0.89)",
+                          "value": 70
+                        },
+                        {
+                          "color": "rgba(245, 54, 54, 0.9)",
+                          "value": 85
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "min",
+                    "value": 0
+                  },
+                  {
+                    "id": "max",
+                    "value": 100
+                  },
+                  {
+                    "id": "custom.width"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "resource"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 180
+                  },
+                  {
+                    "id": "filterable",
+                    "value": false
+                  },
+                  {
+                    "id": "custom.align",
+                    "value": "center"
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "Resource"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Mem"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 150
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "name"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 358
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "Name"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "resource_deployment"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Resource Deployment"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 0
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "main_resource"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "M. Resource"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "service"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Service"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Resource Deployment"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 169
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Name"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 208
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byRegexp",
+                  "options": "/^(Resource|M. Resource|Service)$/"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 100
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byRegexp",
+                  "options": "/^(CPU|Mem)$/"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 110
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 12,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "hideTimeOverride": false,
+          "id": 1,
+          "interval": "1s",
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "enablePagination": true,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true,
+            "sortBy": []
+          },
+          "pluginVersion": "10.2.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "k8s_pod_cpu_total{deployment=~\"$deploymentId\"}-0",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "interval": "",
+              "legendFormat": "CPU",
+              "range": false,
+              "refId": "CPU"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "expr": "k8s_pod_memory_total_bytes{deployment=~\"$deploymentId\"}-0",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "interval": "",
+              "legendFormat": "Mem",
+              "refId": "Mem"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "k8s_pod_cpu_used{deployment=~\"$deploymentId\"} / k8s_pod_cpu_total{deployment=~\"$deploymentId\"} * 100",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "interval": "",
+              "legendFormat": "CPU utilization",
+              "range": false,
+              "refId": "CPU util"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "exemplar": true,
+              "expr": "k8s_pod_memory_used_bytes{deployment=~\"$deploymentId\"} / k8s_pod_memory_total_bytes{deployment=~\"$deploymentId\"} * 100",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "interval": "",
+              "legendFormat": "Memory utilization",
+              "refId": "Mem util"
+            }
+          ],
+          "title": "Active pods",
+          "transformations": [
+            {
+              "id": "merge",
+              "options": {
+                "reducers": []
+              }
+            },
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Temperature": false,
+                  "Time": true,
+                  "Value #CPU": false,
+                  "Value #CPU util": false,
+                  "Value #Disk read": true,
+                  "Value #Disk write": true,
+                  "Value #Hostname": true,
+                  "Value #Load(5m)": true,
+                  "Value #Mem": false,
+                  "Value #Mem util": false,
+                  "Value #Part util": false,
+                  "Value #Receive": true,
+                  "Value #Storage": false,
+                  "Value #TCP_estab": true,
+                  "Value #TCP_tw": true,
+                  "Value #Transmit": true,
+                  "Value #Up": false,
+                  "Value #Uptime": false,
+                  "__name__": true,
+                  "deployment": true,
+                  "device": true,
+                  "domainname": true,
+                  "fstype": true,
+                  "instance": false,
+                  "job": true,
+                  "machine": true,
+                  "mountpoint": true,
+                  "nodename": true,
+                  "release": true,
+                  "resource": false,
+                  "resource_deployment": false,
+                  "sysname": true,
+                  "version": true
+                },
+                "indexByName": {
+                  "Time": 5,
+                  "Value #CPU": 6,
+                  "Value #CPU util": 8,
+                  "Value #Mem": 7,
+                  "Value #Mem util": 9,
+                  "deployment": 10,
+                  "main_resource": 3,
+                  "name": 1,
+                  "resource": 2,
+                  "resource_deployment": 0,
+                  "service": 4
+                },
+                "renameByName": {
+                  "Time": "",
+                  "Value #Availability": "",
+                  "Value #CPU": "",
+                  "Value #Part util": "",
+                  "Value #Storage": "Storage",
+                  "Value #Temperature": "Temperature",
+                  "Value #Up": "",
+                  "id": "Id",
+                  "resource": ""
+                }
+              }
+            },
+            {
+              "id": "convertFieldType",
+              "options": {
+                "conversions": [
+                  {
+                    "destinationType": "number",
+                    "targetField": "resource_deployment"
+                  }
+                ],
+                "fields": {}
+              }
+            },
+            {
+              "id": "sortBy",
+              "options": {
+                "fields": {},
+                "sort": [
+                  {
+                    "desc": false,
+                    "field": "resource_deployment"
+                  }
+                ]
+              }
+            }
+          ],
+          "type": "table"
+        }
+      ],
+      "refresh": "10s",
+      "schemaVersion": 38,
+      "tags": [],
+      "templating": {
+        "list": [
+          {
+            "current": {
+              "selected": true,
+              "text": [
+                "19"
+              ],
+              "value": [
+                "19"
+              ]
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "RESOURCE_MANAGER_PROM"
+            },
+            "definition": "label_values(deployment)",
+            "hide": 2,
+            "includeAll": true,
+            "multi": true,
+            "name": "deploymentId",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values(deployment)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 2,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 0,
+            "type": "query"
+          }
+        ]
+      },
+      "time": {
+        "from": "now-5m",
+        "to": "now"
+      },
+      "timepicker": {
+        "hidden": true,
+        "now": true,
+        "refresh_intervals": [
+          "1s",
+          "5s",
+          "15s",
+          "30s",
+          "1m",
+          "5m",
+          "15m",
+          "30m"
+        ],
+        "time_options": [
+          "5m",
+          "15m",
+          "1h",
+          "6h",
+          "12h",
+          "24h",
+          "2d",
+          "7d",
+          "30d"
+        ]
+      },
+      "timezone": "",
+      "title": "K8s Pods",
+      "uid": "e1538e55-0282-449a-b1f4-e4c733f25f2d",
+      "version": 2,
+      "weekStart": ""
+    }
+  nodeexporter.json: |
+    {
+      "annotations": {
+        "list": [
+          {
+            "$$hashKey": "object:2875",
+            "builtIn": 1,
+            "datasource": {
+              "type": "datasource",
+              "uid": "grafana"
+            },
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "target": {
+              "limit": 100,
+              "matchAny": false,
+              "tags": [],
+              "type": "dashboard"
+            },
+            "type": "dashboard"
+          }
+        ]
+      },
+      "description": "Dasbhoard based on https://grafana.com/grafana/dashboards/15172",
+      "editable": false,
+      "fiscalYearStartMonth": 0,
+      "gnetId": 15172,
+      "graphTooltip": 0,
+      "links": [],
+      "liveNow": false,
+      "panels": [
+        {
+          "datasource": {
+            "type": "victoriametrics-datasource",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "description": "",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "center",
+                "cellOptions": {
+                  "type": "auto"
+                },
+                "filterable": false,
+                "inspect": false
+              },
+              "decimals": 2,
+              "displayName": "",
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "instance (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "IP"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "short"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 2
+                  },
+                  {
+                    "id": "mappings",
+                    "value": []
+                  },
+                  {
+                    "id": "filterable"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Mem (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Mem"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "bytes"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 2
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #CPU (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "CPU"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "short"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 0
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Uptime (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": " Uptime"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "dthms"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 2
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Part util (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Storage used"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "percent"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 2
+                  },
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "mode": "lcd",
+                      "type": "gauge",
+                      "valueDisplayMode": "text"
+                    }
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "percentage",
+                      "steps": [
+                        {
+                          "color": "rgba(50, 172, 45, 0.97)",
+                          "value": null
+                        },
+                        {
+                          "color": "rgba(237, 129, 40, 0.89)",
+                          "value": 70
+                        },
+                        {
+                          "color": "rgba(245, 54, 54, 0.9)",
+                          "value": 85
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "min",
+                    "value": 0
+                  },
+                  {
+                    "id": "max",
+                    "value": 100
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "Storage used"
+                  },
+                  {
+                    "id": "custom.width",
+                    "value": 140
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #CPU util (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "CPU used"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "percent"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 2
+                  },
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "mode": "lcd",
+                      "type": "gauge",
+                      "valueDisplayMode": "text"
+                    }
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "percentage",
+                      "steps": [
+                        {
+                          "color": "rgba(50, 172, 45, 0.97)",
+                          "value": null
+                        },
+                        {
+                          "color": "rgba(237, 129, 40, 0.89)",
+                          "value": 70
+                        },
+                        {
+                          "color": "rgba(245, 54, 54, 0.9)",
+                          "value": 85
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "min",
+                    "value": 0
+                  },
+                  {
+                    "id": "max",
+                    "value": 100
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Mem util (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Mem used"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "percent"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 2
+                  },
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "mode": "lcd",
+                      "type": "gauge",
+                      "valueDisplayMode": "text"
+                    }
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "percentage",
+                      "steps": [
+                        {
+                          "color": "rgba(50, 172, 45, 0.97)",
+                          "value": null
+                        },
+                        {
+                          "color": "rgba(237, 129, 40, 0.89)",
+                          "value": 70
+                        },
+                        {
+                          "color": "rgba(245, 54, 54, 0.9)",
+                          "value": 85
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "min",
+                    "value": 0
+                  },
+                  {
+                    "id": "max",
+                    "value": 100
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Temperature (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "celsius"
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green",
+                          "value": null
+                        },
+                        {
+                          "color": "orange",
+                          "value": 70
+                        },
+                        {
+                          "color": "red",
+                          "value": 85
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "mode": "lcd",
+                      "type": "gauge",
+                      "valueDisplayMode": "text"
+                    }
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 2
+                  },
+                  {
+                    "id": "min",
+                    "value": 20
+                  },
+                  {
+                    "id": "max",
+                    "value": 100
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "Temperature"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Storage (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "decbytes"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 2
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "Storage"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Uptime (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 82
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #CPU (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 50
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Mem util (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 140
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #CPU util (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 140
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "resource"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 80
+                  },
+                  {
+                    "id": "filterable"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 0
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "Resource"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Up (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "mappings",
+                    "value": [
+                      {
+                        "options": {
+                          "0": {
+                            "color": "red",
+                            "index": 1,
+                            "text": "Offline"
+                          },
+                          "1": {
+                            "color": "green",
+                            "index": 0,
+                            "text": "Online"
+                          }
+                        },
+                        "type": "value"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "type": "color-text"
+                    }
+                  },
+                  {
+                    "id": "custom.width",
+                    "value": 73
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "Up"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Storage (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 90
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Mem (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 90
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "instance (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 120
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Temperature (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 145
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Availability (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "percentunit"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 6
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "Availability (30d)"
+                  },
+                  {
+                    "id": "custom.width",
+                    "value": 130
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Latency (lastNotNull)"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "s"
+                  },
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "mode": "lcd",
+                      "type": "gauge",
+                      "valueDisplayMode": "text"
+                    }
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green",
+                          "value": null
+                        },
+                        {
+                          "color": "#EAB839",
+                          "value": 0.1
+                        },
+                        {
+                          "color": "red",
+                          "value": 0.15
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "min",
+                    "value": 0
+                  },
+                  {
+                    "id": "max",
+                    "value": 0.2
+                  },
+                  {
+                    "id": "displayName",
+                    "value": "Latency"
+                  },
+                  {
+                    "id": "custom.width",
+                    "value": 140
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 11,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "hideTimeOverride": false,
+          "id": 185,
+          "interval": "1s",
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "enablePagination": true,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true,
+            "sortBy": []
+          },
+          "pluginVersion": "10.2.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "expr": "sum(time() - node_boot_time_seconds{resource=~\"$resourceId\", deployment=~\"($deploymentId|)\"})by(resource, instance, job)",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "interval": "",
+              "legendFormat": "Uptime",
+              "refId": "Uptime"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "expr": "node_memory_MemTotal_bytes{resource=~\"$resourceId\", deployment=~\"($deploymentId|)\"}-0",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "interval": "",
+              "legendFormat": "Mem",
+              "refId": "Mem"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "count(node_cpu_seconds_total{resource=~\"$resourceId\",mode='system', deployment=~\"($deploymentId|)\"}) by (resource, instance)",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "interval": "",
+              "legendFormat": "CPU",
+              "range": false,
+              "refId": "CPU"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "disableTextWrap": false,
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "max(node_hwmon_temp_celsius{resource=~\"$resourceId\", deployment=~\"($deploymentId|)\"} or node_thermal_zone_temp{resource=~\"resourceId\", deployment=~\"($deploymentId|)\"}) by (resource, instance)",
+              "format": "table",
+              "fullMetaSearch": false,
+              "hide": false,
+              "includeNullMetadata": true,
+              "instant": true,
+              "legendFormat": "Temperature",
+              "range": false,
+              "refId": "Temperature",
+              "useBackend": false
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "clamp_min((1 - avg(rate(node_cpu_seconds_total{resource=~\"$resourceId\",mode=\"idle\", deployment=~\"($deploymentId|)\"}[$interval])) by (resource, instance)) * 100, 0)",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "interval": "",
+              "legendFormat": "CPU utilization",
+              "range": false,
+              "refId": "CPU util"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "exemplar": true,
+              "expr": "(1 - (node_memory_MemFree_bytes{resource=~\"$resourceId\"} + node_memory_Buffers_bytes{resource=~\"$resourceId\", deployment=~\"($deploymentId|)\"} + node_memory_Cached_bytes{resource=~\"$resourceId\", deployment=~\"($deploymentId|)\"}) / node_memory_MemTotal_bytes{resource=~\"$resourceId\", deployment=~\"($deploymentId|)\"}) * 100",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "interval": "",
+              "legendFormat": "Memory utilization",
+              "refId": "Mem util"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "label_del(node_filesystem_size_bytes{resource=~\"$resourceId\",mountpoint=\"/\",fstype!=\"rootfs\", deployment=~\"($deploymentId|)\"} - 0, \"device\", \"fstype\", \"mountpoint\")",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "legendFormat": "__auto",
+              "range": false,
+              "refId": "Storage"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "expr": "label_del(100 - ((node_filesystem_avail_bytes{resource=~\"$resourceId\",mountpoint=\"/\",fstype!=\"rootfs\", deployment=~\"($deploymentId|)\"} * 100) / node_filesystem_size_bytes{resource=~\"$resourceId\",mountpoint=\"/\",fstype!=\"rootfs\", deployment=~\"($deploymentId|)\"}), \"device\", \"fstype\", \"mountpoint\")",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "interval": "",
+              "legendFormat": "Partition utilization",
+              "refId": "Part util"
+            },
+            {
+              "datasource": {
+                "type": "victoriametrics-datasource",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "up{resource=~\"$resourceId\", deployment=~\"($deploymentId|)\"} - 0",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "legendFormat": "__auto",
+              "range": false,
+              "refId": "Up"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "expr": "max(rate(node_disk_read_bytes_total{resource=~\"$resourceId\"}[$interval])) by (resource)",
+              "format": "table",
+              "hide": true,
+              "instant": true,
+              "interval": "",
+              "legendFormat": "Maximum read",
+              "refId": "Disk read"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "expr": "max(rate(node_disk_written_bytes_total{resource=~\"$resourceId\"}[$interval])) by (resource)",
+              "format": "table",
+              "hide": true,
+              "instant": true,
+              "interval": "",
+              "legendFormat": "Maximum write",
+              "refId": "Disk write"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "expr": "node_netstat_Tcp_CurrEstab{resource=~\"$resourceId\"} - 0",
+              "format": "table",
+              "hide": true,
+              "instant": true,
+              "interval": "",
+              "legendFormat": "TCP connections",
+              "refId": "TCP_estab"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "expr": "node_sockstat_TCP_tw{resource=~\"$resourceId\"} - 0",
+              "format": "table",
+              "hide": true,
+              "instant": true,
+              "interval": "",
+              "legendFormat": "TCP time wait",
+              "refId": "TCP_tw"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "expr": "max(rate(node_network_receive_bytes_total{resource=~\"$resourceId\"}[$interval])*8) by (resource)",
+              "format": "table",
+              "hide": true,
+              "instant": true,
+              "interval": "",
+              "legendFormat": "Download bandwidth",
+              "refId": "Receive"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "expr": "max(rate(node_network_transmit_bytes_total{resource=~\"$resourceId\"}[$interval])*8) by (resource)",
+              "format": "table",
+              "hide": true,
+              "instant": true,
+              "interval": "",
+              "legendFormat": "Upload bandwidth",
+              "refId": "Transmit"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "expr": "node_load5{resource=~\"$resourceId\"}",
+              "format": "table",
+              "hide": true,
+              "instant": true,
+              "interval": "",
+              "legendFormat": "Load(5m)",
+              "refId": "Load(5m)"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "expr": "label_del(node_uname_info{resource=~\"$resourceId\"} -0, \"domainname\", \"machine\", \"nodename\", \"release\", \"sysname\", \"version\")",
+              "format": "table",
+              "hide": true,
+              "instant": true,
+              "interval": "",
+              "legendFormat": "Hostname",
+              "refId": "Hostname"
+            },
+            {
+              "datasource": {
+                "type": "victoriametrics-datasource",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "avg_over_time(up{resource=~\"$resourceId\", deployment=~\"($deploymentId|)\"}[30d])",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "legendFormat": "__auto",
+              "range": false,
+              "refId": "Availability"
+            },
+            {
+              "datasource": {
+                "type": "victoriametrics-datasource",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "openfaas_latency_seconds{resource=~\"$resourceId\"}",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "legendFormat": "__auto",
+              "range": false,
+              "refId": "Latency"
+            }
+          ],
+          "title": "VM/Bare-Metal Resources",
+          "transformations": [
+            {
+              "id": "merge",
+              "options": {
+                "reducers": []
+              }
+            },
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Temperature": false,
+                  "Time": true,
+                  "Value #CPU": false,
+                  "Value #CPU util": false,
+                  "Value #Disk read": true,
+                  "Value #Disk write": true,
+                  "Value #Hostname": true,
+                  "Value #Load(5m)": true,
+                  "Value #Mem": false,
+                  "Value #Mem util": false,
+                  "Value #Part util": false,
+                  "Value #Receive": true,
+                  "Value #Storage": false,
+                  "Value #TCP_estab": true,
+                  "Value #TCP_tw": true,
+                  "Value #Transmit": true,
+                  "Value #Up": false,
+                  "Value #Uptime": false,
+                  "__name__": true,
+                  "deployment": true,
+                  "device": true,
+                  "domainname": true,
+                  "fstype": true,
+                  "instance": true,
+                  "job": true,
+                  "machine": true,
+                  "mountpoint": true,
+                  "nodename": true,
+                  "release": true,
+                  "resource": false,
+                  "resource_deployment": true,
+                  "sysname": true,
+                  "version": true
+                },
+                "indexByName": {
+                  "Time": 5,
+                  "Value #Availability": 3,
+                  "Value #CPU": 8,
+                  "Value #CPU util": 11,
+                  "Value #Latency": 4,
+                  "Value #Mem": 9,
+                  "Value #Mem util": 12,
+                  "Value #Part util": 13,
+                  "Value #Storage": 10,
+                  "Value #Temperature": 14,
+                  "Value #Up": 2,
+                  "Value #Uptime": 7,
+                  "__name__": 15,
+                  "instance": 1,
+                  "job": 6,
+                  "resource": 0
+                },
+                "renameByName": {
+                  "Value #Part util": "",
+                  "Value #Storage": "",
+                  "Value #Temperature": "",
+                  "Value #Up": "",
+                  "id": "Id",
+                  "resource": ""
+                }
+              }
+            },
+            {
+              "id": "groupBy",
+              "options": {
+                "fields": {
+                  "Resource": {
+                    "aggregations": [],
+                    "operation": "groupby"
+                  },
+                  "Storage": {
+                    "aggregations": [
+                      "lastNotNull"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Temperature": {
+                    "aggregations": [
+                      "lastNotNull"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Up": {
+                    "aggregations": [
+                      "lastNotNull"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Value #Availability": {
+                    "aggregations": [
+                      "lastNotNull"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Value #CPU": {
+                    "aggregations": [
+                      "lastNotNull"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Value #CPU util": {
+                    "aggregations": [
+                      "lastNotNull"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Value #Latency": {
+                    "aggregations": [
+                      "lastNotNull"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Value #Mem": {
+                    "aggregations": [
+                      "lastNotNull"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Value #Mem util": {
+                    "aggregations": [
+                      "lastNotNull"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Value #Part util": {
+                    "aggregations": [
+                      "lastNotNull"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Value #Storage": {
+                    "aggregations": [
+                      "lastNotNull"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Value #Temperature": {
+                    "aggregations": [
+                      "lastNotNull"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Value #Up": {
+                    "aggregations": [
+                      "lastNotNull"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Value #Uptime": {
+                    "aggregations": [
+                      "lastNotNull"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "instance": {
+                    "aggregations": [
+                      "lastNotNull"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "resource": {
+                    "aggregations": [],
+                    "operation": "groupby"
+                  }
+                }
+              }
+            },
+            {
+              "id": "convertFieldType",
+              "options": {
+                "conversions": [
+                  {
+                    "destinationType": "number",
+                    "targetField": "resource"
+                  }
+                ],
+                "fields": {}
+              }
+            },
+            {
+              "id": "sortBy",
+              "options": {
+                "fields": {},
+                "sort": [
+                  {
+                    "field": "resource"
+                  }
+                ]
+              }
+            }
+          ],
+          "type": "table"
+        }
+      ],
+      "refresh": "1s",
+      "schemaVersion": 38,
+      "tags": [],
+      "templating": {
+        "list": [
+          {
+            "auto": false,
+            "auto_count": 100,
+            "auto_min": "10s",
+            "current": {
+              "selected": false,
+              "text": "5s",
+              "value": "5s"
+            },
+            "hide": 2,
+            "label": "Interval",
+            "name": "interval",
+            "options": [
+              {
+                "selected": false,
+                "text": "1s",
+                "value": "1s"
+              },
+              {
+                "selected": false,
+                "text": "2s",
+                "value": "2s"
+              },
+              {
+                "selected": true,
+                "text": "5s",
+                "value": "5s"
+              },
+              {
+                "selected": false,
+                "text": "15s",
+                "value": "15s"
+              },
+              {
+                "selected": false,
+                "text": "30s",
+                "value": "30s"
+              },
+              {
+                "selected": false,
+                "text": "1m",
+                "value": "1m"
+              },
+              {
+                "selected": false,
+                "text": "2m",
+                "value": "2m"
+              },
+              {
+                "selected": false,
+                "text": "3m",
+                "value": "3m"
+              },
+              {
+                "selected": false,
+                "text": "5m",
+                "value": "5m"
+              },
+              {
+                "selected": false,
+                "text": "10m",
+                "value": "10m"
+              },
+              {
+                "selected": false,
+                "text": "30m",
+                "value": "30m"
+              }
+            ],
+            "query": "1s,2s,5s,15s,30s,1m,2m,3m,5m,10m,30m",
+            "queryValue": "",
+            "refresh": 2,
+            "skipUrlSync": false,
+            "type": "interval"
+          },
+          {
+            "current": {
+              "selected": true,
+              "text": [
+                "All"
+              ],
+              "value": [
+                "$__all"
+              ]
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "RESOURCE_MANAGER_PROM"
+            },
+            "definition": "label_values(id)",
+            "hide": 2,
+            "includeAll": true,
+            "multi": true,
+            "name": "resourceId",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values(resource)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 0,
+            "type": "query"
+          },
+          {
+            "current": {
+              "isNone": true,
+              "selected": false,
+              "text": "None",
+              "value": ""
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "RESOURCE_MANAGER_PROM"
+            },
+            "definition": "label_values(deployment)",
+            "hide": 2,
+            "includeAll": false,
+            "multi": false,
+            "name": "deploymentId",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values(deployment)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 0,
+            "type": "query"
+          }
+        ]
+      },
+      "time": {
+        "from": "now-5m",
+        "to": "now"
+      },
+      "timepicker": {
+        "hidden": true,
+        "now": true,
+        "refresh_intervals": [
+          "1s",
+          "5s",
+          "15s",
+          "30s",
+          "1m",
+          "5m",
+          "15m",
+          "30m"
+        ],
+        "time_options": [
+          "5m",
+          "15m",
+          "1h",
+          "6h",
+          "12h",
+          "24h",
+          "2d",
+          "7d",
+          "30d"
+        ]
+      },
+      "timezone": "browser",
+      "title": "Node Exporter",
+      "uid": "efa71f23-5850-4144-8b29-0ae9480eec94",
+      "version": 6,
+      "weekStart": ""
+    }
+  region.json: |
+    {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": {
+              "type": "grafana",
+              "uid": "-- Grafana --"
+            },
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "type": "dashboard"
+          }
+        ]
+      },
+      "editable": false,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 0,
+      "links": [],
+      "liveNow": false,
+      "panels": [
+        {
+          "datasource": {
+            "type": "victoriametrics-datasource",
+            "uid": "RESOURCE_MANAGER_VM"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "center",
+                "cellOptions": {
+                  "type": "auto"
+                },
+                "inspect": false
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Up"
+                },
+                "properties": [
+                  {
+                    "id": "mappings",
+                    "value": [
+                      {
+                        "options": {
+                          "0": {
+                            "index": 1,
+                            "text": "Offline"
+                          },
+                          "1": {
+                            "index": 0,
+                            "text": "Online"
+                          }
+                        },
+                        "type": "value"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "red",
+                          "value": null
+                        },
+                        {
+                          "color": "green",
+                          "value": 1
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "type": "color-text"
+                    }
+                  },
+                  {
+                    "id": "custom.width",
+                    "value": 150
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Latency"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "s"
+                  },
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "mode": "lcd",
+                      "type": "gauge",
+                      "valueDisplayMode": "text"
+                    }
+                  },
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green",
+                          "value": null
+                        },
+                        {
+                          "color": "#EAB839",
+                          "value": 0.1
+                        },
+                        {
+                          "color": "red",
+                          "value": 0.15
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "id": "min",
+                    "value": 0
+                  },
+                  {
+                    "id": "max",
+                    "value": 0.2
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Region"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 150
+                  },
+                  {
+                    "id": "filterable",
+                    "value": false
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Availability (30d)"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 196
+                  },
+                  {
+                    "id": "unit",
+                    "value": "percentunit"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 6
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 12,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 1,
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "enablePagination": true,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "frameIndex": 0,
+            "showHeader": true,
+            "sortBy": []
+          },
+          "pluginVersion": "10.2.2",
+          "targets": [
+            {
+              "datasource": {
+                "type": "victoriametrics-datasource",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "label_del(region_latency_seconds, \"__name__\")",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "__auto",
+              "range": false,
+              "refId": "Latency"
+            },
+            {
+              "datasource": {
+                "type": "victoriametrics-datasource",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "label_del(region_up, \"__name__\")",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "legendFormat": "__auto",
+              "range": false,
+              "refId": "Up"
+            },
+            {
+              "datasource": {
+                "type": "victoriametrics-datasource",
+                "uid": "RESOURCE_MANAGER_VM"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "avg_over_time(region_up[30d])",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "legendFormat": "__auto",
+              "range": false,
+              "refId": "A"
+            }
+          ],
+          "title": "Regions",
+          "transformations": [
+            {
+              "id": "merge",
+              "options": {}
+            },
+            {
+              "id": "groupBy",
+              "options": {
+                "fields": {
+                  "Value #A": {
+                    "aggregations": [
+                      "sum"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Value #Latency": {
+                    "aggregations": [
+                      "sum"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "Value #Up": {
+                    "aggregations": [
+                      "sum"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "latency": {
+                    "aggregations": [
+                      "sum"
+                    ],
+                    "operation": "aggregate"
+                  },
+                  "region": {
+                    "aggregations": [],
+                    "operation": "groupby"
+                  },
+                  "up": {
+                    "aggregations": [
+                      "sum"
+                    ],
+                    "operation": "aggregate"
+                  }
+                }
+              }
+            },
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Time": true
+                },
+                "indexByName": {
+                  "Value #A (sum)": 2,
+                  "Value #Latency (sum)": 3,
+                  "Value #Up (sum)": 1,
+                  "region": 0
+                },
+                "renameByName": {
+                  "Value #A (sum)": "Availability (30d)",
+                  "Value #Latency": "latency",
+                  "Value #Latency (sum)": "Latency",
+                  "Value #Up": "up",
+                  "Value #Up (sum)": "Up",
+                  "region": "Region"
+                }
+              }
+            }
+          ],
+          "type": "table"
+        }
+      ],
+      "refresh": "5s",
+      "schemaVersion": 38,
+      "tags": [],
+      "templating": {
+        "list": []
+      },
+      "time": {
+        "from": "now-5m",
+        "to": "now"
+      },
+      "timepicker": {
+        "hidden": true
+      },
+      "timezone": "",
+      "title": "Region Dashboard",
+      "uid": "e32c5920-4a78-46e5-a5a1-c78f9ba640a7",
+      "version": 9,
+      "weekStart": ""
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rm-monitoring-grafana-datasources
+data:
+  datasource.yml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        # Access mode - proxy (server in the UI) or direct (browser in the UI).
+        url: http://rm-monitoring-vm:8889
+        uid: RESOURCE_MANAGER_PROM
+        jsonData:
+          httpMethod: POST
+          manageAlerts: true
+          prometheusType: Prometheus
+          prometheusVersion: 2.44.0
+          cacheLevel: 'Medium'
+          disableRecordingRules: false
+      - name: VictoriaMetrics
+        # <string, required> Sets the data source type.
+        type: victoriametrics-datasource
+        # <string, required> Sets the access mode, either
+        # proxy or direct (Server or Browser in the UI).
+        # Some data sources are incompatible with any setting
+        # but proxy (Server).
+        access: proxy
+        # <string> Sets default URL of the single node version of VictoriaMetrics
+        url: http://rm-monitoring-vm:8889
+        # <string> Sets the pre-selected datasource for new panels.
+        # You can set only one default data source per organization.
+        isDefault: false
+        uid: RESOURCE_MANAGER_VM
+      - name: infinity
+        type: yesoreyeram-infinity-datasource
+        access: proxy
+        isDefault: false
+        uid: RESOURCE_MANAGER_INFINITY
+---
