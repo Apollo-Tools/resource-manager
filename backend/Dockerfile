@@ -24,7 +24,7 @@ RUN  apk update \
 RUN curl -sSL https://cli.openfaas.com | sh
 
 # Install terraform
-RUN wget https://releases.hashicorp.com/terraform/1.4.5/terraform_1.4.5_linux_amd64.zip
+RUN curl -LO https://releases.hashicorp.com/terraform/1.4.5/terraform_1.4.5_linux_amd64.zip
 RUN unzip terraform_1.4.5_linux_amd64.zip && rm terraform_1.4.5_linux_amd64.zip
 RUN mv terraform /usr/bin/terraform
 

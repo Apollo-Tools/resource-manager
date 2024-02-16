@@ -21,7 +21,7 @@ while getopts "w:c:" opt; do
 done
 
 # ping the website $count times
-result=$(ping -c $count $website)
+result="$(ping -c "$count" "$website")"
 
 # compose output
 if [ $? -eq 0 ]; then

@@ -15,18 +15,21 @@ There are three projects which make up a single gradle build:
 - entrypoint - Each platform implements a different entrypoint. The function developer does not 
   need to know any implementation details of this project but if you are interested implementation 
   details can be found in the directories of the corresponding platforms.
-- model - Interfaces, Helper-Classes and Exceptions that are used by the entrypoint and function projects. 
-  **Modifications of these classes don't apply to the final deployment!**
+- model - Interfaces, Helper-Classes and Exceptions that are used by the entrypoint and function
+  projects. **Modifications of these classes don't apply to the final deployment!**
 
 ### Handler
+
 The handler is implemented in the `Main.java` of the function project. This class must implement
 the org.apollorm.model.FunctionHandler interface for a successful deployment.
 
 ### External dependencies
+
 External dependencies must be specified in the `gradle.build.` that is located inside the function
 directory.
 
 ### Deployment with the RM
+
 1. Implement your code within the function project.
 2. `gradle buildRMZip`
 3. Create a new function (RM) using the newly created 
@@ -34,5 +37,6 @@ directory.
 4. The function is ready for deployment.
 
 ### Reference
+
 This template is an extension/modification of the official OpenFaaS
 [java11-vert-x template](https://github.com/openfaas/templates/tree/master/template/java11-vert-x).
