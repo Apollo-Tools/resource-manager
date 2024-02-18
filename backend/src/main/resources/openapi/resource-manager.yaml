@@ -2155,6 +2155,26 @@ paths:
                   properties:
                     docker_credentials:
                       $ref: '#/components/schemas/DockerCredentials'
+                validation:
+                  description: |
+                    The data used for validation. If this property is omitted, no validation is
+                    applied.
+                  type: object
+                  required:
+                    - ensemble_id
+                    - alert_notification_url
+                  additionalProperties: false
+                  properties:
+                    ensemble_id:
+                      description: The id of the ensemble to use for validation.
+                      type: integer
+                      format: int64
+                      example: 1
+                    alert_notification_url:
+                      description: The url where to send alerts in case of an SLO-breach.
+                      type: string
+                      example: http://localhost:1234
+
       responses:
         201:
           description: Successful deployment of resources

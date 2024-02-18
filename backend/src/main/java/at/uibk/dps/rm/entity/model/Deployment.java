@@ -22,6 +22,13 @@ public class Deployment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long deploymentId;
 
+    @Column(columnDefinition="TEXT")
+    private String alertNotificationUrl;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ensemble_id")
+    private Ensemble ensemble;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_id")
     private Account createdBy;
