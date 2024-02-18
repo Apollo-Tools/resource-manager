@@ -23,6 +23,7 @@ import io.vertx.core.json.JsonObject;
 import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * This is the implementation of the {@link DeploymentService}.
@@ -146,7 +147,37 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
             .switchIfEmpty(Maybe.error(new UnauthorizedException()))
             .flatMapCompletable(account -> {
                 deployment.setCreatedBy(account);
-                return sm.persist(deployment)
+                Single<Long> checkResources = Single.just(1L);
+                if (request.getValidation() != null) {
+                    // TODO: refactoring into separate class
+                    DeploymentValidation validation = request.getValidation();
+                    deployment.setAlertNotificationUrl(request.getValidation().getAlertNotificationUrl());
+                    Ensemble ensemble = new Ensemble();
+                    ensemble.setEnsembleId(validation.getEnsembleId());
+                    deployment.setEnsemble(ensemble);
+                    checkResources = repositoryProvider.getResourceRepository()
+                        .findAllByEnsembleId(sm,validation.getEnsembleId())
+                        .flatMapObservable(Observable::fromIterable)
+                        .map(Resource::getResourceId)
+                        .collect(Collectors.toSet())
+                        .flatMap(ensembleResourceIds -> {
+                            Observable<Long> serviceResourceIds = Observable.fromIterable(request.getServiceResources())
+                                .map(ServiceResourceIds::getResourceId);
+                            Observable<Long> functionResourceIds = Observable
+                                .fromIterable(request.getFunctionResources())
+                                .map(FunctionResourceIds::getResourceId);
+                            return Observable.merge(serviceResourceIds, functionResourceIds)
+                                .filter(ensembleResourceIds::contains)
+                                .isEmpty();
+                        })
+                        .flatMap(requestContainsNonEnsembleResource -> {
+                            if (requestContainsNonEnsembleResource) {
+                                return Single.error(new BadInputException("Request contains non ensemble resource"));
+                            }
+                            return Single.just(1L);
+                        });
+                }
+                return checkResources.flatMap(res -> sm.persist(deployment))
                     .flatMapCompletable(res -> sm.flush());
             })
             .andThen(Single.defer(() -> validationUtility.checkDeploymentIsValid(sm, request, deployResources)))

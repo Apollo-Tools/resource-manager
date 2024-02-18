@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.entity.dto;
 
 import at.uibk.dps.rm.entity.dto.credentials.DeploymentCredentials;
+import at.uibk.dps.rm.entity.dto.deployment.DeploymentValidation;
 import at.uibk.dps.rm.entity.dto.deployment.FunctionResourceIds;
 import at.uibk.dps.rm.entity.dto.deployment.ServiceResourceIds;
 import at.uibk.dps.rm.entity.dto.resource.ResourceId;
@@ -27,6 +28,8 @@ public class DeployResourcesRequest {
     private List<ResourceId> lockResources;
 
     private DeploymentCredentials credentials = new DeploymentCredentials();
+
+    private DeploymentValidation validation;
 
     /**
      * Create an instance with a JsonObject.
