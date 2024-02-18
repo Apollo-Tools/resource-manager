@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  version: "1.0.8"
+  version: "1.0.7"
   title: "Resource Manager"
   description: |
     This is the API specification for the Apollo Resource Manager. The api provides various routes to 
