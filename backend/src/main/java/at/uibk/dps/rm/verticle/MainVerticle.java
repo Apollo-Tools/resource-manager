@@ -26,12 +26,16 @@ public class MainVerticle extends AbstractVerticle {
             new DeploymentOptions().setConfig(config));
         Single<String> deployMonitoringVerticle = vertx.rxDeployVerticle(new MonitoringVerticle(),
             new DeploymentOptions().setConfig(config));
+        Single<String> deployAlertingVerticle = vertx.rxDeployVerticle(new AlertingVerticle(),
+            new DeploymentOptions().setConfig(config));
+
 
         return deployMigrationVerticle
             .flatMap(res -> deployDatabaseVerticle)
             .flatMap(res -> deployMonitoringVerticle)
             .flatMap(res -> deployDeploymentVerticle)
             .flatMap(res -> deployApiVerticle)
+            .flatMap(res -> deployAlertingVerticle)
             .ignoreElement();
     }
 }

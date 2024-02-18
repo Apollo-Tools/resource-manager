@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.repository.deployment;
 
+import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.repository.Repository;
 import at.uibk.dps.rm.service.database.util.SessionManager;
@@ -36,6 +37,25 @@ public class DeploymentRepository extends Repository<Deployment> {
                 "where d.createdBy.accountId=:accountId " +
                 "order by d.id", entityClass)
             .setParameter("accountId", accountId)
+            .getResultList()
+        );
+    }
+
+
+    /**
+     * Find all deployments that are active and selected for alerting.
+     *
+     * @param sessionManager the database session manager
+     * @return a Single that emits a list of all found deployments
+     */
+    public Single<List<Deployment>> findAllActiveWithAlerting(SessionManager sessionManager) {
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery("select distinct d from ResourceDeployment rd " +
+                "left join rd.deployment d " +
+                "left join fetch d.ensemble e " +
+                "where d.ensemble!=null and rd.status.statusValue=:deployedStatus " +
+                "order by d.id", entityClass)
+            .setParameter("deployedStatus", DeploymentStatusValue.DEPLOYED.getValue())
             .getResultList()
         );
     }

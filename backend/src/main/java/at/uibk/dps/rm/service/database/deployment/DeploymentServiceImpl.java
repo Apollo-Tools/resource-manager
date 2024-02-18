@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.dto.deployment.*;
+import at.uibk.dps.rm.entity.dto.resource.SubResourceDTO;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.NotFoundException;
@@ -92,6 +93,49 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
             .findAllByAccountId(sm, accountId)
             .flatMapObservable(Observable::fromIterable)
             .flatMapSingle(deployment -> deploymentUtility.composeDeploymentResponse(sm, deployment))
+            .toList()
+        );
+        RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
+    }
+
+    @Override
+    public void findAllActiveWithAlerting(Handler<AsyncResult<JsonArray>> resultHandler) {
+        Single<List<DeploymentAlertingDTO>> findAll = smProvider.withTransactionSingle(sm -> repositoryProvider
+            .getDeploymentRepository()
+            .findAllActiveWithAlerting(sm)
+            .flatMapObservable(Observable::fromIterable)
+            .flatMapSingle(deployment -> {
+                DeploymentAlertingDTO deploymentAlertingDTO = new DeploymentAlertingDTO();
+                deploymentAlertingDTO.setDeploymentId(deployment.getDeploymentId());
+                deploymentAlertingDTO.setEnsembleId(deployment.getEnsemble().getEnsembleId());
+                deploymentAlertingDTO.setAlertingUrl(deployment.getAlertNotificationUrl());
+                return repositoryProvider.getEnsembleSLORepository()
+                    .findAllByEnsembleId(sm, deploymentAlertingDTO.getEnsembleId())
+                    .flatMap(ensembleSLOS -> {
+                        deploymentAlertingDTO.setEnsembleSLOs(ensembleSLOS);
+                        if (ensembleSLOS.isEmpty()) {
+                            deploymentAlertingDTO.setResources(List.of());
+                            return Single.just(deploymentAlertingDTO);
+                        } else {
+                            return repositoryProvider.getResourceRepository()
+                                .findAllByDeploymentId(sm, deploymentAlertingDTO.getDeploymentId())
+                                .flatMapObservable(Observable::fromIterable)
+                                .map(resource -> {
+                                    resource.setIsLocked(resource.getLockedByDeployment() != null);
+                                    if (resource instanceof SubResource) {
+                                        return new SubResourceDTO((SubResource) resource);
+                                    }
+                                    return resource;
+                                })
+                                .toList()
+                                .map(resources -> {
+                                    deploymentAlertingDTO.setResources(resources);
+                                    return deploymentAlertingDTO;
+                                });
+                        }
+                    });
+            })
+            .filter(result -> !result.getEnsembleSLOs().isEmpty())
             .toList()
         );
         RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);

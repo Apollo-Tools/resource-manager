@@ -3,6 +3,7 @@ package at.uibk.dps.rm.repository;
 import at.uibk.dps.rm.repository.account.CredentialsRepository;
 import at.uibk.dps.rm.repository.account.NamespaceRepository;
 import at.uibk.dps.rm.repository.deployment.*;
+import at.uibk.dps.rm.repository.ensemble.EnsembleSLORepository;
 import at.uibk.dps.rm.repository.function.FunctionRepository;
 import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
@@ -30,6 +31,7 @@ public class DeploymentRepositoryProvider {
     private final VPCRepository vpcRepository;
     private final CredentialsRepository credentialsRepository;
     private final NamespaceRepository namespaceRepository;
+    private final EnsembleSLORepository ensembleSLORepository;
 
     /**
      * Create an instance.
@@ -47,5 +49,6 @@ public class DeploymentRepositoryProvider {
         vpcRepository = new VPCRepository();
         credentialsRepository = new CredentialsRepository();
         namespaceRepository = new NamespaceRepository();
+        ensembleSLORepository = new EnsembleSLORepository();
     }
 }
