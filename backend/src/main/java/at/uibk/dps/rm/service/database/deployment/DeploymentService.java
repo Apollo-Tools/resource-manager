@@ -13,6 +13,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
@@ -36,6 +37,8 @@ public interface DeploymentService extends DatabaseServiceInterface {
     static DeploymentService createProxy(Vertx vertx) {
         return new DeploymentServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(Deployment.class));
     }
+
+    void findAllActiveWithAlerting(Handler<AsyncResult<JsonArray>> resultHandler);
 
     /**
      * Cancel a deployment by setting the status to "TERMINATING"

@@ -358,6 +358,40 @@ public class ResourceRepository extends Repository<Resource> {
     }
 
     /**
+     * Find all resources by a deployment and fetch the resource, resourceType, region,
+     * resourceProvider, platform, environment, metricValues and metric.
+     *
+     * @param sessionManager the database session manager
+     * @param deploymentId the id of the deployment
+     * @return a Single that emits a list of resources
+     */
+    public Single<List<Resource>> findAllByDeploymentId(SessionManager sessionManager, long deploymentId) {
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery(
+            "select distinct r from ResourceDeployment rd " +
+                "left join rd.resource r " +
+                "left join fetch r.metricValues mv " +
+                "left join fetch mv.metric " +
+                "left join fetch r.region reg " +
+                "left join fetch reg.resourceProvider rp " +
+                "left join fetch rp.environment " +
+                "left join fetch r.platform p " +
+                "left join fetch p.resourceType " +
+                "left join fetch r.mainResource mr " +
+                "left join fetch mr.metricValues mmv " +
+                "left join fetch mmv.metric " +
+                "left join fetch mr.region mreg " +
+                "left join fetch mreg.resourceProvider mrp " +
+                "left join fetch mrp.environment " +
+                "left join fetch mr.platform mp " +
+                "left join fetch mp.resourceType " +
+                "where rd.deployment.deploymentId=:deploymentId", Resource.class)
+            .setParameter("deploymentId", deploymentId)
+            .getResultList()
+        );
+    }
+
+    /**
      * Find all resources that are locked by a deployment.
      *
      * @param sessionManager the database session manager
