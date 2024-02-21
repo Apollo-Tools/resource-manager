@@ -12,15 +12,13 @@ import java.util.Set;
 
 public class AlertingVerticle extends AbstractVerticle {
 
-    private WebClient webClient;
-
     private final Set<AlertingHandler> alertingHandlers = new HashSet<>();
 
     @Override
     public Completable rxStart() {
-        webClient = WebClient.create(vertx);
+        WebClient webClient = WebClient.create(vertx);
         ConfigDTO config = config().mapTo(ConfigDTO.class);
-        AlertingHandler alertingHandler = new AlertingHandler(vertx, config);
+        AlertingHandler alertingHandler = new AlertingHandler(vertx, webClient, config);
         alertingHandlers.add(alertingHandler);
         return startAlertingLoop();
     }

@@ -12,7 +12,11 @@ import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
+import io.vertx.rxjava3.ext.web.client.HttpResponse;
+import io.vertx.rxjava3.ext.web.client.WebClient;
 import lombok.RequiredArgsConstructor;
+
+import java.net.HttpURLConnection;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -23,7 +27,10 @@ public class AlertingHandler {
 
     private final Vertx vertx;
 
+    private final WebClient webClient;
+
     private final ConfigDTO configDTO;
+
 
     private long currentTimer = -1L;
 
@@ -54,8 +61,20 @@ public class AlertingHandler {
                         )
                     )
                     .map(alertMessage -> {
-                        logger.info(JsonObject.mapFrom(alertMessage).encode());
-                        return 1L;
+                        JsonObject requestBody = JsonObject.mapFrom(alertMessage);
+                        logger.info(requestBody.encode());
+                        return webClient.postAbs(deployment.getAlertingUrl()).sendJsonObject(requestBody)
+                            .map(HttpResponse::statusCode)
+                            .onErrorReturn(throwable -> {
+                                // Misdirected Request
+                                return 421;
+                            })
+                            .map(code -> {
+                                if (code != HttpURLConnection.HTTP_NO_CONTENT) {
+                                    logger.info("Failed to notify client status code: " + code);
+                                }
+                                return code;
+                            });
                     })
                     .ignoreElements();
             })
