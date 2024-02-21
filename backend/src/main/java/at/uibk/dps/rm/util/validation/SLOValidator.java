@@ -2,6 +2,7 @@ package at.uibk.dps.rm.util.validation;
 
 import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
+import at.uibk.dps.rm.entity.dto.deployment.DeploymentAlertingDTO;
 import at.uibk.dps.rm.entity.dto.metric.MonitoredMetricValue;
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.dto.resource.SubResourceDTO;
@@ -17,17 +18,11 @@ import at.uibk.dps.rm.util.misc.MetricValueMapper;
 import at.uibk.dps.rm.util.monitoring.ResourceFilterProvider;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -35,87 +30,124 @@ import java.util.stream.Collectors;
  *
  * @author matthi-g
  */
-@RequiredArgsConstructor
 public class SLOValidator {
 
     private final MetricQueryService metricQueryService;
 
-    private final SLORequest sloRequest;
-
     private final ConfigDTO configDTO;
 
+    private final HashMap<String, Resource> resourceMap = new HashMap<>();
+    private final Set<String> resourceIds = new HashSet<>();
+    private final Set<String> mainResourceIds = new HashSet<>();
+    private final HashSetValuedHashMap<String, String> regionResources = new HashSetValuedHashMap<>();
+    private final HashSetValuedHashMap<Pair<String, String>, String> platformResources = new HashSetValuedHashMap<>();
+    private final HashSetValuedHashMap<String, String> instanceTypeResources = new HashSetValuedHashMap<>();
+
+
+    public SLOValidator(MetricQueryService metricQueryService, ConfigDTO configDTO, List<Resource> filteredResources) {
+        this.metricQueryService = metricQueryService;
+        this.configDTO = configDTO;
+        filteredResources.forEach(resource -> {
+            resourceIds.add(String.valueOf(resource.getResourceId()));
+            resourceMap.put(String.valueOf(resource.getResourceId()), resource);
+            Map<String, MetricValue> metricValues =
+                MetricValueMapper.mapMetricValues(resource.getMetricValues());
+            if (metricValues.containsKey("instance-type")) {
+                instanceTypeResources.put(metricValues.get("instance-type").getValueString(),
+                    resource.getResourceId().toString());
+            }
+            if (resource instanceof SubResourceDTO) {
+                SubResourceDTO subResourceDTO = (SubResourceDTO) resource;
+                regionResources.put(subResourceDTO.getRegion().getRegionId().toString(),
+                    subResourceDTO.getResourceId().toString());
+                Platform platform = subResourceDTO.getPlatform();
+                platformResources.put(new ImmutablePair<>(platform.getPlatformId().toString(),
+                    platform.getPlatform()), subResourceDTO.getResourceId().toString());
+                if (subResourceDTO.getPlatform().getPlatform().equals(PlatformEnum.LAMBDA.getValue())) {
+                    instanceTypeResources.put(PlatformEnum.LAMBDA.getValue(),
+                        subResourceDTO.getResourceId().toString());
+                } else if (subResourceDTO.getPlatform().getPlatform().equals(PlatformEnum.K8S.getValue())) {
+                    mainResourceIds.add(String.valueOf(subResourceDTO.getMainResourceId()));
+                }
+            } else {
+                regionResources.put(resource.getMain().getRegion().getRegionId().toString(),
+                    resource.getResourceId().toString());
+                Platform platform = resource.getMain().getPlatform();
+                platformResources.put(new ImmutablePair<>(platform.getPlatformId().toString(),
+                    platform.getPlatform()), resource.getResourceId().toString());
+                if (resource.getMain().getPlatform().getPlatform().equals(PlatformEnum.LAMBDA.getValue())) {
+                    instanceTypeResources.put(PlatformEnum.LAMBDA.getValue(),
+                        resource.getResourceId().toString());
+                }
+            }
+        });
+    }
+
     /**
-     * Filter resources by monitored metrics.
+     * Filter resources by monitored metrics using an SLORequest.
      *
-     * @param resources the resources
+     * @param sloRequest the slo request
      * @return the filtered resources
      */
-    public Single<Set<Resource>> filterResourcesByMonitoredMetrics(JsonArray resources) {
-        return Observable.fromIterable(resources)
-            .map(resource -> ((JsonObject) resource))
-            .map(resource -> resource.mapTo(Resource.class))
-            .collect(Collectors.toMap(resource -> resource.getResourceId().toString(), resource -> resource))
-            .flatMap(filteredResources -> {
-                Set<String> resourceIds = filteredResources.keySet();
-                Set<String> mainResourceIds = new HashSet<>(resourceIds);
-                HashSetValuedHashMap<String, String> regionResources = new HashSetValuedHashMap<>();
-                HashSetValuedHashMap<Pair<String, String>, String> platformResources =
-                    new HashSetValuedHashMap<>();
-                HashSetValuedHashMap<String, String> instanceTypeResources = new HashSetValuedHashMap<>();
-                filteredResources.values().forEach(resource -> {
-                    Map<String, MetricValue> metricValues =
-                        MetricValueMapper.mapMetricValues(resource.getMetricValues());
-                    if (metricValues.containsKey("instance-type")) {
-                        instanceTypeResources.put(metricValues.get("instance-type").getValueString(),
-                            resource.getResourceId().toString());
-                    }
-                    if (resource instanceof SubResourceDTO) {
-                        SubResourceDTO subResourceDTO = (SubResourceDTO) resource;
-                        regionResources.put(subResourceDTO.getRegion().getRegionId().toString(),
-                            subResourceDTO.getResourceId().toString());
-                        Platform platform = subResourceDTO.getPlatform();
-                        platformResources.put(new ImmutablePair<>(platform.getPlatformId().toString(),
-                            platform.getPlatform()), subResourceDTO.getResourceId().toString());
-                        if (subResourceDTO.getPlatform().getPlatform().equals(PlatformEnum.LAMBDA.getValue())) {
-                            instanceTypeResources.put(PlatformEnum.LAMBDA.getValue(),
-                                subResourceDTO.getResourceId().toString());
-                        } else if (subResourceDTO.getPlatform().getPlatform().equals(PlatformEnum.K8S.getValue())) {
-                            mainResourceIds.add(String.valueOf(subResourceDTO.getMainResourceId()));
-                        }
-                    } else {
-                        regionResources.put(resource.getMain().getRegion().getRegionId().toString(),
-                            resource.getResourceId().toString());
-                        Platform platform = resource.getMain().getPlatform();
-                        platformResources.put(new ImmutablePair<>(platform.getPlatformId().toString(),
-                            platform.getPlatform()), resource.getResourceId().toString());
-                        if (resource.getMain().getPlatform().getPlatform().equals(PlatformEnum.LAMBDA.getValue())) {
-                            instanceTypeResources.put(PlatformEnum.LAMBDA.getValue(),
-                                resource.getResourceId().toString());
-                        }
-                    }
-                });
-                ResourceFilterProvider queryProvider = new ResourceFilterProvider(metricQueryService);
-                return Observable.fromIterable(sloRequest.getServiceLevelObjectives())
-                    .filter(slo -> MonitoringMetricEnum.fromSLO(slo) != null)
-                    .toList()
-                    .flatMap(monitoredSLOs -> {
-                        if (monitoredSLOs.isEmpty()) {
-                            return Single.just(new HashSet<>(filteredResources.values()));
-                        } else {
-                            return Observable.fromIterable(monitoredSLOs)
-                                .flatMapSingle(slo -> {
-                                    MonitoringMetricEnum metric = MonitoringMetricEnum.fromSLO(slo);
-                                    return queryProvider.filterResourcesByMonitoredMetrics(configDTO, metric, slo, filteredResources,
-                                        resourceIds, mainResourceIds, regionResources, platformResources, instanceTypeResources);
-                                })
-                                .reduce((currSet, nextSet) -> {
-                                    currSet.retainAll(nextSet);
-                                    return currSet;
-                                })
-                                .switchIfEmpty(Single.just(Set.of()));
-                        }
-                    });
+    public Single<Set<Resource>> filterResourcesByMonitoredMetrics(SLORequest sloRequest) {
+        ResourceFilterProvider queryProvider = new ResourceFilterProvider(metricQueryService, configDTO, resourceMap,
+            resourceIds, mainResourceIds, regionResources, platformResources, instanceTypeResources);
+        return Observable.fromIterable(sloRequest.getServiceLevelObjectives())
+            .filter(slo -> MonitoringMetricEnum.fromSLO(slo) != null)
+            .toList()
+            .flatMap(monitoredSLOs -> {
+                if (monitoredSLOs.isEmpty()) {
+                    return Single.just(new HashSet<>(resourceMap.values()));
+                } else {
+                    return Observable.fromIterable(monitoredSLOs)
+                        .flatMapSingle(slo -> {
+                            MonitoringMetricEnum metric = MonitoringMetricEnum.fromSLO(slo);
+                            return queryProvider.filterResourcesByMonitoredMetrics(metric, slo);
+                        })
+                        .reduce((currSet, nextSet) -> {
+                            currSet.retainAll(nextSet);
+                            return currSet;
+                        })
+                        .switchIfEmpty(Single.just(Set.of()));
+                }
             });
+    }
+
+    /**
+     * Validate resources by monitored metrics using ensemble SLOs.
+     *
+     * @return the filtered resources
+     */
+    public Single<List<Resource>> validateResourcesByMonitoredMetrics(DeploymentAlertingDTO deployment) {
+        ResourceFilterProvider resourceFilterProvider = new ResourceFilterProvider(metricQueryService, configDTO,
+            resourceMap, resourceIds, mainResourceIds, regionResources, platformResources, instanceTypeResources);
+
+        return resourceFilterProvider.queryMetricValuesForResourcesBySLOs(deployment.getEnsembleSLOs())
+            .andThen(Single.defer(() -> Single.just(deployment.getResources())))
+            .flatMapObservable(Observable::fromIterable)
+            .flatMapSingle(resource -> Observable.fromIterable(deployment.getEnsembleSLOs())
+                .flatMap(ensembleSLO -> Observable.fromIterable(resource.getMonitoredMetricValues())
+                    .filter(monitoredMetricValue -> monitoredMetricValue.getMetric().equals(ensembleSLO.getName()))
+                    .map(monitoredMetricValue -> {
+                        MetricValue metricValue = new MetricValue();
+                        metricValue.setValue(monitoredMetricValue.getValueBool());
+                        metricValue.setValue(monitoredMetricValue.getValueNumber());
+                        metricValue.setValue(monitoredMetricValue.getValueString());
+                        ServiceLevelObjective slo = new ServiceLevelObjective(ensembleSLO);
+                        monitoredMetricValue
+                            .setFulfillsSLO(SLOCompareUtility.compareMetricValueWithSLO(metricValue, slo));
+                        return monitoredMetricValue;
+                    })
+                    .filter(monitoredMetricValue -> !monitoredMetricValue.getFulfillsSLO())
+                )
+                .collect(Collectors.toSet())
+                .map(invalidMetricValues -> {
+                    resource.setMonitoredMetricValues(invalidMetricValues);
+                    return resource;
+                })
+            )
+            .filter(resource -> !resource.getMonitoredMetricValues().isEmpty())
+            .toList();
     }
 
     /**
