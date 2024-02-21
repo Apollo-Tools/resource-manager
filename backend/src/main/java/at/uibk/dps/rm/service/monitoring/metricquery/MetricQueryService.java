@@ -42,7 +42,8 @@ public interface MetricQueryService extends ServiceInterface {
      * Collect a single instant metric that matches the query.
      *
      * @param query the query
+     * @param stepMinutes the query step in minutes
      * @param resultHandler receives the result of the query
      */
-    void collectInstantMetric(String query, Handler<AsyncResult<List<VmResult>>> resultHandler);
+    void collectInstantMetric(String query, double stepMinutes, Handler<AsyncResult<List<VmResult>>> resultHandler);
 }

@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.handler.ensemble;
 
 import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
+import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.handler.ValidationHandler;
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.EnsembleService;
@@ -13,7 +14,6 @@ import at.uibk.dps.rm.util.validation.SLOValidator;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.web.RoutingContext;
@@ -57,16 +57,17 @@ public class ResourceEnsembleHandler extends ValidationHandler {
                     .flatMap(ensemble -> resourceService.findAllByNonMonitoredSLOs(ensemble)
                         .flatMapObservable(Observable::fromIterable)
                         .filter(resource -> ((JsonObject)resource).getLong("resource_id").equals(resourceId))
+                        .map(resource -> ((JsonObject) resource).mapTo(Resource.class))
                         .toList()
-                        .map(JsonArray::new)
                         .flatMap(filteredResources -> {
                             if (filteredResources.isEmpty()) {
                                 return Single.error(new BadInputException("resource does not fulfill service level " +
                                     "objectives"));
                             }
                             GetOneEnsemble getOneEnsemble = ensemble.mapTo(GetOneEnsemble.class);
-                            SLOValidator sloValidator = new SLOValidator(metricQueryService, getOneEnsemble, configDTO);
-                            return sloValidator.filterResourcesByMonitoredMetrics(filteredResources);
+                            SLOValidator sloValidator =
+                                new SLOValidator(metricQueryService, configDTO, filteredResources);
+                            return sloValidator.filterResourcesByMonitoredMetrics(getOneEnsemble);
                         })
                         .flatMap(result -> {
                             if (result.isEmpty()) {

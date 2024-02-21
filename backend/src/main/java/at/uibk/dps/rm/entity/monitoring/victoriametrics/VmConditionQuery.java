@@ -3,7 +3,6 @@ package at.uibk.dps.rm.entity.monitoring.victoriametrics;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.SLOValue;
 import at.uibk.dps.rm.exception.BadInputException;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -16,7 +15,6 @@ import java.util.stream.Collectors;
  *
  * @author matthi-g
  */
-@AllArgsConstructor
 @RequiredArgsConstructor
 @Getter
 public class VmConditionQuery implements VmQuery {
@@ -26,8 +24,6 @@ public class VmConditionQuery implements VmQuery {
     private final List<SLOValue> comparators;
 
     private final ExpressionType expressionType;
-
-    private double stepMinutes = 5;
 
     @Override
     public String toString() {
@@ -46,7 +42,6 @@ public class VmConditionQuery implements VmQuery {
                         throw new BadInputException("value type is not supported");
                 }
                 return "((" + query + ")" + expressionType.getSymbol() + value + ")";
-            }).map(Object::toString).collect(Collectors.joining("%20or%20"))
-            + "&step=" + stepMinutes + "m";
+            }).map(Object::toString).collect(Collectors.joining("%20or%20"));
     }
 }

@@ -1,6 +1,8 @@
 package at.uibk.dps.rm.entity.dto.metric;
 
 import at.uibk.dps.rm.entity.monitoring.MonitoringMetricEnum;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AccessLevel;
 import lombok.Getter;
 
 /**
@@ -13,11 +15,16 @@ public class MonitoredMetricValue {
 
     private final String metric;
 
+    @Getter
     private Double valueNumber;
 
     private String valueString;
 
     private Boolean valueBool;
+
+    @Getter(AccessLevel.NONE)
+    @JsonIgnore
+    private Boolean fulfillsSLO;
 
     /**
      * Create in instance from the metricEnum.
@@ -59,5 +66,15 @@ public class MonitoredMetricValue {
     public MonitoredMetricValue setValueBool(Boolean valueBool) {
         this.valueBool = valueBool;
         return this;
+    }
+
+    public MonitoredMetricValue setFulfillsSLO(Boolean fulfillsSLO) {
+        this.fulfillsSLO = fulfillsSLO;
+        return this;
+    }
+
+    @JsonIgnore
+    public boolean getFulfillsSLO(){
+        return this.fulfillsSLO;
     }
 }

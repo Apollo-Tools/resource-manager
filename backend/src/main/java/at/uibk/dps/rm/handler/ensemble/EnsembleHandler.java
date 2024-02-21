@@ -74,9 +74,12 @@ public class EnsembleHandler extends ValidationHandler {
         return new ConfigUtility(Vertx.currentContext().owner()).getConfigDTO()
             .flatMap(configDTO -> metricService.checkMetricTypeForSLOs(requestBody)
                 .andThen(resourceService.findAllByNonMonitoredSLOs(requestBody))
+                .flatMapObservable(Observable::fromIterable)
+                .map(resource -> ((JsonObject) resource).mapTo(Resource.class))
+                .toList()
                 .flatMap(resources -> {
-                    SLOValidator sloValidator = new SLOValidator(metricQueryService, requestDTO, configDTO);
-                    return sloValidator.filterResourcesByMonitoredMetrics(resources);
+                    SLOValidator sloValidator = new SLOValidator(metricQueryService, configDTO, resources);
+                    return sloValidator.filterResourcesByMonitoredMetrics(requestDTO);
                 })
             )
             .flatMapObservable(Observable::fromIterable)
@@ -135,9 +138,12 @@ public class EnsembleHandler extends ValidationHandler {
             .flatMap(ensemble -> {
                 GetOneEnsemble getOneEnsemble = ensemble.mapTo(GetOneEnsemble.class);
                 return resourceService.findAllByNonMonitoredSLOs(ensemble)
+                    .flatMapObservable(Observable::fromIterable)
+                    .map(resource -> ((JsonObject) resource).mapTo(Resource.class))
+                    .toList()
                     .flatMap(resources -> {
-                        SLOValidator sloValidator = new SLOValidator(metricQueryService, getOneEnsemble, configDTO);
-                        return sloValidator.filterResourcesByMonitoredMetrics(resources);
+                        SLOValidator sloValidator = new SLOValidator(metricQueryService, configDTO, resources);
+                        return sloValidator.filterResourcesByMonitoredMetrics(getOneEnsemble);
                     })
                     .map(ArrayList::new)
                     .map(validResources -> {

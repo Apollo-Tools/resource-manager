@@ -1,11 +1,13 @@
 package at.uibk.dps.rm.entity.dto.slo;
 
 import at.uibk.dps.rm.annotations.Generated;
+import at.uibk.dps.rm.entity.model.EnsembleSLO;
 import at.uibk.dps.rm.util.serialization.ServiceLevelObjectiveDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -22,6 +24,35 @@ public class ServiceLevelObjective {
     private ExpressionType expression;
 
     private List<SLOValue> value;
+
+    public ServiceLevelObjective(EnsembleSLO ensembleSLO) {
+        List<SLOValue> value = new ArrayList<>();
+        if (ensembleSLO.getValueNumbers() != null) {
+            ensembleSLO.getValueNumbers().forEach(entry -> {
+                SLOValue sloValue = new SLOValue();
+                sloValue.setValueNumber(entry);
+                sloValue.setSloValueType(SLOValueType.NUMBER);
+                value.add(sloValue);
+            });
+        } else if (ensembleSLO.getValueBools() != null) {
+            ensembleSLO.getValueBools().forEach(entry -> {
+                SLOValue sloValue = new SLOValue();
+                sloValue.setValueBool(entry);
+                sloValue.setSloValueType(SLOValueType.BOOLEAN);
+                value.add(sloValue);
+            });
+        } else if (ensembleSLO.getValueStrings() != null) {
+            ensembleSLO.getValueStrings().forEach(entry -> {
+                SLOValue sloValue = new SLOValue();
+                sloValue.setValueString(entry);
+                sloValue.setSloValueType(SLOValueType.STRING);
+                value.add(sloValue);
+            });
+        }
+        this.setName(ensembleSLO.getName());
+        this.setExpression(ensembleSLO.getExpression());
+        this.setValue(value);
+    }
 
     @Override
     @Generated

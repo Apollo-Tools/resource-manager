@@ -68,9 +68,12 @@ public class ResourceHandler extends ValidationHandler {
         return new ConfigUtility(Vertx.currentContext().owner()).getConfigDTO()
             .flatMap(configDTO -> metricService.checkMetricTypeForSLOs(requestBody)
                 .andThen(resourceService.findAllByNonMonitoredSLOs(requestBody))
+                .flatMapObservable(Observable::fromIterable)
+                .map(resource -> ((JsonObject) resource).mapTo(Resource.class))
+                .toList()
                 .flatMap(resources -> {
-                    SLOValidator sloValidator = new SLOValidator(metricQueryService, sloRequest, configDTO);
-                    return sloValidator.filterResourcesByMonitoredMetrics(resources)
+                    SLOValidator sloValidator = new SLOValidator(metricQueryService, configDTO, resources);
+                    return sloValidator.filterResourcesByMonitoredMetrics(sloRequest)
                         .flatMapObservable(Observable::fromIterable)
                         .sorted((resource1, resource2) -> sloValidator.sortResourceBySLOs(resource1, resource2,
                             sloRequest.getServiceLevelObjectives()))
