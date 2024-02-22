@@ -10,7 +10,7 @@ goto parse
 
 :: ping the website $count times
 for /f "delims=" %%a in ('ping -n %count% %website%') do set result=%%a
-echo %result% | find "Mittelwert = " > nul
+echo %result% | find "Average = " > nul
 
 :: compose output
 if %errorlevel% == 0 (
