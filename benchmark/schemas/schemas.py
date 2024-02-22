@@ -56,6 +56,11 @@ class DeploymentBenchmark(Benchmark):
     request_body: CreateDeployment
 
 
+class FunctionDeploymentBenchmark(DeploymentBenchmark):
+    concurrency: int
+    invoke_body: list | dict | int | float | bool | str
+
+
 class AlertMessage(BaseModel):
     type: str
     resource_id: int

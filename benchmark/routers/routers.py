@@ -1,25 +1,40 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, BackgroundTasks
+from fastapi.responses import FileResponse, JSONResponse
 
-from schemas.schemas import AlertingBenchmark, DeploymentBenchmark, AlertMessage
+from benchmarks import function_execution_overhead
+from schemas.schemas import AlertingBenchmark, DeploymentBenchmark, AlertMessage, FunctionDeploymentBenchmark
+from shared.rm_operations import RmOperator
 
 router = APIRouter()
 
 
-@router.post("/benchmark/reaction-time")
+@router.post("/benchmarks/reaction-time")
 async def benchmark_reaction_time(alerting: AlertingBenchmark):
     return {"message": f"Started benchmark {alerting}"}
 
 
-@router.post("/benchmark/function-deployment")
-async def benchmark_function(function_deployment: DeploymentBenchmark):
-    return {"message": f"Started benchmark {function_deployment}"}
+@router.post("/benchmarks/function-deployment")
+async def benchmark_function(function_deployment: FunctionDeploymentBenchmark, background_tasks: BackgroundTasks):
+    rm_operator = RmOperator(function_deployment.rm_base_url, function_deployment.token)
+    deployment = await rm_operator.create_deployment(function_deployment.request_body)
+    if deployment is None:
+        return JSONResponse(status_code=400, content=f"failed to create deployment")
+
+    background_tasks.add_task(function_execution_overhead.observer_function_execution_overhead, deployment,
+                              function_deployment)
+    return {"message": f"Started benchmark {function_deployment.benchmark_id}"}
 
 
-@router.post("/benchmark/utilisation")
+@router.post("/benchmarks/utilisation")
 async def benchmark_utilisation(utilisation: DeploymentBenchmark):
     return {"message": f"Started benchmark {utilisation}"}
 
 
-@router.post("/alerting/receive/{benchmark_id}", status_code=204)
+@router.post("/alerts/receive/{benchmark_id}", status_code=204)
 async def receive_alert(benchmark_id: str, alert_message: AlertMessage):
     return {"message": f"Started benchmark {benchmark_id}, {alert_message}"}
+
+
+@router.get("/benchmarks/result/{benchmark_id}", response_class=FileResponse)
+async def get_result(benchmark_id: str):
+    return f"./{benchmark_id}.csv"
