@@ -49,7 +49,7 @@ public class AlertingHandler {
         validationHandler = id -> serviceProxyProvider.getDeploymentService().findAllActiveWithAlerting()
             .flatMapObservable(Observable::fromIterable)
             .map(deploymentAlerting -> ((JsonObject) deploymentAlerting).mapTo(DeploymentAlertingDTO.class))
-            .flatMapCompletable(deployment -> {
+            .flatMap(deployment -> {
                 logger.info("Validate resources of deployment: " + deployment.getDeploymentId());
                 SLOValidator sloValidator = new SLOValidator(serviceProxyProvider.getMetricQueryService(), configDTO,
                     deployment.getResources());
@@ -60,7 +60,7 @@ public class AlertingHandler {
                             new AlertMessage(AlertType.SLO_BREACH, resource.getResourceId(), monitoredMetricValue)
                         )
                     )
-                    .map(alertMessage -> {
+                    .flatMapSingle(alertMessage -> {
                         JsonObject requestBody = JsonObject.mapFrom(alertMessage);
                         logger.info(requestBody.encode());
                         return webClient.postAbs(deployment.getAlertingUrl()).sendJsonObject(requestBody)
@@ -75,17 +75,17 @@ public class AlertingHandler {
                                 }
                                 return code;
                             });
-                    })
-                    .ignoreElements();
+                    });
             })
-            .subscribe(() -> {
+            .toList()
+            .subscribe(res -> {
                 logger.info("Finished: validation of deployment");
                 currentTimer = pauseLoop ? currentTimer : vertx.setTimer((long) minPeriod, validationHandler);
             }, throwable -> {
                 logger.error(throwable.getMessage());
                 currentTimer = pauseLoop ? currentTimer : vertx.setTimer((long) minPeriod, validationHandler);
             });
-        validationHandler.handle(-1L);
+        validationHandler.handle(-99L);
     }
 
     public void pauseAlertingLoop() {
