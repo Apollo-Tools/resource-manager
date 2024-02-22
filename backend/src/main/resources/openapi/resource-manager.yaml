@@ -4085,6 +4085,10 @@ components:
           type: integer
           format: int64
           example: 1679496667103
+        updated_at:
+          type: integer
+          format: int64
+          example: 1679496667103
     Function:
       type: object
       properties:
