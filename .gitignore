@@ -185,3 +185,6 @@ build/
 # Kubernetes local copys
 */local.rm*
 */local.test.rm*
+
+# Python venv
+benchmark/venv*
