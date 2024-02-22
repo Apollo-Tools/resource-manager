@@ -2,12 +2,12 @@ import csv
 import logging
 
 from schemas.schemas import FunctionDeploymentBenchmark
-from shared.rm_operations import RmOperator
+from shared.rm_operator import RmOperator
 
 logger = logging.getLogger('uvicorn.error')
 
 
-async def observer_function_execution_overhead(deployment: dict, function_deployment: FunctionDeploymentBenchmark):
+async def observe_function_execution_overhead(deployment: dict, function_deployment: FunctionDeploymentBenchmark):
     rm_operator = RmOperator(function_deployment.rm_base_url, function_deployment.token)
     deployment = await rm_operator.wait_for_deployment_created(deployment['deployment_id'])
     if deployment is None:
