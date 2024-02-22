@@ -3,7 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 from fastapi import APIRouter, BackgroundTasks
 from fastapi.responses import FileResponse, JSONResponse
 
-from benchmarks import function_execution_overhead, utilisation
+from benchmarks import function_execution_overhead, utilisation, alerts
 from schemas.schemas import AlertingBenchmark, AlertMessage, FunctionDeploymentBenchmark, \
     UtilisationRequest
 from shared.rm_operator import RmOperator
@@ -42,10 +42,12 @@ async def monitor_utilisation(request: UtilisationRequest, background_tasks: Bac
 
 
 @router.post("/alerts/receive/{benchmark_id}", status_code=204)
-async def receive_alert(benchmark_id: str, alert_message: AlertMessage):
-    return {"message": f"Started benchmark {benchmark_id}, {alert_message}"}
+def receive_alert(benchmark_id: str, alert_message: AlertMessage):
+    alerts.process_alert(benchmark_id, alert_message)
+    return {}
 
 
 @router.get("/benchmarks/result/{benchmark_id}", response_class=FileResponse)
 async def get_result(benchmark_id: str):
     return f"./{benchmark_id}.csv"
+
