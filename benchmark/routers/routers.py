@@ -1,9 +1,11 @@
+from concurrent.futures import ThreadPoolExecutor
+
 from fastapi import APIRouter, BackgroundTasks
 from fastapi.responses import FileResponse, JSONResponse
 
-from benchmarks import function_execution_overhead
-from schemas.schemas import AlertingBenchmark, DeploymentBenchmark, AlertMessage, FunctionDeploymentBenchmark
-from shared.kube_operator import KubeOperator
+from benchmarks import function_execution_overhead, utilisation
+from schemas.schemas import AlertingBenchmark, AlertMessage, FunctionDeploymentBenchmark, \
+    UtilisationRequest
 from shared.rm_operator import RmOperator
 
 router = APIRouter()
@@ -26,16 +28,17 @@ async def benchmark_function(function_deployment: FunctionDeploymentBenchmark, b
     return {"message": f"Started benchmark {function_deployment.benchmark_id}"}
 
 
-@router.post("/benchmarks/utilisation")
-async def benchmark_utilisation(utilisation: DeploymentBenchmark, background_tasks: BackgroundTasks):
-    rm_operator = RmOperator(utilisation.rm_base_url, utilisation.token)
-    kube_operator = KubeOperator()
-    kube_operator.get_metrics_for_pod('nginx-85-2024-02-22-04-01-19-649d7dfc45-z9mw8')
-    # TODO: continue
-    #deployment = await rm_operator.create_deployment(utilisation.request_body)
-    #if deployment is None:
-    #    return JSONResponse(status_code=400, content="failed to create deployment")
-    return {"message": f"Started benchmark {utilisation}"}
+async def observe_util_in_bg(request: UtilisationRequest):
+    executor = ThreadPoolExecutor(max_workers=1)
+    executor.submit(utilisation.observe_utilisation, request)
+
+
+@router.post("/benchmarks/utilisation", status_code=204)
+async def monitor_utilisation(request: UtilisationRequest, background_tasks: BackgroundTasks):
+    background_tasks.add_task(observe_util_in_bg, request)
+    background_tasks.add_task(utilisation.apply_deployments, request)
+    return {"message": f"Started utilisation monitoring, result={request.benchmark_id}, util_result="
+                       f"{request.benchmark_id}_util"}
 
 
 @router.post("/alerts/receive/{benchmark_id}", status_code=204)

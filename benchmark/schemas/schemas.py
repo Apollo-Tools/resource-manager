@@ -67,3 +67,10 @@ class AlertMessage(BaseModel):
     metric: str
     value: str | int | float | bool
     timestamp: int
+
+
+class UtilisationRequest(Benchmark):
+    pod_name: str
+    util_interval_seconds: int | float
+    util_count: int
+    deployments: list[CreateDeployment]
