@@ -57,11 +57,25 @@ class K8sFailure(BaseModel):
     failure_duration_seconds: int
 
 
+class DBFailure(BaseModel):
+    resource_id: int
+    ensemble_slo_id: int
+    failure_value: float
+    original_value: float
+    failure_duration_seconds: int
+    dbname: str
+    user: str
+    password: str
+    host: str
+    port: int
+
+
 class AlertingBenchmark(Benchmark):
     failure_window_low: int
     failure_window_high: int
     inject_ssh_failure: SSHFailure | None
     inject_k8s_failure: K8sFailure | None
+    inject_db_failure: DBFailure | None
     deployments: list[CreateDeployment]
 
 
