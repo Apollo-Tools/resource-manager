@@ -38,16 +38,11 @@ public class OpenFaasMonitoringHandler implements MonitoringHandler {
 
     private long currentTimer = -1L;
 
-    private boolean pauseLoop = false;
-
-    private static Handler<Long> monitoringHandler;
-
     @Override
     public void startMonitoringLoop() {
-        pauseLoop = false;
-        long period = (long) (configDTO.getOpenfaasMonitoringPeriod() * 60 * 1000);
+        long period = (long) (configDTO.getOpenfaasMonitoringPeriod() * 1000);
         ServiceProxyProvider serviceProxyProvider = new ServiceProxyProvider(vertx);
-        monitoringHandler = id -> serviceProxyProvider.getResourceService()
+        Handler<Long> monitoringHandler = id -> serviceProxyProvider.getResourceService()
             .findAllByPlatform(PlatformEnum.OPENFAAS.getValue())
             .flatMapObservable(Observable::fromIterable)
             .map(resource -> ((JsonObject) resource).mapTo(Resource.class))
@@ -80,19 +75,13 @@ public class OpenFaasMonitoringHandler implements MonitoringHandler {
                     .composeAndPushMetrics(serializedConnectivities)
                     .subscribe();
             })
-            .subscribe(res -> {
-                logger.info("Finished: monitor openfaas resources");
-                currentTimer = pauseLoop ? currentTimer : vertx.setTimer(period, monitoringHandler);
-            }, throwable -> {
-                logger.error(throwable.getMessage());
-                currentTimer = pauseLoop ? currentTimer : vertx.setTimer(period, monitoringHandler);
-            });
-        currentTimer = vertx.setTimer(period, monitoringHandler);
+            .subscribe(res -> logger.info("Finished: monitor openfaas resources"),
+                throwable -> logger.error(throwable.getMessage()));
+        currentTimer = vertx.setPeriodic(period, monitoringHandler);
     }
 
     @Override
     public void pauseMonitoringLoop() {
-        pauseLoop = true;
         if (!vertx.cancelTimer(currentTimer)) {
             vertx.cancelTimer(currentTimer);
         }

@@ -33,5 +33,5 @@
   "kube_monitoring_period": 5,
   "openfaas_monitoring_period": 5,
   "region_monitoring_period": 5,
-  "aws_price_monitoring_period": 1440
+  "aws_price_monitoring_period": 86400
 }

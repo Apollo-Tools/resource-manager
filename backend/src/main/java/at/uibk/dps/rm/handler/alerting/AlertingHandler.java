@@ -41,10 +41,9 @@ public class AlertingHandler {
     public void startValidationLoop() {
         pauseLoop = false;
         double minPeriod = Stream.of(configDTO.getAwsPriceMonitoringPeriod(), configDTO.getKubeMonitoringPeriod(),
-                configDTO.getOpenfaasMonitoringPeriod(), configDTO.getRegionMonitoringPeriod(),
-                configDTO.getRegionMonitoringPeriod())
+                configDTO.getOpenfaasMonitoringPeriod(), configDTO.getRegionMonitoringPeriod())
             .min(Comparator.naturalOrder())
-            .get() * 60 * 1000;
+            .get() * 1000;
         ServiceProxyProvider serviceProxyProvider = new ServiceProxyProvider(vertx);
         validationHandler = id -> serviceProxyProvider.getDeploymentService().findAllActiveWithAlerting()
             .flatMapObservable(Observable::fromIterable)

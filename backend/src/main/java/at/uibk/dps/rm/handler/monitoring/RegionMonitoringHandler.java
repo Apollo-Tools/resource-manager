@@ -32,16 +32,11 @@ public class RegionMonitoringHandler implements MonitoringHandler {
 
     private long currentTimer = -1L;
 
-    private boolean pauseLoop = false;
-
-    private static Handler<Long> monitoringHandler;
-
     @Override
     public void startMonitoringLoop() {
-        pauseLoop = false;
-        long period = (long) (configDTO.getRegionMonitoringPeriod() * 60 * 1000);
+        long period = (long) (configDTO.getRegionMonitoringPeriod() * 1000);
         ServiceProxyProvider serviceProxyProvider = new ServiceProxyProvider(vertx);
-        monitoringHandler = id -> serviceProxyProvider.getRegionService().findAll()
+        Handler<Long> monitoringHandler = id -> serviceProxyProvider.getRegionService().findAll()
             .flatMapObservable(Observable::fromIterable)
             .map(region -> ((JsonObject) region).mapTo(Region.class))
             .filter(region -> {
@@ -73,19 +68,12 @@ public class RegionMonitoringHandler implements MonitoringHandler {
                     .composeAndPushMetrics(serializedConnectivities)
                     .subscribe();
             })
-            .subscribe(res -> {
-                logger.info("Finished: monitor regions");
-                currentTimer = pauseLoop ? currentTimer : vertx.setTimer(period, monitoringHandler);
-            }, throwable -> {
-                logger.error(throwable.getMessage());
-                currentTimer = pauseLoop ? currentTimer : vertx.setTimer(period, monitoringHandler);
-            });
-        currentTimer = vertx.setTimer(period, monitoringHandler);
+            .subscribe(res -> logger.info("Finished: monitor regions"), throwable -> logger.error(throwable.getMessage()));
+        currentTimer = vertx.setPeriodic(period, monitoringHandler);
     }
 
     @Override
     public void pauseMonitoringLoop() {
-        pauseLoop = true;
         if (!vertx.cancelTimer(currentTimer)) {
             vertx.cancelTimer(currentTimer);
         }
