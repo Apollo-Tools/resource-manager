@@ -71,11 +71,12 @@ public class K8sMonitoringHandler implements MonitoringHandler {
                         completable =
                             completable.andThen(Single.defer(() -> serviceProxyProvider.getResourceService()
                                 .updateClusterResource(entry.getName(), entry))
-                            .flatMapCompletable(updatedMonitoringData ->
-                                serviceProxyProvider.getNamespaceService()
-                                    .updateAllClusterNamespaces(entry.getName(), namespaces)
-                                .andThen(serviceProxyProvider.getK8sMetricPushService()
-                                    .composeAndPushMetrics(updatedMonitoringData))
+                            .flatMapCompletable(updatedMonitoringData -> {
+                                    serviceProxyProvider.getK8sMetricPushService()
+                                        .composeAndPushMetrics(updatedMonitoringData).subscribe();
+                                    return serviceProxyProvider.getNamespaceService()
+                                        .updateAllClusterNamespaces(entry.getName(), namespaces);
+                                }
                             ))
                             .doOnError(throwable -> {
                                 logger.error(throwable.getMessage());

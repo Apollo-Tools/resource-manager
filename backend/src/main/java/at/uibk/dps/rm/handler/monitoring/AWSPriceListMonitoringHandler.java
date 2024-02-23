@@ -92,11 +92,12 @@ public class AWSPriceListMonitoringHandler implements MonitoringHandler {
                 })
             )
             .toList()
-            .flatMapCompletable(prices -> {
+            .map(prices -> {
                 JsonArray serializedPrices = new JsonArray(Json.encode(prices));
-                return serviceProxyProvider.getAwsPricePushService().composeAndPushMetrics(serializedPrices);
+                return serviceProxyProvider.getAwsPricePushService().composeAndPushMetrics(serializedPrices)
+                    .subscribe();
             })
-            .subscribe(() -> {
+            .subscribe(res -> {
                 logger.info("Finished: monitor aws price list");
                 currentTimer = pauseLoop ? currentTimer : vertx.setTimer(period, monitoringHandler);
             }, throwable -> {

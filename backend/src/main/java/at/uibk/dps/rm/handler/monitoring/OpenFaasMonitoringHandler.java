@@ -74,12 +74,13 @@ public class OpenFaasMonitoringHandler implements MonitoringHandler {
             })
             .filter(connectivity -> connectivity.getLatencySeconds() != null)
             .toList()
-            .flatMapCompletable(connectivities -> {
+            .map(connectivities -> {
                 JsonArray serializedConnectivities = new JsonArray(Json.encode(connectivities));
                 return serviceProxyProvider.getOpenFaasMetricPushService()
-                    .composeAndPushMetrics(serializedConnectivities);
+                    .composeAndPushMetrics(serializedConnectivities)
+                    .subscribe();
             })
-            .subscribe(() -> {
+            .subscribe(res -> {
                 logger.info("Finished: monitor openfaas resources");
                 currentTimer = pauseLoop ? currentTimer : vertx.setTimer(period, monitoringHandler);
             }, throwable -> {

@@ -67,12 +67,13 @@ public class RegionMonitoringHandler implements MonitoringHandler {
                     });
             })
             .toList()
-            .flatMapCompletable(connectivities -> {
+            .map(connectivities -> {
                 JsonArray serializedConnectivities = new JsonArray(Json.encode(connectivities));
                 return serviceProxyProvider.getRegionMetricPushService()
-                    .composeAndPushMetrics(serializedConnectivities);
+                    .composeAndPushMetrics(serializedConnectivities)
+                    .subscribe();
             })
-            .subscribe(() -> {
+            .subscribe(res -> {
                 logger.info("Finished: monitor regions");
                 currentTimer = pauseLoop ? currentTimer : vertx.setTimer(period, monitoringHandler);
             }, throwable -> {

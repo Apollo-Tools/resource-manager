@@ -60,10 +60,11 @@ public class AlertingHandler {
                             new AlertMessage(AlertType.SLO_BREACH, resource.getResourceId(), monitoredMetricValue)
                         )
                     )
-                    .flatMapSingle(alertMessage -> {
+                    .map(alertMessage -> {
                         JsonObject requestBody = JsonObject.mapFrom(alertMessage);
                         logger.info(requestBody.encode());
-                        return webClient.postAbs(deployment.getAlertingUrl()).sendJsonObject(requestBody)
+                        return webClient.postAbs(deployment.getAlertingUrl()).timeout(5000)
+                            .sendJsonObject(requestBody)
                             .map(HttpResponse::statusCode)
                             .onErrorReturn(throwable -> {
                                 // Misdirected Request
@@ -74,7 +75,8 @@ public class AlertingHandler {
                                     logger.info("Failed to notify client status code: " + code);
                                 }
                                 return code;
-                            });
+                            })
+                            .subscribe();
                     });
             })
             .toList()
