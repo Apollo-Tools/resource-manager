@@ -5,6 +5,7 @@ import at.uibk.dps.rm.entity.dto.metric.MonitoredMetricValue;
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.dto.resource.SubResourceDTO;
 import at.uibk.dps.rm.entity.dto.slo.SLOValue;
+import at.uibk.dps.rm.entity.dto.slo.SLOValueType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.EnsembleSLO;
 import at.uibk.dps.rm.entity.model.MainResource;
@@ -293,7 +294,11 @@ public class ResourceFilterProvider {
         return Observable.fromIterable(vmResults)
             .map(vmResult -> {
                 MonitoredMetricValue metricValue = new MonitoredMetricValue(metricEnum);
-                metricValue.setValueNumber(vmResult.getValues().get(0).getValue());
+                if (metricEnum.getSloValueType().equals(SLOValueType.BOOLEAN)) {
+                    metricValue.setValueBool(vmResult.getValues().get(0).getValue() == 1.0);
+                } else {
+                    metricValue.setValueNumber(vmResult.getValues().get(0).getValue());
+                }
                 if (vmResult.getMetric().containsKey("resource")) {
                     String resourceId = vmResult.getMetric().get("resource");
                     Resource resource = resources.get(resourceId);
