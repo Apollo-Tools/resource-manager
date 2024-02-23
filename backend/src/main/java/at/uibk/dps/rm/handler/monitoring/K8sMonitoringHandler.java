@@ -47,18 +47,14 @@ public class K8sMonitoringHandler implements MonitoringHandler {
 
     private long currentTimer = -1L;
 
-    private boolean pauseLoop = false;
-
-    private static Handler<Long> monitoringHandler;
-
     private final K8sMonitoringService monitoringService = new K8sMonitoringServiceImpl();
     
     @Override
     public void startMonitoringLoop() {
-        pauseLoop = false;
-        long period = (long) (configDTO.getKubeMonitoringPeriod() * 60 * 1000);
+        long period = (long) (configDTO.getKubeMonitoringPeriod() * 1000);
         ServiceProxyProvider serviceProxyProvider = new ServiceProxyProvider(vertx);
-        monitoringHandler = id -> {
+        // Necessary to prevent serialization error
+        Handler<Long> monitoringHandler = id -> {
             logger.info("Started: monitor k8s resources");
             monitorK8s()
                 .flatMapCompletable(entries -> {
@@ -70,36 +66,30 @@ public class K8sMonitoringHandler implements MonitoringHandler {
                             .collect(Collectors.toList());
                         completable =
                             completable.andThen(Single.defer(() -> serviceProxyProvider.getResourceService()
-                                .updateClusterResource(entry.getName(), entry))
-                            .flatMapCompletable(updatedMonitoringData -> {
-                                    serviceProxyProvider.getK8sMetricPushService()
-                                        .composeAndPushMetrics(updatedMonitoringData).subscribe();
-                                    return serviceProxyProvider.getNamespaceService()
-                                        .updateAllClusterNamespaces(entry.getName(), namespaces);
-                                }
-                            ))
-                            .doOnError(throwable -> {
-                                logger.error(throwable.getMessage());
-                                if (!(throwable instanceof MonitoringException)) {
-                                    throw new RuntimeException(throwable);
-                                }
-                            });
+                                        .updateClusterResource(entry.getName(), entry))
+                                    .flatMapCompletable(updatedMonitoringData -> {
+                                            serviceProxyProvider.getK8sMetricPushService()
+                                                .composeAndPushMetrics(updatedMonitoringData).subscribe();
+                                            return serviceProxyProvider.getNamespaceService()
+                                                .updateAllClusterNamespaces(entry.getName(), namespaces);
+                                        }
+                                    ))
+                                .doOnError(throwable -> {
+                                    logger.error(throwable.getMessage());
+                                    if (!(throwable instanceof MonitoringException)) {
+                                        throw new RuntimeException(throwable);
+                                    }
+                                });
                     }
                     return completable;
-                }).subscribe(() -> {
-                    logger.info("Finished: monitor k8s resources");
-                    currentTimer = pauseLoop ? currentTimer : vertx.setTimer(period, monitoringHandler);
-                }, throwable -> {
-                    logger.error(throwable.getMessage());
-                    currentTimer = pauseLoop ? currentTimer : vertx.setTimer(period, monitoringHandler);
-                });
+                }).subscribe(() -> logger.info("Finished: monitor k8s resources"),
+                    throwable -> logger.error(throwable.getMessage()));
         };
-        currentTimer = vertx.setTimer(period, monitoringHandler);
+        currentTimer = vertx.setPeriodic(period, monitoringHandler);
     }
 
     @Override
     public void pauseMonitoringLoop() {
-        pauseLoop = true;
         if (!vertx.cancelTimer(currentTimer)) {
             vertx.cancelTimer(currentTimer);
         }

@@ -71,9 +71,9 @@ ENV kube_image_pull_secrets=["regcred"]
 
 ENV monitoring_push_url="http://rm-monitoring-vm:8890"
 ENV monitoring_query_url="http://rm-monitoring-vm:8889"
-ENV kube_monitoring_period=0.25
-ENV openfaas_monitoring_period=0.1
-ENV region_monitoring_period=0.1
-ENV aws_price_monitoring_period=1440
+ENV kube_monitoring_period=5
+ENV openfaas_monitoring_period=5
+ENV region_monitoring_period=5
+ENV aws_price_monitoring_period=86400
 
 ENTRYPOINT ["java", "-jar" ,"/app/rm-api.jar"]

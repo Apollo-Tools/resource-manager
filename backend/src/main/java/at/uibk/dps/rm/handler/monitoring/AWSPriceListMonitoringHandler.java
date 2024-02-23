@@ -47,7 +47,7 @@ public class AWSPriceListMonitoringHandler implements MonitoringHandler {
     @Override
     public void startMonitoringLoop() {
         pauseLoop = false;
-        long period = (long) (configDTO.getAwsPriceMonitoringPeriod() * 60 * 1000);
+        long period = (long) (configDTO.getAwsPriceMonitoringPeriod() * 1000);
         ServiceProxyProvider serviceProxyProvider = new ServiceProxyProvider(vertx);
         LambdaPriceMonitoring lambdaMonitoring = new LambdaPriceMonitoring(webClient);
         EC2PriceMonitoring ec2PriceMonitoring = new EC2PriceMonitoring(webClient);

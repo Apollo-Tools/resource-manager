@@ -92,7 +92,7 @@ public class ResourceFilterProvider {
             ServiceLevelObjective slo) {
         boolean includeSubResources = metricEnum.equals(MonitoringMetricEnum.AVAILABILITY) ||
             metricEnum.equals(MonitoringMetricEnum.LATENCY) || metricEnum.equals(MonitoringMetricEnum.UP);
-        double stepMinutes = metricEnum == MonitoringMetricEnum.COST ? config.getAwsPriceMonitoringPeriod() : 5;
+        double stepMinutes = metricEnum == MonitoringMetricEnum.COST ? config.getAwsPriceMonitoringPeriod() / 60 : 5;
         Observable<VmQuery> metricQueryObservable = getDynamicMetricQuery(metricEnum);
         Observable<Set<Resource>> staticMetricObservable = getStaticMetricQuery(metricEnum, slo, resources,
             platformResources, instanceTypeResources, regionResources);
@@ -115,7 +115,8 @@ public class ResourceFilterProvider {
             .flatMap(metricEnum -> {
                 boolean includeSubResources = metricEnum.equals(MonitoringMetricEnum.AVAILABILITY) ||
                     metricEnum.equals(MonitoringMetricEnum.LATENCY) || metricEnum.equals(MonitoringMetricEnum.UP);
-                double stepMinutes = metricEnum == MonitoringMetricEnum.COST ? config.getAwsPriceMonitoringPeriod() : 5;
+                double stepMinutes =
+                    metricEnum == MonitoringMetricEnum.COST ? config.getAwsPriceMonitoringPeriod() / 60 : 5;
                 return getDynamicMetricQuery(metricEnum)
                     .flatMapSingle(vmQuery -> queryService.collectInstantMetric(vmQuery.toString(), stepMinutes))
                     .flatMapSingle(vmResults -> mapMonitoredMetricToResources(metricEnum, resources, regionResources,
@@ -215,7 +216,8 @@ public class ResourceFilterProvider {
 
                 VmConditionQuery awsPriceQuery = new VmConditionQuery(awsPrice, slo.getValue(), slo.getExpression());
 
-                return queryService.collectInstantMetric(awsPriceQuery.toString(), config.getAwsPriceMonitoringPeriod() + 60)
+                return queryService.collectInstantMetric(awsPriceQuery.toString(),
+                        config.getAwsPriceMonitoringPeriod() / 60 + 60)
                     .flatMapObservable(Observable::fromIterable)
                     .flatMap(vmResult -> {
                         MonitoredMetricValue monitoredMetricValue = new MonitoredMetricValue(metricEnum);

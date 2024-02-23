@@ -107,18 +107,18 @@ spec:
             # The query url of the external monitoring system (VictoriaMetrics)
             - name: monitoring_query_url
               value: "http://rm-monitoring-vm:8889"
-            # The time period between each monitoring update for all registered k8s resources in minutes
+            # The time period between each monitoring update for all registered k8s resources in seconds
             - name: kube_monitoring_period
-              value: "0.25"
+              value: "5"
             # The time period between each monitoring update for all registered OpenFaaS resources in minutes
             - name: openfaas_monitoring_period
-              value: "0.1"
+              value: "5"
             # The time period between each monitoring update for all registered regions in minutes
             - name: region_monitoring_period
-              value: "0.1"
+              value: "5"
             # The time period between each monitoring update the aws price list api in minutes
             - name: aws_price_monitoring_period
-              value: "1440"
+              value: "86400"
           resources:
             # The resource limits
             limits:
