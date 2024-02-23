@@ -7,6 +7,7 @@ import asyncio
 
 from schemas.schemas import AlertingBenchmark, CreateDeployment
 from shared import ssh_operator
+from shared.db_operator import DbOperator
 from shared.kube_operator import KubeOperator
 from shared.rm_operator import RmOperator
 
@@ -27,15 +28,23 @@ async def observe_deployment_reaction_time(alerting: AlertingBenchmark):
         for i in range(0, alerting.count):
             logger.info(f"inject failure {i}, alerting {alerting.benchmark_id}")
             if alerting.inject_k8s_failure:
+                k8s_data = alerting.inject_k8s_failure
                 k8s_operator = KubeOperator()
-                result = k8s_operator.create_stress_deployment(alerting.inject_k8s_failure.node,
-                                                               alerting.inject_k8s_failure.namespace,
-                                                               alerting.inject_k8s_failure.command)
-                await asyncio.sleep(alerting.failure_duration_seconds)
-                k8s_operator.terminate_stress_deployment(result['name'], alerting.inject_k8s_failure.namespace)
+                result = k8s_operator.create_stress_deployment(k8s_data.node, k8s_data.namespace, k8s_data.command)
+                await asyncio.sleep(k8s_data.failure_duration_seconds)
+                k8s_operator.terminate_stress_deployment(result['name'], k8s_data.namespace)
                 timestamps.append({'start': result['start_time'], 'end': time.time() * 1000})
-            else:
+            elif alerting.inject_ssh_failure:
                 timestamps.append(ssh_operator.execute_failure_injection(alerting))
+            else:
+                db_data = alerting.inject_db_failure
+                db_operator = DbOperator(db_data.dbname, db_data.user, db_data.password, db_data.host, db_data.port)
+                db_operator.update_ensemble_slo(db_data.ensemble_slo_id, db_data.failure_value)
+                start_time = time.time()
+                await asyncio.sleep(db_data.failure_duration_seconds)
+                db_operator.update_ensemble_slo(db_data.ensemble_slo_id, db_data.original_value)
+                end_time = time.time()
+                timestamps.append({'start': start_time * 1000, 'end': end_time * 1000})
             if i + 1 < alerting.count:
                 await asyncio.sleep(random.randint(alerting.failure_window_low,alerting.failure_window_high))
 
