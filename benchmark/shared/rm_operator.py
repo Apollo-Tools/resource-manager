@@ -36,7 +36,6 @@ class RmOperator:
         else:
             logger.info(f'Successfully triggered termination, {deployment_id}')
 
-
     async def wait_for_deployment_created(self, deployment_id: int, max_retries: int = 60) -> dict | None:
         endpoint = f"{self.base_url}/api/deployments/{deployment_id}"
         for i in range(0, max_retries):

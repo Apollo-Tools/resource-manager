@@ -3,7 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 from fastapi import APIRouter, BackgroundTasks
 from fastapi.responses import FileResponse, JSONResponse
 
-from benchmarks import function_execution_overhead, utilisation, alerts
+from benchmarks import function_execution_overhead, utilisation, alerts, reaction_time
 from schemas.schemas import AlertingBenchmark, AlertMessage, FunctionDeploymentBenchmark, \
     UtilisationRequest
 from shared.rm_operator import RmOperator
@@ -12,8 +12,9 @@ router = APIRouter()
 
 
 @router.post("/benchmarks/reaction-time")
-async def benchmark_reaction_time(alerting: AlertingBenchmark):
-    return {"message": f"Started benchmark {alerting}"}
+async def benchmark_reaction_time(alerting: AlertingBenchmark, background_tasks: BackgroundTasks):
+    background_tasks.add_task(reaction_time.observe_deployment_reaction_time, alerting)
+    return {"message": f"Started benchmark {alerting.benchmark_id}"}
 
 
 @router.post("/benchmarks/function-deployment")
@@ -50,4 +51,3 @@ def receive_alert(benchmark_id: str, alert_message: AlertMessage):
 @router.get("/benchmarks/result/{benchmark_id}", response_class=FileResponse)
 async def get_result(benchmark_id: str):
     return f"./{benchmark_id}.csv"
-
