@@ -18,5 +18,5 @@ def process_alert(benchmark_id: str, alert_message: AlertMessage):
             writer = csv.writer(output)
             if os.stat(path).st_size == 0:
                 writer.writerow(['timestamp', 'resource', 'metric', 'value'])
-            writer.writerow([alert_message.timestamp, alert_message.resource_id, alert_message.metric,
+            writer.writerow([alert_message.timestamp * 1000, alert_message.resource_id, alert_message.metric,
                              alert_message.value])

@@ -41,15 +41,28 @@ class Benchmark(BaseModel):
     count: int
 
 
-class SSHUrl(BaseModel):
+class SSHFailure(BaseModel):
     resource_id: int
-    url: str
+    host: str
+    user: str
     pwd: str
+    command: str
+
+
+class K8sFailure(BaseModel):
+    resource_id: int
+    namespace: str
+    node: str
+    command: str
+    failure_duration_seconds: int
 
 
 class AlertingBenchmark(Benchmark):
-    request_body: CreateDeployment
-    ssh_urls: list[SSHUrl]
+    failure_window_low: int
+    failure_window_high: int
+    inject_ssh_failure: SSHFailure | None
+    inject_k8s_failure: K8sFailure | None
+    deployments: list[CreateDeployment]
 
 
 class DeploymentBenchmark(Benchmark):
