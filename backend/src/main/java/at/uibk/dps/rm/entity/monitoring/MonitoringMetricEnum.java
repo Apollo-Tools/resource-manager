@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.entity.monitoring;
 
+import at.uibk.dps.rm.entity.dto.slo.SLOValueType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.EnsembleSLO;
 import lombok.AllArgsConstructor;
@@ -18,49 +19,51 @@ public enum MonitoringMetricEnum {
     /**
      * AVAILABILITY
      */
-    AVAILABILITY("availability"),
+    AVAILABILITY("availability", SLOValueType.NUMBER),
     /**
      * COST
      */
-    COST("cost"),
+    COST("cost", SLOValueType.NUMBER),
     /**
      * CPU
      */
-    CPU("cpu"),
+    CPU("cpu", SLOValueType.NUMBER),
     /**
      * CPU%
      */
-    CPU_UTIL("cpu%"),
+    CPU_UTIL("cpu%", SLOValueType.NUMBER),
     /**
      * LATENCY
      */
-    LATENCY("latency"),
+    LATENCY("latency", SLOValueType.NUMBER),
     /**
      * MEMORY
      */
-    MEMORY("memory"),
+    MEMORY("memory", SLOValueType.NUMBER),
     /**
      * MEMORY%
      */
-    MEMORY_UTIL("memory%"),
+    MEMORY_UTIL("memory%", SLOValueType.NUMBER),
     /**
      * NODE
      */
-    NODE("node"),
+    NODE("node", SLOValueType.STRING),
     /**
      * STORAGE
      */
-    STORAGE("storage"),
+    STORAGE("storage", SLOValueType.NUMBER),
     /**
      * STORAGE%
      */
-    STORAGE_UTIL("storage%"),
+    STORAGE_UTIL("storage%", SLOValueType.NUMBER),
     /**
      * UP
      */
-    UP("up");
+    UP("up", SLOValueType.BOOLEAN);
 
     private final String name;
+
+    private final SLOValueType sloValueType;
 
     /**
      * Create an instance from a service level objective. This is necessary because a public method
