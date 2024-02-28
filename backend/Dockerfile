@@ -3,6 +3,7 @@ COPY --chown=gradle:gradle . /home/gradle/src
 COPY ./ruleset.xml /home/gradle/src
 COPY ./ruleset_test.xml /home/gradle/src
 WORKDIR /home/gradle/src
+#RUN gradle build --no-daemon -PexcludeTestcontainers=true -x test -x pmdMain -x compileTestJava
 RUN gradle build --no-daemon -PexcludeTestcontainers=true -x test
 
 FROM docker:git
