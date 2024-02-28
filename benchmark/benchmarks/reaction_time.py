@@ -29,11 +29,11 @@ async def observe_deployment_reaction_time(alerting: AlertingBenchmark):
             logger.info(f"inject failure {i}, alerting {alerting.benchmark_id}")
             if alerting.inject_k8s_failure:
                 k8s_data = alerting.inject_k8s_failure
-                k8s_operator = KubeOperator()
+                k8s_operator = KubeOperator(alerting.inject_k8s_failure.kube_config)
                 result = k8s_operator.create_stress_deployment(k8s_data.node, k8s_data.namespace, k8s_data.command)
                 await asyncio.sleep(k8s_data.failure_duration_seconds)
                 k8s_operator.terminate_stress_deployment(result['name'], k8s_data.namespace)
-                timestamps.append({'start': result['start_time'], 'end': time.time() * 1000})
+                timestamps.append({'start': result['timestamp'], 'end': time.time() * 1000})
             elif alerting.inject_ssh_failure:
                 timestamps.append(ssh_operator.execute_failure_injection(alerting))
             else:

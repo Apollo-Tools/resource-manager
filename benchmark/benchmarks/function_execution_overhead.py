@@ -32,7 +32,7 @@ async def observe_function_execution_overhead(deployment: dict, function_deploym
     logger.info(f"cancel deployment, deployment {deployment['deployment_id']}")
     await rm_operator.cancel_deployment(deployment['deployment_id'])
 
-    logger.info(f"write file content, deployment {deployment['deployment_id']}")
+    logger.info(f"write file content, function execution {function_deployment.benchmark_id}")
     with open(f"{function_deployment.benchmark_id}.csv", mode="w", newline='') as output:
         writer = csv.writer(output)
         writer.writerow(['test-run', 'type', 'round trip time (ms)'])

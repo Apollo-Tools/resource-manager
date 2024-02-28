@@ -4,15 +4,15 @@ from decimal import Decimal
 
 from kubernetes import client, utils, watch
 from kubernetes.client import CustomObjectsApi
-from kubernetes.config import load_kube_config
+from kubernetes import config
 from kubernetes.utils import parse_quantity
 
 logger = logging.getLogger('uvicorn.info')
 
 
 class KubeOperator:
-    def __init__(self) -> None:
-        load_kube_config()
+    def __init__(self, kube_config) -> None:
+        config.load_kube_config_from_dict(config_dict=kube_config)
 
     def get_metrics_for_pod(self, pod_name: str) -> dict[str, str | Decimal]:
         k8s_client = CustomObjectsApi()
@@ -53,7 +53,7 @@ class KubeOperator:
         for event in w.stream(func=core_v1.list_namespaced_pod,
                               namespace=namespace,
                               label_selector='app=rm-benchmark-stress',
-                              timeout_seconds=1):
+                              timeout_seconds=10):
             if event["object"].status.phase == "Running":
                 w.stop()
                 start_time = time.time()
@@ -66,7 +66,6 @@ class KubeOperator:
                 return {'name': 'rm-benchmark-stress', 'timestamp': -1}
 
         return {'name': 'rm-benchmark-stress', 'timestamp': -1}
-
 
     def terminate_stress_deployment(self, deployment_name: str, namespace: str):
         api_client = (client.AppsV1Api())
