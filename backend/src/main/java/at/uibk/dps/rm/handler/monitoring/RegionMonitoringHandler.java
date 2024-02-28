@@ -47,7 +47,7 @@ public class RegionMonitoringHandler implements MonitoringHandler {
             .flatMapSingle(region -> {
                 logger.info("Monitor latency: " + region.getName());
                 String pingUrl = LatencyMonitoringUtility.getPingUrlFromAwsRegion(region);
-                return LatencyMonitoringUtility.measureLatency(5, pingUrl)
+                return LatencyMonitoringUtility.measureLatency(configDTO.getLatencyMonitoringCount(), pingUrl)
                     .map(processOutput -> {
                         RegionConnectivity connectivity = new RegionConnectivity();
                         connectivity.setRegion(region);

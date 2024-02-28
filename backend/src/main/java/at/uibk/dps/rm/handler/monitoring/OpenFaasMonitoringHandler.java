@@ -54,7 +54,7 @@ public class OpenFaasMonitoringHandler implements MonitoringHandler {
                 logger.info("Monitor latency: " + resource.getName());
                 Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
                 String pingUrl = LatencyMonitoringUtility.getPingUrl(metricValues.get("base-url").getValueString());
-                return LatencyMonitoringUtility.measureLatency(5, pingUrl)
+                return LatencyMonitoringUtility.measureLatency(configDTO.getLatencyMonitoringCount(), pingUrl)
                     .map(processOutput -> {
                         OpenFaasConnectivity connectivity = new OpenFaasConnectivity();
                         connectivity.setResourceId(resource.getResourceId());

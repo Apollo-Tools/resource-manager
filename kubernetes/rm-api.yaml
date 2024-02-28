@@ -107,6 +107,9 @@ spec:
             # The query url of the external monitoring system (VictoriaMetrics)
             - name: monitoring_query_url
               value: "http://rm-monitoring-vm:8889"
+            # The number of echo requests to send per latency test
+            - name: latency_monitoring_count
+              value: "2"
             # The time period between each monitoring update for all registered k8s resources in seconds
             - name: kube_monitoring_period
               value: "5"
