@@ -1,3 +1,4 @@
+import os
 from concurrent.futures import ThreadPoolExecutor
 
 from fastapi import APIRouter, BackgroundTasks
@@ -14,7 +15,8 @@ router = APIRouter()
 @router.post("/benchmarks/reaction-time")
 async def benchmark_reaction_time(alerting: AlertingBenchmark, background_tasks: BackgroundTasks):
     background_tasks.add_task(reaction_time.observe_deployment_reaction_time, alerting)
-    return {"message": f"Started benchmark {alerting.benchmark_id}"}
+    return {"message": f"Started reaction time benchmark, result={alerting.benchmark_id}, "
+                       f"alert_result={alerting.benchmark_id}_alert"}
 
 
 @router.post("/benchmarks/function-deployment")
@@ -26,7 +28,7 @@ async def benchmark_function(function_deployment: FunctionDeploymentBenchmark, b
 
     background_tasks.add_task(function_execution_overhead.observe_function_execution_overhead, deployment,
                               function_deployment)
-    return {"message": f"Started benchmark {function_deployment.benchmark_id}"}
+    return {"message": f"Started function benchmark, result={function_deployment.benchmark_id}"}
 
 
 async def observe_util_in_bg(request: UtilisationRequest):
@@ -34,7 +36,7 @@ async def observe_util_in_bg(request: UtilisationRequest):
     executor.submit(utilisation.observe_utilisation, request)
 
 
-@router.post("/benchmarks/utilisation", status_code=204)
+@router.post("/benchmarks/utilisation")
 async def monitor_utilisation(request: UtilisationRequest, background_tasks: BackgroundTasks):
     background_tasks.add_task(observe_util_in_bg, request)
     background_tasks.add_task(utilisation.apply_deployments, request)
@@ -51,3 +53,14 @@ def receive_alert(benchmark_id: str, alert_message: AlertMessage):
 @router.get("/benchmarks/result/{benchmark_id}", response_class=FileResponse)
 async def get_result(benchmark_id: str):
     return f"./{benchmark_id}.csv"
+
+
+@router.delete("/benchmarks/result/{benchmark_id}")
+async def delete_result(benchmark_id: str):
+    escaped_file = (benchmark_id.replace("/", "")
+                    .replace("\\", "")
+                    .replace(".", ""))
+    path = f"./{escaped_file}.csv"
+    if os.path.exists(path):
+        os.remove(path)
+    return {"message": "done"}

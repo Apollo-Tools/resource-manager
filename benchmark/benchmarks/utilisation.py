@@ -13,7 +13,7 @@ logger = logging.getLogger('uvicorn.info')
 
 
 def observe_utilisation(utilisation: UtilisationRequest):
-    kube_operator = KubeOperator()
+    kube_operator = KubeOperator(utilisation.kube_config)
     metrics = {}
     logger.info(f"observe utilisation, utilisation {utilisation.benchmark_id}_util")
     for i in range(0, utilisation.util_count):
@@ -33,10 +33,20 @@ async def apply_deployments(utilisation: UtilisationRequest):
     result = {}
     for i in range(0, utilisation.count):
         logger.info(f"deploy deployments, try {i}")
+        merged_results = []
         tasks = []
         for idx, deployment in enumerate(utilisation.deployments):
             tasks.append(apply_deployment(utilisation.rm_base_url, utilisation.token, deployment, idx))
-        result[i] = await asyncio.gather(*tasks)
+        result_deployments = await asyncio.gather(*tasks)
+        await asyncio.sleep(5)
+        tasks = []
+        for idx, deployment in enumerate(utilisation.deployments):
+            tasks.append(terminate_deployment(utilisation.rm_base_url, utilisation.token,
+                                              result_deployments[idx]['deployment']['deployment_id'], idx))
+        result_terminations = await asyncio.gather(*tasks)
+        for j in range(0, len(result_deployments)):
+            merged_results.append(result_deployments[j] | result_terminations[j])
+        result[i] = merged_results
 
     logger.info(f"write file content, utilisation deployments {utilisation.benchmark_id}")
     with (open(f"{utilisation.benchmark_id}.csv", mode="w", newline='') as output):
@@ -67,10 +77,12 @@ async def apply_deployment(rm_base_url: str, token: str, create_deployment: Crea
         return {'start': 'error', 'deployed': 'error', 'terminate': 'error', 'terminated': 'error',
                 'deployment': 'error', 'idx': idx}
     deployed = deployment['finished_at']
-    await asyncio.sleep(5)
-    logger.info(f"cancel deployment, deployment {deployment['deployment_id']}")
+    return {'start': start * 1000, 'deployed': deployed * 1000, 'deployment': deployment, 'idx': idx}
+
+
+async def terminate_deployment(rm_base_url: str, token: str, deployment_id: int, idx: int):
+    rm_operator = RmOperator(rm_base_url, token)
     terminate = time.time()
-    await rm_operator.cancel_deployment(deployment['deployment_id'])
-    terminated = await rm_operator.wait_for_deployment_terminated(deployment['deployment_id'])
-    return {'start': start * 1000, 'deployed': deployed * 1000, 'terminate': terminate * 1000,
-            'terminated': terminated * 1000, 'deployment': deployment, 'idx': idx}
+    await rm_operator.cancel_deployment(deployment_id)
+    terminated = await rm_operator.wait_for_deployment_terminated(deployment_id)
+    return {'terminate': terminate * 1000, 'terminated': terminated * 1000, 'idx': idx}

@@ -55,6 +55,7 @@ class K8sFailure(BaseModel):
     node: str
     command: str
     failure_duration_seconds: int
+    kube_config: dict
 
 
 class DBFailure(BaseModel):
@@ -101,3 +102,4 @@ class UtilisationRequest(Benchmark):
     util_interval_seconds: int | float
     util_count: int
     deployments: list[CreateDeployment]
+    kube_config: dict
