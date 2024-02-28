@@ -40,6 +40,7 @@ public class ConfigDTO {
 
     private String monitoringPushUrl;
     private String monitoringQueryUrl;
+    private int latencyMonitoringCount;
     private Double kubeMonitoringPeriod;
     private Double openfaasMonitoringPeriod;
     private Double regionMonitoringPeriod;

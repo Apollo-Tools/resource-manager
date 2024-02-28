@@ -71,6 +71,7 @@ ENV kube_image_pull_secrets=["regcred"]
 
 ENV monitoring_push_url="http://rm-monitoring-vm:8890"
 ENV monitoring_query_url="http://rm-monitoring-vm:8889"
+ENV latency_monitoring_count=2
 ENV kube_monitoring_period=5
 ENV openfaas_monitoring_period=5
 ENV region_monitoring_period=5

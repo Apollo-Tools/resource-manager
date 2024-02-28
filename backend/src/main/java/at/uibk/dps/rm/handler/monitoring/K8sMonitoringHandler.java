@@ -123,7 +123,7 @@ public class K8sMonitoringHandler implements MonitoringHandler {
             }
             String pingUrl = LatencyMonitoringUtility
                 .getPingUrl(monitoringData.getBasePath());
-            return LatencyMonitoringUtility.measureLatency(5, pingUrl)
+            return LatencyMonitoringUtility.measureLatency(configDTO.getLatencyMonitoringCount(), pingUrl)
                 .map(processOutput -> {
                     if (processOutput.getProcess().exitValue() == 0) {
                         monitoringData.setLatencySeconds(Double.parseDouble(processOutput.getOutput()) / 1000);
