@@ -4,6 +4,8 @@ import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.handler.alerting.AlertingHandler;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.rxjava3.core.AbstractVerticle;
 import io.vertx.rxjava3.ext.web.client.WebClient;
 
@@ -11,6 +13,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class AlertingVerticle extends AbstractVerticle {
+
+    private static final Logger logger = LoggerFactory.getLogger(AlertingVerticle.class);
 
     private final Set<AlertingHandler> alertingHandlers = new HashSet<>();
 
@@ -25,6 +29,8 @@ public class AlertingVerticle extends AbstractVerticle {
 
     private Completable startAlertingLoop() {
         return Observable.fromIterable(alertingHandlers)
-            .flatMapCompletable(handler -> Completable.fromAction(handler::startValidationLoop));
+            .flatMapCompletable(handler -> Completable.fromAction(handler::startValidationLoop))
+            .doOnComplete(() -> logger.info("Started alerting loop"))
+            .doOnError(throwable -> logger.error("Error", throwable));
     }
 }

@@ -11,6 +11,8 @@ import at.uibk.dps.rm.service.monitoring.metricpusher.*;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Observable;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.rxjava3.core.AbstractVerticle;
 import io.vertx.rxjava3.ext.web.client.WebClient;
 import io.vertx.serviceproxy.ServiceBinder;
@@ -23,6 +25,8 @@ import java.util.*;
  * @author matthi-g
  */
 public class MonitoringVerticle extends AbstractVerticle {
+
+    private static final Logger logger = LoggerFactory.getLogger(MonitoringVerticle.class);
 
     private WebClient webClient;
 
@@ -37,7 +41,9 @@ public class MonitoringVerticle extends AbstractVerticle {
         monitoringHandlers.add(new OpenFaasMonitoringHandler(vertx, config));
         monitoringHandlers.add(new RegionMonitoringHandler(vertx, config));
         return setupEventBus(config)
-            .andThen(startMonitoringLoops());
+            .andThen(startMonitoringLoops())
+            .doOnComplete(() -> logger.info("Started monitoring loop"))
+            .doOnError(throwable -> logger.error("Error", throwable));
     }
 
     private Completable startMonitoringLoops() {
