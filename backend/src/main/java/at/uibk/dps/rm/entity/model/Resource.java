@@ -40,7 +40,7 @@ public abstract class Resource {
     private Boolean isLockable;
 
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "locked_by_deployment")
     private Deployment lockedByDeployment;
 

@@ -180,85 +180,92 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
         DeploymentValidationUtility validationUtility = new DeploymentValidationUtility(accountId, repositoryProvider);
         DeploymentUtility deploymentUtility = new DeploymentUtility(repositoryProvider);
         DeployResourcesRequest request = data.mapTo(DeployResourcesRequest.class);
-        SaveResourceDeploymentUtility resourceDeploymentUtility = new SaveResourceDeploymentUtility();
-        DeployResourcesDTO deployResources = new DeployResourcesDTO();
-        Deployment deployment = new Deployment();
-        deployResources.setDeployment(deployment);
-        deployResources.setDeploymentCredentials(request.getCredentials());
-        deployResources.setVpcList(new ArrayList<>());
+        SaveResourceDeploymentUtility resourceDeploymentUtility =
+            new SaveResourceDeploymentUtility(accountId, repositoryProvider.getFunctionRepository(),
+                repositoryProvider.getServiceRepository());
         LockedResourcesUtility lockUtility = new LockedResourcesUtility(repositoryProvider.getResourceRepository());
-        Single<DeployResourcesDTO> save = smProvider.withTransactionSingle(sm -> sm.find(Account.class, accountId)
-            .switchIfEmpty(Maybe.error(new UnauthorizedException()))
-            .flatMapCompletable(account -> {
-                deployment.setCreatedBy(account);
-                Single<Long> checkResources = Single.just(1L);
-                if (request.getValidation() != null) {
-                    // TODO: refactoring into separate class
-                    DeploymentValidation validation = request.getValidation();
-                    deployment.setAlertNotificationUrl(request.getValidation().getAlertNotificationUrl());
-                    Ensemble ensemble = new Ensemble();
-                    ensemble.setEnsembleId(validation.getEnsembleId());
-                    deployment.setEnsemble(ensemble);
-                    checkResources = repositoryProvider.getResourceRepository()
-                        .findAllByEnsembleId(sm,validation.getEnsembleId())
-                        .flatMapObservable(Observable::fromIterable)
-                        .map(Resource::getResourceId)
-                        .collect(Collectors.toSet())
-                        .flatMap(ensembleResourceIds -> {
-                            Observable<Long> serviceResourceIds = Observable.fromIterable(request.getServiceResources())
-                                .map(ServiceResourceIds::getResourceId);
-                            Observable<Long> functionResourceIds = Observable
-                                .fromIterable(request.getFunctionResources())
-                                .map(FunctionResourceIds::getResourceId);
-                            return Observable.merge(serviceResourceIds, functionResourceIds)
-                                .filter(ensembleResourceIds::contains)
-                                .isEmpty();
-                        })
-                        .flatMap(requestContainsNonEnsembleResource -> {
-                            if (requestContainsNonEnsembleResource) {
-                                return Single.error(new BadInputException("Request contains non ensemble resource"));
-                            }
-                            return Single.just(1L);
-                        });
-                }
-                return checkResources.flatMap(res -> sm.persist(deployment))
-                    .flatMapCompletable(res -> sm.flush());
-            })
-            .andThen(Single.defer(() -> validationUtility.checkDeploymentIsValid(sm, request, deployResources)))
-            .flatMapCompletable(resources -> repositoryProvider.getStatusRepository()
-                .findOneByStatusValue(sm, DeploymentStatusValue.NEW.name())
-                .switchIfEmpty(Maybe.error(new NotFoundException(ResourceDeploymentStatus.class)))
-                .flatMapCompletable(statusNew -> {
-                    Completable saveFunctionDeployments = resourceDeploymentUtility
-                        .saveFunctionDeployments(sm, deployment, request, statusNew, resources);
-                    Completable saveServiceDeployments = repositoryProvider.getNamespaceRepository()
-                        .findAllByAccountIdAndFetch(sm, deployment.getCreatedBy().getAccountId())
-                        .flatMapCompletable(namespaces -> resourceDeploymentUtility
-                            .saveServiceDeployments(sm, deployment, request, statusNew, namespaces,
-                                resources));
-                    return Completable.mergeArray(saveFunctionDeployments, saveServiceDeployments);
+        Single<DeployResourcesDTO> save = smProvider.withTransactionSingle(sm -> {
+            DeployResourcesDTO deployResources = new DeployResourcesDTO();
+            Deployment deployment = new Deployment();
+            deployResources.setDeployment(deployment);
+            deployResources.setDeploymentCredentials(request.getCredentials());
+            deployResources.setVpcList(new ArrayList<>());
+            return sm.find(Account.class, accountId)
+                .switchIfEmpty(Single.error(new UnauthorizedException()))
+                .flatMap(account -> {
+                    deployment.setCreatedBy(account);
+                    Single<Long> checkResources = Single.just(1L);
+                    if (request.getValidation() != null) {
+                        // TODO: refactoring into separate class
+                        DeploymentValidation validation = request.getValidation();
+                        deployment.setAlertNotificationUrl(request.getValidation().getAlertNotificationUrl());
+                        checkResources = repositoryProvider.getEnsembleRepository()
+                            .findByIdAndAccountId(sm, request.getValidation().getEnsembleId(), accountId)
+                            .switchIfEmpty(Single.error(new NotFoundException(Ensemble.class)))
+                            .flatMap(ensemble -> {
+                                deployment.setEnsemble(ensemble);
+                                return repositoryProvider.getResourceRepository()
+                                    .findAllByEnsembleId(sm, validation.getEnsembleId());
+                            })
+                            .flatMapObservable(Observable::fromIterable)
+                            .map(Resource::getResourceId)
+                            .collect(Collectors.toSet())
+                            .flatMap(ensembleResourceIds -> {
+                                Observable<Long> serviceResourceIds = Observable.fromIterable(request.getServiceResources())
+                                    .map(ServiceResourceIds::getResourceId);
+                                Observable<Long> functionResourceIds = Observable
+                                    .fromIterable(request.getFunctionResources())
+                                    .map(FunctionResourceIds::getResourceId);
+                                return Observable.merge(serviceResourceIds, functionResourceIds)
+                                    .filter(ensembleResourceIds::contains)
+                                    .isEmpty();
+                            })
+                            .flatMap(requestContainsNonEnsembleResource -> {
+                                if (requestContainsNonEnsembleResource) {
+                                    return Single.error(new BadInputException("Request contains non ensemble resource"));
+                                }
+                                return Single.just(1L);
+                            });
+                    }
+                    return checkResources;
                 })
-            )
-            .andThen(Completable.defer(() -> lockUtility.lockResources(sm, request.getLockResources(), deployment)
-                .flatMapCompletable(resources -> sm.flush())
-            ))
-            .andThen(Single.defer(() -> repositoryProvider.getCredentialsRepository()
-                .findAllByAccountId(sm, accountId)
-                .map(credentials -> {
-                    deployResources.setCredentialsList(credentials);
-                    return deployResources;
-                })
-            ))
-        )
-        .flatMap(deployResourcesDTO -> smProvider.withTransactionSingle(sm -> deploymentUtility
-            .mapResourceDeploymentsToDTO(sm, deployResourcesDTO)
-                .andThen(Single.defer(() -> Single.just(deployResources)))
-            )
+                .flatMap(res -> validationUtility.checkDeploymentIsValid(sm, request, deployResources))
+                .flatMapCompletable(resources -> repositoryProvider.getStatusRepository()
+                    .findOneByStatusValue(sm, DeploymentStatusValue.NEW.name())
+                    .switchIfEmpty(Maybe.error(new NotFoundException(ResourceDeploymentStatus.class)))
+                    .flatMapCompletable(statusNew -> {
+                        Completable saveFunctionDeployments = resourceDeploymentUtility
+                            .saveFunctionDeployments(sm, deployment, request, statusNew, resources);
+                        Completable saveServiceDeployments = repositoryProvider.getNamespaceRepository()
+                            .findAllByAccountIdAndFetch(sm, deployment.getCreatedBy().getAccountId())
+                            .flatMapCompletable(namespaces -> resourceDeploymentUtility
+                                .saveServiceDeployments(sm, deployment, request, statusNew, namespaces, resources));
+                        return Completable.mergeArray(saveFunctionDeployments, saveServiceDeployments);
+                    })
+                )
+                .andThen(Single.defer(() -> lockUtility.lockResources(sm, request.getLockResources(), deployment)))
+                .flatMap(lockedResources -> repositoryProvider.getCredentialsRepository()
+                    .findAllByAccountId(sm, accountId)
+                    .map(credentials -> {
+                        deployResources.setCredentialsList(credentials);
+                        return deployResources;
+                    })
+                )
+                .flatMap(res -> sm.persist(deployment)
+                    .flatMapCompletable(depl -> sm.flush())
+                    .andThen(Single.defer(() -> Single.just(-1L)))
+                    .flatMap(res2 -> deploymentUtility
+                        .mapResourceDeploymentsToDTO(sm, res)
+                        .andThen(Single.defer(() -> Single.just(res)))
+                    ));
+            }
         );
 
         RxVertxHandler.handleSession(
             save.map(result -> {
                 result.getDeployment().setCreatedBy(null);
+                result.getDeployment().setServiceDeployments(null);
+                result.getDeployment().setFunctionDeployments(null);
                 return JsonObject.mapFrom(result);
             }),
             resultHandler
