@@ -12,7 +12,6 @@ import io.kubernetes.client.custom.PodMetricsList;
 import io.kubernetes.client.custom.Quantity;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.*;
 import io.kubernetes.client.util.Config;
@@ -38,30 +37,26 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
 
     private final String POD_LABEL_SELECTOR = "source=apollo-rm-deployment,apollo-type=pod";
 
-    private CoreV1Api setUpLocalClient() {
+    public static ApiClient setUpLocalClient() {
         try {
-            ApiClient localClient = Config.defaultClient();
-            Configuration.setDefaultApiClient(localClient);
-            return new CoreV1Api();
+            return Config.defaultClient();
         } catch (IOException e) {
             throw new MonitoringException();
         }
     }
 
-    private CoreV1Api setUpExternalClient(Path kubeConfig) {
+    public static ApiClient setUpExternalClient(Path kubeConfig) {
         try {
-            ApiClient externalClient = Config.fromConfig(kubeConfig.toAbsolutePath().toString());
-            Configuration.setDefaultApiClient(externalClient);
-            return new CoreV1Api();
+            return Config.fromConfig(kubeConfig.toAbsolutePath().toString());
         } catch (IOException e) {
             throw new MonitoringException();
         }
     }
 
     @Override
-    public Map<String, String> listSecrets(ConfigDTO config) {
+    public Map<String, String> listSecrets(ApiClient apiClient, ConfigDTO config) {
         try {
-            CoreV1Api api = setUpLocalClient();
+            CoreV1Api api = new CoreV1Api(apiClient);
             V1SecretList list = api.listNamespacedSecret(config.getKubeConfigSecretsNamespace(), null,
                 null, null, "metadata.name=" + config.getKubeConfigSecretsName(),
                 null, null, null,null, config.getKubeApiTimeoutSeconds(),
@@ -84,9 +79,9 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
     }
 
     @Override
-    public List<V1Namespace> listNamespaces(Path kubeConfig, ConfigDTO config) {
+    public List<V1Namespace> listNamespaces(ApiClient apiClient, ConfigDTO config) {
         try {
-            CoreV1Api api = setUpExternalClient(kubeConfig);
+            CoreV1Api api = new CoreV1Api(apiClient);
             V1NamespaceList list = api.listNamespace(null, null,  null, null,
                     null, null, null, null, config.getKubeApiTimeoutSeconds(),
                     null);
@@ -102,16 +97,17 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
     }
 
     @Override
-    public List<K8sNode> listNodes(Path kubeConfig, ConfigDTO config) {
+    public List<K8sNode> listNodes(ApiClient apiClient, ConfigDTO config) {
         try {
-            CoreV1Api api = setUpExternalClient(kubeConfig);
+            CoreV1Api api = new CoreV1Api(apiClient);
             V1NodeList list = api.listNode(null, null,  null, null,
                 null, null, null, null, config.getKubeApiTimeoutSeconds(),
                 false);
             String header = "\n############### Nodes ###############\n";
             String nodes = list.getItems().stream().map(item -> Objects.requireNonNull(item.getMetadata()).getName())
                 .collect(Collectors.joining("\n"));
-            Map<String, Map<String, Quantity>> nodeMetricsMap = getCurrentNodeUtilisation();
+            Metrics metricsClient = new Metrics(apiClient);
+            Map<String, Map<String, Quantity>> nodeMetricsMap = getCurrentNodeUtilisation(metricsClient);
             logger.debug(header + nodes);
             return list.getItems()
                 .stream().map(K8sNode::new)
@@ -130,10 +126,10 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
     }
 
     @Override
-    public List<K8sPod> listPodsByNode(String nodeName, Path kubeConfigPath, ConfigDTO config) {
+    public List<K8sPod> listPodsByNode(ApiClient apiClient, String nodeName, ConfigDTO config) {
         String fieldSelector = "spec.nodeName=" + nodeName;
         try {
-            CoreV1Api api = setUpExternalClient(kubeConfigPath);
+            CoreV1Api api = new CoreV1Api(apiClient);
             V1PodList list = api.listPodForAllNamespaces(null, null, fieldSelector,
                 POD_LABEL_SELECTOR, null, null, null, null,
                 config.getKubeApiTimeoutSeconds(), false);
@@ -160,10 +156,10 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
     }
 
     @Override
-    public Map<String, PodMetrics> getCurrentPodUtilisation(Path kubeConfigPath, ConfigDTO config) {
+    public Map<String, PodMetrics> getCurrentPodUtilisation(ApiClient apiClient, ConfigDTO config) {
         List<PodMetrics> podMetricsList;
         try {
-            CoreV1Api api = setUpExternalClient(kubeConfigPath);
+            CoreV1Api api = new CoreV1Api(apiClient);
             podMetricsList = getPodMetricsByNode(api.getApiClient(), config).getItems();
         } catch (ApiException ex) {
             logger.error("Scrape k8s pods: " + ex.getMessage());
@@ -180,8 +176,8 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
      * @return a Map where the key is the name of the node and the value is the node metrics data
      * @throws ApiException if an error occurs during the retrieval of the metrics
      */
-    private Map<String, Map<String, Quantity>> getCurrentNodeUtilisation() throws ApiException {
-        List<NodeMetrics> nodeMetricsList = new Metrics().getNodeMetrics().getItems();
+    private Map<String, Map<String, Quantity>> getCurrentNodeUtilisation(Metrics metricsClient) throws ApiException {
+        List<NodeMetrics> nodeMetricsList =metricsClient.getNodeMetrics().getItems();
         return new HashMap<>(nodeMetricsList.stream().collect(
             Collectors.toMap(nodeMetrics -> nodeMetrics.getMetadata().getName(), NodeMetrics::getUsage)));
     }
@@ -189,6 +185,8 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
     /**
      * Get the current pod utilisation by node.
      *
+     * @param apiClient the k8s client
+     * @param config the vertx config
      * @return a list of pod metrics
      * @throws ApiException if an error occurs during the retrieval of the metrics
      */

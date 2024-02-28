@@ -12,21 +12,19 @@ import at.uibk.dps.rm.util.monitoring.LatencyMonitoringUtility;
 import io.kubernetes.client.custom.PodMetrics;
 import io.kubernetes.client.custom.Quantity;
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.models.V1Namespace;
-import io.kubernetes.client.util.Config;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.Handler;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.rxjava3.core.Promise;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.file.FileSystem;
 import lombok.RequiredArgsConstructor;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -48,11 +46,14 @@ public class K8sMonitoringHandler implements MonitoringHandler {
     private long currentTimer = -1L;
 
     private final K8sMonitoringService monitoringService = new K8sMonitoringServiceImpl();
+
+    private ApiClient localClient;
     
     @Override
     public void startMonitoringLoop() {
         long period = (long) (configDTO.getKubeMonitoringPeriod() * 1000);
         ServiceProxyProvider serviceProxyProvider = new ServiceProxyProvider(vertx);
+        localClient = K8sMonitoringServiceImpl.setUpLocalClient();
         // Necessary to prevent serialization error
         Handler<Long> monitoringHandler = id -> {
             logger.info("Started: monitor k8s resources");
@@ -106,11 +107,15 @@ public class K8sMonitoringHandler implements MonitoringHandler {
     private Single<List<K8sMonitoringData>> monitorK8s() {
     FileSystem fileSystem = vertx.fileSystem();
     K8sMonitoringService monitoringService = new K8sMonitoringServiceImpl();
-    Map<String, String> kubeConfigs = monitoringService.listSecrets(configDTO);
-    if (!fileSystem.existsBlocking(configDTO.getKubeConfigDirectory())) {
-        fileSystem.mkdirsBlocking(configDTO.getKubeConfigDirectory());
-    }
-    return Observable.fromIterable(kubeConfigs.entrySet())
+    return vertx.executeBlocking((Promise<Map<String, String>> fut) -> {
+            Map<String, String> kubeConfigs = monitoringService.listSecrets(localClient, configDTO);
+            if (!fileSystem.existsBlocking(configDTO.getKubeConfigDirectory())) {
+                fileSystem.mkdirsBlocking(configDTO.getKubeConfigDirectory());
+            }
+            fut.complete(kubeConfigs);
+        })
+        .switchIfEmpty(Single.just(Map.of()))
+        .flatMapObservable(kubeConfigs -> Observable.fromIterable(kubeConfigs.entrySet()))
         .flatMapSingle(entry -> vertx.executeBlocking(fut ->
                 fut.complete(observeK8sAPI(entry.getKey(), entry.getValue())))
             .switchIfEmpty(Single.just(new K8sMonitoringData(entry.getKey(), "", -1L, List.of(),
@@ -151,14 +156,12 @@ public class K8sMonitoringHandler implements MonitoringHandler {
             logger.info("Observe cluster: " + clusterName);
             Path kubeconfigPath = Path.of(configDTO.getKubeConfigDirectory(), clusterName);
             fileSystem.writeFileBlocking(kubeconfigPath.toString(), Buffer.buffer(kubeConfig));
-            ApiClient externalClient = Config.fromConfig(kubeconfigPath.toAbsolutePath().toString());
-            Configuration.setDefaultApiClient(externalClient);
-            List<K8sNode> nodes = monitoringService.listNodes(kubeconfigPath, configDTO);
-            List<V1Namespace> namespaces = monitoringService.listNamespaces(kubeconfigPath, configDTO);
-            Map<String, PodMetrics> podMetricsMap = monitoringService.getCurrentPodUtilisation(kubeconfigPath,
-                configDTO);
+            ApiClient apiClient = K8sMonitoringServiceImpl.setUpExternalClient(kubeconfigPath);
+            List<K8sNode> nodes = monitoringService.listNodes(apiClient, configDTO);
+            List<V1Namespace> namespaces = monitoringService.listNamespaces(apiClient, configDTO);
+            Map<String, PodMetrics> podMetricsMap = monitoringService.getCurrentPodUtilisation(apiClient, configDTO);
             nodes.forEach(node -> {
-                List<K8sPod> pods = monitoringService.listPodsByNode(node.getName(), kubeconfigPath, configDTO);
+                List<K8sPod> pods = monitoringService.listPodsByNode(apiClient, node.getName(), configDTO);
                 pods.forEach(pod -> {
                     PodMetrics podMetrics = podMetricsMap.get(pod.getName());
                     if (podMetrics == null) {
@@ -175,9 +178,9 @@ public class K8sMonitoringHandler implements MonitoringHandler {
                 });
                 node.addAllPods(pods);
             });
-            k8sMonitoringData = new K8sMonitoringData(clusterName, externalClient.getBasePath(), -1L,
+            k8sMonitoringData = new K8sMonitoringData(clusterName, apiClient.getBasePath(), -1L,
                 nodes, namespaces,  true, null);
-        } catch (MonitoringException | IOException ex) {
+        } catch (MonitoringException ex) {
             k8sMonitoringData = new K8sMonitoringData(clusterName, "", -1L, List.of(), List.of(), false, null);
         }
         return k8sMonitoringData;
