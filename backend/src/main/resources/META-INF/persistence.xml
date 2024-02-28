@@ -58,9 +58,9 @@
             />
 
             <!-- SQL statement logging -->
-            <property name="hibernate.show_sql" value="true"/>
-            <property name="hibernate.format_sql" value="true"/>
-            <property name="hibernate.highlight_sql" value="true"/>
+            <property name="hibernate.show_sql" value="false"/>
+            <property name="hibernate.format_sql" value="false"/>
+            <property name="hibernate.highlight_sql" value="false"/>
             <!-- handle timestamps as UTC -->
             <property name="hibernate.jdbc.time_zone" value="UTC"/>
         </properties>
