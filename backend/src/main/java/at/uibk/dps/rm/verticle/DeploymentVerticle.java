@@ -37,6 +37,8 @@ public class DeploymentVerticle extends AbstractVerticle {
                 .register(DeploymentExecutionService.class, deploymentService);
             emitter.onComplete();
         });
-        return Completable.fromMaybe(setupEventBus);
+        return Completable.fromMaybe(setupEventBus)
+            .doOnComplete(() -> logger.info("Deployment Verticle is ready"))
+            .doOnError(throwable -> logger.error("Error", throwable));
     }
 }
