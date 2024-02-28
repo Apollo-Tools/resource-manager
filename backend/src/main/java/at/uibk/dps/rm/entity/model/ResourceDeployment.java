@@ -26,15 +26,15 @@ public abstract class ResourceDeployment {
 
     private String rmTriggerUrl = "";
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "resource_id")
     private Resource resource;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "deployment_id")
     private Deployment deployment;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "deployment_status_id")
     private ResourceDeploymentStatus status;
 

@@ -44,6 +44,7 @@ public class LockedResourcesUtility {
                 if (!resource.getIsLockable()) {
                     return Single.error(new BadInputException("resource " + resource + " is not lockable"));
                 }
+                deployment.getLockedResources().add(resource);
                 resource.setLockedByDeployment(deployment);
                 return Single.just(resource);
             }).toList();

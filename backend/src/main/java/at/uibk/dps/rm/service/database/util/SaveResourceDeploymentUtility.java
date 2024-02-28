@@ -1,12 +1,14 @@
 package at.uibk.dps.rm.service.database.util;
 
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
-import at.uibk.dps.rm.entity.dto.deployment.FunctionResourceIds;
-import at.uibk.dps.rm.entity.dto.deployment.ServiceResourceIds;
 import at.uibk.dps.rm.entity.model.*;
+import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
+import at.uibk.dps.rm.repository.function.FunctionRepository;
+import at.uibk.dps.rm.repository.service.ServiceRepository;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Single;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -18,6 +20,12 @@ import java.util.List;
  */
 @RequiredArgsConstructor
 public class SaveResourceDeploymentUtility {
+
+    private final long accountId;
+
+    private final FunctionRepository functionRepository;
+
+    private final ServiceRepository serviceRepository;
 
     /**
      * Persist function deployments from the deployment.
@@ -35,15 +43,18 @@ public class SaveResourceDeploymentUtility {
             return Completable.complete();
         }
         return Observable.fromIterable(request.getFunctionResources())
-            .map(functionResourceIds -> {
+            .flatMapSingle(functionResourceIds -> {
                 Resource resource = resources.stream()
                     .filter(r -> r.getResourceId() == functionResourceIds.getResourceId())
                     .findFirst()
                     .orElseThrow(IllegalStateException::new);
-                return createNewResourceDeployment(deployment, functionResourceIds, status, resource);
+                return functionRepository.findByIdAndAccountId(sm, functionResourceIds.getFunctionId(), accountId, true)
+                    .switchIfEmpty(Single.error(new NotFoundException(Service.class)))
+                    .map(function -> createNewResourceDeployment(deployment, function, status, resource));
             })
             .toList()
-            .flatMapCompletable(functionDeployments -> sm.persist(functionDeployments.toArray()));
+            .ignoreElement();
+        //  .flatMapCompletable(functionDeployments -> sm.persist(functionDeployments.toArray()));
     }
 
     /** Persist service deployments from the deployment.
@@ -56,42 +67,41 @@ public class SaveResourceDeploymentUtility {
      * @param resources the list of resources of the deployment
      * @return a Completable
      */
-    public Completable saveServiceDeployments(SessionManager sm, Deployment deployment,
-            DeployResourcesRequest request, ResourceDeploymentStatus status, List<K8sNamespace> namespaces,
-            List<Resource> resources) {
+    public Completable saveServiceDeployments(SessionManager sm, Deployment deployment, DeployResourcesRequest request,
+            ResourceDeploymentStatus status, List<K8sNamespace> namespaces, List<Resource> resources) {
         if (request.getServiceResources().isEmpty()) {
             return Completable.complete();
         }
         return Observable.fromIterable(request.getServiceResources())
-            .map(serviceResourceIds -> {
+            .flatMapSingle(serviceResourceIds -> {
                 Resource resource = resources.stream()
                     .filter(r -> r.getResourceId() == serviceResourceIds.getResourceId())
                     .findFirst()
                     .orElseThrow(IllegalStateException::new);
-                return createNewResourceDeployment(deployment, resource, serviceResourceIds, namespaces, status);
+                return serviceRepository.findByIdAndAccountId(sm, serviceResourceIds.getServiceId(), accountId, true)
+                    .switchIfEmpty(Single.error(new NotFoundException(Service.class)))
+                    .map(service -> createNewResourceDeployment(deployment, resource, service, namespaces, status));
             })
-            .toList()
-            .flatMapCompletable(serviceDeployments -> sm.persist(serviceDeployments.toArray()));
+            .ignoreElements();
     }
 
     /**
-     * Create a new service deployment and set its values.
+     * Create a new function deployment and set its values.
      *
      * @param deployment the deployment
-     * @param ids the ids of the resource and function
+     * @param function the function
      * @param status the status of the function deployment
      * @param resource the resource
      * @return the function deployment object
      */
-    private FunctionDeployment createNewResourceDeployment(Deployment deployment, FunctionResourceIds ids,
-                                                           ResourceDeploymentStatus status, Resource resource) {
-        Function function = new Function();
-        function.setFunctionId(ids.getFunctionId());
+    private FunctionDeployment createNewResourceDeployment(Deployment deployment, Function function,
+            ResourceDeploymentStatus status, Resource resource) {
         FunctionDeployment functionDeployment = new FunctionDeployment();
         functionDeployment.setDeployment(deployment);
         functionDeployment.setResource(resource);
         functionDeployment.setFunction(function);
         functionDeployment.setStatus(status);
+        deployment.getFunctionDeployments().add(functionDeployment);
         return functionDeployment;
     }
 
@@ -100,20 +110,18 @@ public class SaveResourceDeploymentUtility {
      *
      * @param deployment the deployment
      * @param resource the resource
-     * @param ids the ids of the resource and service
+     * @param service the service
      * @param namespaces the list of available namespaces
      * @param status the status of the service deployment
      * @return the service deployment object
      */
-    private ServiceDeployment createNewResourceDeployment(Deployment deployment, Resource resource,
-            ServiceResourceIds ids, List<K8sNamespace> namespaces, ResourceDeploymentStatus status) {
+    private ServiceDeployment createNewResourceDeployment(Deployment deployment, Resource resource, Service service,
+            List<K8sNamespace> namespaces, ResourceDeploymentStatus status) {
         K8sNamespace k8sNamespace = namespaces.stream()
             .filter(namespace -> namespace.getResource().getResourceId().equals(resource.getMain().getResourceId()))
             .findFirst()
             .orElseThrow(() -> new UnauthorizedException("missing namespace for resource " + resource.getName() + " (" +
                 resource.getResourceId() + ")"));
-        Service service = new Service();
-        service.setServiceId(ids.getServiceId());
         ServiceDeployment serviceDeployment = new ServiceDeployment();
         serviceDeployment.setDeployment(deployment);
         serviceDeployment.setResource(resource);
@@ -121,6 +129,7 @@ public class SaveResourceDeploymentUtility {
         serviceDeployment.setStatus(status);
         serviceDeployment.setNamespace(k8sNamespace.getNamespace());
         serviceDeployment.setContext("");
+        deployment.getServiceDeployments().add(serviceDeployment);
         return serviceDeployment;
     }
 }

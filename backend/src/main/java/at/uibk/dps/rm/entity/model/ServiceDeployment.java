@@ -15,7 +15,7 @@ import javax.persistence.*;
 @Getter
 @Setter
 public class ServiceDeployment extends ResourceDeployment {
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "service_id")
     private Service service;
 
