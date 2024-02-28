@@ -35,19 +35,22 @@ public class DeploymentExecutionServiceImpl extends ServiceProxy implements Depl
     @Override
     public void packageFunctionsCode(DeployResourcesDTO deployRequest,
             Handler<AsyncResult<FunctionsToDeploy>> resultHandler) {
-        Single<FunctionsToDeploy> packageFunctions = new ConfigUtility(vertx).getConfigDTO().flatMap(config -> {
-            DockerImageChecker dockerImageChecker = new DockerHubImageChecker(vertx, deployRequest
-                .getDeploymentCredentials().getDockerCredentials());
-            return dockerImageChecker.getNecessaryFunctionBuilds(deployRequest.getFunctionDeployments())
-                .flatMap(openFaasFunctions -> {
-                    DeploymentPath deploymentPath = new DeploymentPath(deployRequest.getDeployment().getDeploymentId(),
-                        config);
-                    FunctionPrepareService functionFileService = new FunctionPrepareService(vertx,
-                        deployRequest.getFunctionDeployments(), deploymentPath, openFaasFunctions,
-                        deployRequest.getDeploymentCredentials().getDockerCredentials());
-                    return functionFileService.packageCode();
-                });
-        });
+        Single<FunctionsToDeploy> packageFunctions = Single.just(new FunctionsToDeploy());
+        if (!deployRequest.getFunctionDeployments().isEmpty()) {
+            packageFunctions = new ConfigUtility(vertx).getConfigDTO().flatMap(config -> {
+                DockerImageChecker dockerImageChecker = new DockerHubImageChecker(vertx, deployRequest
+                    .getDeploymentCredentials().getDockerCredentials());
+                return dockerImageChecker.getNecessaryFunctionBuilds(deployRequest.getFunctionDeployments())
+                    .flatMap(openFaasFunctions -> {
+                        DeploymentPath deploymentPath = new DeploymentPath(deployRequest.getDeployment().getDeploymentId(),
+                            config);
+                        FunctionPrepareService functionFileService = new FunctionPrepareService(vertx,
+                            deployRequest.getFunctionDeployments(), deploymentPath, openFaasFunctions,
+                            deployRequest.getDeploymentCredentials().getDockerCredentials());
+                        return functionFileService.packageCode();
+                    });
+            });
+        }
         RxVertxHandler.handleSession(packageFunctions, resultHandler);
     }
 
