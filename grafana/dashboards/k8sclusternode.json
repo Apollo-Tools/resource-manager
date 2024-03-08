@@ -1233,7 +1233,7 @@
     "list": [
       {
         "current": {
-          "selected": false,
+          "selected": true,
           "text": [
             "All"
           ],
@@ -1245,19 +1245,19 @@
           "type": "prometheus",
           "uid": "RESOURCE_MANAGER_PROM"
         },
-        "definition": "label_values(id)",
+        "definition": "query_result(k8s_up)",
         "hide": 2,
         "includeAll": true,
         "multi": true,
         "name": "resourceId",
         "options": [],
         "query": {
-          "qryType": 1,
-          "query": "label_values(resource)",
+          "qryType": 3,
+          "query": "query_result(k8s_up)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
-        "regex": "",
+        "regex": "/resource=\"([^\"]*)\"/",
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
@@ -1268,26 +1268,14 @@
           "text": "4",
           "value": "4"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "RESOURCE_MANAGER_PROM"
-        },
-        "definition": "label_values(main_resource)",
         "hide": 2,
         "includeAll": false,
         "multi": false,
         "name": "mainResourceId",
         "options": [],
-        "query": {
-          "qryType": 1,
-          "query": "label_values(main_resource)",
-          "refId": "PrometheusVariableQueryEditor-VariableQuery"
-        },
-        "refresh": 1,
-        "regex": "",
+        "query": "",
         "skipUrlSync": false,
-        "sort": 0,
-        "type": "query"
+        "type": "custom"
       }
     ]
   },
@@ -1323,6 +1311,6 @@
   "timezone": "browser",
   "title": "K8s Dashboard",
   "uid": "b47a9eee-2299-40ec-9aec-ee2e826d3cfd",
-  "version": 28,
+  "version": 29,
   "weekStart": ""
 }
