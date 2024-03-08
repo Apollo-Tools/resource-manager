@@ -4,6 +4,7 @@ import at.uibk.dps.rm.entity.misc.RetryCount;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
 import io.reactivex.rxjava3.core.*;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.reactive.stage.Stage.Session;
 import org.hibernate.reactive.stage.Stage.SessionFactory;
 
 import java.util.concurrent.CompletionStage;
@@ -82,5 +83,13 @@ public class SessionManagerProvider {
                 return Completable.fromCompletionStage(transaction);
             })
             .retryWhen(RxVertxHandler.checkForRetry(retryCount, maxRetries, retryDelay));
+    }
+
+    public Single<Session> openSession() {
+        return Single.fromCompletionStage(sessionFactory.openSession());
+    }
+
+    public Completable closeSession(Session session) {
+        return Completable.fromCompletionStage(session.close());
     }
 }

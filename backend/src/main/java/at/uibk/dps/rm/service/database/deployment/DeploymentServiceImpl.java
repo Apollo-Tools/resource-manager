@@ -101,15 +101,18 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
     @Override
     public void findAllActiveWithAlerting(Handler<AsyncResult<JsonArray>> resultHandler) {
         Single<List<DeploymentAlertingDTO>> findAll = smProvider.withTransactionSingle(sm -> repositoryProvider
-            .getDeploymentRepository()
-            .findAllActiveWithAlerting(sm)
+                .getDeploymentRepository()
+                .findAllActiveWithAlerting(sm)
+            )
             .flatMapObservable(Observable::fromIterable)
             .flatMapSingle(deployment -> {
                 DeploymentAlertingDTO deploymentAlertingDTO = new DeploymentAlertingDTO();
                 deploymentAlertingDTO.setDeploymentId(deployment.getDeploymentId());
                 deploymentAlertingDTO.setEnsembleId(deployment.getEnsemble().getEnsembleId());
                 deploymentAlertingDTO.setAlertingUrl(deployment.getAlertNotificationUrl());
-                return repositoryProvider.getEnsembleSLORepository()
+                // a new session is necessary for each concurrent call
+                return smProvider.openSession().map(SessionManager::new)
+                    .flatMap(sm -> repositoryProvider.getEnsembleSLORepository()
                     .findAllByEnsembleId(sm, deploymentAlertingDTO.getEnsembleId())
                     .flatMap(ensembleSLOS -> {
                         deploymentAlertingDTO.setEnsembleSLOs(ensembleSLOS);
@@ -131,13 +134,15 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                                 .map(resources -> {
                                     deploymentAlertingDTO.setResources(resources);
                                     return deploymentAlertingDTO;
-                                });
+                                })
+                                .flatMap(result -> smProvider.closeSession(sm.getSession())
+                                    .andThen(Single.just(result)));
                         }
-                    });
+                    })
+                );
             })
             .filter(result -> !result.getEnsembleSLOs().isEmpty())
-            .toList()
-        );
+            .toList();
         RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }
 
