@@ -24,7 +24,7 @@ public class TestConfigProvider {
         configDTO.setUploadTempDirectory("upload/temp");
         configDTO.setMaxFileSize(100_000_000L);
         configDTO.setJwtSecret("test-secret");
-        configDTO.setJwtAlgorithm("test-HS256");
+        configDTO.setJwtAlgorithm("HS256");
         configDTO.setTokenMinutesValid(1080);
         configDTO.setEnsembleValidationPeriod(60.0);
         configDTO.setDockerInsecureRegistries(List.of("localhost:5000"));

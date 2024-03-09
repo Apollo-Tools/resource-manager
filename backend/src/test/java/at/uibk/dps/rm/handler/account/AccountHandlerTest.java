@@ -5,18 +5,17 @@ import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.service.rxjava3.database.account.AccountService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestAccountProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestConfigProvider;
 import at.uibk.dps.rm.util.configuration.JWTAuthProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import at.uibk.dps.rm.util.misc.PasswordUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.config.ConfigRetrieverOptions;
-import io.vertx.config.ConfigStoreOptions;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.authentication.TokenCredentials;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
-import io.vertx.rxjava3.config.ConfigRetriever;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,13 +57,7 @@ public class AccountHandlerTest {
     @BeforeEach
     void initTest(Vertx vertx) {
         JsonMapperConfig.configJsonMapper();
-        ConfigStoreOptions fileStore = new ConfigStoreOptions()
-            .setType("file")
-            .setFormat("json")
-            .setConfig(new JsonObject().put("path", "./conf/config.test.json"));
-        ConfigRetriever retriever = ConfigRetriever.create(vertx,
-            new ConfigRetrieverOptions().addStore(fileStore));
-        JsonObject config = retriever.getConfig().blockingGet();
+        JsonObject config = JsonObject.mapFrom(TestConfigProvider.getConfigDTO());
         jwtAuthProvider = new JWTAuthProvider(vertx, config.getString("jwt_algorithm"),
             config.getString("jwt_secret"), config.getInteger("token_minutes_valid"));
         accountHandler = new AccountHandler(accountService, jwtAuthProvider.getJwtAuth());
@@ -127,7 +120,10 @@ public class AccountHandlerTest {
             .thenReturn(Single.just(entityJson));
 
         accountHandler.login(rc)
-            .flatMap(result -> jwtAuthProvider.getJwtAuth().authenticate(result))
+            .flatMap(result -> {
+                TokenCredentials credentials = new TokenCredentials(result);
+                return jwtAuthProvider.getJwtAuth().authenticate(credentials);
+            })
             .subscribe(user -> testContext.verify(() -> {
                 assertThat(user.principal().getLong("account_id")).isEqualTo(accountId);
                 assertThat(user.principal().getString("username")).isEqualTo(account.getUsername());
