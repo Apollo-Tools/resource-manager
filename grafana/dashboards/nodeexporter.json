@@ -1256,19 +1256,19 @@
           "type": "prometheus",
           "uid": "RESOURCE_MANAGER_PROM"
         },
-        "definition": "label_values(id)",
+        "definition": "query_result(up)",
         "hide": 2,
         "includeAll": true,
         "multi": true,
         "name": "resourceId",
         "options": [],
         "query": {
-          "qryType": 1,
-          "query": "label_values(resource)",
+          "qryType": 3,
+          "query": "query_result(up)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
-        "regex": "",
+        "regex": "/resource=\"([^\"]*)\"/",
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
@@ -1335,6 +1335,6 @@
   "timezone": "browser",
   "title": "Node Exporter",
   "uid": "efa71f23-5850-4144-8b29-0ae9480eec94",
-  "version": 6,
+  "version": 7,
   "weekStart": ""
 }
