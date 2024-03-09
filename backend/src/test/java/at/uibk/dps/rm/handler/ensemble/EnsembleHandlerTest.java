@@ -127,7 +127,7 @@ public class EnsembleHandlerTest {
         try (MockedStatic<Vertx> mockedVertx = mockStatic(Vertx.class);
                 MockedConstruction<ConfigUtility> ignoreConfig = Mockprovider.mockConfig(config);
                 MockedConstruction<SLOValidator> ignoreSLOValidator = SLOMockProvider
-                    .mockSLOValidatorFilter(filterResources, Set.of(r1, r2))) {
+                    .mockSLOValidatorFilter(request, Set.of(r1, r2))) {
             mockedVertx.when(Vertx::currentContext).thenReturn(context);
             when(context.owner()).thenReturn(vertx);
             ensembleHandler.validateNewResourceEnsembleSLOs(rc)
@@ -156,7 +156,7 @@ public class EnsembleHandlerTest {
         try (MockedStatic<Vertx> mockedVertx = mockStatic(Vertx.class);
              MockedConstruction<ConfigUtility> ignoreConfig = Mockprovider.mockConfig(config);
              MockedConstruction<SLOValidator> ignoreSLOValidator = SLOMockProvider
-                    .mockSLOValidatorFilter(filterResources, Set.of(r1, r2));
+                    .mockSLOValidatorFilter(getOneEnsemble, Set.of(r1, r2));
              MockedStatic<EnsembleUtility> ensembleUtilMock = mockStatic(EnsembleUtility.class)) {
             ensembleUtilMock.when(() -> EnsembleUtility.getResourceEnsembleStatus(anyList(), anyList()))
                 .thenReturn(List.of(res1, res2));
@@ -202,7 +202,7 @@ public class EnsembleHandlerTest {
         try (MockedStatic<Vertx> mockedVertx = mockStatic(Vertx.class);
              MockedConstruction<ConfigUtility> ignoreConfig = Mockprovider.mockConfig(config);
              MockedConstruction<SLOValidator> ignoreSLOValidator1 = SLOMockProvider
-                    .mockSLOValidatorFilter(List.of(filterResources1, filterResources2), List.of(Set.of(r1, r2),
+                    .mockSLOValidatorFilter(List.of(getOneEnsemble1, getOneEnsemble2), List.of(Set.of(r1, r2),
                         Set.of(r1)));
              MockedStatic<EnsembleUtility> ensembleUtilMock = mockStatic(EnsembleUtility.class)) {
             ensembleUtilMock.when(() -> EnsembleUtility.getResourceEnsembleStatus(anyList(),
