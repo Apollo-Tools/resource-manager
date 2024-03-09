@@ -88,7 +88,7 @@ public class K8sMonitoringServiceImplTest {
             k8sConfig.when(Config::defaultClient).thenReturn(apiClient);
             k8sConfiguration.when(() -> Configuration.setDefaultApiClient(apiClient)).then(invocation -> null);
 
-            Map<String, String> configs = monitoringService.listSecrets(config);
+            Map<String, String> configs = monitoringService.listSecrets(apiClient, config);
             assertThat(configs.size()).isEqualTo(2);
             assertThat(configs.get("cluster1")).isEqualTo("secret-value");
             assertThat(configs.get("cluster2")).isEqualTo("value-secret");
@@ -113,7 +113,7 @@ public class K8sMonitoringServiceImplTest {
             k8sConfig.when(Config::defaultClient).thenReturn(apiClient);
             k8sConfiguration.when(() -> Configuration.setDefaultApiClient(apiClient)).then(invocation -> null);
 
-            Map<String, String> configs = monitoringService.listSecrets(config);
+            Map<String, String> configs = monitoringService.listSecrets(apiClient, config);
             assertThat(configs.size()).isEqualTo(0);
         }
     }
@@ -128,7 +128,7 @@ public class K8sMonitoringServiceImplTest {
             k8sConfiguration.when(() -> Configuration.setDefaultApiClient(apiClient)).then(invocation -> null);
 
             MonitoringException exception = assertThrows(MonitoringException.class, () ->
-                monitoringService.listSecrets(config));
+                monitoringService.listSecrets(apiClient, config));
             assertThat(exception.getMessage()).isEqualTo("failed to list secrets");
         }
     }
@@ -145,7 +145,7 @@ public class K8sMonitoringServiceImplTest {
             k8sConfig.when(() -> Config.fromConfig(kubeConfigPath.toAbsolutePath().toString())).thenReturn(apiClient);
             k8sConfiguration.when(() -> Configuration.setDefaultApiClient(apiClient)).then(invocation -> null);
 
-            List<V1Namespace> namespaces = monitoringService.listNamespaces(kubeConfigPath, config);
+            List<V1Namespace> namespaces = monitoringService.listNamespaces(apiClient, config);
             assertThat(namespaces.size()).isEqualTo(2);
             assertThat(namespaces.get(0)).isEqualTo(ns1);
             assertThat(namespaces.get(1)).isEqualTo(ns2);
@@ -162,7 +162,7 @@ public class K8sMonitoringServiceImplTest {
             k8sConfiguration.when(() -> Configuration.setDefaultApiClient(apiClient)).then(invocation -> null);
 
             MonitoringException exception = assertThrows(MonitoringException.class, () ->
-                monitoringService.listNamespaces(kubeConfigPath, config));
+                monitoringService.listNamespaces(apiClient, config));
             assertThat(exception.getMessage()).isEqualTo("failed to list namespaces");
         }
     }
@@ -185,7 +185,7 @@ public class K8sMonitoringServiceImplTest {
             k8sConfig.when(() -> Config.fromConfig(kubeConfigPath.toAbsolutePath().toString())).thenReturn(apiClient);
             k8sConfiguration.when(() -> Configuration.setDefaultApiClient(apiClient)).then(invocation -> null);
 
-            List<K8sNode> nodes = monitoringService.listNodes(kubeConfigPath, config);
+            List<K8sNode> nodes = monitoringService.listNodes(apiClient, config);
             assertThat(nodes.size()).isEqualTo(2);
             assertThat(nodes.get(0).getNode()).isEqualTo(node1);
             assertThat(nodes.get(0).getCpuLoad().getNumber().doubleValue()).isEqualTo(3.25);
@@ -206,7 +206,7 @@ public class K8sMonitoringServiceImplTest {
             k8sConfiguration.when(() -> Configuration.setDefaultApiClient(apiClient)).then(invocation -> null);
 
             MonitoringException exception = assertThrows(MonitoringException.class, () ->
-                monitoringService.listNodes(kubeConfigPath, config));
+                monitoringService.listNodes(apiClient, config));
             assertThat(exception.getMessage()).isEqualTo("failed to list nodes");
         }
     }
@@ -219,7 +219,7 @@ public class K8sMonitoringServiceImplTest {
                 MockedStatic<Config> k8sConfig = Mockito.mockStatic(Config.class)) {
             k8sConfig.when(Config::defaultClient).thenThrow(IOException.class);
 
-            assertThrows(MonitoringException.class, () -> monitoringService.listSecrets(config));
+            assertThrows(MonitoringException.class, () -> monitoringService.listSecrets(apiClient, config));
         }
     }
 
@@ -232,7 +232,7 @@ public class K8sMonitoringServiceImplTest {
             k8sConfig.when(() -> Config.fromConfig(kubeConfigPath.toAbsolutePath().toString()))
                 .thenThrow(IOException.class);
 
-            assertThrows(MonitoringException.class, () -> monitoringService.listNamespaces(kubeConfigPath, config));
+            assertThrows(MonitoringException.class, () -> monitoringService.listNamespaces(apiClient, config));
         }
     }
 }

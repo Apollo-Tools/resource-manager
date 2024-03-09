@@ -8,6 +8,8 @@ import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.UnauthorizedException;
+import at.uibk.dps.rm.repository.function.FunctionRepository;
+import at.uibk.dps.rm.repository.service.ServiceRepository;
 import at.uibk.dps.rm.testutil.objectprovider.*;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.junit5.VertxExtension;
@@ -39,6 +41,12 @@ public class SaveResourceDeploymentUtilityTest {
     @Mock
     private SessionManager sessionManager;
 
+    @Mock
+    private FunctionRepository functionRepository;
+
+    @Mock
+    private ServiceRepository serviceRepository;
+
     private Deployment deployment;
 
     private DeployResourcesRequest requestDTO;
@@ -51,7 +59,8 @@ public class SaveResourceDeploymentUtilityTest {
 
     @BeforeEach
     void initTest() {
-        utility = new SaveResourceDeploymentUtility();
+        long accountId = 1L;
+        utility = new SaveResourceDeploymentUtility(accountId, functionRepository, serviceRepository);
         deployment = TestDeploymentProvider.createDeployment(1L);
         Platform lambda = TestPlatformProvider.createPlatformFaas(1L, PlatformEnum.LAMBDA.getValue());
         Platform ec2 = TestPlatformProvider.createPlatformFaas(2L, PlatformEnum.EC2.getValue());

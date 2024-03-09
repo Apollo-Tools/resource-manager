@@ -115,7 +115,7 @@ public class ResourceHandlerTest {
         try (MockedStatic<Vertx> mockedVertx = mockStatic(Vertx.class);
                 MockedConstruction<ConfigUtility> ignoreConfig = Mockprovider.mockConfig(config);
                 MockedConstruction<SLOValidator> ignoreSLOValidator = SLOMockProvider
-                    .mockSLOValidatorFilterAndSort(filterResources, rMain, rSub2, 1)) {
+                    .mockSLOValidatorFilterAndSort(request, rMain, rSub2, 1)) {
             mockedVertx.when(Vertx::currentContext).thenReturn(context);
             when(context.owner()).thenReturn(vertx);
             resourceHandler.getAllBySLOs(rc)
@@ -142,7 +142,7 @@ public class ResourceHandlerTest {
         try (MockedStatic<Vertx> mockedVertx = mockStatic(Vertx.class);
                 MockedConstruction<ConfigUtility> ignoreConfig = Mockprovider.mockConfig(config);
                 MockedConstruction<SLOValidator> ignoreSLOValidator = SLOMockProvider
-                    .mockSLOValidatorFilterAndSort(filterResources, rSub3, rSub1, -1)) {
+                    .mockSLOValidatorFilterAndSort(request, rSub3, rSub1, -1)) {
             mockedVertx.when(Vertx::currentContext).thenReturn(context);
             when(context.owner()).thenReturn(vertx);
             resourceHandler.getAllBySLOs(rc)
