@@ -258,11 +258,27 @@
           "instant": true,
           "legendFormat": "__auto",
           "range": false,
-          "refId": "A"
+          "refId": "Availability"
         }
       ],
       "title": "Regions",
       "transformations": [
+        {
+          "id": "filterByValue",
+          "options": {
+            "filters": [
+              {
+                "config": {
+                  "id": "isNotNull",
+                  "options": {}
+                },
+                "fieldName": "Value #Up"
+              }
+            ],
+            "match": "any",
+            "type": "include"
+          }
+        },
         {
           "id": "merge",
           "options": {}
@@ -271,39 +287,27 @@
           "id": "groupBy",
           "options": {
             "fields": {
-              "Value #A": {
+              "Value #Availability": {
                 "aggregations": [
-                  "sum"
+                  "lastNotNull"
                 ],
                 "operation": "aggregate"
               },
               "Value #Latency": {
                 "aggregations": [
-                  "sum"
+                  "lastNotNull"
                 ],
                 "operation": "aggregate"
               },
               "Value #Up": {
                 "aggregations": [
-                  "sum"
-                ],
-                "operation": "aggregate"
-              },
-              "latency": {
-                "aggregations": [
-                  "sum"
+                  "lastNotNull"
                 ],
                 "operation": "aggregate"
               },
               "region": {
                 "aggregations": [],
                 "operation": "groupby"
-              },
-              "up": {
-                "aggregations": [
-                  "sum"
-                ],
-                "operation": "aggregate"
               }
             }
           }
@@ -315,17 +319,15 @@
               "Time": true
             },
             "indexByName": {
-              "Value #A (sum)": 2,
-              "Value #Latency (sum)": 3,
-              "Value #Up (sum)": 1,
+              "Value #Availability (lastNotNull)": 2,
+              "Value #Latency (lastNotNull)": 3,
+              "Value #Up (lastNotNull)": 1,
               "region": 0
             },
             "renameByName": {
-              "Value #A (sum)": "Availability (30d)",
-              "Value #Latency": "latency",
-              "Value #Latency (sum)": "Latency",
-              "Value #Up": "up",
-              "Value #Up (sum)": "Up",
+              "Value #Availability (lastNotNull)": "Availability (30d)",
+              "Value #Latency (lastNotNull)": "Latency",
+              "Value #Up (lastNotNull)": "Up",
               "region": "Region"
             }
           }
@@ -350,6 +352,6 @@
   "timezone": "",
   "title": "Region Dashboard",
   "uid": "e32c5920-4a78-46e5-a5a1-c78f9ba640a7",
-  "version": 9,
+  "version": 10,
   "weekStart": ""
 }
