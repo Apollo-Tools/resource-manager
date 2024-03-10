@@ -225,8 +225,8 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
                                     .filter(ensembleResourceIds::contains)
                                     .isEmpty();
                             })
-                            .flatMap(requestContainsNonEnsembleResource -> {
-                                if (requestContainsNonEnsembleResource) {
+                            .flatMap(containsNonEnsembleResource -> {
+                                if (containsNonEnsembleResource) {
                                     return Single.error(new BadInputException("Request contains non ensemble resource"));
                                 }
                                 return Single.just(1L);

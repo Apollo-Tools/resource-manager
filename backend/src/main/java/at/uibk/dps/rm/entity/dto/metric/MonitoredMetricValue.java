@@ -68,6 +68,12 @@ public class MonitoredMetricValue {
         return this;
     }
 
+    /**
+     * Set whether the current instance fulfills its service level objective.
+     *
+     * @param fulfillsSLO whether the service level objective is fulfilled
+     * @return the current instance
+     */
     public MonitoredMetricValue setFulfillsSLO(Boolean fulfillsSLO) {
         this.fulfillsSLO = fulfillsSLO;
         return this;

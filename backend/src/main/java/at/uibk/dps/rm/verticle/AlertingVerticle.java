@@ -12,6 +12,11 @@ import io.vertx.rxjava3.ext.web.client.WebClient;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * All alerting processes of the resource manager are executed on the AlertingVerticle.
+ *
+ * @author matthi-g
+ */
 public class AlertingVerticle extends AbstractVerticle {
 
     private static final Logger logger = LoggerFactory.getLogger(AlertingVerticle.class);

@@ -25,6 +25,11 @@ public class ServiceLevelObjective {
 
     private List<SLOValue> value;
 
+    /**
+     * Create a new instance from a {@link EnsembleSLO}.
+     *
+     * @param ensembleSLO the ensembleSLO
+     */
     public ServiceLevelObjective(EnsembleSLO ensembleSLO) {
         List<SLOValue> value = new ArrayList<>();
         if (ensembleSLO.getValueNumbers() != null) {

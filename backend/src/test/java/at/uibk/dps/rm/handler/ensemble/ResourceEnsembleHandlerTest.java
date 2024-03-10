@@ -116,7 +116,7 @@ public class ResourceEnsembleHandlerTest {
         try (MockedStatic<Vertx> mockedVertx = mockStatic(Vertx.class);
                 MockedConstruction<ConfigUtility> ignoreConfig = Mockprovider.mockConfig(config);
                 MockedConstruction<SLOValidator> ignoreSLOValidator = SLOMockProvider
-                    .mockSLOValidatorFilter(getOneEnsemble, Set.of(r1))) {
+                    .mockSLOValidatorFilter(getOneEnsemble.getServiceLevelObjectives(), Set.of(r1))) {
             mockedVertx.when(Vertx::currentContext).thenReturn(context);
             when(context.owner()).thenReturn(vertx);
             resourceEnsembleHandler.postOne(rc)
@@ -146,7 +146,7 @@ public class ResourceEnsembleHandlerTest {
         try (MockedStatic<Vertx> mockedVertx = mockStatic(Vertx.class);
                 MockedConstruction<ConfigUtility> ignoreConfig = Mockprovider.mockConfig(config);
                 MockedConstruction<SLOValidator> ignoreSLOValidator = SLOMockProvider
-                    .mockSLOValidatorFilter(getOneEnsemble, Set.of())) {
+                    .mockSLOValidatorFilter(getOneEnsemble.getServiceLevelObjectives(), Set.of())) {
             mockedVertx.when(Vertx::currentContext).thenReturn(context);
             when(context.owner()).thenReturn(vertx);
             resourceEnsembleHandler.postOne(rc)

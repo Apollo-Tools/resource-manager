@@ -53,6 +53,23 @@ public class ResourceFilterProvider {
 
     private final RegionVmQueryProvider regionQueryProvider;
 
+    /**
+     * Create a new instance and initialize all filters, and query providers.
+     *
+     * @param queryService the metric query service
+     * @param config the vertx config
+     * @param resources a map of resources, where the key is the resource id
+     * @param resourceIds a set of all resource ids
+     * @param mainResourceIds a set of all main resource ids
+     * @param regionResources a {@link org.apache.commons.collections4.MultiValuedMap} where the
+     *                        key is the region and the values are the resources within that region.
+     * @param platformResources a {@link org.apache.commons.collections4.MultiValuedMap} where the
+     *                          key is the platform and the values are the resources within that
+     *                          platform
+     * @param instanceTypeResources a {@link org.apache.commons.collections4.MultiValuedMap} where
+     *                              the key is the instance type and the values are the resources
+     *                              of that instance type
+     */
     public ResourceFilterProvider(MetricQueryService queryService, ConfigDTO config, Map<String, Resource> resources,
             Set<String> resourceIds, Set<String> mainResourceIds, HashSetValuedHashMap<String, String> regionResources,
             HashSetValuedHashMap<Pair<String, String>, String> platformResources,
@@ -72,13 +89,10 @@ public class ResourceFilterProvider {
         Set<String> platformIds = platformResources.keySet().stream()
             .map(Pair::getKey)
             .collect(Collectors.toSet());
-        k8sClusterQueryProvider = new K8sClusterVmQueryProvider(resourceFilter,
-            mainResourceFilter);
+        k8sClusterQueryProvider = new K8sClusterVmQueryProvider(resourceFilter, mainResourceFilter);
         k8sNodeQueryProvider = new K8sNodeVmQueryProvider(resourceFilter);
-        nodeQueryProvider = new NodeVmQueryProvider(resourceFilter, noDeploymentFilter,
-            mountPointFilter, fsTypeFilter);
-        regionQueryProvider = new RegionVmQueryProvider(regionFilter, platformIds,
-            instanceTypeResources.keySet());
+        nodeQueryProvider = new NodeVmQueryProvider(resourceFilter, noDeploymentFilter, mountPointFilter, fsTypeFilter);
+        regionQueryProvider = new RegionVmQueryProvider(regionFilter, platformIds, instanceTypeResources.keySet());
     }
 
     /**
@@ -109,6 +123,12 @@ public class ResourceFilterProvider {
             .switchIfEmpty(Single.just(new HashSet<>()));
     }
 
+    /**
+     * Query monitored metric values for resources by ensembleSLOs and map them to the resources.
+     *
+     * @param ensembleSLOs the service level objectives to use for the queries
+     * @return a Completable
+     */
     public Completable queryMetricValuesForResourcesBySLOs(List<EnsembleSLO> ensembleSLOs) {
         return Observable.fromIterable(ensembleSLOs)
             .map(MonitoringMetricEnum::fromEnsembleSLO)
@@ -123,9 +143,14 @@ public class ResourceFilterProvider {
                         vmResults, includeSubResources));
             })
             .ignoreElements();
-
     }
 
+    /**
+     * Get a dynamic metric query from the metricEnum.
+     *
+     * @param metricEnum the metric of the query
+     * @return an Observable that emits all queries that are suitable for the metricEnum
+     */
     private Observable<VmQuery> getDynamicMetricQuery(MonitoringMetricEnum metricEnum) {
         switch (metricEnum) {
             case AVAILABILITY:
@@ -204,6 +229,18 @@ public class ResourceFilterProvider {
         return Observable.empty();
     }
 
+    /**
+     * Get a static metric query from the metricEnum, slo, resources, platformResources,
+     * instanceTypeResources and regionResources.
+     *
+     * @param metricEnum the metric of the query
+     * @param slo the service level objective
+     * @param resources the resources to filter
+     * @param platformResources the platform resource map
+     * @param instanceTypeResources the instance type resource map
+     * @param regionResources the region resource map
+     * @return an Observable that emits all queries that are suitable for the metricEnum
+     */
     private Observable<Set<Resource>> getStaticMetricQuery(MonitoringMetricEnum metricEnum, ServiceLevelObjective slo,
             Map<String, Resource> resources, HashSetValuedHashMap<Pair<String, String>, String> platformResources,
             HashSetValuedHashMap<String, String> instanceTypeResources,
@@ -239,7 +276,7 @@ public class ResourceFilterProvider {
             case MEMORY:
             case STORAGE:
                 // EC2
-                return filterAndMapStaticMetricToEC2Resource(resources, platformResources,
+                return filterAndMapStaticEc2MetricToMonitoredMetrics(resources, platformResources,
                     metricEnum, slo);
             case NODE:
                 // K8s Node
@@ -264,9 +301,19 @@ public class ResourceFilterProvider {
         return Observable.empty();
     }
 
-    private Observable<Set<Resource>> filterAndMapStaticMetricToEC2Resource(Map<String, Resource> resources,
-            HashSetValuedHashMap<Pair<String, String>, String> platformResources,
-            MonitoringMetricEnum metricEnum, ServiceLevelObjective slo) {
+    /**
+     * Map static metrics like CPU and Memory of ec2 resources to monitored metrics.
+     *
+     * @param resources the resources to filter
+     * @param platformResources the platform resource map
+     * @param metricEnum the metricEnum
+     * @param slo the service level objective
+     * @return an Observable that emits a Set of all resources where the static metric has been
+     * mapped
+     */
+    private Observable<Set<Resource>> filterAndMapStaticEc2MetricToMonitoredMetrics(Map<String, Resource> resources,
+            HashSetValuedHashMap<Pair<String, String>, String> platformResources, MonitoringMetricEnum metricEnum,
+            ServiceLevelObjective slo) {
         return Observable.fromIterable(platformResources.keySet())
             .filter(platform -> platform.getValue().equals(PlatformEnum.EC2.getValue()))
             .first(new ImmutablePair<>("", ""))
@@ -290,6 +337,17 @@ public class ResourceFilterProvider {
             .toObservable();
     }
 
+    /**
+     * Map monitored metric to resources.
+     *
+     * @param metricEnum the metric
+     * @param resources the resource to filter
+     * @param regionResources the region resource map
+     * @param vmResults the monitored metric values
+     * @param includeSubResources whether to include sub-resources
+     * @return a Single that emits a Set of all resources where the static metric has been
+     * mapped
+     */
     private Single<Set<Resource>> mapMonitoredMetricToResources(MonitoringMetricEnum metricEnum,
             Map<String, Resource> resources, HashSetValuedHashMap<String, String> regionResources,
             List<VmResult> vmResults, boolean includeSubResources) {
@@ -331,6 +389,14 @@ public class ResourceFilterProvider {
             .collect(Collectors.toSet());
     }
 
+    /**
+     * Add sub-resources of all filtered main-resource to the filtered resources.
+     *
+     * @param updatedResources the filtered resource
+     * @param resources all resources to filter
+     * @param metricEnum the metric
+     * @return a Single that emits a Set of all filtered resources including the sub resources
+     */
     private Single<Set<Resource>> addSubResourcesToFilteredResources(Set<Resource> updatedResources,
             Map<String, Resource> resources, MonitoringMetricEnum metricEnum) {
         return Observable.fromIterable(updatedResources)

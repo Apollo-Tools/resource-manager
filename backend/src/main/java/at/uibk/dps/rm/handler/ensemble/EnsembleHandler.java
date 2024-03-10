@@ -79,7 +79,7 @@ public class EnsembleHandler extends ValidationHandler {
                 .toList()
                 .flatMap(resources -> {
                     SLOValidator sloValidator = new SLOValidator(metricQueryService, configDTO, resources);
-                    return sloValidator.filterResourcesByMonitoredMetrics(requestDTO);
+                    return sloValidator.filterResourcesByMonitoredMetrics(requestDTO.getServiceLevelObjectives());
                 })
             )
             .flatMapObservable(Observable::fromIterable)
@@ -143,7 +143,8 @@ public class EnsembleHandler extends ValidationHandler {
                     .toList()
                     .flatMap(resources -> {
                         SLOValidator sloValidator = new SLOValidator(metricQueryService, configDTO, resources);
-                        return sloValidator.filterResourcesByMonitoredMetrics(getOneEnsemble);
+                        return sloValidator
+                            .filterResourcesByMonitoredMetrics(getOneEnsemble.getServiceLevelObjectives());
                     })
                     .map(ArrayList::new)
                     .map(validResources -> {

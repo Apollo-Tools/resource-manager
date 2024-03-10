@@ -1,6 +1,5 @@
 package at.uibk.dps.rm.util.validation;
 
-import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.deployment.DeploymentAlertingDTO;
 import at.uibk.dps.rm.entity.dto.metric.MonitoredMetricValue;
@@ -43,11 +42,17 @@ public class SLOValidator {
     private final HashSetValuedHashMap<Pair<String, String>, String> platformResources = new HashSetValuedHashMap<>();
     private final HashSetValuedHashMap<String, String> instanceTypeResources = new HashSetValuedHashMap<>();
 
-
-    public SLOValidator(MetricQueryService metricQueryService, ConfigDTO configDTO, List<Resource> filteredResources) {
+    /**
+     * Create a new instance from the metricQueryService, configDTO and filterResources.
+     *
+     * @param metricQueryService the metric query service
+     * @param configDTO the vertx config
+     * @param filterResources the filtered resources
+     */
+    public SLOValidator(MetricQueryService metricQueryService, ConfigDTO configDTO, List<Resource> filterResources) {
         this.metricQueryService = metricQueryService;
         this.configDTO = configDTO;
-        filteredResources.forEach(resource -> {
+        filterResources.forEach(resource -> {
             resourceIds.add(String.valueOf(resource.getResourceId()));
             resourceMap.put(String.valueOf(resource.getResourceId()), resource);
             Map<String, MetricValue> metricValues =
@@ -84,15 +89,15 @@ public class SLOValidator {
     }
 
     /**
-     * Filter resources by monitored metrics using an SLORequest.
+     * Filter resources by monitored metrics by a list of service level objectives.
      *
-     * @param sloRequest the slo request
+     * @param serviceLevelObjectives the service level objectives
      * @return the filtered resources
      */
-    public Single<Set<Resource>> filterResourcesByMonitoredMetrics(SLORequest sloRequest) {
+    public Single<Set<Resource>> filterResourcesByMonitoredMetrics(List<ServiceLevelObjective> serviceLevelObjectives) {
         ResourceFilterProvider queryProvider = new ResourceFilterProvider(metricQueryService, configDTO, resourceMap,
             resourceIds, mainResourceIds, regionResources, platformResources, instanceTypeResources);
-        return Observable.fromIterable(sloRequest.getServiceLevelObjectives())
+        return Observable.fromIterable(serviceLevelObjectives)
             .filter(slo -> MonitoringMetricEnum.fromSLO(slo) != null)
             .toList()
             .flatMap(monitoredSLOs -> {
