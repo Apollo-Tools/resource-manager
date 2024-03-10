@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.testutil.mockprovider;
 
-import at.uibk.dps.rm.entity.dto.SLORequest;
+import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.util.validation.SLOValidator;
 import io.reactivex.rxjava3.core.Single;
@@ -23,29 +23,29 @@ import static org.mockito.Mockito.when;
 @UtilityClass
 public class SLOMockProvider {
 
-    public static MockedConstruction<SLOValidator> mockSLOValidatorFilter(SLORequest request,
-                                                                          Set<Resource> validResources) {
+    public static MockedConstruction<SLOValidator> mockSLOValidatorFilter(List<ServiceLevelObjective> slos,
+            Set<Resource> validResources) {
         return Mockito.mockConstruction(SLOValidator.class,
-            (mock, context) -> when(mock.filterResourcesByMonitoredMetrics(request))
+            (mock, context) -> when(mock.filterResourcesByMonitoredMetrics(slos))
                 .thenReturn(Single.just(validResources)));
     }
 
-    public static MockedConstruction<SLOValidator> mockSLOValidatorFilter(List<SLORequest> sloRequests,
+    public static MockedConstruction<SLOValidator> mockSLOValidatorFilter(List<List<ServiceLevelObjective>> slos,
             List<Set<Resource>> validResources) {
         return Mockito.mockConstruction(SLOValidator.class,
             (mock, context) -> {
-                for (int i = 0; i < sloRequests.size(); i++) {
-                    when(mock.filterResourcesByMonitoredMetrics(sloRequests.get(i)))
+                for (int i = 0; i < slos.size(); i++) {
+                    when(mock.filterResourcesByMonitoredMetrics(slos.get(i)))
                         .thenReturn(Single.just(validResources.get(i)));
                 }
             });
     }
 
-    public static MockedConstruction<SLOValidator> mockSLOValidatorFilterAndSort(SLORequest sloRequest,
+    public static MockedConstruction<SLOValidator> mockSLOValidatorFilterAndSort(List<ServiceLevelObjective> slos,
             Resource validResource1, Resource validResource2, int sortOrder) {
         return Mockito.mockConstruction(SLOValidator.class,
             (mock, context) -> {
-                when(mock.filterResourcesByMonitoredMetrics(sloRequest))
+                when(mock.filterResourcesByMonitoredMetrics(slos))
                     .thenReturn(Single.just(Set.of(validResource1, validResource2)));
                 doReturn(sortOrder).when(mock).sortResourceBySLOs(argThat(
                     (Resource r1) -> r1!=null && r1.equals(validResource1)), eq(validResource2), anyList());

@@ -67,7 +67,8 @@ public class ResourceEnsembleHandler extends ValidationHandler {
                             GetOneEnsemble getOneEnsemble = ensemble.mapTo(GetOneEnsemble.class);
                             SLOValidator sloValidator =
                                 new SLOValidator(metricQueryService, configDTO, filteredResources);
-                            return sloValidator.filterResourcesByMonitoredMetrics(getOneEnsemble);
+                            return sloValidator
+                                .filterResourcesByMonitoredMetrics(getOneEnsemble.getServiceLevelObjectives());
                         })
                         .flatMap(result -> {
                             if (result.isEmpty()) {

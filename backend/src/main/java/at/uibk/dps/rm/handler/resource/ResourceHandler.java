@@ -73,7 +73,7 @@ public class ResourceHandler extends ValidationHandler {
                 .toList()
                 .flatMap(resources -> {
                     SLOValidator sloValidator = new SLOValidator(metricQueryService, configDTO, resources);
-                    return sloValidator.filterResourcesByMonitoredMetrics(sloRequest)
+                    return sloValidator.filterResourcesByMonitoredMetrics(sloRequest.getServiceLevelObjectives())
                         .flatMapObservable(Observable::fromIterable)
                         .sorted((resource1, resource2) -> sloValidator.sortResourceBySLOs(resource1, resource2,
                             sloRequest.getServiceLevelObjectives()))

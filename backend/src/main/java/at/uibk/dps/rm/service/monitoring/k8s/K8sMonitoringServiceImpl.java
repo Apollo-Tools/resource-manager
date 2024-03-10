@@ -37,6 +37,11 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
 
     private final String POD_LABEL_SELECTOR = "source=apollo-rm-deployment,apollo-type=pod";
 
+    /**
+     * Set up a k8s client by using the locally available credentials.
+     *
+     * @return the k8s client
+     */
     public static ApiClient setUpLocalClient() {
         try {
             return Config.defaultClient();
@@ -45,6 +50,11 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
         }
     }
 
+    /**
+     * Set up a k8s client by providing the path to an existing kube config.
+     *
+     * @return the k8s client
+     */
     public static ApiClient setUpExternalClient(Path kubeConfig) {
         try {
             return Config.fromConfig(kubeConfig.toAbsolutePath().toString());

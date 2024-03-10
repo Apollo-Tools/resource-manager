@@ -20,6 +20,12 @@ import java.net.HttpURLConnection;
 import java.util.*;
 import java.util.stream.Stream;
 
+/**
+ * The alerting handler validates active deployments against their specified service level
+ * objectives and notifies their clients in case of an SLO-Breach.
+ *
+ * @author matthi-g
+ */
 @RequiredArgsConstructor
 public class AlertingHandler {
 
@@ -38,6 +44,9 @@ public class AlertingHandler {
 
     private static Handler<Long> validationHandler;
 
+    /**
+     * Start the validation loop.
+     */
     public void startValidationLoop() {
         pauseLoop = false;
         double minPeriod = Stream.of(configDTO.getAwsPriceMonitoringPeriod(), configDTO.getKubeMonitoringPeriod(),
@@ -89,7 +98,10 @@ public class AlertingHandler {
         validationHandler.handle(-99L);
     }
 
-    public void pauseAlertingLoop() {
+    /**
+     * Pause the validation loop.
+     */
+    public void pauseValidationLoop() {
         pauseLoop = true;
         if (!vertx.cancelTimer(currentTimer)) {
             vertx.cancelTimer(currentTimer);
