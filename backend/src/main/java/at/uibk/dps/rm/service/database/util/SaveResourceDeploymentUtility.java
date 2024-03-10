@@ -49,12 +49,10 @@ public class SaveResourceDeploymentUtility {
                     .findFirst()
                     .orElseThrow(IllegalStateException::new);
                 return functionRepository.findByIdAndAccountId(sm, functionResourceIds.getFunctionId(), accountId, true)
-                    .switchIfEmpty(Single.error(new NotFoundException(Service.class)))
+                    .switchIfEmpty(Single.error(new NotFoundException(Function.class)))
                     .map(function -> createNewResourceDeployment(deployment, function, status, resource));
             })
-            .toList()
-            .ignoreElement();
-        //  .flatMapCompletable(functionDeployments -> sm.persist(functionDeployments.toArray()));
+            .ignoreElements();
     }
 
     /** Persist service deployments from the deployment.

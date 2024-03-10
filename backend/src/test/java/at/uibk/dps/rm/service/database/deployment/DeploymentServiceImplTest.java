@@ -255,9 +255,6 @@ public class DeploymentServiceImplTest {
         DeployResourcesRequest request = TestRequestProvider.createDeployResourcesRequest();
         SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(sessionManager.find(Account.class, accountId)).thenReturn(Maybe.just(account));
-        when(sessionManager.persist(argThat((Deployment depl) ->
-            depl.getCreatedBy().equals(account)))).thenReturn(Single.just(deployment));
-        when(sessionManager.flush()).thenReturn(Completable.complete());
         when(repositoryMock.getStatusRepository().findOneByStatusValue(sessionManager,
             DeploymentStatusValue.NEW.name())).thenReturn(Maybe.empty());
 
