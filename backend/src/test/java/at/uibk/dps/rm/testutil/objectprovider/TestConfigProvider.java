@@ -34,10 +34,13 @@ public class TestConfigProvider {
         configDTO.setKubeApiTimeoutSeconds(10);
         configDTO.setKubeImagePullSecrets(List.of("regcred"));
 
-        configDTO.setAwsPriceMonitoringPeriod(5.0);
-        configDTO.setKubeMonitoringPeriod(5.0);
-        configDTO.setOpenfaasMonitoringPeriod(5.0);
-        configDTO.setRegionMonitoringPeriod(5.0);
+        configDTO.setMonitoringPushUrl("http://localhost:9991");
+        configDTO.setMonitoringQueryUrl("http://localhost:9992");
+        configDTO.setLatencyMonitoringCount(2);
+        configDTO.setKubeMonitoringPeriod(300.0);
+        configDTO.setOpenfaasMonitoringPeriod(300.0);
+        configDTO.setRegionMonitoringPeriod(300.0);
+        configDTO.setAwsPriceMonitoringPeriod(300.0);
         return configDTO;
     }
 }

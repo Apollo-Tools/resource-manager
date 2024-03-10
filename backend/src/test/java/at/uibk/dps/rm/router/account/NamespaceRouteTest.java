@@ -13,6 +13,8 @@ import io.vertx.rxjava3.ext.web.client.WebClient;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.util.concurrent.TimeUnit;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -55,6 +57,7 @@ public class NamespaceRouteTest extends RouterTest {
             .putHeader("Authorization", token)
             .send()
             .subscribe(result -> {
+                testContext.awaitCompletion(1500, TimeUnit.MILLISECONDS);
                 if (result.statusCode() == 200 && isAdmin) {
                     JsonArray resultBody = result.bodyAsJsonArray();
                     assertThat(resultBody.size()).isEqualTo(3);
@@ -85,6 +88,7 @@ public class NamespaceRouteTest extends RouterTest {
             .putHeader("Authorization", token)
             .send()
             .subscribe(result -> {
+                testContext.awaitCompletion(1500, TimeUnit.MILLISECONDS);
                 if (result.statusCode() == 200 && isAdmin) {
                     JsonArray resultBody = result.bodyAsJsonArray();
                     assertThat(resultBody.size()).isEqualTo(2);

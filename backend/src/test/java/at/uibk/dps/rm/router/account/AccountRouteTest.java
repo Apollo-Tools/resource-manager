@@ -9,6 +9,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.util.concurrent.TimeUnit;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -30,6 +32,7 @@ public class AccountRouteTest extends RouterTest {
             .putHeader("Authorization", token)
             .send()
             .subscribe(result -> {
+                testContext.awaitCompletion(1500, TimeUnit.MILLISECONDS);
                 if (result.statusCode() == 200 && loggedInUserId == 1) {
                     assertThat(result.bodyAsJsonObject().getLong("account_id")).isEqualTo(getUserId);
                     assertThat(result.bodyAsJsonObject().getString("username")).isEqualTo("user2");
@@ -52,6 +55,7 @@ public class AccountRouteTest extends RouterTest {
             .putHeader("Authorization", token)
             .send()
             .subscribe(result -> {
+                testContext.awaitCompletion(1500, TimeUnit.MILLISECONDS);
                 if (result.statusCode() == 200 && isAdmin) {
                     assertThat(result.bodyAsJsonArray().size()).isEqualTo(2);
                     assertThat(result.bodyAsJsonArray().getJsonObject(0).getString("username"))
@@ -81,6 +85,7 @@ public class AccountRouteTest extends RouterTest {
             .putHeader("Authorization", token)
             .send()
             .subscribe(result -> {
+                testContext.awaitCompletion(1500, TimeUnit.MILLISECONDS);
                 if (result.statusCode() == 204 && loggedInUserId == 1) {
                     testContext.completeNow();
                 } else if (result.statusCode() == 403 && loggedInUserId == 2) {
@@ -101,6 +106,7 @@ public class AccountRouteTest extends RouterTest {
             .putHeader("Authorization", token)
             .sendJsonObject(newUser)
             .subscribe(result -> {
+                testContext.awaitCompletion(1500, TimeUnit.MILLISECONDS);
                 if (result.statusCode() == 201 && isAdmin) {
                     JsonObject resultUser = result.bodyAsJsonObject();
                     assertThat(resultUser.getLong("account_id")).isEqualTo(3L);
