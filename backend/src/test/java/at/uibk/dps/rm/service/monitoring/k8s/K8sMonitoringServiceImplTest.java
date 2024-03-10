@@ -215,24 +215,20 @@ public class K8sMonitoringServiceImplTest {
 
     @Test
     void setupLocalClientIOException() {
-        try(MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
-                MockedStatic<Config> k8sConfig = Mockito.mockStatic(Config.class)) {
+        try(MockedStatic<Config> k8sConfig = Mockito.mockStatic(Config.class)) {
             k8sConfig.when(Config::defaultClient).thenThrow(IOException.class);
 
-            assertThrows(MonitoringException.class, () -> monitoringService.listSecrets(apiClient, config));
+            assertThrows(MonitoringException.class, K8sMonitoringServiceImpl::setUpLocalClient);
         }
     }
 
     @Test
     void setupExternalClientIOException() {
-        try(MockedConstruction<ConfigUtility> ignoredConfig = Mockprovider.mockConfig(config);
-                MockedStatic<Config> k8sConfig = Mockito.mockStatic(Config.class);
-                MockedConstruction<CoreV1Api> ignore = K8sObjectMockprovider
-                    .mockCoreV1ApiListNamespaces(config, namespaceList)) {
+        try(MockedStatic<Config> k8sConfig = Mockito.mockStatic(Config.class)) {
             k8sConfig.when(() -> Config.fromConfig(kubeConfigPath.toAbsolutePath().toString()))
                 .thenThrow(IOException.class);
 
-            assertThrows(MonitoringException.class, () -> monitoringService.listNamespaces(apiClient, config));
+            assertThrows(MonitoringException.class, () -> K8sMonitoringServiceImpl.setUpExternalClient(kubeConfigPath));
         }
     }
 }
