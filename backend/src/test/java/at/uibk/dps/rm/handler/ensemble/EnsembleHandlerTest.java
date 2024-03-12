@@ -7,6 +7,7 @@ import at.uibk.dps.rm.entity.dto.ensemble.ResourceEnsembleStatus;
 import at.uibk.dps.rm.entity.model.Account;
 import at.uibk.dps.rm.entity.model.Ensemble;
 import at.uibk.dps.rm.entity.model.Resource;
+import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.service.database.util.EnsembleUtility;
 import at.uibk.dps.rm.service.rxjava3.database.ensemble.EnsembleService;
 import at.uibk.dps.rm.service.rxjava3.database.metric.MetricService;
@@ -132,6 +133,34 @@ public class EnsembleHandlerTest {
             when(context.owner()).thenReturn(vertx);
             ensembleHandler.validateNewResourceEnsembleSLOs(rc)
                 .subscribe(testContext::completeNow, throwable -> testContext.failNow("method has thrown exception"));
+        }
+    }
+
+    @Test
+    void validateNewResourceEnsembleSLOsMisMatch(VertxTestContext testContext) {
+        CreateEnsembleRequest request = TestDTOProvider.createCreateEnsembleRequest(1L);
+        JsonObject body = JsonObject.mapFrom(request);
+        JsonObject r1Json = JsonObject.mapFrom(r1);
+        JsonObject r2Json = JsonObject.mapFrom(r2);
+        JsonArray filterResources = new JsonArray(List.of(r1Json, r2Json));
+
+        RoutingContextMockHelper.mockBody(rc, body);
+        when(metricService.checkMetricTypeForSLOs(body)).thenReturn(Completable.complete());
+        when(resourceService.findAllByNonMonitoredSLOs(body)).thenReturn(Single.just(filterResources));
+
+        try (MockedStatic<Vertx> mockedVertx = mockStatic(Vertx.class);
+                MockedConstruction<ConfigUtility> ignoreConfig = Mockprovider.mockConfig(config);
+                MockedConstruction<SLOValidator> ignoreSLOValidator = SLOMockProvider
+                    .mockSLOValidatorFilter(request.getServiceLevelObjectives(), Set.of())) {
+            mockedVertx.when(Vertx::currentContext).thenReturn(context);
+            when(context.owner()).thenReturn(vertx);
+            ensembleHandler.validateNewResourceEnsembleSLOs(rc)
+                .subscribe(() -> testContext.failNow("method did not throw exception"),
+                    throwable -> {
+                        assertThat(throwable).isInstanceOf(BadInputException.class);
+                        assertThat(throwable.getMessage()).isEqualTo("slo mismatch");
+                        testContext.completeNow();
+                    });
         }
     }
 

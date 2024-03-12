@@ -74,9 +74,7 @@ public class RegionMonitoringHandler implements MonitoringHandler {
 
     @Override
     public void pauseMonitoringLoop() {
-        if (!vertx.cancelTimer(currentTimer)) {
-            vertx.cancelTimer(currentTimer);
-        }
+        vertx.cancelTimer(currentTimer);
         currentTimer = -1L;
     }
 }

@@ -2,6 +2,7 @@ package at.uibk.dps.rm.verticle;
 
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.handler.alerting.AlertingHandler;
+import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.vertx.core.impl.logging.Logger;
@@ -27,7 +28,9 @@ public class AlertingVerticle extends AbstractVerticle {
     public Completable rxStart() {
         WebClient webClient = WebClient.create(vertx);
         ConfigDTO config = config().mapTo(ConfigDTO.class);
-        AlertingHandler alertingHandler = new AlertingHandler(vertx, webClient, config);
+        ServiceProxyProvider serviceProxyProvider = new ServiceProxyProvider(vertx);
+        AlertingHandler alertingHandler = new AlertingHandler(vertx, webClient, config,
+            serviceProxyProvider.getDeploymentService(), serviceProxyProvider.getMetricQueryService());
         alertingHandlers.add(alertingHandler);
         return startAlertingLoop();
     }

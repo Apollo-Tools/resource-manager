@@ -7,6 +7,7 @@ import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
 import at.uibk.dps.rm.entity.dto.ListResourcesBySLOsRequest;
 import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
+import at.uibk.dps.rm.entity.dto.deployment.DeploymentAlertingDTO;
 import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
 import at.uibk.dps.rm.entity.dto.function.InvocationMonitoringDTO;
 import at.uibk.dps.rm.entity.dto.function.InvocationResponseBodyDTO;
@@ -263,5 +264,16 @@ public class TestDTOProvider {
         invokeFunctionDTO.setBody(body);
         invokeFunctionDTO.setStatusCode(statusCode);
         return invokeFunctionDTO;
+    }
+
+    public static DeploymentAlertingDTO createDeploymentAlertingDTO(long deploymentId, long ensembleId,
+            List<Resource> resources, List<EnsembleSLO> ensembleSLOS) {
+        DeploymentAlertingDTO deploymentAlertingDTO = new DeploymentAlertingDTO();
+        deploymentAlertingDTO.setDeploymentId(deploymentId);
+        deploymentAlertingDTO.setEnsembleId(ensembleId);
+        deploymentAlertingDTO.setResources(resources);
+        deploymentAlertingDTO.setEnsembleSLOs(ensembleSLOS);
+        deploymentAlertingDTO.setAlertingUrl("http://localhost:9999");
+        return deploymentAlertingDTO;
     }
 }

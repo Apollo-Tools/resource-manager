@@ -119,9 +119,9 @@ public class SLOValidator {
     }
 
     /**
-     * Validate resources by monitored metrics using ensemble SLOs.
+     * Validate resources by monitored metrics using ensemble SLOs and return invalid resources.
      *
-     * @return the filtered resources
+     * @return the invalid resources
      */
     public Single<List<Resource>> validateResourcesByMonitoredMetrics(DeploymentAlertingDTO deployment) {
         ResourceFilterProvider resourceFilterProvider = new ResourceFilterProvider(metricQueryService, configDTO,

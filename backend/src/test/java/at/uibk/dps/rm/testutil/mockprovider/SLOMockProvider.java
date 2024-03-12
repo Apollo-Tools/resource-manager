@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.testutil.mockprovider;
 
+import at.uibk.dps.rm.entity.dto.deployment.DeploymentAlertingDTO;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.Resource;
 import at.uibk.dps.rm.util.validation.SLOValidator;
@@ -52,5 +53,12 @@ public class SLOMockProvider {
                 doReturn(sortOrder * -1).when(mock).sortResourceBySLOs(
                     argThat((Resource r2) -> r2!=null && r2.equals(validResource2)), eq(validResource1), anyList());
             });
+    }
+
+    public static MockedConstruction<SLOValidator> mockSLOValidatorValidate(DeploymentAlertingDTO deploymentAlertingDTO,
+            List<Resource> invalidResources) {
+        return Mockito.mockConstruction(SLOValidator.class,
+            (mock, context) -> when(mock.validateResourcesByMonitoredMetrics(deploymentAlertingDTO))
+                .thenReturn(Single.just(invalidResources)));
     }
 }

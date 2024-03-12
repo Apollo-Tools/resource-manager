@@ -51,7 +51,7 @@ public class DeploymentInputHandler {
      * @return a Completable
      */
     private static Completable checkForListDuplicates(List<?> entries) {
-        if (entries == null || entries.isEmpty()) {
+        if (entries.isEmpty()) {
             return Completable.complete();
         }
 
