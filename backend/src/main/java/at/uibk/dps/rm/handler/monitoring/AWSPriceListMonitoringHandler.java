@@ -110,9 +110,7 @@ public class AWSPriceListMonitoringHandler implements MonitoringHandler {
     @Override
     public void pauseMonitoringLoop() {
         pauseLoop = true;
-        if (!vertx.cancelTimer(currentTimer)) {
-            vertx.cancelTimer(currentTimer);
-        }
+        vertx.cancelTimer(currentTimer);
         currentTimer = -1L;
     }
 }

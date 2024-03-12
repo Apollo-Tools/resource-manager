@@ -4,7 +4,8 @@ import at.uibk.dps.rm.entity.alerting.AlertMessage;
 import at.uibk.dps.rm.entity.alerting.AlertType;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.deployment.DeploymentAlertingDTO;
-import at.uibk.dps.rm.service.ServiceProxyProvider;
+import at.uibk.dps.rm.service.rxjava3.database.deployment.DeploymentService;
+import at.uibk.dps.rm.service.rxjava3.monitoring.metricquery.MetricQueryService;
 import at.uibk.dps.rm.util.validation.SLOValidator;
 import io.reactivex.rxjava3.core.Observable;
 import io.vertx.core.Handler;
@@ -28,7 +29,6 @@ import java.util.stream.Stream;
  */
 @RequiredArgsConstructor
 public class AlertingHandler {
-
     private static final Logger logger = LoggerFactory.getLogger(AlertingHandler.class);
 
     private final Vertx vertx;
@@ -36,6 +36,10 @@ public class AlertingHandler {
     private final WebClient webClient;
 
     private final ConfigDTO configDTO;
+
+    private final DeploymentService deploymentService;
+
+    private final MetricQueryService metricQueryService;
 
 
     private long currentTimer = -1L;
@@ -53,14 +57,12 @@ public class AlertingHandler {
                 configDTO.getOpenfaasMonitoringPeriod(), configDTO.getRegionMonitoringPeriod())
             .min(Comparator.naturalOrder())
             .get() * 1000;
-        ServiceProxyProvider serviceProxyProvider = new ServiceProxyProvider(vertx);
-        validationHandler = id -> serviceProxyProvider.getDeploymentService().findAllActiveWithAlerting()
+        validationHandler = id -> deploymentService.findAllActiveWithAlerting()
             .flatMapObservable(Observable::fromIterable)
             .map(deploymentAlerting -> ((JsonObject) deploymentAlerting).mapTo(DeploymentAlertingDTO.class))
             .flatMap(deployment -> {
                 logger.info("Validate resources of deployment: " + deployment.getDeploymentId());
-                SLOValidator sloValidator = new SLOValidator(serviceProxyProvider.getMetricQueryService(), configDTO,
-                    deployment.getResources());
+                SLOValidator sloValidator = new SLOValidator(metricQueryService, configDTO, deployment.getResources());
                 return sloValidator.validateResourcesByMonitoredMetrics(deployment)
                     .flatMapObservable(Observable::fromIterable)
                     .flatMap(resource -> Observable.fromIterable(resource.getMonitoredMetricValues())
@@ -89,7 +91,7 @@ public class AlertingHandler {
             })
             .toList()
             .subscribe(res -> {
-                logger.info("Finished: validation of deployment");
+                logger.info("Finished: validation of deployments");
                 currentTimer = pauseLoop ? currentTimer : vertx.setTimer((long) minPeriod, validationHandler);
             }, throwable -> {
                 logger.error(throwable.getMessage());
@@ -103,9 +105,7 @@ public class AlertingHandler {
      */
     public void pauseValidationLoop() {
         pauseLoop = true;
-        if (!vertx.cancelTimer(currentTimer)) {
-            vertx.cancelTimer(currentTimer);
-        }
+        vertx.cancelTimer(currentTimer);
         currentTimer = -1L;
     }
 }

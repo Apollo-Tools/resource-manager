@@ -1,6 +1,8 @@
 package at.uibk.dps.rm.entity.alerting;
 
 import at.uibk.dps.rm.entity.dto.metric.MonitoredMetricValue;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 /**
@@ -44,6 +46,19 @@ public class AlertMessage {
             this.value = null;
         }
         timestamp = System.currentTimeMillis() / 1000L;
+    }
+
+    @JsonCreator
+    public AlertMessage(@JsonProperty("type") AlertType type,
+                        @JsonProperty("resource_id") long resourceId,
+                        @JsonProperty("metric") String metric,
+                        @JsonProperty("value") Object value,
+                        @JsonProperty("timestamp") long timestamp) {
+        this.type = type;
+        this.resourceId = resourceId;
+        this.metric = metric;
+        this.value = value;
+        this.timestamp = timestamp;
     }
 
 }
