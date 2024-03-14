@@ -17,7 +17,7 @@ import java.util.Map;
  */
 @UtilityClass
 public class TestDeploymentProvider {
-    public static ResourceDeployment createResourceDeployment(long id, Deployment deployment, Resource resource,
+    public static ResourceDeployment createResourceDeployment(Long id, Deployment deployment, Resource resource,
                                                                 ResourceDeploymentStatus resourceDeploymentStatus) {
         ResourceDeployment resourceDeployment = new FunctionDeployment();
         resourceDeployment.setResourceDeploymentId(id);
@@ -33,11 +33,16 @@ public class TestDeploymentProvider {
         return createResourceDeployment(id, deployment, resource, status);
     }
 
-    public static Deployment createDeployment(Long id, Account account) {
+    public static Deployment createDeployment(Long id, Account account, Ensemble ensemble) {
         Deployment deployment = new Deployment();
         deployment.setDeploymentId(id);
         deployment.setCreatedBy(account);
+        deployment.setEnsemble(ensemble);
         return  deployment;
+    }
+
+    public static Deployment createDeployment(Long id, Account account) {
+        return createDeployment(id, account, null);
     }
 
     public static Deployment createDeployment(Long id) {
@@ -45,23 +50,31 @@ public class TestDeploymentProvider {
         return createDeployment(id, account);
     }
 
-    public static ResourceDeploymentStatus createResourceDeploymentStatus(long id, DeploymentStatusValue status) {
+    public static ResourceDeploymentStatus createResourceDeploymentStatus(Long id, DeploymentStatusValue status) {
         ResourceDeploymentStatus rrs = new ResourceDeploymentStatus();
         rrs.setStatusId(id);
         rrs.setStatusValue(status.name());
         return rrs;
     }
 
+    public static ResourceDeploymentStatus createResourceDeploymentStatusNew(Long id) {
+        return createResourceDeploymentStatus(id, DeploymentStatusValue.NEW);
+    }
+
     public static ResourceDeploymentStatus createResourceDeploymentStatusNew() {
-        return createResourceDeploymentStatus(1L, DeploymentStatusValue.NEW);
+        return createResourceDeploymentStatusNew(1L);
     }
 
     public static ResourceDeploymentStatus createResourceDeploymentStatusError() {
         return createResourceDeploymentStatus(2L, DeploymentStatusValue.ERROR);
     }
 
+    public static ResourceDeploymentStatus createResourceDeploymentStatusDeployed(Long id) {
+        return createResourceDeploymentStatus(id, DeploymentStatusValue.DEPLOYED);
+    }
+
     public static ResourceDeploymentStatus createResourceDeploymentStatusDeployed() {
-        return createResourceDeploymentStatus(3L, DeploymentStatusValue.DEPLOYED);
+        return createResourceDeploymentStatusDeployed(3L);
     }
 
     public static ResourceDeploymentStatus createResourceDeploymentStatusTerminating() {

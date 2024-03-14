@@ -2,7 +2,7 @@ package at.uibk.dps.rm.repository.deployment;
 
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.testutil.integration.DatabaseTest;
-import at.uibk.dps.rm.testutil.objectprovider.TestDeploymentProvider;
+import at.uibk.dps.rm.testutil.objectprovider.*;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.junit5.VertxTestContext;
@@ -35,12 +35,24 @@ public class DeploymentRepositoryTest extends DatabaseTest {
         super.fillDB(vertx, testContext);
 
         smProvider.withTransactionSingle(sessionManager -> {
-            Deployment d1 = TestDeploymentProvider.createDeployment(null, accountAdmin);
-            Deployment d2 = TestDeploymentProvider.createDeployment(null, accountAdmin);
+            Ensemble e1 = TestEnsembleProvider.createEnsemble(null, accountAdmin.getAccountId(), "e1", true);
+            Region reg1 = TestResourceProviderProvider.createRegion(1L, "us-east-1");
+            Platform p1 = TestPlatformProvider.createPlatformContainer(4L, "k8s");
+            Resource r1 = TestResourceProvider.createResource(null, "r1", p1, reg1);
+            Deployment d1 = TestDeploymentProvider.createDeployment(null, accountAdmin, e1);
+            Deployment d2 = TestDeploymentProvider.createDeployment(null, accountAdmin, e1);
             Deployment d3 = TestDeploymentProvider.createDeployment(null, accountDefault);
+            ResourceDeploymentStatus rdsDeployed = TestDeploymentProvider.createResourceDeploymentStatusDeployed();
+            ResourceDeploymentStatus rdsNew = TestDeploymentProvider.createResourceDeploymentStatusNew();
+            ResourceDeployment rd1 = TestDeploymentProvider.createResourceDeployment(null, d1, r1, rdsNew);
+            ResourceDeployment rd2 = TestDeploymentProvider.createResourceDeployment(null, d2, r1, rdsDeployed);
             return sessionManager.persist(d1)
                 .flatMap(res -> sessionManager.persist(d2))
-                .flatMap(res -> sessionManager.persist(d3));
+                .flatMap(res -> sessionManager.persist(d3))
+                .flatMap(res -> sessionManager.persist(e1))
+                .flatMap(res -> sessionManager.persist(r1))
+                .flatMap(res -> sessionManager.persist(rd1))
+                .flatMap(res -> sessionManager.persist(rd2));
         }).blockingSubscribe(res -> {}, testContext::failNow);
     }
 
@@ -59,6 +71,16 @@ public class DeploymentRepositoryTest extends DatabaseTest {
             .subscribe(result -> testContext.verify(() -> {
                 assertThat(result.stream().map(Deployment::getDeploymentId).collect(Collectors.toList()))
                     .isEqualTo(deploymentIds);
+                testContext.completeNow();
+            }), throwable -> testContext.failNow("method has thrown exception"));
+    }
+
+    @Test
+    void findAllActiveWithAlerting(VertxTestContext testContext) {
+        smProvider.withTransactionSingle(repository::findAllActiveWithAlerting)
+            .subscribe(result -> testContext.verify(() -> {
+                assertThat(result.stream().map(Deployment::getDeploymentId).collect(Collectors.toList()))
+                    .isEqualTo(List.of(2L));
                 testContext.completeNow();
             }), throwable -> testContext.failNow("method has thrown exception"));
     }

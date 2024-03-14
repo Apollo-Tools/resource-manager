@@ -44,7 +44,7 @@ public class TestEnsembleProvider {
         return createEnsemble(ensembleId, accountId, name, true);
     }
 
-    public static Ensemble createEnsemble(long ensembleId, long accountId) {
+    public static Ensemble createEnsemble(Long ensembleId, long accountId) {
         String name = "ensemble" + ensembleId;
         return createEnsemble(ensembleId, accountId, name);
     }
