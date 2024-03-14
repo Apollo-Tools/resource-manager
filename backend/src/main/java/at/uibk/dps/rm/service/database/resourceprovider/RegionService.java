@@ -45,6 +45,14 @@ public interface RegionService extends DatabaseServiceInterface {
     void findAllByProviderId(long providerId, Handler<AsyncResult<JsonArray>> resultHandler);
 
     /**
+     * Find all regions that belong to the resource provider.
+     *
+     * @param providerName the name of the resource provider
+     * @param resultHandler receives the found regions as JsonArray
+     */
+    void findAllByProviderName(String providerName, Handler<AsyncResult<JsonArray>> resultHandler);
+
+    /**
      * Find all regions by platform.
      *
      * @param platformId the id of the platform

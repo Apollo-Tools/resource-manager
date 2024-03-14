@@ -48,6 +48,15 @@ public class AlertMessage {
         timestamp = System.currentTimeMillis() / 1000L;
     }
 
+    /**
+     * Create a new instance from the type, resourceId, metric, value and timestamp.
+     *
+     * @param type the type of the alert
+     * @param resourceId the resource id
+     * @param metric the metric
+     * @param value the observed value
+     * @param timestamp the timestamp of the alert
+     */
     @JsonCreator
     public AlertMessage(@JsonProperty("type") AlertType type,
                         @JsonProperty("resource_id") long resourceId,

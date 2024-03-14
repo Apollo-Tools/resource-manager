@@ -57,8 +57,7 @@ public interface K8sMonitoringService {
      *
      * @param apiClient the k8s client
      * @param config the vertx config
-     * @return a Map where the key is the name of the node where the pod is running and the value
-     * are the pod metrics
+     * @return a Map where the key is the name of the pod and the value is the pod metrics
      */
     Map<String, PodMetrics> getCurrentPodUtilisation(ApiClient apiClient, ConfigDTO config);
 }

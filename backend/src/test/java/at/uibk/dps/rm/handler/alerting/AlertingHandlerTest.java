@@ -90,6 +90,7 @@ public class AlertingHandlerTest {
 
     @BeforeEach
     void initTest(Vertx vertx) {
+        clearInvocations(logger);
         JsonMapperConfig.configJsonMapper();
         ConfigDTO configDTO = TestConfigProvider.getConfigDTO();
         configDTO.setRegionMonitoringPeriod(5.0);
@@ -108,9 +109,8 @@ public class AlertingHandlerTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    public void testStartValidationLoopNoDeployments(boolean pauseLoop, VertxTestContext testContext)
+    public void startValidationLoopNoDeployments(boolean pauseLoop, VertxTestContext testContext)
             throws InterruptedException {
-        clearInvocations(logger);
         when(deploymentService.findAllActiveWithAlerting()).thenReturn(Single.just(new JsonArray()));
 
         alertingHandler.startValidationLoop();
@@ -118,7 +118,7 @@ public class AlertingHandlerTest {
         if (pauseLoop) {
             alertingHandler.pauseValidationLoop();
             testContext.awaitCompletion(5, TimeUnit.SECONDS);
-            verify(spyVertx, times(1)).setTimer(eq(5000L), any());
+            verify(spyVertx).setTimer(eq(5000L), any());
             ArgumentCaptor<String> loggerInfo = ArgumentCaptor.forClass(String.class);
             verify(logger).info(loggerInfo.capture());
             assertThat(loggerInfo.getValue()).isEqualTo("Finished: validation of deployments");
@@ -134,8 +134,7 @@ public class AlertingHandlerTest {
     }
 
     @Test
-    public void testStartValidationLoopNoBreach(VertxTestContext testContext) throws InterruptedException {
-        clearInvocations(logger);
+    public void startValidationLoopNoBreach(VertxTestContext testContext) throws InterruptedException {
         JsonObject alertingDTO = JsonObject.mapFrom(deploymentAlertingDTO);
         when(deploymentService.findAllActiveWithAlerting())
             .thenReturn(Single.just(new JsonArray(List.of(alertingDTO))));
@@ -153,8 +152,7 @@ public class AlertingHandlerTest {
     }
 
     @Test
-    public void testStartValidationLoopBreachSuccessfulNotification() {
-        clearInvocations(logger);
+    public void startValidationLoopBreachSuccessfulNotification() {
         MonitoredMetricValue monitoredMetricValue =
             TestMetricProvider.createMonitoredMetricValue(MonitoringMetricEnum.CPU_UTIL, 95.0);
         r1.getMonitoredMetricValues().add(monitoredMetricValue);
@@ -184,8 +182,7 @@ public class AlertingHandlerTest {
     }
 
     @Test
-    public void testStartValidationLoopBreachFailedNotification() {
-        clearInvocations(logger);
+    public void startValidationLoopBreachFailedNotification() {
         MonitoredMetricValue monitoredMetricValue =
             TestMetricProvider.createMonitoredMetricValue(MonitoringMetricEnum.CPU_UTIL, 95.0);
         r1.getMonitoredMetricValues().add(monitoredMetricValue);
@@ -216,8 +213,7 @@ public class AlertingHandlerTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    public void testStartValidationLoopError(boolean pauseLoop, VertxTestContext testContext) throws InterruptedException {
-        clearInvocations(logger);
+    public void startValidationLoopError(boolean pauseLoop, VertxTestContext testContext) throws InterruptedException {
         when(deploymentService.findAllActiveWithAlerting()).thenReturn(Single.error(SerializationException::new));
 
         alertingHandler.startValidationLoop();

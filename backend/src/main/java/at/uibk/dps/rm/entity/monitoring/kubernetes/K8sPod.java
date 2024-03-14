@@ -31,9 +31,9 @@ public class K8sPod implements K8sEntityData {
 
     private V1Pod v1Pod;
 
-    private Quantity cpuLoad;
+    private Quantity cpuLoad = new Quantity("0");
 
-    private Quantity memoryLoad;
+    private Quantity memoryLoad = new Quantity("0");
 
     private Quantity storageLoad = new Quantity("0");
 

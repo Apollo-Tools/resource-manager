@@ -46,7 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @ExtendWith(MockitoExtension.class)
 public class K8sMonitoringServiceImplTest {
 
-    private K8sMonitoringService monitoringService;
+    private K8sMonitoringServiceImpl monitoringService;
 
     @Mock
     private ApiClient apiClient;
@@ -218,7 +218,7 @@ public class K8sMonitoringServiceImplTest {
         try(MockedStatic<Config> k8sConfig = Mockito.mockStatic(Config.class)) {
             k8sConfig.when(Config::defaultClient).thenThrow(IOException.class);
 
-            assertThrows(MonitoringException.class, K8sMonitoringServiceImpl::setUpLocalClient);
+            assertThrows(MonitoringException.class, monitoringService::setUpLocalClient);
         }
     }
 
@@ -228,7 +228,7 @@ public class K8sMonitoringServiceImplTest {
             k8sConfig.when(() -> Config.fromConfig(kubeConfigPath.toAbsolutePath().toString()))
                 .thenThrow(IOException.class);
 
-            assertThrows(MonitoringException.class, () -> K8sMonitoringServiceImpl.setUpExternalClient(kubeConfigPath));
+            assertThrows(MonitoringException.class, () -> monitoringService.setUpExternalClient(kubeConfigPath));
         }
     }
 }

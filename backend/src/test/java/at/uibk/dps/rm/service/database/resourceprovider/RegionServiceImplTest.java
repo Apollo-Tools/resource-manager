@@ -96,7 +96,7 @@ public class RegionServiceImplTest {
         long providerId = 3L;
 
         SessionMockHelper.mockSingle(smProvider, sessionManager);
-        when(regionRepository.findAllByProviderId(sessionManager, providerId)).thenReturn(Single.just(List.of(r1, r2)));
+        when(regionRepository.findAllByProvider(sessionManager, providerId)).thenReturn(Single.just(List.of(r1, r2)));
 
         regionService.findAllByProviderId(providerId, testContext.succeeding(result -> testContext.verify(() -> {
             assertThat(result.size()).isEqualTo(2);

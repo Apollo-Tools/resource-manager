@@ -51,7 +51,14 @@ public class RegionServiceImpl extends DatabaseServiceProxy<Region> implements R
     @Override
     public void findAllByProviderId(long providerId, Handler<AsyncResult<JsonArray>> resultHandler) {
         Single<List<Region>> findAll = smProvider.withTransactionSingle(sm -> repository
-            .findAllByProviderId(sm, providerId));
+            .findAllByProvider(sm, providerId));
+        RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
+    }
+
+    @Override
+    public void findAllByProviderName(String providerName, Handler<AsyncResult<JsonArray>> resultHandler) {
+        Single<List<Region>> findAll = smProvider.withTransactionSingle(sm -> repository
+            .findAllByProvider(sm, providerName));
         RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }
 

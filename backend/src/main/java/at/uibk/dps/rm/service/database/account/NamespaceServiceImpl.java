@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.service.database.account;
 
 import at.uibk.dps.rm.entity.model.K8sNamespace;
-import at.uibk.dps.rm.exception.MonitoringException;
+import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.account.NamespaceRepository;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
@@ -57,8 +57,7 @@ public class NamespaceServiceImpl extends DatabaseServiceProxy<K8sNamespace> imp
             Handler<AsyncResult<Void>> resultHandler) {
         Completable updateAll = smProvider.withTransactionCompletable(sm -> resourceRepository
             .findClusterByName(sm, clusterName)
-            // TODO: handle not found exception in Monitoring verticle and throw as monitoring exception
-            .switchIfEmpty(Maybe.error(new MonitoringException("cluster " + clusterName + " is not registered")))
+            .switchIfEmpty(Maybe.error(new NotFoundException("cluster " + clusterName + " is not registered")))
             .flatMapCompletable(resource -> repository.findAllByClusterName(sm, clusterName)
                 .flatMapCompletable(existingNamespaces -> {
                     Object[] newNamespaces = namespaces.stream()

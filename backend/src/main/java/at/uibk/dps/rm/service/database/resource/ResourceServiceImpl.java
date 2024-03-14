@@ -6,7 +6,6 @@ import at.uibk.dps.rm.entity.dto.resource.SubResourceDTO;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sMonitoringData;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
-import at.uibk.dps.rm.exception.MonitoringException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
@@ -195,8 +194,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
         K8sResourceUpdateUtility updateUtility = new K8sResourceUpdateUtility();
         Single<K8sMonitoringData> updateClusterResource = smProvider.withTransactionSingle(sm -> repository
             .findClusterByName(sm, clusterName)
-            // TODO: swap with NotFoundException and handle in Monitoring Verticle
-            .switchIfEmpty(Maybe.error(new MonitoringException("cluster " + clusterName + " is not registered")))
+            .switchIfEmpty(Maybe.error(new NotFoundException("cluster " + clusterName + " is not registered")))
             .flatMapCompletable(cluster -> {
                 data.setResourceId(cluster.getResourceId());
                 if (!data.getIsUp()) {
