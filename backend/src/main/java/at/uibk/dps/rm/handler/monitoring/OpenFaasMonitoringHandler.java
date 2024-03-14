@@ -36,48 +36,54 @@ public class OpenFaasMonitoringHandler implements MonitoringHandler {
 
     private final ConfigDTO configDTO;
 
+    private final ServiceProxyProvider serviceProxyProvider;
+
+    private final LatencyMonitoringUtility latencyMonitoringUtility;
+
     private long currentTimer = -1L;
 
     @Override
     public void startMonitoringLoop() {
         long period = (long) (configDTO.getOpenfaasMonitoringPeriod() * 1000);
-        ServiceProxyProvider serviceProxyProvider = new ServiceProxyProvider(vertx);
-        Handler<Long> monitoringHandler = id -> serviceProxyProvider.getResourceService()
-            .findAllByPlatform(PlatformEnum.OPENFAAS.getValue())
-            .flatMapObservable(Observable::fromIterable)
-            .map(resource -> ((JsonObject) resource).mapTo(Resource.class))
-            .filter(resource -> {
-                Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
-                return metricValues.containsKey("base-url");
-            })
-            .flatMapSingle(resource -> {
-                logger.info("Monitor latency: " + resource.getName());
-                Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
-                String pingUrl = LatencyMonitoringUtility.getPingUrl(metricValues.get("base-url").getValueString());
-                return LatencyMonitoringUtility.measureLatency(configDTO.getLatencyMonitoringCount(), pingUrl)
-                    .map(processOutput -> {
-                        OpenFaasConnectivity connectivity = new OpenFaasConnectivity();
-                        connectivity.setResourceId(resource.getResourceId());
-                        if (processOutput.getProcess().exitValue() == 0) {
-                            connectivity.setLatencySeconds(Double.parseDouble(processOutput.getOutput()) / 1000);
-                        } else {
-                            logger.info("Resource " + resource.getName() + " not reachable: " +
-                                processOutput.getOutput());
-                        }
-                        return connectivity;
-                    });
-            })
-            .filter(connectivity -> connectivity.getLatencySeconds() != null)
-            .toList()
-            .map(connectivities -> {
-                JsonArray serializedConnectivities = new JsonArray(Json.encode(connectivities));
-                return serviceProxyProvider.getOpenFaasMetricPushService()
-                    .composeAndPushMetrics(serializedConnectivities)
-                    .subscribe();
-            })
-            .subscribe(res -> logger.info("Finished: monitor openfaas resources"),
-                throwable -> logger.error(throwable.getMessage()));
-        currentTimer = vertx.setPeriodic(period, monitoringHandler);
+        Handler<Long> monitoringHandler = id -> {
+            logger.info("Started: monitor openfaas resources");
+            serviceProxyProvider.getResourceService()
+                .findAllByPlatform(PlatformEnum.OPENFAAS.getValue())
+                .flatMapObservable(Observable::fromIterable)
+                .map(resource -> ((JsonObject) resource).mapTo(Resource.class))
+                .filter(resource -> {
+                    Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
+                    return metricValues.containsKey("base-url");
+                })
+                .flatMapSingle(resource -> {
+                    logger.info("Monitor latency: " + resource.getName());
+                    Map<String, MetricValue> metricValues = MetricValueMapper.mapMetricValues(resource.getMetricValues());
+                    String pingUrl = latencyMonitoringUtility.getPingUrl(metricValues.get("base-url").getValueString());
+                    return latencyMonitoringUtility.measureLatency(configDTO.getLatencyMonitoringCount(), pingUrl)
+                        .map(processOutput -> {
+                            OpenFaasConnectivity connectivity = new OpenFaasConnectivity();
+                            connectivity.setResourceId(resource.getResourceId());
+                            if (processOutput.getProcess().exitValue() == 0) {
+                                connectivity.setLatencySeconds(Double.parseDouble(processOutput.getOutput()) / 1000);
+                            } else {
+                                logger.info("Resource " + resource.getName() + " not reachable: " +
+                                    processOutput.getOutput());
+                            }
+                            return connectivity;
+                        });
+                })
+                .filter(connectivity -> connectivity.getLatencySeconds() != null)
+                .toList()
+                .map(connectivities -> {
+                    JsonArray serializedConnectivities = new JsonArray(Json.encode(connectivities));
+                    return serviceProxyProvider.getOpenFaasMetricPushService()
+                        .composeAndPushMetrics(serializedConnectivities)
+                        .subscribe();
+                })
+                .subscribe(res -> logger.info("Finished: monitor openfaas resources"),
+                    throwable -> logger.error(throwable.getMessage()));
+        };
+        currentTimer = vertx.setPeriodic(0L, period, monitoringHandler);
     }
 
     @Override

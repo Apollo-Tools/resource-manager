@@ -159,7 +159,7 @@ public class RegionRepositoryTest extends DatabaseTest {
     @ParameterizedTest
     @MethodSource("provideFindAllByProvider")
     void findAllByProviderId(long providerId, List<Long> expected, VertxTestContext testContext) {
-        smProvider.withTransactionSingle(sessionManager -> repository.findAllByProviderId(sessionManager, providerId))
+        smProvider.withTransactionSingle(sessionManager -> repository.findAllByProvider(sessionManager, providerId))
             .subscribe(result -> testContext.verify(() -> {
                 assertThat(result.stream().map(Region::getRegionId).collect(Collectors.toList())).isEqualTo(expected);
                 testContext.completeNow();

@@ -3,7 +3,7 @@ package at.uibk.dps.rm.service.database.util;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sMonitoringData;
 import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sNode;
-import at.uibk.dps.rm.testutil.objectprovider.TestMonitoringDataProvider;
+import at.uibk.dps.rm.testutil.objectprovider.TestK8sProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import io.kubernetes.client.openapi.models.V1Namespace;
 import io.reactivex.rxjava3.core.Completable;
@@ -44,11 +44,11 @@ public class K8sResourceUpdateUtilityTest {
         utility = new K8sResourceUpdateUtility();
         mr = TestResourceProvider.createClusterWithNodes(1L, "cluster", "n1",
             "n2", "n4");
-        K8sNode k8sn1 = TestMonitoringDataProvider.createK8sNode("n1", 10.0, 8.75,
+        K8sNode k8sn1 = TestK8sProvider.createK8sNode("n1", 10.0, 8.75,
             1000, 500, 10000, 5000);
-        K8sNode k8sn3 = TestMonitoringDataProvider.createK8sNode("n3", 2.0, 0.5,
+        K8sNode k8sn3 = TestK8sProvider.createK8sNode("n3", 2.0, 0.5,
             200, 100, 2000, 1000);
-        V1Namespace namespace = TestMonitoringDataProvider.createV1Namespace("default");
+        V1Namespace namespace = TestK8sProvider.createNamespace("default");
         monitoringData = new K8sMonitoringData("cluster", "http://clusterurl:9999", 1L,
             List.of(k8sn1, k8sn3), List.of(namespace), true, 0.15);
     }

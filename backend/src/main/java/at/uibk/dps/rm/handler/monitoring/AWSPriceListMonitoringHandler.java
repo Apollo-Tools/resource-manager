@@ -18,7 +18,6 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
-import io.vertx.rxjava3.ext.web.client.WebClient;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -33,9 +32,13 @@ public class AWSPriceListMonitoringHandler implements MonitoringHandler {
 
     private final Vertx vertx;
 
-    private final WebClient webClient;
-
     private final ConfigDTO configDTO;
+
+    private final ServiceProxyProvider serviceProxyProvider;
+
+    private final LambdaPriceMonitoring lambdaPriceMonitoring;
+
+    private final EC2PriceMonitoring ec2PriceMonitoring;
 
     private long currentTimer = -1L;
 
@@ -48,9 +51,6 @@ public class AWSPriceListMonitoringHandler implements MonitoringHandler {
     public void startMonitoringLoop() {
         pauseLoop = false;
         long period = (long) (configDTO.getAwsPriceMonitoringPeriod() * 1000);
-        ServiceProxyProvider serviceProxyProvider = new ServiceProxyProvider(vertx);
-        LambdaPriceMonitoring lambdaMonitoring = new LambdaPriceMonitoring(webClient);
-        EC2PriceMonitoring ec2PriceMonitoring = new EC2PriceMonitoring(webClient);
         monitoringHandler = id -> serviceProxyProvider.getPlatformService()
             .findAllByResourceProvider(ResourceProviderEnum.AWS.getValue())
             .flatMapObservable(Observable::fromIterable)
@@ -72,7 +72,7 @@ public class AWSPriceListMonitoringHandler implements MonitoringHandler {
                         priceMonitoring = ec2PriceMonitoring;
                     } else if (platformEnum.equals(PlatformEnum.LAMBDA)) {
                         offersCode = "AWSLambda";
-                        priceMonitoring = lambdaMonitoring;
+                        priceMonitoring = lambdaPriceMonitoring;
                     } else {
                         logger.info("skipping platform " + platform.getPlatform());
                         return Observable.empty();
@@ -104,7 +104,7 @@ public class AWSPriceListMonitoringHandler implements MonitoringHandler {
                 logger.error(throwable.getMessage());
                 currentTimer = pauseLoop ? currentTimer : vertx.setTimer(period, monitoringHandler);
             });
-        currentTimer = vertx.setTimer(period, monitoringHandler);
+        monitoringHandler.handle(-99L);
     }
 
     @Override

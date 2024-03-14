@@ -6,7 +6,6 @@ import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sNode;
 import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sPod;
 import at.uibk.dps.rm.exception.MonitoringException;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
-import at.uibk.dps.rm.service.monitoring.k8s.K8sMonitoringService;
 import at.uibk.dps.rm.service.monitoring.k8s.K8sMonitoringServiceImpl;
 import at.uibk.dps.rm.util.monitoring.LatencyMonitoringUtility;
 import io.kubernetes.client.custom.PodMetrics;
@@ -43,50 +42,49 @@ public class K8sMonitoringHandler implements MonitoringHandler {
     
     private final ConfigDTO configDTO;
 
-    private long currentTimer = -1L;
+    private final ServiceProxyProvider serviceProxyProvider;
 
-    private final K8sMonitoringService monitoringService = new K8sMonitoringServiceImpl();
+    private final K8sMonitoringServiceImpl monitoringService;
+
+    private final LatencyMonitoringUtility latencyMonitoringUtility;
+
+    private long currentTimer = -1L;
 
     private ApiClient localClient;
     
     @Override
     public void startMonitoringLoop() {
         long period = (long) (configDTO.getKubeMonitoringPeriod() * 1000);
-        ServiceProxyProvider serviceProxyProvider = new ServiceProxyProvider(vertx);
-        localClient = K8sMonitoringServiceImpl.setUpLocalClient();
-        // Necessary to prevent serialization error
+        localClient = monitoringService.setUpLocalClient();
         Handler<Long> monitoringHandler = id -> {
             logger.info("Started: monitor k8s resources");
-            monitorK8s()
-                .flatMapCompletable(entries -> {
-                    // Necessary to prevent serialization error
-                    Completable completable = Completable.complete();
-                    for (K8sMonitoringData entry : entries) {
-                        List<String> namespaces = entry.getNamespaces().stream()
-                            .map(namespace -> Objects.requireNonNull(namespace.getMetadata()).getName())
-                            .collect(Collectors.toList());
-                        completable =
-                            completable.andThen(Single.defer(() -> serviceProxyProvider.getResourceService()
-                                        .updateClusterResource(entry.getName(), entry))
-                                    .flatMapCompletable(updatedMonitoringData -> {
-                                            serviceProxyProvider.getK8sMetricPushService()
-                                                .composeAndPushMetrics(updatedMonitoringData).subscribe();
-                                            return serviceProxyProvider.getNamespaceService()
-                                                .updateAllClusterNamespaces(entry.getName(), namespaces);
-                                        }
-                                    ))
-                                .doOnError(throwable -> {
-                                    logger.error(throwable.getMessage());
-                                    if (!(throwable instanceof MonitoringException)) {
-                                        throw new RuntimeException(throwable);
-                                    }
-                                });
-                    }
-                    return completable;
-                }).subscribe(() -> logger.info("Finished: monitor k8s resources"),
-                    throwable -> logger.error(throwable.getMessage()));
+            monitorK8s().flatMapCompletable(entries -> {
+                // Necessary to prevent serialization error
+                Completable completable = Completable.complete();
+                for (K8sMonitoringData entry : entries) {
+                    List<String> namespaces = entry.getNamespaces().stream()
+                        .map(namespace -> Objects.requireNonNull(namespace.getMetadata()).getName())
+                        .collect(Collectors.toList());
+                    completable = completable
+                        .andThen(Single.defer(() -> serviceProxyProvider.getResourceService()
+                                .updateClusterResource(entry.getName(), entry))
+                            .flatMapCompletable(updatedMonitoringData -> {
+                                    serviceProxyProvider.getK8sMetricPushService()
+                                        .composeAndPushMetrics(updatedMonitoringData).subscribe();
+                                    return serviceProxyProvider.getNamespaceService()
+                                        .updateAllClusterNamespaces(entry.getName(), namespaces);
+                                }
+                            ))
+                        .onErrorResumeNext(throwable -> {
+                            logger.error(throwable.getMessage());
+                            return Completable.complete();
+                        });
+                }
+                return completable;
+            }).subscribe(() -> logger.info("Finished: monitor k8s resources"),
+                throwable -> logger.error(throwable.getMessage()));
         };
-        currentTimer = vertx.setPeriodic(period, monitoringHandler);
+        currentTimer = vertx.setPeriodic(0L, period, monitoringHandler);
     }
 
     @Override
@@ -104,7 +102,6 @@ public class K8sMonitoringHandler implements MonitoringHandler {
      */
     private Single<List<K8sMonitoringData>> monitorK8s() {
     FileSystem fileSystem = vertx.fileSystem();
-    K8sMonitoringService monitoringService = new K8sMonitoringServiceImpl();
     return vertx.executeBlocking((Promise<Map<String, String>> fut) -> {
             Map<String, String> kubeConfigs = monitoringService.listSecrets(localClient, configDTO);
             if (!fileSystem.existsBlocking(configDTO.getKubeConfigDirectory())) {
@@ -116,7 +113,7 @@ public class K8sMonitoringHandler implements MonitoringHandler {
         .flatMapObservable(kubeConfigs -> Observable.fromIterable(kubeConfigs.entrySet()))
         .flatMapSingle(entry -> vertx.executeBlocking(fut ->
                 fut.complete(observeK8sAPI(entry.getKey(), entry.getValue())))
-            .switchIfEmpty(Single.just(new K8sMonitoringData(entry.getKey(), "", -1L, List.of(),
+            .switchIfEmpty(Single.just(new K8sMonitoringData(entry.getKey(), null, -1L, List.of(),
                 List.of(), false, null)))
         )
         .map(monitoringData -> (K8sMonitoringData) monitoringData)
@@ -124,9 +121,8 @@ public class K8sMonitoringHandler implements MonitoringHandler {
             if (monitoringData.getBasePath() == null) {
                 return Single.just(monitoringData);
             }
-            String pingUrl = LatencyMonitoringUtility
-                .getPingUrl(monitoringData.getBasePath());
-            return LatencyMonitoringUtility.measureLatency(configDTO.getLatencyMonitoringCount(), pingUrl)
+            String pingUrl = latencyMonitoringUtility.getPingUrl(monitoringData.getBasePath());
+            return latencyMonitoringUtility.measureLatency(configDTO.getLatencyMonitoringCount(), pingUrl)
                 .map(processOutput -> {
                     if (processOutput.getProcess().exitValue() == 0) {
                         monitoringData.setLatencySeconds(Double.parseDouble(processOutput.getOutput()) / 1000);
@@ -154,7 +150,7 @@ public class K8sMonitoringHandler implements MonitoringHandler {
             logger.info("Observe cluster: " + clusterName);
             Path kubeconfigPath = Path.of(configDTO.getKubeConfigDirectory(), clusterName);
             fileSystem.writeFileBlocking(kubeconfigPath.toString(), Buffer.buffer(kubeConfig));
-            ApiClient apiClient = K8sMonitoringServiceImpl.setUpExternalClient(kubeconfigPath);
+            ApiClient apiClient = monitoringService.setUpExternalClient(kubeconfigPath);
             List<K8sNode> nodes = monitoringService.listNodes(apiClient, configDTO);
             List<V1Namespace> namespaces = monitoringService.listNamespaces(apiClient, configDTO);
             Map<String, PodMetrics> podMetricsMap = monitoringService.getCurrentPodUtilisation(apiClient, configDTO);
@@ -179,7 +175,8 @@ public class K8sMonitoringHandler implements MonitoringHandler {
             k8sMonitoringData = new K8sMonitoringData(clusterName, apiClient.getBasePath(), -1L,
                 nodes, namespaces,  true, null);
         } catch (MonitoringException ex) {
-            k8sMonitoringData = new K8sMonitoringData(clusterName, "", -1L, List.of(), List.of(), false, null);
+            k8sMonitoringData = new K8sMonitoringData(clusterName, null, -1L, List.of(), List.of(),
+                false, null);
         }
         return k8sMonitoringData;
     }

@@ -4,7 +4,6 @@ import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.service.deployment.executor.ProcessExecutor;
 import io.reactivex.rxjava3.core.Single;
-import lombok.experimental.UtilityClass;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -16,7 +15,6 @@ import java.util.List;
  *
  * @author matthi-g
  */
-@UtilityClass
 public class LatencyMonitoringUtility {
 
     /**
@@ -26,7 +24,7 @@ public class LatencyMonitoringUtility {
      * @param pingUrl the url to use for the measurement
      * @return a Single that emits a {@link ProcessOutput}
      */
-    public static Single<ProcessOutput> measureLatency(int numberRequests, String pingUrl) {
+    public Single<ProcessOutput> measureLatency(int numberRequests, String pingUrl) {
         Path scriptsPath = Path.of("monitoring").toAbsolutePath();
         String scriptArgs = " -c " + numberRequests + " -w " + pingUrl;
         List<String> commands;
@@ -47,7 +45,7 @@ public class LatencyMonitoringUtility {
      * @param region the aws region
      * @return the ping url
      */
-    public static String getPingUrlFromAwsRegion(Region region) {
+    public String getPingUrl(Region region) {
         return "ec2." + region.getName() + ".amazonaws.com";
     }
 
@@ -57,7 +55,7 @@ public class LatencyMonitoringUtility {
      * @param urlWithPath the url with path
      * @return the ping url
      */
-    public static String getPingUrl(String urlWithPath) throws URISyntaxException {
+    public String getPingUrl(String urlWithPath) throws URISyntaxException {
         URI uri = new URI(urlWithPath);
         return uri.getHost();
     }

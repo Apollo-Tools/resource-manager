@@ -87,9 +87,9 @@ public class ResourceServiceImplTest {
         cr1 = TestResourceProvider.createClusterWithoutNodes(3L, "cluster");
         sr1 = TestResourceProvider.createSubResource(4L, "subresource1", cr1);
         sr2 = TestResourceProvider.createSubResource(5L, "subresource2", cr1);
-        K8sNode k8sn1 = TestMonitoringDataProvider.createK8sNode("n1", 10.0, 8.75,
+        K8sNode k8sn1 = TestK8sProvider.createK8sNode("n1", 10.0, 8.75,
             1000, 500, 10000, 5000);
-        V1Namespace namespace = TestMonitoringDataProvider.createV1Namespace("default");
+        V1Namespace namespace = TestK8sProvider.createNamespace("default");
         monitoringData = new K8sMonitoringData("cluster", "http://clusterurl:9999", 1L,
             List.of(k8sn1), List.of(namespace), true, 0.15);
         deployment = TestDeploymentProvider.createDeployment(1L);

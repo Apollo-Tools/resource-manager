@@ -79,17 +79,33 @@ public class RegionRepository extends Repository<Region> {
     }
 
     /**
-     * Find all regions by their resource provider.
+     * Find all regions by their resource provider id.
      *
      * @param sessionManager the database session
      * @param providerId the id of the resource provider
      * @return a Single that emits a list of all regions
      */
-    public Single<List<Region>> findAllByProviderId(SessionManager sessionManager, long providerId) {
+    public Single<List<Region>> findAllByProvider(SessionManager sessionManager, long providerId) {
         return Single.fromCompletionStage(sessionManager.getSession()
             .createQuery("select distinct r from Region r " +
                 "where r.resourceProvider.providerId=:providerId", entityClass)
             .setParameter("providerId", providerId)
+            .getResultList()
+        );
+    }
+
+    /**
+     * Find all regions by their resource provider name.
+     *
+     * @param sessionManager the database session
+     * @param providerName the name of the resource provider
+     * @return a Single that emits a list of all regions
+     */
+    public Single<List<Region>> findAllByProvider(SessionManager sessionManager, String providerName) {
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery("select distinct r from Region r " +
+                "where r.resourceProvider.provider=:providerName", entityClass)
+            .setParameter("providerName", providerName)
             .getResultList()
         );
     }

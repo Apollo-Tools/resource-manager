@@ -42,7 +42,7 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
      *
      * @return the k8s client
      */
-    public static ApiClient setUpLocalClient() {
+    public ApiClient setUpLocalClient() {
         try {
             return Config.defaultClient();
         } catch (IOException e) {
@@ -55,7 +55,7 @@ public class K8sMonitoringServiceImpl implements K8sMonitoringService {
      *
      * @return the k8s client
      */
-    public static ApiClient setUpExternalClient(Path kubeConfig) {
+    public ApiClient setUpExternalClient(Path kubeConfig) {
         try {
             return Config.fromConfig(kubeConfig.toAbsolutePath().toString());
         } catch (IOException e) {
