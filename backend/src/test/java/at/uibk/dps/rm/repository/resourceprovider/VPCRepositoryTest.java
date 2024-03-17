@@ -122,6 +122,36 @@ public class VPCRepositoryTest extends DatabaseTest {
             });
     }
 
+    @ParameterizedTest
+    @CsvSource({
+        "1, 1, us-east-1, aws, true",
+        "1, 2, x, x, false",
+        "1, 3, x, x, false",
+        "2, 1, us-west-2, aws, true",
+        "2, 2, x, x, false",
+        "3, 1, x, x, false",
+        "3, 2, us-west-2, aws, true",
+    })
+    void findByIdAndAccountIdAndFetch(long vpcId, long accountId, String region, String provider, boolean exists,
+            VertxTestContext testContext) {
+        smProvider.withTransactionMaybe(sessionManager -> repository
+                .findByIdAndAccountIdAndFetch(sessionManager, vpcId, accountId))
+            .subscribe(result -> testContext.verify(() -> {
+                if (exists) {
+                    assertThat(result.getVpcId()).isEqualTo(vpcId);
+                    assertThat(result.getRegion().getName()).isEqualTo(region);
+                    assertThat(result.getRegion().getResourceProvider().getProvider()).isEqualTo(provider);
+                    testContext.completeNow();
+                } else {
+                    testContext.failNow("method did not throw exception");
+                }
+            }), throwable -> {
+                assertThat(exists).isEqualTo(false);
+                assertThat(throwable.getCause()).isInstanceOf(NoSuchElementException.class);
+                testContext.completeNow();
+            });
+    }
+
     private static Stream<Arguments> provideFindAllByAccount() {
         return Stream.of(
             Arguments.of(1L, List.of(1L, 2L), List.of("us-east-1", "us-west-2"), List.of("aws", "aws")),

@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.repository.resourceprovider;
 
+import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.testutil.integration.DatabaseTest;
 import at.uibk.dps.rm.testutil.objectprovider.TestMetricProvider;
@@ -147,7 +148,7 @@ public class RegionRepositoryTest extends DatabaseTest {
             }), throwable -> testContext.failNow("method has thrown exception"));
     }
 
-    private static Stream<Arguments> provideFindAllByProvider() {
+    private static Stream<Arguments> provideFindAllByProviderId() {
         return Stream.of(
             Arguments.of(1L, List.of(1L, 2L)),
             Arguments.of(4L, List.of(4L)),
@@ -157,9 +158,29 @@ public class RegionRepositoryTest extends DatabaseTest {
     }
 
     @ParameterizedTest
-    @MethodSource("provideFindAllByProvider")
+    @MethodSource("provideFindAllByProviderId")
     void findAllByProviderId(long providerId, List<Long> expected, VertxTestContext testContext) {
         smProvider.withTransactionSingle(sessionManager -> repository.findAllByProvider(sessionManager, providerId))
+            .subscribe(result -> testContext.verify(() -> {
+                assertThat(result.stream().map(Region::getRegionId).collect(Collectors.toList())).isEqualTo(expected);
+                testContext.completeNow();
+            }), throwable -> testContext.failNow("method has thrown exception"));
+    }
+
+    private static Stream<Arguments> provideFindAllByProviderName() {
+        return Stream.of(
+            Arguments.of(ResourceProviderEnum.AWS.getValue(), List.of(1L, 2L)),
+            Arguments.of(ResourceProviderEnum.CUSTOM_CLOUD.getValue(), List.of(4L)),
+            Arguments.of(ResourceProviderEnum.CUSTOM_EDGE.getValue(), List.of(3L)),
+            Arguments.of("none", List.of())
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideFindAllByProviderName")
+    void findAllByProviderName(String provider, List<Long> expected, VertxTestContext testContext) {
+        smProvider.withTransactionSingle(sessionManager -> repository
+            .findAllByProvider(sessionManager, provider))
             .subscribe(result -> testContext.verify(() -> {
                 assertThat(result.stream().map(Region::getRegionId).collect(Collectors.toList())).isEqualTo(expected);
                 testContext.completeNow();

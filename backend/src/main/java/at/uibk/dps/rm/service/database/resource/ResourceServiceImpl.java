@@ -71,7 +71,7 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
     @Override
     public void findAll(Handler<AsyncResult<JsonArray>> resultHandler) {
         Single<List<Resource>> findAll = smProvider.withTransactionSingle(sessionManager ->
-            repository.findAllAndFetch(sessionManager)
+            repository.findAllMainResourcesAndFetch(sessionManager)
                 .flatMapObservable(Observable::fromIterable)
                 .map(this::getResourceLockState).toList()
         );
