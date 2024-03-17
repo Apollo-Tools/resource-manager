@@ -51,16 +51,17 @@ async def apply_deployments(utilisation: UtilisationRequest):
     logger.info(f"write file content, utilisation deployments {utilisation.benchmark_id}")
     with (open(f"{utilisation.benchmark_id}.csv", mode="w", newline='') as output):
         writer = csv.writer(output)
-        writer.writerow(['id', 'request_idx', 'deployment_id', 'start', 'deployed', 'terminate', 'terminated',
-                         'function_deployments',
-                         'service_deployments'])
+        writer.writerow(['id', 'request_idx', 'deployment_id', 'start', 'start_response', 'deployed', 'terminate',
+                         'terminate_response', 'terminated', 'function_deployments', 'service_deployments'])
         for i in range(0, utilisation.count):
             for entry in result[i]:
                 if entry['start'] == 'error':
-                    writer.writerow([i, entry['idx'], 'error', 'error', 'error', 'error', 'error', 'error'])
+                    writer.writerow([i, entry['idx'], 'error', 'error', 'error', 'error', 'error', 'error', 'error',
+                                     'error'])
                 else:
                     writer.writerow([i, entry['idx'], entry['deployment']['deployment_id'], int(entry['start']),
-                                     int(entry['deployed']), int(entry['terminate']), int(entry['terminated']),
+                                     int(entry['start_response']), int(entry['deployed']), int(entry['terminate']),
+                                     int(entry['terminate_response']), int(entry['terminated']),
                                      len(entry['deployment']['function_resources']),
                                      len(entry['deployment']['service_resources'])])
 
@@ -69,20 +70,24 @@ async def apply_deployment(rm_base_url: str, token: str, create_deployment: Crea
     rm_operator = RmOperator(rm_base_url, token)
     start = time.time()
     deployment = await rm_operator.create_deployment(create_deployment)
+    start_response = time.time()
     if deployment is None:
-        return {'start': 'error', 'deployed': 'error', 'terminate': 'error', 'terminated': 'error',
+        return {'start': 'error', 'started': 'error', 'deployed': 'error', 'terminate': 'error', 'terminated': 'error',
                 'deployment': 'error', 'idx': idx}
     deployment = await rm_operator.wait_for_deployment_created(deployment['deployment_id'])
-    if deployment is None:
-        return {'start': 'error', 'deployed': 'error', 'terminate': 'error', 'terminated': 'error',
-                'deployment': 'error', 'idx': idx}
     deployed = deployment['finished_at']
-    return {'start': start * 1000, 'deployed': deployed * 1000, 'deployment': deployment, 'idx': idx}
+    if deployment is None:
+        return {'start': 'error', 'started': 'error', 'deployed': 'error', 'terminate': 'error', 'terminated': 'error',
+                'deployment': 'error', 'idx': idx}
+    return {'start': start * 1000, 'start_response': start_response * 1000, 'deployed': deployed,
+            'deployment': deployment, 'idx': idx}
 
 
 async def terminate_deployment(rm_base_url: str, token: str, deployment_id: int, idx: int):
     rm_operator = RmOperator(rm_base_url, token)
     terminate = time.time()
     await rm_operator.cancel_deployment(deployment_id)
+    terminate_response = time.time()
     terminated = await rm_operator.wait_for_deployment_terminated(deployment_id)
-    return {'terminate': terminate * 1000, 'terminated': terminated * 1000, 'idx': idx}
+    return {'terminate': terminate * 1000, 'terminate_response': terminate_response * 1000,
+            'terminated': terminated, 'idx': idx}
