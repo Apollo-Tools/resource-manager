@@ -101,7 +101,8 @@ public class TestFunctionProvider {
 
 
     public static FunctionDeployment createFunctionDeployment(Long id, Function function, Resource resource,
-            Deployment deployment, ResourceDeploymentStatus deploymentStatus, String directTriggerUrl) {
+            Deployment deployment, ResourceDeploymentStatus deploymentStatus, String directTriggerUrl, String baseUrl,
+            Integer metricsPort) {
         FunctionDeployment functionDeployment = new FunctionDeployment();
         functionDeployment.setResourceDeploymentId(id);
         functionDeployment.setFunction(function);
@@ -109,13 +110,28 @@ public class TestFunctionProvider {
         functionDeployment.setStatus(deploymentStatus);
         functionDeployment.setDeployment(deployment);
         functionDeployment.setDirectTriggerUrl(directTriggerUrl);
+        functionDeployment.setBaseUrl(baseUrl);
+        functionDeployment.setMetricsPort(metricsPort);
         return functionDeployment;
+    }
+
+
+    public static FunctionDeployment createFunctionDeployment(Long id, Function function, Resource resource,
+            Deployment deployment, ResourceDeploymentStatus deploymentStatus, String directTriggerUrl) {
+        return createFunctionDeployment(id, function, resource, deployment, deploymentStatus, directTriggerUrl, null,
+            null);
     }
 
     public static FunctionDeployment createFunctionDeployment(Long id, Function function, Resource resource,
             Deployment deployment, ResourceDeploymentStatus deploymentStatus) {
         return createFunctionDeployment(id, function, resource, deployment, deploymentStatus,
             "https://localhost:8080/foo1");
+    }
+
+    public static FunctionDeployment createFunctionDeployment(Long id, Function function, Resource resource,
+            Deployment deployment, ResourceDeploymentStatus deploymentStatus, String baseUrl, Integer metricsPort) {
+        return createFunctionDeployment(id, function, resource, deployment, deploymentStatus,
+            "https://localhost:8080/foo1", baseUrl, metricsPort);
     }
 
 

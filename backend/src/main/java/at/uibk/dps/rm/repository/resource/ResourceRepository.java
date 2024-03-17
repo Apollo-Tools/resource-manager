@@ -32,7 +32,7 @@ public class ResourceRepository extends Repository<Resource> {
     }
 
     /**
-     * Find a resource by its name.
+     * Find a main resource by its name.
      *
      * @param sessionManager the database session manager
      * @param name the name of the resource
@@ -92,13 +92,13 @@ public class ResourceRepository extends Repository<Resource> {
     }
 
     /**
-     * Find all resources and fetch the resource type, platform, environment, region, metric values
+     * Find all main resources and fetch the resource type, platform, environment, region, metric values
      * and resource provider.
      *
      * @param sessionManager the database session manager
      * @return a Single that emits a list of all resources
      */
-    public Single<List<Resource>> findAllAndFetch(SessionManager sessionManager) {
+    public Single<List<Resource>> findAllMainResourcesAndFetch(SessionManager sessionManager) {
         return Single.fromCompletionStage(sessionManager.getSession()
             .createQuery("select distinct r from MainResource r " +
                 "left join fetch r.region reg " +
@@ -156,96 +156,7 @@ public class ResourceRepository extends Repository<Resource> {
             "left join fetch mr.platform p " +
             "left join fetch p.resourceType rt";
 
-        Single<List<Resource>> getMainResources = Single.fromCompletionStage(sessionManager.getSession()
-            .createQuery(mainQuery, entityClass).getResultList()
-        );
-        Single<List<Resource>> getSubResources = Single.fromCompletionStage(sessionManager.getSession()
-            .createQuery(subQuery, entityClass).getResultList());
-        return Single.zip(getMainResources, getSubResources, (mainResources, subResources) -> {
-                ArrayList<Resource> resources = new ArrayList<>();
-                resources.addAll(mainResources);
-                resources.addAll(subResources);
-                return resources;
-            }
-        );
-    }
-
-    /**
-     * Find all resources by their metrics, resource types, regions and resource providers.
-     *
-     * @param sessionManager the database session manager
-     * @param metrics the ids of the metrics
-     * @param regionIds the ids of the regions
-     * @param providerIds the ids of the resource providers
-     * @param resourceTypeIds the ids of the resource types
-     * @return a Single that emits a list of all resources
-     */
-    public Single<List<Resource>> findAllBySLOs(SessionManager sessionManager, List<String> metrics,
-        List<Long> environmentIds, List<Long> resourceTypeIds, List<Long> platformIds, List<Long> regionIds,
-            List<Long> providerIds) {
-        List<String> conditions = new ArrayList<>();
-        if (!environmentIds.isEmpty()) {
-            conditions.add("e.environmentId in (" +
-                environmentIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ")");
-        }
-        if (!resourceTypeIds.isEmpty()) {
-            conditions.add("rt.typeId in (" +
-                resourceTypeIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ")");
-        }
-        if (!platformIds.isEmpty()) {
-            conditions.add("p.platformId in (" +
-                platformIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ")");
-        }
-        if (!regionIds.isEmpty()) {
-            conditions.add("reg.regionId in (" +
-                regionIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ")");
-        }
-        if (!providerIds.isEmpty()) {
-            conditions.add("rp.providerId in (" +
-                providerIds.stream().map(Object::toString).collect(Collectors.joining(",")) + ")");
-        }
-        if (!metrics.isEmpty()) {
-            conditions.add("m.metric in (" +
-                metrics.stream().map(metric -> "'" + metric + "'").collect(Collectors.joining(",")) + ")");
-        }
-        String conditionString ="";
-        if (!conditions.isEmpty()) {
-            conditionString = "where " + String.join(" and ", conditions);
-        }
-
-        String mainQuery = "select distinct r from MainResource r " +
-            "left join fetch r.metricValues mv " +
-            "left join fetch mv.metric m " +
-            "left join fetch r.region reg " +
-            "left join fetch reg.resourceProvider rp " +
-            "left join fetch rp.environment e " +
-            "left join fetch r.platform p " +
-            "left join fetch p.resourceType rt " +
-            conditionString;
-
-        String subQuery = "select distinct r from SubResource r " +
-            "left join fetch r.metricValues mv " +
-            "left join fetch mv.metric m " +
-            "left join fetch r.mainResource mr " +
-            "left join fetch mr.region reg " +
-            "left join fetch reg.resourceProvider rp " +
-            "left join fetch rp.environment e " +
-            "left join fetch mr.platform p " +
-            "left join fetch p.resourceType rt " +
-            conditionString;
-
-        Single<List<Resource>> getMainResources = Single.fromCompletionStage(sessionManager.getSession()
-            .createQuery(mainQuery, entityClass).getResultList()
-        );
-        Single<List<Resource>> getSubResources = Single.fromCompletionStage(sessionManager.getSession()
-            .createQuery(subQuery, entityClass).getResultList());
-        return Single.zip(getMainResources, getSubResources, (mainResources, subResources) -> {
-                ArrayList<Resource> resources = new ArrayList<>();
-                resources.addAll(mainResources);
-                resources.addAll(subResources);
-                return resources;
-            }
-        );
+        return mergeMainAndSubResources(sessionManager, mainQuery, subQuery);
     }
 
     /**
@@ -309,18 +220,7 @@ public class ResourceRepository extends Repository<Resource> {
             "left join fetch p.resourceType rt " +
             conditionString;
 
-        Single<List<Resource>> getMainResources = Single.fromCompletionStage(sessionManager.getSession()
-            .createQuery(mainQuery, entityClass).getResultList()
-        );
-        Single<List<Resource>> getSubResources = Single.fromCompletionStage(sessionManager.getSession()
-            .createQuery(subQuery, entityClass).getResultList());
-        return Single.zip(getMainResources, getSubResources, (mainResources, subResources) -> {
-                ArrayList<Resource> resources = new ArrayList<>();
-                resources.addAll(mainResources);
-                resources.addAll(subResources);
-                return resources;
-            }
-        );
+        return mergeMainAndSubResources(sessionManager, mainQuery, subQuery);
     }
 
     /**
@@ -420,21 +320,23 @@ public class ResourceRepository extends Repository<Resource> {
         if (resourceIds.isEmpty()) {
             return Single.just(new ArrayList<>());
         }
-        String resourceIdsConcat = resourceIds.stream().map(Object::toString).collect(Collectors.joining(","));
-        String resourceTypesConcat = resourceTypes.stream().map(Object::toString).collect(Collectors.joining("','"));
 
         Single<List<Resource>> getMainResources = Single.fromCompletionStage(sessionManager.getSession()
             .createQuery(
                 "select distinct mr from MainResource mr " +
-                    "where mr.resourceId in (" + resourceIdsConcat + ") and " +
-                    "mr.platform.resourceType.resourceType in ('" + resourceTypesConcat + "')", entityClass)
+                    "where mr.resourceId in :resourceIds and " +
+                    "mr.platform.resourceType.resourceType in :resourceTypes", entityClass)
+            .setParameter("resourceIds", resourceIds)
+            .setParameter("resourceTypes", resourceTypes)
             .getResultList()
         );
         Single<List<Resource>> getSubResources = Single.fromCompletionStage(sessionManager.getSession()
             .createQuery(
                 "select distinct sr from SubResource sr " +
-                    "where sr.resourceId in (" + resourceIdsConcat + ") and " +
-                    "sr.mainResource.platform.resourceType.resourceType in ('" + resourceTypesConcat + "')", entityClass)
+                    "where sr.resourceId in :resourceIds and " +
+                    "sr.mainResource.platform.resourceType.resourceType in :resourceTypes", entityClass)
+            .setParameter("resourceIds", resourceIds)
+            .setParameter("resourceTypes", resourceTypes)
             .getResultList()
         );
         return Single.zip(getMainResources, getSubResources, (mainResources, subResources) -> {
@@ -458,7 +360,6 @@ public class ResourceRepository extends Repository<Resource> {
         if (resourceIds.isEmpty()) {
             return Single.just(new ArrayList<>());
         }
-        String resourceIdsConcat = resourceIds.stream().map(Object::toString).collect(Collectors.joining(","));
         Single<List<Resource>> getMainResources = Single.fromCompletionStage(sessionManager.getSession()
             .createQuery(
                 "select distinct mr from MainResource mr " +
@@ -469,7 +370,8 @@ public class ResourceRepository extends Repository<Resource> {
                     "left join fetch rp.environment " +
                     "left join fetch mr.platform p " +
                     "left join fetch p.resourceType " +
-                    "where mr.resourceId in (" + resourceIdsConcat + ")", Resource.class)
+                    "where mr.resourceId in :resourceIds", Resource.class)
+            .setParameter("resourceIds", resourceIds)
             .getResultList()
         );
         Single<List<Resource>> getSubResources = Single.fromCompletionStage(sessionManager.getSession()
@@ -485,7 +387,8 @@ public class ResourceRepository extends Repository<Resource> {
                     "left join fetch p.resourceType " +
                     "left join fetch mr.metricValues mmv " +
                     "left join fetch mmv.metric " +
-                    "where sr.resourceId in (" + resourceIdsConcat + ")", Resource.class)
+                    "where sr.resourceId in :resourceIds", Resource.class)
+            .setParameter("resourceIds", resourceIds)
             .getResultList()
         );
         return Single.zip(getMainResources, getSubResources, (mainResources, subResources) -> {
@@ -586,6 +489,22 @@ public class ResourceRepository extends Repository<Resource> {
                 FindAllOpenFaaSScrapeTargetsDTO.class)
             .setParameter("platformOpenFaaS", PlatformEnum.OPENFAAS.getValue())
             .getResultList()
+        );
+    }
+
+    private Single<List<Resource>> mergeMainAndSubResources(SessionManager sessionManager, String mainQuery,
+            String subQuery) {
+        Single<List<Resource>> getMainResources = Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery(mainQuery, entityClass).getResultList()
+        );
+        Single<List<Resource>> getSubResources = Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery(subQuery, entityClass).getResultList());
+        return Single.zip(getMainResources, getSubResources, (mainResources, subResources) -> {
+                ArrayList<Resource> resources = new ArrayList<>();
+                resources.addAll(mainResources);
+                resources.addAll(subResources);
+                return resources;
+            }
         );
     }
 }

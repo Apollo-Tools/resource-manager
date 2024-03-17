@@ -7,7 +7,6 @@ import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sMonitoringData;
 import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sNode;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
-import at.uibk.dps.rm.exception.MonitoringException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.resource.ResourceRepository;
 import at.uibk.dps.rm.repository.resourceprovider.RegionRepository;
@@ -125,7 +124,7 @@ public class ResourceServiceImplTest {
     void findAll(VertxTestContext testContext) {
         r1.setLockedByDeployment(deployment);
         SessionMockHelper.mockSingle(smProvider, sessionManager);
-        when(resourceRepository.findAllAndFetch(sessionManager)).thenReturn(Single.just(List.of(r1, r2)));
+        when(resourceRepository.findAllMainResourcesAndFetch(sessionManager)).thenReturn(Single.just(List.of(r1, r2)));
 
         resourceService.findAll(testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
@@ -347,7 +346,7 @@ public class ResourceServiceImplTest {
 
         resourceService.updateClusterResource(cr1.getName(), monitoringData,
                 testContext.failing(throwable -> testContext.verify(() -> {
-                    assertThat(throwable).isInstanceOf(MonitoringException.class);
+                    assertThat(throwable).isInstanceOf(NotFoundException.class);
                     assertThat(throwable.getMessage()).isEqualTo("cluster cluster is not registered");
                     testContext.completeNow();
                 })));

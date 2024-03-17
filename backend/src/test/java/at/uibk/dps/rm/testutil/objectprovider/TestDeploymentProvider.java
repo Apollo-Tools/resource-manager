@@ -18,7 +18,7 @@ import java.util.Map;
 @UtilityClass
 public class TestDeploymentProvider {
     public static ResourceDeployment createResourceDeployment(Long id, Deployment deployment, Resource resource,
-                                                                ResourceDeploymentStatus resourceDeploymentStatus) {
+            ResourceDeploymentStatus resourceDeploymentStatus) {
         ResourceDeployment resourceDeployment = new FunctionDeployment();
         resourceDeployment.setResourceDeploymentId(id);
         resourceDeployment.setResource(resource);

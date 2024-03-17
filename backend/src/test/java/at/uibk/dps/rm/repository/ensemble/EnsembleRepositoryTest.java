@@ -6,6 +6,7 @@ import at.uibk.dps.rm.testutil.objectprovider.TestEnsembleProvider;
 import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -39,6 +40,20 @@ public class EnsembleRepositoryTest extends DatabaseTest {
                 .flatMap(res -> sessionManager.persist(e2))
                 .flatMap(res -> sessionManager.persist(e3));
         }).blockingSubscribe(res -> {}, testContext::failNow);
+    }
+
+    @Test
+    void findAllAndFetch(VertxTestContext testContext) {
+        smProvider.withTransactionSingle(repository::findAllAndFetch)
+            .subscribe(result -> testContext.verify(() -> {
+                assertThat(result.get(0).getName()).isEqualTo("e1");
+                assertThat(result.get(0).getCreatedBy().getUsername()).isEqualTo("user1");
+                assertThat(result.get(1).getName()).isEqualTo("e2");
+                assertThat(result.get(1).getCreatedBy().getUsername()).isEqualTo("user1");
+                assertThat(result.get(2).getName()).isEqualTo("e3");
+                assertThat(result.get(2).getCreatedBy().getUsername()).isEqualTo("user2");
+                testContext.completeNow();
+            }), throwable -> testContext.failNow("method has thrown exception"));
     }
 
     private static Stream<Arguments> provideFindAllByAccount() {
