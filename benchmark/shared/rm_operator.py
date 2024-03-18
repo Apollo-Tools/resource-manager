@@ -6,6 +6,7 @@ import httpx
 from httpx import AsyncClient
 
 from schemas.schemas import CreateDeployment
+from shared.ServicdeDeploymentMethod import ServiceDeploymentMethod
 
 logger = logging.getLogger('uvicorn.info')
 
@@ -90,5 +91,21 @@ class RmOperator:
             if not is_direct:
                 url = f"{self.base_url}/api{trigger_url}"
             tasks = [self.trigger_function(client, url, request, is_direct) for _ in range(concurrency)]
+            result = await asyncio.gather(*tasks)
+            return result
+
+    async def start_stop_service(self, client: AsyncClient, url: str):
+        headers = self.authorization
+        start = time.time()
+        await client.post(url, headers=headers, timeout=120)
+        end = time.time()
+        return (end - start) * 1000
+
+    async def startup_stop_service_deployments(self, ids: list, method: ServiceDeploymentMethod):
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            tasks = []
+            for service_deployment_id in ids:
+                url = f"{self.base_url}/api/service-deployments/{service_deployment_id}/{method.value}"
+                tasks.append(self.start_stop_service(client, url))
             result = await asyncio.gather(*tasks)
             return result

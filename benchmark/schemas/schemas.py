@@ -89,6 +89,18 @@ class FunctionDeploymentBenchmark(DeploymentBenchmark):
     invoke_body: list | dict | int | float | bool | str
 
 
+class ServiceDeploymentBenchmark(DeploymentBenchmark):
+    kube_config: dict
+    namespace: str
+    image: str
+    replicas: int
+    cpu: float
+    memory: int
+    container_port: int
+    svc_port: int
+    external_ip: str | None
+
+
 class AlertMessage(BaseModel):
     type: str
     resource_id: int
