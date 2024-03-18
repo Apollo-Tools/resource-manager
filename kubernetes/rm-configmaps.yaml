@@ -2073,7 +2073,7 @@ data:
         "list": [
           {
             "current": {
-              "selected": false,
+              "selected": true,
               "text": [
                 "All"
               ],
@@ -2085,19 +2085,19 @@ data:
               "type": "prometheus",
               "uid": "RESOURCE_MANAGER_PROM"
             },
-            "definition": "label_values(id)",
+            "definition": "query_result(k8s_up)",
             "hide": 2,
             "includeAll": true,
             "multi": true,
             "name": "resourceId",
             "options": [],
             "query": {
-              "qryType": 1,
-              "query": "label_values(resource)",
+              "qryType": 3,
+              "query": "query_result(k8s_up)",
               "refId": "PrometheusVariableQueryEditor-VariableQuery"
             },
             "refresh": 1,
-            "regex": "",
+            "regex": "/resource=\"([^\"]*)\"/",
             "skipUrlSync": false,
             "sort": 0,
             "type": "query"
@@ -2108,26 +2108,14 @@ data:
               "text": "4",
               "value": "4"
             },
-            "datasource": {
-              "type": "prometheus",
-              "uid": "RESOURCE_MANAGER_PROM"
-            },
-            "definition": "label_values(main_resource)",
             "hide": 2,
             "includeAll": false,
             "multi": false,
             "name": "mainResourceId",
             "options": [],
-            "query": {
-              "qryType": 1,
-              "query": "label_values(main_resource)",
-              "refId": "PrometheusVariableQueryEditor-VariableQuery"
-            },
-            "refresh": 1,
-            "regex": "",
+            "query": "",
             "skipUrlSync": false,
-            "sort": 0,
-            "type": "query"
+            "type": "custom"
           }
         ]
       },
@@ -2163,7 +2151,7 @@ data:
       "timezone": "browser",
       "title": "K8s Dashboard",
       "uid": "b47a9eee-2299-40ec-9aec-ee2e826d3cfd",
-      "version": 28,
+      "version": 29,
       "weekStart": ""
     }
   k8spods.json: |
@@ -4046,19 +4034,19 @@ data:
               "type": "prometheus",
               "uid": "RESOURCE_MANAGER_PROM"
             },
-            "definition": "label_values(id)",
+            "definition": "query_result(up)",
             "hide": 2,
             "includeAll": true,
             "multi": true,
             "name": "resourceId",
             "options": [],
             "query": {
-              "qryType": 1,
-              "query": "label_values(resource)",
+              "qryType": 3,
+              "query": "query_result(up)",
               "refId": "PrometheusVariableQueryEditor-VariableQuery"
             },
             "refresh": 1,
-            "regex": "",
+            "regex": "/resource=\"([^\"]*)\"/",
             "skipUrlSync": false,
             "sort": 0,
             "type": "query"
@@ -4125,7 +4113,7 @@ data:
       "timezone": "browser",
       "title": "Node Exporter",
       "uid": "efa71f23-5850-4144-8b29-0ae9480eec94",
-      "version": 6,
+      "version": 7,
       "weekStart": ""
     }
   region.json: |
@@ -4389,11 +4377,27 @@ data:
               "instant": true,
               "legendFormat": "__auto",
               "range": false,
-              "refId": "A"
+              "refId": "Availability"
             }
           ],
           "title": "Regions",
           "transformations": [
+            {
+              "id": "filterByValue",
+              "options": {
+                "filters": [
+                  {
+                    "config": {
+                      "id": "isNotNull",
+                      "options": {}
+                    },
+                    "fieldName": "Value #Up"
+                  }
+                ],
+                "match": "any",
+                "type": "include"
+              }
+            },
             {
               "id": "merge",
               "options": {}
@@ -4402,39 +4406,27 @@ data:
               "id": "groupBy",
               "options": {
                 "fields": {
-                  "Value #A": {
+                  "Value #Availability": {
                     "aggregations": [
-                      "sum"
+                      "lastNotNull"
                     ],
                     "operation": "aggregate"
                   },
                   "Value #Latency": {
                     "aggregations": [
-                      "sum"
+                      "lastNotNull"
                     ],
                     "operation": "aggregate"
                   },
                   "Value #Up": {
                     "aggregations": [
-                      "sum"
-                    ],
-                    "operation": "aggregate"
-                  },
-                  "latency": {
-                    "aggregations": [
-                      "sum"
+                      "lastNotNull"
                     ],
                     "operation": "aggregate"
                   },
                   "region": {
                     "aggregations": [],
                     "operation": "groupby"
-                  },
-                  "up": {
-                    "aggregations": [
-                      "sum"
-                    ],
-                    "operation": "aggregate"
                   }
                 }
               }
@@ -4446,17 +4438,15 @@ data:
                   "Time": true
                 },
                 "indexByName": {
-                  "Value #A (sum)": 2,
-                  "Value #Latency (sum)": 3,
-                  "Value #Up (sum)": 1,
+                  "Value #Availability (lastNotNull)": 2,
+                  "Value #Latency (lastNotNull)": 3,
+                  "Value #Up (lastNotNull)": 1,
                   "region": 0
                 },
                 "renameByName": {
-                  "Value #A (sum)": "Availability (30d)",
-                  "Value #Latency": "latency",
-                  "Value #Latency (sum)": "Latency",
-                  "Value #Up": "up",
-                  "Value #Up (sum)": "Up",
+                  "Value #Availability (lastNotNull)": "Availability (30d)",
+                  "Value #Latency (lastNotNull)": "Latency",
+                  "Value #Up (lastNotNull)": "Up",
                   "region": "Region"
                 }
               }
@@ -4481,7 +4471,7 @@ data:
       "timezone": "",
       "title": "Region Dashboard",
       "uid": "e32c5920-4a78-46e5-a5a1-c78f9ba640a7",
-      "version": 9,
+      "version": 10,
       "weekStart": ""
     }
 ---
