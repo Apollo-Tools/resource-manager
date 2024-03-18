@@ -4,9 +4,9 @@ from concurrent.futures import ThreadPoolExecutor
 from fastapi import APIRouter, BackgroundTasks
 from fastapi.responses import FileResponse, JSONResponse
 
-from benchmarks import function_execution_overhead, utilisation, alerts, reaction_time
+from benchmarks import function_execution_overhead, utilisation, alerts, reaction_time, service_execution_overhead
 from schemas.schemas import AlertingBenchmark, AlertMessage, FunctionDeploymentBenchmark, \
-    UtilisationRequest
+    UtilisationRequest, ServiceDeploymentBenchmark
 from shared.rm_operator import RmOperator
 
 router = APIRouter()
@@ -29,6 +29,18 @@ async def benchmark_function(function_deployment: FunctionDeploymentBenchmark, b
     background_tasks.add_task(function_execution_overhead.observe_function_execution_overhead, deployment,
                               function_deployment)
     return {"message": f"Started function benchmark, result={function_deployment.benchmark_id}"}
+
+
+@router.post("/benchmarks/service-deployment")
+async def benchmark_function(service_deployment: ServiceDeploymentBenchmark, background_tasks: BackgroundTasks):
+    rm_operator = RmOperator(service_deployment.rm_base_url, service_deployment.token)
+    deployment = await rm_operator.create_deployment(service_deployment.request_body)
+    if deployment is None:
+        return JSONResponse(status_code=400, content="failed to create deployment")
+
+    background_tasks.add_task(service_execution_overhead.observe_service_execution_overhead, deployment,
+                              service_deployment)
+    return {"message": f"Started service benchmark, result={service_deployment.benchmark_id}"}
 
 
 async def observe_util_in_bg(request: UtilisationRequest):
