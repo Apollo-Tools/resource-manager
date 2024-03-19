@@ -136,14 +136,14 @@ class KubeOperator:
         end = time.time()
         return (end - start) * 1000
 
-    async def start_service_deployments(self, service_deployment: ServiceDeploymentBenchmark):
+    async def start_service_deployments(self, index: int, service_deployment: ServiceDeploymentBenchmark):
         tasks = []
         for i in range(len(service_deployment.request_body.service_resources)):
-            tasks.append(asyncio.to_thread(self.create_service_deployment, i, service_deployment.image,
-                                           service_deployment.namespace, service_deployment.replicas,
-                                           service_deployment.cpu, service_deployment.memory,
-                                           service_deployment.container_port, service_deployment.svc_port,
-                                           service_deployment.external_ip))
+            tasks.append(asyncio.to_thread(self.create_service_deployment, index * 1000 + i,
+                                           service_deployment.image, service_deployment.namespace,
+                                           service_deployment.replicas, service_deployment.cpu,
+                                           service_deployment.memory, service_deployment.container_port,
+                                           service_deployment.svc_port, service_deployment.external_ip))
         result = await asyncio.gather(*tasks)
         return result
 
@@ -170,9 +170,10 @@ class KubeOperator:
         end = time.time()
         return (end - start) * 1000
 
-    async def stop_service_deployments(self, service_deployment: ServiceDeploymentBenchmark):
+    async def stop_service_deployments(self, index: int, service_deployment: ServiceDeploymentBenchmark):
         tasks = []
         for i in range(len(service_deployment.request_body.service_resources)):
-            tasks.append(asyncio.to_thread(self.delete_service_deployment, i, service_deployment.namespace))
+            tasks.append(asyncio.to_thread(self.delete_service_deployment, index * 1000 + i,
+                                           service_deployment.namespace))
         result = await asyncio.gather(*tasks)
         return result
