@@ -36,9 +36,9 @@ async def observe_service_execution_overhead(deployment: dict, service_deploymen
 
     for i in range(0, service_deployment.count):
         logger.info(f"K8S service startup {i}, deployment {deployment['deployment_id']}")
-        k8s_start_times[i] = await k8s_operator.start_service_deployments(service_deployment)
+        k8s_start_times[i] = await k8s_operator.start_service_deployments(i, service_deployment)
         await asyncio.sleep(5)
-        k8s_stop_times[i] = await k8s_operator.stop_service_deployments(service_deployment)
+        k8s_stop_times[i] = await k8s_operator.stop_service_deployments(i, service_deployment)
 
     logger.info(f"cancel deployment, deployment {deployment['deployment_id']}")
     await rm_operator.cancel_deployment(deployment['deployment_id'])
