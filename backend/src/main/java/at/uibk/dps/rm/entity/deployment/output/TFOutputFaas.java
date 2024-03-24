@@ -3,6 +3,7 @@ package at.uibk.dps.rm.entity.deployment.output;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -12,7 +13,7 @@ import java.util.Map;
  */
 @Data
 @NoArgsConstructor
-public class TFOutput {
+public class TFOutputFaas {
 
-    private Map<String, TFOutputValue> value;
+    private Map<String, TFOutputValueFaas> value = new HashMap<>();
 }

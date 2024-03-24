@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.repository.deployment;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
-import at.uibk.dps.rm.entity.deployment.output.TFOutputValue;
+import at.uibk.dps.rm.entity.deployment.output.TFOutputValueFaas;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.model.Runtime;
 import at.uibk.dps.rm.testutil.integration.DatabaseTest;
@@ -153,10 +153,10 @@ public class FunctionDeploymentRepositoryTest extends DatabaseTest {
     })
     void updateTriggerUrls(long resourceDeploymentId, String triggerUrl, String fullUrl,
             VertxTestContext testContext) {
-        TFOutputValue tfOutputValue = TestDeploymentProvider.createTFOutputValue(fullUrl,
+        TFOutputValueFaas tfOutputValueFaas = TestDeploymentProvider.createTFOutputValue(fullUrl,
             "foo1", "http://host", 9100, 8080);
         smProvider.withTransactionMaybe(sessionManager -> repository
-                .updateTriggerUrls(sessionManager, resourceDeploymentId, triggerUrl, tfOutputValue)
+                .updateTriggerUrls(sessionManager, resourceDeploymentId, triggerUrl, tfOutputValueFaas)
                 .andThen(Maybe.defer(() -> sessionManager.find(FunctionDeployment.class, resourceDeploymentId))))
             .subscribe(result -> testContext.verify(() -> {
                 assertThat(result.getRmTriggerUrl()).isEqualTo(triggerUrl);

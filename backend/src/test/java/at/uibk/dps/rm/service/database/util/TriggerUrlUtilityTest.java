@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.service.database.util;
 
 import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
-import at.uibk.dps.rm.entity.deployment.output.TFOutputValue;
+import at.uibk.dps.rm.entity.deployment.output.TFOutputValueFaas;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.testutil.mockprovider.DeploymentRepositoryProviderMock;
@@ -59,11 +59,11 @@ public class TriggerUrlUtilityTest {
 
         when(repositoryMock.getFunctionDeploymentRepository()
             .updateTriggerUrls(eq(sessionManager), eq(1L), eq("/function-deployments/1/invoke"),
-                argThat((TFOutputValue tfOutputValue) -> tfOutputValue.getFullUrl().equals("http://host:8080/foo1"))))
+                argThat((TFOutputValueFaas tfOutputValueFaas) -> tfOutputValueFaas.getFullUrl().equals("http://host:8080/foo1"))))
             .thenReturn(Completable.complete());
         when(repositoryMock.getFunctionDeploymentRepository()
             .updateTriggerUrls(eq(sessionManager), eq(4L), eq("/function-deployments/4/invoke"),
-                argThat((TFOutputValue tfOutputValue) -> tfOutputValue.getFullUrl().equals("http://host:8080/foo2"))))
+                argThat((TFOutputValueFaas tfOutputValueFaas) -> tfOutputValueFaas.getFullUrl().equals("http://host:8080/foo2"))))
             .thenReturn(Completable.complete());
 
         utility.setTriggerUrlsForFunctions(sessionManager, output, deployResourcesDTO)

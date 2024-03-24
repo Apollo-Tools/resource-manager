@@ -3,6 +3,7 @@ package at.uibk.dps.rm.service.deployment;
 import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
+import at.uibk.dps.rm.entity.dto.deployment.SetupTFModulesOutputDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.service.ServiceProxy;
 import at.uibk.dps.rm.service.deployment.docker.DockerHubImageChecker;
@@ -56,22 +57,27 @@ public class DeploymentExecutionServiceImpl extends ServiceProxy implements Depl
 
     @Override
     public void setUpTFModules(DeployResourcesDTO deployRequest,
-            Handler<AsyncResult<DeploymentCredentials>> resultHandler) {
+            Handler<AsyncResult<SetupTFModulesOutputDTO>> resultHandler) {
         DeploymentCredentials credentials = new DeploymentCredentials();
-        Single<DeploymentCredentials> createTFDirs = new ConfigUtility(vertx).getConfigDTO().flatMap(config -> {
+        Single<SetupTFModulesOutputDTO> createTFDirs = new ConfigUtility(vertx).getConfigDTO().flatMap(config -> {
             DeploymentPath deploymentPath = new DeploymentPath(deployRequest.getDeployment().getDeploymentId(),
                 config);
             TerraformSetupService tfSetupService = new TerraformSetupService(vertx, deployRequest,
                 deploymentPath, credentials);
             return tfSetupService
             .setUpTFModuleDirs(config)
-            .flatMapCompletable(tfModules -> {
+            .flatMap(tfModules -> {
                 // TF: main files
                 MainFileService mainFileService = new MainFileService(vertx.fileSystem(), deploymentPath.getRootFolder()
                     , tfModules);
-                return mainFileService.setUpDirectory();
-            })
-            .andThen(Single.fromCallable(() -> credentials));
+                return mainFileService.setUpDirectory()
+                    .andThen(Single.defer(() -> {
+                        SetupTFModulesOutputDTO setupTFModulesOutputDTO = new SetupTFModulesOutputDTO();
+                        setupTFModulesOutputDTO.setTerraformModules(tfModules);
+                        setupTFModulesOutputDTO.setDeploymentCredentials(credentials);
+                        return Single.just(setupTFModulesOutputDTO);
+                    }));
+            });
         });
         RxVertxHandler.handleSession(createTFDirs, resultHandler);
     }

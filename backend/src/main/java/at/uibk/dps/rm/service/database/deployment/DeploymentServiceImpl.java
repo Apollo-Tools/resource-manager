@@ -2,6 +2,8 @@ package at.uibk.dps.rm.service.database.deployment;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
+import at.uibk.dps.rm.entity.deployment.output.TFOutputContainer;
+import at.uibk.dps.rm.entity.deployment.output.TFOutputFaas;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.dto.deployment.*;
 import at.uibk.dps.rm.entity.dto.resource.SubResourceDTO;
@@ -304,8 +306,14 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
     public void handleDeploymentSuccessful(JsonObject terraformOutput, DeployResourcesDTO request,
             Handler<AsyncResult<Void>> resultHandler) {
         TriggerUrlUtility urlUtility = new TriggerUrlUtility(repositoryProvider);
-        DeploymentOutput deploymentOutput = DeploymentOutput.fromJson(terraformOutput);
         Completable updateDeployment = smProvider.withTransactionCompletable(sm -> {
+            DeploymentOutput deploymentOutput = new DeploymentOutput();
+            if (terraformOutput.isEmpty()) {
+                deploymentOutput.setFunctionOutput(new TFOutputFaas());
+                deploymentOutput.setContainerOutput(new TFOutputContainer());
+            } else {
+                deploymentOutput = DeploymentOutput.fromJson(terraformOutput);
+            }
             Completable setFunctionUrls = urlUtility.setTriggerUrlsForFunctions(sm, deploymentOutput, request);
             Completable setContainerUrls = urlUtility.setTriggerUrlForContainers(sm, request);
             Completable updateDeploymentStatus = repositoryProvider.getResourceDeploymentRepository()

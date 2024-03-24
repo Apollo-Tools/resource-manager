@@ -7,6 +7,7 @@ import at.uibk.dps.rm.entity.model.Service;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.util.misc.MetricValueMapper;
 import io.vertx.rxjava3.core.file.FileSystem;
+import org.apache.commons.lang3.NotImplementedException;
 
 import java.nio.file.Path;
 import java.util.*;
@@ -36,7 +37,7 @@ public class ContainerDeployFileService extends TerraformFileService {
      */
     public ContainerDeployFileService(FileSystem fileSystem, Path rootFolder, ServiceDeployment serviceDeployment,
             long deploymentId, ConfigDTO config) {
-        super(fileSystem, rootFolder);
+        super(fileSystem, rootFolder, serviceDeployment.getResourceDeploymentId().toString());
         this.serviceDeployment = serviceDeployment;
         this.deploymentId = deploymentId;
         this.config = config;
@@ -44,20 +45,12 @@ public class ContainerDeployFileService extends TerraformFileService {
 
     @Override
     protected String getProviderString() {
-        return "terraform {\n" +
-            "  required_providers {\n" +
-            "    kubernetes = {\n" +
-            "      source = \"hashicorp/kubernetes\"\n" +
-            "      version = \"2.20.0\"\n" +
-            "    }\n" +
-            "  }\n" +
-            "  required_version = \">= 1.2.0\"\n" +
-            "}\n";
+        throw new NotImplementedException();
     }
 
     @Override
     protected String getMainFileContent() {
-        return getProviderString() + getContainerModulesString();
+        return getContainerModulesString();
     }
 
     /**
@@ -69,7 +62,7 @@ public class ContainerDeployFileService extends TerraformFileService {
         StringBuilder containerString = new StringBuilder();
         Resource resource = serviceDeployment.getResource();
         Service service = serviceDeployment.getService();
-        String identifier = getServiceDeploymentIdentifier();
+        String identifier = serviceDeployment.getResourceDeploymentId().toString();
         Map<String, MetricValue> mainMetricValues =
             MetricValueMapper.mapMetricValues(resource.getMain().getMetricValues());
         String externalIp = "";
@@ -97,7 +90,7 @@ public class ContainerDeployFileService extends TerraformFileService {
                 .collect(Collectors.joining(","));
         containerString.append(String.format(
             "module \"deployment_%s\" {\n" +
-            "  source = \"../../../../terraform/k8s/deployment\"\n" +
+            "  source = \"../../../terraform/k8s/deployment\"\n" +
             "  config_path = \"%s\"\n" +
             "  config_context = \"%s\"\n" +
             "  namespace = \"%s\"\n" +
@@ -131,20 +124,14 @@ public class ContainerDeployFileService extends TerraformFileService {
 
     @Override
     protected String getOutputsFileContent() {
-        String identifier = getServiceDeploymentIdentifier();
+        long identifier = serviceDeployment.getResourceDeploymentId();
         return String.format(
-            "output \"deployment_data\" {\n" +
+            "output \"container_output_%s\" {\n" +
             "  value = {\n" +
             "    service: module.deployment_%s.service_info\n" +
             "    pods: module.deployment_%s.pods_info\n" +
             "  }\n" +
-            "}", identifier, identifier
+            "}", identifier, identifier, identifier
         );
-    }
-
-    private String getServiceDeploymentIdentifier() {
-        Resource resource = serviceDeployment.getResource();
-        Service service = serviceDeployment.getService();
-        return resource.getResourceId() + "_" + service.getServiceId();
     }
 }

@@ -98,8 +98,8 @@ public class SaveResourceDeploymentUtilityTest {
     void saveFunctionDeployments(VertxTestContext testContext) {
         when(functionRepository.findByIdAndAccountId(sessionManager, f1.getFunctionId(), accountId, true))
             .thenReturn(Maybe.just(f1));
-        when(functionRepository.findByIdAndAccountId(sessionManager, f2.getFunctionId(), accountId, true))
-            .thenReturn(Maybe.just(f2));
+        doReturn(Maybe.just(f2)).when(functionRepository).findByIdAndAccountId(sessionManager, f2.getFunctionId(),
+            accountId, true);
 
         utility.saveFunctionDeployments(sessionManager, deployment, requestDTO, status, resources)
             .blockingSubscribe(testContext::completeNow,
@@ -111,8 +111,8 @@ public class SaveResourceDeploymentUtilityTest {
     void saveFunctionDeploymentsFunctionNotFound(VertxTestContext testContext) {
         when(functionRepository.findByIdAndAccountId(sessionManager, f1.getFunctionId(), accountId, true))
             .thenReturn(Maybe.just(f1));
-        when(functionRepository.findByIdAndAccountId(sessionManager, f2.getFunctionId(), accountId, true))
-            .thenReturn(Maybe.empty());
+        doReturn(Maybe.empty()).when(functionRepository).findByIdAndAccountId(sessionManager, f2.getFunctionId(),
+            accountId, true);
 
         utility.saveFunctionDeployments(sessionManager, deployment, requestDTO, status, resources)
             .blockingSubscribe(() -> testContext.failNow("method did not throw exception"),
@@ -154,8 +154,8 @@ public class SaveResourceDeploymentUtilityTest {
 
         when(serviceRepository.findByIdAndAccountId(sessionManager, s1.getServiceId(), accountId, true))
             .thenReturn(Maybe.just(s1));
-        when(serviceRepository.findByIdAndAccountId(sessionManager, s2.getServiceId(), accountId, true))
-            .thenReturn(Maybe.empty());
+        doReturn(Maybe.empty()).when(serviceRepository).findByIdAndAccountId(sessionManager, s2.getServiceId(),
+            accountId,true);
 
         utility.saveServiceDeployments(sessionManager, deployment, requestDTO, status, List.of(n1, n2), resources)
             .blockingSubscribe(() -> testContext.failNow("method did not throw exception"),
@@ -181,8 +181,8 @@ public class SaveResourceDeploymentUtilityTest {
     void saveServiceDeploymentsMissingNamespace(VertxTestContext testContext) {
         when(serviceRepository.findByIdAndAccountId(sessionManager, s1.getServiceId(), accountId, true))
             .thenReturn(Maybe.just(s1));
-        when(serviceRepository.findByIdAndAccountId(sessionManager, s2.getServiceId(), accountId, true))
-            .thenReturn(Maybe.just(s2));
+        doReturn(Maybe.just(s2)).when(serviceRepository).findByIdAndAccountId(sessionManager, s2.getServiceId(),
+            accountId, true);
 
         utility.saveServiceDeployments(sessionManager, deployment, requestDTO, status, List.of(n1), resources)
             .blockingSubscribe(() -> testContext.failNow("method did not throw exception"),

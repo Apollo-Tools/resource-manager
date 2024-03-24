@@ -12,9 +12,8 @@ import lombok.Getter;
  */
 @Getter
 public class FaasModule extends TerraformModule {
-    ResourceProviderEnum resourceProvider;
-
-    Region region;
+    private final ResourceProviderEnum resourceProvider;
+    private final Region region;
 
     /**
      * Create an instance from the resourceProvider and the region.
@@ -23,7 +22,8 @@ public class FaasModule extends TerraformModule {
      * @param region the region of the module
      */
     public FaasModule(ResourceProviderEnum resourceProvider, Region region) {
-        super(resourceProvider.getValue() + "_" + region.getName().replace("-", "_"), true);
+        super(resourceProvider.getValue() + "_" + region.getName().replace("-", "_"),
+            ModuleType.FAAS);
         this.resourceProvider = resourceProvider;
         this.region = region;
     }
@@ -34,6 +34,6 @@ public class FaasModule extends TerraformModule {
      * @return the functions string if present, else a blank string
      */
     public String getFunctionsString() {
-        return String.format("module.%s.resource_output,", this.getModuleName());
+        return String.format("module.%s.function_output,", this.getModuleName());
     }
 }

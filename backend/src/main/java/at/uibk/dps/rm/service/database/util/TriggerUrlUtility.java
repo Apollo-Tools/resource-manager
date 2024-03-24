@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.service.database.util;
 
 import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
-import at.uibk.dps.rm.entity.deployment.output.TFOutputValue;
+import at.uibk.dps.rm.entity.deployment.output.TFOutputValueFaas;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
 import at.uibk.dps.rm.exception.NotFoundException;
@@ -30,7 +30,7 @@ public class TriggerUrlUtility {
      */
     public Completable setTriggerUrlsForFunctions(SessionManager sm,
             DeploymentOutput deploymentOutput, DeployResourcesDTO request) {
-        return Observable.fromIterable(deploymentOutput.getResourceOutput().getValue().entrySet())
+        return Observable.fromIterable(deploymentOutput.getFunctionOutput().getValue().entrySet())
             .flatMapCompletable(entry -> {
                 String[] entryInfo = entry.getKey().split("_");
                 long resourceId = Long.parseLong(entryInfo[0].substring(1));
@@ -47,11 +47,11 @@ public class TriggerUrlUtility {
      * @param resourceId the id of the resource
      * @param functionName the name of the function
      * @param runtimeName the name of the runtime
-     * @param tfOutputValue the terraform output
+     * @param tfOutputValueFaas the terraform output
      * @return a Completable
      */
     private Completable findFunctionDeploymentAndUpdateTriggerUrl(SessionManager sm, DeployResourcesDTO request,
-            long resourceId, String functionName, String runtimeName, TFOutputValue tfOutputValue) {
+            long resourceId, String functionName, String runtimeName, TFOutputValueFaas tfOutputValueFaas) {
         return Observable.fromIterable(request.getFunctionDeployments())
             .filter(functionDeployment -> matchesFunctionDeployment(resourceId, functionName, runtimeName,
                 functionDeployment))
@@ -63,7 +63,7 @@ public class TriggerUrlUtility {
                     functionDeployment.getResourceDeploymentId());
                 functionDeployment.setRmTriggerUrl(rmTriggerUrl);
                 return repositoryProvider.getFunctionDeploymentRepository().updateTriggerUrls(sm,
-                    functionDeployment.getResourceDeploymentId(), rmTriggerUrl, tfOutputValue);
+                    functionDeployment.getResourceDeploymentId(), rmTriggerUrl, tfOutputValueFaas);
             });
     }
 

@@ -194,8 +194,10 @@ public class ResultHandler {
         int statusCode = 500;
         if (throwable instanceof NotFoundException) {
             statusCode = 404;
+        } else if (throwable instanceof ForbiddenException) {
+            statusCode = 403;
         }  else if (throwable instanceof AlreadyExistsException || throwable instanceof UsedByOtherEntityException ||
-                throwable instanceof SerializationException) {
+                throwable instanceof SerializationException || throwable instanceof ConflictException) {
             statusCode = 409;
         } else if (throwable instanceof BadInputException) {
             statusCode = 400;
