@@ -2291,7 +2291,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/StartupTerminateServices'
+              $ref: '#/components/schemas/StartupShutdownServices'
       responses:
         200:
           description: Successful start up of the containers.
@@ -2378,25 +2378,45 @@ paths:
         500:
           $ref: "#/components/responses/500"
 
-  /service-deployments/{id}/terminate:
+  /service-deployments/shutdown:
     post:
-      description: Stop a service container from an existing deployment
-      operationId: stopServiceDeployment
+      description: Shutdown a service container from an existing deployment
+      operationId: shutdownServiceDeployment
       security:
         - bearerAuth: []
       tags:
         - resourceDeployments
-      parameters:
-        - $ref: "#/components/parameters/idParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartupShutdownServices'
       responses:
-        204:
-          description: Successful stop of a container
+        200:
+          description: Successful shutdown of the containers.
+          headers:
+            content-length:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  shutdown_time_seconds:
+                    type: number
+                    example: 10.5
         400:
           $ref: "#/components/responses/400"
         401:
           $ref: "#/components/responses/401"
+        403:
+          $ref: "#/components/responses/403"
         404:
           $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
         500:
           $ref: "#/components/responses/500"
 
@@ -4481,7 +4501,7 @@ components:
             password for the docker registry
           type: string
           example: abcdef1234
-    StartupTerminateServices:
+    StartupShutdownServices:
       type: object
       required:
         - deployment_id

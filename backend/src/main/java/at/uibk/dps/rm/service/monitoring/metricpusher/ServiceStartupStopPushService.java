@@ -14,26 +14,26 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.client.WebClient;
 
 /**
- * The interface of the service proxy for pushing container metric data to the monitoring system.
+ * The interface of the service proxy for pushing service metric data to the monitoring system.
  *
  * @author matthi-g
  */
 @ProxyGen
 @VertxGen
-public interface ContainerStartupTerminationPushService extends ServiceInterface {
+public interface ServiceStartupStopPushService extends ServiceInterface {
 
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static ContainerStartupTerminationPushService create(WebClient webClient, ConfigDTO config) {
-        return new ContainerStartupTerminationPushServiceImpl(webClient, config);
+    static ServiceStartupStopPushService create(WebClient webClient, ConfigDTO config) {
+        return new ServiceStartupStopPushServiceImpl(webClient, config);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
-    static ContainerStartupTerminationPushService createProxy(Vertx vertx) {
-        return new ContainerStartupTerminationPushServiceVertxEBProxy(vertx,
-            ServiceProxyAddress.getServiceProxyAddress("container-startup-pusher"));
+    static ServiceStartupStopPushService createProxy(Vertx vertx) {
+        return new ServiceStartupStopPushServiceVertxEBProxy(vertx,
+            ServiceProxyAddress.getServiceProxyAddress("service-startup-stop-pusher"));
     }
 
     /**

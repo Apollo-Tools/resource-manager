@@ -1,8 +1,8 @@
 package at.uibk.dps.rm.handler.deploymentexecution;
 
-import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateServicesDTO;
+import at.uibk.dps.rm.entity.dto.deployment.StartupShutdownServicesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.ServiceDeploymentId;
-import at.uibk.dps.rm.entity.dto.deployment.StartTerminateServiceDeploymentDTO;
+import at.uibk.dps.rm.entity.dto.deployment.StartupShutdownServiceDeploymentDTO;
 import at.uibk.dps.rm.entity.dto.function.InvocationResponseBodyDTO;
 import at.uibk.dps.rm.entity.dto.function.InvokeFunctionDTO;
 import at.uibk.dps.rm.entity.model.Deployment;
@@ -35,12 +35,12 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * Processes requests that concern startup of containers.
+ * Processes requests that concern startup/termination of services and invocation of functions.
  *
  * @author matthi-g
  */
 @RequiredArgsConstructor
-public class ContainerStartupHandler {
+public class InvocationHandler {
     private static final Logger logger = LoggerFactory.getLogger(ApiVerticle.class);
 
     private final DeploymentExecutionChecker deploymentChecker;
@@ -48,37 +48,37 @@ public class ContainerStartupHandler {
     private final ServiceProxyProvider serviceProxyProvider;
 
     /**
-     * Deploy a container.
+     * Startup a service.
      *
      * @param rc the routing context
      * @return a Completable
      */
-    public Completable deployContainer(RoutingContext rc) {
-        return processDeployTerminateRequest(rc, true);
+    public Completable startupService(RoutingContext rc) {
+        return processStartStopRequest(rc, true);
     }
 
     /**
-     * Terminate a container.
+     * Shutdown a service.
      *
      * @param rc the routing context
      * @return a Completable
      */
-    public Completable terminateContainer(RoutingContext rc) {
-        return processDeployTerminateRequest(rc, false);
+    public Completable shutdownService(RoutingContext rc) {
+        return processStartStopRequest(rc, false);
     }
 
     /**
-     * Process a deploy or terminate request for containers.
+     * Process a startup or shutdown request for services.
      *
      * @param rc the routing context
-     * @param isStartup if the request is for startup or termination of a container
+     * @param isStartup if the request is for startup or termination of services
      * @return a Completable
      */
-    private Completable processDeployTerminateRequest(RoutingContext rc, boolean isStartup) {
+    private Completable processStartStopRequest(RoutingContext rc, boolean isStartup) {
         long accountId = rc.user().principal().getLong("account_id");
         boolean isAdmin =rc.user().principal().getJsonArray("role").contains("admin");
-        StartTerminateServiceDeploymentDTO request =
-            rc.body().asJsonObject().mapTo(StartTerminateServiceDeploymentDTO.class);
+        StartupShutdownServiceDeploymentDTO request =
+            rc.body().asJsonObject().mapTo(StartupShutdownServiceDeploymentDTO.class);
         if (!isAdmin && request.getIgnoreRunningStateChange()) {
             return Completable.error(new ForbiddenException("this operation is not allowed with the specified " +
                 "parameters"));
@@ -103,26 +103,26 @@ public class ContainerStartupHandler {
                         return rc.response().setStatusCode(204).end();
                     }
                     long startTime = System.nanoTime();
-                    DeployTerminateServicesDTO deployTerminateServices = new DeployTerminateServicesDTO(deployment,
+                    StartupShutdownServicesDTO startShutdownServices = new StartupShutdownServicesDTO(deployment,
                         serviceDeployments);
-                    Single<JsonObject> startupStopServices;
+                    Single<JsonObject> startupShutdownServices;
                     if (isStartup) {
-                        startupStopServices = deploymentChecker.startupServices(deployTerminateServices);
+                        startupShutdownServices = deploymentChecker.startupServices(startShutdownServices);
                     } else {
-                        startupStopServices = deploymentChecker.stopServices(deployTerminateServices)
+                        startupShutdownServices = deploymentChecker.shutdownServices(startShutdownServices)
                             .andThen(Single.defer(() -> Single.just(new JsonObject())));
                     }
-                    return startupStopServices.flatMapCompletable(result -> {
+                    return startupShutdownServices.flatMapCompletable(result -> {
                         long endTime = System.nanoTime();
                         double executionTime = (endTime - startTime) / 1_000_000_000.0;
                         UUID requestId = UUID.randomUUID();
                         ServiceStartupTerminateTime serviceStartupTerminateTime =
                             new ServiceStartupTerminateTime(requestId.toString(), executionTime,
                                 serviceDeployments, isStartup);
-                        serviceProxyProvider.getContainerStartTermPushService()
+                        serviceProxyProvider.getServiceStartStopPushService()
                             .composeAndPushMetric(JsonObject.mapFrom(serviceStartupTerminateTime))
                             .subscribe();
-                        result.put(isStartup ? "startup_time_seconds" : "termination_time_seconds",
+                        result.put(isStartup ? "startup_time_seconds" : "shutdown_time_seconds",
                             executionTime);
                         return rc.response().setStatusCode(200).end(result.encodePrettily());
                     });

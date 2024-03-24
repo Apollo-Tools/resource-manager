@@ -8,13 +8,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Represents one entry from a {@link TFOutputContainer} object.
+ * Represents one entry from a {@link TFOutputService} object.
  *
  * @author matthi-g
  */
 @Getter
 @Setter
-public class TFOutputValueContainer {
+public class TFOutputValueService {
 
     private List<String> pods;
 

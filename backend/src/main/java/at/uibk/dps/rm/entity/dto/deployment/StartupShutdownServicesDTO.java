@@ -16,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @DataObject
-public class DeployTerminateServicesDTO {
+public class StartupShutdownServicesDTO {
     private Deployment deployment;
     private List<ServiceDeployment> serviceDeployments;
 
@@ -25,8 +25,8 @@ public class DeployTerminateServicesDTO {
      *
      * @param jsonObject the JsonObject
      */
-    public DeployTerminateServicesDTO(JsonObject jsonObject) {
-        DeployTerminateServicesDTO deployServicesDTO = jsonObject.mapTo(DeployTerminateServicesDTO.class);
+    public StartupShutdownServicesDTO(JsonObject jsonObject) {
+        StartupShutdownServicesDTO deployServicesDTO = jsonObject.mapTo(StartupShutdownServicesDTO.class);
         this.setDeployment(deployServicesDTO.getDeployment());
         this.setServiceDeployments(deployServicesDTO.getServiceDeployments());
     }

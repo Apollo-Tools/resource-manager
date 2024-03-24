@@ -15,7 +15,7 @@ public class DeploymentOutput {
 
     private TFOutputFaas functionOutput;
 
-    private TFOutputContainer serviceOutput;
+    private TFOutputService serviceOutput;
 
     /**
      * Create an instance from the terraform output in JSON-format.

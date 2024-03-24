@@ -137,31 +137,31 @@ public class TestFileServiceProvider {
         return new MainFileService(fileSystem, rootFolder, terraformModules);
     }
 
-    public static ContainerDeployFileService createContainerDeployFileService(FileSystem fileSystem, Path rootFolder,
-            Deployment deployment) {
+    public static ServiceDeployFileService createContainerDeployFileService(FileSystem fileSystem, Path rootFolder,
+                                                                            Deployment deployment) {
         ServiceDeployment serviceDeployment = TestServiceProvider.createServiceDeployment(1L, deployment);
-        return new ContainerDeployFileService(fileSystem, rootFolder, serviceDeployment,
+        return new ServiceDeployFileService(fileSystem, rootFolder, serviceDeployment,
             deployment.getDeploymentId(), TestConfigProvider.getConfigDTO());
     }
 
-    public static ContainerDeployFileService createContainerDeployFileService(FileSystem fileSystem, Path rootFolder,
-            Resource resource, Deployment deployment) {
+    public static ServiceDeployFileService createContainerDeployFileService(FileSystem fileSystem, Path rootFolder,
+                                                                            Resource resource, Deployment deployment) {
         ServiceDeployment serviceDeployment =
             TestServiceProvider.createServiceDeployment(1L, resource, deployment);
-        return new ContainerDeployFileService(fileSystem, rootFolder, serviceDeployment,
+        return new ServiceDeployFileService(fileSystem, rootFolder, serviceDeployment,
             deployment.getDeploymentId(), TestConfigProvider.getConfigDTO());
     }
 
-    public static ContainerPullFileService createContainerPullFileService(FileSystem fileSystem, Path rootFolder,
-        Deployment deployment) {
+    public static ServicePullFileService createContainerPullFileService(FileSystem fileSystem, Path rootFolder,
+                                                                        Deployment deployment) {
         ServiceDeployment serviceDeployment = TestServiceProvider.createServiceDeployment(1L, deployment);
-        return new ContainerPullFileService(fileSystem, rootFolder, List.of(serviceDeployment),
+        return new ServicePullFileService(fileSystem, rootFolder, List.of(serviceDeployment),
             deployment.getDeploymentId(), TestConfigProvider.getConfigDTO());
     }
 
-    public static ContainerPullFileService createContainerPullFileService(FileSystem fileSystem, Path rootFolder,
-        Deployment deployment, List<ServiceDeployment> serviceDeployments) {
-        return new ContainerPullFileService(fileSystem, rootFolder, serviceDeployments,
+    public static ServicePullFileService createContainerPullFileService(FileSystem fileSystem, Path rootFolder,
+                                                                        Deployment deployment, List<ServiceDeployment> serviceDeployments) {
+        return new ServicePullFileService(fileSystem, rootFolder, serviceDeployments,
             deployment.getDeploymentId(), TestConfigProvider.getConfigDTO());
     }
 }

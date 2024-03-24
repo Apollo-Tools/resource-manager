@@ -45,9 +45,9 @@ public class TerraformSetupServiceTest {
         System.setProperty("os.name", "Linux");
         try (MockedConstruction<RegionFaasFileService> ignoredRFFS =
                  TerraformFileServiceMockprovider.mockRegionFaasFileService(Completable.complete());
-             MockedConstruction<ContainerPullFileService> ignoredCPFS =
+             MockedConstruction<ServicePullFileService> ignoredCPFS =
                  TerraformFileServiceMockprovider.mockContainerPullFileService(Completable.complete());
-             MockedConstruction<ContainerDeployFileService> ignoredCDFS =
+             MockedConstruction<ServiceDeployFileService> ignoredCDFS =
                  TerraformFileServiceMockprovider.mockContainerDeployFileService(Completable.complete())
             ) {
                 service.setUpTFModuleDirs(config)
@@ -81,9 +81,9 @@ public class TerraformSetupServiceTest {
         System.setProperty("os.name", "Linux");
         try (MockedConstruction<RegionFaasFileService> ignoredRFFS =
                  TerraformFileServiceMockprovider.mockRegionFaasFileService(Completable.complete());
-             MockedConstruction<ContainerPullFileService> ignoredCPFS =
+             MockedConstruction<ServicePullFileService> ignoredCPFS =
                  TerraformFileServiceMockprovider.mockContainerPullFileService(Completable.complete());
-             MockedConstruction<ContainerDeployFileService> ignoredCDFS =
+             MockedConstruction<ServiceDeployFileService> ignoredCDFS =
                  TerraformFileServiceMockprovider.mockContainerDeployFileService(Completable.complete())
         ) {
                 service.setUpTFModuleDirs(config)

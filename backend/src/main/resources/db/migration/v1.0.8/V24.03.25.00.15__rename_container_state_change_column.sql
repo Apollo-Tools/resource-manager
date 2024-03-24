@@ -1,0 +1,2 @@
+ALTER TABLE deployment
+RENAME COLUMN container_state_change TO service_state_change_in_progress;

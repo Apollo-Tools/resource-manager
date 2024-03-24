@@ -45,7 +45,7 @@ public class ServiceDeploymentServiceImpl extends DatabaseServiceProxy<ServiceDe
                 if (serviceDeployments.isEmpty()) {
                     return Single.just(List.of());
                 } else if (!ignoreRunningStateChange &&
-                        serviceDeployments.get(0).getDeployment().getContainerStateChange()) {
+                        serviceDeployments.get(0).getDeployment().getServiceStateChangeInProgress()) {
                     return Single.error(new ConflictException("Startup or termination operation is already in " +
                         "progress. Try again later."));
                 }
@@ -56,7 +56,7 @@ public class ServiceDeploymentServiceImpl extends DatabaseServiceProxy<ServiceDe
                         if (!status.equals(DeploymentStatusValue.DEPLOYED)) {
                             return Single.error(new BadInputException("Service Deployment is not ready for " +
                                 "startup/termination"));
-                        } else if (!ignoreRunningStateChange && serviceDeployment.getDeployment().getContainerStateChange()) {
+                        } else if (!ignoreRunningStateChange && serviceDeployment.getDeployment().getServiceStateChangeInProgress()) {
                             return Single.error(new ConflictException("Startup or termination operation is already in " +
                                 "progress. Try again later."));
                         } else {

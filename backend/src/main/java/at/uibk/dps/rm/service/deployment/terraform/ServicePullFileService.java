@@ -11,12 +11,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Extension of the #TerraformFileService to set up the container pre pull module of service
+ * Extension of the #TerraformFileService to set up the service pre pull module of service
  * deployments.
  *
  * @author matthi-g
  */
-public class ContainerPullFileService extends TerraformFileService {
+public class ServicePullFileService extends TerraformFileService {
 
     private final long deploymentId;
 
@@ -32,8 +32,8 @@ public class ContainerPullFileService extends TerraformFileService {
      * @param serviceDeployments the list of service deployments
      * @param deploymentId the id of the deployment
      */
-    public ContainerPullFileService(FileSystem fileSystem, Path rootFolder, List<ServiceDeployment> serviceDeployments,
-            long deploymentId, ConfigDTO config) {
+    public ServicePullFileService(FileSystem fileSystem, Path rootFolder, List<ServiceDeployment> serviceDeployments,
+                                  long deploymentId, ConfigDTO config) {
         super(fileSystem, rootFolder, "");
         this.serviceDeployments = serviceDeployments;
         this.deploymentId = deploymentId;
@@ -47,15 +47,15 @@ public class ContainerPullFileService extends TerraformFileService {
 
     @Override
     protected String getMainFileContent() {
-        return getContainerModulesString();
+        return getServiceModulesString();
     }
 
     /**
-     * Get the string that defines all pre pull modules for container deployments.
+     * Get the string that defines all pre pull modules for service deployments.
      *
-     * @return the container modules string
+     * @return the service modules string
      */
-    private String getContainerModulesString() {
+    private String getServiceModulesString() {
         HashMap<PrePullGroup, Set<String>> prePullGroups = new HashMap<>();
         StringBuilder functionsString = new StringBuilder();
         for (ServiceDeployment serviceDeployment : serviceDeployments) {

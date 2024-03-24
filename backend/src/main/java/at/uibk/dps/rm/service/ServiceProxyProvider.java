@@ -72,13 +72,13 @@ public class ServiceProxyProvider {
     private final DeploymentExecutionService deploymentExecutionService;
     /* Monitoring Service */
     private final AWSPricePushService awsPricePushService;
-    private final ContainerStartupTerminationPushService containerStartTermPushService;
     private final FunctionExecutionService functionExecutionService;
     private final FunctionInvocationPushService functionInvocationPushService;
     private final K8sMetricPushService k8sMetricPushService;
     private final MetricQueryService metricQueryService;
     private final OpenFaasMetricPushService openFaasMetricPushService;
     private final RegionMetricPushService regionMetricPushService;
+    private final ServiceStartupStopPushService serviceStartStopPushService;
 
 
     /**
@@ -118,12 +118,12 @@ public class ServiceProxyProvider {
         deploymentExecutionService = DeploymentExecutionService.createProxy(vertx);
         /* Monitoring Service */
         awsPricePushService = AWSPricePushService.createProxy(vertx);
-        containerStartTermPushService = ContainerStartupTerminationPushService.createProxy(vertx);
         functionExecutionService = FunctionExecutionService.createProxy(vertx);
         functionInvocationPushService = FunctionInvocationPushService.createProxy(vertx);
         k8sMetricPushService = K8sMetricPushService.createProxy(vertx);
         metricQueryService = MetricQueryService.createProxy(vertx);
         openFaasMetricPushService = OpenFaasMetricPushService.createProxy(vertx);
         regionMetricPushService = RegionMetricPushService.createProxy(vertx);
+        serviceStartStopPushService = ServiceStartupStopPushService.createProxy(vertx);
     }
 }

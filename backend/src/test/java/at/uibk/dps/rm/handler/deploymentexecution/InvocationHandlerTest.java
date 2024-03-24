@@ -11,7 +11,7 @@ import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.service.rxjava3.database.deployment.FunctionDeploymentService;
 import at.uibk.dps.rm.service.rxjava3.database.deployment.ServiceDeploymentService;
 import at.uibk.dps.rm.service.rxjava3.monitoring.function.FunctionExecutionService;
-import at.uibk.dps.rm.service.rxjava3.monitoring.metricpusher.ContainerStartupTerminationPushService;
+import at.uibk.dps.rm.service.rxjava3.monitoring.metricpusher.ServiceStartupStopPushService;
 import at.uibk.dps.rm.service.rxjava3.monitoring.metricpusher.FunctionInvocationPushService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.*;
@@ -44,15 +44,15 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Implements tests for the {@link ContainerStartupHandler} class.
+ * Implements tests for the {@link InvocationHandler} class.
  *
  * @author matthi-g
  */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class ContainerStartupHandlerTest {
+public class InvocationHandlerTest {
 
-    private ContainerStartupHandler handler;
+    private InvocationHandler handler;
 
     @Mock
     private DeploymentExecutionChecker deploymentChecker;
@@ -70,7 +70,7 @@ public class ContainerStartupHandlerTest {
     private FunctionExecutionService functionExecutionService;
 
     @Mock
-    private ContainerStartupTerminationPushService containerMetricPushService;
+    private ServiceStartupStopPushService containerMetricPushService;
 
     @Mock
     private FunctionInvocationPushService functionInvocationPushService;
@@ -88,13 +88,13 @@ public class ContainerStartupHandlerTest {
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        handler = new ContainerStartupHandler(deploymentChecker, serviceProxyProvider);
+        handler = new InvocationHandler(deploymentChecker, serviceProxyProvider);
         lenient().when(serviceProxyProvider.getServiceDeploymentService()).thenReturn(serviceDeploymentService);
         lenient().when(serviceProxyProvider.getFunctionDeploymentService()).thenReturn(functionDeploymentService);
         lenient().when(serviceProxyProvider.getFunctionExecutionService()).thenReturn(functionExecutionService);
         lenient().when(serviceProxyProvider.getFunctionInvocationPushService())
             .thenReturn(functionInvocationPushService);
-        lenient().when(serviceProxyProvider.getContainerStartTermPushService())
+        lenient().when(serviceProxyProvider.getServiceStartStopPushService())
             .thenReturn(containerMetricPushService);
         account = TestAccountProvider.createAccount(1L);
         Deployment d1 = TestDeploymentProvider.createDeployment(1L);
@@ -142,15 +142,15 @@ public class ContainerStartupHandlerTest {
         }
         Completable completable;
         if (isStartup) {
-            when(deploymentChecker.startContainer(serviceDeployment))
+            when(deploymentChecker.startupServices(serviceDeployment))
                 .thenReturn(successDeploymentTermination ? Single.just(new JsonObject()) :
                     Single.error(DeploymentTerminationFailedException::new));
-            completable = handler.deployContainer(rc);
+            completable = handler.startupService(rc);
         } else {
-            when(deploymentChecker.stopContainer(serviceDeployment))
+            when(deploymentChecker.shutdownServices(serviceDeployment))
                 .thenReturn(successDeploymentTermination ? Completable.complete() :
                     Completable.error(DeploymentTerminationFailedException::new));
-            completable = handler.terminateContainer(rc);
+            completable = handler.shutdownService(rc);
         }
 
         if (successDeploymentTermination) {
@@ -183,7 +183,7 @@ public class ContainerStartupHandlerTest {
         when(serviceDeploymentService.findOneForDeploymentAndTermination(sd.getResourceDeploymentId(),
             account.getAccountId())).thenReturn(Single.error(NotFoundException::new));
 
-        handler.deployContainer(rc)
+        handler.startupService(rc)
             .subscribe(() -> testContext.failNow("methods did not throw exception"),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);

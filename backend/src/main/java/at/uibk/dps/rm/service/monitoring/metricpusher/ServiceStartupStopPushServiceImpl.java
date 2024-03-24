@@ -14,12 +14,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * This is the implementation of the {@link ContainerStartupTerminationPushService}.
+ * This is the implementation of the {@link ServiceStartupStopPushService}.
  *
  * @author matthi-g
  */
-public class ContainerStartupTerminationPushServiceImpl extends ServiceProxy implements
-        ContainerStartupTerminationPushService {
+public class ServiceStartupStopPushServiceImpl extends ServiceProxy implements
+    ServiceStartupStopPushService {
 
     private final MetricPusher monitoringPusher;
 
@@ -29,19 +29,19 @@ public class ContainerStartupTerminationPushServiceImpl extends ServiceProxy imp
      * @param webClient the web client
      * @param config the config
      */
-    public ContainerStartupTerminationPushServiceImpl(WebClient webClient, ConfigDTO config) {
+    public ServiceStartupStopPushServiceImpl(WebClient webClient, ConfigDTO config) {
         monitoringPusher = new MetricPusher(webClient, config);
     }
 
     @Override
     public String getServiceProxyAddress() {
-        return "container-startup-pusher" + super.getServiceProxyAddress();
+        return "service-startup-stop-pusher" + super.getServiceProxyAddress();
     }
 
     @Override
     public void composeAndPushMetric(JsonObject executionTime, Handler<AsyncResult<Void>> resultHandler) {
         ServiceStartupTerminateTime serviceExecutionTime = executionTime.mapTo(ServiceStartupTerminateTime.class);
-        String metricName = "container_" + (serviceExecutionTime.getIsStartup() ? "startup" : "termination" ) +
+        String metricName = "service_" + (serviceExecutionTime.getIsStartup() ? "startup" : "termination" ) +
             "_time_seconds";
         List<OpenTSDBEntity> openTSDBEntities = serviceExecutionTime.getServiceDeployments().stream()
             .map(serviceDeployment -> new OpenTSDBEntity(metricName, serviceExecutionTime.getExecutionTime(),

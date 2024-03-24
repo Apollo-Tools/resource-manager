@@ -13,7 +13,7 @@ import java.util.Map;
  */
 @Data
 @NoArgsConstructor
-public class TFOutputContainer {
+public class TFOutputService {
 
-    private Map<String, TFOutputValueContainer> value = new HashMap<>();
+    private Map<String, TFOutputValueService> value = new HashMap<>();
 }

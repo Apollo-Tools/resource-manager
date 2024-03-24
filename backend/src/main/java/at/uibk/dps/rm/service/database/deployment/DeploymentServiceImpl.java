@@ -2,7 +2,7 @@ package at.uibk.dps.rm.service.database.deployment;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
-import at.uibk.dps.rm.entity.deployment.output.TFOutputContainer;
+import at.uibk.dps.rm.entity.deployment.output.TFOutputService;
 import at.uibk.dps.rm.entity.deployment.output.TFOutputFaas;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.dto.deployment.*;
@@ -310,18 +310,18 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
             DeploymentOutput deploymentOutput = new DeploymentOutput();
             if (terraformOutput.isEmpty()) {
                 deploymentOutput.setFunctionOutput(new TFOutputFaas());
-                deploymentOutput.setServiceOutput(new TFOutputContainer());
+                deploymentOutput.setServiceOutput(new TFOutputService());
             } else {
                 deploymentOutput = DeploymentOutput.fromJson(terraformOutput);
             }
             Completable setFunctionUrls = urlUtility.setTriggerUrlsForFunctions(sm, deploymentOutput, request);
-            Completable setContainerUrls = urlUtility.setTriggerUrlForContainers(sm, request);
+            Completable setServiceUrls = urlUtility.setTriggerUrlForServices(sm, request);
             Completable updateDeploymentStatus = repositoryProvider.getResourceDeploymentRepository()
                 .updateDeploymentStatusByDeploymentId(sm, request.getDeployment().getDeploymentId(),
                     DeploymentStatusValue.DEPLOYED)
                 .andThen(Completable.defer(() -> repositoryProvider.getDeploymentRepository()
                     .setDeploymentFinishedTime(sm, request.getDeployment().getDeploymentId())));
-            return Completable.mergeArray(setFunctionUrls, setContainerUrls, updateDeploymentStatus)
+            return Completable.mergeArray(setFunctionUrls, setServiceUrls, updateDeploymentStatus)
                 .andThen(Completable.defer(sm::flush));
         });
 
