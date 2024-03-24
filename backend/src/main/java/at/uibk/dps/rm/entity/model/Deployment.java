@@ -40,7 +40,7 @@ public class Deployment {
     @OneToMany(mappedBy = "lockedByDeployment", cascade = CascadeType.ALL)
     private List<Resource> lockedResources = new ArrayList<>();
 
-    private Boolean containerStateChange = false;
+    private Boolean serviceStateChangeInProgress = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_id")

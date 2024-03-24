@@ -33,13 +33,13 @@ public class TerraformFileServiceMockprovider {
             (mock, context) -> when(mock.setUpDirectory()).thenReturn(result));
     }
 
-    public static MockedConstruction<ContainerPullFileService> mockContainerPullFileService(Completable result) {
-        return Mockito.mockConstruction(ContainerPullFileService.class, (mock, context) ->
+    public static MockedConstruction<ServicePullFileService> mockContainerPullFileService(Completable result) {
+        return Mockito.mockConstruction(ServicePullFileService.class, (mock, context) ->
             when(mock.setUpDirectory()).thenReturn(result));
     }
 
-    public static MockedConstruction<ContainerDeployFileService> mockContainerDeployFileService(Completable result) {
-        return Mockito.mockConstruction(ContainerDeployFileService.class, (mock, context) ->
+    public static MockedConstruction<ServiceDeployFileService> mockContainerDeployFileService(Completable result) {
+        return Mockito.mockConstruction(ServiceDeployFileService.class, (mock, context) ->
             when(mock.setUpDirectory()).thenReturn(result));
     }
 }

@@ -15,13 +15,13 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Implements tests for the {@link ContainerPullFileService} class.
+ * Implements tests for the {@link ServicePullFileService} class.
  *
  * @author matthi-g
  */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class ContainerPullFileServiceTest {
+public class ServicePullFileServiceTest {
 
     private final Path rootFolder = Paths.get("temp\\deployment_1");
 
@@ -30,7 +30,7 @@ public class ContainerPullFileServiceTest {
 
     @Test
     void getProviderString(Vertx vertx) {
-        ContainerPullFileService service =
+        ServicePullFileService service =
             TestFileServiceProvider.createContainerPullFileService(vertx.fileSystem(), rootFolder, deployment);
         String result = service.getProviderString();
 
@@ -48,7 +48,7 @@ public class ContainerPullFileServiceTest {
         ServiceDeployment sr1 = TestServiceProvider.createServiceDeployment(1L, s1, r1);
         ServiceDeployment sr2 = TestServiceProvider.createServiceDeployment(1L, s2, r1);
         ServiceDeployment sr3 = TestServiceProvider.createServiceDeployment(1L, s1, r2);
-        ContainerPullFileService service =
+        ServicePullFileService service =
             TestFileServiceProvider.createContainerPullFileService(vertx.fileSystem(), rootFolder, deployment,
                 List.of(sr1, sr2, sr3));
         String configPath = Path.of("tmp", "kubeconfig", "mainresource").toAbsolutePath().toString()
@@ -84,7 +84,7 @@ public class ContainerPullFileServiceTest {
 
     @Test
     void getVariablesFileContent(Vertx vertx) {
-        ContainerPullFileService service =
+        ServicePullFileService service =
             TestFileServiceProvider.createContainerPullFileService(vertx.fileSystem(), rootFolder, deployment);
         String result = service.getVariablesFileContent();
 
@@ -93,7 +93,7 @@ public class ContainerPullFileServiceTest {
 
     @Test
     void getOutputFileContent(Vertx vertx) {
-        ContainerPullFileService service =
+        ServicePullFileService service =
             TestFileServiceProvider.createContainerPullFileService(vertx.fileSystem(), rootFolder, deployment);
         String result = service.getOutputsFileContent();
 

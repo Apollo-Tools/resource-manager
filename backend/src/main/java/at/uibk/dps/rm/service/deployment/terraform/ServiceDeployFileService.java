@@ -14,12 +14,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Extension of the #TerraformFileService to set up the container deployment module of service
+ * Extension of the #TerraformFileService to set up the deployment module of service
  * deployments.
  *
  * @author matthi-g
  */
-public class ContainerDeployFileService extends TerraformFileService {
+public class ServiceDeployFileService extends TerraformFileService {
 
     private final long deploymentId;
 
@@ -35,8 +35,8 @@ public class ContainerDeployFileService extends TerraformFileService {
      * @param serviceDeployment the service deployment
      * @param deploymentId the id of the deployment
      */
-    public ContainerDeployFileService(FileSystem fileSystem, Path rootFolder, ServiceDeployment serviceDeployment,
-            long deploymentId, ConfigDTO config) {
+    public ServiceDeployFileService(FileSystem fileSystem, Path rootFolder, ServiceDeployment serviceDeployment,
+                                    long deploymentId, ConfigDTO config) {
         super(fileSystem, rootFolder, serviceDeployment.getResourceDeploymentId().toString());
         this.serviceDeployment = serviceDeployment;
         this.deploymentId = deploymentId;
@@ -50,16 +50,16 @@ public class ContainerDeployFileService extends TerraformFileService {
 
     @Override
     protected String getMainFileContent() {
-        return getContainerModulesString();
+        return getServiceModuleString();
     }
 
     /**
-     * Get the string that defines the container deployment from the terraform module.
+     * Get the string that defines the service deployments from the terraform module.
      *
-     * @return the container modules string
+     * @return the service module string
      */
-    private String getContainerModulesString() {
-        StringBuilder containerString = new StringBuilder();
+    private String getServiceModuleString() {
+        StringBuilder moduleString = new StringBuilder();
         Resource resource = serviceDeployment.getResource();
         Service service = serviceDeployment.getService();
         String identifier = serviceDeployment.getResourceDeploymentId().toString();
@@ -88,7 +88,7 @@ public class ContainerDeployFileService extends TerraformFileService {
                 .map(envVar -> "{name:\"" + envVar.getName() +
                         "\",value:\"" + envVar.getValue() + "\"}")
                 .collect(Collectors.joining(","));
-        containerString.append(String.format(
+        moduleString.append(String.format(
             "module \"deployment_%s\" {\n" +
             "  source = \"../../../terraform/k8s/deployment\"\n" +
             "  config_path = \"%s\"\n" +
@@ -114,7 +114,7 @@ public class ContainerDeployFileService extends TerraformFileService {
             serviceDeployment.getResourceDeploymentId(), service.getServiceId(), service.getReplicas(),
             service.getCpu(), service.getMemory(), ports, service.getK8sServiceType().getName(), externalIp, nodeName,
             imagePullSecrets, volumeMounts, envVars));
-        return containerString.toString();
+        return moduleString.toString();
     }
 
     @Override

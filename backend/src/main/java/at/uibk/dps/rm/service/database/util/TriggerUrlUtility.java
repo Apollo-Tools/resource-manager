@@ -84,17 +84,16 @@ public class TriggerUrlUtility {
     }
 
     /**
-     * Store all trigger urls of container deployments.
+     * Store all trigger urls of service deployments.
      *
      * @param sm the database session manager
      * @param request all data needed for the deployment process
      * @return a Completable
      */
-    public Completable setTriggerUrlForContainers(SessionManager sm, DeployResourcesDTO request) {
+    public Completable setTriggerUrlForServices(SessionManager sm, DeployResourcesDTO request) {
         return Observable.fromIterable(request.getServiceDeployments())
             .flatMapCompletable(serviceDeployment -> {
-                String rmTriggerUrl = String.format("/service-deployments/%s/startup",
-                    serviceDeployment.getResourceDeploymentId()) ;
+                String rmTriggerUrl = "/service-deployments/startup" ;
                 return repositoryProvider.getResourceDeploymentRepository()
                     .updateRmTriggerUrl(sm, serviceDeployment.getResourceDeploymentId(), rmTriggerUrl);
             });

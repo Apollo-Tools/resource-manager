@@ -89,7 +89,7 @@ public class MainFileService extends TerraformFileService {
         HashSet<ResourceProviderEnum> resourceProviders = new HashSet<>();
         StringBuilder variables = new StringBuilder();
         for (TerraformModule module : modules) {
-            // Exclude container and non custom resource providers
+            // Exclude everything except faas modules
             if (!module.getModuleType().equals(ModuleType.FAAS)) {
                 continue;
             }

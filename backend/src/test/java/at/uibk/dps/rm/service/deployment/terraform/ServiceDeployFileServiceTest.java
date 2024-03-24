@@ -17,13 +17,13 @@ import java.nio.file.Path;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Implements tests for the {@link ContainerDeployFileService} class.
+ * Implements tests for the {@link ServiceDeployFileService} class.
  *
  * @author matthi-g
  */
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
-public class ContainerDeployFileServiceTest {
+public class ServiceDeployFileServiceTest {
 
     private final Path rootFolder = Path.of("temp", "deployment_1");
 
@@ -32,7 +32,7 @@ public class ContainerDeployFileServiceTest {
 
     @Test
     void getProviderString(Vertx vertx) {
-        ContainerDeployFileService service =
+        ServiceDeployFileService service =
             TestFileServiceProvider.createContainerDeployFileService(vertx.fileSystem(), rootFolder, deployment);
         String result = service.getProviderString();
 
@@ -60,7 +60,7 @@ public class ContainerDeployFileServiceTest {
                 .createResourceContainer(2L, "localhost", hasExternalIp);
             resource = TestResourceProvider.createSubResource(1L, "node1", (MainResource) mainResource);
         }
-        ContainerDeployFileService service = TestFileServiceProvider
+        ServiceDeployFileService service = TestFileServiceProvider
             .createContainerDeployFileService(vertx.fileSystem(), rootFolder, resource, deployment);
         String configPath = Path.of("tmp", "kubeconfig", resource.getMain().getName())
             .toAbsolutePath().toString().replace("\\", "/");
@@ -103,7 +103,7 @@ public class ContainerDeployFileServiceTest {
 
     @Test
     void getVariablesFileContent(Vertx vertx) {
-        ContainerDeployFileService service =
+        ServiceDeployFileService service =
             TestFileServiceProvider.createContainerDeployFileService(vertx.fileSystem(), rootFolder, deployment);
         String result = service.getVariablesFileContent();
 
@@ -112,7 +112,7 @@ public class ContainerDeployFileServiceTest {
 
     @Test
     void getOutputFileContent(Vertx vertx) {
-        ContainerDeployFileService service =
+        ServiceDeployFileService service =
             TestFileServiceProvider.createContainerDeployFileService(vertx.fileSystem(), rootFolder, deployment);
         String result = service.getOutputsFileContent();
 

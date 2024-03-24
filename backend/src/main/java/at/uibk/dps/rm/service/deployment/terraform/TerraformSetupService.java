@@ -92,8 +92,8 @@ public class TerraformSetupService {
             composeOpenFaasLoginData(regionFunctionDeployments);
         }
         if (!deployRequest.getServiceDeployments().isEmpty()) {
-            singles.add(serviceDeploymentPrePull(deployRequest.getServiceDeployments(), config));
-            singles.add(serviceDeploymentStartupTermination(deployRequest.getServiceDeployments(), config));
+            singles.add(servicePrePull(deployRequest.getServiceDeployments(), config));
+            singles.add(serviceStartupTermination(deployRequest.getServiceDeployments(), config));
         }
 
         return Single.zip(singles, objects -> Arrays.stream(objects).map(object -> (TerraformModule) object)
@@ -189,16 +189,16 @@ public class TerraformSetupService {
      * @param serviceDeployments the service deployments
      * @return a Single that emits the created terraform module
      */
-    private Single<TerraformModule> serviceDeploymentPrePull(List<ServiceDeployment> serviceDeployments,
-                                                             ConfigDTO config) {
+    private Single<TerraformModule> servicePrePull(List<ServiceDeployment> serviceDeployments,
+                                                   ConfigDTO config) {
         FileSystem fileSystem = vertx.fileSystem();
         long deploymentId = deployRequest.getDeployment().getDeploymentId();
         TerraformModule prepullModule = new ServiceModule("service_prepull",
             ModuleType.SERVICE_PREPULL);
         Path prepullDir = deploymentPath.getModuleFolder(prepullModule);
-        ContainerPullFileService containerFileService = new ContainerPullFileService(fileSystem, prepullDir,
+        ServicePullFileService servicePullFileService = new ServicePullFileService(fileSystem, prepullDir,
             serviceDeployments, deploymentId, config);
-        return containerFileService.setUpDirectory()
+        return servicePullFileService.setUpDirectory()
             .toSingle(() -> prepullModule);
     }
 
@@ -208,7 +208,7 @@ public class TerraformSetupService {
      * @param serviceDeployments the service deployments
      * @return a Single that emits the created terraform module
      */
-    private Single<TerraformModule> serviceDeploymentStartupTermination(List<ServiceDeployment> serviceDeployments,
+    private Single<TerraformModule> serviceStartupTermination(List<ServiceDeployment> serviceDeployments,
             ConfigDTO config) {
         FileSystem fileSystem = vertx.fileSystem();
         long deploymentId = deployRequest.getDeployment().getDeploymentId();
@@ -217,9 +217,9 @@ public class TerraformSetupService {
         Path deployDir = deploymentPath.getModuleFolder(deployModule);
         List<Completable> completables = new ArrayList<>();
         for (ServiceDeployment serviceDeployment : serviceDeployments) {
-            ContainerDeployFileService containerDeployFileService = new ContainerDeployFileService(fileSystem,
+            ServiceDeployFileService serviceDeployFileService = new ServiceDeployFileService(fileSystem,
                 deployDir, serviceDeployment, deploymentId, config);
-            completables.add(containerDeployFileService.setUpDirectory());
+            completables.add(serviceDeployFileService.setUpDirectory());
         }
         return Completable.merge(completables)
             .toSingle(() -> deployModule);

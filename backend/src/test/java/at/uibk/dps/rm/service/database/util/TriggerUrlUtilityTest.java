@@ -118,7 +118,7 @@ public class TriggerUrlUtilityTest {
             .updateRmTriggerUrl(sessionManager, 6L, "/service-deployments/6/startup"))
             .thenReturn(Completable.complete());
 
-        utility.setTriggerUrlForContainers(sessionManager, deployResourcesDTO)
+        utility.setTriggerUrlForServices(sessionManager, deployResourcesDTO)
             .blockingSubscribe(() -> testContext.verify(testContext::completeNow),
                 throwable -> testContext.failNow("method has thrown exception"));
     }

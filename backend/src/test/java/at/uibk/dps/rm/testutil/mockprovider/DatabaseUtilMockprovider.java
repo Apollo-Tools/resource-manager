@@ -104,7 +104,7 @@ public class DatabaseUtilMockprovider {
         return Mockito.mockConstruction(TriggerUrlUtility.class, (mock, context) -> {
             when(mock.setTriggerUrlsForFunctions(eq(sm), any(DeploymentOutput.class), any(DeployResourcesDTO.class)))
                 .thenReturn(Completable.complete());
-            when(mock.setTriggerUrlForContainers(eq(sm), any(DeployResourcesDTO.class)))
+            when(mock.setTriggerUrlForServices(eq(sm), any(DeployResourcesDTO.class)))
                 .thenReturn(Completable.complete());
         });
     }

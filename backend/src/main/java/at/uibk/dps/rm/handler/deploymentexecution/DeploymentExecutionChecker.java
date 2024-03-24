@@ -6,7 +6,7 @@ import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.deployment.module.ModuleType;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
-import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateServicesDTO;
+import at.uibk.dps.rm.entity.dto.deployment.StartupShutdownServicesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
@@ -188,10 +188,10 @@ public class DeploymentExecutionChecker {
     /**
      * Start up services from a deployment.
      *
-     * @param deployServices the data necessary to start up the containers
+     * @param deployServices the data necessary to start up the services
      * @return a Completable
      */
-    public Single<JsonObject> startupServices(DeployTerminateServicesDTO deployServices) {
+    public Single<JsonObject> startupServices(StartupShutdownServicesDTO deployServices) {
         Vertx vertx = Vertx.currentContext().owner();
         return new ConfigUtility(vertx).getConfigDTO()
             .flatMap(config -> {
@@ -226,14 +226,24 @@ public class DeploymentExecutionChecker {
     }
 
     /**
-     * Stop a container from a deployment.
+     * Shutdown services from a deployment.
      *
-     * @param serviceDeployment the service deployment
+     * @param shutdownServices the data necessary to shut down the services
      * @return a Completable
      */
-    public Completable stopServices(DeployTerminateServicesDTO terminateServices) {
+    public Completable shutdownServices(StartupShutdownServicesDTO shutdownServices) {
         Vertx vertx = Vertx.currentContext().owner();
-        return Completable.complete();
+        return new ConfigUtility(vertx).getConfigDTO()
+            .flatMapCompletable(config -> {
+                TerraformExecutor terraformExecutor = new TerraformExecutor();
+                DeploymentPath deploymentPath =
+                    new DeploymentPath(shutdownServices.getDeployment().getDeploymentId(), config);
+                List<String> targets = new ArrayList<>();
+                shutdownServices.getServiceDeployments().forEach(sd ->
+                    targets.add("module.service_deploy.module.deployment_" + sd.getResourceDeploymentId()));
+                return terraformExecutor.destroy(deploymentPath.getRootFolder(), targets)
+                    .flatMapCompletable(applyOutput -> persistLogs(applyOutput, shutdownServices.getDeployment()));
+            });
     }
 
     /**
