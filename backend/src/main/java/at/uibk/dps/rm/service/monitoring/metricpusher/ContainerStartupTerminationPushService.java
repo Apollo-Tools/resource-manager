@@ -10,6 +10,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.client.WebClient;
 
 /**
@@ -38,13 +39,8 @@ public interface ContainerStartupTerminationPushService extends ServiceInterface
     /**
      * Compose an OpenTSDB metric and push it to the monitoring system.
      *
-     * @param startupTime the start-up time
-     * @param resourceDeploymentId the resource deployment id
-     * @param resourceId the resource id
-     * @param serviceId the service id
-     * @param isStartup whether the metric is for container startup or termination
+     * @param executionTime the start-up time and service deployments
      * @param resultHandler receives nothing if the saving was successful else an error
      */
-    void composeAndPushMetric(double startupTime, long resourceDeploymentId, long resourceId, long serviceId,
-        boolean isStartup, Handler<AsyncResult<Void>> resultHandler);
+    void composeAndPushMetric(JsonObject executionTime, Handler<AsyncResult<Void>> resultHandler);
 }

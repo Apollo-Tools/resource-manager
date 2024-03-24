@@ -1,6 +1,6 @@
 package at.uibk.dps.rm.handler.deploymentexecution;
 
-import at.uibk.dps.rm.entity.dto.deployment.DeployServicesDTO;
+import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateServicesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.ServiceDeploymentId;
 import at.uibk.dps.rm.entity.dto.deployment.StartTerminateServiceDeploymentDTO;
 import at.uibk.dps.rm.entity.dto.function.InvocationResponseBodyDTO;
@@ -8,6 +8,7 @@ import at.uibk.dps.rm.entity.dto.function.InvokeFunctionDTO;
 import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
+import at.uibk.dps.rm.entity.monitoring.ServiceStartupTerminateTime;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
 import at.uibk.dps.rm.exception.ForbiddenException;
@@ -30,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -101,38 +103,29 @@ public class ContainerStartupHandler {
                         return rc.response().setStatusCode(204).end();
                     }
                     long startTime = System.nanoTime();
+                    DeployTerminateServicesDTO deployTerminateServices = new DeployTerminateServicesDTO(deployment,
+                        serviceDeployments);
+                    Single<JsonObject> startupStopServices;
                     if (isStartup) {
-                        DeployServicesDTO deployServicesDTO = new DeployServicesDTO(deployment, serviceDeployments);
-                        return deploymentChecker.startupServices(deployServicesDTO)
-                            .flatMapCompletable(result -> {
-                                long endTime = System.nanoTime();
-                                double startupTime = (endTime - startTime) / 1_000_000_000.0;
-                                serviceProxyProvider.getContainerStartTermPushService()
-                                    .composeAndPushMetric(startupTime,
-                                        serviceDeployments.get(0).getResourceDeploymentId(),
-                                        serviceDeployments.get(0).getResource().getResourceId(),
-                                        serviceDeployments.get(0).getService().getServiceId(), true)
-                                    .subscribe();
-                                result.put("startup_time_seconds", startupTime);
-                                return rc.response().setStatusCode(200).end(result.encodePrettily());
-                            });
+                        startupStopServices = deploymentChecker.startupServices(deployTerminateServices);
                     } else {
-                        return deploymentChecker.stopContainers(deployment, serviceDeployments)
-                            .andThen(Single.defer(() -> Single.just(1L))
-                                .flatMapCompletable(res -> {
-                                    long endTime = System.nanoTime();
-                                    double terminationTime = (endTime - startTime) / 1_000_000_000.0;
-                                    serviceProxyProvider.getContainerStartTermPushService()
-                                        .composeAndPushMetric(terminationTime,
-                                            serviceDeployments.get(0).getResourceDeploymentId(),
-                                            serviceDeployments.get(0).getResource().getResourceId(),
-                                            serviceDeployments.get(0).getService().getServiceId(), false)
-                                        .subscribe();
-                                    JsonObject result = new JsonObject();
-                                    result.put("termination_time_seconds", terminationTime);
-                                    return rc.response().setStatusCode(200).end(result.encodePrettily());
-                                }));
+                        startupStopServices = deploymentChecker.stopServices(deployTerminateServices)
+                            .andThen(Single.defer(() -> Single.just(new JsonObject())));
                     }
+                    return startupStopServices.flatMapCompletable(result -> {
+                        long endTime = System.nanoTime();
+                        double executionTime = (endTime - startTime) / 1_000_000_000.0;
+                        UUID requestId = UUID.randomUUID();
+                        ServiceStartupTerminateTime serviceStartupTerminateTime =
+                            new ServiceStartupTerminateTime(requestId.toString(), executionTime,
+                                serviceDeployments, isStartup);
+                        serviceProxyProvider.getContainerStartTermPushService()
+                            .composeAndPushMetric(JsonObject.mapFrom(serviceStartupTerminateTime))
+                            .subscribe();
+                        result.put(isStartup ? "startup_time_seconds" : "termination_time_seconds",
+                            executionTime);
+                        return rc.response().setStatusCode(200).end(result.encodePrettily());
+                    });
             }))
             .onErrorResumeNext(throwable -> {
                 if (throwable instanceof DeploymentTerminationFailedException) {

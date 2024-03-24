@@ -2291,39 +2291,10 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - deployment_id
-                - service_deployments
-              additionalProperties: false
-              properties:
-                deployment_id:
-                  description: All service deployments that are not part of this deployment are ignored.
-                  type: integer
-                  format: int64
-                  example: 1
-                service_deployments:
-                  type: array
-                  items:
-                    type: object
-                    required:
-                      - resource_deployment_id
-                    additionalProperties: false
-                    properties:
-                      resource_deployment_id:
-                        type: integer
-                        format: int64
-                        example: 1
-                ignore_running_state_change:
-                  description: |
-                    Ignore that previously started startups or terminations are still in progress.
-                    Use with caution. This field can only be set by users with the admin role.
-                  default: false
-                  type: boolean
-                  example: true
+              $ref: '#/components/schemas/StartupTerminateServices'
       responses:
         200:
-          description: Successful start up of the containers
+          description: Successful start up of the containers.
           headers:
             content-length:
               schema:
@@ -2331,66 +2302,79 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    resource_deployment_id:
-                      type: integer
-                      format: int64
-                      example: 1
-                    service:
+                type: object
+                properties:
+                  startup_time_seconds:
+                    type: number
+                    example: 10.5
+                  service_deployments:
+                    description: |
+                      The key of each entry is in the format 'service_deployment_{id}', where id 
+                      represents the resource deployment id of the service deployment.
+                    type: object
+                    additionalProperties:
                       type: object
                       properties:
-                        cluster_ips:
-                          type: array
-                          items:
-                            type: string
-                            example: "10.10.10.10"
-                        external_ips:
-                          type: array
-                          items:
-                            type: string
-                            example: "200.200.200.200"
-                        name:
-                          type: string
-                          example: "servicename"
-                        ports:
-                          type: array
-                          items:
-                            type: object
-                            properties:
-                              port:
-                                type: integer
-                                format: int64
-                                example: 8080
-                              node_port:
-                                type: integer
-                                format: int64
-                                example: 31002
-                    pods:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          pod_name:
-                            type: string
-                            example: "pod-name-10-2023-01-01-20-10-00-xyz"
-                          node_name:
-                            type: string
-                            example: "node1"
-                          node_ip:
-                            type: string
-                            example: "192.168.0.1"
-                    startup_time_seconds:
-                      type: number
-                      example: 5.21
+                        service_deployments:
+                          type: object
+                          properties:
+                            resource_deployment_id:
+                              type: integer
+                              format: int64
+                              example: 1
+                            service:
+                              type: object
+                              properties:
+                                cluster_ips:
+                                  type: array
+                                  items:
+                                    type: string
+                                    example: "10.10.10.10"
+                                external_ips:
+                                  type: array
+                                  items:
+                                    type: string
+                                    example: "200.200.200.200"
+                                name:
+                                  type: string
+                                  example: "servicename"
+                                ports:
+                                  type: array
+                                  items:
+                                    type: object
+                                    properties:
+                                      port:
+                                        type: integer
+                                        format: int64
+                                        example: 8080
+                                      node_port:
+                                        type: integer
+                                        format: int64
+                                        example: 31002
+                            pods:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  pod_name:
+                                    type: string
+                                    example: "pod-name-10-2023-01-01-20-10-00-xyz"
+                                  node_name:
+                                    type: string
+                                    example: "node1"
+                                  node_ip:
+                                    type: string
+                                    example: "192.168.0.1"
         400:
           $ref: "#/components/responses/400"
         401:
           $ref: "#/components/responses/401"
+        403:
+          $ref: "#/components/responses/403"
         404:
           $ref: "#/components/responses/404"
+        409:
+          $ref: "#/components/responses/409"
         500:
           $ref: "#/components/responses/500"
 
@@ -4497,6 +4481,37 @@ components:
             password for the docker registry
           type: string
           example: abcdef1234
+    StartupTerminateServices:
+      type: object
+      required:
+        - deployment_id
+        - service_deployments
+      additionalProperties: false
+      properties:
+        deployment_id:
+          description: All service deployments that are not part of this deployment are ignored.
+          type: integer
+          format: int64
+          example: 1
+        service_deployments:
+          type: array
+          items:
+            type: object
+            required:
+              - resource_deployment_id
+            additionalProperties: false
+            properties:
+              resource_deployment_id:
+                type: integer
+                format: int64
+                example: 1
+        ignore_running_state_change:
+          description: |
+            Ignore that previously started startups or terminations are still in progress.
+            Use with caution. This field can only be set by users with the admin role.
+          default: false
+          type: boolean
+          example: true
 
   parameters:
     idParam:

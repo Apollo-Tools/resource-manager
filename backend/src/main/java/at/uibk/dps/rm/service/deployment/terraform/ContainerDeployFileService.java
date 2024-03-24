@@ -126,7 +126,7 @@ public class ContainerDeployFileService extends TerraformFileService {
     protected String getOutputsFileContent() {
         long identifier = serviceDeployment.getResourceDeploymentId();
         return String.format(
-            "output \"container_output_%s\" {\n" +
+            "output \"service_deployment_%s\" {\n" +
             "  value = {\n" +
             "    service: module.deployment_%s.service_info\n" +
             "    pods: module.deployment_%s.pods_info\n" +

@@ -6,7 +6,7 @@ import at.uibk.dps.rm.entity.deployment.ProcessOutput;
 import at.uibk.dps.rm.entity.deployment.module.ModuleType;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
-import at.uibk.dps.rm.entity.dto.deployment.DeployServicesDTO;
+import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateServicesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
@@ -73,7 +73,7 @@ public class DeploymentExecutionChecker {
                         List<String> targets = new ArrayList<>();
                         setupTfModulesOutput.getTerraformModules().forEach(module -> {
                             if (module.getModuleType().equals(ModuleType.FAAS) ||
-                                    module.getModuleType().equals(ModuleType.CONTAINER_PREPULL)) {
+                                    module.getModuleType().equals(ModuleType.SERVICE_PREPULL)) {
                                 targets.add("module." + module.getModuleName());
                             }
                         });
@@ -188,29 +188,38 @@ public class DeploymentExecutionChecker {
     /**
      * Start up services from a deployment.
      *
-     * @param deployServicesDTO the data necessary to start up the containers
+     * @param deployServices the data necessary to start up the containers
      * @return a Completable
      */
-    public Single<JsonObject> startupServices(DeployServicesDTO deployServicesDTO) {
+    public Single<JsonObject> startupServices(DeployTerminateServicesDTO deployServices) {
         Vertx vertx = Vertx.currentContext().owner();
         return new ConfigUtility(vertx).getConfigDTO()
             .flatMap(config -> {
                 TerraformExecutor terraformExecutor = new TerraformExecutor();
                 DeploymentPath deploymentPath =
-                    new DeploymentPath(deployServicesDTO.getDeployment().getDeploymentId(), config);
+                    new DeploymentPath(deployServices.getDeployment().getDeploymentId(), config);
                 List<String> targets = new ArrayList<>();
-                deployServicesDTO.getServiceDeployments().forEach(sd ->
-                    targets.add("module.container-deploy.module.deployment_" + sd.getResourceDeploymentId()));
+                deployServices.getServiceDeployments().forEach(sd ->
+                    targets.add("module.service_deploy.module.deployment_" + sd.getResourceDeploymentId()));
                 return terraformExecutor.apply(deploymentPath.getRootFolder(), targets)
-                    .flatMapCompletable(applyOutput -> persistLogs(applyOutput, deployServicesDTO.getDeployment()))
+                    .flatMapCompletable(applyOutput -> persistLogs(applyOutput, deployServices.getDeployment()))
                     .andThen(Single.just(terraformExecutor))
-                    .flatMap(executor -> executor.refresh(deploymentPath.getRootFolder()))
-                    .flatMapCompletable(tfOutput -> persistLogs(tfOutput, deployServicesDTO.getDeployment()))
+                    .flatMap(executor -> executor.refresh(deploymentPath.getRootFolder(),
+                        List.of("module.service_deploy")))
+                    .flatMapCompletable(tfOutput -> persistLogs(tfOutput, deployServices.getDeployment()))
                     .andThen(terraformExecutor.getOutput(deploymentPath.getRootFolder()))
-                    .flatMap(tfOutput -> persistLogs(tfOutput, deployServicesDTO.getDeployment())
+                    .flatMap(tfOutput -> persistLogs(tfOutput, deployServices.getDeployment())
                         .toSingle(() -> {
-                            JsonObject jsonOutput = new JsonObject(tfOutput.getOutput());
-                            return jsonOutput.getJsonObject("container_output").getJsonObject("value");
+                            JsonObject jsonOutput = new JsonObject(tfOutput.getOutput())
+                                .getJsonObject("service_output").getJsonObject("value");
+                            JsonObject serviceDeployments = new JsonObject();
+                            deployServices.getServiceDeployments().forEach(serviceDeployment -> {
+                                String key = "service_deployment_" + serviceDeployment.getResourceDeploymentId();
+                                serviceDeployments.put(key, jsonOutput.getValue(key));
+                            });
+                            JsonObject result = new JsonObject();
+                            result.put("service_deployments", serviceDeployments);
+                            return result;
                         })
                     );
             });
@@ -222,7 +231,7 @@ public class DeploymentExecutionChecker {
      * @param serviceDeployment the service deployment
      * @return a Completable
      */
-    public Completable stopContainers(Deployment deployment, List<ServiceDeployment> serviceDeployment) {
+    public Completable stopServices(DeployTerminateServicesDTO terminateServices) {
         Vertx vertx = Vertx.currentContext().owner();
         return Completable.complete();
     }

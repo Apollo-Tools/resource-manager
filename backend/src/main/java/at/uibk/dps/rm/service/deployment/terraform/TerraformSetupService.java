@@ -193,8 +193,8 @@ public class TerraformSetupService {
                                                              ConfigDTO config) {
         FileSystem fileSystem = vertx.fileSystem();
         long deploymentId = deployRequest.getDeployment().getDeploymentId();
-        TerraformModule prepullModule = new TerraformModule("container-prepull",
-            ModuleType.CONTAINER_PREPULL);
+        TerraformModule prepullModule = new ServiceModule("service_prepull",
+            ModuleType.SERVICE_PREPULL);
         Path prepullDir = deploymentPath.getModuleFolder(prepullModule);
         ContainerPullFileService containerFileService = new ContainerPullFileService(fileSystem, prepullDir,
             serviceDeployments, deploymentId, config);
@@ -212,8 +212,8 @@ public class TerraformSetupService {
             ConfigDTO config) {
         FileSystem fileSystem = vertx.fileSystem();
         long deploymentId = deployRequest.getDeployment().getDeploymentId();
-        TerraformModule deployModule = new TerraformModule("container-deploy",
-            ModuleType.CONTAINER_DEPLOY);
+        TerraformModule deployModule = new ServiceModule("service_deploy",
+            ModuleType.SERVICE_DEPLOY);
         Path deployDir = deploymentPath.getModuleFolder(deployModule);
         List<Completable> completables = new ArrayList<>();
         for (ServiceDeployment serviceDeployment : serviceDeployments) {
