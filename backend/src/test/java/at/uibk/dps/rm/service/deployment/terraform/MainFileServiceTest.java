@@ -2,6 +2,7 @@ package at.uibk.dps.rm.service.deployment.terraform;
 
 import at.uibk.dps.rm.entity.deployment.module.FaasModule;
 import at.uibk.dps.rm.entity.deployment.module.ModuleType;
+import at.uibk.dps.rm.entity.deployment.module.ServiceModule;
 import at.uibk.dps.rm.entity.deployment.module.TerraformModule;
 import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
 import at.uibk.dps.rm.entity.model.Region;
@@ -56,7 +57,7 @@ public class MainFileServiceTest {
         TerraformModule m1 = new FaasModule(ResourceProviderEnum.AWS, r1);
         TerraformModule m2 = new FaasModule(ResourceProviderEnum.AWS, r2);
         TerraformModule m3 = new FaasModule(ResourceProviderEnum.CUSTOM_EDGE, r3);
-        TerraformModule m4 = new TerraformModule("container_prepull", ModuleType.CONTAINER_PREPULL);
+        TerraformModule m4 = new ServiceModule("container_prepull", ModuleType.SERVICE_PREPULL);
         MainFileService service = TestFileServiceProvider.createMainFileService(vertx.fileSystem(),
             List.of(m1, m2, m3, m4));
         String result = service.getLocalModulesString();
@@ -127,7 +128,7 @@ public class MainFileServiceTest {
         TerraformModule m1 = new FaasModule(ResourceProviderEnum.AWS, r1);
         TerraformModule m2 = new FaasModule(ResourceProviderEnum.AWS, r2);
         TerraformModule m3 = new FaasModule(ResourceProviderEnum.CUSTOM_EDGE, r3);
-        TerraformModule m4 = new TerraformModule("container_prepull", ModuleType.CONTAINER_PREPULL);
+        TerraformModule m4 = new ServiceModule("container_prepull", ModuleType.SERVICE_PREPULL);
         MainFileService service = TestFileServiceProvider.createMainFileService(vertx.fileSystem(), List.of(m1, m2,
             m3, m4));
         String result = service.getVariablesFileContent();
@@ -188,7 +189,7 @@ public class MainFileServiceTest {
 
     @Test
     void getOutputsFileContentNone(Vertx vertx) {
-        TerraformModule m1 = new TerraformModule("container_prepull", ModuleType.CONTAINER_PREPULL);
+        TerraformModule m1 = new ServiceModule("container_prepull", ModuleType.SERVICE_PREPULL);
         MainFileService service = TestFileServiceProvider.createMainFileService(vertx.fileSystem(), List.of(m1));
         String result = service.getOutputsFileContent();
 

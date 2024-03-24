@@ -31,12 +31,17 @@ public class MainTerraformExecutor extends TerraformExecutor {
 
     @Override
     public Single<ProcessOutput> apply(Path folder) {
-        List<String> cloudCredentials = getCloudCredentialsCommands();
+        return apply(folder, List.of());
+    }
+
+    @Override
+    public Single<ProcessOutput> apply(Path folder, List<String> targets) {
         List<String> commands = new ArrayList<>(List.of("terraform", "apply", "-auto-approve"));
-        commands.addAll(cloudCredentials);
-        commands.add(getOpenFaasCredentialsCommand());
-        ProcessExecutor processExecutor = new ProcessExecutor(folder, commands);
-        return processExecutor.executeCli();
+        targets.forEach(target -> {
+            commands.add("-target");
+            commands.add(target);
+        });
+        return executeCliWithCredentials(folder, commands);
     }
 
     /**
@@ -47,8 +52,27 @@ public class MainTerraformExecutor extends TerraformExecutor {
      */
     @Override
     public Single<ProcessOutput> destroy(Path folder) {
-        List<String> cloudCredentials = getCloudCredentialsCommands();
+        return destroy(folder, List.of());
+    }
+
+    @Override
+    public Single<ProcessOutput> destroy(Path folder, List<String> targets) {
         List<String> commands = new ArrayList<>(List.of("terraform", "destroy", "-auto-approve"));
+        targets.forEach(target -> {
+            commands.add("-target");
+            commands.add(target);
+        });
+        return executeCliWithCredentials(folder, commands);
+    }
+
+    @Override
+    public Single<ProcessOutput> refresh(Path folder) {
+        List<String> commands = new ArrayList<>(List.of("terraform", "apply", "-refresh-only", "-auto-approve"));
+        return executeCliWithCredentials(folder, commands);
+    }
+
+    protected Single<ProcessOutput> executeCliWithCredentials(Path folder, List<String> commands) {
+        List<String> cloudCredentials = getCloudCredentialsCommands();
         commands.addAll(cloudCredentials);
         commands.add(getOpenFaasCredentialsCommand());
         ProcessExecutor processExecutor = new ProcessExecutor(folder, commands);

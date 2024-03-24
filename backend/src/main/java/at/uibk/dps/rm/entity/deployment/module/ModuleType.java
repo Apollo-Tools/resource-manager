@@ -7,15 +7,15 @@ import lombok.Getter;
 @Getter
 public enum ModuleType {
     /**
-     * AWS Lambda
+     * faas
      */
     FAAS,
     /**
-     * AWS EC2
+     * service pre pull
      */
-    CONTAINER_PREPULL,
+    SERVICE_PREPULL,
     /**
-     * OpenFaaS
+     * service deploy
      */
-    CONTAINER_DEPLOY
+    SERVICE_DEPLOY
 }

@@ -33,9 +33,7 @@ public class TerraformExecutor {
      * @return a Single that emits the process output of the apply operation
      */
     public Single<ProcessOutput> apply(Path folder) {
-        List<String> commands = new ArrayList<>(List.of("terraform", "apply", "-auto-approve"));
-        ProcessExecutor processExecutor = new ProcessExecutor(folder, commands);
-        return processExecutor.executeCli();
+        return apply(folder, List.of());
     }
 
     /**
@@ -61,7 +59,21 @@ public class TerraformExecutor {
      * @return a Single that emits the process output of the apply operation
      */
     public Single<ProcessOutput> refresh(Path folder) {
-        List<String> commands = new ArrayList<>(List.of("terraform", "refresh"));
+        return refresh(folder, List.of());
+    }
+
+    /**
+     * Execute the terraform refresh operation to refresh the state with resource targeting.
+     *
+     * @param folder the folder path
+     * @return a Single that emits the process output of the apply operation
+     */
+    public Single<ProcessOutput> refresh(Path folder, List<String> targets) {
+        List<String> commands = new ArrayList<>(List.of("terraform", "apply", "-refresh-only", "-auto-approve"));
+        targets.forEach(target -> {
+            commands.add("-target");
+            commands.add(target);
+        });
         ProcessExecutor processExecutor = new ProcessExecutor(folder, commands);
         return processExecutor.executeCli();
     }
@@ -86,9 +98,7 @@ public class TerraformExecutor {
      * @return a Single that emits the process output of the destroy operation
      */
     public Single<ProcessOutput> destroy(Path folder) {
-        List<String> commands = new ArrayList<>(List.of("terraform", "destroy", "-auto-approve"));
-        ProcessExecutor processExecutor = new ProcessExecutor(folder, commands);
-        return processExecutor.executeCli();
+        return destroy(folder, List.of());
     }
 
     /**

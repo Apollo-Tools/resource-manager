@@ -2,13 +2,16 @@ package at.uibk.dps.rm.service.monitoring.metricpusher;
 
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.monitoring.OpenTSDBEntity;
+import at.uibk.dps.rm.entity.monitoring.ServiceStartupTerminateTime;
 import at.uibk.dps.rm.service.ServiceProxy;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.ext.web.client.WebClient;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * This is the implementation of the {@link ContainerStartupTerminationPushService}.
@@ -36,13 +39,18 @@ public class ContainerStartupTerminationPushServiceImpl extends ServiceProxy imp
     }
 
     @Override
-    public void composeAndPushMetric(double startupTime, long resourceDeploymentId, long resourceId,
-            long serviceId, boolean isStartup, Handler<AsyncResult<Void>> resultHandler) {
-        String metricName = "container_" + (isStartup ? "startup" : "termination" ) + "_time_seconds";
-        OpenTSDBEntity metric = new OpenTSDBEntity(metricName, startupTime,
-            Map.of("resource_deployment", Long.toString(resourceDeploymentId), "serviceId",
-                Long.toString(serviceId), "resource", Long.toString(resourceId)));
+    public void composeAndPushMetric(JsonObject executionTime, Handler<AsyncResult<Void>> resultHandler) {
+        ServiceStartupTerminateTime serviceExecutionTime = executionTime.mapTo(ServiceStartupTerminateTime.class);
+        String metricName = "container_" + (serviceExecutionTime.getIsStartup() ? "startup" : "termination" ) +
+            "_time_seconds";
+        List<OpenTSDBEntity> openTSDBEntities = serviceExecutionTime.getServiceDeployments().stream()
+            .map(serviceDeployment -> new OpenTSDBEntity(metricName, serviceExecutionTime.getExecutionTime(),
+                Map.of("request_id", serviceExecutionTime.getId(),
+                    "resource_deployment", Long.toString(serviceDeployment.getResourceDeploymentId()),
+                    "serviceId", Long.toString(serviceDeployment.getService().getServiceId()),
+                    "resource", Long.toString(serviceDeployment.getResource().getResourceId()))))
+            .collect(Collectors.toList());
 
-        monitoringPusher.pushMetrics(List.of(metric), resultHandler);
+        monitoringPusher.pushMetrics(openTSDBEntities, resultHandler);
     }
 }

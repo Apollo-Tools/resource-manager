@@ -1,8 +1,7 @@
 package at.uibk.dps.rm.entity.deployment.module;
 
 import at.uibk.dps.rm.annotations.Generated;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Getter;
 
 import java.util.Objects;
@@ -14,14 +13,13 @@ import java.util.Objects;
  * @author matthi-g
  */
 @Getter()
-public class TerraformModule {
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
+public abstract class TerraformModule {
     private final String moduleName;
 
     private final ModuleType moduleType;
 
-    @JsonCreator
-    public TerraformModule(@JsonProperty("module_name") String moduleName,
-                           @JsonProperty("module_type") ModuleType moduleType) {
+    public TerraformModule(String moduleName, ModuleType moduleType) {
         this.moduleName = moduleName;
         this.moduleType = moduleType;
     }

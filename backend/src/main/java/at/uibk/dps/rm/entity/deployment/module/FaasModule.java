@@ -2,6 +2,9 @@ package at.uibk.dps.rm.entity.deployment.module;
 
 import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
 import at.uibk.dps.rm.entity.model.Region;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
 /**
@@ -21,7 +24,9 @@ public class FaasModule extends TerraformModule {
      * @param resourceProvider the resource provider
      * @param region the region of the module
      */
-    public FaasModule(ResourceProviderEnum resourceProvider, Region region) {
+    @JsonCreator
+    public FaasModule(@JsonProperty("resource_provider") ResourceProviderEnum resourceProvider,
+                      @JsonProperty("region") Region region) {
         super(resourceProvider.getValue() + "_" + region.getName().replace("-", "_"),
             ModuleType.FAAS);
         this.resourceProvider = resourceProvider;
@@ -33,6 +38,7 @@ public class FaasModule extends TerraformModule {
      *
      * @return the functions string if present, else a blank string
      */
+    @JsonIgnore
     public String getFunctionsString() {
         return String.format("module.%s.function_output,", this.getModuleName());
     }

@@ -310,7 +310,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
             DeploymentOutput deploymentOutput = new DeploymentOutput();
             if (terraformOutput.isEmpty()) {
                 deploymentOutput.setFunctionOutput(new TFOutputFaas());
-                deploymentOutput.setContainerOutput(new TFOutputContainer());
+                deploymentOutput.setServiceOutput(new TFOutputContainer());
             } else {
                 deploymentOutput = DeploymentOutput.fromJson(terraformOutput);
             }

@@ -1,4 +1,4 @@
-output "resource_output" {
+output "function_output" {
   value = {
     base_url = var.vm_props.base_url
     openfaas_port = var.vm_props.openfaas_port

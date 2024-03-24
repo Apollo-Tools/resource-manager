@@ -130,12 +130,12 @@ public class MainFileService extends TerraformFileService {
     @Override
     protected String getOutputsFileContent() {
         StringBuilder functionsOutput = new StringBuilder();
-        String containerOutput = "";
+        String serviceOutput = "";
         for (TerraformModule module : modules) {
             if (module.getModuleType().equals(ModuleType.FAAS)) {
                 functionsOutput.append(((FaasModule)module).getFunctionsString());
-            } else if (module.getModuleType().equals(ModuleType.CONTAINER_DEPLOY)) {
-                containerOutput = "output \"container_output\" {\n" +
+            } else if (module.getModuleType().equals(ModuleType.SERVICE_DEPLOY)) {
+                serviceOutput = "output \"service_output\" {\n" +
                     "   value = module." +  module.getModuleName() + "\n" +
                     "}\n";
             }
@@ -145,7 +145,7 @@ public class MainFileService extends TerraformFileService {
             "output \"function_output\" {\n" +
             "   value = merge(%s)\n" +
             "}\n" +
-            "%s", functionsOutput, containerOutput
+            "%s", functionsOutput, serviceOutput
         );
     }
 }
