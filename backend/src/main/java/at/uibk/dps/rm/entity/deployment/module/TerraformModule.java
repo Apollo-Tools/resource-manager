@@ -1,8 +1,9 @@
 package at.uibk.dps.rm.entity.deployment.module;
 
 import at.uibk.dps.rm.annotations.Generated;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import java.util.Objects;
 
@@ -13,11 +14,17 @@ import java.util.Objects;
  * @author matthi-g
  */
 @Getter()
-@RequiredArgsConstructor
-public abstract class TerraformModule {
+public class TerraformModule {
     private final String moduleName;
 
-    private final boolean hasFaas;
+    private final ModuleType moduleType;
+
+    @JsonCreator
+    public TerraformModule(@JsonProperty("module_name") String moduleName,
+                           @JsonProperty("module_type") ModuleType moduleType) {
+        this.moduleName = moduleName;
+        this.moduleType = moduleType;
+    }
 
     @Override
     @Generated

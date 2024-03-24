@@ -20,6 +20,12 @@ public abstract class TerraformFileService {
 
     private Path rootFolder;
 
+    private String fileNamePrefix;
+
+    public TerraformFileService(FileSystem fileSystem, Path rootFolder) {
+        this(fileSystem, rootFolder, "");
+    }
+
     //*** main.tf ***//
     /**
      * Get the string that defines the terraform providers in the terraform module.
@@ -73,13 +79,13 @@ public abstract class TerraformFileService {
         List<Completable> completables = new ArrayList<>();
 
         String mainContent = this.getMainFileContent();
-        completables.add(createTerraformFile("main.tf", mainContent));
+        completables.add(createTerraformFile(fileNamePrefix + "main.tf", mainContent));
 
         String variableContent = this.getVariablesFileContent();
-        completables.add(createTerraformFile("variables.tf", variableContent));
+        completables.add(createTerraformFile(fileNamePrefix + "variables.tf", variableContent));
 
         String outputContent = this.getOutputsFileContent();
-        completables.add(createTerraformFile("outputs.tf", outputContent));
+        completables.add(createTerraformFile(fileNamePrefix + "outputs.tf", outputContent));
         return Completable.merge(completables);
     }
 

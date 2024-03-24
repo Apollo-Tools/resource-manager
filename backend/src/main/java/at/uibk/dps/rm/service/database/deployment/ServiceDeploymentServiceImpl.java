@@ -3,15 +3,18 @@ package at.uibk.dps.rm.service.database.deployment;
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.exception.BadInputException;
-import at.uibk.dps.rm.exception.NotFoundException;
+import at.uibk.dps.rm.exception.ConflictException;
 import at.uibk.dps.rm.repository.deployment.ServiceDeploymentRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
+import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
-import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.JsonArray;
+
+import java.util.List;
 
 /**
  * This is the implementation of the {@link ServiceDeploymentService}.
@@ -34,23 +37,37 @@ public class ServiceDeploymentServiceImpl extends DatabaseServiceProxy<ServiceDe
     }
 
     @Override
-    public void findOneForDeploymentAndTermination(long resourceDeploymentId, long accountId,
-            Handler<AsyncResult<JsonObject>> resultHandler) {
-        Single<ServiceDeployment> findOne = smProvider.withTransactionSingle(sm -> repository
-            .findByIdAndAccountId(sm, resourceDeploymentId, accountId)
-            .switchIfEmpty(Single.error(new NotFoundException(ServiceDeployment.class)))
-            .flatMap(serviceDeployment ->  {
-                DeploymentStatusValue status = DeploymentStatusValue
-                    .fromDeploymentStatus(serviceDeployment.getStatus());
-                if (!status.equals(DeploymentStatusValue.DEPLOYED)) {
-                    return Single.error(new BadInputException("Service Deployment is not ready for " +
-                        "startup/termination"));
+    public void findAllForStartupAndShutdown(List<Long> resourceDeploymentIds, long accountId, long deploymentId,
+            boolean ignoreRunningStateChange, Handler<AsyncResult<JsonArray>> resultHandler) {
+        Single<List<ServiceDeployment>> findAll = smProvider.withTransactionSingle(sm -> repository
+            .findAllByIdsAccountIdAndDeploymentId(sm, resourceDeploymentIds, accountId, deploymentId)
+            .flatMap(serviceDeployments ->  {
+                if (serviceDeployments.isEmpty()) {
+                    return Single.just(List.of());
+                } else if (!ignoreRunningStateChange &&
+                        serviceDeployments.get(0).getDeployment().getContainerStateChange()) {
+                    return Single.error(new ConflictException("Startup or termination operation is already in " +
+                        "progress. Try again later."));
                 }
-                return sm.fetch(serviceDeployment.getService().getEnvVars())
-                    .flatMap(res -> sm.fetch(serviceDeployment.getService().getVolumeMounts()))
-                    .map(res -> serviceDeployment);
+                return Observable.fromIterable(serviceDeployments)
+                    .flatMapSingle(serviceDeployment -> {
+                        DeploymentStatusValue status = DeploymentStatusValue
+                            .fromDeploymentStatus(serviceDeployment.getStatus());
+                        if (!status.equals(DeploymentStatusValue.DEPLOYED)) {
+                            return Single.error(new BadInputException("Service Deployment is not ready for " +
+                                "startup/termination"));
+                        } else if (!ignoreRunningStateChange && serviceDeployment.getDeployment().getContainerStateChange()) {
+                            return Single.error(new ConflictException("Startup or termination operation is already in " +
+                                "progress. Try again later."));
+                        } else {
+                            return sm.fetch(serviceDeployment.getService().getEnvVars())
+                                .flatMap(res -> sm.fetch(serviceDeployment.getService().getVolumeMounts()))
+                                .map(res -> serviceDeployment);
+                        }
+                    })
+                    .toList();
             })
         );
-        RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
+        RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }
 }

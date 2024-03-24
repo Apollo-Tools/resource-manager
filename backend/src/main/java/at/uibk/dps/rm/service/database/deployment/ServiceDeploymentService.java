@@ -12,7 +12,9 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
-import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.JsonArray;
+
+import java.util.List;
 
 /**
  * The interface of the service proxy for the service_deployment entity.
@@ -38,13 +40,14 @@ public interface ServiceDeploymentService extends DatabaseServiceInterface {
     }
 
     /**
-     * Find a service deployment that is ready for startup or termination by its id and creator.
+     * Find all service deployments that are ready for startup or termination by their id and creator.
      *
-     * @param resourceDeploymentId the id of the service deployment
+     * @param resourceDeploymentIds the ids of the service deployments
      * @param accountId the account id of the creator
-     * @param resultHandler receives the service deployment if it exists and is ready for startup
-     *                      and termination else an error
+     * @param ignoreRunningStateChange ignore state change that has been started previously and not
+     *                                finished yet
+     * @param resultHandler receives the list of service deployments
      */
-    void findOneForDeploymentAndTermination(long resourceDeploymentId, long accountId,
-        Handler<AsyncResult<JsonObject>> resultHandler);
+    void findAllForStartupAndShutdown(List<Long> resourceDeploymentIds, long accountId, long deploymentId,
+        boolean ignoreRunningStateChange, Handler<AsyncResult<JsonArray>> resultHandler);
 }

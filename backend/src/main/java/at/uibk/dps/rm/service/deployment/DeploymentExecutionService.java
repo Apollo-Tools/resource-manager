@@ -4,6 +4,7 @@ import at.uibk.dps.rm.annotations.Generated;
 import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
+import at.uibk.dps.rm.entity.dto.deployment.SetupTFModulesOutputDTO;
 import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.service.ServiceProxyAddress;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -53,7 +54,7 @@ public interface DeploymentExecutionService {
      * @param resultHandler receives the credentials necessary for the deployment if the
      *                      setup was successful else it receives an error
      */
-    void setUpTFModules(DeployResourcesDTO deployRequest, Handler<AsyncResult<DeploymentCredentials>> resultHandler);
+    void setUpTFModules(DeployResourcesDTO deployRequest, Handler<AsyncResult<SetupTFModulesOutputDTO>> resultHandler);
 
     /**
      * Get the necessary credentials for termination.

@@ -2,8 +2,8 @@ package at.uibk.dps.rm.testutil.objectprovider;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
-import at.uibk.dps.rm.entity.deployment.output.TFOutput;
-import at.uibk.dps.rm.entity.deployment.output.TFOutputValue;
+import at.uibk.dps.rm.entity.deployment.output.TFOutputFaas;
+import at.uibk.dps.rm.entity.deployment.output.TFOutputValueFaas;
 import at.uibk.dps.rm.entity.model.*;
 import lombok.experimental.UtilityClass;
 
@@ -85,27 +85,27 @@ public class TestDeploymentProvider {
         return createResourceDeploymentStatus(5L, DeploymentStatusValue.TERMINATED);
     }
 
-    public static TFOutputValue createTFOutputValue(String fullUrl, String path, String baseUrl, int metricsPort,
-            int openFaasPort) {
-        TFOutputValue tfOutputValue = new TFOutputValue();
-        tfOutputValue.setFullUrl(fullUrl);
-        tfOutputValue.setPath(path);
-        tfOutputValue.setBaseUrl(baseUrl);
-        tfOutputValue.setMetricsPort(metricsPort);
-        tfOutputValue.setOpenfaasPort(openFaasPort);
-        return tfOutputValue;
+    public static TFOutputValueFaas createTFOutputValue(String fullUrl, String path, String baseUrl, int metricsPort,
+                                                        int openFaasPort) {
+        TFOutputValueFaas tfOutputValueFaas = new TFOutputValueFaas();
+        tfOutputValueFaas.setFullUrl(fullUrl);
+        tfOutputValueFaas.setPath(path);
+        tfOutputValueFaas.setBaseUrl(baseUrl);
+        tfOutputValueFaas.setMetricsPort(metricsPort);
+        tfOutputValueFaas.setOpenfaasPort(openFaasPort);
+        return tfOutputValueFaas;
     }
 
     public static DeploymentOutput createDeploymentOutput(String runtime) {
         DeploymentOutput output = new DeploymentOutput();
-        TFOutput tfOutput = new TFOutput();
-        Map<String, TFOutputValue> values = new HashMap<>();
+        TFOutputFaas tfOutputFaas = new TFOutputFaas();
+        Map<String, TFOutputValueFaas> values = new HashMap<>();
         values.put("r1_foo1_" + runtime + "_1", createTFOutputValue("http://host:8080/foo1", "foo1",
             "http://host", 9100, 8080));
         values.put("r3_foo2_" + runtime + "_1", createTFOutputValue("http://host:8080/foo2", "foo2",
             "http://host", 9100, 8080));
-        tfOutput.setValue(values);
-        output.setResourceOutput(tfOutput);
+        tfOutputFaas.setValue(values);
+        output.setFunctionOutput(tfOutputFaas);
         return output;
     }
 }

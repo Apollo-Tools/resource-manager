@@ -34,7 +34,7 @@ public class ContainerPullFileService extends TerraformFileService {
      */
     public ContainerPullFileService(FileSystem fileSystem, Path rootFolder, List<ServiceDeployment> serviceDeployments,
             long deploymentId, ConfigDTO config) {
-        super(fileSystem, rootFolder);
+        super(fileSystem, rootFolder, "");
         this.serviceDeployments = serviceDeployments;
         this.deploymentId = deploymentId;
         this.config = config;

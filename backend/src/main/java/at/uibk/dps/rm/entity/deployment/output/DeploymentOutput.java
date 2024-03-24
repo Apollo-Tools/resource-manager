@@ -13,7 +13,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class DeploymentOutput {
 
-    private TFOutput resourceOutput;
+    private TFOutputFaas functionOutput;
+
+    private TFOutputContainer containerOutput;
 
     /**
      * Create an instance from the terraform output in JSON-format.
@@ -22,11 +24,19 @@ public class DeploymentOutput {
      * @return the new object
      */
     public static DeploymentOutput fromJson(JsonObject jsonObject) {
-        for (String type : new String[]{"resource_output"}) {
+        for (String type : new String[]{"function_output"}) {
             JsonObject typeUrls = jsonObject.getJsonObject(type);
             typeUrls.remove("sensitive");
             typeUrls.remove("type");
             if (!typeUrls.containsKey("value") || typeUrls.fieldNames().size() > 1) {
+                throw new IllegalArgumentException("Schema of json is invalid");
+            }
+        }
+        for (String type : new String[]{"container_output"}) {
+            JsonObject containers = jsonObject.getJsonObject(type);
+            containers.remove("sensitive");
+            containers.remove("type");
+            if (!containers.containsKey("value") || containers.fieldNames().size() > 1) {
                 throw new IllegalArgumentException("Schema of json is invalid");
             }
         }

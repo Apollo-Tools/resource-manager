@@ -48,6 +48,36 @@ public class ServiceDeploymentRepository extends Repository<ServiceDeployment> {
     }
 
     /**
+     * Find a service deployment by its id, creator and fetch the deployment, deployment status,
+     * resource, metric values, metric and service.
+     *
+     * @param sessionManager the database session manger
+     * @param ids the ids of the service deployments
+     * @param accountId the id of the creator
+     * @return a Maybe that emits the service deployment if it exists, else null
+     */
+    public Single<List<ServiceDeployment>> findAllByIdsAccountIdAndDeploymentId(SessionManager sessionManager,
+            List<Long> ids, long accountId, long deploymentId) {
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery(
+                "select distinct sd from ServiceDeployment sd " +
+                    "left join fetch sd.deployment " +
+                    "left join fetch sd.status " +
+                    "left join fetch sd.resource r " +
+                    "left join fetch r.metricValues mv " +
+                    "left join fetch mv.metric " +
+                    "left join fetch sd.service s " +
+                    "left join fetch s.k8sServiceType " +
+                    "where sd.resourceDeploymentId in (:ids) and sd.deployment.createdBy.accountId=:accountId " +
+                    "and sd.deployment.deploymentId=:deploymentId", entityClass)
+            .setParameter("ids", ids)
+            .setParameter("accountId", accountId)
+            .setParameter("deploymentId", deploymentId)
+            .getResultList()
+        );
+    }
+
+    /**
      * Find all service deployments by their deployment
      *
      * @param sessionManager the database session manager

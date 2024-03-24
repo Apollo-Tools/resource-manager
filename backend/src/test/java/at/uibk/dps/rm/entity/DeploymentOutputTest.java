@@ -1,7 +1,7 @@
 package at.uibk.dps.rm.entity;
 
 import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
-import at.uibk.dps.rm.entity.deployment.output.TFOutputValue;
+import at.uibk.dps.rm.entity.deployment.output.TFOutputValueFaas;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.vertx.core.json.JsonObject;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,13 +47,13 @@ public class DeploymentOutputTest {
     void fromJsonValid(JsonObject jsonObject, boolean isValid) {
         if (isValid) {
             DeploymentOutput expected = DeploymentOutput.fromJson(jsonObject);
-            TFOutputValue tfOutputValue = expected.getResourceOutput().getValue().get("r1_test_python38_1");
-            assertThat(tfOutputValue.getBaseUrl()).isEqualTo("http://192.168.0.1");
-            assertThat(tfOutputValue.getFullUrl()).isEqualTo("http://192.168.0.1:8080/function/" +
+            TFOutputValueFaas tfOutputValueFaas = expected.getFunctionOutput().getValue().get("r1_test_python38_1");
+            assertThat(tfOutputValueFaas.getBaseUrl()).isEqualTo("http://192.168.0.1");
+            assertThat(tfOutputValueFaas.getFullUrl()).isEqualTo("http://192.168.0.1:8080/function/" +
                 "r1_test_python38_1");
-            assertThat(tfOutputValue.getMetricsPort()).isEqualTo(9100);
-            assertThat(tfOutputValue.getOpenfaasPort()).isEqualTo(8080);
-            assertThat(tfOutputValue.getPath()).isEqualTo("/function/r1_test_python38_23");
+            assertThat(tfOutputValueFaas.getMetricsPort()).isEqualTo(9100);
+            assertThat(tfOutputValueFaas.getOpenfaasPort()).isEqualTo(8080);
+            assertThat(tfOutputValueFaas.getPath()).isEqualTo("/function/r1_test_python38_23");
         } else {
             assertThrows(IllegalArgumentException.class, () -> DeploymentOutput.fromJson(jsonObject));
         }

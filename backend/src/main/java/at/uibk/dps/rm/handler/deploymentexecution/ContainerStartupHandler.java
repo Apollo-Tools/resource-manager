@@ -1,16 +1,22 @@
 package at.uibk.dps.rm.handler.deploymentexecution;
 
+import at.uibk.dps.rm.entity.dto.deployment.DeployServicesDTO;
+import at.uibk.dps.rm.entity.dto.deployment.ServiceDeploymentId;
+import at.uibk.dps.rm.entity.dto.deployment.StartTerminateServiceDeploymentDTO;
 import at.uibk.dps.rm.entity.dto.function.InvocationResponseBodyDTO;
 import at.uibk.dps.rm.entity.dto.function.InvokeFunctionDTO;
+import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
+import at.uibk.dps.rm.exception.ForbiddenException;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.util.misc.HttpHelper;
 import at.uibk.dps.rm.util.misc.MultiMapUtility;
 import at.uibk.dps.rm.verticle.ApiVerticle;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
@@ -22,7 +28,9 @@ import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Processes requests that concern startup of containers.
@@ -66,42 +74,66 @@ public class ContainerStartupHandler {
      */
     private Completable processDeployTerminateRequest(RoutingContext rc, boolean isStartup) {
         long accountId = rc.user().principal().getLong("account_id");
-        return HttpHelper.getLongPathParam(rc, "id")
-            .flatMap(serviceDeploymentId -> serviceProxyProvider.getServiceDeploymentService()
-                .findOneForDeploymentAndTermination(serviceDeploymentId, accountId))
-            .flatMapCompletable(existingServiceDeployment -> {
-                ServiceDeployment serviceDeployment = existingServiceDeployment.mapTo(ServiceDeployment.class);
-                long startTime = System.nanoTime();
-                if (isStartup) {
-                    return deploymentChecker.startContainer(serviceDeployment)
-                        .flatMapCompletable(result -> {
-                            long endTime = System.nanoTime();
-                            double startupTime = (endTime - startTime) / 1_000_000_000.0;
-                            serviceProxyProvider.getContainerStartTermPushService()
-                                .composeAndPushMetric(startupTime, serviceDeployment.getResourceDeploymentId(),
-                                    serviceDeployment.getResource().getResourceId(),
-                                    serviceDeployment.getService().getServiceId(), true)
-                                .subscribe();
-                            result.put("startup_time_seconds", startupTime);
-                            return rc.response().setStatusCode(200).end(result.encodePrettily());
-                        });
-                } else {
-                    return deploymentChecker.stopContainer(serviceDeployment)
-                        .andThen(Single.defer(() -> Single.just(1L))
-                        .flatMapCompletable(res -> {
-                            long endTime = System.nanoTime();
-                            double terminationTime = (endTime - startTime) / 1_000_000_000.0;
-                            serviceProxyProvider.getContainerStartTermPushService()
-                                .composeAndPushMetric(terminationTime, serviceDeployment.getResourceDeploymentId(),
-                                    serviceDeployment.getResource().getResourceId(),
-                                    serviceDeployment.getService().getServiceId(), false)
-                                .subscribe();
-                            JsonObject result = new JsonObject();
-                            result.put("termination_time_seconds", terminationTime);
-                            return rc.response().setStatusCode(200).end(result.encodePrettily());
-                        }));
-                }
+        boolean isAdmin =rc.user().principal().getJsonArray("role").contains("admin");
+        StartTerminateServiceDeploymentDTO request =
+            rc.body().asJsonObject().mapTo(StartTerminateServiceDeploymentDTO.class);
+        if (!isAdmin && request.getIgnoreRunningStateChange()) {
+            return Completable.error(new ForbiddenException("this operation is not allowed with the specified " +
+                "parameters"));
+        }
+        List<Long> ids = request.getServiceDeployments().stream()
+            .map(ServiceDeploymentId::getResourceDeploymentId)
+            .collect(Collectors.toList());
+        return serviceProxyProvider.getDeploymentService().findOneByIdAndAccountId(request.getDeploymentId(), accountId)
+            .map(deployment -> {
+                deployment.remove("function_resources");
+                deployment.remove("service_resources");
+                return deployment.mapTo(Deployment.class);
             })
+            .flatMapCompletable(deployment -> serviceProxyProvider.getServiceDeploymentService()
+                .findAllForStartupAndShutdown(ids, accountId, request.getDeploymentId(),
+                    request.getIgnoreRunningStateChange())
+                .flatMapObservable(Observable::fromIterable)
+                .map(serviceDeployment -> ((JsonObject) serviceDeployment).mapTo(ServiceDeployment.class))
+                .toList()
+                .flatMapCompletable(serviceDeployments -> {
+                    if (serviceDeployments.isEmpty()) {
+                        return rc.response().setStatusCode(204).end();
+                    }
+                    long startTime = System.nanoTime();
+                    if (isStartup) {
+                        DeployServicesDTO deployServicesDTO = new DeployServicesDTO(deployment, serviceDeployments);
+                        return deploymentChecker.startupServices(deployServicesDTO)
+                            .flatMapCompletable(result -> {
+                                long endTime = System.nanoTime();
+                                double startupTime = (endTime - startTime) / 1_000_000_000.0;
+                                serviceProxyProvider.getContainerStartTermPushService()
+                                    .composeAndPushMetric(startupTime,
+                                        serviceDeployments.get(0).getResourceDeploymentId(),
+                                        serviceDeployments.get(0).getResource().getResourceId(),
+                                        serviceDeployments.get(0).getService().getServiceId(), true)
+                                    .subscribe();
+                                result.put("startup_time_seconds", startupTime);
+                                return rc.response().setStatusCode(200).end(result.encodePrettily());
+                            });
+                    } else {
+                        return deploymentChecker.stopContainers(deployment, serviceDeployments)
+                            .andThen(Single.defer(() -> Single.just(1L))
+                                .flatMapCompletable(res -> {
+                                    long endTime = System.nanoTime();
+                                    double terminationTime = (endTime - startTime) / 1_000_000_000.0;
+                                    serviceProxyProvider.getContainerStartTermPushService()
+                                        .composeAndPushMetric(terminationTime,
+                                            serviceDeployments.get(0).getResourceDeploymentId(),
+                                            serviceDeployments.get(0).getResource().getResourceId(),
+                                            serviceDeployments.get(0).getService().getServiceId(), false)
+                                        .subscribe();
+                                    JsonObject result = new JsonObject();
+                                    result.put("termination_time_seconds", terminationTime);
+                                    return rc.response().setStatusCode(200).end(result.encodePrettily());
+                                }));
+                    }
+            }))
             .onErrorResumeNext(throwable -> {
                 if (throwable instanceof DeploymentTerminationFailedException) {
                     return Completable.error(new BadInputException("Deployment failed. See deployment logs for " +

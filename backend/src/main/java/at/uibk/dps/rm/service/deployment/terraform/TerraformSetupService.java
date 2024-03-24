@@ -1,8 +1,7 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
-import at.uibk.dps.rm.entity.deployment.module.ContainerModule;
-import at.uibk.dps.rm.entity.deployment.module.FaasModule;
+import at.uibk.dps.rm.entity.deployment.module.*;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
@@ -11,7 +10,6 @@ import at.uibk.dps.rm.entity.dto.deployment.TerminateResourcesDTO;
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
 import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
 import at.uibk.dps.rm.entity.model.*;
-import at.uibk.dps.rm.entity.deployment.module.TerraformModule;
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.util.misc.RegionMapper;
 import io.reactivex.rxjava3.core.Completable;
@@ -94,7 +92,8 @@ public class TerraformSetupService {
             composeOpenFaasLoginData(regionFunctionDeployments);
         }
         if (!deployRequest.getServiceDeployments().isEmpty()) {
-            singles.add(containerDeployment(deployRequest.getServiceDeployments(), config));
+            singles.add(serviceDeploymentPrePull(deployRequest.getServiceDeployments(), config));
+            singles.add(serviceDeploymentStartupTermination(deployRequest.getServiceDeployments(), config));
         }
 
         return Single.zip(singles, objects -> Arrays.stream(objects).map(object -> (TerraformModule) object)
@@ -185,28 +184,44 @@ public class TerraformSetupService {
     }
 
     /**
-     * Setup everything necessary for container deployments.
+     * Setup everything necessary for pre pulling of container images of service deployments.
      *
      * @param serviceDeployments the service deployments
      * @return a Single that emits the created terraform module
      */
-    private Single<TerraformModule> containerDeployment(List<ServiceDeployment> serviceDeployments, ConfigDTO config) {
+    private Single<TerraformModule> serviceDeploymentPrePull(List<ServiceDeployment> serviceDeployments,
+                                                             ConfigDTO config) {
         FileSystem fileSystem = vertx.fileSystem();
         long deploymentId = deployRequest.getDeployment().getDeploymentId();
-        TerraformModule module = new ContainerModule();
-        Path containerFolder = deploymentPath.getModuleFolder(module);
-        ContainerPullFileService containerFileService = new ContainerPullFileService(fileSystem, containerFolder,
+        TerraformModule prepullModule = new TerraformModule("container-prepull",
+            ModuleType.CONTAINER_PREPULL);
+        Path prepullDir = deploymentPath.getModuleFolder(prepullModule);
+        ContainerPullFileService containerFileService = new ContainerPullFileService(fileSystem, prepullDir,
             serviceDeployments, deploymentId, config);
+        return containerFileService.setUpDirectory()
+            .toSingle(() -> prepullModule);
+    }
+
+    /**
+     * Setup everything necessary for the startup/termination of service deployments.
+     *
+     * @param serviceDeployments the service deployments
+     * @return a Single that emits the created terraform module
+     */
+    private Single<TerraformModule> serviceDeploymentStartupTermination(List<ServiceDeployment> serviceDeployments,
+            ConfigDTO config) {
+        FileSystem fileSystem = vertx.fileSystem();
+        long deploymentId = deployRequest.getDeployment().getDeploymentId();
+        TerraformModule deployModule = new TerraformModule("container-deploy",
+            ModuleType.CONTAINER_DEPLOY);
+        Path deployDir = deploymentPath.getModuleFolder(deployModule);
         List<Completable> completables = new ArrayList<>();
         for (ServiceDeployment serviceDeployment : serviceDeployments) {
-            Path deployFolder = Path.of(containerFolder.toString(),  serviceDeployment.getResourceDeploymentId().toString());
             ContainerDeployFileService containerDeployFileService = new ContainerDeployFileService(fileSystem,
-                deployFolder, serviceDeployment, deploymentId, config);
+                deployDir, serviceDeployment, deploymentId, config);
             completables.add(containerDeployFileService.setUpDirectory());
         }
-
-        return containerFileService.setUpDirectory()
-            .andThen(Completable.merge(completables))
-            .toSingle(() -> module);
+        return Completable.merge(completables)
+            .toSingle(() -> deployModule);
     }
 }

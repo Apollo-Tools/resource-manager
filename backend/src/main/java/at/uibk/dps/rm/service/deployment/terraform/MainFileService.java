@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.service.deployment.terraform;
 
 import at.uibk.dps.rm.entity.deployment.module.FaasModule;
+import at.uibk.dps.rm.entity.deployment.module.ModuleType;
 import at.uibk.dps.rm.entity.deployment.module.TerraformModule;
 import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
 import io.vertx.rxjava3.core.file.FileSystem;
@@ -26,7 +27,7 @@ public class MainFileService extends TerraformFileService {
      * @param modules the list of sub modules
      */
     public MainFileService(FileSystem fileSystem, Path rootFolder, List<TerraformModule> modules) {
-        super(fileSystem, rootFolder);
+        super(fileSystem, rootFolder, "");
         this.modules = modules;
     }
 
@@ -40,7 +41,7 @@ public class MainFileService extends TerraformFileService {
             "    }\n" +
             "    kubernetes = {\n" +
             "      source = \"hashicorp/kubernetes\"\n" +
-            "      version = \"2.20.0\"\n" +
+            "      version = \"2.27.0\"\n" +
             "    }\n" +
             "  }\n" +
             "  required_version = \">= 1.2.0\"\n" +
@@ -55,7 +56,7 @@ public class MainFileService extends TerraformFileService {
     public String getLocalModulesString() {
         StringBuilder moduleString = new StringBuilder();
         for (TerraformModule module : modules) {
-            if (module.getHasFaas()){
+            if (module.getModuleType().equals(ModuleType.FAAS)){
                 String moduleName = module.getModuleName();
                 FaasModule faasModule = (FaasModule) module;
                 String prefix = faasModule.getResourceProvider().toString().toLowerCase();
@@ -68,10 +69,11 @@ public class MainFileService extends TerraformFileService {
                     "  openfaas_login_data = var.openfaas_login_data\n" +
                     "}\n", moduleName, moduleName, prefix, prefix, prefix));
             } else {
-                moduleString.append(
-                    "module \"container\" {\n" +
-                    "  source = \"./container\"\n" +
-                    "}\n");
+                moduleString.append("module \"")
+                    .append(module.getModuleName())
+                    .append("\" {\n  source = \"./")
+                    .append(module.getModuleName())
+                    .append("\"\n}\n");
             }
         }
         return moduleString.toString();
@@ -88,7 +90,7 @@ public class MainFileService extends TerraformFileService {
         StringBuilder variables = new StringBuilder();
         for (TerraformModule module : modules) {
             // Exclude container and non custom resource providers
-            if (!module.getHasFaas()) {
+            if (!module.getModuleType().equals(ModuleType.FAAS)) {
                 continue;
             }
             FaasModule faasModule = (FaasModule) module;
@@ -128,16 +130,22 @@ public class MainFileService extends TerraformFileService {
     @Override
     protected String getOutputsFileContent() {
         StringBuilder functionsOutput = new StringBuilder();
+        String containerOutput = "";
         for (TerraformModule module : modules) {
-            if (module.getHasFaas()) {
+            if (module.getModuleType().equals(ModuleType.FAAS)) {
                 functionsOutput.append(((FaasModule)module).getFunctionsString());
+            } else if (module.getModuleType().equals(ModuleType.CONTAINER_DEPLOY)) {
+                containerOutput = "output \"container_output\" {\n" +
+                    "   value = module." +  module.getModuleName() + "\n" +
+                    "}\n";
             }
         }
 
         return String.format(
-            "output \"resource_output\" {\n" +
-                "   value = merge(%s)\n" +
-                "}\n", functionsOutput
+            "output \"function_output\" {\n" +
+            "   value = merge(%s)\n" +
+            "}\n" +
+            "%s", functionsOutput, containerOutput
         );
     }
 }

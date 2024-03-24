@@ -4,13 +4,13 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Represents one entry from a {@link TFOutput} object.
+ * Represents one entry from a {@link TFOutputFaas} object.
  *
  * @author matthi-g
  */
 @Getter
 @Setter
-public class TFOutputValue {
+public class TFOutputValueFaas {
 
     private String baseUrl;
 
