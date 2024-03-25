@@ -9,6 +9,7 @@ import at.uibk.dps.rm.entity.dto.deployment.*;
 import at.uibk.dps.rm.entity.dto.resource.SubResourceDTO;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.BadInputException;
+import at.uibk.dps.rm.exception.ConflictException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.repository.DeploymentRepositoryProvider;
@@ -180,6 +181,40 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
             }),
             resultHandler
         );
+    }
+
+    @Override
+    public void findOneForServiceOperationByIdAndAccountId(long id, long accountId, boolean ignoreRunningStateChange,
+            Handler<AsyncResult<JsonObject>> resultHandler) {
+        Single<Deployment> findOne = smProvider.withTransactionSingle(sm -> repositoryProvider
+            .getDeploymentRepository()
+            .findByIdAndAccountId(sm, id, accountId)
+            .switchIfEmpty(Single.error(new NotFoundException(Deployment.class)))
+            .map(deployment -> {
+                if (!ignoreRunningStateChange && deployment.getServiceStateChangeInProgress()) {
+                    throw new ConflictException("Startup or shutdown operation is already in " +
+                        "progress. Try again later.");
+                }
+                deployment.setServiceStateChangeInProgress(true);
+                return deployment;
+            })
+        );
+        RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
+    }
+
+    @Override
+    public void finishServiceOperation(long id, long accountId, Handler<AsyncResult<Void>> resultHandler) {
+        Completable finishStateChange = smProvider.withTransactionCompletable(sm -> repositoryProvider
+            .getDeploymentRepository()
+            .findByIdAndAccountId(sm, id, accountId)
+            .switchIfEmpty(Single.error(new NotFoundException(Deployment.class)))
+            .map(deployment -> {
+                deployment.setServiceStateChangeInProgress(false);
+                return deployment;
+            })
+            .ignoreElement()
+        );
+        RxVertxHandler.handleSession(finishStateChange, resultHandler);
     }
 
     @Override

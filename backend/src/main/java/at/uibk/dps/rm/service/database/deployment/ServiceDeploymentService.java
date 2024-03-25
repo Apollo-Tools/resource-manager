@@ -44,10 +44,9 @@ public interface ServiceDeploymentService extends DatabaseServiceInterface {
      *
      * @param resourceDeploymentIds the ids of the service deployments
      * @param accountId the account id of the creator
-     * @param ignoreRunningStateChange ignore state change that has been started previously and not
-     *                                finished yet
+     * @param deploymentId the id of the deployment
      * @param resultHandler receives the list of service deployments
      */
-    void findAllForStartupAndShutdown(List<Long> resourceDeploymentIds, long accountId, long deploymentId,
-        boolean ignoreRunningStateChange, Handler<AsyncResult<JsonArray>> resultHandler);
+    void findAllForServiceOperation(List<Long> resourceDeploymentIds, long accountId, long deploymentId,
+        Handler<AsyncResult<JsonArray>> resultHandler);
 }

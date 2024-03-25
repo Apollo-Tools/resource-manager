@@ -38,6 +38,11 @@ public interface DeploymentService extends DatabaseServiceInterface {
         return new DeploymentServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(Deployment.class));
     }
 
+    void findOneForServiceOperationByIdAndAccountId(long id, long accountId, boolean ignoreRunningStateChange,
+        Handler<AsyncResult<JsonObject>> resultHandler);
+
+    void finishServiceOperation(long id, long accountId, Handler<AsyncResult<Void>> resultHandler);
+
     /**
      * Find all deployments that are active and should be monitored for alerting.
      *

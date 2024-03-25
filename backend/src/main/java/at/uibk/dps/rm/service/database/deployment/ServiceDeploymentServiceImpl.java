@@ -3,7 +3,6 @@ package at.uibk.dps.rm.service.database.deployment;
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.exception.BadInputException;
-import at.uibk.dps.rm.exception.ConflictException;
 import at.uibk.dps.rm.repository.deployment.ServiceDeploymentRepository;
 import at.uibk.dps.rm.service.database.DatabaseServiceProxy;
 import at.uibk.dps.rm.util.misc.RxVertxHandler;
@@ -36,18 +35,13 @@ public class ServiceDeploymentServiceImpl extends DatabaseServiceProxy<ServiceDe
         this.repository = repository;
     }
 
-    @Override
-    public void findAllForStartupAndShutdown(List<Long> resourceDeploymentIds, long accountId, long deploymentId,
-            boolean ignoreRunningStateChange, Handler<AsyncResult<JsonArray>> resultHandler) {
+    public void findAllForServiceOperation(List<Long> resourceDeploymentIds, long accountId, long deploymentId,
+            Handler<AsyncResult<JsonArray>> resultHandler) {
         Single<List<ServiceDeployment>> findAll = smProvider.withTransactionSingle(sm -> repository
             .findAllByIdsAccountIdAndDeploymentId(sm, resourceDeploymentIds, accountId, deploymentId)
             .flatMap(serviceDeployments ->  {
                 if (serviceDeployments.isEmpty()) {
                     return Single.just(List.of());
-                } else if (!ignoreRunningStateChange &&
-                        serviceDeployments.get(0).getDeployment().getServiceStateChangeInProgress()) {
-                    return Single.error(new ConflictException("Startup or termination operation is already in " +
-                        "progress. Try again later."));
                 }
                 return Observable.fromIterable(serviceDeployments)
                     .flatMapSingle(serviceDeployment -> {
@@ -55,10 +49,7 @@ public class ServiceDeploymentServiceImpl extends DatabaseServiceProxy<ServiceDe
                             .fromDeploymentStatus(serviceDeployment.getStatus());
                         if (!status.equals(DeploymentStatusValue.DEPLOYED)) {
                             return Single.error(new BadInputException("Service Deployment is not ready for " +
-                                "startup/termination"));
-                        } else if (!ignoreRunningStateChange && serviceDeployment.getDeployment().getServiceStateChangeInProgress()) {
-                            return Single.error(new ConflictException("Startup or termination operation is already in " +
-                                "progress. Try again later."));
+                                "startup/shutdown"));
                         } else {
                             return sm.fetch(serviceDeployment.getService().getEnvVars())
                                 .flatMap(res -> sm.fetch(serviceDeployment.getService().getVolumeMounts()))
