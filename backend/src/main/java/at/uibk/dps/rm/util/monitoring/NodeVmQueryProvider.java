@@ -50,7 +50,7 @@ public class NodeVmQueryProvider implements VmQueryProvider {
         VmSingleQuery nodeCpuSecondsTotal = new VmSingleQuery("node_cpu_seconds_total")
             .setFilter(Set.of(resourceFilter, noDeploymentFilter,
                 new VmFilter("mode", "=", Set.of("idle"))))
-            .setTimeRange("5s");
+            .setTimeRange("15s");
         VmFunctionQuery nodeRate = new VmFunctionQuery("rate", nodeCpuSecondsTotal);
         VmFunctionQuery nodeAvg = new VmFunctionQuery("avg", nodeRate)
             .setGroupBy(Set.of("resource", "instance"))
