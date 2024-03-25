@@ -9,9 +9,7 @@ import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.entity.monitoring.ServiceStartupTerminateTime;
-import at.uibk.dps.rm.exception.BadInputException;
-import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
-import at.uibk.dps.rm.exception.ForbiddenException;
+import at.uibk.dps.rm.exception.*;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.util.misc.HttpHelper;
 import at.uibk.dps.rm.util.misc.MultiMapUtility;
@@ -86,15 +84,13 @@ public class InvocationHandler {
         List<Long> ids = request.getServiceDeployments().stream()
             .map(ServiceDeploymentId::getResourceDeploymentId)
             .collect(Collectors.toList());
-        return serviceProxyProvider.getDeploymentService().findOneByIdAndAccountId(request.getDeploymentId(), accountId)
-            .map(deployment -> {
-                deployment.remove("function_resources");
-                deployment.remove("service_resources");
-                return deployment.mapTo(Deployment.class);
-            })
+
+        return serviceProxyProvider.getDeploymentService()
+            .findOneForServiceOperationByIdAndAccountId(request.getDeploymentId(), accountId,
+                request.getIgnoreRunningStateChange())
+            .map(deployment -> deployment.mapTo(Deployment.class))
             .flatMapCompletable(deployment -> serviceProxyProvider.getServiceDeploymentService()
-                .findAllForStartupAndShutdown(ids, accountId, request.getDeploymentId(),
-                    request.getIgnoreRunningStateChange())
+                .findAllForServiceOperation(ids, accountId, request.getDeploymentId())
                 .flatMapObservable(Observable::fromIterable)
                 .map(serviceDeployment -> ((JsonObject) serviceDeployment).mapTo(ServiceDeployment.class))
                 .toList()
@@ -126,10 +122,12 @@ public class InvocationHandler {
                             executionTime);
                         return rc.response().setStatusCode(200).end(result.encodePrettily());
                     });
-            }))
+                })
+                .doFinally(() -> serviceProxyProvider.getDeploymentService()
+                    .finishServiceOperation(request.getDeploymentId(), accountId).subscribe()))
             .onErrorResumeNext(throwable -> {
                 if (throwable instanceof DeploymentTerminationFailedException) {
-                    return Completable.error(new BadInputException("Deployment failed. See deployment logs for " +
+                    return Completable.error(new BadInputException("Startup/Shutdown failed. See deployment logs for " +
                         "details."));
                 } else {
                     return Completable.error(throwable);
