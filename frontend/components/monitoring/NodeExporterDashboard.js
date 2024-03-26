@@ -13,7 +13,7 @@ const InvocationDashboard = ({resourceIds, deploymentId, isActive = true}) => {
         newParameters.push({'key': 'var-resourceId', 'value': resourceId.toString()});
       });
       newParameters.push({'key': 'var-deploymentId', 'value': deploymentId});
-      newParameters.push({'key': 'var-interval', 'value': '15s'});
+      newParameters.push({'key': 'var-interval', 'value': `${process.env.NEXT_PUBLIC_NODE_EXPORTER_INTERVAL}s`});
       newParameters.push({'key': 'refresh', 'value': '5s'});
       setParameters(() => newParameters);
       setParamsInitialized(true);
