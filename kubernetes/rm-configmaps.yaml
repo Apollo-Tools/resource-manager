@@ -6,7 +6,7 @@ data:
   vmscrape.yml: |
     scrape_configs:
       - job_name: apollo-rm-scrape
-        scrape_interval: 15s
+        scrape_interval: 5s
         http_sd_configs:
           - url: "http://rm-api:8888/api/resources/scrape-targets"
 ---
@@ -31,7 +31,7 @@ data:
         # <bool> disable dashboard deletion
         disableDeletion: false
         # <int> how often Grafana will scan for changed dashboards
-        updateIntervalSeconds: 10
+        updateIntervalSeconds: 3600
         # <bool> allow updating provisioned dashboards from the UI
         allowUiUpdates: false
         options:

@@ -44,6 +44,9 @@ spec:
             # The url of grafana dashboard
             - name: NEXT_PUBLIC_GRAFANA_URL
               value: http://rm-monitoring-grafana:8891
+            # The rate interval for the node exporter dashboard
+            - name: ENV_NEXT_PUBLIC_NODE_EXPORTER_INTERVAL
+              value: "5"
           resources:
             # The resource limits
             limits:
