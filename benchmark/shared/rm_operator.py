@@ -94,18 +94,18 @@ class RmOperator:
             result = await asyncio.gather(*tasks)
             return result
 
-    async def start_stop_service(self, client: AsyncClient, url: str):
+    async def start_stop_service(self, request: dict, client: AsyncClient, url: str):
         headers = self.authorization
         start = time.time()
-        await client.post(url, headers=headers, timeout=120)
+        await client.post(url, json=request, headers=headers, timeout=120)
         end = time.time()
         return (end - start) * 1000
 
-    async def startup_stop_service_deployments(self, ids: list, method: ServiceDeploymentMethod):
+    async def startup_stop_service_deployments(self, deployment_id: int, resource_deployment_ids: list,
+                                               method: ServiceDeploymentMethod) -> float:
         async with httpx.AsyncClient(timeout=60.0) as client:
-            tasks = []
-            for service_deployment_id in ids:
-                url = f"{self.base_url}/api/service-deployments/{service_deployment_id}/{method.value}"
-                tasks.append(self.start_stop_service(client, url))
-            result = await asyncio.gather(*tasks)
+            service_deployments = list(map(lambda rd_id: {'resource_deployment_id': rd_id}, resource_deployment_ids))
+            url = f"{self.base_url}/api/service-deployments/{method.value}"
+            request = {'deployment_id': deployment_id, "service_deployments": service_deployments}
+            result = await self.start_stop_service(request, client, url)
             return result
