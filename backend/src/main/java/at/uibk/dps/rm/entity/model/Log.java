@@ -22,6 +22,7 @@ public class Log {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long logId;
 
+    @Column(columnDefinition="TEXT")
     private String logValue;
 
     @Column(insertable = false, updatable = false)
