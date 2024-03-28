@@ -86,7 +86,7 @@ class RmOperator:
 
     async def trigger_function_deployment(self, trigger_url: str, concurrency: int,
                                           request: dict, is_direct: bool):
-        async with httpx.AsyncClient(timeout=60.0) as client:
+        async with httpx.AsyncClient(timeout=120) as client:
             url = trigger_url
             if not is_direct:
                 url = f"{self.base_url}/api{trigger_url}"
@@ -97,13 +97,13 @@ class RmOperator:
     async def start_stop_service(self, request: dict, client: AsyncClient, url: str):
         headers = self.authorization
         start = time.time()
-        await client.post(url, json=request, headers=headers, timeout=120)
+        await client.post(url, json=request, headers=headers, timeout=300)
         end = time.time()
         return (end - start) * 1000
 
     async def startup_stop_service_deployments(self, deployment_id: int, resource_deployment_ids: list,
                                                method: ServiceDeploymentMethod) -> float:
-        async with httpx.AsyncClient(timeout=60.0) as client:
+        async with httpx.AsyncClient(timeout=300) as client:
             service_deployments = list(map(lambda rd_id: {'resource_deployment_id': rd_id}, resource_deployment_ids))
             url = f"{self.base_url}/api/service-deployments/{method.value}"
             request = {'deployment_id': deployment_id, "service_deployments": service_deployments}
