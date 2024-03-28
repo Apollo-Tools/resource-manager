@@ -117,7 +117,6 @@ class KubeOperator:
             metadata=deployment_metadata,
             spec=spec
         )
-        start = time.time()
         self.core_v1.create_namespaced_service(namespace, service)
         self.apps_v1.create_namespaced_deployment(namespace, deployment)
         w = watch.Watch()
@@ -133,24 +132,23 @@ class KubeOperator:
                 logger.debug("%s deleted before it started")
                 break
         w.stop()
-        end = time.time()
-        return (end - start) * 1000
 
     async def start_service_deployments(self, index: int, service_deployment: ServiceDeploymentBenchmark):
         tasks = []
+        start = time.time()
         for i in range(len(service_deployment.request_body.service_resources)):
             tasks.append(asyncio.to_thread(self.create_service_deployment, index * 1000 + i,
                                            service_deployment.image, service_deployment.namespace,
                                            service_deployment.replicas, service_deployment.cpu,
                                            service_deployment.memory, service_deployment.container_port,
                                            service_deployment.svc_port, service_deployment.external_ip))
-        result = await asyncio.gather(*tasks)
-        return result
+        await asyncio.gather(*tasks)
+        end = time.time()
+        return (end - start) * 1000
 
     def delete_service_deployment(self, idx: int, namespace: str):
         deployment_name = f"rm-benchmark-overhead-{idx}"
 
-        start = time.time()
         self.apps_v1.delete_namespaced_deployment(
             name=deployment_name,
             namespace=namespace,
@@ -167,13 +165,13 @@ class KubeOperator:
                 grace_period_seconds=30
             )
         )
-        end = time.time()
-        return (end - start) * 1000
 
     async def stop_service_deployments(self, index: int, service_deployment: ServiceDeploymentBenchmark):
         tasks = []
+        start = time.time()
         for i in range(len(service_deployment.request_body.service_resources)):
             tasks.append(asyncio.to_thread(self.delete_service_deployment, index * 1000 + i,
                                            service_deployment.namespace))
-        result = await asyncio.gather(*tasks)
-        return result
+        await asyncio.gather(*tasks)
+        end = time.time()
+        return (end - start) * 1000

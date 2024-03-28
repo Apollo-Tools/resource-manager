@@ -23,7 +23,7 @@ async def observe_service_execution_overhead(deployment: dict, service_deploymen
                                                        ServiceDeploymentMethod.STARTUP)
     await rm_operator.startup_stop_service_deployments(deployment_id,
                                                        [deployment['service_resources'][0]['resource_deployment_id']],
-                                                       ServiceDeploymentMethod.STOP)
+                                                       ServiceDeploymentMethod.SHUTDOWN)
 
     rm_start_times = {}
     rm_stop_times = {}
@@ -36,15 +36,13 @@ async def observe_service_execution_overhead(deployment: dict, service_deploymen
                                                                                ServiceDeploymentMethod.STARTUP)
         await asyncio.sleep(5)
         rm_stop_times[i] = await rm_operator.startup_stop_service_deployments(deployment_id, ids,
-                                                                              ServiceDeploymentMethod.STOP)
+                                                                              ServiceDeploymentMethod.SHUTDOWN)
 
     for i in range(0, service_deployment.count):
         logger.info(f"K8S service startup {i}, deployment {deployment_id}")
-        start_times = await k8s_operator.start_service_deployments(i, service_deployment)
-        k8s_start_times[i] = min(start_times)
+        k8s_start_times[i] = await k8s_operator.start_service_deployments(i, service_deployment)
         await asyncio.sleep(5)
-        stop_times = await k8s_operator.stop_service_deployments(i, service_deployment)
-        k8s_stop_times[i] = max(stop_times)
+        k8s_stop_times[i] = await k8s_operator.stop_service_deployments(i, service_deployment)
 
     logger.info(f"cancel deployment, deployment {deployment['deployment_id']}")
     await rm_operator.cancel_deployment(deployment['deployment_id'])
