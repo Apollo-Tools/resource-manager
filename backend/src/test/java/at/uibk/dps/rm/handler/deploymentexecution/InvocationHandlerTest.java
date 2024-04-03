@@ -1,17 +1,22 @@
 package at.uibk.dps.rm.handler.deploymentexecution;
 
+import at.uibk.dps.rm.entity.dto.deployment.StartupShutdownServicesDTO;
+import at.uibk.dps.rm.entity.dto.deployment.StartupShutdownServicesRequestDTO;
 import at.uibk.dps.rm.entity.dto.function.InvocationMonitoringDTO;
 import at.uibk.dps.rm.entity.dto.function.InvocationResponseBodyDTO;
 import at.uibk.dps.rm.entity.dto.function.InvokeFunctionDTO;
 import at.uibk.dps.rm.entity.model.*;
+import at.uibk.dps.rm.entity.monitoring.ServiceStartupShutdownTime;
 import at.uibk.dps.rm.exception.BadInputException;
 import at.uibk.dps.rm.exception.DeploymentTerminationFailedException;
+import at.uibk.dps.rm.exception.ForbiddenException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
+import at.uibk.dps.rm.service.rxjava3.database.deployment.DeploymentService;
 import at.uibk.dps.rm.service.rxjava3.database.deployment.FunctionDeploymentService;
 import at.uibk.dps.rm.service.rxjava3.database.deployment.ServiceDeploymentService;
 import at.uibk.dps.rm.service.rxjava3.monitoring.function.FunctionExecutionService;
-import at.uibk.dps.rm.service.rxjava3.monitoring.metricpusher.ServiceStartupStopPushService;
+import at.uibk.dps.rm.service.rxjava3.monitoring.metricpusher.ServiceStartupShutdownPushService;
 import at.uibk.dps.rm.service.rxjava3.monitoring.metricpusher.FunctionInvocationPushService;
 import at.uibk.dps.rm.testutil.RoutingContextMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.*;
@@ -19,6 +24,7 @@ import at.uibk.dps.rm.util.misc.MultiMapUtility;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -32,10 +38,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -61,6 +69,9 @@ public class InvocationHandlerTest {
     private ServiceProxyProvider serviceProxyProvider;
 
     @Mock
+    private DeploymentService deploymentService;
+
+    @Mock
     private ServiceDeploymentService serviceDeploymentService;
 
     @Mock
@@ -70,7 +81,7 @@ public class InvocationHandlerTest {
     private FunctionExecutionService functionExecutionService;
 
     @Mock
-    private ServiceStartupStopPushService containerMetricPushService;
+    private ServiceStartupShutdownPushService serviceStartupShutdownPushService;
 
     @Mock
     private FunctionInvocationPushService functionInvocationPushService;
@@ -82,54 +93,62 @@ public class InvocationHandlerTest {
     private HttpServerResponse response;
 
     private Account account;
-    private ServiceDeployment sd;
+    private Deployment d1;
+    private ServiceDeployment sd1, sd2;
     private FunctionDeployment fd;
+    private StartupShutdownServicesDTO startupShutdownServicesDTO;
+    private StartupShutdownServicesRequestDTO requestIgnoreState, requestNotIgnoreState;
 
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
         handler = new InvocationHandler(deploymentChecker, serviceProxyProvider);
+        lenient().when(serviceProxyProvider.getDeploymentService()).thenReturn(deploymentService);
         lenient().when(serviceProxyProvider.getServiceDeploymentService()).thenReturn(serviceDeploymentService);
         lenient().when(serviceProxyProvider.getFunctionDeploymentService()).thenReturn(functionDeploymentService);
         lenient().when(serviceProxyProvider.getFunctionExecutionService()).thenReturn(functionExecutionService);
         lenient().when(serviceProxyProvider.getFunctionInvocationPushService())
             .thenReturn(functionInvocationPushService);
         lenient().when(serviceProxyProvider.getServiceStartStopPushService())
-            .thenReturn(containerMetricPushService);
+            .thenReturn(serviceStartupShutdownPushService);
         account = TestAccountProvider.createAccount(1L);
-        Deployment d1 = TestDeploymentProvider.createDeployment(1L);
+        d1 = TestDeploymentProvider.createDeployment(1L);
         Resource r1 = TestResourceProvider.createResource(3L);
-        sd = TestServiceProvider.createServiceDeployment(2L, r1, d1);
+        sd1 = TestServiceProvider.createServiceDeployment(2L, r1, d1);
+        sd2 = TestServiceProvider.createServiceDeployment(3L, r1, d1);
+        startupShutdownServicesDTO = TestDTOProvider.createStartupShutdownServicesDTO(d1,
+            List.of(sd1, sd2));
+        requestIgnoreState = TestDTOProvider.createStartupShutdownServicesRequest(1L,
+            List.of(2L, 3L), true);
+        requestNotIgnoreState = TestDTOProvider.createStartupShutdownServicesRequest(1L,
+            List.of(2L, 3L), false);
         fd = TestFunctionProvider.createFunctionDeployment(2L, r1, d1, "https://localhost:80/foo1");
     }
 
-    public static Stream<Arguments> provideProcessDeployTerminateRequest() {
-        Deployment d1 = TestDeploymentProvider.createDeployment(1L);
-        ServiceDeployment sd = TestServiceProvider.createServiceDeployment(2L, 3L, d1);
-
-        return Stream.of(
-            Arguments.of(true, sd, true),
-            Arguments.of(true, sd, false),
-            Arguments.of(false, sd, true),
-            Arguments.of(false, sd, false)
-        );
-    }
-
     @ParameterizedTest
-    @MethodSource("provideProcessDeployTerminateRequest")
-    void deployContainer(boolean isStartup, ServiceDeployment serviceDeployment, boolean successDeploymentTermination,
+    @CsvSource({
+        "true, true, admin",
+        "true, false, admin",
+        "false, true, default",
+        "false, false, default"
+    })
+    void startupShutdownService(boolean isStartup, boolean successDeploymentTermination, String role,
             VertxTestContext testContext) {
-        RoutingContextMockHelper.mockUserPrincipal(rc, account);
-        when(rc.pathParam("id")).thenReturn(String.valueOf(serviceDeployment.getResourceDeploymentId()));
-        when(serviceDeploymentService.findOneForDeploymentAndTermination(serviceDeployment.getResourceDeploymentId(),
-            account.getAccountId())).thenReturn(Single.just(JsonObject.mapFrom(serviceDeployment)));
+        RoutingContextMockHelper.mockUserPrincipal(rc, account, role);
+        RoutingContextMockHelper.mockBody(rc, JsonObject.mapFrom(requestNotIgnoreState));
+        when(deploymentService.findOneForServiceOperationByIdAndAccountId(d1.getDeploymentId(), account.getAccountId(),
+            false)).thenReturn(Single.just(JsonObject.mapFrom(d1)));
+        when(serviceDeploymentService.findAllForServiceOperation(List.of(2L, 3L), account.getAccountId(), d1.getDeploymentId()))
+            .thenReturn(Single.just(new JsonArray(Json.encode(List.of(sd1, sd2)))));
+        when(deploymentService.finishServiceOperation(d1.getDeploymentId(), account.getAccountId()))
+            .thenReturn(Completable.complete());
         if (!isStartup && successDeploymentTermination) {
             when(rc.response()).thenReturn(response);
             when(response.setStatusCode(200)).thenReturn(response);
             when(response.end(argThat((String response) -> {
                 JsonObject body = new JsonObject(response);
-                return body.containsKey("termination_time_seconds") &&
-                    body.getDouble("termination_time_seconds") > 0.0;
+                return body.containsKey("shutdown_time_seconds") &&
+                    body.getDouble("shutdown_time_seconds") > 0.0;
             }))).thenReturn(Completable.complete());
         }
         if (isStartup && successDeploymentTermination) {
@@ -142,20 +161,24 @@ public class InvocationHandlerTest {
         }
         Completable completable;
         if (isStartup) {
-            when(deploymentChecker.startupServices(serviceDeployment))
+            when(deploymentChecker.startupServices(startupShutdownServicesDTO))
                 .thenReturn(successDeploymentTermination ? Single.just(new JsonObject()) :
                     Single.error(DeploymentTerminationFailedException::new));
-            completable = handler.startupService(rc);
+            completable = handler.startupServices(rc);
         } else {
-            when(deploymentChecker.shutdownServices(serviceDeployment))
+            when(deploymentChecker.shutdownServices(startupShutdownServicesDTO))
                 .thenReturn(successDeploymentTermination ? Completable.complete() :
                     Completable.error(DeploymentTerminationFailedException::new));
-            completable = handler.shutdownService(rc);
+            completable = handler.shutdownServices(rc);
         }
 
         if (successDeploymentTermination) {
-            when(containerMetricPushService.composeAndPushMetric(anyDouble(), eq(2L), eq(3L),
-                eq(22L), eq(isStartup)))
+            when(serviceStartupShutdownPushService.composeAndPushMetric(argThat(metrics -> {
+                ServiceStartupShutdownTime serviceStartupShutdownTime = metrics.mapTo(ServiceStartupShutdownTime.class);
+                return !serviceStartupShutdownTime.getId().isBlank() && serviceStartupShutdownTime.getExecutionTime() > 0.0 &&
+                    serviceStartupShutdownTime.getServiceDeployments().equals(List.of(sd1, sd2)) &&
+                    serviceStartupShutdownTime.getIsStartup() == isStartup;
+            })))
                 .thenReturn(Completable.complete());
         }
 
@@ -171,27 +194,60 @@ public class InvocationHandlerTest {
                     }
                     assertThat(throwable).isInstanceOf(BadInputException.class);
                     assertThat(throwable.getMessage())
-                        .isEqualTo("Deployment failed. See deployment logs for details.");
+                        .isEqualTo("Startup/Shutdown failed. See deployment logs for details.");
                     testContext.completeNow();
                 }));
     }
 
     @Test
-    void deployContainerNotFound(VertxTestContext testContext) {
+    void startupShutdownServicesServicesNotFound(VertxTestContext testContext) {
         RoutingContextMockHelper.mockUserPrincipal(rc, account);
-        when(rc.pathParam("id")).thenReturn(String.valueOf(sd.getResourceDeploymentId()));
-        when(serviceDeploymentService.findOneForDeploymentAndTermination(sd.getResourceDeploymentId(),
-            account.getAccountId())).thenReturn(Single.error(NotFoundException::new));
+        RoutingContextMockHelper.mockBody(rc, JsonObject.mapFrom(requestNotIgnoreState));
 
-        handler.startupService(rc)
-            .subscribe(() -> testContext.failNow("methods did not throw exception"),
+        when(deploymentService.findOneForServiceOperationByIdAndAccountId(d1.getDeploymentId(), account.getAccountId(),
+            false)).thenReturn(Single.just(JsonObject.mapFrom(d1)));
+        when(serviceDeploymentService.findAllForServiceOperation(List.of(2L, 3L), account.getAccountId(), d1.getDeploymentId()))
+            .thenReturn(Single.just(new JsonArray(List.of())));
+        when(deploymentService.finishServiceOperation(d1.getDeploymentId(), account.getAccountId()))
+            .thenReturn(Completable.complete());
+        when(rc.response()).thenReturn(response);
+        when(response.setStatusCode(204)).thenReturn(response);
+        when(response.end()).thenReturn(Completable.complete());
+
+        handler.startupServices(rc)
+            .subscribe(testContext::completeNow, throwable -> testContext.failNow("method has thrown exception"));
+    }
+
+    @Test
+    void startupShutdownServicesDeploymentNotFound(VertxTestContext testContext) {
+        RoutingContextMockHelper.mockUserPrincipal(rc, account);
+        RoutingContextMockHelper.mockBody(rc, JsonObject.mapFrom(requestNotIgnoreState));
+
+        when(deploymentService.findOneForServiceOperationByIdAndAccountId(d1.getDeploymentId(), account.getAccountId(),
+            false)).thenReturn(Single.error(new NotFoundException(Deployment.class)));
+
+        handler.startupServices(rc)
+            .subscribe(() -> testContext.failNow("method did not throw exception"),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
-                    assertThat(throwable.getMessage())
-                        .isEqualTo("not found");
+                    assertThat(throwable.getMessage()).isEqualTo("Deployment not found");
                     testContext.completeNow();
-                })
-            );
+                }));
+    }
+
+    @Test
+    void startupShutdownServicesNotAllowed(VertxTestContext testContext) {
+        RoutingContextMockHelper.mockUserPrincipal(rc, account);
+        RoutingContextMockHelper.mockBody(rc, JsonObject.mapFrom(requestIgnoreState));
+
+        handler.startupServices(rc)
+            .subscribe(() -> testContext.failNow("method did not throw exception"),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(ForbiddenException.class);
+                    assertThat(throwable.getMessage())
+                        .isEqualTo("this operation is not allowed with the specified parameters");
+                    testContext.completeNow();
+                }));
     }
 
     public static Stream<Arguments> provideInvokeFunction() {

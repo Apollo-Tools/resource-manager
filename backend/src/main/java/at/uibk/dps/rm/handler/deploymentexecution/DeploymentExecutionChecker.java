@@ -188,32 +188,32 @@ public class DeploymentExecutionChecker {
     /**
      * Start up services from a deployment.
      *
-     * @param deployServices the data necessary to start up the services
+     * @param startupServices the data necessary to start up the services
      * @return a Completable
      */
-    public Single<JsonObject> startupServices(StartupShutdownServicesDTO deployServices) {
+    public Single<JsonObject> startupServices(StartupShutdownServicesDTO startupServices) {
         Vertx vertx = Vertx.currentContext().owner();
         return new ConfigUtility(vertx).getConfigDTO()
             .flatMap(config -> {
                 TerraformExecutor terraformExecutor = new TerraformExecutor();
                 DeploymentPath deploymentPath =
-                    new DeploymentPath(deployServices.getDeployment().getDeploymentId(), config);
+                    new DeploymentPath(startupServices.getDeployment().getDeploymentId(), config);
                 List<String> targets = new ArrayList<>();
-                deployServices.getServiceDeployments().forEach(sd ->
+                startupServices.getServiceDeployments().forEach(sd ->
                     targets.add("module.service_deploy.module.deployment_" + sd.getResourceDeploymentId()));
                 return terraformExecutor.apply(deploymentPath.getRootFolder(), targets)
-                    .flatMapCompletable(applyOutput -> persistLogs(applyOutput, deployServices.getDeployment()))
+                    .flatMapCompletable(applyOutput -> persistLogs(applyOutput, startupServices.getDeployment()))
                     .andThen(Single.just(terraformExecutor))
                     .flatMap(executor -> executor.refresh(deploymentPath.getRootFolder(),
                         List.of("module.service_deploy")))
-                    .flatMapCompletable(tfOutput -> persistLogs(tfOutput, deployServices.getDeployment()))
+                    .flatMapCompletable(tfOutput -> persistLogs(tfOutput, startupServices.getDeployment()))
                     .andThen(terraformExecutor.getOutput(deploymentPath.getRootFolder()))
-                    .flatMap(tfOutput -> persistLogs(tfOutput, deployServices.getDeployment())
+                    .flatMap(tfOutput -> persistLogs(tfOutput, startupServices.getDeployment())
                         .toSingle(() -> {
                             JsonObject jsonOutput = new JsonObject(tfOutput.getOutput())
                                 .getJsonObject("service_output").getJsonObject("value");
                             JsonObject serviceDeployments = new JsonObject();
-                            deployServices.getServiceDeployments().forEach(serviceDeployment -> {
+                            startupServices.getServiceDeployments().forEach(serviceDeployment -> {
                                 String key = "service_deployment_" + serviceDeployment.getResourceDeploymentId();
                                 serviceDeployments.put(key, jsonOutput.getValue(key));
                             });

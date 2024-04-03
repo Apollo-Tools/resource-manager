@@ -20,27 +20,27 @@ import io.vertx.rxjava3.ext.web.client.WebClient;
  */
 @ProxyGen
 @VertxGen
-public interface ServiceStartupStopPushService extends ServiceInterface {
+public interface ServiceStartupShutdownPushService extends ServiceInterface {
 
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
     @GenIgnore
-    static ServiceStartupStopPushService create(WebClient webClient, ConfigDTO config) {
-        return new ServiceStartupStopPushServiceImpl(webClient, config);
+    static ServiceStartupShutdownPushService create(WebClient webClient, ConfigDTO config) {
+        return new ServiceStartupShutdownPushServiceImpl(webClient, config);
     }
 
     @SuppressWarnings("PMD.CommentRequired")
     @Generated
-    static ServiceStartupStopPushService createProxy(Vertx vertx) {
-        return new ServiceStartupStopPushServiceVertxEBProxy(vertx,
+    static ServiceStartupShutdownPushService createProxy(Vertx vertx) {
+        return new ServiceStartupShutdownPushServiceVertxEBProxy(vertx,
             ServiceProxyAddress.getServiceProxyAddress("service-startup-stop-pusher"));
     }
 
     /**
      * Compose an OpenTSDB metric and push it to the monitoring system.
      *
-     * @param executionTime the start-up time and service deployments
+     * @param serviceStartupShutdownTime the start-up/shutdown time and the concerning service deployments
      * @param resultHandler receives nothing if the saving was successful else an error
      */
-    void composeAndPushMetric(JsonObject executionTime, Handler<AsyncResult<Void>> resultHandler);
+    void composeAndPushMetric(JsonObject serviceStartupShutdownTime, Handler<AsyncResult<Void>> resultHandler);
 }

@@ -27,12 +27,15 @@ import static org.mockito.BDDMockito.given;
  */
 @UtilityClass
 public class TerraformExecutorMockprovider {
+
     public static MockedConstruction<MainTerraformExecutor> mockMainTerraformExecutor(DeploymentPath deploymentPath,
-                                                                                      ProcessOutput poInit, ProcessOutput poApply, ProcessOutput poOutput) {
+            ProcessOutput poInit, ProcessOutput poApply, ProcessOutput poRefresh, ProcessOutput poOutput,
+            List<String> targets) {
         return Mockito.mockConstruction(MainTerraformExecutor.class,
             (mock, context) -> {
                 given(mock.init(deploymentPath.getRootFolder())).willReturn(Single.just(poInit));
-                given(mock.apply(deploymentPath.getRootFolder())).willReturn(Single.just(poApply));
+                given(mock.apply(deploymentPath.getRootFolder(), targets)).willReturn(Single.just(poApply));
+                given(mock.refresh(deploymentPath.getRootFolder())).willReturn(Single.just(poRefresh));
                 given(mock.getOutput(deploymentPath.getRootFolder())).willReturn(Single.just(poOutput));
             });
     }
@@ -61,8 +64,29 @@ public class TerraformExecutorMockprovider {
         }
     }
 
+    private static void mockTerraformExecutor(TerraformExecutor mock, Path path, List<String> targets,
+            List<String> refreshTargets, String mode, ProcessOutput processOutput) {
+        switch (mode) {
+            case "init":
+                given(mock.init(path)).willReturn(Single.just(processOutput));
+                break;
+            case "apply":
+                given(mock.apply(path, targets)).willReturn(Single.just(processOutput));
+                break;
+            case "refresh":
+                given(mock.refresh(path, refreshTargets)).willReturn(Single.just(processOutput));
+                break;
+            case "destroy":
+                given(mock.destroy(path, targets)).willReturn(Single.just(processOutput));
+                break;
+            case "output":
+                given(mock.getOutput(path)).willReturn(Single.just(processOutput));
+                break;
+        }
+    }
+
     public static MockedConstruction<TerraformExecutor> mockTerraformExecutor(DeployTerminateDTO request,
-                                                                              DeploymentPath deploymentPath, ProcessOutput processOutput, String mode) {
+            DeploymentPath deploymentPath, ProcessOutput processOutput, String mode) {
         return Mockito.mockConstruction(TerraformExecutor.class,
             (mock, context) -> {
                 for (ServiceDeployment sr : request.getServiceDeployments()) {
@@ -74,13 +98,12 @@ public class TerraformExecutorMockprovider {
     }
 
     public static MockedConstruction<TerraformExecutor> mockTerraformExecutor(DeploymentPath deploymentPath,
-                                                                              long resourceDeploymentId, ProcessOutput processOutput, String... modes) {
+            ProcessOutput processOutput, List<String> targets, List<String> refreshTargets, String... modes) {
         return Mockito.mockConstruction(TerraformExecutor.class,
             (mock, context) -> {
-                Path containerPath = Path.of(deploymentPath.getRootFolder().toString(), "container",
-                    String.valueOf(resourceDeploymentId));
                 for (String mode: modes) {
-                    mockTerraformExecutor(mock, containerPath, mode, processOutput);
+                    mockTerraformExecutor(mock, deploymentPath.getRootFolder(), targets, refreshTargets, mode,
+                        processOutput);
                 }
             });
     }
