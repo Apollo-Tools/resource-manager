@@ -111,8 +111,9 @@ public class DeploymentExecutionServiceImplTest {
              MockedConstruction<MainFileService> ignoredMFS = TerraformFileServiceMockprovider.mockMainFileService(Completable.complete())) {
                 deploymentExecutionService.setUpTFModules(deployRequest,
                     testContext.succeeding(result -> testContext.verify(() -> {
-                        assertThat(result.getEdgeLoginCredentials()).isEqualTo("");
-                        assertThat(result.getCloudCredentials().size()).isEqualTo(0);
+                        assertThat(result.getTerraformModules()).isEqualTo(List.of(m1, m2));
+                        assertThat(result.getDeploymentCredentials().getEdgeLoginCredentials()).isEqualTo("");
+                        assertThat(result.getDeploymentCredentials().getCloudCredentials().size()).isEqualTo(0);
                         testContext.completeNow();
                     })));
         }

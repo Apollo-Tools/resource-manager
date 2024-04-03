@@ -78,7 +78,7 @@ public class ServiceProxyProvider {
     private final MetricQueryService metricQueryService;
     private final OpenFaasMetricPushService openFaasMetricPushService;
     private final RegionMetricPushService regionMetricPushService;
-    private final ServiceStartupStopPushService serviceStartStopPushService;
+    private final ServiceStartupShutdownPushService serviceStartStopPushService;
 
 
     /**
@@ -124,6 +124,6 @@ public class ServiceProxyProvider {
         metricQueryService = MetricQueryService.createProxy(vertx);
         openFaasMetricPushService = OpenFaasMetricPushService.createProxy(vertx);
         regionMetricPushService = RegionMetricPushService.createProxy(vertx);
-        serviceStartStopPushService = ServiceStartupStopPushService.createProxy(vertx);
+        serviceStartStopPushService = ServiceStartupShutdownPushService.createProxy(vertx);
     }
 }

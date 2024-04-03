@@ -5,7 +5,6 @@ import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.entity.model.ResourceDeploymentStatus;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import at.uibk.dps.rm.exception.BadInputException;
-import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.repository.deployment.ServiceDeploymentRepository;
 import at.uibk.dps.rm.service.database.util.SessionManagerProvider;
 import at.uibk.dps.rm.testutil.SessionMockHelper;
@@ -16,7 +15,7 @@ import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
-import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.JsonArray;
 import io.vertx.junit5.VertxExtension;
 import at.uibk.dps.rm.service.database.util.SessionManager;
 import io.vertx.junit5.VertxTestContext;
@@ -65,7 +64,7 @@ public class ServiceDeploymentImplTest {
         "NEW, false",
         "DEPLOYED, true"
     })
-    void findOneForDeploymentAndTermination(String status, boolean valid,
+    void findAllForServiceOperation(String status, boolean valid,
             VertxTestContext testContext) {
         long accountId = 1L, resourceDeploymentId = 2L;
         DeploymentStatusValue statusValue = DeploymentStatusValue.valueOf(status);
@@ -79,11 +78,14 @@ public class ServiceDeploymentImplTest {
         when(repository.findByIdAndAccountId(sessionManager, resourceDeploymentId, accountId))
             .thenReturn(Maybe.just(sd));
 
-        Handler<AsyncResult<JsonObject>> handler;
+        Handler<AsyncResult<JsonArray>> handler;
         if (valid) {
             when(sessionManager.fetch(any())).thenReturn(Single.just(List.of()));
             handler = testContext.succeeding(result -> testContext.verify(() -> {
-                assertThat(result.getLong("resource_deployment_id")).isEqualTo(resourceDeploymentId);
+                assertThat(result.size()).isEqualTo(3);
+                assertThat(result.getJsonObject(0).getLong("resource_deployment_id")).isEqualTo(resourceDeploymentId);
+                assertThat(result.getJsonObject(1).getLong("resource_deployment_id")).isEqualTo(resourceDeploymentId);
+                assertThat(result.getJsonObject(2).getLong("resource_deployment_id")).isEqualTo(resourceDeploymentId);
                 testContext.completeNow();
             }));
         } else {
@@ -95,20 +97,20 @@ public class ServiceDeploymentImplTest {
             }));
         }
 
-        service.findOneForDeploymentAndTermination(resourceDeploymentId, accountId, handler);
+        service.findAllForServiceOperation(List.of(resourceDeploymentId), accountId, 1L, handler);
     }
 
     @Test
-    void findOneForDeploymentAndTerminationNotFound(VertxTestContext testContext) {
+    void findAllForServiceOperationNotFound(VertxTestContext testContext) {
         long accountId = 1L, resourceDeploymentId = 2L;
 
         SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(repository.findByIdAndAccountId(sessionManager, resourceDeploymentId, accountId))
             .thenReturn(Maybe.empty());
 
-        service.findOneForDeploymentAndTermination(resourceDeploymentId, accountId,
-            testContext.failing(throwable -> testContext.verify(() -> {
-                assertThat(throwable).isInstanceOf(NotFoundException.class);
+        service.findAllForServiceOperation(List.of(resourceDeploymentId), accountId, 1L,
+            testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result.isEmpty()).isEqualTo(true);
                 testContext.completeNow();
             })));
     }

@@ -10,7 +10,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class ServiceStartupTerminateTime {
+public class ServiceStartupShutdownTime {
 
     private String id;
 
@@ -24,10 +24,10 @@ public class ServiceStartupTerminateTime {
     private boolean isStartup;
 
     @JsonCreator
-    public ServiceStartupTerminateTime(@JsonProperty("id") String id,
-                                       @JsonProperty("execution_time") double executionTime,
-                                       @JsonProperty("service_deployments") List<ServiceDeployment> serviceDeployments,
-                                       @JsonProperty("is_startup") boolean isStartup) {
+    public ServiceStartupShutdownTime(@JsonProperty("id") String id,
+                                      @JsonProperty("execution_time") double executionTime,
+                                      @JsonProperty("service_deployments") List<ServiceDeployment> serviceDeployments,
+                                      @JsonProperty("is_startup") boolean isStartup) {
         this.id = id;
         this.executionTime = executionTime;
         this.serviceDeployments = serviceDeployments;

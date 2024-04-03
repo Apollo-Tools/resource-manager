@@ -20,13 +20,13 @@ public class ResourceDeploymentRoute implements Route {
 
         router
             .operation("startServiceDeployment")
-            .handler(rc -> startupHandler.startupService(rc)
+            .handler(rc -> startupHandler.startupServices(rc)
                 .subscribe(() -> {}, throwable -> ResultHandler.handleRequestError(rc, throwable))
             );
 
         router
             .operation("shutdownServiceDeployment")
-            .handler(rc -> startupHandler.shutdownService(rc)
+            .handler(rc -> startupHandler.shutdownServices(rc)
                 .subscribe(() -> {}, throwable -> ResultHandler.handleRequestError(rc, throwable))
             );
 

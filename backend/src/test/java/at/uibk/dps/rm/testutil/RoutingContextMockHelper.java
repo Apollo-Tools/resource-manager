@@ -113,9 +113,20 @@ public class RoutingContextMockHelper {
      * @param account the account of the mocked user
      */
     public static void mockUserPrincipal(RoutingContext rc, Account account) {
+        mockUserPrincipal(rc, account, "default");
+    }
+
+    /**
+     * Mock the user principal of the routing context.
+     *
+     * @param rc the routing context
+     * @param account the account of the mocked user
+     */
+    public static void mockUserPrincipal(RoutingContext rc, Account account, String role) {
         JsonObject userPrincipal = new JsonObject();
         userPrincipal.put("username", account.getUsername());
         userPrincipal.put("account_id", account.getAccountId());
+        userPrincipal.put("role", new JsonArray(List.of(role)));
         when(rc.user()).thenReturn(User.create(userPrincipal));
     }
 }

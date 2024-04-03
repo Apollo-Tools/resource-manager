@@ -17,6 +17,7 @@ import java.util.Objects;
 public abstract class TerraformModule {
     private final String moduleName;
 
+    // TODO: remove module type and use instance of
     private final ModuleType moduleType;
 
     public TerraformModule(String moduleName, ModuleType moduleType) {

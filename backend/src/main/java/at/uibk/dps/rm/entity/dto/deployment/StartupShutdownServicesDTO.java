@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -38,5 +39,23 @@ public class StartupShutdownServicesDTO {
      */
     public JsonObject toJson() {
         return JsonObject.mapFrom(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        StartupShutdownServicesDTO that = (StartupShutdownServicesDTO) o;
+
+        if (!Objects.equals(deployment, that.deployment)) return false;
+        return Objects.equals(serviceDeployments, that.serviceDeployments);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = deployment != null ? deployment.hashCode() : 0;
+        result = 31 * result + (serviceDeployments != null ? serviceDeployments.hashCode() : 0);
+        return result;
     }
 }

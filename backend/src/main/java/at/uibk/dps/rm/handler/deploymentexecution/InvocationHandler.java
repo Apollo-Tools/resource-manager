@@ -2,13 +2,13 @@ package at.uibk.dps.rm.handler.deploymentexecution;
 
 import at.uibk.dps.rm.entity.dto.deployment.StartupShutdownServicesDTO;
 import at.uibk.dps.rm.entity.dto.deployment.ServiceDeploymentId;
-import at.uibk.dps.rm.entity.dto.deployment.StartupShutdownServiceDeploymentDTO;
+import at.uibk.dps.rm.entity.dto.deployment.StartupShutdownServicesRequestDTO;
 import at.uibk.dps.rm.entity.dto.function.InvocationResponseBodyDTO;
 import at.uibk.dps.rm.entity.dto.function.InvokeFunctionDTO;
 import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.entity.model.FunctionDeployment;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
-import at.uibk.dps.rm.entity.monitoring.ServiceStartupTerminateTime;
+import at.uibk.dps.rm.entity.monitoring.ServiceStartupShutdownTime;
 import at.uibk.dps.rm.exception.*;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.util.misc.HttpHelper;
@@ -46,23 +46,23 @@ public class InvocationHandler {
     private final ServiceProxyProvider serviceProxyProvider;
 
     /**
-     * Startup a service.
+     * Startup multiple services.
      *
      * @param rc the routing context
      * @return a Completable
      */
-    public Completable startupService(RoutingContext rc) {
-        return processStartStopRequest(rc, true);
+    public Completable startupServices(RoutingContext rc) {
+        return processStartupShutdownRequest(rc, true);
     }
 
     /**
-     * Shutdown a service.
+     * Shutdown multiple services.
      *
      * @param rc the routing context
      * @return a Completable
      */
-    public Completable shutdownService(RoutingContext rc) {
-        return processStartStopRequest(rc, false);
+    public Completable shutdownServices(RoutingContext rc) {
+        return processStartupShutdownRequest(rc, false);
     }
 
     /**
@@ -72,11 +72,11 @@ public class InvocationHandler {
      * @param isStartup if the request is for startup or termination of services
      * @return a Completable
      */
-    private Completable processStartStopRequest(RoutingContext rc, boolean isStartup) {
+    private Completable processStartupShutdownRequest(RoutingContext rc, boolean isStartup) {
         long accountId = rc.user().principal().getLong("account_id");
         boolean isAdmin =rc.user().principal().getJsonArray("role").contains("admin");
-        StartupShutdownServiceDeploymentDTO request =
-            rc.body().asJsonObject().mapTo(StartupShutdownServiceDeploymentDTO.class);
+        StartupShutdownServicesRequestDTO request =
+            rc.body().asJsonObject().mapTo(StartupShutdownServicesRequestDTO.class);
         if (!isAdmin && request.getIgnoreRunningStateChange()) {
             return Completable.error(new ForbiddenException("this operation is not allowed with the specified " +
                 "parameters"));
@@ -112,11 +112,11 @@ public class InvocationHandler {
                         long endTime = System.nanoTime();
                         double executionTime = (endTime - startTime) / 1_000_000_000.0;
                         UUID requestId = UUID.randomUUID();
-                        ServiceStartupTerminateTime serviceStartupTerminateTime =
-                            new ServiceStartupTerminateTime(requestId.toString(), executionTime,
+                        ServiceStartupShutdownTime serviceStartupShutdownTime =
+                            new ServiceStartupShutdownTime(requestId.toString(), executionTime,
                                 serviceDeployments, isStartup);
                         serviceProxyProvider.getServiceStartStopPushService()
-                            .composeAndPushMetric(JsonObject.mapFrom(serviceStartupTerminateTime))
+                            .composeAndPushMetric(JsonObject.mapFrom(serviceStartupShutdownTime))
                             .subscribe();
                         result.put(isStartup ? "startup_time_seconds" : "shutdown_time_seconds",
                             executionTime);

@@ -2,7 +2,7 @@ package at.uibk.dps.rm.service.monitoring.metricpusher;
 
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.monitoring.OpenTSDBEntity;
-import at.uibk.dps.rm.entity.monitoring.ServiceStartupTerminateTime;
+import at.uibk.dps.rm.entity.monitoring.ServiceStartupShutdownTime;
 import at.uibk.dps.rm.service.ServiceProxy;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -14,12 +14,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * This is the implementation of the {@link ServiceStartupStopPushService}.
+ * This is the implementation of the {@link ServiceStartupShutdownPushService}.
  *
  * @author matthi-g
  */
-public class ServiceStartupStopPushServiceImpl extends ServiceProxy implements
-    ServiceStartupStopPushService {
+public class ServiceStartupShutdownPushServiceImpl extends ServiceProxy implements
+    ServiceStartupShutdownPushService {
 
     private final MetricPusher monitoringPusher;
 
@@ -29,7 +29,7 @@ public class ServiceStartupStopPushServiceImpl extends ServiceProxy implements
      * @param webClient the web client
      * @param config the config
      */
-    public ServiceStartupStopPushServiceImpl(WebClient webClient, ConfigDTO config) {
+    public ServiceStartupShutdownPushServiceImpl(WebClient webClient, ConfigDTO config) {
         monitoringPusher = new MetricPusher(webClient, config);
     }
 
@@ -39,8 +39,9 @@ public class ServiceStartupStopPushServiceImpl extends ServiceProxy implements
     }
 
     @Override
-    public void composeAndPushMetric(JsonObject executionTime, Handler<AsyncResult<Void>> resultHandler) {
-        ServiceStartupTerminateTime serviceExecutionTime = executionTime.mapTo(ServiceStartupTerminateTime.class);
+    public void composeAndPushMetric(JsonObject serviceStartupShutdownTime, Handler<AsyncResult<Void>> resultHandler) {
+        ServiceStartupShutdownTime serviceExecutionTime = serviceStartupShutdownTime
+            .mapTo(ServiceStartupShutdownTime.class);
         String metricName = "service_" + (serviceExecutionTime.getIsStartup() ? "startup" : "termination" ) +
             "_time_seconds";
         List<OpenTSDBEntity> openTSDBEntities = serviceExecutionTime.getServiceDeployments().stream()

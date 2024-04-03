@@ -3,11 +3,12 @@ package at.uibk.dps.rm.testutil.objectprovider;
 import at.uibk.dps.rm.entity.deployment.DeploymentCredentials;
 import at.uibk.dps.rm.entity.deployment.FunctionsToDeploy;
 import at.uibk.dps.rm.entity.deployment.ProcessOutput;
+import at.uibk.dps.rm.entity.deployment.module.TerraformModule;
 import at.uibk.dps.rm.entity.dto.CreateEnsembleRequest;
 import at.uibk.dps.rm.entity.dto.ListResourcesBySLOsRequest;
 import at.uibk.dps.rm.entity.dto.SLORequest;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
-import at.uibk.dps.rm.entity.dto.deployment.DeploymentAlertingDTO;
+import at.uibk.dps.rm.entity.dto.deployment.*;
 import at.uibk.dps.rm.entity.dto.ensemble.GetOneEnsemble;
 import at.uibk.dps.rm.entity.dto.function.InvocationMonitoringDTO;
 import at.uibk.dps.rm.entity.dto.function.InvocationResponseBodyDTO;
@@ -135,6 +136,14 @@ public class TestDTOProvider {
         DeploymentCredentials deploymentCredentials = new DeploymentCredentials();
         deploymentCredentials.getCloudCredentials().add(TestAccountProvider.createCredentials(1L, rp));
         return deploymentCredentials;
+    }
+
+    public static SetupTFModulesOutputDTO createTFModulesOutput(List<TerraformModule> terraformModules,
+            DeploymentCredentials deploymentCredentials) {
+        SetupTFModulesOutputDTO output = new SetupTFModulesOutputDTO();
+        output.setTerraformModules(terraformModules);
+        output.setDeploymentCredentials(deploymentCredentials);
+        return output;
     }
 
     public static ProcessOutput createProcessOutput(Process process, String output) {
@@ -275,5 +284,26 @@ public class TestDTOProvider {
         deploymentAlertingDTO.setEnsembleSLOs(ensembleSLOS);
         deploymentAlertingDTO.setAlertingUrl("http://localhost:9999");
         return deploymentAlertingDTO;
+    }
+
+    public static StartupShutdownServicesDTO createStartupShutdownServicesDTO(Deployment deployment,
+            List<ServiceDeployment> serviceDeployments) {
+        StartupShutdownServicesDTO startupShutdownServicesDTO = new StartupShutdownServicesDTO();
+        startupShutdownServicesDTO.setDeployment(deployment);
+        startupShutdownServicesDTO.setServiceDeployments(serviceDeployments);
+        return startupShutdownServicesDTO;
+    }
+
+    public static StartupShutdownServicesRequestDTO createStartupShutdownServicesRequest(long deploymentId,
+            List<Long> serviceDeploymentIds, boolean ignoreRunningStateChange) {
+        StartupShutdownServicesRequestDTO request = new StartupShutdownServicesRequestDTO();
+        request.setDeploymentId(deploymentId);
+        request.setServiceDeployments(serviceDeploymentIds.stream().map(id -> {
+            ServiceDeploymentId serviceDeploymentId = new ServiceDeploymentId();
+            serviceDeploymentId.setResourceDeploymentId(id);
+            return serviceDeploymentId;
+        }).collect(Collectors.toList()));
+        request.setIgnoreRunningStateChange(ignoreRunningStateChange);
+        return request;
     }
 }

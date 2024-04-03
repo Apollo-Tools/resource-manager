@@ -12,7 +12,7 @@ import java.util.List;
  */
 @Data
 @RequiredArgsConstructor
-public class StartupShutdownServiceDeploymentDTO {
+public class StartupShutdownServicesRequestDTO {
     private Long deploymentId;
     private List<ServiceDeploymentId> serviceDeployments;
     private Boolean ignoreRunningStateChange = false;
