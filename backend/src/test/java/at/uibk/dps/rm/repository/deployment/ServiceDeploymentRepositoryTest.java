@@ -120,6 +120,53 @@ public class ServiceDeploymentRepositoryTest extends DatabaseTest {
             });
     }
 
+    private static Stream<Arguments> provideFindAllByIdsAccountIdAndDeploymentId() {
+        return Stream.of(
+            Arguments.of(List.of(1L, 2L, 3L), 1L, 1L, List.of(1L, 2L, 3L), List.of(1L, 2L, 1L),
+                List.of("NodePort", "NoService", "NodePort"), List.of("r1", "r3", "r2"),
+                List.of(List.of("cluster-url", "external-ip"), List.of(), List.of()),
+                List.of("NEW", "ERROR", "DEPLOYED")),
+            Arguments.of(List.of(4L, 6L), 2L, 2L, List.of(4L), List.of(1L), List.of("NodePort"),
+                List.of("r1"), List.of(List.of("cluster-url", "external-ip")), List.of("TERMINATING")),
+            Arguments.of(List.of(1L, 4L), 1L, 2L, List.of(), List.of(), List.of(), List.of(), List.of(),
+                List.of()),
+            Arguments.of(List.of(1L, 4L), 2L, 1L, List.of(), List.of(), List.of(), List.of(), List.of(),
+                List.of()),
+            Arguments.of(List.of(1L), 2L, 2L, List.of(), List.of(), List.of(), List.of(), List.of(),
+                List.of()),
+            Arguments.of(List.of(1L, 4L), 3L, 3L, List.of(), List.of(), List.of(), List.of(), List.of(),
+                List.of())
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideFindAllByIdsAccountIdAndDeploymentId")
+    void findAllByIdsAccountIdAndDeploymentId(List<Long> serviceDeploymentIds, long accountId, long deploymentId,
+                                              List<Long> foundServiceDeployments, List<Long> serviceIds, List<String> k8sServiceTypes,
+                                              List<String> resources, List<List<String>> resourceMetrics, List<String> statusList,
+                                              VertxTestContext testContext) {
+        smProvider.withTransactionSingle(sessionManager -> repository
+                .findAllByIdsAccountIdAndDeploymentId(sessionManager, serviceDeploymentIds, deploymentId,
+                    accountId))
+            .subscribe(result -> testContext.verify(() -> {
+                result.forEach(sd -> assertThat(sd.getDeployment().getDeploymentId()).isEqualTo(deploymentId));
+                assertThat(result.stream().map(ResourceDeployment::getResourceDeploymentId)
+                    .collect(Collectors.toList())).isEqualTo(foundServiceDeployments);
+                assertThat(result.stream().map(serviceDeployment -> serviceDeployment.getService().getServiceId())
+                    .collect(Collectors.toList())).isEqualTo(serviceIds);
+                assertThat(result.stream().map(serviceDeployment -> serviceDeployment.getService().getK8sServiceType()
+                    .getName()).collect(Collectors.toList())).isEqualTo(k8sServiceTypes);
+                assertThat(result.stream().map(serviceDeployment -> serviceDeployment.getResource().getName())
+                    .collect(Collectors.toList())).isEqualTo(resources);
+                assertThat(result.stream().map(serviceDeployment -> serviceDeployment.getResource().getMetricValues()
+                        .stream().map(mv -> mv.getMetric().getMetric()).collect(Collectors.toList()))
+                    .collect(Collectors.toList())).isEqualTo(resourceMetrics);
+                assertThat(result.stream().map(serviceDeployment -> serviceDeployment.getStatus().getStatusValue())
+                    .collect(Collectors.toList())).isEqualTo(statusList);
+                testContext.completeNow();
+            }), throwable -> testContext.failNow("method has thrown exception"));
+    }
+
     private static Stream<Arguments> provideFindAllByDeploymentId() {
         return Stream.of(
             Arguments.of(1L, List.of(1L, 2L, 3L), List.of(1L, 2L, 1L),
